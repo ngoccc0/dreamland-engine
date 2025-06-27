@@ -114,14 +114,15 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
     const [isInventoryOpen, setInventoryOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>([
-      { id: Date.now(), text: worldSetup.initialNarrative, type: 'narrative' }
+      { id: 0, text: worldSetup.initialNarrative, type: 'narrative' }
     ]);
     const [inputValue, setInputValue] = useState("");
     const { toast } = useToast();
     const scrollAreaRef = useRef<HTMLDivElement>(null);
+    const narrativeIdCounter = useRef(1);
 
     const addNarrativeEntry = useCallback((text: string, type: NarrativeEntry['type']) => {
-        setNarrativeLog(prev => [...prev, { id: Date.now(), text, type }]);
+        setNarrativeLog(prev => [...prev, { id: narrativeIdCounter.current++, text, type }]);
     }, []);
 
     // --- Game Engine Functions adapted for React State ---

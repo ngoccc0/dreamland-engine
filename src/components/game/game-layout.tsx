@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { BookOpen, Shield } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { GenerateWorldSetupOutput } from "@/ai/flows/generate-world-setup";
+import type { WorldConcept } from "@/ai/flows/generate-world-setup";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // --- START OF GAME ENGINE LOGIC ---
@@ -95,7 +95,7 @@ type NarrativeEntry = {
 // --- END OF GAME ENGINE LOGIC ---
 
 interface GameLayoutProps {
-    worldSetup: GenerateWorldSetupOutput;
+    worldSetup: WorldConcept;
 }
 
 export default function GameLayout({ worldSetup }: GameLayoutProps) {
@@ -113,9 +113,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
     const [isStatusOpen, setStatusOpen] = useState(false);
     const [isInventoryOpen, setInventoryOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>([
-      { id: 0, text: worldSetup.initialNarrative, type: 'narrative' }
-    ]);
+    const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>([]);
     const [inputValue, setInputValue] = useState("");
     const { toast } = useToast();
     const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -229,6 +227,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
     
     useEffect(() => {
         // Initialize the game world
+        addNarrativeEntry(worldSetup.initialNarrative, 'narrative');
         const startPos = { x: 0, y: 0 };
         const startingTerrain = worldSetup.startingBiome as Terrain;
         const { newWorld, newRegions, newRegionCounter } = generateRegion(startPos, startingTerrain, {}, {}, 0);
@@ -241,7 +240,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         setRegionCounter(newRegionCounter);
         addNarrativeEntry(newWorld[startKey].description, 'narrative');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [worldSetup.startingBiome, generateRegion]); // Only run on init
+    }, [worldSetup, generateRegion]); // Only run on init
 
     useEffect(() => {
         if (scrollAreaRef.current) {
@@ -341,6 +340,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         setInputValue("");
         
         const chunk = world[`${playerPosition.x},${playerPosition.y}`];
+        if (!chunk) return;
         const terrain = chunk.terrain;
         
         const responses: Record<string, string> = {
@@ -383,7 +383,9 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         }
         
         const center = radius;
-        grid[center][center].hasPlayer = true;
+        if(grid[center]?.[center]) {
+            grid[center][center].hasPlayer = true;
+        }
         
         return grid;
     }, [world, playerPosition]);

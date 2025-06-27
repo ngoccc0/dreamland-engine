@@ -445,7 +445,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                     
                     <Separator />
                     
-                    <div className="space-y-4 flex-grow flex flex-col">
+                    <div className="space-y-4">
                         <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">Hành động có sẵn</h2>
                         <div className="space-y-2">
                             {currentChunk?.actions.map(action => (
@@ -459,10 +459,9 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                                 </Tooltip>
                             ))}
                         </div>
-                        <div className="flex flex-col gap-2 mt-auto">
+                        <div className="flex flex-col gap-2">
                             <Input 
                                 placeholder="Hành động tùy chỉnh..." 
-                                className="flex-grow"
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleCustomAction(inputValue)}

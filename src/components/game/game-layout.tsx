@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -11,11 +10,11 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Shield, Swords } from "lucide-react";
+import { BookOpen, Shield } from "lucide-react";
 import { aiNarrativeResponse } from "@/ai/flows/ai-narrative-response";
 import { generateChunkDescription } from "@/ai/flows/generate-chunk-description";
 import { Skeleton } from "@/components/ui/skeleton";
-
+import type { GenerateWorldSetupOutput } from "@/ai/flows/generate-world-setup";
 
 type PlayerStats = {
   hp: number;
@@ -28,57 +27,53 @@ type NarrativeEntry = {
     type: 'narrative' | 'action' | 'system';
 }
 
-const initialMap: MapCell[][] = [
-  [{ biome: "forest" }, { biome: "forest" }, { biome: "grassland" }, { biome: "grassland" }, { biome: "grassland" }],
-  [{ biome: "forest" }, { biome: "forest" }, { biome: "grassland" }, { biome: "desert" }, { biome: "desert" }],
-  [{ biome: "forest" }, { biome: "grassland", hasPlayer: true }, { biome: "grassland" }, { biome: "desert" }, { biome: "desert" }],
-  [{ biome: "grassland" }, { biome: "grassland" }, { biome: "grassland", hasEnemy: true }, { biome: "desert" }, { biome: "desert" }],
-  [{ biome: "grassland" }, { biome: "grassland" }, { biome: "grassland" }, { biome: "desert" }, { biome: "desert" }],
-];
+// Function to generate the initial map
+const createInitialMap = (startingBiome: "forest" | "grassland" | "desert"): MapCell[][] => {
+    const mapSize = 5;
+    const playerPos = { x: 2, y: 2 };
+    // Create a base map (e.g., all grassland)
+    let map: MapCell[][] = Array(mapSize).fill(null).map(() => Array(mapSize).fill({ biome: "grassland" }));
+    
+    // Set the starting biome in a 3x3 area around the player
+    for (let i = playerPos.x - 1; i <= playerPos.x + 1; i++) {
+        for (let j = playerPos.y - 1; j <= playerPos.y + 1; j++) {
+            if (map[i] && map[i][j]) {
+                map[i][j] = { biome: startingBiome };
+            }
+        }
+    }
 
-export default function GameLayout() {
-  const [map, setMap] = useState<MapCell[][]>(initialMap);
-  const [playerPosition, setPlayerPosition] = useState<{ x: number; y: number }>({ x: 2, y: 1 });
+    map[playerPos.x][playerPos.y].hasPlayer = true;
+    // For variety, let's place an enemy and some other biomes randomly, but away from the player
+    map[0][4] = { biome: "desert" };
+    map[0][3] = { biome: "desert" };
+    map[4][0] = { biome: "forest" };
+    map[3][0] = { biome: "forest" };
+    map[0][0].hasEnemy = true;
+    
+    return map;
+};
+
+interface GameLayoutProps {
+  worldSetup: GenerateWorldSetupOutput;
+}
+
+export default function GameLayout({ worldSetup }: GameLayoutProps) {
+  const [map, setMap] = useState<MapCell[][]>(() => createInitialMap(worldSetup.startingBiome));
+  const [playerPosition, setPlayerPosition] = useState<{ x: number; y: number }>({ x: 2, y: 2 });
   const [playerStats, setPlayerStats] = useState<PlayerStats>({ hp: 100, mana: 50 });
-  const [quests, setQuests] = useState<string[]>(["Find the ancient amulet."]);
-  const [inventory, setInventory] = useState<string[]>(["Health Potion", "Old Key"]);
+  const [quests, setQuests] = useState<string[]>(worldSetup.initialQuests);
+  const [inventory, setInventory] = useState<string[]>(worldSetup.playerInventory);
   const [isStatusOpen, setStatusOpen] = useState(false);
   const [isInventoryOpen, setInventoryOpen] = useState(false);
   
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>([]);
-  const [chunkDescription, setChunkDescription] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // Used for subsequent AI calls
+  const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>([{ id: Date.now(), text: worldSetup.initialNarrative, type: 'narrative' }]);
+  const [chunkDescription, setChunkDescription] = useState(worldSetup.initialNarrative);
   
   const [inputValue, setInputValue] = useState("");
   const { toast } = useToast();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const initializeGame = async () => {
-      const startingCell = initialMap[playerPosition.x][playerPosition.y];
-      try {
-        const res = await generateChunkDescription({
-          biome: startingCell.biome,
-          nearbyElements: `The player character awakens here. It's the beginning of their adventure.`
-        });
-        setChunkDescription(res.description);
-        setNarrativeLog([{ id: Date.now(), text: res.description, type: 'narrative' }]);
-      } catch (error) {
-        console.error("Failed to initialize game:", error);
-        const fallbackDescription = "You awaken in a quiet, sun-dappled meadow. A gentle breeze whispers through the tall grass.";
-        setChunkDescription(fallbackDescription);
-        setNarrativeLog([
-            {id: Date.now(), text: fallbackDescription, type: 'narrative'}, 
-            {id: Date.now()+1, text: "The connection to the ethereal plane seems unstable. The world feels strangely predetermined.", type: 'system'}
-        ]);
-        toast({ title: "Initialization Error", description: "Could not generate the starting area. Using a fallback world.", variant: "destructive" });
-      } finally {
-        setIsInitializing(false);
-      }
-    };
-    initializeGame();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -94,6 +89,7 @@ export default function GameLayout() {
   }
 
   const handleMove = async (direction: "north" | "south" | "east" | "west") => {
+    setIsLoading(true);
     const newPosition = { ...playerPosition };
     let moved = false;
     if (direction === "north" && newPosition.x > 0) { newPosition.x--; moved = true; }
@@ -103,6 +99,7 @@ export default function GameLayout() {
     
     if (!moved) {
         addNarrativeEntry("You can't move in that direction. The path is blocked.", 'system');
+        setIsLoading(false);
         return;
     }
 
@@ -123,14 +120,19 @@ export default function GameLayout() {
         addNarrativeEntry(res.description, 'narrative');
     } catch (error) {
         console.error("Failed to generate chunk description:", error);
+        addNarrativeEntry("The world feels hazy and indistinct here.", 'system');
         toast({ title: "Error", description: "Could not generate next area description.", variant: "destructive" });
+    } finally {
+        setIsLoading(false);
     }
   };
   
   const handleAction = async (action: string) => {
-    if (!action.trim() || isInitializing) return;
+    if (!action.trim() || isLoading) return;
     addNarrativeEntry(action, 'action');
     setInputValue("");
+    setIsLoading(true);
+
     try {
         const response = await aiNarrativeResponse({
             playerAction: action,
@@ -154,6 +156,8 @@ export default function GameLayout() {
     } catch(e) {
         console.error(e);
         toast({ title: "Error", description: "The winds of fate are confused. Please try again.", variant: "destructive" });
+    } finally {
+        setIsLoading(false);
     }
   }
 
@@ -166,7 +170,7 @@ export default function GameLayout() {
       {/* Left Panel */}
       <div className="w-full md:w-[70%] h-full flex flex-col">
         <header className="p-4 border-b flex justify-between items-center">
-          <h1 className="text-2xl font-bold font-headline">Terra Textura</h1>
+          <h1 className="text-2xl font-bold font-headline">{worldSetup.worldName}</h1>
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={() => setStatusOpen(true)}><Shield className="mr-2 h-4 w-4"/>Status</Button>
             <Button variant="outline" onClick={() => setInventoryOpen(true)}><BookOpen className="mr-2 h-4 w-4"/>Inventory</Button>
@@ -175,18 +179,17 @@ export default function GameLayout() {
 
         <ScrollArea className="flex-grow p-4 md:p-6" ref={scrollAreaRef}>
           <div className="prose prose-stone dark:prose-invert max-w-none">
-            {isInitializing && (
-                <div className="space-y-4">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-[80%]" />
-                    <Skeleton className="h-4 w-full" />
-                </div>
-            )}
-            {!isInitializing && narrativeLog.map((entry) => (
+            {narrativeLog.map((entry) => (
                 <p key={entry.id} className={`animate-in fade-in duration-500 ${entry.type === 'action' ? 'italic text-accent-foreground/80' : ''} ${entry.type === 'system' ? 'font-semibold text-accent' : ''}`}>
                     {entry.text}
                 </p>
             ))}
+            {isLoading && (
+                <div className="flex items-center gap-2 text-muted-foreground italic mt-4">
+                    <Skeleton className="h-4 w-4 rounded-full" />
+                    <p>Thinking...</p>
+                </div>
+            )}
           </div>
         </ScrollArea>
         
@@ -195,7 +198,7 @@ export default function GameLayout() {
         <div className="p-4 space-y-4">
             <div className="p-4 bg-card rounded-lg shadow-inner">
                 <h2 className="font-headline text-lg font-semibold mb-2">Description</h2>
-                {isInitializing ? (
+                {isLoading && chunkDescription === "" ? (
                     <div className="space-y-2">
                         <Skeleton className="h-4 w-full" />
                         <Skeleton className="h-4 w-[75%]" />
@@ -211,14 +214,14 @@ export default function GameLayout() {
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleAction(inputValue)}
-                    disabled={isInitializing}
+                    disabled={isLoading}
                 />
-                <Button variant="accent" onClick={() => handleAction(inputValue)} disabled={isInitializing}>Send</Button>
+                <Button variant="accent" onClick={() => handleAction(inputValue)} disabled={isLoading}>Send</Button>
             </div>
             <div className="flex gap-2">
-                <Button variant="secondary" className="flex-1" onClick={() => handleAction("Look around")} disabled={isInitializing}>1. Look around</Button>
-                <Button variant="secondary" className="flex-1" onClick={() => handleAction("Check inventory")} disabled={isInitializing}>2. Check inventory</Button>
-                <Button variant="secondary" className="flex-1" onClick={() => handleAction("Rest")} disabled={isInitializing}>3. Rest</Button>
+                <Button variant="secondary" className="flex-1" onClick={() => handleAction("Look around")} disabled={isLoading}>1. Look around</Button>
+                <Button variant="secondary" className="flex-1" onClick={() => handleAction("Check inventory")} disabled={isLoading}>2. Check inventory</Button>
+                <Button variant="secondary" className="flex-1" onClick={() => handleAction("Rest")} disabled={isLoading}>3. Rest</Button>
             </div>
         </div>
       </div>

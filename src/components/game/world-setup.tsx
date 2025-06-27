@@ -84,7 +84,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                             key={prompt}
                                             onClick={() => setUserInput(prompt)}
                                             disabled={isLoading}
-                                            className="text-left p-2 rounded-md hover:bg-muted transition-colors text-accent-foreground/80 text-xs"
+                                            className="text-left p-2 rounded-md hover:bg-muted transition-colors text-accent text-xs"
                                         >
                                             &raquo; {prompt}
                                         </button>

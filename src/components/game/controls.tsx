@@ -24,27 +24,27 @@ export function Controls({ onMove, onAttack }: ControlsProps) {
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col items-center gap-4 w-full px-4 md:px-0 md:w-auto">
-        <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">Controls</h3>
+      <div className="flex flex-col items-center gap-2 w-full">
+        <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">Di chuyển & Tấn công</h3>
         
         {/* Mobile Layout */}
         <div className="md:hidden w-full flex flex-col items-center space-y-2">
             <Button variant="accent" className="w-full max-w-xs justify-center" onClick={() => onMove("north")}>
-                <ArrowUp className="mr-2 h-4 w-4" /> Move North
+                <ArrowUp className="mr-2 h-4 w-4" /> Đi lên
             </Button>
             <div className="grid grid-cols-3 gap-2 w-full max-w-xs">
                 <Button variant="accent" className="justify-center" onClick={() => onMove("west")}>
-                    <ArrowLeft className="mr-2 h-4 w-4" /> West
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Trái
                 </Button>
                 <Button variant="destructive" onClick={onAttack} aria-label="Attack">
                     <SwordIcon />
                 </Button>
                 <Button variant="accent" className="justify-center" onClick={() => onMove("east")}>
-                    East <ArrowRight className="ml-2 h-4 w-4" />
+                    Phải <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
             </div>
             <Button variant="accent" className="w-full max-w-xs justify-center" onClick={() => onMove("south")}>
-                <ArrowDown className="mr-2 h-4 w-4" /> Move South
+                <ArrowDown className="mr-2 h-4 w-4" /> Đi xuống
             </Button>
         </div>
 
@@ -58,7 +58,7 @@ export function Controls({ onMove, onAttack }: ControlsProps) {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Move North</p>
+                <p>Đi lên (North)</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -70,7 +70,7 @@ export function Controls({ onMove, onAttack }: ControlsProps) {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Move West</p>
+                <p>Đi sang trái (West)</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -82,7 +82,7 @@ export function Controls({ onMove, onAttack }: ControlsProps) {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Attack</p>
+                <p>Tấn công</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -94,7 +94,7 @@ export function Controls({ onMove, onAttack }: ControlsProps) {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Move East</p>
+                <p>Đi sang phải (East)</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -106,7 +106,7 @@ export function Controls({ onMove, onAttack }: ControlsProps) {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Move South</p>
+                <p>Đi xuống (South)</p>
               </TooltipContent>
             </Tooltip>
           </div>

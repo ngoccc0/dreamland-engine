@@ -393,24 +393,10 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
     return (
         <TooltipProvider>
             <div className="flex flex-col md:flex-row h-dvh bg-background text-foreground font-body">
-                {/* Left Panel */}
+                {/* Left Panel: Narrative */}
                 <div className="w-full md:w-[70%] h-full flex flex-col">
-                    <header className="p-4 border-b flex justify-between items-center">
+                    <header className="p-4 border-b">
                         <h1 className="text-2xl font-bold font-headline">{worldSetup.worldName}</h1>
-                        <div className="flex items-center gap-2">
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="outline" onClick={() => setStatusOpen(true)}><Shield className="mr-2 h-4 w-4"/>Status</Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>Xem máu, năng lượng và nhiệm vụ hiện tại.</p></TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="outline" onClick={() => setInventoryOpen(true)}><BookOpen className="mr-2 h-4 w-4"/>Inventory</Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>Kiểm tra các vật phẩm bạn đang mang.</p></TooltipContent>
-                            </Tooltip>
-                        </div>
                     </header>
 
                     <ScrollArea className="flex-grow p-4 md:p-6" ref={scrollAreaRef}>
@@ -428,26 +414,54 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                             )}
                         </div>
                     </ScrollArea>
+                </div>
+
+                {/* Right Panel: Controls & Actions */}
+                <div className="w-full md:w-[30%] bg-card border-l flex flex-col p-4 md:p-6 gap-6 overflow-y-auto">
+                    <Minimap grid={generateMapGrid()} />
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="outline" onClick={() => setStatusOpen(true)} className="w-full justify-center">
+                                    <Shield className="h-4 w-4 md:mr-2"/>
+                                    <span className="hidden md:inline">Trạng thái</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Xem máu, năng lượng và nhiệm vụ.</p></TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="outline" onClick={() => setInventoryOpen(true)} className="w-full justify-center">
+                                    <BookOpen className="h-4 w-4 md:mr-2"/>
+                                    <span className="hidden md:inline">Túi đồ</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Kiểm tra các vật phẩm bạn đang mang.</p></TooltipContent>
+                        </Tooltip>
+                    </div>
+
+                    <Controls onMove={handleMove} onAttack={handleAttack} />
                     
                     <Separator />
                     
-                    <div className="p-4 space-y-4">
-                        <div className="p-4 bg-card rounded-lg shadow-inner">
-                            <h2 className="font-headline text-lg font-semibold mb-2">Hành động có thể thực hiện</h2>
+                    <div className="space-y-4 flex-grow flex flex-col">
+                        <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">Hành động có sẵn</h2>
+                        <div className="space-y-2">
                             {currentChunk?.actions.map(action => (
                                 <Tooltip key={action.id}>
                                     <TooltipTrigger asChild>
-                                        <Button variant="secondary" className="w-full justify-start mb-2" onClick={() => handleAction(action.id)}>
-                                            {`${action.id}. ${action.text}`}
+                                        <Button variant="secondary" className="w-full justify-center" onClick={() => handleAction(action.id)}>
+                                            {action.text}
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent><p>{action.text}</p></TooltipContent>
                                 </Tooltip>
                             ))}
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col gap-2 mt-auto">
                             <Input 
-                                placeholder="Bạn muốn làm gì khác?" 
+                                placeholder="Hành động tùy chỉnh..." 
                                 className="flex-grow"
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
@@ -462,12 +476,6 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                             </Tooltip>
                         </div>
                     </div>
-                </div>
-
-                {/* Right Panel */}
-                <div className="w-full md:w-[30%] bg-card border-l flex flex-col p-4 md:p-6 gap-8 items-center justify-center">
-                    <Minimap grid={generateMapGrid()} />
-                    <Controls onMove={handleMove} onAttack={handleAttack} />
                 </div>
                 
                 <StatusPopup open={isStatusOpen} onOpenChange={setStatusOpen} stats={playerStats} quests={playerStats.quests} />

@@ -21,9 +21,9 @@ export function InventoryPopup({ open, onOpenChange, items }: InventoryPopupProp
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="font-headline">Inventory</DialogTitle>
+          <DialogTitle className="font-headline">Túi đồ</DialogTitle>
           <DialogDescription>
-            Items you have collected on your journey.
+            Các vật phẩm bạn đã thu thập trên hành trình.
           </DialogDescription>
         </DialogHeader>
         <Separator />
@@ -38,7 +38,7 @@ export function InventoryPopup({ open, onOpenChange, items }: InventoryPopupProp
                 ))}
               </ul>
             ) : (
-              <p className="text-center text-muted-foreground">Your inventory is empty.</p>
+              <p className="text-center text-muted-foreground">Túi đồ của bạn trống rỗng.</p>
             )}
           </div>
         </ScrollArea>

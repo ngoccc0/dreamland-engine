@@ -26,24 +26,24 @@ export function StatusPopup({ open, onOpenChange, stats, quests }: StatusPopupPr
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="font-headline">Player Status</DialogTitle>
+          <DialogTitle className="font-headline">Trạng thái người chơi</DialogTitle>
           <DialogDescription>
-            Your current condition and active quests.
+            Tình trạng hiện tại và các nhiệm vụ đang hoạt động.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="space-y-2">
-            <label htmlFor="hp" className="text-sm font-medium">HP: {stats.hp}/100</label>
+            <label htmlFor="hp" className="text-sm font-medium">Máu: {stats.hp}/100</label>
             <Progress id="hp" value={stats.hp} className="h-4" />
           </div>
           <div className="space-y-2">
-            <label htmlFor="mana" className="text-sm font-medium">Mana: {stats.mana}/50</label>
+            <label htmlFor="mana" className="text-sm font-medium">Năng lượng: {stats.mana}/50</label>
             <Progress id="mana" value={(stats.mana / 50) * 100} className="h-4" />
           </div>
         </div>
         <Separator />
         <div>
-          <h3 className="mb-2 font-headline font-semibold">Quests</h3>
+          <h3 className="mb-2 font-headline font-semibold">Nhiệm vụ</h3>
           <ScrollArea className="h-40">
             <div className="p-4">
               {quests.length > 0 ? (
@@ -55,7 +55,7 @@ export function StatusPopup({ open, onOpenChange, stats, quests }: StatusPopupPr
                   ))}
                 </ul>
               ) : (
-                <p className="text-center text-muted-foreground">No active quests.</p>
+                <p className="text-center text-muted-foreground">Không có nhiệm vụ nào.</p>
               )}
             </div>
           </ScrollArea>

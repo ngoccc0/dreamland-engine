@@ -12,7 +12,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { BookOpen, Shield, Swords } from "lucide-react";
-import { aiNarrativeResponse, generateChunkDescription } from "@/ai/flows";
+import { aiNarrativeResponse } from "@/ai/flows/ai-narrative-response";
+import { generateChunkDescription } from "@/ai/flows/generate-chunk-description";
 import { Skeleton } from "@/components/ui/skeleton";
 
 

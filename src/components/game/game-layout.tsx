@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Minimap, type MapCell } from "@/components/game/minimap";
 import { Controls } from "@/components/game/controls";
 import { StatusPopup } from "@/components/game/status-popup";
@@ -11,15 +11,79 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { BookOpen, Shield } from "lucide-react";
-import { aiNarrativeResponse } from "@/ai/flows/ai-narrative-response";
-import { generateChunkDescription } from "@/ai/flows/generate-chunk-description";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { GenerateWorldSetupOutput } from "@/ai/flows/generate-world-setup";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-type PlayerStats = {
-  hp: number;
-  mana: number;
+// --- START OF GAME ENGINE LOGIC ---
+
+type Terrain = "forest" | "grassland" | "desert";
+
+interface Chunk {
+    x: number;
+    y: number;
+    terrain: Terrain;
+    description: string;
+    NPCs: string[];
+    items: string[];
+    explored: boolean;
+    enemy: { type: string; hp: number } | null;
+    actions: { id: number; text: string }[];
+    regionId: number;
+}
+
+interface World {
+    [key: string]: Chunk;
+}
+
+interface PlayerStatus {
+    hp: number;
+    mana: number;
+    items: string[];
+    quests: string[];
+}
+
+interface Region {
+    terrain: Terrain;
+    cells: { x: number; y: number }[];
+}
+
+const worldConfig = {
+    terrainTypes: {
+        forest: { minSize: 5, maxSize: 10, probability: 0.5, adjacent: ['grassland'] as Terrain[] },
+        grassland: { minSize: 2, maxSize: 4, probability: 0.4, adjacent: ['forest', 'desert'] as Terrain[] },
+        desert: { minSize: 2, maxSize: 5, probability: 0.1, adjacent: ['grassland'] as Terrain[] }
+    }
+};
+
+const templates: Record<Terrain, any> = {
+    forest: {
+        image: 'forest',
+        descriptionTemplate: 'Bạn đứng trong một [adjective] rừng [feature], trải rộng khắp vùng.',
+        NPCs: ['thợ săn', 'sói'],
+        items: ['kiếm rỉ', 'thảo dược'],
+        adjectives: ['rậm rạp', 'u ám'],
+        features: ['sồi cổ thụ', 'thông cao'],
+        enemy: { type: 'sói', hp: 50 }
+    },
+    grassland: {
+        image: 'grassland',
+        descriptionTemplate: 'Bạn đứng trên một [adjective] đồng cỏ [feature], nối rừng và sa mạc.',
+        NPCs: ['nông dân', 'thỏ hoang'],
+        items: ['lúa mì', 'cỏ khô'],
+        adjectives: ['xanh mướt', 'bạt ngàn'],
+        features: ['thảo nguyên', 'đồi cỏ'],
+        enemy: { type: 'thỏ hoang', hp: 20 }
+    },
+    desert: {
+        image: 'desert',
+        descriptionTemplate: 'Bạn đứng trong một [adjective] sa mạc [feature], trải dài vô tận.',
+        NPCs: ['thương nhân', 'rắn độc'],
+        items: ['nước'],
+        adjectives: ['nóng bỏng', 'khô cằn'],
+        features: ['cồn cát', 'ốc đảo'],
+        enemy: { type: 'rắn độc', hp: 30 }
+    }
 };
 
 type NarrativeEntry = {
@@ -28,257 +92,386 @@ type NarrativeEntry = {
     type: 'narrative' | 'action' | 'system';
 }
 
-// Function to generate the initial map
-const createInitialMap = (startingBiome: "forest" | "grassland" | "desert"): MapCell[][] => {
-    const mapSize = 5;
-    const playerPos = { x: 2, y: 2 };
-    // Create a base map (e.g., all grassland)
-    let map: MapCell[][] = Array(mapSize).fill(null).map(() => Array(mapSize).fill({ biome: "grassland" }));
-    
-    // Set the starting biome in a 3x3 area around the player
-    for (let i = playerPos.x - 1; i <= playerPos.x + 1; i++) {
-        for (let j = playerPos.y - 1; j <= playerPos.y + 1; j++) {
-            if (map[i] && map[i][j]) {
-                map[i][j] = { biome: startingBiome };
-            }
-        }
-    }
-
-    map[playerPos.x][playerPos.y].hasPlayer = true;
-    // For variety, let's place an enemy and some other biomes randomly, but away from the player
-    map[0][4] = { biome: "desert" };
-    map[0][3] = { biome: "desert" };
-    map[4][0] = { biome: "forest" };
-    map[3][0] = { biome: "forest" };
-    map[0][0].hasEnemy = true;
-    
-    return map;
-};
+// --- END OF GAME ENGINE LOGIC ---
 
 interface GameLayoutProps {
-  worldSetup: GenerateWorldSetupOutput;
+    worldSetup: GenerateWorldSetupOutput;
 }
 
 export default function GameLayout({ worldSetup }: GameLayoutProps) {
-  const [map, setMap] = useState<MapCell[][]>(() => createInitialMap(worldSetup.startingBiome));
-  const [playerPosition, setPlayerPosition] = useState<{ x: number; y: number }>({ x: 2, y: 2 });
-  const [playerStats, setPlayerStats] = useState<PlayerStats>({ hp: 100, mana: 50 });
-  const [quests, setQuests] = useState<string[]>(worldSetup.initialQuests);
-  const [inventory, setInventory] = useState<string[]>(worldSetup.playerInventory);
-  const [isStatusOpen, setStatusOpen] = useState(false);
-  const [isInventoryOpen, setInventoryOpen] = useState(false);
-  
-  const [isLoading, setIsLoading] = useState(false); // Used for subsequent AI calls
-  const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>([{ id: Date.now(), text: worldSetup.initialNarrative, type: 'narrative' }]);
-  const [chunkDescription, setChunkDescription] = useState(worldSetup.initialNarrative);
-  
-  const [inputValue, setInputValue] = useState("");
-  const { toast } = useToast();
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (scrollAreaRef.current) {
-        const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
-        if (viewport) {
-            viewport.scrollTop = viewport.scrollHeight;
-        }
-    }
-  }, [narrativeLog]);
-
-  const addNarrativeEntry = (text: string, type: NarrativeEntry['type']) => {
-    setNarrativeLog(prev => [...prev, {id: Date.now(), text, type}]);
-  }
-
-  const handleMove = async (direction: "north" | "south" | "east" | "west") => {
-    setIsLoading(true);
-    const newPosition = { ...playerPosition };
-    let moved = false;
-    if (direction === "north" && newPosition.x > 0) { newPosition.x--; moved = true; }
-    else if (direction === "south" && newPosition.x < map.length - 1) { newPosition.x++; moved = true; }
-    else if (direction === "west" && newPosition.y > 0) { newPosition.y--; moved = true; }
-    else if (direction === "east" && newPosition.y < map[0].length - 1) { newPosition.y++; moved = true; }
+    const [world, setWorld] = useState<World>({});
+    const [regions, setRegions] = useState<{ [id: number]: Region }>({});
+    const [regionCounter, setRegionCounter] = useState(0);
+    const [playerPosition, setPlayerPosition] = useState({ x: 0, y: 0 });
+    const [playerStats, setPlayerStats] = useState<PlayerStatus>({
+        hp: 100,
+        mana: 50,
+        items: worldSetup.playerInventory,
+        quests: worldSetup.initialQuests
+    });
     
-    if (!moved) {
-        addNarrativeEntry("You can't move in that direction. The path is blocked.", 'system');
-        setIsLoading(false);
-        return;
+    const [isStatusOpen, setStatusOpen] = useState(false);
+    const [isInventoryOpen, setInventoryOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>([
+      { id: Date.now(), text: worldSetup.initialNarrative, type: 'narrative' }
+    ]);
+    const [inputValue, setInputValue] = useState("");
+    const { toast } = useToast();
+    const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+    const addNarrativeEntry = useCallback((text: string, type: NarrativeEntry['type']) => {
+        setNarrativeLog(prev => [...prev, { id: Date.now(), text, type }]);
+    }, []);
+
+    // --- Game Engine Functions adapted for React State ---
+
+    const weightedRandom = (options: [Terrain, number][]): Terrain => {
+        const total = options.reduce((sum, [, prob]) => sum + prob, 0);
+        const r = Math.random() * total;
+        let current = 0;
+        for (const [option, prob] of options) {
+            current += prob;
+            if (r <= current) return option;
+        }
+        return options[0][0];
     }
+    
+    const getValidAdjacentTerrains = useCallback((pos: { x: number; y: number }, currentWorld: World): Terrain[] => {
+        const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }];
+        const adjacentTerrains = new Set<Terrain>();
+        for (const dir of directions) {
+            const neighborKey = `${pos.x + dir.x},${pos.y + dir.y}`;
+            if (currentWorld[neighborKey]) {
+                adjacentTerrains.add(currentWorld[neighborKey].terrain);
+            }
+        }
+    
+        if (adjacentTerrains.size === 0) {
+            return Object.keys(worldConfig.terrainTypes) as Terrain[];
+        }
+    
+        const validTerrains: Terrain[] = [];
+        for (const terrain in worldConfig.terrainTypes) {
+            const terrainKey = terrain as Terrain;
+            const adjacentRules = worldConfig.terrainTypes[terrainKey].adjacent;
+            let canBePlaced = true;
+            for(const adj of adjacentTerrains) {
+                if(!adjacentRules.includes(adj)) {
+                    canBePlaced = false;
+                    break;
+                }
+            }
+            if (canBePlaced) {
+                validTerrains.push(terrainKey);
+            }
+        }
+        return validTerrains.length ? validTerrains : Object.keys(worldConfig.terrainTypes) as Terrain[];
+    }, []);
 
-    const newMap = map.map(row => row.map(cell => ({ ...cell, hasPlayer: false })));
-    newMap[newPosition.x][newPosition.y].hasPlayer = true;
+    const generateRegion = useCallback((startPos: { x: number; y: number }, terrain: Terrain, currentWorld: World, currentRegions: { [id: number]: Region }, currentRegionCounter: number) => {
+        const newWorld = { ...currentWorld };
+        const newRegions = { ...currentRegions };
+        let newRegionCounter = currentRegionCounter;
 
-    setPlayerPosition(newPosition);
-    setMap(newMap);
-    addNarrativeEntry(`You move ${direction}.`, 'action');
-
-    try {
-        const currentChunk = newMap[newPosition.x][newPosition.y];
-        const res = await generateChunkDescription({
-            biome: currentChunk.biome,
-            nearbyElements: `Player is at ${newPosition.x}, ${newPosition.y}. An enemy might be nearby.`
-        });
-        setChunkDescription(res.description);
-        addNarrativeEntry(res.description, 'narrative');
-    } catch (error) {
-        console.error("Failed to generate chunk description:", error);
-        addNarrativeEntry("The world feels hazy and indistinct here.", 'system');
-        toast({ title: "Error", description: "Could not generate next area description.", variant: "destructive" });
-    } finally {
-        setIsLoading(false);
-    }
-  };
-  
-  const handleAction = async (action: string) => {
-    if (!action.trim() || isLoading) return;
-    addNarrativeEntry(action, 'action');
-    setInputValue("");
-    setIsLoading(true);
-
-    try {
-        const response = await aiNarrativeResponse({
-            playerAction: action,
-            chunkDescription: chunkDescription,
-            inventory,
-            playerStats: { ...playerStats, quests }
-        });
+        const template = templates[terrain];
+        const config = worldConfig.terrainTypes[terrain];
+        const size = Math.floor(Math.random() * (config.maxSize - config.minSize + 1)) + config.minSize;
         
-        if (response.narrativeResponse) {
-            addNarrativeEntry(response.narrativeResponse, 'narrative');
+        const cells: { x: number, y: number }[] = [{ x: startPos.x, y: startPos.y }];
+        const queue: { x: number, y: number }[] = [{ x: startPos.x, y: startPos.y }];
+        const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }];
+
+        while (cells.length < size && queue.length > 0) {
+            const current = queue.shift()!;
+            for (const dir of directions.sort(() => Math.random() - 0.5)) {
+                if (cells.length >= size) break;
+                const newPos = { x: current.x + dir.x, y: current.y + dir.y };
+                const newPosKey = `${newPos.x},${newPos.y}`;
+                if (!newWorld[newPosKey] && !cells.some(c => c.x === newPos.x && c.y === newPos.y)) {
+                    cells.push(newPos);
+                    queue.push(newPos);
+                }
+            }
         }
-        if (response.newChunkDescription && response.newChunkDescription !== chunkDescription) {
-            setChunkDescription(response.newChunkDescription);
-            addNarrativeEntry(`Your perception of the area has changed.`, 'system');
+
+        const regionId = newRegionCounter++;
+        newRegions[regionId] = { terrain, cells };
+
+        for (const pos of cells) {
+            const posKey = `${pos.x},${pos.y}`;
+            const npc = template.NPCs[Math.floor(Math.random() * template.NPCs.length)];
+            const item = template.items[Math.floor(Math.random() * template.items.length)];
+            const isEnemy = ['sói', 'rắn độc', 'thỏ hoang'].includes(npc);
+
+            newWorld[posKey] = {
+                x: pos.x, y: pos.y,
+                terrain,
+                description: template.descriptionTemplate.replace('[adjective]', template.adjectives[Math.floor(Math.random() * template.adjectives.length)])
+                    .replace('[feature]', template.features[Math.floor(Math.random() * template.features.length)]),
+                NPCs: [npc],
+                items: [item],
+                explored: false,
+                enemy: isEnemy ? { ...template.enemy } : null,
+                actions: [
+                    { id: 1, text: isEnemy ? `Quan sát ${npc}` : `Nói chuyện với ${npc}` },
+                    { id: 2, text: 'Khám phá khu vực' },
+                    { id: 3, text: `Nhặt ${item}` }
+                ],
+                regionId
+            };
         }
-        if (response.questUpdates && response.questUpdates.length > 0) {
-            setQuests(prev => [...new Set([...prev, ...response.questUpdates])]);
-            addNarrativeEntry('Your quest log has been updated.', 'system');
-        }
+        return { newWorld, newRegions, newRegionCounter };
+    }, []);
 
-    } catch(e) {
-        console.error(e);
-        toast({ title: "Error", description: "The winds of fate are confused. Please try again.", variant: "destructive" });
-    } finally {
-        setIsLoading(false);
-    }
-  }
-
-  const handleAttack = () => {
-    handleAction("Attack the enemy!");
-  };
-
-  return (
-    <TooltipProvider>
-      <div className="flex flex-col md:flex-row h-dvh bg-background text-foreground font-body">
-        {/* Left Panel */}
-        <div className="w-full md:w-[70%] h-full flex flex-col">
-          <header className="p-4 border-b flex justify-between items-center">
-            <h1 className="text-2xl font-bold font-headline">{worldSetup.worldName}</h1>
-            <div className="flex items-center gap-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" onClick={() => setStatusOpen(true)}><Shield className="mr-2 h-4 w-4"/>Status</Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>View your current health, mana, and quests.</p>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" onClick={() => setInventoryOpen(true)}><BookOpen className="mr-2 h-4 w-4"/>Inventory</Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Check the items you are carrying.</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          </header>
-
-          <ScrollArea className="flex-grow p-4 md:p-6" ref={scrollAreaRef}>
-            <div className="prose prose-stone dark:prose-invert max-w-none">
-              {narrativeLog.map((entry) => (
-                  <p key={entry.id} className={`animate-in fade-in duration-500 ${entry.type === 'action' ? 'italic text-accent-foreground/80' : ''} ${entry.type === 'system' ? 'font-semibold text-accent' : ''}`}>
-                      {entry.text}
-                  </p>
-              ))}
-              {isLoading && (
-                  <div className="flex items-center gap-2 text-muted-foreground italic mt-4">
-                      <Skeleton className="h-4 w-4 rounded-full" />
-                      <p>Thinking...</p>
-                  </div>
-              )}
-            </div>
-          </ScrollArea>
-          
-          <Separator />
-          
-          <div className="p-4 space-y-4">
-              <div className="p-4 bg-card rounded-lg shadow-inner">
-                  <h2 className="font-headline text-lg font-semibold mb-2">Description</h2>
-                  {isLoading && chunkDescription === "" ? (
-                      <div className="space-y-2">
-                          <Skeleton className="h-4 w-full" />
-                          <Skeleton className="h-4 w-[75%]" />
-                      </div>
-                  ) : (
-                      <p className="text-card-foreground/80 animate-in fade-in duration-500">{chunkDescription}</p>
-                  )}
-              </div>
-              <div className="flex gap-2">
-                  <Input 
-                      placeholder="What do you do?" 
-                      className="flex-grow"
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleAction(inputValue)}
-                      disabled={isLoading}
-                  />
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="accent" onClick={() => handleAction(inputValue)} disabled={isLoading}>Send</Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Send your custom action to the game master.</p>
-                    </TooltipContent>
-                  </Tooltip>
-              </div>
-              <div className="flex gap-2">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="secondary" className="flex-1" onClick={() => handleAction("Look around")} disabled={isLoading}>1. Look around</Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Get a more detailed description of your surroundings.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="secondary" className="flex-1" onClick={() => handleAction("Check inventory")} disabled={isLoading}>2. Check inventory</Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>See what items are in your bag.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="secondary" className="flex-1" onClick={() => handleAction("Rest")} disabled={isLoading}>3. Rest</Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Take a moment to rest and possibly recover health.</p>
-                    </TooltipContent>
-                  </Tooltip>
-              </div>
-          </div>
-        </div>
-
-        {/* Right Panel */}
-        <div className="w-full md:w-[30%] bg-card border-l flex flex-col p-4 md:p-6 gap-8 items-center justify-center">
-          <Minimap grid={map} />
-          <Controls onMove={handleMove} onAttack={handleAttack} />
-        </div>
+    // --- Component Effects and Handlers ---
+    
+    useEffect(() => {
+        // Initialize the game world
+        const startPos = { x: 0, y: 0 };
+        const startingTerrain = worldSetup.startingBiome as Terrain;
+        const { newWorld, newRegions, newRegionCounter } = generateRegion(startPos, startingTerrain, {}, {}, 0);
         
-        <StatusPopup open={isStatusOpen} onOpenChange={setStatusOpen} stats={playerStats} quests={quests} />
-        <InventoryPopup open={isInventoryOpen} onOpenChange={setInventoryOpen} items={inventory} />
-      </div>
-    </TooltipProvider>
-  );
+        const startKey = `${startPos.x},${startPos.y}`;
+        newWorld[startKey].explored = true;
+
+        setWorld(newWorld);
+        setRegions(newRegions);
+        setRegionCounter(newRegionCounter);
+        addNarrativeEntry(newWorld[startKey].description, 'narrative');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [worldSetup.startingBiome, generateRegion]); // Only run on init
+
+    useEffect(() => {
+        if (scrollAreaRef.current) {
+            const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
+            if (viewport) {
+                viewport.scrollTop = viewport.scrollHeight;
+            }
+        }
+    }, [narrativeLog]);
+    
+    const handleMove = (direction: "north" | "south" | "east" | "west") => {
+        setPlayerPosition(currentPosition => {
+            let newPos = { ...currentPosition };
+            if (direction === 'north') newPos.y++;
+            else if (direction === 'south') newPos.y--;
+            else if (direction === 'east') newPos.x++;
+            else if (direction === 'west') newPos.x--;
+
+            setWorld(currentWorld => {
+                let newWorld = { ...currentWorld };
+                const newPosKey = `${newPos.x},${newPos.y}`;
+
+                if (!newWorld[newPosKey]) {
+                    const validTerrains = getValidAdjacentTerrains(newPos, currentWorld);
+                    const terrainProbs = validTerrains.map(t => [t, worldConfig.terrainTypes[t].probability] as [Terrain, number]);
+                    const newTerrain = weightedRandom(terrainProbs);
+                    
+                    const result = generateRegion(newPos, newTerrain, currentWorld, regions, regionCounter);
+                    newWorld = result.newWorld;
+                    setRegions(result.newRegions);
+                    setRegionCounter(result.newRegionCounter);
+                }
+                
+                newWorld[newPosKey] = { ...newWorld[newPosKey], explored: true };
+                addNarrativeEntry(`Bạn đi về phía ${direction}.`, 'action');
+                addNarrativeEntry(newWorld[newPosKey].description, 'narrative');
+                return newWorld;
+            });
+            return newPos;
+        });
+    };
+
+    const handleAction = (actionId: number) => {
+        const chunk = world[`${playerPosition.x},${playerPosition.y}`];
+        if (!chunk) return;
+    
+        if (actionId === 1 && chunk.enemy) {
+            addNarrativeEntry(`Bạn quan sát ${chunk.NPCs[0]}. Nó trông hung dữ!`, 'narrative');
+        } else if (actionId === 1) {
+            addNarrativeEntry(`Bạn nói chuyện với ${chunk.NPCs[0]}. Họ kể về một kho báu gần đây.`, 'narrative');
+            setPlayerStats(prev => {
+                const newQuests = [...prev.quests, 'Tìm kho báu'];
+                return { ...prev, quests: [...new Set(newQuests)] };
+            });
+            addNarrativeEntry("Nhiệm vụ đã được cập nhật.", "system");
+        } else if (actionId === 2) {
+            addNarrativeEntry('Bạn khám phá khu vực, thấy một dấu vết lạ.', 'narrative');
+        } else if (actionId === 3) {
+            const item = chunk.items[0];
+            addNarrativeEntry(`Bạn nhặt được ${item}!`, 'narrative');
+            setPlayerStats(prev => ({ ...prev, items: [...prev.items, item] }));
+        }
+    }
+
+    const handleAttack = () => {
+        const key = `${playerPosition.x},${playerPosition.y}`;
+        let chunk = world[key];
+        if (!chunk || !chunk.enemy) return;
+
+        const enemy = chunk.enemy;
+        const playerDamage = 20;
+        const enemyDamage = 10;
+        
+        enemy.hp -= playerDamage;
+        addNarrativeEntry(`Bạn tấn công ${enemy.type}, gây ${playerDamage} sát thương.`, 'action');
+    
+        if (enemy.hp <= 0) {
+            addNarrativeEntry(`Bạn đã hạ gục ${enemy.type}!`, 'system');
+            setWorld(prev => ({ ...prev, [key]: { ...prev[key], enemy: null } }));
+        } else {
+            addNarrativeEntry(`${enemy.type} còn ${enemy.hp} HP.`, 'narrative');
+            setPlayerStats(prev => {
+                const newHp = prev.hp - enemyDamage;
+                addNarrativeEntry(`${enemy.type} phản đòn, bạn mất ${enemyDamage} HP.`, 'narrative');
+                if (newHp <= 0) {
+                    addNarrativeEntry('Bạn đã ngã xuống!', 'system');
+                    // Game over logic could go here
+                }
+                return { ...prev, hp: newHp };
+            });
+        }
+    };
+
+    const handleCustomAction = (text: string) => {
+        if (!text.trim()) return;
+        addNarrativeEntry(text, 'action');
+        setInputValue("");
+        
+        const chunk = world[`${playerPosition.x},${playerPosition.y}`];
+        const terrain = chunk.terrain;
+        
+        const responses: Record<string, string> = {
+            'kiểm tra cây': terrain === 'forest' ? 'Bạn kiểm tra cây, tìm thấy một quả táo!' : 'Chỉ có cát hoặc cỏ ở đây!',
+            'đào đất': terrain === 'desert' ? 'Bạn đào đất, thấy một đồng xu!' : 'Đất cứng hoặc cỏ quá, không đào được!',
+            'gặt cỏ': terrain === 'grassland' ? 'Bạn gặt cỏ, thu được cỏ khô!' : 'Không có cỏ để gặt!',
+            'nhìn xung quanh': 'Bạn nhìn quanh, thấy một con đường mờ mịt.'
+        };
+
+        const response = responses[text.toLowerCase()] || 'Hành động không được nhận diện. Thử lại!';
+        addNarrativeEntry(response, 'narrative');
+        
+        if (text.toLowerCase() === 'gặt cỏ' && terrain === 'grassland') {
+            setPlayerStats(prev => ({...prev, items: [...prev.items, 'cỏ khô']}));
+        }
+    }
+
+    const generateMapGrid = useCallback((): MapCell[][] => {
+        const radius = 2;
+        const size = radius * 2 + 1;
+        const grid: MapCell[][] = Array(size).fill(null).map(() => 
+            Array(size).fill({ biome: 'empty', hasEnemy: false, hasPlayer: false })
+        );
+
+        for (let gy = 0; gy < size; gy++) {
+            for (let gx = 0; gx < size; gx++) {
+                const wx = playerPosition.x - radius + gx;
+                const wy = playerPosition.y + radius - gy;
+                const chunkKey = `${wx},${wy}`;
+                const chunk = world[chunkKey];
+
+                if (chunk) {
+                    grid[gy][gx] = {
+                        biome: chunk.terrain,
+                        hasEnemy: !!chunk.enemy,
+                        hasPlayer: false, // will be set later
+                    };
+                }
+            }
+        }
+        
+        const center = radius;
+        grid[center][center].hasPlayer = true;
+        
+        return grid;
+    }, [world, playerPosition]);
+    
+    const currentChunk = world[`${playerPosition.x},${playerPosition.y}`];
+
+    return (
+        <TooltipProvider>
+            <div className="flex flex-col md:flex-row h-dvh bg-background text-foreground font-body">
+                {/* Left Panel */}
+                <div className="w-full md:w-[70%] h-full flex flex-col">
+                    <header className="p-4 border-b flex justify-between items-center">
+                        <h1 className="text-2xl font-bold font-headline">{worldSetup.worldName}</h1>
+                        <div className="flex items-center gap-2">
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="outline" onClick={() => setStatusOpen(true)}><Shield className="mr-2 h-4 w-4"/>Status</Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>Xem máu, năng lượng và nhiệm vụ hiện tại.</p></TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="outline" onClick={() => setInventoryOpen(true)}><BookOpen className="mr-2 h-4 w-4"/>Inventory</Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>Kiểm tra các vật phẩm bạn đang mang.</p></TooltipContent>
+                            </Tooltip>
+                        </div>
+                    </header>
+
+                    <ScrollArea className="flex-grow p-4 md:p-6" ref={scrollAreaRef}>
+                        <div className="prose prose-stone dark:prose-invert max-w-none">
+                            {narrativeLog.map((entry) => (
+                                <p key={entry.id} className={`animate-in fade-in duration-500 ${entry.type === 'action' ? 'italic text-accent-foreground/80' : ''} ${entry.type === 'system' ? 'font-semibold text-accent' : ''}`}>
+                                    {entry.text}
+                                </p>
+                            ))}
+                            {isLoading && (
+                                <div className="flex items-center gap-2 text-muted-foreground italic mt-4">
+                                    <Skeleton className="h-4 w-4 rounded-full" />
+                                    <p>Thinking...</p>
+                                </div>
+                            )}
+                        </div>
+                    </ScrollArea>
+                    
+                    <Separator />
+                    
+                    <div className="p-4 space-y-4">
+                        <div className="p-4 bg-card rounded-lg shadow-inner">
+                            <h2 className="font-headline text-lg font-semibold mb-2">Hành động có thể thực hiện</h2>
+                            {currentChunk?.actions.map(action => (
+                                <Tooltip key={action.id}>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="secondary" className="w-full justify-start mb-2" onClick={() => handleAction(action.id)}>
+                                            {`${action.id}. ${action.text}`}
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>{action.text}</p></TooltipContent>
+                                </Tooltip>
+                            ))}
+                        </div>
+                        <div className="flex gap-2">
+                            <Input 
+                                placeholder="Bạn muốn làm gì khác?" 
+                                className="flex-grow"
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleCustomAction(inputValue)}
+                                disabled={isLoading}
+                            />
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="accent" onClick={() => handleCustomAction(inputValue)} disabled={isLoading}>Gửi</Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>Gửi hành động tùy chỉnh của bạn.</p></TooltipContent>
+                            </Tooltip>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right Panel */}
+                <div className="w-full md:w-[30%] bg-card border-l flex flex-col p-4 md:p-6 gap-8 items-center justify-center">
+                    <Minimap grid={generateMapGrid()} />
+                    <Controls onMove={handleMove} onAttack={handleAttack} />
+                </div>
+                
+                <StatusPopup open={isStatusOpen} onOpenChange={setStatusOpen} stats={playerStats} quests={playerStats.quests} />
+                <InventoryPopup open={isInventoryOpen} onOpenChange={setInventoryOpen} items={playerStats.items} />
+            </div>
+        </TooltipProvider>
+    );
 }

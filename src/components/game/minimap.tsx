@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { PlayerIcon, EnemyIcon } from "./icons";
 
 export type MapCell = {
-  biome: "forest" | "grassland" | "desert";
+  biome: "forest" | "grassland" | "desert" | "empty";
   hasPlayer?: boolean;
   hasEnemy?: boolean;
 };
@@ -17,6 +17,7 @@ const biomeColors = {
   forest: "bg-map-forest",
   grassland: "bg-map-grassland",
   desert: "bg-map-desert",
+  empty: "bg-map-empty",
 };
 
 export function Minimap({ grid }: MinimapProps) {

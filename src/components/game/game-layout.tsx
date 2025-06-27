@@ -15,6 +15,7 @@ import { aiNarrativeResponse } from "@/ai/flows/ai-narrative-response";
 import { generateChunkDescription } from "@/ai/flows/generate-chunk-description";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { GenerateWorldSetupOutput } from "@/ai/flows/generate-world-setup";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type PlayerStats = {
   hp: number;
@@ -166,74 +167,118 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-dvh bg-background text-foreground font-body">
-      {/* Left Panel */}
-      <div className="w-full md:w-[70%] h-full flex flex-col">
-        <header className="p-4 border-b flex justify-between items-center">
-          <h1 className="text-2xl font-bold font-headline">{worldSetup.worldName}</h1>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => setStatusOpen(true)}><Shield className="mr-2 h-4 w-4"/>Status</Button>
-            <Button variant="outline" onClick={() => setInventoryOpen(true)}><BookOpen className="mr-2 h-4 w-4"/>Inventory</Button>
-          </div>
-        </header>
+    <TooltipProvider>
+      <div className="flex flex-col md:flex-row h-dvh bg-background text-foreground font-body">
+        {/* Left Panel */}
+        <div className="w-full md:w-[70%] h-full flex flex-col">
+          <header className="p-4 border-b flex justify-between items-center">
+            <h1 className="text-2xl font-bold font-headline">{worldSetup.worldName}</h1>
+            <div className="flex items-center gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" onClick={() => setStatusOpen(true)}><Shield className="mr-2 h-4 w-4"/>Status</Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>View your current health, mana, and quests.</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" onClick={() => setInventoryOpen(true)}><BookOpen className="mr-2 h-4 w-4"/>Inventory</Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Check the items you are carrying.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </header>
 
-        <ScrollArea className="flex-grow p-4 md:p-6" ref={scrollAreaRef}>
-          <div className="prose prose-stone dark:prose-invert max-w-none">
-            {narrativeLog.map((entry) => (
-                <p key={entry.id} className={`animate-in fade-in duration-500 ${entry.type === 'action' ? 'italic text-accent-foreground/80' : ''} ${entry.type === 'system' ? 'font-semibold text-accent' : ''}`}>
-                    {entry.text}
-                </p>
-            ))}
-            {isLoading && (
-                <div className="flex items-center gap-2 text-muted-foreground italic mt-4">
-                    <Skeleton className="h-4 w-4 rounded-full" />
-                    <p>Thinking...</p>
-                </div>
-            )}
+          <ScrollArea className="flex-grow p-4 md:p-6" ref={scrollAreaRef}>
+            <div className="prose prose-stone dark:prose-invert max-w-none">
+              {narrativeLog.map((entry) => (
+                  <p key={entry.id} className={`animate-in fade-in duration-500 ${entry.type === 'action' ? 'italic text-accent-foreground/80' : ''} ${entry.type === 'system' ? 'font-semibold text-accent' : ''}`}>
+                      {entry.text}
+                  </p>
+              ))}
+              {isLoading && (
+                  <div className="flex items-center gap-2 text-muted-foreground italic mt-4">
+                      <Skeleton className="h-4 w-4 rounded-full" />
+                      <p>Thinking...</p>
+                  </div>
+              )}
+            </div>
+          </ScrollArea>
+          
+          <Separator />
+          
+          <div className="p-4 space-y-4">
+              <div className="p-4 bg-card rounded-lg shadow-inner">
+                  <h2 className="font-headline text-lg font-semibold mb-2">Description</h2>
+                  {isLoading && chunkDescription === "" ? (
+                      <div className="space-y-2">
+                          <Skeleton className="h-4 w-full" />
+                          <Skeleton className="h-4 w-[75%]" />
+                      </div>
+                  ) : (
+                      <p className="text-card-foreground/80 animate-in fade-in duration-500">{chunkDescription}</p>
+                  )}
+              </div>
+              <div className="flex gap-2">
+                  <Input 
+                      placeholder="What do you do?" 
+                      className="flex-grow"
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleAction(inputValue)}
+                      disabled={isLoading}
+                  />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="accent" onClick={() => handleAction(inputValue)} disabled={isLoading}>Send</Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Send your custom action to the game master.</p>
+                    </TooltipContent>
+                  </Tooltip>
+              </div>
+              <div className="flex gap-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="secondary" className="flex-1" onClick={() => handleAction("Look around")} disabled={isLoading}>1. Look around</Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Get a more detailed description of your surroundings.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="secondary" className="flex-1" onClick={() => handleAction("Check inventory")} disabled={isLoading}>2. Check inventory</Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>See what items are in your bag.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="secondary" className="flex-1" onClick={() => handleAction("Rest")} disabled={isLoading}>3. Rest</Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Take a moment to rest and possibly recover health.</p>
+                    </TooltipContent>
+                  </Tooltip>
+              </div>
           </div>
-        </ScrollArea>
-        
-        <Separator />
-        
-        <div className="p-4 space-y-4">
-            <div className="p-4 bg-card rounded-lg shadow-inner">
-                <h2 className="font-headline text-lg font-semibold mb-2">Description</h2>
-                {isLoading && chunkDescription === "" ? (
-                    <div className="space-y-2">
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-[75%]" />
-                    </div>
-                ) : (
-                    <p className="text-card-foreground/80 animate-in fade-in duration-500">{chunkDescription}</p>
-                )}
-            </div>
-            <div className="flex gap-2">
-                <Input 
-                    placeholder="What do you do?" 
-                    className="flex-grow"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleAction(inputValue)}
-                    disabled={isLoading}
-                />
-                <Button variant="accent" onClick={() => handleAction(inputValue)} disabled={isLoading}>Send</Button>
-            </div>
-            <div className="flex gap-2">
-                <Button variant="secondary" className="flex-1" onClick={() => handleAction("Look around")} disabled={isLoading}>1. Look around</Button>
-                <Button variant="secondary" className="flex-1" onClick={() => handleAction("Check inventory")} disabled={isLoading}>2. Check inventory</Button>
-                <Button variant="secondary" className="flex-1" onClick={() => handleAction("Rest")} disabled={isLoading}>3. Rest</Button>
-            </div>
         </div>
-      </div>
 
-      {/* Right Panel */}
-      <div className="w-full md:w-[30%] bg-card border-l flex flex-col p-4 md:p-6 gap-8 items-center justify-center">
-        <Minimap grid={map} />
-        <Controls onMove={handleMove} onAttack={handleAttack} />
+        {/* Right Panel */}
+        <div className="w-full md:w-[30%] bg-card border-l flex flex-col p-4 md:p-6 gap-8 items-center justify-center">
+          <Minimap grid={map} />
+          <Controls onMove={handleMove} onAttack={handleAttack} />
+        </div>
+        
+        <StatusPopup open={isStatusOpen} onOpenChange={setStatusOpen} stats={playerStats} quests={quests} />
+        <InventoryPopup open={isInventoryOpen} onOpenChange={setInventoryOpen} items={inventory} />
       </div>
-      
-      <StatusPopup open={isStatusOpen} onOpenChange={setStatusOpen} stats={playerStats} quests={quests} />
-      <InventoryPopup open={isInventoryOpen} onOpenChange={setInventoryOpen} items={inventory} />
-    </div>
+    </TooltipProvider>
   );
 }

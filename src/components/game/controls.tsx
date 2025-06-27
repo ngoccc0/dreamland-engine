@@ -2,6 +2,8 @@
 
 import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 
 interface ControlsProps {
   onMove: (direction: "north" | "south" | "east" | "west") => void;
@@ -21,35 +23,72 @@ export function Controls({ onMove, onAttack }: ControlsProps) {
   const buttonSize = "h-[50px] w-[50px] md:h-[60px] md:w-[60px]";
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">Controls</h3>
-      <div className="grid grid-cols-3 grid-rows-3 gap-2 w-fit">
-        <div className="col-start-2 row-start-1 flex justify-center items-center">
-          <Button variant="accent" className={buttonSize} onClick={() => onMove("north")} aria-label="Move North">
-            <ArrowUp />
-          </Button>
-        </div>
-        <div className="col-start-1 row-start-2 flex justify-center items-center">
-          <Button variant="accent" className={buttonSize} onClick={() => onMove("west")} aria-label="Move West">
-            <ArrowLeft />
-          </Button>
-        </div>
-        <div className="col-start-2 row-start-2 flex justify-center items-center">
-          <Button variant="destructive" className={buttonSize} onClick={onAttack} aria-label="Attack">
-            <SwordIcon />
-          </Button>
-        </div>
-        <div className="col-start-3 row-start-2 flex justify-center items-center">
-          <Button variant="accent" className={buttonSize} onClick={() => onMove("east")} aria-label="Move East">
-            <ArrowRight />
-          </Button>
-        </div>
-        <div className="col-start-2 row-start-3 flex justify-center items-center">
-          <Button variant="accent" className={buttonSize} onClick={() => onMove("south")} aria-label="Move South">
-            <ArrowDown />
-          </Button>
+    <TooltipProvider>
+      <div className="flex flex-col items-center gap-4">
+        <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">Controls</h3>
+        <div className="grid grid-cols-3 grid-rows-3 gap-2 w-fit">
+          <div className="col-start-2 row-start-1 flex justify-center items-center">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="accent" className={buttonSize} onClick={() => onMove("north")} aria-label="Move North">
+                  <ArrowUp />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Move North</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <div className="col-start-1 row-start-2 flex justify-center items-center">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="accent" className={buttonSize} onClick={() => onMove("west")} aria-label="Move West">
+                  <ArrowLeft />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Move West</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <div className="col-start-2 row-start-2 flex justify-center items-center">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="destructive" className={buttonSize} onClick={onAttack} aria-label="Attack">
+                  <SwordIcon />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Attack</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <div className="col-start-3 row-start-2 flex justify-center items-center">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="accent" className={buttonSize} onClick={() => onMove("east")} aria-label="Move East">
+                  <ArrowRight />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Move East</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <div className="col-start-2 row-start-3 flex justify-center items-center">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="accent" className={buttonSize} onClick={() => onMove("south")} aria-label="Move South">
+                  <ArrowDown />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Move South</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }

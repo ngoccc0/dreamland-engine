@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,12 +9,11 @@ import { generateWorldSetup, type GenerateWorldSetupOutput, type WorldConcept } 
 import { suggestKeywords } from "@/ai/flows/suggest-keywords";
 import { Sparkles, Wand2, ArrowRight, BrainCircuit, Loader2 } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { Separator } from "../ui/separator";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
+
 
 interface WorldSetupProps {
-    // A single, finalized world object, constructed from the user's choices.
     onWorldCreated: (worldSetup: WorldConcept) => void;
 }
 
@@ -48,8 +47,51 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         playerInventory: 0,
         initialQuests: 0,
     });
+    
+    const [apiWorldName, setApiWorldName] = useState<CarouselApi>();
+    const [apiNarrative, setApiNarrative] = useState<CarouselApi>();
+    const [apiBiome, setApiBiome] = useState<CarouselApi>();
+    const [apiInventory, setApiInventory] = useState<CarouselApi>();
+    const [apiQuests, setApiQuests] = useState<CarouselApi>();
 
     const { toast } = useToast();
+
+    // Attach listeners to each carousel to update the selection state
+    useEffect(() => {
+        if (!apiWorldName) return;
+        const onSelect = () => setSelection(p => ({ ...p, worldName: apiWorldName.selectedScrollSnap() }));
+        apiWorldName.on('select', onSelect);
+        return () => { apiWorldName.off('select', onSelect); };
+    }, [apiWorldName]);
+
+    useEffect(() => {
+        if (!apiNarrative) return;
+        const onSelect = () => setSelection(p => ({ ...p, initialNarrative: apiNarrative.selectedScrollSnap() }));
+        apiNarrative.on('select', onSelect);
+        return () => { apiNarrative.off('select', onSelect); };
+    }, [apiNarrative]);
+    
+    useEffect(() => {
+        if (!apiBiome) return;
+        const onSelect = () => setSelection(p => ({ ...p, startingBiome: apiBiome.selectedScrollSnap() }));
+        apiBiome.on('select', onSelect);
+        return () => { apiBiome.off('select', onSelect); };
+    }, [apiBiome]);
+
+    useEffect(() => {
+        if (!apiInventory) return;
+        const onSelect = () => setSelection(p => ({ ...p, playerInventory: apiInventory.selectedScrollSnap() }));
+        apiInventory.on('select', onSelect);
+        return () => { apiInventory.off('select', onSelect); };
+    }, [apiInventory]);
+
+    useEffect(() => {
+        if (!apiQuests) return;
+        const onSelect = () => setSelection(p => ({ ...p, initialQuests: apiQuests.selectedScrollSnap() }));
+        apiQuests.on('select', onSelect);
+        return () => { apiQuests.off('select', onSelect); };
+    }, [apiQuests]);
+
 
     const handleSuggest = async () => {
         if (!userInput.trim()) return;
@@ -160,7 +202,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         <>
             <CardHeader>
                 <CardTitle className="font-headline text-3xl flex items-center gap-3"><Sparkles /> Chọn và Kết hợp</CardTitle>
-                <CardDescription>Bước 2: AI đã tạo ra 3 phiên bản. Hãy chọn các yếu tố bạn thích nhất!</CardDescription>
+                <CardDescription>Bước 2: AI đã tạo ra 3 phiên bản. Hãy dùng các nút &lt; &gt; để xem và chọn các yếu tố bạn thích nhất!</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 {isLoading ? (
@@ -170,46 +212,133 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                     </div>
                 ) : (
                     generatedConcepts && (
-                        <div className="space-y-6">
-                            {Object.keys(selection).map((key) => {
-                                const title = {
-                                    worldName: "Tên Thế Giới",
-                                    initialNarrative: "Cốt Truyện Mở Đầu",
-                                    startingBiome: "Môi Trường Bắt Đầu",
-                                    playerInventory: "Trang Bị Ban Đầu",
-                                    initialQuests: "Nhiệm Vụ Đầu Tiên",
-                                }[key]!;
-                                return (
-                                    <div key={key}>
-                                        <h3 className="text-lg font-semibold font-headline mb-3">{title}</h3>
-                                        <RadioGroup
-                                            value={String(selection[key as keyof Selection])}
-                                            onValueChange={(value) => setSelection(prev => ({...prev, [key]: Number(value)}))}
-                                            className="grid grid-cols-1 md:grid-cols-3 gap-4"
-                                        >
+                        <div className="space-y-8 animate-in fade-in duration-500">
+                             {/* World Name */}
+                             <div className="space-y-2">
+                                <h3 className="text-lg font-semibold font-headline text-center">Tên Thế Giới</h3>
+                                <Carousel setApi={setApiWorldName} opts={{ align: "start", loop: true }} className="w-full max-w-sm mx-auto">
+                                    <CarouselContent>
+                                        {generatedConcepts.map((concept, index) => (
+                                            <CarouselItem key={index}>
+                                                <div className="p-1">
+                                                    <Card className="flex items-center justify-center p-6 h-24 shadow-inner bg-muted/30">
+                                                        <CardTitle className="text-xl text-center font-headline">{concept.worldName}</CardTitle>
+                                                    </Card>
+                                                </div>
+                                            </CarouselItem>
+                                        ))}
+                                    </CarouselContent>
+                                    <CarouselPrevious />
+                                    <CarouselNext />
+                                </Carousel>
+                            </div>
+
+                            <Separator />
+
+                            {/* Narrative */}
+                            <div className="space-y-2">
+                                <h3 className="text-lg font-semibold font-headline text-center">Cốt Truyện Mở Đầu</h3>
+                                <Carousel setApi={setApiNarrative} opts={{ align: "start", loop: true }} className="w-full max-w-2xl mx-auto">
+                                    <CarouselContent>
+                                        {generatedConcepts.map((concept, index) => (
+                                            <CarouselItem key={index}>
+                                                <div className="p-1">
+                                                    <Card className="shadow-inner bg-muted/30">
+                                                        <CardContent className="p-4 h-40 overflow-y-auto prose prose-sm dark:prose-invert max-w-none">
+                                                            <p>{concept.initialNarrative}</p>
+                                                        </CardContent>
+                                                    </Card>
+                                                </div>
+                                            </CarouselItem>
+                                        ))}
+                                    </CarouselContent>
+                                    <CarouselPrevious />
+                                    <CarouselNext />
+                                </Carousel>
+                            </div>
+                            
+                            <Separator />
+
+                             {/* Biome */}
+                             <div className="space-y-2">
+                                <h3 className="text-lg font-semibold font-headline text-center">Môi Trường Bắt Đầu</h3>
+                                <Carousel setApi={setApiBiome} opts={{ align: "start", loop: true }} className="w-full max-w-xs mx-auto">
+                                    <CarouselContent>
+                                        {generatedConcepts.map((concept, index) => (
+                                            <CarouselItem key={index}>
+                                                <div className="p-1">
+                                                    <Card className="flex items-center justify-center p-4 h-20 shadow-inner bg-muted/30">
+                                                        <p className="font-semibold text-center text-lg capitalize">{concept.startingBiome}</p>
+                                                    </Card>
+                                                </div>
+                                            </CarouselItem>
+                                        ))}
+                                    </CarouselContent>
+                                    <CarouselPrevious />
+                                    <CarouselNext />
+                                </Carousel>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Inventory */}
+                                <div className="space-y-2">
+                                    <h3 className="text-lg font-semibold font-headline text-center">Trang Bị Ban Đầu</h3>
+                                    <Carousel setApi={setApiInventory} opts={{ align: "start", loop: true }} className="w-full max-w-md mx-auto">
+                                        <CarouselContent>
                                             {generatedConcepts.map((concept, index) => (
-                                                <Label key={index} htmlFor={`${key}-${index}`} className="flex flex-col p-4 border rounded-lg cursor-pointer hover:border-primary has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/50">
-                                                    <div className="flex items-center justify-between mb-2">
-                                                        <span className="font-semibold text-sm">Lựa chọn {index + 1}</span>
-                                                        <RadioGroupItem value={String(index)} id={`${key}-${index}`} />
+                                                <CarouselItem key={index}>
+                                                    <div className="p-1">
+                                                        <Card className="h-40 shadow-inner bg-muted/30">
+                                                            <CardHeader className="p-4">
+                                                                <CardDescription>Vật phẩm của Lựa chọn {index + 1}</CardDescription>
+                                                            </CardHeader>
+                                                            <CardContent className="p-4 pt-0">
+                                                                <ul className="list-disc list-inside text-sm text-muted-foreground">
+                                                                    {concept.playerInventory.map(item => <li key={item}>{item}</li>)}
+                                                                </ul>
+                                                            </CardContent>
+                                                        </Card>
                                                     </div>
-                                                    <div className="text-sm text-muted-foreground">
-                                                        {key === 'playerInventory' || key === 'initialQuests' ? (
-                                                            <ul>{concept[key as 'playerInventory' | 'initialQuests'].map(item => <li key={item}>- {item}</li>)}</ul>
-                                                        ) : (
-                                                            <p>{concept[key as keyof WorldConcept] as string}</p>
-                                                        )}
-                                                    </div>
-                                                </Label>
+                                                </CarouselItem>
                                             ))}
-                                        </RadioGroup>
-                                    </div>
-                                );
-                            })}
-                             <div className="!mt-8 p-4 border-t">
+                                        </CarouselContent>
+                                        <CarouselPrevious />
+                                        <CarouselNext />
+                                    </Carousel>
+                                </div>
+
+                                {/* Quests */}
+                                <div className="space-y-2">
+                                    <h3 className="text-lg font-semibold font-headline text-center">Nhiệm Vụ Đầu Tiên</h3>
+                                    <Carousel setApi={setApiQuests} opts={{ align: "start", loop: true }} className="w-full max-w-md mx-auto">
+                                        <CarouselContent>
+                                            {generatedConcepts.map((concept, index) => (
+                                                <CarouselItem key={index}>
+                                                    <div className="p-1">
+                                                        <Card className="h-40 shadow-inner bg-muted/30">
+                                                            <CardHeader className="p-4">
+                                                                <CardDescription>Nhiệm vụ của Lựa chọn {index + 1}</CardDescription>
+                                                            </CardHeader>
+                                                            <CardContent className="p-4 pt-0">
+                                                                <ul className="list-disc list-inside text-sm text-muted-foreground">
+                                                                    {concept.initialQuests.map(item => <li key={item}>{item}</li>)}
+                                                                </ul>
+                                                            </CardContent>
+                                                        </Card>
+                                                    </div>
+                                                </CarouselItem>
+                                            ))}
+                                        </CarouselContent>
+                                        <CarouselPrevious />
+                                        <CarouselNext />
+                                    </Carousel>
+                                </div>
+                            </div>
+                            
+                            <div className="!mt-8 p-4 border-t">
                                 <h3 className="font-headline text-xl font-bold">Thế giới của bạn:</h3>
-                                 <p className="text-muted-foreground">Đây là thế giới được tạo từ các lựa chọn của bạn.</p>
-                                <Card className="mt-4 p-4 bg-muted/30">
+                                <p className="text-muted-foreground">Đây là thế giới được tạo từ các lựa chọn của bạn.</p>
+                                <Card className="mt-4 p-4 bg-background">
                                     <h4 className="font-bold text-lg">{generatedConcepts[selection.worldName].worldName}</h4>
                                     <p className="italic text-muted-foreground mt-2">{generatedConcepts[selection.initialNarrative].initialNarrative}</p>
                                 </Card>

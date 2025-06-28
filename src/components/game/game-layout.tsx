@@ -22,6 +22,35 @@ import { useLanguage } from "@/context/language-context";
 type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave";
 type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky';
 
+// 1. WorldProfile: Global settings for the world, affecting all biomes.
+interface WorldProfile {
+    climateBase: 'temperate' | 'arid' | 'tropical';
+    magicLevel: number; // 0-10, how magical the world is
+    mutationFactor: number; // 0-10, chance for strange things to happen
+    sunIntensity: number; // 0-10, base sunlight level
+    weatherTypesAllowed: ('clear' | 'rain' | 'fog' | 'snow')[];
+    moistureBias: number; // -5 to +5, global moisture offset
+    tempBias: number; // -5 to +5, global temperature offset
+}
+
+// 2. Season: Global modifiers based on the time of year.
+type Season = 'spring' | 'summer' | 'autumn' | 'winter';
+
+interface SeasonModifiers {
+    temperatureMod: number;
+    moistureMod: number;
+    sunExposureMod: number;
+    windMod: number;
+    eventChance: number; // Base chance for seasonal events
+}
+
+const seasonConfig: Record<Season, SeasonModifiers> = {
+    spring: { temperatureMod: 0, moistureMod: 2, sunExposureMod: 1, windMod: 1, eventChance: 0.3 },
+    summer: { temperatureMod: 3, moistureMod: -1, sunExposureMod: 3, windMod: 0, eventChance: 0.1 },
+    autumn: { temperatureMod: -1, moistureMod: 1, sunExposureMod: -1, windMod: 2, eventChance: 0.4 },
+    winter: { temperatureMod: -4, moistureMod: -2, sunExposureMod: -3, windMod: 3, eventChance: 0.2 },
+};
+
 // This represents the detailed properties of a single tile/chunk in the world.
 interface Chunk {
     x: number;
@@ -35,7 +64,7 @@ interface Chunk {
     actions: { id: number; text: string }[];
     regionId: number;
 
-    // --- New Detailed Tile Attributes ---
+    // --- Detailed Tile Attributes ---
     travelCost: number;          // How many turns/energy it costs to cross this tile.
     vegetationDensity: number;   // 0-10, density of plants, affects visibility.
     moisture: number;            // 0-10, affects fungi, swamps, slipperiness.
@@ -72,59 +101,96 @@ interface Region {
 }
 
 
-// --- WORLD CONFIGURATION ---
+// --- WORLD CONFIGURATION (BIOME DEFINITIONS) ---
 // This object acts as the "rulebook" for the procedural world generation.
-// It defines the structural properties and constraints for each biome.
-const worldConfig = {
-    terrainTypes: {
-        forest: { 
-            minSize: 5,
-            maxSize: 10,
-            travelCost: 4,
-            spreadWeight: 0.6,
-            allowedNeighbors: ['grassland', 'mountain', 'swamp'] as Terrain[]
+// It defines the physical properties, constraints, and valid value ranges for each biome.
+interface BiomeDefinition {
+    minSize: number;
+    maxSize: number;
+    travelCost: number;
+    spreadWeight: number;
+    allowedNeighbors: Terrain[];
+    // Defines the valid range for each attribute in this biome
+    defaultValueRanges: {
+        vegetationDensity: { min: number; max: number };
+        moisture: { min: number; max: number };
+        elevation: { min: number; max: number };
+        dangerLevel: { min: number; max: number };
+        magicAffinity: { min: number; max: number };
+        humanPresence: { min: number; max: number };
+        predatorPresence: { min: number; max: number };
+    };
+    soilType: SoilType[]; // Can now have multiple valid soil types
+}
+
+
+const worldConfig: Record<Terrain, BiomeDefinition> = {
+    forest: {
+        minSize: 5, maxSize: 10, travelCost: 4, spreadWeight: 0.6,
+        allowedNeighbors: ['grassland', 'mountain', 'swamp'],
+        defaultValueRanges: {
+            vegetationDensity: { min: 7, max: 10 }, moisture: { min: 5, max: 8 }, elevation: { min: 1, max: 4 },
+            dangerLevel: { min: 4, max: 7 }, magicAffinity: { min: 3, max: 6 }, humanPresence: { min: 0, max: 3 },
+            predatorPresence: { min: 5, max: 8 },
         },
-        grassland: { 
-            minSize: 8, 
-            maxSize: 15,
-            travelCost: 1, 
-            spreadWeight: 0.8,
-            allowedNeighbors: ['forest', 'desert', 'swamp'] as Terrain[]
+        soilType: ['loamy'],
+    },
+    grassland: {
+        minSize: 8, maxSize: 15, travelCost: 1, spreadWeight: 0.8,
+        allowedNeighbors: ['forest', 'desert', 'swamp'],
+        defaultValueRanges: {
+            vegetationDensity: { min: 2, max: 5 }, moisture: { min: 2, max: 5 }, elevation: { min: 0, max: 2 },
+            dangerLevel: { min: 1, max: 4 }, magicAffinity: { min: 0, max: 2 }, humanPresence: { min: 2, max: 6 },
+            predatorPresence: { min: 2, max: 5 },
         },
-        desert: { 
-            minSize: 6, 
-            maxSize: 12,
-            travelCost: 3,
-            spreadWeight: 0.4,
-            allowedNeighbors: ['grassland', 'mountain'] as Terrain[]
+        soilType: ['loamy', 'sandy'],
+    },
+    desert: {
+        minSize: 6, maxSize: 12, travelCost: 3, spreadWeight: 0.4,
+        allowedNeighbors: ['grassland', 'mountain'],
+        defaultValueRanges: {
+            vegetationDensity: { min: 0, max: 1 }, moisture: { min: 0, max: 1 }, elevation: { min: 0, max: 3 },
+            dangerLevel: { min: 5, max: 8 }, magicAffinity: { min: 1, max: 4 }, humanPresence: { min: 0, max: 2 },
+            predatorPresence: { min: 6, max: 9 },
         },
-        swamp: {
-            minSize: 4,
-            maxSize: 8,
-            travelCost: 5,
-            spreadWeight: 0.2,
-            allowedNeighbors: ['forest', 'grassland'] as Terrain[]
+        soilType: ['sandy'],
+    },
+    swamp: {
+        minSize: 4, maxSize: 8, travelCost: 5, spreadWeight: 0.2,
+        allowedNeighbors: ['forest', 'grassland'],
+        defaultValueRanges: {
+            vegetationDensity: { min: 5, max: 8 }, moisture: { min: 8, max: 10 }, elevation: { min: 0, max: 1 },
+            dangerLevel: { min: 7, max: 10 }, magicAffinity: { min: 4, max: 7 }, humanPresence: { min: 0, max: 1 },
+            predatorPresence: { min: 7, max: 10 },
         },
-        mountain: {
-            minSize: 3,
-            maxSize: 7,
-            travelCost: 6,
-            spreadWeight: 0.1,
-            allowedNeighbors: ['forest', 'desert'] as Terrain[]
+        soilType: ['clay'],
+    },
+    mountain: {
+        minSize: 3, maxSize: 7, travelCost: 6, spreadWeight: 0.1,
+        allowedNeighbors: ['forest', 'desert'],
+        defaultValueRanges: {
+            vegetationDensity: { min: 1, max: 4 }, moisture: { min: 2, max: 5 }, elevation: { min: 6, max: 10 },
+            dangerLevel: { min: 6, max: 9 }, magicAffinity: { min: 2, max: 5 }, humanPresence: { min: 1, max: 4 },
+            predatorPresence: { min: 4, max: 7 },
         },
-        cave: {
-            minSize: 10,
-            maxSize: 20,
-            travelCost: 7,
-            spreadWeight: 0.05,
-            allowedNeighbors: ['mountain'] as Terrain[]
-        }
+        soilType: ['rocky'],
+    },
+    cave: {
+        minSize: 10, maxSize: 20, travelCost: 7, spreadWeight: 0.05,
+        allowedNeighbors: ['mountain'],
+        defaultValueRanges: {
+            vegetationDensity: { min: 0, max: 2 }, moisture: { min: 6, max: 9 }, elevation: { min: -10, max: -1 },
+            dangerLevel: { min: 8, max: 10 }, magicAffinity: { min: 5, max: 8 }, humanPresence: { min: 0, max: 3 },
+            predatorPresence: { min: 8, max: 10 },
+        },
+        soilType: ['rocky'],
     }
 };
 
 
 // --- CONTENT TEMPLATES ---
-// This object provides the "content" and base attribute values for each chunk based on its terrain type.
+// This object provides the "content" (descriptions, NPCs, items, enemies) for each chunk.
+// The physical properties are now defined in worldConfig.
 const templates: Record<Terrain, any> = {
     forest: {
         descriptionTemplates: [
@@ -144,9 +210,6 @@ const templates: Record<Terrain, any> = {
             { type: 'Sói', hp: 30, damage: 10, chance: 0.5 },
             { type: 'Nhện khổng lồ', hp: 40, damage: 15, chance: 0.3 },
         ],
-        // Base Attributes
-        vegetationDensity: 8, moisture: 6, elevation: 2, lightLevel: 3, dangerLevel: 5, magicAffinity: 4,
-        humanPresence: 1, explorability: 4, soilType: 'loamy', sunExposure: 2, windLevel: 3, temperature: 5, predatorPresence: 6,
     },
     grassland: {
         descriptionTemplates: [
@@ -165,9 +228,6 @@ const templates: Record<Terrain, any> = {
             { type: 'Thỏ hoang hung dữ', hp: 20, damage: 5, chance: 0.4 },
             { type: 'Cáo gian xảo', hp: 25, damage: 8, chance: 0.2 },
         ],
-        // Base Attributes
-        vegetationDensity: 3, moisture: 4, elevation: 1, lightLevel: 8, dangerLevel: 2, magicAffinity: 1,
-        humanPresence: 3, explorability: 9, soilType: 'loamy', sunExposure: 9, windLevel: 7, temperature: 6, predatorPresence: 3,
     },
     desert: {
         descriptionTemplates: [
@@ -186,9 +246,6 @@ const templates: Record<Terrain, any> = {
             { type: 'Rắn đuôi chuông', hp: 30, damage: 15, chance: 0.5 },
             { type: 'Bọ cạp khổng lồ', hp: 50, damage: 10, chance: 0.3 },
         ],
-        // Base Attributes
-        vegetationDensity: 0, moisture: 0, elevation: 1, lightLevel: 10, dangerLevel: 6, magicAffinity: 2,
-        humanPresence: 1, explorability: 7, soilType: 'sandy', sunExposure: 10, windLevel: 5, temperature: 9, predatorPresence: 7,
     },
     swamp: {
         descriptionTemplates: [
@@ -207,9 +264,6 @@ const templates: Record<Terrain, any> = {
             { type: 'Đỉa khổng lồ', hp: 40, damage: 5, chance: 0.6 },
             { type: 'Ma trơi', hp: 25, damage: 20, chance: 0.2 },
         ],
-        // Base Attributes
-        vegetationDensity: 6, moisture: 9, elevation: 0, lightLevel: 4, dangerLevel: 8, magicAffinity: 5,
-        humanPresence: 0, explorability: 3, soilType: 'clay', sunExposure: 3, windLevel: 2, temperature: 5, predatorPresence: 8,
     },
     mountain: {
         descriptionTemplates: [
@@ -228,9 +282,6 @@ const templates: Record<Terrain, any> = {
             { type: 'Dê núi hung hãn', hp: 50, damage: 15, chance: 0.4 },
             { type: 'Người đá (Stone Golem)', hp: 80, damage: 10, chance: 0.2 },
         ],
-        // Base Attributes
-        vegetationDensity: 2, moisture: 3, elevation: 8, lightLevel: 7, dangerLevel: 7, magicAffinity: 3,
-        humanPresence: 2, explorability: 5, soilType: 'rocky', sunExposure: 8, windLevel: 9, temperature: 3, predatorPresence: 5,
     },
     cave: {
         descriptionTemplates: [
@@ -249,9 +300,6 @@ const templates: Record<Terrain, any> = {
             { type: 'Dơi khổng lồ', hp: 25, damage: 10, chance: 0.7 },
             { type: 'Nhện hang', hp: 45, damage: 15, chance: 0.4 },
         ],
-        // Base Attributes
-        vegetationDensity: 0, moisture: 7, elevation: -5, lightLevel: 1, dangerLevel: 9, magicAffinity: 6,
-        humanPresence: 1, explorability: 2, soilType: 'rocky', sunExposure: 0, windLevel: 1, temperature: 4, predatorPresence: 9,
     },
 };
 
@@ -270,6 +318,20 @@ interface GameLayoutProps {
 
 export default function GameLayout({ worldSetup }: GameLayoutProps) {
     const { t } = useLanguage();
+    
+    // --- State for Global World Settings ---
+    const [worldProfile, setWorldProfile] = useState<WorldProfile>({
+        climateBase: 'temperate',
+        magicLevel: 5,
+        mutationFactor: 2,
+        sunIntensity: 7,
+        weatherTypesAllowed: ['clear', 'rain', 'fog'],
+        moistureBias: 0,
+        tempBias: 0,
+    });
+    const [currentSeason, setCurrentSeason] = useState<Season>('spring');
+
+    // --- State for Game Progression ---
     const [world, setWorld] = useState<World>({});
     const [regions, setRegions] = useState<{ [id: number]: Region }>({});
     const [regionCounter, setRegionCounter] = useState(0);
@@ -322,25 +384,21 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
     
         if (adjacentTerrains.size === 0) {
             // If there are no neighbors, any terrain is valid.
-            return Object.keys(worldConfig.terrainTypes) as Terrain[];
+            return Object.keys(worldConfig) as Terrain[];
         }
     
         const validTerrains: Terrain[] = [];
-        for (const terrain in worldConfig.terrainTypes) {
+        for (const terrain in worldConfig) {
             const terrainKey = terrain as Terrain;
-            const config = worldConfig.terrainTypes[terrainKey];
+            const config = worldConfig[terrainKey];
             
-            // A terrain is valid if all its potential neighbors are allowed by the existing adjacent terrains' rules,
-            // AND all existing adjacent terrains are allowed by the potential new terrain's rules.
             let canBePlaced = true;
             for(const adj of adjacentTerrains) {
-                // Check if the new terrain allows the existing neighbor
                 if(!config.allowedNeighbors.includes(adj)) {
                     canBePlaced = false;
                     break;
                 }
-                // Check if the existing neighbor allows the new terrain
-                const neighborConfig = worldConfig.terrainTypes[adj];
+                const neighborConfig = worldConfig[adj];
                  if(!neighborConfig.allowedNeighbors.includes(terrainKey)) {
                     canBePlaced = false;
                     break;
@@ -351,7 +409,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                 validTerrains.push(terrainKey);
             }
         }
-        return validTerrains.length > 0 ? validTerrains : Object.keys(worldConfig.terrainTypes) as Terrain[];
+        return validTerrains.length > 0 ? validTerrains : Object.keys(worldConfig) as Terrain[];
     }, []);
 
     // This is the core "factory" function for building a new region of the world.
@@ -360,13 +418,11 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         const newRegions = { ...currentRegions };
         let newRegionCounter = currentRegionCounter;
 
-        const template = templates[terrain]; // Get the content template
-        const config = worldConfig.terrainTypes[terrain]; // Get the rules
+        const template = templates[terrain];
+        const biomeDef = worldConfig[terrain];
         
-        // 1. Determine the size of the new region randomly based on min/max size rules.
-        const size = Math.floor(Math.random() * (config.maxSize - config.minSize + 1)) + config.minSize;
+        const size = Math.floor(Math.random() * (biomeDef.maxSize - biomeDef.minSize + 1)) + biomeDef.minSize;
         
-        // 2. Use a queue-based algorithm (like Breadth-First Search) to create a connected cluster of cells ("chunks").
         const cells: { x: number, y: number }[] = [{ x: startPos.x, y: startPos.y }];
         const queue: { x: number, y: number }[] = [{ x: startPos.x, y: startPos.y }];
         const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }];
@@ -377,7 +433,6 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                 if (cells.length >= size) break;
                 const newPos = { x: current.x + dir.x, y: current.y + dir.y };
                 const newPosKey = `${newPos.x},${newPos.y}`;
-                // Only add a new cell if it doesn't already exist.
                 if (!newWorld[newPosKey] && !cells.some(c => c.x === newPos.x && c.y === newPos.y)) {
                     cells.push(newPos);
                     queue.push(newPos);
@@ -388,7 +443,10 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         const regionId = newRegionCounter++;
         newRegions[regionId] = { terrain, cells };
 
-        // 3. For each cell in the newly created region, fill it with content using the `templates`.
+        // Helper function to get random value from a range definition
+        const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+        const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
+
         for (const pos of cells) {
             const posKey = `${pos.x},${pos.y}`;
 
@@ -410,24 +468,45 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                 }
             }
             
-            // Create the chunk object with new attributes, adding some randomization
+            // --- NEW: Dynamic Chunk Attribute Calculation ---
+            const seasonMods = seasonConfig[currentSeason];
+            
+            // 1. Get base values from biome definition ranges
+            const vegetationDensity = getRandomInRange(biomeDef.defaultValueRanges.vegetationDensity);
+            const moisture = getRandomInRange(biomeDef.defaultValueRanges.moisture);
+            const elevation = getRandomInRange(biomeDef.defaultValueRanges.elevation);
+            const dangerLevel = getRandomInRange(biomeDef.defaultValueRanges.dangerLevel);
+            const magicAffinity = getRandomInRange(biomeDef.defaultValueRanges.magicAffinity);
+            const humanPresence = getRandomInRange(biomeDef.defaultValueRanges.humanPresence);
+            const predatorPresence = getRandomInRange(biomeDef.defaultValueRanges.predatorPresence);
+            
+            // 2. Derive other values and apply modifiers
+            const temperature = clamp(getRandomInRange({min: 4, max: 7}) + seasonMods.temperatureMod + worldProfile.tempBias, 0, 10);
+            const finalMoisture = clamp(moisture + seasonMods.moistureMod + worldProfile.moistureBias, 0, 10);
+            const windLevel = clamp(getRandomInRange({min: 2, max: 8}) + seasonMods.windMod, 0, 10);
+            const sunExposure = clamp(worldProfile.sunIntensity - (vegetationDensity / 2) + seasonMods.sunExposureMod, 0, 10);
+            const lightLevel = clamp(sunExposure, 1, 10); // Simple light = sun exposure for now
+            const explorability = clamp(10 - (vegetationDensity / 2) - (dangerLevel / 2), 0, 10);
+            const soilType = biomeDef.soilType[Math.floor(Math.random() * biomeDef.soilType.length)];
+
+            // Create the chunk object with the calculated attributes
             const newChunk: Omit<Chunk, 'description' | 'actions'> = {
                 x: pos.x, y: pos.y, terrain, explored: false, regionId,
                 NPCs: [npc], items: [item], enemy,
-                travelCost: config.travelCost,
-                vegetationDensity: Math.max(0, template.vegetationDensity + Math.round(Math.random() * 4 - 2)),
-                moisture: Math.max(0, template.moisture + Math.round(Math.random() * 4 - 2)),
-                elevation: Math.max(0, template.elevation + Math.round(Math.random() * 4 - 2)),
-                lightLevel: Math.max(0, template.lightLevel + Math.round(Math.random() * 4 - 2)),
-                dangerLevel: Math.max(0, template.dangerLevel + Math.round(Math.random() * 4 - 2)),
-                magicAffinity: Math.max(0, template.magicAffinity + Math.round(Math.random() * 2 - 1)),
-                humanPresence: Math.max(0, template.humanPresence + Math.round(Math.random() * 2 - 1)),
-                explorability: Math.max(0, template.explorability + Math.round(Math.random() * 4 - 2)),
-                soilType: template.soilType,
-                sunExposure: Math.max(0, template.sunExposure + Math.round(Math.random() * 4 - 2)),
-                windLevel: Math.max(0, template.windLevel + Math.round(Math.random() * 4 - 2)),
-                temperature: Math.max(0, template.temperature + Math.round(Math.random() * 4 - 2)),
-                predatorPresence: Math.max(0, template.predatorPresence + Math.round(Math.random() * 4 - 2)),
+                travelCost: biomeDef.travelCost,
+                vegetationDensity,
+                moisture: finalMoisture,
+                elevation,
+                lightLevel,
+                dangerLevel,
+                magicAffinity,
+                humanPresence,
+                explorability,
+                soilType,
+                sunExposure,
+                windLevel,
+                temperature,
+                predatorPresence,
             };
 
             // Generate dynamic description based on the new attributes
@@ -450,7 +529,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
             };
         }
         return { newWorld, newRegions, newRegionCounter };
-    }, []);
+    }, [currentSeason, worldProfile]);
 
     // --- Component Effects and Handlers ---
     
@@ -491,16 +570,11 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                 let newWorld = { ...currentWorld };
                 const newPosKey = `${newPos.x},${newPos.y}`;
 
-                // If the player moves to a chunk that doesn't exist yet...
                 if (!newWorld[newPosKey]) {
-                    // ...determine which biomes can be placed there...
                     const validTerrains = getValidAdjacentTerrains(newPos, currentWorld);
-                    // ...create a weighted list of those biomes...
-                    const terrainProbs = validTerrains.map(t => [t, worldConfig.terrainTypes[t].spreadWeight] as [Terrain, number]);
-                    // ...randomly pick one...
+                    const terrainProbs = validTerrains.map(t => [t, worldConfig[t].spreadWeight] as [Terrain, number]);
                     const newTerrain = weightedRandom(terrainProbs);
                     
-                    // ...and generate a whole new region of that type.
                     const result = generateRegion(newPos, newTerrain, currentWorld, regions, regionCounter);
                     newWorld = result.newWorld;
                     setRegions(result.newRegions);
@@ -722,9 +796,3 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         </TooltipProvider>
     );
 }
-
-    
-
-    
-
-

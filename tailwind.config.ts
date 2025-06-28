@@ -59,6 +59,9 @@ export default {
           forest: '#2F4F4F', // Dark Slate Gray
           grassland: '#8FBC8F', // Dark Sea Green
           desert: '#F0E68C', // Khaki
+          swamp: '#2E473B', // Dark Green/Brown
+          mountain: '#8B4513', // Saddle Brown
+          cave: '#4A4A4A', // Dark Grey
           empty: '#343434', // Dark gray for unexplored
           player: '#DC143C', // Crimson
           enemy: '#FF6347', // Tomato

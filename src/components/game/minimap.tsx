@@ -3,11 +3,11 @@
 import { cn } from "@/lib/utils";
 import { PlayerIcon, EnemyIcon } from "./icons";
 import { useLanguage } from "@/context/language-context";
-import { Trees, Wheat, Sun } from 'lucide-react';
+import { Trees, Wheat, Sun, Mountain, Shell, Droplets } from 'lucide-react';
 import type React from "react";
 
 export type MapCell = {
-  biome: "forest" | "grassland" | "desert" | "empty";
+  biome: "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave" | "empty";
   hasPlayer?: boolean;
   hasEnemy?: boolean;
 };
@@ -20,14 +20,20 @@ const biomeColors = {
   forest: "bg-map-forest",
   grassland: "bg-map-grassland",
   desert: "bg-map-desert",
+  swamp: "bg-map-swamp",
+  mountain: "bg-map-mountain",
+  cave: "bg-map-cave",
   empty: "bg-map-empty",
 };
 
 // Map biome types to their respective icons
-const biomeIcons: Record<"forest" | "grassland" | "desert", React.ReactNode> = {
+const biomeIcons: Record<"forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave", React.ReactNode> = {
     forest: <Trees className="w-8 h-8 text-white/50" />,
     grassland: <Wheat className="w-8 h-8 text-white/50" />,
     desert: <Sun className="w-8 h-8 text-white/50" />,
+    swamp: <Droplets className="w-8 h-8 text-white/50" />,
+    mountain: <Mountain className="w-8 h-8 text-white/50" />,
+    cave: <Shell className="w-8 h-8 text-white/50" />,
 };
 
 

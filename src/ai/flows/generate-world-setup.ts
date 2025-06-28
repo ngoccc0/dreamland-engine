@@ -33,7 +33,7 @@ export type GenerateWorldSetupInput = z.infer<typeof GenerateWorldSetupInputSche
 const WorldConceptSchema = z.object({
   worldName: z.string().describe('A cool and fitting name for this world.'),
   initialNarrative: z.string().describe('A detailed, engaging opening narrative to start the game. This should set the scene for the player.'),
-  startingBiome: z.enum(["forest", "grassland", "desert"]).describe('The primary biome for the starting area. Must be one of: forest, grassland, desert.'),
+  startingBiome: z.enum(["forest", "grassland", "desert", "swamp", "mountain", "cave"]).describe('The primary biome for the starting area. Must be one of: forest, grassland, desert, swamp, mountain, cave.'),
   playerInventory: z.array(z.string()).describe('A list of 2-3 starting items for the player, fitting the world theme.'),
   initialQuests: z.array(z.string()).describe('A list of 1-2 starting quests for the player to begin their adventure.'),
 });
@@ -80,7 +80,7 @@ Player's Idea: {{{userInput}}}
 For EACH of the three concepts, generate the following:
 1.  **World Name:** A cool, evocative name for the world.
 2.  **Initial Narrative:** A rich, descriptive opening paragraph.
-3.  **Starting Biome:** The biome where the player begins (forest, grassland, or desert).
+3.  **Starting Biome:** The biome where the player begins (forest, grassland, desert, swamp, mountain, or cave).
 4.  **Player Inventory:** 2 or 3 thematically appropriate starting items.
 5.  **Initial Quests:** One or two simple starting quests.
 

@@ -19,7 +19,7 @@ import { useLanguage } from "@/context/language-context";
 // --- START OF GAME ENGINE LOGIC ---
 
 // --- Data Types and Interfaces ---
-type Terrain = "forest" | "grassland" | "desert";
+type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave";
 
 interface Chunk {
     x: number;
@@ -32,6 +32,7 @@ interface Chunk {
     enemy: { type: string; hp: number; damage: number } | null;
     actions: { id: number; text: string }[];
     regionId: number;
+    travelCost: number;
 }
 
 interface World {
@@ -53,29 +54,50 @@ interface Region {
 
 // --- WORLD CONFIGURATION ---
 // This object acts as the "rulebook" for the procedural world generation.
-// It defines the properties and constraints for each type of terrain (biome).
+// It defines the structural properties and constraints for each biome.
 const worldConfig = {
     terrainTypes: {
-        // Defines rules for the 'forest' biome.
         forest: { 
-            minSize: 5,     // A forest region will have at least 5 chunks.
-            maxSize: 10,    // A forest region will have at most 10 chunks.
-            probability: 0.5, // Likelihood of this biome being chosen.
-            adjacent: ['grassland'] as Terrain[] // A forest can only be next to a grassland.
+            minSize: 5,
+            maxSize: 10,
+            travelCost: 4,
+            spreadWeight: 0.6,
+            allowedNeighbors: ['grassland', 'mountain', 'swamp'] as Terrain[]
         },
-        // Defines rules for the 'grassland' biome.
         grassland: { 
-            minSize: 2, 
-            maxSize: 4, 
-            probability: 0.4, 
-            adjacent: ['forest', 'desert'] as Terrain[] // Grassland acts as a buffer between forests and deserts.
+            minSize: 8, 
+            maxSize: 15,
+            travelCost: 1, 
+            spreadWeight: 0.8,
+            allowedNeighbors: ['forest', 'desert', 'swamp'] as Terrain[]
         },
-        // Defines rules for the 'desert' biome.
         desert: { 
-            minSize: 2, 
-            maxSize: 5, 
-            probability: 0.1, 
-            adjacent: ['grassland'] as Terrain[] // A desert can only be next to a grassland.
+            minSize: 6, 
+            maxSize: 12,
+            travelCost: 3,
+            spreadWeight: 0.4,
+            allowedNeighbors: ['grassland', 'mountain'] as Terrain[]
+        },
+        swamp: {
+            minSize: 4,
+            maxSize: 8,
+            travelCost: 5,
+            spreadWeight: 0.2,
+            allowedNeighbors: ['forest', 'grassland'] as Terrain[]
+        },
+        mountain: {
+            minSize: 3,
+            maxSize: 7,
+            travelCost: 6,
+            spreadWeight: 0.1,
+            allowedNeighbors: ['forest', 'desert'] as Terrain[]
+        },
+        cave: {
+            minSize: 10,
+            maxSize: 20,
+            travelCost: 7,
+            spreadWeight: 0.05,
+            allowedNeighbors: ['mountain'] as Terrain[]
         }
     }
 };
@@ -140,6 +162,60 @@ const templates: Record<Terrain, any> = {
             { type: 'Bọ cạp khổng lồ', hp: 50, damage: 10, chance: 0.3 },
         ],
     },
+    swamp: {
+        descriptionTemplates: [
+            'Bạn đang lội qua một đầm lầy [adjective]. Nước bùn [feature] ngập đến đầu gối.',
+            'Không khí đặc quánh mùi cây cỏ mục rữa. Những cây [feature] mọc lên từ làn nước tù đọng.',
+            'Một sự im lặng [adjective] bao trùm, chỉ thỉnh thoảng bị phá vỡ bởi tiếng côn trùng vo ve.',
+        ],
+        adjectives: ['hôi thối', 'âm u', 'chết chóc'],
+        features: ['đước', 'dây leo', 'khí độc'],
+        NPCs: ['ẩn sĩ', 'sinh vật đầm lầy'],
+        items: [
+            { name: 'Rễ cây hiếm', description: 'Một loại rễ cây chỉ mọc ở vùng nước độc, có giá trị cao.' },
+            { name: 'Rêu phát sáng', description: 'Một loại rêu có thể dùng để đánh dấu đường đi.' },
+        ],
+        enemies: [
+            { type: 'Đỉa khổng lồ', hp: 40, damage: 5, chance: 0.6 },
+            { type: 'Ma trơi', hp: 25, damage: 20, chance: 0.2 },
+        ],
+    },
+    mountain: {
+        descriptionTemplates: [
+            'Bạn đang leo lên một sườn núi [adjective]. Gió [feature] thổi mạnh và lạnh buốt.',
+            'Con đường mòn [feature] cheo leo dẫn lên đỉnh núi. Không khí loãng dần.',
+            'Từ trên cao, bạn có thể nhìn thấy cả một vùng đất rộng lớn. Cảnh tượng thật [adjective].',
+        ],
+        adjectives: ['hiểm trở', 'lộng gió', 'hùng vĩ'],
+        features: ['vách đá', 'tuyết phủ', 'hang động'],
+        NPCs: ['thợ mỏ già', 'người cưỡi griffon'],
+        items: [
+            { name: 'Quặng sắt', description: 'Một mỏm đá chứa quặng sắt có thể rèn thành vũ khí.' },
+            { name: 'Lông đại bàng', description: 'Một chiếc lông vũ lớn và đẹp, rơi ra từ một sinh vật bay lượn trên đỉnh núi.' },
+        ],
+        enemies: [
+            { type: 'Dê núi hung hãn', hp: 50, damage: 15, chance: 0.4 },
+            { type: 'Người đá (Stone Golem)', hp: 80, damage: 10, chance: 0.2 },
+        ],
+    },
+    cave: {
+        descriptionTemplates: [
+            'Bên trong hang động tối [adjective] và ẩm ướt. Tiếng bước chân của bạn vang vọng.',
+            'Những khối [feature] lấp lánh dưới ánh sáng yếu ớt lọt vào từ bên ngoài.',
+            'Bạn cảm thấy một luồng gió [adjective] thổi ra từ một hành lang sâu hơn trong hang.',
+        ],
+        adjectives: ['sâu thẳm', 'lạnh lẽo', 'bí ẩn'],
+        features: ['thạch nhũ', 'tinh thể', 'dòng sông ngầm'],
+        NPCs: ['nhà thám hiểm bị lạc', 'bộ lạc goblin'],
+        items: [
+            { name: 'Mảnh tinh thể', description: 'Một mảnh tinh thể phát ra ánh sáng yếu ớt.' },
+            { name: 'Bản đồ cổ', description: 'Một tấm bản đồ da cũ kỹ, có vẻ chỉ đường đến một nơi bí mật.' },
+        ],
+        enemies: [
+            { type: 'Dơi khổng lồ', hp: 25, damage: 10, chance: 0.7 },
+            { type: 'Nhện hang', hp: 45, damage: 15, chance: 0.4 },
+        ],
+    },
 };
 
 
@@ -175,6 +251,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
     const [inputValue, setInputValue] = useState("");
     const { toast } = useToast();
     const narrativeIdCounter = useRef(1);
+    const pageEndRef = useRef<HTMLDivElement>(null);
 
     const addNarrativeEntry = useCallback((text: string, type: NarrativeEntry['type']) => {
         setNarrativeLog(prev => [...prev, { id: narrativeIdCounter.current++, text, type }]);
@@ -195,7 +272,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
     }
     
     // Determines which terrain types can be generated at a new position
-    // based on the `adjacent` rules in `worldConfig`. This ensures the world map is logical.
+    // based on the `allowedNeighbors` rules in `worldConfig`. This ensures the world map is logical.
     const getValidAdjacentTerrains = useCallback((pos: { x: number; y: number }, currentWorld: World): Terrain[] => {
         const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }];
         const adjacentTerrains = new Set<Terrain>();
@@ -214,14 +291,25 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         const validTerrains: Terrain[] = [];
         for (const terrain in worldConfig.terrainTypes) {
             const terrainKey = terrain as Terrain;
-            const adjacentRules = worldConfig.terrainTypes[terrainKey].adjacent;
+            const config = worldConfig.terrainTypes[terrainKey];
+            
+            // A terrain is valid if all its potential neighbors are allowed by the existing adjacent terrains' rules,
+            // AND all existing adjacent terrains are allowed by the potential new terrain's rules.
             let canBePlaced = true;
             for(const adj of adjacentTerrains) {
-                if(!adjacentRules.includes(adj)) {
+                // Check if the new terrain allows the existing neighbor
+                if(!config.allowedNeighbors.includes(adj)) {
+                    canBePlaced = false;
+                    break;
+                }
+                // Check if the existing neighbor allows the new terrain
+                const neighborConfig = worldConfig.terrainTypes[adj];
+                 if(!neighborConfig.allowedNeighbors.includes(terrainKey)) {
                     canBePlaced = false;
                     break;
                 }
             }
+
             if (canBePlaced) {
                 validTerrains.push(terrainKey);
             }
@@ -300,7 +388,8 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                     { id: 2, text: 'Khám phá khu vực' },
                     { id: 3, text: `Nhặt ${item.name}` }
                 ],
-                regionId
+                regionId,
+                travelCost: config.travelCost,
             };
         }
         return { newWorld, newRegions, newRegionCounter };
@@ -329,7 +418,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
 
     useEffect(() => {
         // Scroll to the bottom of the page to show the latest narrative entry
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        pageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [narrativeLog]);
     
     const handleMove = (direction: "north" | "south" | "east" | "west") => {
@@ -350,7 +439,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                     // ...determine which biomes can be placed there...
                     const validTerrains = getValidAdjacentTerrains(newPos, currentWorld);
                     // ...create a weighted list of those biomes...
-                    const terrainProbs = validTerrains.map(t => [t, worldConfig.terrainTypes[t].probability] as [Terrain, number]);
+                    const terrainProbs = validTerrains.map(t => [t, worldConfig.terrainTypes[t].spreadWeight] as [Terrain, number]);
                     // ...randomly pick one...
                     const newTerrain = weightedRandom(terrainProbs);
                     
@@ -503,6 +592,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                                 </div>
                             )}
                         </div>
+                         <div ref={pageEndRef} />
                     </main>
                 </div>
 

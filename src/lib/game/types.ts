@@ -1,0 +1,122 @@
+// --- Data Types and Interfaces for the Game Engine ---
+
+export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave";
+export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky';
+
+// 1. WorldProfile: Global settings for the world, affecting all biomes.
+export interface WorldProfile {
+    climateBase: 'temperate' | 'arid' | 'tropical';
+    magicLevel: number; // 0-10, how magical the world is
+    mutationFactor: number; // 0-10, chance for strange things to happen
+    sunIntensity: number; // 0-10, base sunlight level
+    weatherTypesAllowed: ('clear' | 'rain' | 'fog' | 'snow')[];
+    moistureBias: number; // -5 to +5, global moisture offset
+    tempBias: number; // -5 to +5, global temperature offset
+}
+
+// 2. Season: Global modifiers based on the time of year.
+export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
+
+export interface SeasonModifiers {
+    temperatureMod: number;
+    moistureMod: number;
+    sunExposureMod: number;
+    windMod: number;
+    eventChance: number; // Base chance for seasonal events
+}
+
+// This represents the detailed properties of a single tile/chunk in the world.
+export interface Chunk {
+    x: number;
+    y: number;
+    terrain: Terrain;
+    description: string;
+    NPCs: string[];
+    items: { name: string; description: string }[];
+    explored: boolean;
+    enemy: { type: string; hp: number; damage: number } | null;
+    actions: { id: number; text: string }[];
+    regionId: number;
+
+    // --- Detailed Tile Attributes ---
+    travelCost: number;          // How many turns/energy it costs to cross this tile.
+    vegetationDensity: number;   // 0-10, density of plants, affects visibility.
+    moisture: number;            // 0-10, affects fungi, swamps, slipperiness.
+    elevation: number;           // 0-10, height, creates slopes, hills.
+    lightLevel: number;          // 0-10, affects visibility, enemy spawning.
+    dangerLevel: number;         // 0-10, probability of traps, enemies.
+    magicAffinity: number;       // 0-10, presence of magical energy.
+    humanPresence: number;       // 0-10, signs of human activity (camps, ruins).
+    explorability: number;       // 0-10, ease of exploration.
+    soilType: SoilType;          // Type of ground, affects what can grow.
+    sunExposure: number;         // 0-10, how much direct sunlight the tile gets.
+    windLevel: number;           // 0-10, strength of the wind.
+    temperature: number;         // 0-10, ambient temperature.
+    predatorPresence: number;    // 0-10, likelihood of predator encounters.
+}
+
+// Represents the entire game world as a collection of chunks.
+export interface World {
+    [key: string]: Chunk;
+}
+
+// Represents the player's current status.
+export interface PlayerStatus {
+    hp: number;
+    mana: number;
+    items: string[];
+    quests: string[];
+}
+
+// Represents a contiguous region of a single biome.
+export interface Region {
+    terrain: Terrain;
+    cells: { x: number; y: number }[];
+}
+
+// Defines the "rulebook" for the procedural world generation.
+export interface BiomeDefinition {
+    minSize: number;
+    maxSize: number;
+    travelCost: number;
+    spreadWeight: number;
+    allowedNeighbors: Terrain[];
+    // Defines the valid range for each attribute in this biome
+    defaultValueRanges: {
+        vegetationDensity: { min: number; max: number };
+        moisture: { min: number; max: number };
+        elevation: { min: number; max: number };
+        dangerLevel: { min: number; max: number };
+        magicAffinity: { min: number; max: number };
+        humanPresence: { min: number; max: number };
+        predatorPresence: { min: number; max: number };
+    };
+    soilType: SoilType[]; // Can now have multiple valid soil types
+}
+
+// Helper type for defining spawn conditions for an entity
+export type SpawnConditions = {
+    chance?: number;
+    vegetationDensity?: { min?: number, max?: number };
+    moisture?: { min?: number, max?: number };
+    elevation?: { min?: number, max?: number };
+    dangerLevel?: { min?: number, max?: number };
+    magicAffinity?: { min?: number, max?: number };
+    humanPresence?: { min?: number, max?: number };
+    predatorPresence?: { min?: number, max?: number };
+    lightLevel?: { min?: number, max?: number };
+    temperature?: { min?: number, max?: number };
+    soilType?: SoilType[];
+};
+
+export type NarrativeEntry = {
+    id: number;
+    text: string;
+    type: 'narrative' | 'action' | 'system';
+}
+
+export type MapCell = {
+  biome: "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave" | "empty";
+  hasPlayer?: boolean;
+  hasEnemy?: boolean;
+};

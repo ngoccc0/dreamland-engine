@@ -18,6 +18,7 @@ import { useLanguage } from "@/context/language-context";
 
 // --- START OF GAME ENGINE LOGIC ---
 
+// --- Data Types and Interfaces ---
 type Terrain = "forest" | "grassland" | "desert";
 
 interface Chunk {
@@ -49,14 +50,40 @@ interface Region {
     cells: { x: number; y: number }[];
 }
 
+
+// --- WORLD CONFIGURATION ---
+// This object acts as the "rulebook" for the procedural world generation.
+// It defines the properties and constraints for each type of terrain (biome).
 const worldConfig = {
     terrainTypes: {
-        forest: { minSize: 5, maxSize: 10, probability: 0.5, adjacent: ['grassland'] as Terrain[] },
-        grassland: { minSize: 2, maxSize: 4, probability: 0.4, adjacent: ['forest', 'desert'] as Terrain[] },
-        desert: { minSize: 2, maxSize: 5, probability: 0.1, adjacent: ['grassland'] as Terrain[] }
+        // Defines rules for the 'forest' biome.
+        forest: { 
+            minSize: 5,     // A forest region will have at least 5 chunks.
+            maxSize: 10,    // A forest region will have at most 10 chunks.
+            probability: 0.5, // Likelihood of this biome being chosen.
+            adjacent: ['grassland'] as Terrain[] // A forest can only be next to a grassland.
+        },
+        // Defines rules for the 'grassland' biome.
+        grassland: { 
+            minSize: 2, 
+            maxSize: 4, 
+            probability: 0.4, 
+            adjacent: ['forest', 'desert'] as Terrain[] // Grassland acts as a buffer between forests and deserts.
+        },
+        // Defines rules for the 'desert' biome.
+        desert: { 
+            minSize: 2, 
+            maxSize: 5, 
+            probability: 0.1, 
+            adjacent: ['grassland'] as Terrain[] // A desert can only be next to a grassland.
+        }
     }
 };
 
+
+// --- CONTENT TEMPLATES ---
+// This object provides the "content" for each chunk based on its terrain type.
+// While `worldConfig` defines the structure, `templates` defines what you see and interact with.
 const templates: Record<Terrain, any> = {
     forest: {
         descriptionTemplates: [
@@ -155,17 +182,20 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
 
     // --- Game Engine Functions adapted for React State ---
 
+    // Selects a random terrain type based on weighted probabilities from worldConfig.
     const weightedRandom = (options: [Terrain, number][]): Terrain => {
         const total = options.reduce((sum, [, prob]) => sum + prob, 0);
+        const r = Math.random() * total;
         let current = 0;
         for (const [option, prob] of options) {
             current += prob;
             if (r <= current) return option;
         }
-        return options[0][0];
+        return options[0][0]; // Fallback
     }
-    const r = Math.random();
     
+    // Determines which terrain types can be generated at a new position
+    // based on the `adjacent` rules in `worldConfig`. This ensures the world map is logical.
     const getValidAdjacentTerrains = useCallback((pos: { x: number; y: number }, currentWorld: World): Terrain[] => {
         const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }];
         const adjacentTerrains = new Set<Terrain>();
@@ -177,6 +207,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         }
     
         if (adjacentTerrains.size === 0) {
+            // If there are no neighbors, any terrain is valid.
             return Object.keys(worldConfig.terrainTypes) as Terrain[];
         }
     
@@ -198,15 +229,19 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         return validTerrains.length ? validTerrains : Object.keys(worldConfig.terrainTypes) as Terrain[];
     }, []);
 
+    // This is the core "factory" function for building a new region of the world.
     const generateRegion = useCallback((startPos: { x: number; y: number }, terrain: Terrain, currentWorld: World, currentRegions: { [id: number]: Region }, currentRegionCounter: number) => {
         const newWorld = { ...currentWorld };
         const newRegions = { ...currentRegions };
         let newRegionCounter = currentRegionCounter;
 
-        const template = templates[terrain];
-        const config = worldConfig.terrainTypes[terrain];
+        const template = templates[terrain]; // Get the content template
+        const config = worldConfig.terrainTypes[terrain]; // Get the rules
+        
+        // 1. Determine the size of the new region randomly based on min/max size rules.
         const size = Math.floor(Math.random() * (config.maxSize - config.minSize + 1)) + config.minSize;
         
+        // 2. Use a queue-based algorithm (like Breadth-First Search) to create a connected cluster of cells ("chunks").
         const cells: { x: number, y: number }[] = [{ x: startPos.x, y: startPos.y }];
         const queue: { x: number, y: number }[] = [{ x: startPos.x, y: startPos.y }];
         const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }];
@@ -217,6 +252,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                 if (cells.length >= size) break;
                 const newPos = { x: current.x + dir.x, y: current.y + dir.y };
                 const newPosKey = `${newPos.x},${newPos.y}`;
+                // Only add a new cell if it doesn't already exist.
                 if (!newWorld[newPosKey] && !cells.some(c => c.x === newPos.x && c.y === newPos.y)) {
                     cells.push(newPos);
                     queue.push(newPos);
@@ -227,9 +263,11 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         const regionId = newRegionCounter++;
         newRegions[regionId] = { terrain, cells };
 
+        // 3. For each cell in the newly created region, fill it with content using the `templates`.
         for (const pos of cells) {
             const posKey = `${pos.x},${pos.y}`;
 
+            // Randomly pick description, adjectives, features, NPCs, items, and enemies.
             const descriptionTemplate = template.descriptionTemplates[Math.floor(Math.random() * template.descriptionTemplates.length)];
             const adjective = template.adjectives[Math.floor(Math.random() * template.adjectives.length)];
             const feature = template.features[Math.floor(Math.random() * template.features.length)];
@@ -247,7 +285,8 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                     }
                 }
             }
-
+            
+            // Create the final chunk object and add it to the world.
             newWorld[posKey] = {
                 x: pos.x, y: pos.y,
                 terrain,
@@ -274,6 +313,8 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         addNarrativeEntry(worldSetup.initialNarrative, 'narrative');
         const startPos = { x: 0, y: 0 };
         const startingTerrain = worldSetup.startingBiome as Terrain;
+        
+        // Generate the very first region of the game.
         const { newWorld, newRegions, newRegionCounter } = generateRegion(startPos, startingTerrain, {}, {}, 0);
         
         const startKey = `${startPos.x},${startPos.y}`;
@@ -304,11 +345,16 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                 let newWorld = { ...currentWorld };
                 const newPosKey = `${newPos.x},${newPos.y}`;
 
+                // If the player moves to a chunk that doesn't exist yet...
                 if (!newWorld[newPosKey]) {
+                    // ...determine which biomes can be placed there...
                     const validTerrains = getValidAdjacentTerrains(newPos, currentWorld);
+                    // ...create a weighted list of those biomes...
                     const terrainProbs = validTerrains.map(t => [t, worldConfig.terrainTypes[t].probability] as [Terrain, number]);
+                    // ...randomly pick one...
                     const newTerrain = weightedRandom(terrainProbs);
                     
+                    // ...and generate a whole new region of that type.
                     const result = generateRegion(newPos, newTerrain, currentWorld, regions, regionCounter);
                     newWorld = result.newWorld;
                     setRegions(result.newRegions);
@@ -354,7 +400,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
 
         const enemy = chunk.enemy;
         const playerDamage = 20;
-        const enemyDamage = enemy.damage || 10; // Use damage from enemy object, with fallback
+        const enemyDamage = enemy.damage || 10;
         
         enemy.hp -= playerDamage;
         addNarrativeEntry(t('attackEnemy', { enemyType: enemy.type, playerDamage }), 'action');
@@ -369,7 +415,6 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                 addNarrativeEntry(t('enemyRetaliates', { enemyType: enemy.type, enemyDamage }), 'narrative');
                 if (newHp <= 0) {
                     addNarrativeEntry(t('youFell'), 'system');
-                    // Game over logic could go here
                 }
                 return { ...prev, hp: newHp };
             });
@@ -419,7 +464,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                     grid[gy][gx] = {
                         biome: chunk.terrain,
                         hasEnemy: !!chunk.enemy,
-                        hasPlayer: false, // will be set later
+                        hasPlayer: false,
                     };
                 }
             }
@@ -444,7 +489,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                         <h1 className="text-2xl font-bold font-headline">{worldSetup.worldName}</h1>
                     </header>
 
-                    <div className="flex-grow p-4 md:p-6">
+                    <main className="flex-grow p-4 md:p-6">
                         <div className="prose prose-stone dark:prose-invert max-w-none">
                             {narrativeLog.map((entry) => (
                                 <p key={entry.id} className={`animate-in fade-in duration-500 ${entry.type === 'action' ? 'italic text-accent-foreground/80' : ''} ${entry.type === 'system' ? 'font-semibold text-accent' : ''}`}>
@@ -458,7 +503,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                                 </div>
                             )}
                         </div>
-                    </div>
+                    </main>
                 </div>
 
                 {/* Right Panel: Controls & Actions */}
@@ -530,5 +575,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         </TooltipProvider>
     );
 }
+
+    
 
     

@@ -20,7 +20,9 @@ import { useLanguage } from "@/context/language-context";
 
 // --- Data Types and Interfaces ---
 type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave";
+type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky';
 
+// This represents the detailed properties of a single tile/chunk in the world.
 interface Chunk {
     x: number;
     y: number;
@@ -32,13 +34,30 @@ interface Chunk {
     enemy: { type: string; hp: number; damage: number } | null;
     actions: { id: number; text: string }[];
     regionId: number;
-    travelCost: number;
+
+    // --- New Detailed Tile Attributes ---
+    travelCost: number;          // How many turns/energy it costs to cross this tile.
+    vegetationDensity: number;   // 0-10, density of plants, affects visibility.
+    moisture: number;            // 0-10, affects fungi, swamps, slipperiness.
+    elevation: number;           // 0-10, height, creates slopes, hills.
+    lightLevel: number;          // 0-10, affects visibility, enemy spawning.
+    dangerLevel: number;         // 0-10, probability of traps, enemies.
+    magicAffinity: number;       // 0-10, presence of magical energy.
+    humanPresence: number;       // 0-10, signs of human activity (camps, ruins).
+    explorability: number;       // 0-10, ease of exploration.
+    soilType: SoilType;          // Type of ground, affects what can grow.
+    sunExposure: number;         // 0-10, how much direct sunlight the tile gets.
+    windLevel: number;           // 0-10, strength of the wind.
+    temperature: number;         // 0-10, ambient temperature.
+    predatorPresence: number;    // 0-10, likelihood of predator encounters.
 }
 
+// Represents the entire game world as a collection of chunks.
 interface World {
     [key: string]: Chunk;
 }
 
+// Represents the player's current status.
 interface PlayerStatus {
     hp: number;
     mana: number;
@@ -46,6 +65,7 @@ interface PlayerStatus {
     quests: string[];
 }
 
+// Represents a contiguous region of a single biome.
 interface Region {
     terrain: Terrain;
     cells: { x: number; y: number }[];
@@ -104,8 +124,7 @@ const worldConfig = {
 
 
 // --- CONTENT TEMPLATES ---
-// This object provides the "content" for each chunk based on its terrain type.
-// While `worldConfig` defines the structure, `templates` defines what you see and interact with.
+// This object provides the "content" and base attribute values for each chunk based on its terrain type.
 const templates: Record<Terrain, any> = {
     forest: {
         descriptionTemplates: [
@@ -125,6 +144,9 @@ const templates: Record<Terrain, any> = {
             { type: 'Sói', hp: 30, damage: 10, chance: 0.5 },
             { type: 'Nhện khổng lồ', hp: 40, damage: 15, chance: 0.3 },
         ],
+        // Base Attributes
+        vegetationDensity: 8, moisture: 6, elevation: 2, lightLevel: 3, dangerLevel: 5, magicAffinity: 4,
+        humanPresence: 1, explorability: 4, soilType: 'loamy', sunExposure: 2, windLevel: 3, temperature: 5, predatorPresence: 6,
     },
     grassland: {
         descriptionTemplates: [
@@ -143,6 +165,9 @@ const templates: Record<Terrain, any> = {
             { type: 'Thỏ hoang hung dữ', hp: 20, damage: 5, chance: 0.4 },
             { type: 'Cáo gian xảo', hp: 25, damage: 8, chance: 0.2 },
         ],
+        // Base Attributes
+        vegetationDensity: 3, moisture: 4, elevation: 1, lightLevel: 8, dangerLevel: 2, magicAffinity: 1,
+        humanPresence: 3, explorability: 9, soilType: 'loamy', sunExposure: 9, windLevel: 7, temperature: 6, predatorPresence: 3,
     },
     desert: {
         descriptionTemplates: [
@@ -161,6 +186,9 @@ const templates: Record<Terrain, any> = {
             { type: 'Rắn đuôi chuông', hp: 30, damage: 15, chance: 0.5 },
             { type: 'Bọ cạp khổng lồ', hp: 50, damage: 10, chance: 0.3 },
         ],
+        // Base Attributes
+        vegetationDensity: 0, moisture: 0, elevation: 1, lightLevel: 10, dangerLevel: 6, magicAffinity: 2,
+        humanPresence: 1, explorability: 7, soilType: 'sandy', sunExposure: 10, windLevel: 5, temperature: 9, predatorPresence: 7,
     },
     swamp: {
         descriptionTemplates: [
@@ -179,6 +207,9 @@ const templates: Record<Terrain, any> = {
             { type: 'Đỉa khổng lồ', hp: 40, damage: 5, chance: 0.6 },
             { type: 'Ma trơi', hp: 25, damage: 20, chance: 0.2 },
         ],
+        // Base Attributes
+        vegetationDensity: 6, moisture: 9, elevation: 0, lightLevel: 4, dangerLevel: 8, magicAffinity: 5,
+        humanPresence: 0, explorability: 3, soilType: 'clay', sunExposure: 3, windLevel: 2, temperature: 5, predatorPresence: 8,
     },
     mountain: {
         descriptionTemplates: [
@@ -197,6 +228,9 @@ const templates: Record<Terrain, any> = {
             { type: 'Dê núi hung hãn', hp: 50, damage: 15, chance: 0.4 },
             { type: 'Người đá (Stone Golem)', hp: 80, damage: 10, chance: 0.2 },
         ],
+        // Base Attributes
+        vegetationDensity: 2, moisture: 3, elevation: 8, lightLevel: 7, dangerLevel: 7, magicAffinity: 3,
+        humanPresence: 2, explorability: 5, soilType: 'rocky', sunExposure: 8, windLevel: 9, temperature: 3, predatorPresence: 5,
     },
     cave: {
         descriptionTemplates: [
@@ -215,6 +249,9 @@ const templates: Record<Terrain, any> = {
             { type: 'Dơi khổng lồ', hp: 25, damage: 10, chance: 0.7 },
             { type: 'Nhện hang', hp: 45, damage: 15, chance: 0.4 },
         ],
+        // Base Attributes
+        vegetationDensity: 0, moisture: 7, elevation: -5, lightLevel: 1, dangerLevel: 9, magicAffinity: 6,
+        humanPresence: 1, explorability: 2, soilType: 'rocky', sunExposure: 0, windLevel: 1, temperature: 4, predatorPresence: 9,
     },
 };
 
@@ -314,7 +351,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                 validTerrains.push(terrainKey);
             }
         }
-        return validTerrains.length ? validTerrains : Object.keys(worldConfig.terrainTypes) as Terrain[];
+        return validTerrains.length > 0 ? validTerrains : Object.keys(worldConfig.terrainTypes) as Terrain[];
     }, []);
 
     // This is the core "factory" function for building a new region of the world.
@@ -355,11 +392,10 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         for (const pos of cells) {
             const posKey = `${pos.x},${pos.y}`;
 
-            // Randomly pick description, adjectives, features, NPCs, items, and enemies.
-            const descriptionTemplate = template.descriptionTemplates[Math.floor(Math.random() * template.descriptionTemplates.length)];
+            const baseDescriptionTemplate = template.descriptionTemplates[Math.floor(Math.random() * template.descriptionTemplates.length)];
             const adjective = template.adjectives[Math.floor(Math.random() * template.adjectives.length)];
             const feature = template.features[Math.floor(Math.random() * template.features.length)];
-            const description = descriptionTemplate.replace('[adjective]', adjective).replace('[feature]', feature);
+            const baseDescription = baseDescriptionTemplate.replace('[adjective]', adjective).replace('[feature]', feature);
             
             const npc = template.NPCs[Math.floor(Math.random() * template.NPCs.length)];
             const item = template.items[Math.floor(Math.random() * template.items.length)];
@@ -374,22 +410,43 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                 }
             }
             
-            // Create the final chunk object and add it to the world.
+            // Create the chunk object with new attributes, adding some randomization
+            const newChunk: Omit<Chunk, 'description' | 'actions'> = {
+                x: pos.x, y: pos.y, terrain, explored: false, regionId,
+                NPCs: [npc], items: [item], enemy,
+                travelCost: config.travelCost,
+                vegetationDensity: Math.max(0, template.vegetationDensity + Math.round(Math.random() * 4 - 2)),
+                moisture: Math.max(0, template.moisture + Math.round(Math.random() * 4 - 2)),
+                elevation: Math.max(0, template.elevation + Math.round(Math.random() * 4 - 2)),
+                lightLevel: Math.max(0, template.lightLevel + Math.round(Math.random() * 4 - 2)),
+                dangerLevel: Math.max(0, template.dangerLevel + Math.round(Math.random() * 4 - 2)),
+                magicAffinity: Math.max(0, template.magicAffinity + Math.round(Math.random() * 2 - 1)),
+                humanPresence: Math.max(0, template.humanPresence + Math.round(Math.random() * 2 - 1)),
+                explorability: Math.max(0, template.explorability + Math.round(Math.random() * 4 - 2)),
+                soilType: template.soilType,
+                sunExposure: Math.max(0, template.sunExposure + Math.round(Math.random() * 4 - 2)),
+                windLevel: Math.max(0, template.windLevel + Math.round(Math.random() * 4 - 2)),
+                temperature: Math.max(0, template.temperature + Math.round(Math.random() * 4 - 2)),
+                predatorPresence: Math.max(0, template.predatorPresence + Math.round(Math.random() * 4 - 2)),
+            };
+
+            // Generate dynamic description based on the new attributes
+            let finalDescription = baseDescription;
+            if (newChunk.moisture > 8) finalDescription += " Không khí đặc quánh hơi ẩm.";
+            if (newChunk.windLevel > 8) finalDescription += " Một cơn gió mạnh rít qua bên tai bạn.";
+            if (newChunk.temperature < 3) finalDescription += " Một cái lạnh buốt thấu xương.";
+            if (newChunk.dangerLevel > 8) finalDescription += " Bạn có cảm giác bất an ở nơi này.";
+            if (newChunk.humanPresence > 5) finalDescription += " Dường như có dấu vết của người khác ở đây.";
+
+            // Add the final chunk to the world
             newWorld[posKey] = {
-                x: pos.x, y: pos.y,
-                terrain,
-                description,
-                NPCs: [npc],
-                items: [item],
-                explored: false,
-                enemy: enemy,
+                ...newChunk,
+                description: finalDescription,
                 actions: [
                     { id: 1, text: enemy ? `Quan sát ${enemy.type}` : `Nói chuyện với ${npc}` },
                     { id: 2, text: 'Khám phá khu vực' },
                     { id: 3, text: `Nhặt ${item.name}` }
                 ],
-                regionId,
-                travelCost: config.travelCost,
             };
         }
         return { newWorld, newRegions, newRegionCounter };
@@ -669,3 +726,5 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
     
 
     
+
+

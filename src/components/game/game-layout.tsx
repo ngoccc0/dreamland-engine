@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -25,9 +26,9 @@ interface Chunk {
     terrain: Terrain;
     description: string;
     NPCs: string[];
-    items: string[];
+    items: { name: string; description: string }[];
     explored: boolean;
-    enemy: { type: string; hp: number } | null;
+    enemy: { type: string; hp: number; damage: number } | null;
     actions: { id: number; text: string }[];
     regionId: number;
 }
@@ -58,33 +59,62 @@ const worldConfig = {
 
 const templates: Record<Terrain, any> = {
     forest: {
-        image: 'forest',
-        descriptionTemplate: 'Bạn đứng trong một [adjective] rừng [feature], trải rộng khắp vùng.',
-        NPCs: ['thợ săn', 'sói'],
-        items: ['kiếm rỉ', 'thảo dược'],
-        adjectives: ['rậm rạp', 'u ám'],
-        features: ['sồi cổ thụ', 'thông cao'],
-        enemy: { type: 'sói', hp: 50 }
+        descriptionTemplates: [
+            'Bạn đang ở trong một khu rừng [adjective]. Những cây [feature] cao vút che khuất ánh mặt trời.',
+            'Một khu rừng [adjective] bao quanh bạn. Tiếng lá xào xạc dưới chân khi bạn di chuyển giữa những cây [feature].',
+            'Không khí trong khu rừng [feature] này thật ẩm ướt. Cảm giác [adjective] và có phần bí ẩn.',
+        ],
+        adjectives: ['rậm rạp', 'u ám', 'cổ xưa', 'yên tĩnh'],
+        features: ['sồi', 'thông', 'dương xỉ', 'nấm phát quang'],
+        NPCs: ['thợ săn bí ẩn', 'linh hồn cây'],
+        items: [
+            { name: 'Thảo dược', description: 'Một loại cây thuốc có khả năng chữa lành vết thương nhỏ.' },
+            { name: 'Nấm phát quang', description: 'Một loại nấm phát ra ánh sáng xanh dịu, có thể dùng để soi đường.' },
+            { name: 'Mũi tên cũ', description: 'Một mũi tên có vẻ đã được sử dụng, cắm trên một thân cây.' },
+        ],
+        enemies: [
+            { type: 'Sói', hp: 30, damage: 10, chance: 0.5 },
+            { type: 'Nhện khổng lồ', hp: 40, damage: 15, chance: 0.3 },
+        ],
     },
     grassland: {
-        image: 'grassland',
-        descriptionTemplate: 'Bạn đứng trên một [adjective] đồng cỏ [feature], nối rừng và sa mạc.',
-        NPCs: ['nông dân', 'thỏ hoang'],
-        items: ['lúa mì', 'cỏ khô'],
-        adjectives: ['xanh mướt', 'bạt ngàn'],
-        features: ['thảo nguyên', 'đồi cỏ'],
-        enemy: { type: 'thỏ hoang', hp: 20 }
+        descriptionTemplates: [
+            'Một đồng cỏ [adjective] trải dài đến tận chân trời. Những ngọn đồi [feature] nhấp nhô nhẹ nhàng.',
+            'Bạn đang đứng giữa một thảo nguyên [adjective]. Gió thổi qua làm những ngọn cỏ [feature] lay động như sóng.',
+            'Đồng cỏ [feature] này thật thanh bình, không khí trong lành và [adjective].',
+        ],
+        adjectives: ['xanh mướt', 'bạt ngàn', 'khô cằn', 'lộng gió'],
+        features: ['hoa dại', 'cỏ cao', 'đá tảng', 'lối mòn'],
+        NPCs: ['người du mục', 'nông dân'],
+        items: [
+            { name: 'Hoa dại', description: 'Một bông hoa đẹp, có thể có giá trị với ai đó.' },
+            { name: 'Lúa mì', description: 'Một bó lúa mì chín vàng.' },
+        ],
+        enemies: [
+            { type: 'Thỏ hoang hung dữ', hp: 20, damage: 5, chance: 0.4 },
+            { type: 'Cáo gian xảo', hp: 25, damage: 8, chance: 0.2 },
+        ],
     },
     desert: {
-        image: 'desert',
-        descriptionTemplate: 'Bạn đứng trong một [adjective] sa mạc [feature], trải dài vô tận.',
-        NPCs: ['thương nhân', 'rắn độc'],
-        items: ['nước'],
-        adjectives: ['nóng bỏng', 'khô cằn'],
-        features: ['cồn cát', 'ốc đảo'],
-        enemy: { type: 'rắn độc', hp: 30 }
-    }
+        descriptionTemplates: [
+            'Cát, cát và cát. Một sa mạc [adjective] bao la. Những [feature] là cảnh tượng duy nhất phá vỡ sự đơn điệu.',
+            'Cái nóng của sa mạc [adjective] thật khắc nghiệt. Bạn thấy một [feature] ở phía xa, có thể là ảo ảnh.',
+            'Bạn đang đi qua một vùng sa mạc [feature], dấu chân của bạn nhanh chóng bị gió xóa đi.',
+        ],
+        adjectives: ['nóng bỏng', 'khô cằn', 'vô tận', 'lặng im'],
+        features: ['cồn cát', 'ốc đảo', 'xương rồng khổng lồ', 'bộ xương cũ'],
+        NPCs: ['thương nhân lạc đà', 'nhà thám hiểm'],
+        items: [
+            { name: 'Bình nước', description: 'Một bình nước quý giá, gần như còn đầy.' },
+            { name: 'Mảnh gốm cổ', description: 'Một mảnh gốm vỡ có hoa văn kỳ lạ.' },
+        ],
+        enemies: [
+            { type: 'Rắn đuôi chuông', hp: 30, damage: 15, chance: 0.5 },
+            { type: 'Bọ cạp khổng lồ', hp: 50, damage: 10, chance: 0.3 },
+        ],
+    },
 };
+
 
 type NarrativeEntry = {
     id: number;
@@ -127,7 +157,6 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
 
     const weightedRandom = (options: [Terrain, number][]): Terrain => {
         const total = options.reduce((sum, [, prob]) => sum + prob, 0);
-        const r = Math.random() * total;
         let current = 0;
         for (const [option, prob] of options) {
             current += prob;
@@ -135,6 +164,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         }
         return options[0][0];
     }
+    const r = Math.random();
     
     const getValidAdjacentTerrains = useCallback((pos: { x: number; y: number }, currentWorld: World): Terrain[] => {
         const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }];
@@ -199,23 +229,37 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
 
         for (const pos of cells) {
             const posKey = `${pos.x},${pos.y}`;
+
+            const descriptionTemplate = template.descriptionTemplates[Math.floor(Math.random() * template.descriptionTemplates.length)];
+            const adjective = template.adjectives[Math.floor(Math.random() * template.adjectives.length)];
+            const feature = template.features[Math.floor(Math.random() * template.features.length)];
+            const description = descriptionTemplate.replace('[adjective]', adjective).replace('[feature]', feature);
+            
             const npc = template.NPCs[Math.floor(Math.random() * template.NPCs.length)];
             const item = template.items[Math.floor(Math.random() * template.items.length)];
-            const isEnemy = ['sói', 'rắn độc', 'thỏ hoang'].includes(npc);
+            
+            let enemy = null;
+            if (template.enemies && template.enemies.length > 0) {
+                for (const enemyType of template.enemies) {
+                    if (Math.random() < enemyType.chance) {
+                        enemy = { ...enemyType };
+                        break; 
+                    }
+                }
+            }
 
             newWorld[posKey] = {
                 x: pos.x, y: pos.y,
                 terrain,
-                description: template.descriptionTemplate.replace('[adjective]', template.adjectives[Math.floor(Math.random() * template.adjectives.length)])
-                    .replace('[feature]', template.features[Math.floor(Math.random() * template.features.length)]),
+                description,
                 NPCs: [npc],
                 items: [item],
                 explored: false,
-                enemy: isEnemy ? { ...template.enemy } : null,
+                enemy: enemy,
                 actions: [
-                    { id: 1, text: isEnemy ? `Quan sát ${npc}` : `Nói chuyện với ${npc}` },
+                    { id: 1, text: enemy ? `Quan sát ${enemy.type}` : `Nói chuyện với ${npc}` },
                     { id: 2, text: 'Khám phá khu vực' },
-                    { id: 3, text: `Nhặt ${item}` }
+                    { id: 3, text: `Nhặt ${item.name}` }
                 ],
                 regionId
             };
@@ -240,7 +284,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         setRegionCounter(newRegionCounter);
         addNarrativeEntry(newWorld[startKey].description, 'narrative');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [worldSetup, generateRegion]); // Only run on init
+    }, [worldSetup]); // Only run on init
 
     useEffect(() => {
         // Scroll to the bottom of the page to show the latest narrative entry
@@ -285,7 +329,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         if (!chunk) return;
     
         if (actionId === 1 && chunk.enemy) {
-            addNarrativeEntry(t('observeEnemy', { npc: chunk.NPCs[0] }), 'narrative');
+            addNarrativeEntry(t('observeEnemy', { npc: chunk.enemy.type }), 'narrative');
         } else if (actionId === 1) {
             addNarrativeEntry(t('talkToNpc', { npc: chunk.NPCs[0] }), 'narrative');
             setPlayerStats(prev => {
@@ -297,8 +341,9 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
             addNarrativeEntry(t('exploreArea'), 'narrative');
         } else if (actionId === 3) {
             const item = chunk.items[0];
-            addNarrativeEntry(t('pickupItem', {item}), 'narrative');
-            setPlayerStats(prev => ({ ...prev, items: [...prev.items, item] }));
+            addNarrativeEntry(t('pickupItem', { item: item.name }), 'narrative');
+            addNarrativeEntry(`(${item.description})`, 'system');
+            setPlayerStats(prev => ({ ...prev, items: [...new Set([...prev.items, item.name])] }));
         }
     }
 
@@ -309,7 +354,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
 
         const enemy = chunk.enemy;
         const playerDamage = 20;
-        const enemyDamage = 10;
+        const enemyDamage = enemy.damage || 10; // Use damage from enemy object, with fallback
         
         enemy.hp -= playerDamage;
         addNarrativeEntry(t('attackEnemy', { enemyType: enemy.type, playerDamage }), 'action');
@@ -417,65 +462,67 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                 </div>
 
                 {/* Right Panel: Controls & Actions */}
-                <div className="w-full md:w-[30%] bg-card border-l flex flex-col p-4 md:p-6 gap-6 md:sticky md:top-0 md:h-dvh">
-                    <Minimap grid={generateMapGrid()} />
-                    
-                    <div className="grid grid-cols-2 gap-2">
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="outline" onClick={() => setStatusOpen(true)} className="w-full justify-center">
-                                    <Shield className="h-4 w-4 md:mr-2"/>
-                                    <span className="hidden md:inline">{t('status')}</span>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>{t('statusTooltip')}</p></TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="outline" onClick={() => setInventoryOpen(true)} className="w-full justify-center">
-                                    <BookOpen className="h-4 w-4 md:mr-2"/>
-                                    <span className="hidden md:inline">{t('inventory')}</span>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent>
-                        </Tooltip>
-                    </div>
-
-                    <Controls onMove={handleMove} onAttack={handleAttack} />
-                    
-                    <Separator />
-                    
-                    <div className="space-y-4">
-                        <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('availableActions')}</h2>
-                        <div className="space-y-2">
-                            {currentChunk?.actions.map(action => (
-                                <Tooltip key={action.id}>
-                                    <TooltipTrigger asChild>
-                                        <Button variant="secondary" className="w-full justify-center" onClick={() => handleAction(action.id)}>
-                                            {action.text}
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent><p>{action.text}</p></TooltipContent>
-                                </Tooltip>
-                            ))}
-                        </div>
-                        <div className="flex flex-col gap-2">
-                            <Input 
-                                placeholder={t('customActionPlaceholder')}
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleCustomAction(inputValue)}
-                                disabled={isLoading}
-                            />
+                <aside className="w-full md:w-[30%] bg-card border-l p-4 md:p-6 md:sticky md:top-0 md:h-dvh md:overflow-y-auto">
+                    <div className="flex flex-col gap-6">
+                        <Minimap grid={generateMapGrid()} />
+                        
+                        <div className="grid grid-cols-2 gap-2">
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <Button variant="accent" onClick={() => handleCustomAction(inputValue)} disabled={isLoading}>{t('submit')}</Button>
+                                    <Button variant="outline" onClick={() => setStatusOpen(true)} className="w-full justify-center">
+                                        <Shield className="h-4 w-4 md:mr-2"/>
+                                        <span className="hidden md:inline">{t('status')}</span>
+                                    </Button>
                                 </TooltipTrigger>
-                                <TooltipContent><p>{t('submitTooltip')}</p></TooltipContent>
+                                <TooltipContent><p>{t('statusTooltip')}</p></TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="outline" onClick={() => setInventoryOpen(true)} className="w-full justify-center">
+                                        <BookOpen className="h-4 w-4 md:mr-2"/>
+                                        <span className="hidden md:inline">{t('inventory')}</span>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent>
                             </Tooltip>
                         </div>
+
+                        <Controls onMove={handleMove} onAttack={handleAttack} />
+                        
+                        <Separator />
+                        
+                        <div className="space-y-4">
+                            <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('availableActions')}</h2>
+                            <div className="space-y-2">
+                                {currentChunk?.actions.map(action => (
+                                    <Tooltip key={action.id}>
+                                        <TooltipTrigger asChild>
+                                            <Button variant="secondary" className="w-full justify-center" onClick={() => handleAction(action.id)}>
+                                                {action.text}
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>{action.text}</p></TooltipContent>
+                                    </Tooltip>
+                                ))}
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <Input 
+                                    placeholder={t('customActionPlaceholder')}
+                                    value={inputValue}
+                                    onChange={(e) => setInputValue(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleCustomAction(inputValue)}
+                                    disabled={isLoading}
+                                />
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="accent" onClick={() => handleCustomAction(inputValue)} disabled={isLoading}>{t('submit')}</Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>{t('submitTooltip')}</p></TooltipContent>
+                                </Tooltip>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </aside>
                 
                 <StatusPopup open={isStatusOpen} onOpenChange={setStatusOpen} stats={playerStats} quests={playerStats.quests} />
                 <InventoryPopup open={isInventoryOpen} onOpenChange={setInventoryOpen} items={playerStats.items} />
@@ -483,3 +530,5 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         </TooltipProvider>
     );
 }
+
+    

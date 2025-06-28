@@ -10,11 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { BookOpen, Shield, Cpu } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 import type { WorldConcept } from "@/ai/flows/generate-world-setup";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { useLanguage } from "@/context/language-context";
 
 // Import AI flow
@@ -67,7 +64,32 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
     const pageEndRef = useRef<HTMLDivElement>(null);
     
     // --- State for AI vs. Rule-based mode ---
-    const [isOnlineMode, setIsOnlineMode] = useState(false);
+    const [isOnline, setIsOnline] = useState(true);
+
+    // Effect for handling online/offline status
+    useEffect(() => {
+        if (typeof window === 'undefined' || !navigator) return;
+
+        const handleOnline = () => setIsOnline(true);
+        const handleOffline = () => {
+            setIsOnline(false);
+            toast({
+                title: t('offlineModeActive'),
+                description: t('offlineToastDesc'),
+            });
+        };
+
+        // Set initial status
+        setIsOnline(navigator.onLine);
+
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, [t, toast]);
 
 
     const addNarrativeEntry = useCallback((text: string, type: NarrativeEntry['type']) => {
@@ -179,13 +201,11 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
             }
 
             // Apply updates from AI
+            let updatedWorld = { ...fullWorldState };
             if (result.updatedChunk) {
-                setWorld(prev => {
-                    const newWorld = { ...prev };
-                    const key = `${currentChunk.x},${currentChunk.y}`;
-                    newWorld[key] = { ...newWorld[key], ...result.updatedChunk };
-                    return newWorld;
-                });
+                const key = `${currentChunk.x},${currentChunk.y}`;
+                updatedWorld = { ...updatedWorld, [key]: { ...updatedWorld[key], ...result.updatedChunk } };
+                setWorld(updatedWorld);
             }
             if (result.updatedPlayerStatus) {
                 setPlayerStats(prev => ({ ...prev, ...result.updatedPlayerStatus }));
@@ -193,8 +213,8 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
 
         } catch (error) {
             console.error("AI narrative generation failed:", error);
-            toast({ title: t('error'), description: "AI storyteller failed. Switched to offline mode.", variant: "destructive" });
-            setIsOnlineMode(false); // Fallback to offline mode
+            toast({ title: t('offlineModeActive'), description: t('offlineToastDesc'), variant: "destructive" });
+            setIsOnline(false); // Fallback to offline mode
         } finally {
             setIsLoading(false);
         }
@@ -213,15 +233,20 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         const worldWithChunk = ensureChunkExists(newPos, world);
         const newWorld = { ...worldWithChunk };
         const newPosKey = `${newPos.x},${newPos.y}`;
-        newWorld[newPosKey] = { ...newWorld[newPosKey], explored: true };
+        
+        if (newWorld[newPosKey]) {
+            newWorld[newPosKey] = { ...newWorld[newPosKey], explored: true };
+        }
 
         setWorld(newWorld);
         setPlayerPosition(newPos);
 
-        if (isOnlineMode) {
+        if (isOnline) {
             handleOnlineNarrative(`move ${direction}`, newWorld);
         } else {
-            addNarrativeEntry(newWorld[newPosKey].description, 'narrative');
+            if (newWorld[newPosKey]) {
+                addNarrativeEntry(newWorld[newPosKey].description, 'narrative');
+            }
         }
     };
 
@@ -232,7 +257,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         const actionText = chunk.actions.find(a => a.id === actionId)?.text || "unknown action";
         addNarrativeEntry(actionText, 'action');
 
-        if (isOnlineMode) {
+        if (isOnline) {
             handleOnlineNarrative(actionText, world);
             return;
         }
@@ -274,24 +299,27 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         const actionText = `Attack ${currentChunk.enemy.type}`;
         addNarrativeEntry(actionText, 'action');
 
-        if (isOnlineMode) {
+        if (isOnline) {
             handleOnlineNarrative(actionText, world);
             return;
         }
 
         // --- OFFLINE LOGIC ---
-        const updatedEnemy = { ...currentChunk.enemy };
+        let updatedWorld = { ...world };
+        let updatedChunk = { ...updatedWorld[key] };
+        
+        if (!updatedChunk.enemy) return; // Should not happen but for type safety
+
+        const updatedEnemy = { ...updatedChunk.enemy };
         const playerDamage = 20; 
         const enemyDamage = updatedEnemy.damage || 10;
 
         updatedEnemy.hp -= playerDamage;
         addNarrativeEntry(t('attackEnemy', { enemyType: updatedEnemy.type, playerDamage }), 'narrative');
 
-        let updatedChunk: Chunk;
-
         if (updatedEnemy.hp <= 0) {
             addNarrativeEntry(t('enemyDefeated', { enemyType: updatedEnemy.type }), 'system');
-            updatedChunk = { ...currentChunk, enemy: null };
+            updatedChunk = { ...updatedChunk, enemy: null };
             updatedChunk.actions = updatedChunk.actions.filter(a => a.id !== 1);
             if (updatedChunk.NPCs.length > 0) {
                 updatedChunk.actions.unshift({ id: 1, text: `Nói chuyện với ${updatedChunk.NPCs[0]}` });
@@ -306,10 +334,11 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                 }
                 return { ...prev, hp: newHp };
             });
-            updatedChunk = { ...currentChunk, enemy: updatedEnemy };
+            updatedChunk = { ...updatedChunk, enemy: updatedEnemy };
         }
         
-        setWorld(prev => ({ ...prev, [key]: updatedChunk }));
+        updatedWorld[key] = updatedChunk;
+        setWorld(updatedWorld);
     };
 
     const handleCustomAction = (text: string) => {
@@ -317,7 +346,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         addNarrativeEntry(text, 'action');
         setInputValue("");
         
-        if(isOnlineMode) {
+        if(isOnline) {
             handleOnlineNarrative(text, world);
             return;
         }
@@ -397,7 +426,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                             {isLoading && (
                                 <div className="flex items-center gap-2 text-muted-foreground italic mt-4">
                                     <Cpu className="h-4 w-4 animate-pulse" />
-                                    <p>AI is thinking...</p>
+                                    <p>{isOnline ? "AI is thinking..." : "Loading..."}</p>
                                 </div>
                             )}
                         </div>
@@ -409,17 +438,6 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                 <aside className="w-full md:w-[30%] bg-card border-l p-4 md:p-6 flex flex-col gap-6">
                     <div className="flex-shrink-0">
                         <Minimap grid={generateMapGrid()} />
-                        <div className="flex items-center justify-center space-x-3 mt-4 p-2 bg-black/10 rounded-md">
-                            <Label htmlFor="ai-mode" className="text-sm font-medium cursor-pointer text-foreground/80">{t('aiStoryteller')}</Label>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Switch id="ai-mode" checked={isOnlineMode} onCheckedChange={setIsOnlineMode} disabled={isLoading}/>
-                                </TooltipTrigger>
-                                <TooltipContent align="center" side="bottom">
-                                    <p className="max-w-[250px] text-sm text-muted-foreground">{t('aiStorytellerDesc')}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </div>
                     </div>
                     
                     <div className="flex-shrink-0 grid grid-cols-2 gap-2">

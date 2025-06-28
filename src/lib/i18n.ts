@@ -34,6 +34,8 @@ export const translations = {
     noIdeaErrorDesc: "Please describe the world you want to create.",
     worldGenError: "World Creation Error",
     worldGenErrorDesc: "Cosmic energies are disturbed. Please try again.",
+    offlineModeActive: "Offline Mode Active",
+    offlineToastDesc: "Don't worry, you can continue your journey without an internet connection, but having one provides the best experience.",
 
     // Game Layout
     wentDirection: "You go {direction}.",
@@ -141,6 +143,8 @@ export const translations = {
     noIdeaErrorDesc: "Vui lòng mô tả thế giới bạn muốn tạo.",
     worldGenError: "Lỗi Tạo Thế Giới",
     worldGenErrorDesc: "Năng lượng vũ trụ đang bị nhiễu loạn. Vui lòng thử lại.",
+    offlineModeActive: "Chế độ Ngoại tuyến",
+    offlineToastDesc: "Đừng lo, bạn vẫn có thể tiếp tục cuộc hành trình của mình khi không có mạng, nhưng có kết nối sẽ cho trải nghiệm tốt nhất.",
 
     // Game Layout
     wentDirection: "Bạn đi về phía {direction}.",

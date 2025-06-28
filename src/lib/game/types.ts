@@ -1,4 +1,5 @@
 // --- Data Types and Interfaces for the Game Engine ---
+import type { WorldConcept } from "@/ai/flows/generate-world-setup";
 
 export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave";
 export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky';
@@ -120,3 +121,16 @@ export type MapCell = {
   hasPlayer?: boolean;
   hasEnemy?: boolean;
 };
+
+// Represents the entire savable state of the game
+export interface GameState {
+    worldProfile: WorldProfile;
+    currentSeason: Season;
+    world: World;
+    regions: { [id: number]: Region };
+    regionCounter: number;
+    playerPosition: { x: number; y: number };
+    playerStats: PlayerStatus;
+    narrativeLog: NarrativeEntry[];
+    worldSetup: WorldConcept;
+}

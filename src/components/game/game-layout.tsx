@@ -20,44 +20,49 @@ import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/gener
 // Import modularized game engine components
 import { generateRegion, getValidAdjacentTerrains, weightedRandom } from '@/lib/game/engine';
 import { worldConfig } from '@/lib/game/config';
-import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region } from '@/lib/game/types';
+import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region, GameState, Terrain } from '@/lib/game/types';
 
 
 interface GameLayoutProps {
-    worldSetup: WorldConcept;
+    worldSetup?: WorldConcept;
+    initialGameState?: GameState;
 }
 
-export default function GameLayout({ worldSetup }: GameLayoutProps) {
+export default function GameLayout({ worldSetup, initialGameState }: GameLayoutProps) {
     const { t, language } = useLanguage();
     
     // --- State for Global World Settings ---
-    const [worldProfile, setWorldProfile] = useState<WorldProfile>({
-        climateBase: 'temperate',
-        magicLevel: 5,
-        mutationFactor: 2,
-        sunIntensity: 7,
-        weatherTypesAllowed: ['clear', 'rain', 'fog'],
-        moistureBias: 0,
-        tempBias: 0,
-    });
-    const [currentSeason, setCurrentSeason] = useState<Season>('spring');
+    const [worldProfile, setWorldProfile] = useState<WorldProfile>(
+        initialGameState?.worldProfile || {
+            climateBase: 'temperate',
+            magicLevel: 5,
+            mutationFactor: 2,
+            sunIntensity: 7,
+            weatherTypesAllowed: ['clear', 'rain', 'fog'],
+            moistureBias: 0,
+            tempBias: 0,
+        }
+    );
+    const [currentSeason, setCurrentSeason] = useState<Season>(initialGameState?.currentSeason || 'spring');
 
     // --- State for Game Progression ---
-    const [world, setWorld] = useState<World>({});
-    const [regions, setRegions] = useState<{ [id: number]: Region }>({});
-    const [regionCounter, setRegionCounter] = useState(0);
-    const [playerPosition, setPlayerPosition] = useState({ x: 0, y: 0 });
-    const [playerStats, setPlayerStats] = useState<PlayerStatus>({
-        hp: 100,
-        mana: 50,
-        items: worldSetup.playerInventory,
-        quests: worldSetup.initialQuests
-    });
+    const [world, setWorld] = useState<World>(initialGameState?.world || {});
+    const [regions, setRegions] = useState<{ [id: number]: Region }>(initialGameState?.regions || {});
+    const [regionCounter, setRegionCounter] = useState<number>(initialGameState?.regionCounter || 0);
+    const [playerPosition, setPlayerPosition] = useState(initialGameState?.playerPosition || { x: 0, y: 0 });
+    const [playerStats, setPlayerStats] = useState<PlayerStatus>(
+        initialGameState?.playerStats || {
+            hp: 100,
+            mana: 50,
+            items: worldSetup?.playerInventory || [],
+            quests: worldSetup?.initialQuests || []
+        }
+    );
     
     const [isStatusOpen, setStatusOpen] = useState(false);
     const [isInventoryOpen, setInventoryOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>([]);
+    const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>(initialGameState?.narrativeLog || []);
     const [inputValue, setInputValue] = useState("");
     const { toast } = useToast();
     const narrativeIdCounter = useRef(1);
@@ -66,6 +71,8 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
     
     // --- State for AI vs. Rule-based mode ---
     const [isOnline, setIsOnline] = useState(true);
+
+    const finalWorldSetup = worldSetup || initialGameState?.worldSetup;
 
     // Effect for handling online/offline status
     useEffect(() => {
@@ -94,39 +101,90 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
 
 
     const addNarrativeEntry = useCallback((text: string, type: NarrativeEntry['type']) => {
-        setNarrativeLog(prev => [...prev, { id: narrativeIdCounter.current++, text, type }]);
+        setNarrativeLog(prev => {
+            const newEntry = { id: narrativeIdCounter.current, text, type };
+            narrativeIdCounter.current++;
+            return [...prev, newEntry];
+        });
     }, []);
     
     // --- Component Effects and Handlers ---
     
+    // Initial setup effect
     useEffect(() => {
-        // Initialize the game world
-        addNarrativeEntry(worldSetup.initialNarrative, 'narrative');
-        const startPos = { x: 0, y: 0 };
-        const startingTerrain = worldSetup.startingBiome as Terrain;
-        
-        // Generate the very first region of the game.
-        const { newWorld, newRegions, newRegionCounter } = generateRegion(
-            startPos, 
-            startingTerrain, 
-            {}, 
-            {}, 
-            0,
-            worldProfile,
-            currentSeason
-        );
-        
-        const startKey = `${startPos.x},${startPos.y}`;
-        if (newWorld[startKey]) {
-            newWorld[startKey].explored = true;
-            addNarrativeEntry(newWorld[startKey].description, 'narrative');
-        }
+        // If we are loading a game, the state is already initialized.
+        // We just need to set the narrative counter correctly.
+        if (initialGameState) {
+            if (narrativeLog.length > 0) {
+                narrativeIdCounter.current = Math.max(...narrativeLog.map(e => e.id)) + 1;
+            }
+            return;
+        };
 
-        setWorld(newWorld);
-        setRegions(newRegions);
-        setRegionCounter(newRegionCounter);
+        // This part only runs for a NEW game
+        if (worldSetup) {
+            addNarrativeEntry(worldSetup.initialNarrative, 'narrative');
+            const startPos = { x: 0, y: 0 };
+            const startingTerrain = worldSetup.startingBiome as Terrain;
+            
+            const { newWorld, newRegions, newRegionCounter } = generateRegion(
+                startPos, 
+                startingTerrain, 
+                {}, 
+                {}, 
+                0,
+                worldProfile,
+                currentSeason
+            );
+            
+            const startKey = `${startPos.x},${startPos.y}`;
+            if (newWorld[startKey]) {
+                newWorld[startKey].explored = true;
+                addNarrativeEntry(newWorld[startKey].description, 'narrative');
+            }
+
+            setWorld(newWorld);
+            setRegions(newRegions);
+            setRegionCounter(newRegionCounter);
+        }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [worldSetup]); // Only run on init
+    }, [worldSetup, initialGameState]); // This effect should only run once on initialization
+
+    // Game state saving effect
+    useEffect(() => {
+        // Don't save if the world hasn't been generated yet
+        if (Object.keys(world).length === 0 || !finalWorldSetup) return;
+
+        const gameState: GameState = {
+            worldProfile,
+            currentSeason,
+            world,
+            regions,
+            regionCounter,
+            playerPosition,
+            playerStats,
+            narrativeLog,
+            worldSetup: finalWorldSetup
+        };
+
+        try {
+            localStorage.setItem('gameState', JSON.stringify(gameState));
+        } catch (error) {
+            console.error("Failed to save game state:", error);
+            // Optionally, inform the user that saving has failed
+        }
+    }, [
+        worldProfile,
+        currentSeason,
+        world,
+        regions,
+        regionCounter,
+        playerPosition,
+        playerStats,
+        narrativeLog,
+        finalWorldSetup
+    ]);
+
 
     useEffect(() => {
         // Scroll to the bottom of the page to show the latest narrative entry
@@ -162,17 +220,16 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
     const handleOnlineNarrative = useCallback(async (action: string, fullWorldState: World) => {
         setIsLoading(true);
         const currentChunk = fullWorldState[`${playerPosition.x},${playerPosition.y}`];
-        if (!currentChunk) {
+        if (!currentChunk || !finalWorldSetup) {
             setIsLoading(false);
             return;
         }
 
         try {
             const input: GenerateNarrativeInput = {
-                worldName: worldSetup.worldName,
+                worldName: finalWorldSetup.worldName,
                 playerAction: action,
                 playerStatus: playerStats,
-                // Pass only the necessary fields to the AI
                 currentChunk: {
                     x: currentChunk.x,
                     y: currentChunk.y,
@@ -203,14 +260,14 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
 
             // Apply updates from AI
             let updatedWorld = { ...fullWorldState };
+            const key = `${currentChunk.x},${currentChunk.y}`;
             if (result.updatedChunk) {
-                const key = `${currentChunk.x},${currentChunk.y}`;
                 updatedWorld = { ...updatedWorld, [key]: { ...updatedWorld[key], ...result.updatedChunk } };
-                setWorld(updatedWorld);
             }
             if (result.updatedPlayerStatus) {
                 setPlayerStats(prev => ({ ...prev, ...result.updatedPlayerStatus }));
             }
+            setWorld(updatedWorld); // Set world state after all modifications
 
         } catch (error) {
             console.error("AI narrative generation failed:", error);
@@ -219,7 +276,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         } finally {
             setIsLoading(false);
         }
-    }, [playerStats, playerPosition, worldSetup.worldName, narrativeLog, language, toast, t, addNarrativeEntry]);
+    }, [playerStats, playerPosition, finalWorldSetup, narrativeLog, language, toast, t, addNarrativeEntry]);
     
     const handleMove = (direction: "north" | "south" | "east" | "west") => {
         let newPos = { ...playerPosition };
@@ -408,13 +465,21 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
     
     const currentChunk = world[`${playerPosition.x},${playerPosition.y}`];
 
+    if (!finalWorldSetup) {
+        return (
+            <div className="flex items-center justify-center min-h-dvh bg-background">
+                <p className="text-foreground text-destructive">Error: Game data is missing or corrupted.</p>
+            </div>
+        );
+    }
+
     return (
         <TooltipProvider>
             <div className="flex flex-col md:flex-row min-h-dvh bg-background text-foreground font-body">
                 {/* Left Panel: Narrative */}
                 <div className="w-full md:w-[70%] flex flex-col">
                     <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10">
-                        <h1 className="text-2xl font-bold font-headline">{worldSetup.worldName}</h1>
+                        <h1 className="text-2xl font-bold font-headline">{finalWorldSetup.worldName}</h1>
                     </header>
 
                     <main className="flex-grow p-4 md:p-6 overflow-y-auto">

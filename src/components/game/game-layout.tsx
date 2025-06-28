@@ -200,43 +200,48 @@ type SpawnConditions = {
     predatorPresence?: { min?: number, max?: number };
     lightLevel?: { min?: number, max?: number };
     temperature?: { min?: number, max?: number };
+    soilType?: SoilType[];
 };
 
 // Helper function to check if a chunk meets the spawn conditions for an entity
-const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 'description' | 'actions'>): boolean => {
+const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy'>): boolean => {
     for (const key in conditions) {
         if (key === 'chance') continue;
-        const condition = conditions[key as keyof typeof conditions] as { min?: number, max?: number };
+        const condition = conditions[key as keyof typeof conditions];
         const chunkValue = chunk[key as keyof typeof chunk];
-        if (typeof chunkValue !== 'number') return false;
+        
+        if (key === 'soilType') {
+            const soilConditions = condition as SoilType[];
+            if (!soilConditions.includes(chunk.soilType)) return false;
+            continue;
+        }
 
-        if (condition.min !== undefined && chunkValue < condition.min) return false;
-        if (condition.max !== undefined && chunkValue > condition.max) return false;
+        if (typeof chunkValue !== 'number' || typeof condition !== 'object' || condition === null) continue;
+        
+        const range = condition as { min?: number; max?: number };
+        if (range.min !== undefined && chunkValue < range.min) return false;
+        if (range.max !== undefined && chunkValue > range.max) return false;
     }
     return true;
 };
 
+
 // Helper function to select entities based on rules
 const selectEntities = <T>(
     possibleEntities: { data: T; conditions: SpawnConditions }[],
-    chunk: Omit<Chunk, 'description' | 'actions'>,
+    chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy'>,
     maxCount: number = 1
 ): T[] => {
     const validEntities = possibleEntities.filter(entity => checkConditions(entity.conditions, chunk));
     
     const selected = [];
-    for (let i = 0; i < maxCount; i++) {
-        let spawned = false;
-        for (const entity of validEntities) {
-            if (Math.random() < (entity.conditions.chance ?? 1.0)) {
-                selected.push(entity.data);
-                spawned = true;
-                break; // spawn one per iteration for variety
-            }
-        }
-        if (!spawned && validEntities.length > 0 && i === 0) {
-            // Failsafe: if nothing spawns by chance, spawn the first valid one to avoid empty chunks
-            // selected.push(validEntities[0].data);
+    // Shuffle valid entities to add more randomness
+    const shuffled = [...validEntities].sort(() => 0.5 - Math.random());
+    
+    for (const entity of shuffled) {
+        if (selected.length >= maxCount) break;
+        if (Math.random() < (entity.conditions.chance ?? 1.0)) {
+            selected.push(entity.data);
         }
     }
     return selected;
@@ -244,7 +249,7 @@ const selectEntities = <T>(
 
 const selectEnemy = (
     possibleEntities: { data: { type: string; hp: number; damage: number }; conditions: SpawnConditions }[],
-    chunk: Omit<Chunk, 'description' | 'actions'>
+    chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy'>
 ): { type: string; hp: number; damage: number } | null => {
     const validEntities = possibleEntities.filter(entity => checkConditions(entity.conditions, chunk));
     for (const entity of validEntities.sort(() => 0.5 - Math.random())) { // Shuffle to randomize check order
@@ -503,10 +508,12 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
             
             let canBePlaced = true;
             for(const adj of adjacentTerrains) {
+                // Check if the potential new terrain allows the existing neighbor
                 if(!config.allowedNeighbors.includes(adj)) {
                     canBePlaced = false;
                     break;
                 }
+                // Check if the existing neighbor allows the potential new terrain
                 const neighborConfig = worldConfig[adj];
                  if(!neighborConfig.allowedNeighbors.includes(terrainKey)) {
                     canBePlaced = false;
@@ -518,6 +525,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                 validTerrains.push(terrainKey);
             }
         }
+        // If no terrains are perfectly compatible, fall back to a less strict check (optional, but prevents getting stuck)
         return validTerrains.length > 0 ? validTerrains : Object.keys(worldConfig) as Terrain[];
     }, []);
 
@@ -536,27 +544,37 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         const queue: { x: number, y: number }[] = [{ x: startPos.x, y: startPos.y }];
         const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }];
 
-        while (cells.length < size && queue.length > 0) {
-            const current = queue.shift()!;
+        // Generate the shape of the region first
+        const regionCells: { x: number, y: number }[] = [];
+        const visited = new Set<string>([`${startPos.x},${startPos.y}`]);
+        const generationQueue: {x: number, y: number}[] = [startPos];
+        regionCells.push(startPos);
+
+        while(generationQueue.length > 0 && regionCells.length < size) {
+            const current = generationQueue.shift()!;
             for (const dir of directions.sort(() => Math.random() - 0.5)) {
-                if (cells.length >= size) break;
-                const newPos = { x: current.x + dir.x, y: current.y + dir.y };
-                const newPosKey = `${newPos.x},${newPos.y}`;
-                if (!newWorld[newPosKey] && !cells.some(c => c.x === newPos.x && c.y === newPos.y)) {
-                    cells.push(newPos);
-                    queue.push(newPos);
+                if (regionCells.length >= size) break;
+
+                const nextPos = { x: current.x + dir.x, y: current.y + dir.y };
+                const nextKey = `${nextPos.x},${nextPos.y}`;
+
+                if (!visited.has(nextKey) && !newWorld[nextKey]) {
+                    visited.add(nextKey);
+                    regionCells.push(nextPos);
+                    generationQueue.push(nextPos);
                 }
             }
         }
 
         const regionId = newRegionCounter++;
-        newRegions[regionId] = { terrain, cells };
+        newRegions[regionId] = { terrain, cells: regionCells };
 
         // Helper function to get random value from a range definition
         const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
         const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
 
-        for (const pos of cells) {
+        // Now, populate each cell in the region with details
+        for (const pos of regionCells) {
             const posKey = `${pos.x},${pos.y}`;
 
             const baseDescriptionTemplate = template.descriptionTemplates[Math.floor(Math.random() * template.descriptionTemplates.length)];
@@ -564,7 +582,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
             const feature = template.features[Math.floor(Math.random() * template.features.length)];
             const baseDescription = baseDescriptionTemplate.replace('[adjective]', adjective).replace('[feature]', feature);
             
-            // --- NEW: Dynamic Chunk Attribute Calculation ---
+            // --- Dynamic Chunk Attribute Calculation ---
             const seasonMods = seasonConfig[currentSeason];
             
             // 1. Get base values from biome definition ranges
@@ -586,37 +604,25 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
             const soilType = biomeDef.soilType[Math.floor(Math.random() * biomeDef.soilType.length)];
 
             // Create the temporary chunk object with the calculated attributes to pass to entity selection
-            const tempChunk: Omit<Chunk, 'description' | 'actions'> = {
+            const tempChunkData = {
                 x: pos.x, y: pos.y, terrain, explored: false, regionId,
-                NPCs: [], items: [], enemy: null, // Temporary empty arrays
-                travelCost: biomeDef.travelCost,
-                vegetationDensity,
-                moisture: finalMoisture,
-                elevation,
-                lightLevel,
-                dangerLevel,
-                magicAffinity,
-                humanPresence,
-                explorability,
-                soilType,
-                sunExposure,
-                windLevel,
-                temperature,
-                predatorPresence,
+                travelCost: biomeDef.travelCost, vegetationDensity, moisture: finalMoisture,
+                elevation, lightLevel, dangerLevel, magicAffinity, humanPresence, explorability,
+                soilType, sunExposure, windLevel, temperature, predatorPresence,
             };
 
-            // --- NEW: Rule-based entity spawning ---
-            const spawnedNPCs = selectEntities(template.NPCs, tempChunk, 1);
-            const spawnedItems = selectEntities(template.items, tempChunk, 3); // spawn up to 3 items
-            const spawnedEnemy = selectEnemy(template.enemies, tempChunk);
+            // --- Rule-based entity spawning ---
+            const spawnedNPCs = selectEntities(template.NPCs, tempChunkData, 1);
+            const spawnedItems = selectEntities(template.items, tempChunkData, 3); // spawn up to 3 items
+            const spawnedEnemy = selectEnemy(template.enemies, tempChunkData);
 
             // Generate dynamic description based on the new attributes
             let finalDescription = baseDescription;
-            if (tempChunk.moisture > 8) finalDescription += " Không khí đặc quánh hơi ẩm.";
-            if (tempChunk.windLevel > 8) finalDescription += " Một cơn gió mạnh rít qua bên tai bạn.";
-            if (tempChunk.temperature < 3) finalDescription += " Một cái lạnh buốt thấu xương.";
-            if (tempChunk.dangerLevel > 8) finalDescription += " Bạn có cảm giác bất an ở nơi này.";
-            if (tempChunk.humanPresence > 5) finalDescription += " Dường như có dấu vết của người khác ở đây.";
+            if (tempChunkData.moisture > 8) finalDescription += " Không khí đặc quánh hơi ẩm.";
+            if (tempChunkData.windLevel > 8) finalDescription += " Một cơn gió mạnh rít qua bên tai bạn.";
+            if (tempChunkData.temperature < 3) finalDescription += " Một cái lạnh buốt thấu xương.";
+            if (tempChunkData.dangerLevel > 8) finalDescription += " Bạn có cảm giác bất an ở nơi này.";
+            if (tempChunkData.humanPresence > 5) finalDescription += " Dường như có dấu vết của người khác ở đây.";
             if (spawnedEnemy) finalDescription += ` Bạn cảm thấy sự hiện diện của một ${spawnedEnemy.type} nguy hiểm gần đây.`;
 
             // Build actions based on spawned entities
@@ -633,7 +639,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
 
             // Add the final chunk to the world
             newWorld[posKey] = {
-                ...tempChunk,
+                ...tempChunkData,
                 NPCs: spawnedNPCs,
                 items: spawnedItems,
                 enemy: spawnedEnemy,
@@ -656,12 +662,14 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         const { newWorld, newRegions, newRegionCounter } = generateRegion(startPos, startingTerrain, {}, {}, 0);
         
         const startKey = `${startPos.x},${startPos.y}`;
-        newWorld[startKey].explored = true;
+        if (newWorld[startKey]) {
+            newWorld[startKey].explored = true;
+            addNarrativeEntry(newWorld[startKey].description, 'narrative');
+        }
 
         setWorld(newWorld);
         setRegions(newRegions);
         setRegionCounter(newRegionCounter);
-        addNarrativeEntry(newWorld[startKey].description, 'narrative');
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [worldSetup]); // Only run on init
 
@@ -723,9 +731,9 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
             addNarrativeEntry(t('pickupItem', { item: item.name }), 'narrative');
             addNarrativeEntry(`(${item.description})`, 'system');
             setPlayerStats(prev => ({ ...prev, items: [...new Set([...prev.items, item.name])] }));
-            // Remove the item from the chunk
+            // Remove the item from the chunk and update the world state
             const newChunk = {...chunk, items: chunk.items.slice(1)};
-            // Rebuild actions
+            // Rebuild actions for the updated chunk
              newChunk.actions = newChunk.actions.filter(a => a.id !== 3);
              if (newChunk.items.length > 0) {
                  newChunk.actions.push({ id: 3, text: `Nhặt ${newChunk.items[0].name}` });
@@ -736,36 +744,56 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
 
     const handleAttack = () => {
         const key = `${playerPosition.x},${playerPosition.y}`;
-        let chunk = world[key];
-        if (!chunk || !chunk.enemy) return;
+        const currentChunk = world[key];
+        if (!currentChunk || !currentChunk.enemy) {
+            addNarrativeEntry("Không có gì để tấn công ở đây.", 'system');
+            return;
+        }
 
-        const enemy = chunk.enemy;
-        const playerDamage = 20;
-        const enemyDamage = enemy.damage || 10;
-        
-        enemy.hp -= playerDamage;
-        addNarrativeEntry(t('attackEnemy', { enemyType: enemy.type, playerDamage }), 'action');
-    
-        if (enemy.hp <= 0) {
-            addNarrativeEntry(t('enemyDefeated', { enemyType: enemy.type }), 'system');
-            const newChunk = {...chunk, enemy: null};
-            // Rebuild actions
-            newChunk.actions = newChunk.actions.filter(a => a.id !== 1);
-            if (newChunk.NPCs.length > 0) {
-                newChunk.actions.unshift({ id: 1, text: `Nói chuyện với ${newChunk.NPCs[0]}` });
+        // --- Prevent state mutation by creating copies ---
+        const updatedEnemy = { ...currentChunk.enemy };
+        const playerDamage = 20; // Example damage
+        const enemyDamage = updatedEnemy.damage || 10;
+
+        // Player attacks enemy
+        updatedEnemy.hp -= playerDamage;
+        addNarrativeEntry(t('attackEnemy', { enemyType: updatedEnemy.type, playerDamage }), 'action');
+
+        let updatedChunk: Chunk;
+
+        if (updatedEnemy.hp <= 0) {
+            // Enemy is defeated
+            addNarrativeEntry(t('enemyDefeated', { enemyType: updatedEnemy.type }), 'system');
+            
+            // Create a new chunk state without the enemy
+            updatedChunk = { ...currentChunk, enemy: null };
+            
+            // Rebuild actions for the new chunk state
+            updatedChunk.actions = updatedChunk.actions.filter(a => a.id !== 1); // Remove "Observe" action
+            if (updatedChunk.NPCs.length > 0) {
+                updatedChunk.actions.unshift({ id: 1, text: `Nói chuyện với ${updatedChunk.NPCs[0]}` });
             }
-            setWorld(prev => ({ ...prev, [key]: newChunk }));
         } else {
-            addNarrativeEntry(t('enemyHpLeft', { enemyType: enemy.type, hp: enemy.hp }), 'narrative');
+            // Enemy survives and retaliates
+            addNarrativeEntry(t('enemyHpLeft', { enemyType: updatedEnemy.type, hp: updatedEnemy.hp }), 'narrative');
+            
+            // Player takes damage
             setPlayerStats(prev => {
                 const newHp = prev.hp - enemyDamage;
-                addNarrativeEntry(t('enemyRetaliates', { enemyType: enemy.type, enemyDamage }), 'narrative');
+                addNarrativeEntry(t('enemyRetaliates', { enemyType: updatedEnemy.type, enemyDamage }), 'narrative');
                 if (newHp <= 0) {
                     addNarrativeEntry(t('youFell'), 'system');
+                    // TODO: Implement game over logic
                 }
                 return { ...prev, hp: newHp };
             });
+
+            // Create a new chunk state with the updated enemy HP
+            updatedChunk = { ...currentChunk, enemy: updatedEnemy };
         }
+        
+        // --- Commit the updated chunk state to the world ---
+        setWorld(prev => ({ ...prev, [key]: updatedChunk }));
     };
 
     const handleCustomAction = (text: string) => {
@@ -789,7 +817,8 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         addNarrativeEntry(response, 'narrative');
         
         if (text.toLowerCase() === 'gặt cỏ' && terrain === 'grassland') {
-            setPlayerStats(prev => ({...prev, items: [...prev.items, 'cỏ khô']}));
+            setPlayerStats(prev => ({...prev, items: [...new Set([...prev.items, 'cỏ khô'])]}));
+            addNarrativeEntry('Bạn đã thêm cỏ khô vào túi đồ.', 'system');
         }
     }
 
@@ -807,7 +836,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                 const chunkKey = `${wx},${wy}`;
                 const chunk = world[chunkKey];
 
-                if (chunk) {
+                if (chunk && chunk.explored) { // Only show explored chunks
                     grid[gy][gx] = {
                         biome: chunk.terrain,
                         hasEnemy: !!chunk.enemy,
@@ -836,7 +865,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                         <h1 className="text-2xl font-bold font-headline">{worldSetup.worldName}</h1>
                     </header>
 
-                    <main className="flex-grow p-4 md:p-6">
+                    <main className="flex-grow p-4 md:p-6 overflow-y-auto">
                         <div className="prose prose-stone dark:prose-invert max-w-none">
                             {narrativeLog.map((entry) => (
                                 <p key={entry.id} className={`animate-in fade-in duration-500 ${entry.type === 'action' ? 'italic text-accent-foreground/80' : ''} ${entry.type === 'system' ? 'font-semibold text-accent' : ''}`}>
@@ -855,64 +884,66 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                 </div>
 
                 {/* Right Panel: Controls & Actions */}
-                <aside className="w-full md:w-[30%] bg-card border-l p-4 md:p-6 md:sticky md:top-0 md:h-dvh md:overflow-y-auto">
-                    <div className="flex flex-col gap-6">
+                <aside className="w-full md:w-[30%] bg-card border-l p-4 md:p-6 flex flex-col gap-6">
+                    <div className="flex-shrink-0">
                         <Minimap grid={generateMapGrid()} />
-                        
-                        <div className="grid grid-cols-2 gap-2">
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="outline" onClick={() => setStatusOpen(true)} className="w-full justify-center">
-                                        <Shield className="h-4 w-4 md:mr-2"/>
-                                        <span className="hidden md:inline">{t('status')}</span>
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>{t('statusTooltip')}</p></TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="outline" onClick={() => setInventoryOpen(true)} className="w-full justify-center">
-                                        <BookOpen className="h-4 w-4 md:mr-2"/>
-                                        <span className="hidden md:inline">{t('inventory')}</span>
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent>
-                            </Tooltip>
-                        </div>
+                    </div>
+                    
+                    <div className="flex-shrink-0 grid grid-cols-2 gap-2">
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="outline" onClick={() => setStatusOpen(true)} className="w-full justify-center">
+                                    <Shield className="h-4 w-4 md:mr-2"/>
+                                    <span className="hidden md:inline">{t('status')}</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>{t('statusTooltip')}</p></TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="outline" onClick={() => setInventoryOpen(true)} className="w-full justify-center">
+                                    <BookOpen className="h-4 w-4 md:mr-2"/>
+                                    <span className="hidden md:inline">{t('inventory')}</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent>
+                        </Tooltip>
+                    </div>
 
+                    <div className="flex-shrink-0">
                         <Controls onMove={handleMove} onAttack={handleAttack} />
-                        
-                        <Separator />
-                        
-                        <div className="space-y-4">
-                            <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('availableActions')}</h2>
-                            <div className="space-y-2">
-                                {currentChunk?.actions.map(action => (
-                                    <Tooltip key={action.id}>
-                                        <TooltipTrigger asChild>
-                                            <Button variant="secondary" className="w-full justify-center" onClick={() => handleAction(action.id)}>
-                                                {action.text}
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent><p>{action.text}</p></TooltipContent>
-                                    </Tooltip>
-                                ))}
-                            </div>
-                            <div className="flex flex-col gap-2">
-                                <Input 
-                                    placeholder={t('customActionPlaceholder')}
-                                    value={inputValue}
-                                    onChange={(e) => setInputValue(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleCustomAction(inputValue)}
-                                    disabled={isLoading}
-                                />
-                                <Tooltip>
+                    </div>
+                    
+                    <Separator className="flex-shrink-0" />
+                    
+                    <div className="space-y-4 flex-grow flex flex-col">
+                        <h2 className="font-headline text-lg font-semibold text-center text-foreground/80 flex-shrink-0">{t('availableActions')}</h2>
+                        <div className="space-y-2 overflow-y-auto flex-grow">
+                            {currentChunk?.actions.map(action => (
+                                <Tooltip key={action.id}>
                                     <TooltipTrigger asChild>
-                                        <Button variant="accent" onClick={() => handleCustomAction(inputValue)} disabled={isLoading}>{t('submit')}</Button>
+                                        <Button variant="secondary" className="w-full justify-center" onClick={() => handleAction(action.id)}>
+                                            {action.text}
+                                        </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent><p>{t('submitTooltip')}</p></TooltipContent>
+                                    <TooltipContent><p>{action.text}</p></TooltipContent>
                                 </Tooltip>
-                            </div>
+                            ))}
+                        </div>
+                        <div className="flex flex-col gap-2 mt-4 flex-shrink-0">
+                            <Input 
+                                placeholder={t('customActionPlaceholder')}
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleCustomAction(inputValue)}
+                                disabled={isLoading}
+                            />
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="accent" onClick={() => handleCustomAction(inputValue)} disabled={isLoading}>{t('submit')}</Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>{t('submitTooltip')}</p></TooltipContent>
+                            </Tooltip>
                         </div>
                     </div>
                 </aside>

@@ -9,11 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Shield } from "lucide-react";
+import { BookOpen, Shield, Cpu } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { WorldConcept } from "@/ai/flows/generate-world-setup";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useLanguage } from "@/context/language-context";
+
+// Import AI flow
+import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/generate-narrative-flow";
 
 // Import modularized game engine components
 import { generateRegion, getValidAdjacentTerrains, weightedRandom } from '@/lib/game/engine';
@@ -26,7 +31,7 @@ interface GameLayoutProps {
 }
 
 export default function GameLayout({ worldSetup }: GameLayoutProps) {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     
     // --- State for Global World Settings ---
     const [worldProfile, setWorldProfile] = useState<WorldProfile>({
@@ -60,6 +65,10 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
     const { toast } = useToast();
     const narrativeIdCounter = useRef(1);
     const pageEndRef = useRef<HTMLDivElement>(null);
+    
+    // --- State for AI vs. Rule-based mode ---
+    const [isOnlineMode, setIsOnlineMode] = useState(false);
+
 
     const addNarrativeEntry = useCallback((text: string, type: NarrativeEntry['type']) => {
         setNarrativeLog(prev => [...prev, { id: narrativeIdCounter.current++, text, type }]);
@@ -100,52 +109,135 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         // Scroll to the bottom of the page to show the latest narrative entry
         pageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [narrativeLog]);
+
+    const ensureChunkExists = useCallback((pos: {x: number, y: number}, currentWorld: World) => {
+        const newPosKey = `${pos.x},${pos.y}`;
+        if (currentWorld[newPosKey]) {
+            return { ...currentWorld }; // Return a copy
+        }
+    
+        const validTerrains = getValidAdjacentTerrains(pos, currentWorld);
+        const terrainProbs = validTerrains.map(t => [t, worldConfig[t].spreadWeight] as [Terrain, number]);
+        const newTerrain = weightedRandom(terrainProbs);
+        
+        const result = generateRegion(
+            pos, 
+            newTerrain, 
+            currentWorld, 
+            regions, 
+            regionCounter,
+            worldProfile,
+            currentSeason
+        );
+        
+        setRegions(result.newRegions);
+        setRegionCounter(result.newRegionCounter);
+        return result.newWorld;
+    }, [regionCounter, regions, worldProfile, currentSeason]);
+
+
+    const handleOnlineNarrative = useCallback(async (action: string, fullWorldState: World) => {
+        setIsLoading(true);
+        const currentChunk = fullWorldState[`${playerPosition.x},${playerPosition.y}`];
+        if (!currentChunk) {
+            setIsLoading(false);
+            return;
+        }
+
+        try {
+            const input: GenerateNarrativeInput = {
+                worldName: worldSetup.worldName,
+                playerAction: action,
+                playerStatus: playerStats,
+                // Pass only the necessary fields to the AI
+                currentChunk: {
+                    x: currentChunk.x,
+                    y: currentChunk.y,
+                    terrain: currentChunk.terrain,
+                    description: currentChunk.description,
+                    NPCs: currentChunk.NPCs,
+                    items: currentChunk.items,
+                    explored: currentChunk.explored,
+                    enemy: currentChunk.enemy,
+                    vegetationDensity: currentChunk.vegetationDensity,
+                    moisture: currentChunk.moisture,
+                    elevation: currentChunk.elevation,
+                    lightLevel: currentChunk.lightLevel,
+                    dangerLevel: currentChunk.dangerLevel,
+                    magicAffinity: currentChunk.magicAffinity,
+                    humanPresence: currentChunk.humanPresence,
+                    predatorPresence: currentChunk.predatorPresence,
+                },
+                recentNarrative: narrativeLog.slice(-5).map(e => e.text),
+                language,
+            };
+
+            const result = await generateNarrative(input);
+            addNarrativeEntry(result.narrative, 'narrative');
+            if(result.systemMessage) {
+                addNarrativeEntry(result.systemMessage, 'system');
+            }
+
+            // Apply updates from AI
+            if (result.updatedChunk) {
+                setWorld(prev => {
+                    const newWorld = { ...prev };
+                    const key = `${currentChunk.x},${currentChunk.y}`;
+                    newWorld[key] = { ...newWorld[key], ...result.updatedChunk };
+                    return newWorld;
+                });
+            }
+            if (result.updatedPlayerStatus) {
+                setPlayerStats(prev => ({ ...prev, ...result.updatedPlayerStatus }));
+            }
+
+        } catch (error) {
+            console.error("AI narrative generation failed:", error);
+            toast({ title: t('error'), description: "AI storyteller failed. Switched to offline mode.", variant: "destructive" });
+            setIsOnlineMode(false); // Fallback to offline mode
+        } finally {
+            setIsLoading(false);
+        }
+    }, [playerStats, playerPosition, worldSetup.worldName, narrativeLog, language, toast, t, addNarrativeEntry]);
     
     const handleMove = (direction: "north" | "south" | "east" | "west") => {
-        setPlayerPosition(currentPosition => {
-            let newPos = { ...currentPosition };
-            let dirKey: 'directionNorth' | 'directionSouth' | 'directionEast' | 'directionWest' = 'directionNorth';
-            if (direction === 'north') { newPos.y++; dirKey = 'directionNorth'; }
-            else if (direction === 'south') { newPos.y--; dirKey = 'directionSouth'; }
-            else if (direction === 'east') { newPos.x++; dirKey = 'directionEast'; }
-            else if (direction === 'west') { newPos.x--; dirKey = 'directionWest'; }
+        let newPos = { ...playerPosition };
+        let dirKey: 'directionNorth' | 'directionSouth' | 'directionEast' | 'directionWest' = 'directionNorth';
+        if (direction === 'north') { newPos.y++; dirKey = 'directionNorth'; }
+        else if (direction === 'south') { newPos.y--; dirKey = 'directionSouth'; }
+        else if (direction === 'east') { newPos.x++; dirKey = 'directionEast'; }
+        else if (direction === 'west') { newPos.x--; dirKey = 'directionWest'; }
 
-            setWorld(currentWorld => {
-                let newWorld = { ...currentWorld };
-                const newPosKey = `${newPos.x},${newPos.y}`;
+        addNarrativeEntry(t('wentDirection', { direction: t(dirKey) }), 'action');
 
-                if (!newWorld[newPosKey]) {
-                    const validTerrains = getValidAdjacentTerrains(newPos, currentWorld);
-                    const terrainProbs = validTerrains.map(t => [t, worldConfig[t].spreadWeight] as [Terrain, number]);
-                    const newTerrain = weightedRandom(terrainProbs);
-                    
-                    const result = generateRegion(
-                        newPos, 
-                        newTerrain, 
-                        currentWorld, 
-                        regions, 
-                        regionCounter,
-                        worldProfile,
-                        currentSeason
-                    );
-                    newWorld = result.newWorld;
-                    setRegions(result.newRegions);
-                    setRegionCounter(result.newRegionCounter);
-                }
-                
-                newWorld[newPosKey] = { ...newWorld[newPosKey], explored: true };
-                addNarrativeEntry(t('wentDirection', { direction: t(dirKey) }), 'action');
-                addNarrativeEntry(newWorld[newPosKey].description, 'narrative');
-                return newWorld;
-            });
-            return newPos;
-        });
+        const worldWithChunk = ensureChunkExists(newPos, world);
+        const newWorld = { ...worldWithChunk };
+        const newPosKey = `${newPos.x},${newPos.y}`;
+        newWorld[newPosKey] = { ...newWorld[newPosKey], explored: true };
+
+        setWorld(newWorld);
+        setPlayerPosition(newPos);
+
+        if (isOnlineMode) {
+            handleOnlineNarrative(`move ${direction}`, newWorld);
+        } else {
+            addNarrativeEntry(newWorld[newPosKey].description, 'narrative');
+        }
     };
 
     const handleAction = (actionId: number) => {
         const chunk = world[`${playerPosition.x},${playerPosition.y}`];
         if (!chunk) return;
     
+        const actionText = chunk.actions.find(a => a.id === actionId)?.text || "unknown action";
+        addNarrativeEntry(actionText, 'action');
+
+        if (isOnlineMode) {
+            handleOnlineNarrative(actionText, world);
+            return;
+        }
+        
+        // --- OFFLINE LOGIC ---
         if (actionId === 1 && chunk.enemy) {
             addNarrativeEntry(t('observeEnemy', { npc: chunk.enemy.type }), 'narrative');
         } else if (actionId === 1 && chunk.NPCs.length > 0) {
@@ -162,9 +254,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
             addNarrativeEntry(t('pickupItem', { item: item.name }), 'narrative');
             addNarrativeEntry(`(${item.description})`, 'system');
             setPlayerStats(prev => ({ ...prev, items: [...new Set([...prev.items, item.name])] }));
-            // Remove the item from the chunk and update the world state
             const newChunk = {...chunk, items: chunk.items.slice(1)};
-            // Rebuild actions for the updated chunk
              newChunk.actions = newChunk.actions.filter(a => a.id !== 3);
              if (newChunk.items.length > 0) {
                  newChunk.actions.push({ id: 3, text: `Nhặt ${newChunk.items[0].name}` });
@@ -181,49 +271,44 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
             return;
         }
 
-        // --- Prevent state mutation by creating copies ---
+        const actionText = `Attack ${currentChunk.enemy.type}`;
+        addNarrativeEntry(actionText, 'action');
+
+        if (isOnlineMode) {
+            handleOnlineNarrative(actionText, world);
+            return;
+        }
+
+        // --- OFFLINE LOGIC ---
         const updatedEnemy = { ...currentChunk.enemy };
-        const playerDamage = 20; // Example damage
+        const playerDamage = 20; 
         const enemyDamage = updatedEnemy.damage || 10;
 
-        // Player attacks enemy
         updatedEnemy.hp -= playerDamage;
-        addNarrativeEntry(t('attackEnemy', { enemyType: updatedEnemy.type, playerDamage }), 'action');
+        addNarrativeEntry(t('attackEnemy', { enemyType: updatedEnemy.type, playerDamage }), 'narrative');
 
         let updatedChunk: Chunk;
 
         if (updatedEnemy.hp <= 0) {
-            // Enemy is defeated
             addNarrativeEntry(t('enemyDefeated', { enemyType: updatedEnemy.type }), 'system');
-            
-            // Create a new chunk state without the enemy
             updatedChunk = { ...currentChunk, enemy: null };
-            
-            // Rebuild actions for the new chunk state
-            updatedChunk.actions = updatedChunk.actions.filter(a => a.id !== 1); // Remove "Observe" action
+            updatedChunk.actions = updatedChunk.actions.filter(a => a.id !== 1);
             if (updatedChunk.NPCs.length > 0) {
                 updatedChunk.actions.unshift({ id: 1, text: `Nói chuyện với ${updatedChunk.NPCs[0]}` });
             }
         } else {
-            // Enemy survives and retaliates
             addNarrativeEntry(t('enemyHpLeft', { enemyType: updatedEnemy.type, hp: updatedEnemy.hp }), 'narrative');
-            
-            // Player takes damage
             setPlayerStats(prev => {
                 const newHp = prev.hp - enemyDamage;
                 addNarrativeEntry(t('enemyRetaliates', { enemyType: updatedEnemy.type, enemyDamage }), 'narrative');
                 if (newHp <= 0) {
                     addNarrativeEntry(t('youFell'), 'system');
-                    // TODO: Implement game over logic
                 }
                 return { ...prev, hp: newHp };
             });
-
-            // Create a new chunk state with the updated enemy HP
             updatedChunk = { ...currentChunk, enemy: updatedEnemy };
         }
         
-        // --- Commit the updated chunk state to the world ---
         setWorld(prev => ({ ...prev, [key]: updatedChunk }));
     };
 
@@ -232,6 +317,12 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         addNarrativeEntry(text, 'action');
         setInputValue("");
         
+        if(isOnlineMode) {
+            handleOnlineNarrative(text, world);
+            return;
+        }
+
+        // --- OFFLINE LOGIC ---
         const chunk = world[`${playerPosition.x},${playerPosition.y}`];
         if (!chunk) return;
         const terrain = chunk.terrain;
@@ -267,7 +358,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                 const chunkKey = `${wx},${wy}`;
                 const chunk = world[chunkKey];
 
-                if (chunk && chunk.explored) { // Only show explored chunks
+                if (chunk && chunk.explored) { 
                     grid[gy][gx] = {
                         biome: chunk.terrain,
                         hasEnemy: !!chunk.enemy,
@@ -305,8 +396,8 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                             ))}
                             {isLoading && (
                                 <div className="flex items-center gap-2 text-muted-foreground italic mt-4">
-                                    <Skeleton className="h-4 w-4 rounded-full" />
-                                    <p>Thinking...</p>
+                                    <Cpu className="h-4 w-4 animate-pulse" />
+                                    <p>AI is thinking...</p>
                                 </div>
                             )}
                         </div>
@@ -318,6 +409,17 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                 <aside className="w-full md:w-[30%] bg-card border-l p-4 md:p-6 flex flex-col gap-6">
                     <div className="flex-shrink-0">
                         <Minimap grid={generateMapGrid()} />
+                        <div className="flex items-center justify-center space-x-3 mt-4 p-2 bg-black/10 rounded-md">
+                            <Label htmlFor="ai-mode" className="text-sm font-medium cursor-pointer text-foreground/80">{t('aiStoryteller')}</Label>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Switch id="ai-mode" checked={isOnlineMode} onCheckedChange={setIsOnlineMode} disabled={isLoading}/>
+                                </TooltipTrigger>
+                                <TooltipContent align="center" side="bottom">
+                                    <p className="max-w-[250px] text-sm text-muted-foreground">{t('aiStorytellerDesc')}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </div>
                     </div>
                     
                     <div className="flex-shrink-0 grid grid-cols-2 gap-2">
@@ -353,7 +455,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                             {currentChunk?.actions.map(action => (
                                 <Tooltip key={action.id}>
                                     <TooltipTrigger asChild>
-                                        <Button variant="secondary" className="w-full justify-center" onClick={() => handleAction(action.id)}>
+                                        <Button variant="secondary" className="w-full justify-center" onClick={() => handleAction(action.id)} disabled={isLoading}>
                                             {action.text}
                                         </Button>
                                     </TooltipTrigger>

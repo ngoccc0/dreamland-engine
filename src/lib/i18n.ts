@@ -69,6 +69,8 @@ export const translations = {
     customActionPlaceholder: "Custom action...",
     submit: "Submit",
     submitTooltip: "Submit your custom action.",
+    aiStoryteller: "AI Storyteller",
+    aiStorytellerDesc: "Enable to have an AI generate dynamic narratives. Disable for a classic, rule-based experience (works offline).",
 
     // Controls
     moveAndAttack: "Move & Attack",
@@ -174,6 +176,8 @@ export const translations = {
     customActionPlaceholder: "Hành động tùy chỉnh...",
     submit: "Gửi",
     submitTooltip: "Gửi hành động tùy chỉnh của bạn.",
+    aiStoryteller: "AI Kể Chuyện",
+    aiStorytellerDesc: "Bật để AI tạo ra các câu chuyện động. Tắt để trải nghiệm kiểu cổ điển, dựa trên quy tắc (hoạt động ngoại tuyến).",
 
     // Controls
     moveAndAttack: "Di chuyển & Tấn công",

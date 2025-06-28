@@ -2,17 +2,17 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Minimap } from "@/components/game/minimap";
-import { Controls } from "@/components/game/controls";
 import { StatusPopup } from "@/components/game/status-popup";
 import { InventoryPopup } from "@/components/game/inventory-popup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Shield, Cpu } from "lucide-react";
+import { Backpack, Shield, Cpu, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from "lucide-react";
 import type { WorldConcept } from "@/ai/flows/generate-world-setup";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
+import { SwordIcon } from "@/components/game/icons";
 
 // Import AI flow
 import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/generate-narrative-flow";
@@ -20,7 +20,7 @@ import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/gener
 // Import modularized game engine components
 import { generateRegion, getValidAdjacentTerrains, weightedRandom } from '@/lib/game/engine';
 import { worldConfig } from '@/lib/game/config';
-import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, Terrain, WorldProfile, Region } from '@/lib/game/types';
+import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region } from '@/lib/game/types';
 
 
 interface GameLayoutProps {
@@ -62,6 +62,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
     const { toast } = useToast();
     const narrativeIdCounter = useRef(1);
     const pageEndRef = useRef<HTMLDivElement>(null);
+    const desktopButtonSize = "h-[60px] w-[60px]";
     
     // --- State for AI vs. Rule-based mode ---
     const [isOnline, setIsOnline] = useState(true);
@@ -440,29 +441,118 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                         <Minimap grid={generateMapGrid()} />
                     </div>
                     
-                    <div className="flex-shrink-0 grid grid-cols-2 gap-2">
-                        <Tooltip>
-                            <TooltipTrigger asChild>
+                    {/* UNIFIED CONTROLS SECTION */}
+                    <div className="flex flex-col items-center gap-4 w-full">
+                        <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('moveAndAttack')}</h3>
+                        
+                        {/* Mobile Layout */}
+                        <div className="md:hidden w-full flex flex-col items-center space-y-2">
+                            <div className="grid grid-cols-2 gap-2 w-full max-w-xs">
                                 <Button variant="outline" onClick={() => setStatusOpen(true)} className="w-full justify-center">
-                                    <Shield className="h-4 w-4 md:mr-2"/>
-                                    <span className="hidden md:inline">{t('status')}</span>
+                                    <Shield className="mr-2"/> <span>{t('status')}</span>
                                 </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>{t('statusTooltip')}</p></TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
                                 <Button variant="outline" onClick={() => setInventoryOpen(true)} className="w-full justify-center">
-                                    <BookOpen className="h-4 w-4 md:mr-2"/>
-                                    <span className="hidden md:inline">{t('inventory')}</span>
+                                    <Backpack className="mr-2"/> <span>{t('inventory')}</span>
                                 </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent>
-                        </Tooltip>
-                    </div>
+                            </div>
+                            <Button variant="accent" className="w-full max-w-xs justify-center" onClick={() => handleMove("north")}>
+                                <ArrowUp className="mr-2" /> {t('moveUp')}
+                            </Button>
+                            <div className="grid grid-cols-3 gap-2 w-full max-w-xs">
+                                <Button variant="accent" className="justify-center" onClick={() => handleMove("west")}>
+                                    <ArrowLeft className="mr-2" /> {t('moveLeft')}
+                                </Button>
+                                <Button variant="destructive" onClick={handleAttack} aria-label="Attack">
+                                    <SwordIcon />
+                                </Button>
+                                <Button variant="accent" className="justify-center" onClick={() => handleMove("east")}>
+                                    {t('moveRight')} <ArrowRight className="ml-2" />
+                                </Button>
+                            </div>
+                            <Button variant="accent" className="w-full max-w-xs justify-center" onClick={() => handleMove("south")}>
+                                <ArrowDown className="mr-2" /> {t('moveDown')}
+                            </Button>
+                        </div>
 
-                    <div className="flex-shrink-0">
-                        <Controls onMove={handleMove} onAttack={handleAttack} />
+                        {/* Desktop Layout (with Tooltips) */}
+                        <div className="hidden md:grid grid-cols-3 grid-rows-3 gap-2 w-fit">
+                            <div className="col-start-1 row-start-1 flex justify-center items-center">
+                                <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="outline" className={desktopButtonSize} onClick={() => setStatusOpen(true)} aria-label="Player Status">
+                                    <Shield />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>{t('statusTooltip')}</p></TooltipContent>
+                                </Tooltip>
+                            </div>
+
+                            <div className="col-start-2 row-start-1 flex justify-center items-center">
+                                <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="accent" className={desktopButtonSize} onClick={() => handleMove("north")} aria-label="Move North">
+                                    <ArrowUp />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>{t('moveNorthTooltip')}</p></TooltipContent>
+                                </Tooltip>
+                            </div>
+
+                            <div className="col-start-3 row-start-1 flex justify-center items-center">
+                                <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="outline" className={desktopButtonSize} onClick={() => setInventoryOpen(true)} aria-label="Inventory">
+                                    <Backpack />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent>
+                                </Tooltip>
+                            </div>
+
+                            <div className="col-start-1 row-start-2 flex justify-center items-center">
+                                <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="accent" className={desktopButtonSize} onClick={() => handleMove("west")} aria-label="Move West">
+                                    <ArrowLeft />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>{t('moveWestTooltip')}</p></TooltipContent>
+                                </Tooltip>
+                            </div>
+                            
+                            <div className="col-start-2 row-start-2 flex justify-center items-center">
+                                <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="destructive" className={desktopButtonSize} onClick={handleAttack} aria-label="Attack">
+                                    <SwordIcon />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>{t('attackTooltip')}</p></TooltipContent>
+                                </Tooltip>
+                            </div>
+
+                            <div className="col-start-3 row-start-2 flex justify-center items-center">
+                                <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="accent" className={desktopButtonSize} onClick={() => handleMove("east")} aria-label="Move East">
+                                    <ArrowRight />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>{t('moveEastTooltip')}</p></TooltipContent>
+                                </Tooltip>
+                            </div>
+
+                            <div className="col-start-2 row-start-3 flex justify-center items-center">
+                                <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="accent" className={desktopButtonSize} onClick={() => handleMove("south")} aria-label="Move South">
+                                    <ArrowDown />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>{t('moveSouthTooltip')}</p></TooltipContent>
+                                </Tooltip>
+                            </div>
+                        </div>
                     </div>
                     
                     <Separator className="flex-shrink-0" />

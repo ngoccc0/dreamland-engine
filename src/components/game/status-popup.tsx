@@ -10,6 +10,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { useLanguage } from "@/context/language-context";
 
 interface StatusPopupProps {
   open: boolean;
@@ -22,28 +23,30 @@ interface StatusPopupProps {
 }
 
 export function StatusPopup({ open, onOpenChange, stats, quests }: StatusPopupProps) {
+  const { t } = useLanguage();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="font-headline">Trạng thái người chơi</DialogTitle>
+          <DialogTitle className="font-headline">{t('playerStatus')}</DialogTitle>
           <DialogDescription>
-            Tình trạng hiện tại và các nhiệm vụ đang hoạt động.
+            {t('playerStatusDesc')}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="space-y-2">
-            <label htmlFor="hp" className="text-sm font-medium">Máu: {stats.hp}/100</label>
+            <label htmlFor="hp" className="text-sm font-medium">{t('health', { hp: stats.hp })}</label>
             <Progress id="hp" value={stats.hp} className="h-4" />
           </div>
           <div className="space-y-2">
-            <label htmlFor="mana" className="text-sm font-medium">Năng lượng: {stats.mana}/50</label>
+            <label htmlFor="mana" className="text-sm font-medium">{t('mana', { mana: stats.mana })}</label>
             <Progress id="mana" value={(stats.mana / 50) * 100} className="h-4" />
           </div>
         </div>
         <Separator />
         <div>
-          <h3 className="mb-2 font-headline font-semibold">Nhiệm vụ</h3>
+          <h3 className="mb-2 font-headline font-semibold">{t('quests')}</h3>
           <ScrollArea className="h-40">
             <div className="p-4">
               {quests.length > 0 ? (
@@ -55,7 +58,7 @@ export function StatusPopup({ open, onOpenChange, stats, quests }: StatusPopupPr
                   ))}
                 </ul>
               ) : (
-                <p className="text-center text-muted-foreground">Không có nhiệm vụ nào.</p>
+                <p className="text-center text-muted-foreground">{t('noQuests')}</p>
               )}
             </div>
           </ScrollArea>

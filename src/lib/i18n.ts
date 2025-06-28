@@ -1,0 +1,215 @@
+export const translations = {
+  en: {
+    // Language Selector
+    selectLanguage: "Select Language",
+    
+    // World Setup
+    worldSetupTitle: "Create Your World",
+    worldSetupStep1: "Step 1: Describe your idea. It can be short or detailed.",
+    worldSetupPlaceholder: "e.g., 'A lone lighthouse on a stormy coast, haunted by a ghost.'",
+    suggestKeywords: "Suggest Keywords",
+    suggesting: "Suggesting...",
+    tryTheseIdeas: "Or try one of these ideas:",
+    generateWorlds: "Generate World Versions",
+    
+    worldSetupStep2: "Step 2: The AI has created 3 versions. Use the < > buttons to view and select the elements you like best!",
+    mixAndMatchTitle: "Select and Mix",
+    generatingUniverses: "Forging universes... Please wait!",
+    worldName: "World Name",
+    openingNarrative: "Opening Narrative",
+    startingBiome: "Starting Biome",
+    startingEquipment: "Starting Equipment",
+    itemsFromChoice: "Items from Choice {index}",
+    firstQuest: "First Quest",
+    questFromChoice: "Quest from Choice {index}",
+    yourWorld: "Your World:",
+    yourWorldDescription: "This is the world created from your choices.",
+    backAndEdit: "← Back & Edit",
+    startAdventure: "Start Adventure →",
+
+    // Toasts
+    error: "Error",
+    suggestionError: "Could not generate suggestions at this time.",
+    noIdeaError: "No idea yet!",
+    noIdeaErrorDesc: "Please describe the world you want to create.",
+    worldGenError: "World Creation Error",
+    worldGenErrorDesc: "Cosmic energies are disturbed. Please try again.",
+
+    // Game Layout
+    wentDirection: "You go {direction}.",
+    directionNorth: "north",
+    directionSouth: "south",
+    directionEast: "east",
+    directionWest: "west",
+    observeEnemy: "You observe the {npc}. It looks ferocious!",
+    talkToNpc: "You talk to {npc}. They tell you about a nearby treasure.",
+    questUpdated: "Quest updated.",
+    exploreArea: "You explore the area and find a strange track.",
+    pickupItem: "You picked up {item}!",
+    attackEnemy: "You attack the {enemyType}, dealing {playerDamage} damage.",
+    enemyDefeated: "You have defeated the {enemyType}!",
+    enemyHpLeft: "The {enemyType} has {hp} HP left.",
+    enemyRetaliates: "The {enemyType} retaliates, you lose {enemyDamage} HP.",
+    youFell: "You have fallen!",
+    customActionResponses: {
+      checkTree: "You check the tree and find an apple!",
+      noTree: "There is only sand or grass here!",
+      dig: "You dig in the sand and find a coin!",
+      groundTooHard: "The ground is too hard or grassy to dig!",
+      reapGrass: "You reap the grass, obtaining some hay!",
+      noGrass: "There is no grass to reap here!",
+      lookAround: "You look around and see a faint path.",
+      actionFailed: "Action not recognized. Try again!",
+    },
+    status: "Status",
+    statusTooltip: "View health, mana, and quests.",
+    inventory: "Inventory",
+    inventoryTooltip: "Check the items you are carrying.",
+    availableActions: "Available Actions",
+    customActionPlaceholder: "Custom action...",
+    submit: "Submit",
+    submitTooltip: "Submit your custom action.",
+
+    // Controls
+    moveAndAttack: "Move & Attack",
+    moveUp: "Up",
+    moveLeft: "Left",
+    moveRight: "Right",
+    moveDown: "Down",
+    moveNorthTooltip: "Move North",
+    moveWestTooltip: "Move West",
+    attackTooltip: "Attack",
+    moveEastTooltip: "Move East",
+    moveSouthTooltip: "Move South",
+
+    // Status Popup
+    playerStatus: "Player Status",
+    playerStatusDesc: "Your current condition and active quests.",
+    health: "Health: {hp}/100",
+    mana: "Mana: {mana}/50",
+    quests: "Quests",
+    noQuests: "No active quests.",
+
+    // Inventory Popup
+    inventoryPopupTitle: "Inventory",
+    inventoryPopupDesc: "Items you have collected on your journey.",
+    inventoryEmpty: "Your inventory is empty.",
+
+    // Minimap
+    minimap: "Minimap",
+
+    // Example Prompts
+    example1: "A post-apocalyptic city overrun by sentient plants.",
+    example2: "A high-fantasy kingdom floating on clouds.",
+    example3: "A cyberpunk noir detective story on Mars.",
+    example4: "A peaceful village of talking animals with a dark secret.",
+  },
+  vi: {
+    // Language Selector
+    selectLanguage: "Chọn Ngôn Ngữ",
+
+    // World Setup
+    worldSetupTitle: "Tạo Thế Giới Của Bạn",
+    worldSetupStep1: "Bước 1: Mô tả ý tưởng của bạn. Có thể ngắn gọn hoặc chi tiết.",
+    worldSetupPlaceholder: "Ví dụ: 'Một ngọn hải đăng cô độc trên bờ biển bão tố, bị một bóng ma ám ảnh.'",
+    suggestKeywords: "Gợi ý từ khóa",
+    suggesting: "Đang gợi ý...",
+    tryTheseIdeas: "Hoặc thử một trong những ý tưởng này:",
+    generateWorlds: "Tạo các phiên bản thế giới",
+    
+    worldSetupStep2: "Bước 2: AI đã tạo ra 3 phiên bản. Hãy dùng các nút < > để xem và chọn các yếu tố bạn thích nhất!",
+    mixAndMatchTitle: "Chọn và Kết hợp",
+    generatingUniverses: "Đang kiến tạo các vũ trụ... Xin chờ chút!",
+    worldName: "Tên Thế Giới",
+    openingNarrative: "Cốt Truyện Mở Đầu",
+    startingBiome: "Môi Trường Bắt Đầu",
+    startingEquipment: "Trang Bị Ban Đầu",
+    itemsFromChoice: "Vật phẩm của Lựa chọn {index}",
+    firstQuest: "Nhiệm Vụ Đầu Tiên",
+    questFromChoice: "Nhiệm vụ của Lựa chọn {index}",
+    yourWorld: "Thế giới của bạn:",
+    yourWorldDescription: "Đây là thế giới được tạo từ các lựa chọn của bạn.",
+    backAndEdit: "← Quay lại & Chỉnh sửa",
+    startAdventure: "Bắt đầu cuộc phiêu lưu →",
+
+    // Toasts
+    error: "Lỗi",
+    suggestionError: "Không thể tạo gợi ý lúc này.",
+    noIdeaError: "Chưa có ý tưởng!",
+    noIdeaErrorDesc: "Vui lòng mô tả thế giới bạn muốn tạo.",
+    worldGenError: "Lỗi Tạo Thế Giới",
+    worldGenErrorDesc: "Năng lượng vũ trụ đang bị nhiễu loạn. Vui lòng thử lại.",
+
+    // Game Layout
+    wentDirection: "Bạn đi về phía {direction}.",
+    directionNorth: "bắc",
+    directionSouth: "nam",
+    directionEast: "đông",
+    directionWest: "tây",
+    observeEnemy: "Bạn quan sát {npc}. Nó trông hung dữ!",
+    talkToNpc: "Bạn nói chuyện với {npc}. Họ kể về một kho báu gần đây.",
+    questUpdated: "Nhiệm vụ đã được cập nhật.",
+    exploreArea: "Bạn khám phá khu vực, thấy một dấu vết lạ.",
+    pickupItem: "Bạn nhặt được {item}!",
+    attackEnemy: "Bạn tấn công {enemyType}, gây {playerDamage} sát thương.",
+    enemyDefeated: "Bạn đã hạ gục {enemyType}!",
+    enemyHpLeft: "{enemyType} còn {hp} HP.",
+    enemyRetaliates: "{enemyType} phản đòn, bạn mất {enemyDamage} HP.",
+    youFell: "Bạn đã ngã xuống!",
+    customActionResponses: {
+      checkTree: 'Bạn kiểm tra cây, tìm thấy một quả táo!',
+      noTree: 'Chỉ có cát hoặc cỏ ở đây!',
+      dig: 'Bạn đào đất, thấy một đồng xu!',
+      groundTooHard: 'Đất cứng hoặc cỏ quá, không đào được!',
+      reapGrass: 'Bạn gặt cỏ, thu được cỏ khô!',
+      noGrass: 'Không có cỏ để gặt!',
+      lookAround: 'Bạn nhìn quanh, thấy một con đường mờ mịt.',
+      actionFailed: 'Hành động không được nhận diện. Thử lại!',
+    },
+    status: "Trạng thái",
+    statusTooltip: "Xem máu, năng lượng và nhiệm vụ.",
+    inventory: "Túi đồ",
+    inventoryTooltip: "Kiểm tra các vật phẩm bạn đang mang.",
+    availableActions: "Hành động có sẵn",
+    customActionPlaceholder: "Hành động tùy chỉnh...",
+    submit: "Gửi",
+    submitTooltip: "Gửi hành động tùy chỉnh của bạn.",
+
+    // Controls
+    moveAndAttack: "Di chuyển & Tấn công",
+    moveUp: "Đi lên",
+    moveLeft: "Trái",
+    moveRight: "Phải",
+    moveDown: "Đi xuống",
+    moveNorthTooltip: "Đi lên (North)",
+    moveWestTooltip: "Đi sang trái (West)",
+    attackTooltip: "Tấn công",
+    moveEastTooltip: "Đi sang phải (East)",
+    moveSouthTooltip: "Đi xuống (South)",
+
+    // Status Popup
+    playerStatus: "Trạng thái người chơi",
+    playerStatusDesc: "Tình trạng hiện tại và các nhiệm vụ đang hoạt động.",
+    health: "Máu: {hp}/100",
+    mana: "Năng lượng: {mana}/50",
+    quests: "Nhiệm vụ",
+    noQuests: "Không có nhiệm vụ nào.",
+
+    // Inventory Popup
+    inventoryPopupTitle: "Túi đồ",
+    inventoryPopupDesc: "Các vật phẩm bạn đã thu thập trên hành trình.",
+    inventoryEmpty: "Túi đồ của bạn trống rỗng.",
+
+    // Minimap
+    minimap: "Minimap",
+
+    // Example Prompts
+    example1: "Một thành phố hậu tận thế bị cây cối có tri giác xâm chiếm.",
+    example2: "Một vương quốc giả tưởng cao trên mây.",
+    example3: "Một câu chuyện trinh thám cyberpunk noir trên Sao Hỏa.",
+    example4: "Một ngôi làng yên bình của các loài động vật biết nói với một bí mật đen tối.",
+  }
+};
+
+export type Language = keyof typeof translations;
+export type TranslationKey = keyof (typeof translations)['en'];

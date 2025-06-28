@@ -10,9 +10,10 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-// Input: The user's current idea.
+// Input: The user's current idea and the desired language.
 const SuggestKeywordsInputSchema = z.object({
   userInput: z.string().describe("The user's current idea or keywords for a game world."),
+  language: z.string().describe("The language for the generated keywords (e.g., 'en' for English, 'vi' for Vietnamese)."),
 });
 export type SuggestKeywordsInput = z.infer<typeof SuggestKeywordsInputSchema>;
 
@@ -25,7 +26,7 @@ export type SuggestKeywordsOutput = z.infer<typeof SuggestKeywordsOutputSchema>;
 
 /**
  * Calls the AI to get keyword suggestions.
- * @param input The user's current world idea.
+ * @param input The user's current world idea and language.
  * @returns A promise that resolves to an object containing suggested keywords.
  */
 export async function suggestKeywords(input: SuggestKeywordsInput): Promise<SuggestKeywordsOutput> {
@@ -47,7 +48,7 @@ The suggestions should be creative, interesting, and varied.
 
 User's Idea: {{{userInput}}}
 
-Return the keywords in the required JSON format.`,
+Return the keywords in the required JSON format. The keywords must be in the language corresponding to this code: {{language}}.`,
 });
 
 

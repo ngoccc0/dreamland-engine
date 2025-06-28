@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { useLanguage } from "@/context/language-context";
 
 interface InventoryPopupProps {
   open: boolean;
@@ -17,13 +18,15 @@ interface InventoryPopupProps {
 }
 
 export function InventoryPopup({ open, onOpenChange, items }: InventoryPopupProps) {
+  const { t } = useLanguage();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="font-headline">Túi đồ</DialogTitle>
+          <DialogTitle className="font-headline">{t('inventoryPopupTitle')}</DialogTitle>
           <DialogDescription>
-            Các vật phẩm bạn đã thu thập trên hành trình.
+            {t('inventoryPopupDesc')}
           </DialogDescription>
         </DialogHeader>
         <Separator />
@@ -38,7 +41,7 @@ export function InventoryPopup({ open, onOpenChange, items }: InventoryPopupProp
                 ))}
               </ul>
             ) : (
-              <p className="text-center text-muted-foreground">Túi đồ của bạn trống rỗng.</p>
+              <p className="text-center text-muted-foreground">{t('inventoryEmpty')}</p>
             )}
           </div>
         </ScrollArea>

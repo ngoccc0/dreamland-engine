@@ -14,6 +14,7 @@ import { BookOpen, Shield } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { WorldConcept } from "@/ai/flows/generate-world-setup";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useLanguage } from "@/context/language-context";
 
 // --- START OF GAME ENGINE LOGIC ---
 
@@ -99,6 +100,7 @@ interface GameLayoutProps {
 }
 
 export default function GameLayout({ worldSetup }: GameLayoutProps) {
+    const { t } = useLanguage();
     const [world, setWorld] = useState<World>({});
     const [regions, setRegions] = useState<{ [id: number]: Region }>({});
     const [regionCounter, setRegionCounter] = useState(0);
@@ -254,10 +256,11 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
     const handleMove = (direction: "north" | "south" | "east" | "west") => {
         setPlayerPosition(currentPosition => {
             let newPos = { ...currentPosition };
-            if (direction === 'north') newPos.y++;
-            else if (direction === 'south') newPos.y--;
-            else if (direction === 'east') newPos.x++;
-            else if (direction === 'west') newPos.x--;
+            let dirKey: 'directionNorth' | 'directionSouth' | 'directionEast' | 'directionWest' = 'directionNorth';
+            if (direction === 'north') { newPos.y++; dirKey = 'directionNorth'; }
+            else if (direction === 'south') { newPos.y--; dirKey = 'directionSouth'; }
+            else if (direction === 'east') { newPos.x++; dirKey = 'directionEast'; }
+            else if (direction === 'west') { newPos.x--; dirKey = 'directionWest'; }
 
             setWorld(currentWorld => {
                 let newWorld = { ...currentWorld };
@@ -275,7 +278,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                 }
                 
                 newWorld[newPosKey] = { ...newWorld[newPosKey], explored: true };
-                addNarrativeEntry(`Bạn đi về phía ${direction}.`, 'action');
+                addNarrativeEntry(t('wentDirection', { direction: t(dirKey) }), 'action');
                 addNarrativeEntry(newWorld[newPosKey].description, 'narrative');
                 return newWorld;
             });
@@ -288,19 +291,19 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         if (!chunk) return;
     
         if (actionId === 1 && chunk.enemy) {
-            addNarrativeEntry(`Bạn quan sát ${chunk.NPCs[0]}. Nó trông hung dữ!`, 'narrative');
+            addNarrativeEntry(t('observeEnemy', { npc: chunk.NPCs[0] }), 'narrative');
         } else if (actionId === 1) {
-            addNarrativeEntry(`Bạn nói chuyện với ${chunk.NPCs[0]}. Họ kể về một kho báu gần đây.`, 'narrative');
+            addNarrativeEntry(t('talkToNpc', { npc: chunk.NPCs[0] }), 'narrative');
             setPlayerStats(prev => {
                 const newQuests = [...prev.quests, 'Tìm kho báu'];
                 return { ...prev, quests: [...new Set(newQuests)] };
             });
-            addNarrativeEntry("Nhiệm vụ đã được cập nhật.", "system");
+            addNarrativeEntry(t('questUpdated'), "system");
         } else if (actionId === 2) {
-            addNarrativeEntry('Bạn khám phá khu vực, thấy một dấu vết lạ.', 'narrative');
+            addNarrativeEntry(t('exploreArea'), 'narrative');
         } else if (actionId === 3) {
             const item = chunk.items[0];
-            addNarrativeEntry(`Bạn nhặt được ${item}!`, 'narrative');
+            addNarrativeEntry(t('pickupItem', {item}), 'narrative');
             setPlayerStats(prev => ({ ...prev, items: [...prev.items, item] }));
         }
     }
@@ -315,18 +318,18 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         const enemyDamage = 10;
         
         enemy.hp -= playerDamage;
-        addNarrativeEntry(`Bạn tấn công ${enemy.type}, gây ${playerDamage} sát thương.`, 'action');
+        addNarrativeEntry(t('attackEnemy', { enemyType: enemy.type, playerDamage }), 'action');
     
         if (enemy.hp <= 0) {
-            addNarrativeEntry(`Bạn đã hạ gục ${enemy.type}!`, 'system');
+            addNarrativeEntry(t('enemyDefeated', { enemyType: enemy.type }), 'system');
             setWorld(prev => ({ ...prev, [key]: { ...prev[key], enemy: null } }));
         } else {
-            addNarrativeEntry(`${enemy.type} còn ${enemy.hp} HP.`, 'narrative');
+            addNarrativeEntry(t('enemyHpLeft', { enemyType: enemy.type, hp: enemy.hp }), 'narrative');
             setPlayerStats(prev => {
                 const newHp = prev.hp - enemyDamage;
-                addNarrativeEntry(`${enemy.type} phản đòn, bạn mất ${enemyDamage} HP.`, 'narrative');
+                addNarrativeEntry(t('enemyRetaliates', { enemyType: enemy.type, enemyDamage }), 'narrative');
                 if (newHp <= 0) {
-                    addNarrativeEntry('Bạn đã ngã xuống!', 'system');
+                    addNarrativeEntry(t('youFell'), 'system');
                     // Game over logic could go here
                 }
                 return { ...prev, hp: newHp };
@@ -343,14 +346,15 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         if (!chunk) return;
         const terrain = chunk.terrain;
         
-        const responses: Record<string, string> = {
-            'kiểm tra cây': terrain === 'forest' ? 'Bạn kiểm tra cây, tìm thấy một quả táo!' : 'Chỉ có cát hoặc cỏ ở đây!',
-            'đào đất': terrain === 'desert' ? 'Bạn đào đất, thấy một đồng xu!' : 'Đất cứng hoặc cỏ quá, không đào được!',
-            'gặt cỏ': terrain === 'grassland' ? 'Bạn gặt cỏ, thu được cỏ khô!' : 'Không có cỏ để gặt!',
-            'nhìn xung quanh': 'Bạn nhìn quanh, thấy một con đường mờ mịt.'
+        const responses: Record<string, () => string> = {
+            'kiểm tra cây': () => terrain === 'forest' ? t('customActionResponses.checkTree') : t('customActionResponses.noTree'),
+            'đào đất': () => terrain === 'desert' ? t('customActionResponses.dig') : t('customActionResponses.groundTooHard'),
+            'gặt cỏ': () => terrain === 'grassland' ? t('customActionResponses.reapGrass') : t('customActionResponses.noGrass'),
+            'nhìn xung quanh': () => t('customActionResponses.lookAround')
         };
 
-        const response = responses[text.toLowerCase()] || 'Hành động không được nhận diện. Thử lại!';
+        const responseFunc = responses[text.toLowerCase()];
+        const response = responseFunc ? responseFunc() : t('customActionResponses.actionFailed');
         addNarrativeEntry(response, 'narrative');
         
         if (text.toLowerCase() === 'gặt cỏ' && terrain === 'grassland') {
@@ -427,19 +431,19 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                             <TooltipTrigger asChild>
                                 <Button variant="outline" onClick={() => setStatusOpen(true)} className="w-full justify-center">
                                     <Shield className="h-4 w-4 md:mr-2"/>
-                                    <span className="hidden md:inline">Trạng thái</span>
+                                    <span className="hidden md:inline">{t('status')}</span>
                                 </Button>
                             </TooltipTrigger>
-                            <TooltipContent><p>Xem máu, năng lượng và nhiệm vụ.</p></TooltipContent>
+                            <TooltipContent><p>{t('statusTooltip')}</p></TooltipContent>
                         </Tooltip>
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button variant="outline" onClick={() => setInventoryOpen(true)} className="w-full justify-center">
                                     <BookOpen className="h-4 w-4 md:mr-2"/>
-                                    <span className="hidden md:inline">Túi đồ</span>
+                                    <span className="hidden md:inline">{t('inventory')}</span>
                                 </Button>
                             </TooltipTrigger>
-                            <TooltipContent><p>Kiểm tra các vật phẩm bạn đang mang.</p></TooltipContent>
+                            <TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent>
                         </Tooltip>
                     </div>
 
@@ -448,7 +452,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                     <Separator />
                     
                     <div className="space-y-4">
-                        <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">Hành động có sẵn</h2>
+                        <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('availableActions')}</h2>
                         <div className="space-y-2">
                             {currentChunk?.actions.map(action => (
                                 <Tooltip key={action.id}>
@@ -463,7 +467,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                         </div>
                         <div className="flex flex-col gap-2">
                             <Input 
-                                placeholder="Hành động tùy chỉnh..." 
+                                placeholder={t('customActionPlaceholder')}
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleCustomAction(inputValue)}
@@ -471,9 +475,9 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                             />
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <Button variant="accent" onClick={() => handleCustomAction(inputValue)} disabled={isLoading}>Gửi</Button>
+                                    <Button variant="accent" onClick={() => handleCustomAction(inputValue)} disabled={isLoading}>{t('submit')}</Button>
                                 </TooltipTrigger>
-                                <TooltipContent><p>Gửi hành động tùy chỉnh của bạn.</p></TooltipContent>
+                                <TooltipContent><p>{t('submitTooltip')}</p></TooltipContent>
                             </Tooltip>
                         </div>
                     </div>

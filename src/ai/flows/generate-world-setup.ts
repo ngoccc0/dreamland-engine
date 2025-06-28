@@ -18,14 +18,18 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 // == STEP 1: DEFINE THE INPUT SCHEMA ==
+// This defines the "contract" for calling our AI.
+// It requires a 'userInput' string and a 'language' string (e.g., 'en', 'vi').
 const GenerateWorldSetupInputSchema = z.object({
   userInput: z.string().describe("The user's initial idea, prompt, or description for the game world."),
+  language: z.string().describe("The language for the generated content (e.g., 'en' for English, 'vi' for Vietnamese)."),
 });
 export type GenerateWorldSetupInput = z.infer<typeof GenerateWorldSetupInputSchema>;
 
 
 // == STEP 2: DEFINE THE OUTPUT SCHEMA(S) ==
 // We first define the schema for a single, complete world idea.
+// This forces the AI to structure its response, making it reliable.
 const WorldConceptSchema = z.object({
   worldName: z.string().describe('A cool and fitting name for this world.'),
   initialNarrative: z.string().describe('A detailed, engaging opening narrative to start the game. This should set the scene for the player.'),
@@ -45,7 +49,8 @@ export type GenerateWorldSetupOutput = z.infer<typeof GenerateWorldSetupOutputSc
 
 /**
  * This is the primary function that the application's frontend will call.
- * @param input The user's idea for a world.
+ * It wraps the Genkit flow for easier use.
+ * @param input The user's idea for a world and the desired language.
  * @returns A promise that resolves to an object containing three generated world concepts.
  */
 export async function generateWorldSetup(input: GenerateWorldSetupInput): Promise<GenerateWorldSetupOutput> {
@@ -54,13 +59,15 @@ export async function generateWorldSetup(input: GenerateWorldSetupInput): Promis
 
 
 // == STEP 3: DEFINE THE AI PROMPT ==
-// This prompt is updated to explicitly ask for THREE different variations.
+// This is the "brain" of our operation. It's a detailed set of instructions for the AI.
 const worldSetupPrompt = ai.definePrompt({
   name: 'worldSetupPrompt',
   input: {
     schema: GenerateWorldSetupInputSchema,
   },
   output: {
+    // By providing the output schema, we enable Genkit's structured output feature.
+    // The AI will be instructed to respond with a JSON object matching this schema.
     schema: GenerateWorldSetupOutputSchema,
   },
   prompt: `You are a creative and brilliant Game Master, designing a new text-based adventure game.
@@ -78,10 +85,12 @@ For EACH of the three concepts, generate the following:
 5.  **Initial Quests:** One or two simple starting quests.
 
 Provide the response in the required JSON format, as an object with a 'concepts' array containing the three generated world concepts.
+ALL TEXT in the response (worldName, initialNarrative, playerInventory, initialQuests) MUST be in the language corresponding to this code: {{language}}.
 `,
 });
 
 // == STEP 4: DEFINE THE GENKIT FLOW ==
+// A flow is a sequence of steps that can be run by Genkit.
 const generateWorldSetupFlow = ai.defineFlow(
   {
     name: 'generateWorldSetupFlow',
@@ -89,10 +98,11 @@ const generateWorldSetupFlow = ai.defineFlow(
     outputSchema: GenerateWorldSetupOutputSchema,
   },
   async input => {
-    // 1. Call the AI prompt with the user's input.
+    // 1. Call the AI prompt with the user's input and language preference.
     const {output} = await worldSetupPrompt(input);
 
-    // 2. The 'output' is guaranteed to match the GenerateWorldSetupOutputSchema.
+    // 2. The 'output' is guaranteed by Genkit to match the GenerateWorldSetupOutputSchema.
+    // The '!' tells TypeScript we are confident the output will not be null.
     return output!;
   }
 );

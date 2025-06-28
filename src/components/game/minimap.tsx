@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { PlayerIcon, EnemyIcon } from "./icons";
+import { useLanguage } from "@/context/language-context";
 
 export type MapCell = {
   biome: "forest" | "grassland" | "desert" | "empty";
@@ -21,9 +22,10 @@ const biomeColors = {
 };
 
 export function Minimap({ grid }: MinimapProps) {
+  const { t } = useLanguage();
   return (
     <div className="flex flex-col items-center gap-4">
-        <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">Minimap</h3>
+        <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('minimap')}</h3>
         <div className="grid grid-cols-5 gap-1 p-2 bg-black/20 rounded-md shadow-inner">
         {grid.map((row, rowIndex) =>
             row.map((cell, colIndex) => (

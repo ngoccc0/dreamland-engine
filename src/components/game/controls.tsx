@@ -3,6 +3,7 @@
 import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useLanguage } from "@/context/language-context";
 
 
 interface ControlsProps {
@@ -20,31 +21,32 @@ const SwordIcon = () => (
 )
 
 export function Controls({ onMove, onAttack }: ControlsProps) {
+  const { t } = useLanguage();
   const desktopButtonSize = "h-[60px] w-[60px]";
 
   return (
     <TooltipProvider>
       <div className="flex flex-col items-center gap-2 w-full">
-        <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">Di chuyển & Tấn công</h3>
+        <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('moveAndAttack')}</h3>
         
         {/* Mobile Layout */}
         <div className="md:hidden w-full flex flex-col items-center space-y-2">
             <Button variant="accent" className="w-full max-w-xs justify-center" onClick={() => onMove("north")}>
-                <ArrowUp className="mr-2 h-4 w-4" /> Đi lên
+                <ArrowUp className="mr-2 h-4 w-4" /> {t('moveUp')}
             </Button>
             <div className="grid grid-cols-3 gap-2 w-full max-w-xs">
                 <Button variant="accent" className="justify-center" onClick={() => onMove("west")}>
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Trái
+                    <ArrowLeft className="mr-2 h-4 w-4" /> {t('moveLeft')}
                 </Button>
                 <Button variant="destructive" onClick={onAttack} aria-label="Attack">
                     <SwordIcon />
                 </Button>
                 <Button variant="accent" className="justify-center" onClick={() => onMove("east")}>
-                    Phải <ArrowRight className="ml-2 h-4 w-4" />
+                    {t('moveRight')} <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
             </div>
             <Button variant="accent" className="w-full max-w-xs justify-center" onClick={() => onMove("south")}>
-                <ArrowDown className="mr-2 h-4 w-4" /> Đi xuống
+                <ArrowDown className="mr-2 h-4 w-4" /> {t('moveDown')}
             </Button>
         </div>
 
@@ -58,7 +60,7 @@ export function Controls({ onMove, onAttack }: ControlsProps) {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Đi lên (North)</p>
+                <p>{t('moveNorthTooltip')}</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -70,7 +72,7 @@ export function Controls({ onMove, onAttack }: ControlsProps) {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Đi sang trái (West)</p>
+                <p>{t('moveWestTooltip')}</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -82,7 +84,7 @@ export function Controls({ onMove, onAttack }: ControlsProps) {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Tấn công</p>
+                <p>{t('attackTooltip')}</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -94,7 +96,7 @@ export function Controls({ onMove, onAttack }: ControlsProps) {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Đi sang phải (East)</p>
+                <p>{t('moveEastTooltip')}</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -106,7 +108,7 @@ export function Controls({ onMove, onAttack }: ControlsProps) {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Đi xuống (South)</p>
+                <p>{t('moveSouthTooltip')}</p>
               </TooltipContent>
             </Tooltip>
           </div>

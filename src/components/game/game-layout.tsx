@@ -187,118 +187,227 @@ const worldConfig: Record<Terrain, BiomeDefinition> = {
     }
 };
 
+// --- ENTITY SPAWNING LOGIC ---
+// Helper type for defining spawn conditions for an entity
+type SpawnConditions = {
+    chance?: number;
+    vegetationDensity?: { min?: number, max?: number };
+    moisture?: { min?: number, max?: number };
+    elevation?: { min?: number, max?: number };
+    dangerLevel?: { min?: number, max?: number };
+    magicAffinity?: { min?: number, max?: number };
+    humanPresence?: { min?: number, max?: number };
+    predatorPresence?: { min?: number, max?: number };
+    lightLevel?: { min?: number, max?: number };
+    temperature?: { min?: number, max?: number };
+};
 
-// --- CONTENT TEMPLATES ---
+// Helper function to check if a chunk meets the spawn conditions for an entity
+const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 'description' | 'actions'>): boolean => {
+    for (const key in conditions) {
+        if (key === 'chance') continue;
+        const condition = conditions[key as keyof typeof conditions] as { min?: number, max?: number };
+        const chunkValue = chunk[key as keyof typeof chunk];
+        if (typeof chunkValue !== 'number') return false;
+
+        if (condition.min !== undefined && chunkValue < condition.min) return false;
+        if (condition.max !== undefined && chunkValue > condition.max) return false;
+    }
+    return true;
+};
+
+// Helper function to select entities based on rules
+const selectEntities = <T>(
+    possibleEntities: { data: T; conditions: SpawnConditions }[],
+    chunk: Omit<Chunk, 'description' | 'actions'>,
+    maxCount: number = 1
+): T[] => {
+    const validEntities = possibleEntities.filter(entity => checkConditions(entity.conditions, chunk));
+    
+    const selected = [];
+    for (let i = 0; i < maxCount; i++) {
+        let spawned = false;
+        for (const entity of validEntities) {
+            if (Math.random() < (entity.conditions.chance ?? 1.0)) {
+                selected.push(entity.data);
+                spawned = true;
+                break; // spawn one per iteration for variety
+            }
+        }
+        if (!spawned && validEntities.length > 0 && i === 0) {
+            // Failsafe: if nothing spawns by chance, spawn the first valid one to avoid empty chunks
+            // selected.push(validEntities[0].data);
+        }
+    }
+    return selected;
+};
+
+const selectEnemy = (
+    possibleEntities: { data: { type: string; hp: number; damage: number }; conditions: SpawnConditions }[],
+    chunk: Omit<Chunk, 'description' | 'actions'>
+): { type: string; hp: number; damage: number } | null => {
+    const validEntities = possibleEntities.filter(entity => checkConditions(entity.conditions, chunk));
+    for (const entity of validEntities.sort(() => 0.5 - Math.random())) { // Shuffle to randomize check order
+        if (Math.random() < (entity.conditions.chance ?? 1.0)) {
+            return entity.data;
+        }
+    }
+    return null;
+}
+
+
+// --- CONTENT TEMPLATES & ENTITY CATALOG ---
 // This object provides the "content" (descriptions, NPCs, items, enemies) for each chunk.
-// The physical properties are now defined in worldConfig.
 const templates: Record<Terrain, any> = {
     forest: {
         descriptionTemplates: [
             'Bạn đang ở trong một khu rừng [adjective]. Những cây [feature] cao vút che khuất ánh mặt trời.',
             'Một khu rừng [adjective] bao quanh bạn. Tiếng lá xào xạc dưới chân khi bạn di chuyển giữa những cây [feature].',
-            'Không khí trong khu rừng [feature] này thật ẩm ướt. Cảm giác [adjective] và có phần bí ẩn.',
         ],
-        adjectives: ['rậm rạp', 'u ám', 'cổ xưa', 'yên tĩnh'],
-        features: ['sồi', 'thông', 'dương xỉ', 'nấm phát quang'],
-        NPCs: ['thợ săn bí ẩn', 'linh hồn cây'],
+        adjectives: ['rậm rạp', 'u ám', 'cổ xưa', 'yên tĩnh', 'ma mị'],
+        features: ['sồi', 'thông', 'dương xỉ', 'nấm phát quang', 'dây leo chằng chịt'],
+        NPCs: [
+            { data: 'thợ săn bí ẩn', conditions: { humanPresence: { min: 2 }, chance: 0.1 } },
+            { data: 'linh hồn cây', conditions: { magicAffinity: { min: 6 }, chance: 0.05 } },
+            { data: 'ẩn sĩ', conditions: { humanPresence: { min: 1, max: 3 }, chance: 0.05 } },
+        ],
         items: [
-            { name: 'Thảo dược', description: 'Một loại cây thuốc có khả năng chữa lành vết thương nhỏ.' },
-            { name: 'Nấm phát quang', description: 'Một loại nấm phát ra ánh sáng xanh dịu, có thể dùng để soi đường.' },
-            { name: 'Mũi tên cũ', description: 'Một mũi tên có vẻ đã được sử dụng, cắm trên một thân cây.' },
+            { data: { name: 'Quả Mọng Ăn Được', description: 'Một loại quả mọng đỏ, có vẻ ngon miệng và an toàn.' }, conditions: { dangerLevel: { max: 4 }, chance: 0.3 } },
+            { data: { name: 'Nấm Độc', description: 'Một loại nấm có màu sắc sặc sỡ, tốt nhất không nên ăn.' }, conditions: { dangerLevel: { min: 5 }, moisture: { min: 6 }, chance: 0.25 } },
+            { data: { name: 'Thảo Dược Chữa Lành', description: 'Một loại lá cây có mùi thơm dễ chịu, có khả năng chữa lành vết thương nhỏ.' }, conditions: { vegetationDensity: { min: 8 }, chance: 0.2 } },
+            { data: { name: 'Cành Cây Chắc Chắn', description: 'Một cành cây thẳng và cứng, có thể dùng làm vũ khí tạm thời.' }, conditions: { chance: 0.4 } },
+            { data: { name: 'Mũi Tên Cũ', description: 'Một mũi tên có vẻ đã được sử dụng, cắm trên một thân cây.' }, conditions: { humanPresence: { min: 2 }, chance: 0.1 } },
+            { data: { name: 'Hoa Tinh Linh', description: 'Một bông hoa phát ra ánh sáng xanh lam yếu ớt, tỏa ra năng lượng phép thuật.' }, conditions: { magicAffinity: { min: 7 }, chance: 0.1 } },
         ],
         enemies: [
-            { type: 'Sói', hp: 30, damage: 10, chance: 0.5 },
-            { type: 'Nhện khổng lồ', hp: 40, damage: 15, chance: 0.3 },
+            { data: { type: 'Sói', hp: 30, damage: 10 }, conditions: { predatorPresence: { min: 5 }, chance: 0.4 } },
+            { data: { type: 'Nhện khổng lồ', hp: 40, damage: 15 }, conditions: { vegetationDensity: { min: 8 }, dangerLevel: { min: 6 }, chance: 0.3 } },
+            { data: { type: 'Heo Rừng', hp: 50, damage: 8 }, conditions: { predatorPresence: { min: 4 }, chance: 0.3 } },
+            { data: { type: 'Yêu Tinh Rừng (Goblin)', hp: 25, damage: 8 }, conditions: { dangerLevel: { min: 5 }, humanPresence: { min: 1 }, chance: 0.25 } },
+            { data: { type: 'Gấu', hp: 80, damage: 20 }, conditions: { predatorPresence: { min: 8 }, dangerLevel: { min: 7 }, chance: 0.1 } },
         ],
     },
     grassland: {
         descriptionTemplates: [
             'Một đồng cỏ [adjective] trải dài đến tận chân trời. Những ngọn đồi [feature] nhấp nhô nhẹ nhàng.',
             'Bạn đang đứng giữa một thảo nguyên [adjective]. Gió thổi qua làm những ngọn cỏ [feature] lay động như sóng.',
-            'Đồng cỏ [feature] này thật thanh bình, không khí trong lành và [adjective].',
         ],
         adjectives: ['xanh mướt', 'bạt ngàn', 'khô cằn', 'lộng gió'],
         features: ['hoa dại', 'cỏ cao', 'đá tảng', 'lối mòn'],
-        NPCs: ['người du mục', 'nông dân'],
+        NPCs: [
+            { data: 'người du mục', conditions: { humanPresence: { min: 4 }, chance: 0.15 } },
+            { data: 'nông dân', conditions: { humanPresence: { min: 5 }, soilType: ['loamy'], chance: 0.2 } },
+            { data: 'đàn ngựa hoang', conditions: { predatorPresence: { max: 4 }, vegetationDensity: { min: 3 }, chance: 0.1 } },
+        ],
         items: [
-            { name: 'Hoa dại', description: 'Một bông hoa đẹp, có thể có giá trị với ai đó.' },
-            { name: 'Lúa mì', description: 'Một bó lúa mì chín vàng.' },
+            { data: { name: 'Hoa Dại', description: 'Một bông hoa đẹp, có thể có giá trị với một nhà thảo dược học.' }, conditions: { vegetationDensity: { min: 3 }, chance: 0.4 } },
+            { data: { name: 'Lúa Mì', description: 'Một bó lúa mì chín vàng, có thể dùng làm thức ăn.' }, conditions: { soilType: ['loamy'], moisture: { min: 3, max: 6 }, chance: 0.2 } },
+            { data: { name: 'Lông Chim Ưng', description: 'Một chiếc lông vũ sắc bén từ một loài chim săn mồi.' }, conditions: { predatorPresence: { min: 3 }, chance: 0.15 } },
+            { data: { name: 'Đá Lửa', description: 'Hai hòn đá lửa, có thể dùng để nhóm lửa.' }, conditions: { chance: 0.2 } },
         ],
         enemies: [
-            { type: 'Thỏ hoang hung dữ', hp: 20, damage: 5, chance: 0.4 },
-            { type: 'Cáo gian xảo', hp: 25, damage: 8, chance: 0.2 },
+            { data: { type: 'Thỏ hoang hung dữ', hp: 20, damage: 5 }, conditions: { dangerLevel: { min: 2, max: 5 }, chance: 0.3 } },
+            { data: { type: 'Cáo gian xảo', hp: 25, damage: 8 }, conditions: { predatorPresence: { min: 3 }, chance: 0.25 } },
+            { data: { type: 'Bầy châu chấu', hp: 35, damage: 5 }, conditions: { temperature: { min: 7 }, moisture: { max: 3 }, chance: 0.15 } },
+            { data: { type: 'Linh cẩu', hp: 40, damage: 12 }, conditions: { predatorPresence: { min: 5 }, chance: 0.2 } },
         ],
     },
     desert: {
         descriptionTemplates: [
             'Cát, cát và cát. Một sa mạc [adjective] bao la. Những [feature] là cảnh tượng duy nhất phá vỡ sự đơn điệu.',
             'Cái nóng của sa mạc [adjective] thật khắc nghiệt. Bạn thấy một [feature] ở phía xa, có thể là ảo ảnh.',
-            'Bạn đang đi qua một vùng sa mạc [feature], dấu chân của bạn nhanh chóng bị gió xóa đi.',
         ],
         adjectives: ['nóng bỏng', 'khô cằn', 'vô tận', 'lặng im'],
         features: ['cồn cát', 'ốc đảo', 'xương rồng khổng lồ', 'bộ xương cũ'],
-        NPCs: ['thương nhân lạc đà', 'nhà thám hiểm'],
+        NPCs: [
+            { data: 'thương nhân lạc đà', conditions: { humanPresence: { min: 3 }, chance: 0.1 } },
+            { data: 'nhà thám hiểm lạc lối', conditions: { humanPresence: { min: 1, max: 2 }, dangerLevel: { min: 6 }, chance: 0.05 } },
+        ],
         items: [
-            { name: 'Bình nước', description: 'Một bình nước quý giá, gần như còn đầy.' },
-            { name: 'Mảnh gốm cổ', description: 'Một mảnh gốm vỡ có hoa văn kỳ lạ.' },
+            { data: { name: 'Bình Nước Cũ', description: 'Một bình nước quý giá, gần như còn đầy.' }, conditions: { humanPresence: { min: 1 }, chance: 0.15 } },
+            { data: { name: 'Mảnh Gốm Cổ', description: 'Một mảnh gốm vỡ có hoa văn kỳ lạ, có thể là của một nền văn minh đã mất.' }, conditions: { chance: 0.1 } },
+            { data: { name: 'Hoa Xương Rồng', description: 'Một bông hoa hiếm hoi nở trên sa mạc, có thể chứa nước.' }, conditions: { vegetationDensity: { min: 1 }, chance: 0.2 } },
+            { data: { name: 'Xương Động Vật', description: 'Một bộ xương lớn bị tẩy trắng bởi ánh mặt trời.' }, conditions: { chance: 0.3 } },
         ],
         enemies: [
-            { type: 'Rắn đuôi chuông', hp: 30, damage: 15, chance: 0.5 },
-            { type: 'Bọ cạp khổng lồ', hp: 50, damage: 10, chance: 0.3 },
+            { data: { type: 'Rắn đuôi chuông', hp: 30, damage: 15 }, conditions: { temperature: { min: 8 }, chance: 0.4 } },
+            { data: { type: 'Bọ cạp khổng lồ', hp: 50, damage: 10 }, conditions: { dangerLevel: { min: 7 }, chance: 0.35 } },
+            { data: { type: 'Kền kền', hp: 25, damage: 8 }, conditions: { predatorPresence: { min: 6 }, chance: 0.3 } },
+            { data: { type: 'Linh hồn cát', hp: 60, damage: 12 }, conditions: { magicAffinity: { min: 5 }, windLevel: { min: 6 }, chance: 0.1 } },
         ],
     },
     swamp: {
         descriptionTemplates: [
             'Bạn đang lội qua một đầm lầy [adjective]. Nước bùn [feature] ngập đến đầu gối.',
             'Không khí đặc quánh mùi cây cỏ mục rữa. Những cây [feature] mọc lên từ làn nước tù đọng.',
-            'Một sự im lặng [adjective] bao trùm, chỉ thỉnh thoảng bị phá vỡ bởi tiếng côn trùng vo ve.',
         ],
-        adjectives: ['hôi thối', 'âm u', 'chết chóc'],
-        features: ['đước', 'dây leo', 'khí độc'],
-        NPCs: ['ẩn sĩ', 'sinh vật đầm lầy'],
+        adjectives: ['hôi thối', 'âm u', 'chết chóc', 'sương giăng'],
+        features: ['đước', 'dây leo', 'khí độc', 'bong bóng bùn'],
+        NPCs: [
+            { data: 'ẩn sĩ', conditions: { humanPresence: { min: 1, max: 2 }, magicAffinity: { min: 5 }, chance: 0.05 } },
+            { data: 'thợ săn cá sấu', conditions: { humanPresence: { min: 2 }, predatorPresence: { min: 8 }, chance: 0.1 } },
+        ],
         items: [
-            { name: 'Rễ cây hiếm', description: 'Một loại rễ cây chỉ mọc ở vùng nước độc, có giá trị cao.' },
-            { name: 'Rêu phát sáng', description: 'Một loại rêu có thể dùng để đánh dấu đường đi.' },
+            { data: { name: 'Rễ Cây Hiếm', description: 'Một loại rễ cây chỉ mọc ở vùng nước độc, có giá trị cao trong giả kim thuật.' }, conditions: { magicAffinity: { min: 6 }, chance: 0.15 } },
+            { data: { name: 'Rêu Phát Sáng', description: 'Một loại rêu có thể dùng để đánh dấu đường đi hoặc làm thuốc.' }, conditions: { lightLevel: { max: 3 }, chance: 0.3 } },
+            { data: { name: 'Trứng Bò Sát', description: 'Một ổ trứng lạ, có lớp vỏ dai và dày.' }, conditions: { predatorPresence: { min: 7 }, chance: 0.2 } },
+            { data: { name: 'Nấm Đầm Lầy', description: 'Một loại nấm ăn được nhưng có vị hơi tanh.' }, conditions: { moisture: { min: 9 }, chance: 0.25 } },
         ],
         enemies: [
-            { type: 'Đỉa khổng lồ', hp: 40, damage: 5, chance: 0.6 },
-            { type: 'Ma trơi', hp: 25, damage: 20, chance: 0.2 },
+            { data: { type: 'Đỉa khổng lồ', hp: 40, damage: 5 }, conditions: { moisture: { min: 9 }, chance: 0.4 } },
+            { data: { type: 'Ma trơi', hp: 25, damage: 20 }, conditions: { magicAffinity: { min: 7 }, lightLevel: { max: 2 }, chance: 0.2 } },
+            { data: { type: 'Cá sấu', hp: 70, damage: 25 }, conditions: { predatorPresence: { min: 8 }, moisture: { min: 8 }, chance: 0.25 } },
+            { data: { type: 'Muỗi khổng lồ', hp: 15, damage: 5 }, conditions: { chance: 0.5 } },
         ],
     },
     mountain: {
         descriptionTemplates: [
             'Bạn đang leo lên một sườn núi [adjective]. Gió [feature] thổi mạnh và lạnh buốt.',
             'Con đường mòn [feature] cheo leo dẫn lên đỉnh núi. Không khí loãng dần.',
-            'Từ trên cao, bạn có thể nhìn thấy cả một vùng đất rộng lớn. Cảnh tượng thật [adjective].',
         ],
-        adjectives: ['hiểm trở', 'lộng gió', 'hùng vĩ'],
-        features: ['vách đá', 'tuyết phủ', 'hang động'],
-        NPCs: ['thợ mỏ già', 'người cưỡi griffon'],
+        adjectives: ['hiểm trở', 'lộng gió', 'hùng vĩ', 'tuyết phủ'],
+        features: ['vách đá', 'tuyết', 'hang động', 'dòng sông băng'],
+        NPCs: [
+            { data: 'thợ mỏ già', conditions: { humanPresence: { min: 3 }, elevation: { min: 7 }, chance: 0.15 } },
+            { data: 'người cưỡi griffon', conditions: { magicAffinity: { min: 6 }, elevation: { min: 9 }, chance: 0.05 } },
+            { data: 'nhà sư khổ hạnh', conditions: { elevation: { min: 8 }, chance: 0.05 } },
+        ],
         items: [
-            { name: 'Quặng sắt', description: 'Một mỏm đá chứa quặng sắt có thể rèn thành vũ khí.' },
-            { name: 'Lông đại bàng', description: 'Một chiếc lông vũ lớn và đẹp, rơi ra từ một sinh vật bay lượn trên đỉnh núi.' },
+            { data: { name: 'Quặng Sắt', description: 'Một mỏm đá chứa quặng sắt có thể rèn thành vũ khí.' }, conditions: { soilType: ['rocky'], chance: 0.25 } },
+            { data: { name: 'Lông Đại Bàng', description: 'Một chiếc lông vũ lớn và đẹp, rơi ra từ một sinh vật bay lượn trên đỉnh núi.' }, conditions: { elevation: { min: 8 }, chance: 0.15 } },
+            { data: { name: 'Pha Lê Núi', description: 'Một tinh thể trong suốt, lạnh toát khi chạm vào.' }, conditions: { magicAffinity: { min: 5 }, elevation: { min: 7 }, chance: 0.1 } },
+            { data: { name: 'Cây Thuốc Núi', description: 'Một loại thảo dược quý hiếm chỉ mọc ở nơi cao.' }, conditions: { vegetationDensity: { min: 2 }, elevation: { min: 6 }, chance: 0.2 } },
         ],
         enemies: [
-            { type: 'Dê núi hung hãn', hp: 50, damage: 15, chance: 0.4 },
-            { type: 'Người đá (Stone Golem)', hp: 80, damage: 10, chance: 0.2 },
+            { data: { type: 'Dê núi hung hãn', hp: 50, damage: 15 }, conditions: { elevation: { min: 7 }, chance: 0.4 } },
+            { data: { type: 'Người đá (Stone Golem)', hp: 80, damage: 10 }, conditions: { magicAffinity: { min: 6 }, elevation: { min: 8 }, chance: 0.2 } },
+            { data: { type: 'Harpie', hp: 45, damage: 18 }, conditions: { elevation: { min: 9 }, windLevel: { min: 7 }, chance: 0.25 } },
+            { data: { type: 'Báo tuyết', hp: 60, damage: 20 }, conditions: { predatorPresence: { min: 7 }, temperature: { max: 3 }, chance: 0.15 } },
         ],
     },
     cave: {
         descriptionTemplates: [
             'Bên trong hang động tối [adjective] và ẩm ướt. Tiếng bước chân của bạn vang vọng.',
             'Những khối [feature] lấp lánh dưới ánh sáng yếu ớt lọt vào từ bên ngoài.',
-            'Bạn cảm thấy một luồng gió [adjective] thổi ra từ một hành lang sâu hơn trong hang.',
         ],
-        adjectives: ['sâu thẳm', 'lạnh lẽo', 'bí ẩn'],
-        features: ['thạch nhũ', 'tinh thể', 'dòng sông ngầm'],
-        NPCs: ['nhà thám hiểm bị lạc', 'bộ lạc goblin'],
+        adjectives: ['sâu thẳm', 'lạnh lẽo', 'bí ẩn', 'chằng chịt'],
+        features: ['thạch nhũ', 'tinh thể', 'dòng sông ngầm', 'tranh vẽ cổ'],
+        NPCs: [
+            { data: 'nhà thám hiểm bị lạc', conditions: { humanPresence: { min: 2, max: 3 }, chance: 0.1 } },
+            { data: 'bộ lạc goblin', conditions: { humanPresence: { min: 4 }, dangerLevel: { min: 8 }, chance: 0.2 } },
+            { data: 'sinh vật bóng tối', conditions: { lightLevel: { max: 1 }, magicAffinity: { min: 7 }, chance: 0.05 } },
+        ],
         items: [
-            { name: 'Mảnh tinh thể', description: 'Một mảnh tinh thể phát ra ánh sáng yếu ớt.' },
-            { name: 'Bản đồ cổ', description: 'Một tấm bản đồ da cũ kỹ, có vẻ chỉ đường đến một nơi bí mật.' },
+            { data: { name: 'Mảnh Tinh Thể', description: 'Một mảnh tinh thể phát ra ánh sáng yếu ớt, có thể soi đường.' }, conditions: { magicAffinity: { min: 6 }, chance: 0.3 } },
+            { data: { name: 'Bản Đồ Cổ', description: 'Một tấm bản đồ da cũ kỹ, có vẻ chỉ đường đến một nơi bí mật trong hang.' }, conditions: { humanPresence: { min: 3 }, chance: 0.1 } },
+            { data: { name: 'Xương Cổ', description: 'Một bộ xương của một sinh vật lạ chưa từng thấy.' }, conditions: { dangerLevel: { min: 7 }, chance: 0.2 } },
+            { data: { name: 'Mỏ Vàng', description: 'Những vệt vàng lấp lánh trên vách đá.' }, conditions: { elevation: { min: -8 }, chance: 0.05 } },
         ],
         enemies: [
-            { type: 'Dơi khổng lồ', hp: 25, damage: 10, chance: 0.7 },
-            { type: 'Nhện hang', hp: 45, damage: 15, chance: 0.4 },
+            { data: { type: 'Dơi khổng lồ', hp: 25, damage: 10 }, conditions: { lightLevel: { max: 3 }, chance: 0.5 } },
+            { data: { type: 'Nhện hang', hp: 45, damage: 15 }, conditions: { dangerLevel: { min: 8 }, chance: 0.4 } },
+            { data: { type: 'Slime', hp: 30, damage: 8 }, conditions: { moisture: { min: 8 }, chance: 0.3 } },
+            { data: { type: 'Sâu Bò Khổng Lồ', hp: 100, damage: 20 }, conditions: { dangerLevel: { min: 9 }, chance: 0.15 } },
         ],
     },
 };
@@ -455,19 +564,6 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
             const feature = template.features[Math.floor(Math.random() * template.features.length)];
             const baseDescription = baseDescriptionTemplate.replace('[adjective]', adjective).replace('[feature]', feature);
             
-            const npc = template.NPCs[Math.floor(Math.random() * template.NPCs.length)];
-            const item = template.items[Math.floor(Math.random() * template.items.length)];
-            
-            let enemy = null;
-            if (template.enemies && template.enemies.length > 0) {
-                for (const enemyType of template.enemies) {
-                    if (Math.random() < enemyType.chance) {
-                        enemy = { ...enemyType };
-                        break; 
-                    }
-                }
-            }
-            
             // --- NEW: Dynamic Chunk Attribute Calculation ---
             const seasonMods = seasonConfig[currentSeason];
             
@@ -485,14 +581,14 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
             const finalMoisture = clamp(moisture + seasonMods.moistureMod + worldProfile.moistureBias, 0, 10);
             const windLevel = clamp(getRandomInRange({min: 2, max: 8}) + seasonMods.windMod, 0, 10);
             const sunExposure = clamp(worldProfile.sunIntensity - (vegetationDensity / 2) + seasonMods.sunExposureMod, 0, 10);
-            const lightLevel = clamp(sunExposure, 1, 10); // Simple light = sun exposure for now
+            const lightLevel = clamp(sunExposure, terrain === 'cave' ? 0 : 1, 10); // Caves are dark
             const explorability = clamp(10 - (vegetationDensity / 2) - (dangerLevel / 2), 0, 10);
             const soilType = biomeDef.soilType[Math.floor(Math.random() * biomeDef.soilType.length)];
 
-            // Create the chunk object with the calculated attributes
-            const newChunk: Omit<Chunk, 'description' | 'actions'> = {
+            // Create the temporary chunk object with the calculated attributes to pass to entity selection
+            const tempChunk: Omit<Chunk, 'description' | 'actions'> = {
                 x: pos.x, y: pos.y, terrain, explored: false, regionId,
-                NPCs: [npc], items: [item], enemy,
+                NPCs: [], items: [], enemy: null, // Temporary empty arrays
                 travelCost: biomeDef.travelCost,
                 vegetationDensity,
                 moisture: finalMoisture,
@@ -509,23 +605,40 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                 predatorPresence,
             };
 
+            // --- NEW: Rule-based entity spawning ---
+            const spawnedNPCs = selectEntities(template.NPCs, tempChunk, 1);
+            const spawnedItems = selectEntities(template.items, tempChunk, 3); // spawn up to 3 items
+            const spawnedEnemy = selectEnemy(template.enemies, tempChunk);
+
             // Generate dynamic description based on the new attributes
             let finalDescription = baseDescription;
-            if (newChunk.moisture > 8) finalDescription += " Không khí đặc quánh hơi ẩm.";
-            if (newChunk.windLevel > 8) finalDescription += " Một cơn gió mạnh rít qua bên tai bạn.";
-            if (newChunk.temperature < 3) finalDescription += " Một cái lạnh buốt thấu xương.";
-            if (newChunk.dangerLevel > 8) finalDescription += " Bạn có cảm giác bất an ở nơi này.";
-            if (newChunk.humanPresence > 5) finalDescription += " Dường như có dấu vết của người khác ở đây.";
+            if (tempChunk.moisture > 8) finalDescription += " Không khí đặc quánh hơi ẩm.";
+            if (tempChunk.windLevel > 8) finalDescription += " Một cơn gió mạnh rít qua bên tai bạn.";
+            if (tempChunk.temperature < 3) finalDescription += " Một cái lạnh buốt thấu xương.";
+            if (tempChunk.dangerLevel > 8) finalDescription += " Bạn có cảm giác bất an ở nơi này.";
+            if (tempChunk.humanPresence > 5) finalDescription += " Dường như có dấu vết của người khác ở đây.";
+            if (spawnedEnemy) finalDescription += ` Bạn cảm thấy sự hiện diện của một ${spawnedEnemy.type} nguy hiểm gần đây.`;
+
+            // Build actions based on spawned entities
+            const actions = [];
+            if (spawnedEnemy) {
+                actions.push({ id: 1, text: `Quan sát ${spawnedEnemy.type}` });
+            } else if (spawnedNPCs.length > 0) {
+                actions.push({ id: 1, text: `Nói chuyện với ${spawnedNPCs[0]}` });
+            }
+            actions.push({ id: 2, text: 'Khám phá khu vực' });
+            if (spawnedItems.length > 0) {
+                 actions.push({ id: 3, text: `Nhặt ${spawnedItems[0].name}` });
+            }
 
             // Add the final chunk to the world
             newWorld[posKey] = {
-                ...newChunk,
+                ...tempChunk,
+                NPCs: spawnedNPCs,
+                items: spawnedItems,
+                enemy: spawnedEnemy,
                 description: finalDescription,
-                actions: [
-                    { id: 1, text: enemy ? `Quan sát ${enemy.type}` : `Nói chuyện với ${npc}` },
-                    { id: 2, text: 'Khám phá khu vực' },
-                    { id: 3, text: `Nhặt ${item.name}` }
-                ],
+                actions: actions,
             };
         }
         return { newWorld, newRegions, newRegionCounter };
@@ -596,7 +709,7 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
     
         if (actionId === 1 && chunk.enemy) {
             addNarrativeEntry(t('observeEnemy', { npc: chunk.enemy.type }), 'narrative');
-        } else if (actionId === 1) {
+        } else if (actionId === 1 && chunk.NPCs.length > 0) {
             addNarrativeEntry(t('talkToNpc', { npc: chunk.NPCs[0] }), 'narrative');
             setPlayerStats(prev => {
                 const newQuests = [...prev.quests, 'Tìm kho báu'];
@@ -605,11 +718,19 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
             addNarrativeEntry(t('questUpdated'), "system");
         } else if (actionId === 2) {
             addNarrativeEntry(t('exploreArea'), 'narrative');
-        } else if (actionId === 3) {
+        } else if (actionId === 3 && chunk.items.length > 0) {
             const item = chunk.items[0];
             addNarrativeEntry(t('pickupItem', { item: item.name }), 'narrative');
             addNarrativeEntry(`(${item.description})`, 'system');
             setPlayerStats(prev => ({ ...prev, items: [...new Set([...prev.items, item.name])] }));
+            // Remove the item from the chunk
+            const newChunk = {...chunk, items: chunk.items.slice(1)};
+            // Rebuild actions
+             newChunk.actions = newChunk.actions.filter(a => a.id !== 3);
+             if (newChunk.items.length > 0) {
+                 newChunk.actions.push({ id: 3, text: `Nhặt ${newChunk.items[0].name}` });
+             }
+            setWorld(prev => ({...prev, [`${playerPosition.x},${playerPosition.y}`]: newChunk}));
         }
     }
 
@@ -627,7 +748,13 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
     
         if (enemy.hp <= 0) {
             addNarrativeEntry(t('enemyDefeated', { enemyType: enemy.type }), 'system');
-            setWorld(prev => ({ ...prev, [key]: { ...prev[key], enemy: null } }));
+            const newChunk = {...chunk, enemy: null};
+            // Rebuild actions
+            newChunk.actions = newChunk.actions.filter(a => a.id !== 1);
+            if (newChunk.NPCs.length > 0) {
+                newChunk.actions.unshift({ id: 1, text: `Nói chuyện với ${newChunk.NPCs[0]}` });
+            }
+            setWorld(prev => ({ ...prev, [key]: newChunk }));
         } else {
             addNarrativeEntry(t('enemyHpLeft', { enemyType: enemy.type, hp: enemy.hp }), 'narrative');
             setPlayerStats(prev => {
@@ -796,3 +923,5 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
         </TooltipProvider>
     );
 }
+
+    

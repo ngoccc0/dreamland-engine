@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Minimap, type MapCell } from "@/components/game/minimap";
 import { Controls } from "@/components/game/controls";
 import { StatusPopup } from "@/components/game/status-popup";
 import { InventoryPopup } from "@/components/game/inventory-popup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { BookOpen, Shield } from "lucide-react";
@@ -118,7 +117,6 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
     const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>([]);
     const [inputValue, setInputValue] = useState("");
     const { toast } = useToast();
-    const scrollAreaRef = useRef<HTMLDivElement>(null);
     const narrativeIdCounter = useRef(1);
 
     const addNarrativeEntry = useCallback((text: string, type: NarrativeEntry['type']) => {
@@ -245,12 +243,8 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
     }, [worldSetup, generateRegion]); // Only run on init
 
     useEffect(() => {
-        if (scrollAreaRef.current) {
-            const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
-            if (viewport) {
-                viewport.scrollTop = viewport.scrollHeight;
-            }
-        }
+        // Scroll to the bottom of the page to show the latest narrative entry
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }, [narrativeLog]);
     
     const handleMove = (direction: "north" | "south" | "east" | "west") => {
@@ -398,14 +392,14 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
 
     return (
         <TooltipProvider>
-            <div className="flex flex-col md:flex-row h-dvh bg-background text-foreground font-body">
+            <div className="flex flex-col md:flex-row min-h-dvh bg-background text-foreground font-body">
                 {/* Left Panel: Narrative */}
-                <div className="w-full md:w-[70%] h-full flex flex-col">
-                    <header className="p-4 border-b">
+                <div className="w-full md:w-[70%] flex flex-col">
+                    <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10">
                         <h1 className="text-2xl font-bold font-headline">{worldSetup.worldName}</h1>
                     </header>
 
-                    <ScrollArea className="flex-grow p-4 md:p-6" ref={scrollAreaRef}>
+                    <div className="flex-grow p-4 md:p-6">
                         <div className="prose prose-stone dark:prose-invert max-w-none">
                             {narrativeLog.map((entry) => (
                                 <p key={entry.id} className={`animate-in fade-in duration-500 ${entry.type === 'action' ? 'italic text-accent-foreground/80' : ''} ${entry.type === 'system' ? 'font-semibold text-accent' : ''}`}>
@@ -419,11 +413,11 @@ export default function GameLayout({ worldSetup }: GameLayoutProps) {
                                 </div>
                             )}
                         </div>
-                    </ScrollArea>
+                    </div>
                 </div>
 
                 {/* Right Panel: Controls & Actions */}
-                <div className="w-full md:w-[30%] bg-card border-l flex flex-col p-4 md:p-6 gap-6 overflow-y-auto">
+                <div className="w-full md:w-[30%] bg-card border-l flex flex-col p-4 md:p-6 gap-6 md:sticky md:top-0 md:h-dvh">
                     <Minimap grid={generateMapGrid()} />
                     
                     <div className="grid grid-cols-2 gap-2">

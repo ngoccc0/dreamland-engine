@@ -54,8 +54,16 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         initialGameState?.playerStats || {
             hp: 100,
             mana: 50,
+            stamina: 100,
             items: worldSetup?.playerInventory || [],
-            quests: worldSetup?.initialQuests || []
+            quests: worldSetup?.initialQuests || [],
+            attributes: {
+                physicalAttack: 10,
+                magicalAttack: 5,
+                critChance: 5,
+                attackSpeed: 1.0,
+                cooldownReduction: 0,
+            }
         }
     );
     
@@ -369,7 +377,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         if (!updatedChunk.enemy) return; // Should not happen but for type safety
 
         const updatedEnemy = { ...updatedChunk.enemy };
-        const playerDamage = 20; 
+        const playerDamage = playerStats.attributes.physicalAttack; 
         const enemyDamage = updatedEnemy.damage || 10;
 
         updatedEnemy.hp -= playerDamage;
@@ -654,7 +662,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
                     </div>
                 </aside>
                 
-                <StatusPopup open={isStatusOpen} onOpenChange={setStatusOpen} stats={playerStats} quests={playerStats.quests} />
+                <StatusPopup open={isStatusOpen} onOpenChange={setStatusOpen} stats={playerStats} />
                 <InventoryPopup open={isInventoryOpen} onOpenChange={setInventoryOpen} items={playerStats.items} />
             </div>
         </TooltipProvider>

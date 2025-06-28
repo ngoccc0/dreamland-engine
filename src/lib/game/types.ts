@@ -65,8 +65,16 @@ export interface World {
 export interface PlayerStatus {
     hp: number;
     mana: number;
+    stamina: number;
     items: string[];
     quests: string[];
+    attributes: {
+        physicalAttack: number;
+        magicalAttack: number;
+        critChance: number;
+        attackSpeed: number;
+        cooldownReduction: number;
+    };
 }
 
 // Represents a contiguous region of a single biome.

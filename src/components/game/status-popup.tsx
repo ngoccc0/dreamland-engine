@@ -11,19 +11,17 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/context/language-context";
+import type { PlayerStatus } from "@/lib/game/types";
 
 interface StatusPopupProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  stats: {
-    hp: number;
-    mana: number;
-  };
-  quests: string[];
+  stats: PlayerStatus;
 }
 
-export function StatusPopup({ open, onOpenChange, stats, quests }: StatusPopupProps) {
+export function StatusPopup({ open, onOpenChange, stats }: StatusPopupProps) {
   const { t } = useLanguage();
+  const quests = stats.quests;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -42,6 +40,30 @@ export function StatusPopup({ open, onOpenChange, stats, quests }: StatusPopupPr
           <div className="space-y-2">
             <label htmlFor="mana" className="text-sm font-medium">{t('mana', { mana: stats.mana })}</label>
             <Progress id="mana" value={(stats.mana / 50) * 100} className="h-4" />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="stamina" className="text-sm font-medium">{t('stamina', { stamina: stats.stamina })}</label>
+            <Progress id="stamina" value={stats.stamina} className="h-4" />
+          </div>
+        </div>
+        <Separator />
+        <div>
+          <h3 className="mb-2 font-headline font-semibold">{t('combatStats')}</h3>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-muted-foreground">
+            <span>{t('physicalAttack')}:</span>
+            <span className="font-medium text-right text-foreground">{stats.attributes.physicalAttack}</span>
+            
+            <span>{t('magicalAttack')}:</span>
+            <span className="font-medium text-right text-foreground">{stats.attributes.magicalAttack}</span>
+
+            <span>{t('critChance')}:</span>
+            <span className="font-medium text-right text-foreground">{stats.attributes.critChance}%</span>
+
+            <span>{t('attackSpeed')}:</span>
+            <span className="font-medium text-right text-foreground">{stats.attributes.attackSpeed.toFixed(1)}</span>
+
+            <span>{t('cooldownReduction')}:</span>
+            <span className="font-medium text-right text-foreground">{stats.attributes.cooldownReduction}%</span>
           </div>
         </div>
         <Separator />

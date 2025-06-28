@@ -91,8 +91,15 @@ export const translations = {
     playerStatusDesc: "Your current condition and active quests.",
     health: "Health: {hp}/100",
     mana: "Mana: {mana}/50",
+    stamina: "Stamina: {stamina}/100",
     quests: "Quests",
     noQuests: "No active quests.",
+    combatStats: "Combat Stats",
+    physicalAttack: "Physical Attack",
+    magicalAttack: "Magical Attack",
+    critChance: "Critical Chance",
+    attackSpeed: "Attack Speed",
+    cooldownReduction: "Cooldown Reduction",
 
     // Inventory Popup
     inventoryPopupTitle: "Inventory",
@@ -160,7 +167,7 @@ export const translations = {
     attackEnemy: "Bạn tấn công {enemyType}, gây {playerDamage} sát thương.",
     enemyDefeated: "Bạn đã hạ gục {enemyType}!",
     enemyHpLeft: "{enemyType} còn {hp} HP.",
-    enemyRetaliates: "{enemyType} phản đòn, bạn mất {enemyDamage} HP.",
+    enemyRetaliates: "{enemyType} phản đòn, bạn mất {damage} HP.",
     youFell: "Bạn đã ngã xuống!",
     customActionResponses: {
       checkTree: 'Bạn kiểm tra cây, tìm thấy một quả táo!',
@@ -200,8 +207,15 @@ export const translations = {
     playerStatusDesc: "Tình trạng hiện tại và các nhiệm vụ đang hoạt động.",
     health: "Máu: {hp}/100",
     mana: "Năng lượng: {mana}/50",
+    stamina: "Thể lực: {stamina}/100",
     quests: "Nhiệm vụ",
     noQuests: "Không có nhiệm vụ nào.",
+    combatStats: "Chỉ số chiến đấu",
+    physicalAttack: "Công vật lý",
+    magicalAttack: "Công phép",
+    critChance: "Tỷ lệ chí mạng",
+    attackSpeed: "Tốc độ đánh",
+    cooldownReduction: "Giảm hồi chiêu",
 
     // Inventory Popup
     inventoryPopupTitle: "Túi đồ",

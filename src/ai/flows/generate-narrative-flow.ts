@@ -17,11 +17,21 @@ import {z} from 'genkit';
 // Define schemas that mirror the game's data structures from `src/lib/game/types.ts`.
 // It's important to keep these in sync with the actual types.
 
+const PlayerAttributesSchema = z.object({
+    physicalAttack: z.number().describe("Player's base physical damage."),
+    magicalAttack: z.number().describe("Player's base magical damage."),
+    critChance: z.number().describe("Player's chance to land a critical hit (percentage)."),
+    attackSpeed: z.number().describe("Player's attack speed modifier."),
+    cooldownReduction: z.number().describe("Player's cooldown reduction (percentage)."),
+});
+
 const PlayerStatusSchema = z.object({
     hp: z.number(),
     mana: z.number(),
+    stamina: z.number().describe("Player's stamina, used for physical actions."),
     items: z.array(z.string()),
     quests: z.array(z.string()),
+    attributes: PlayerAttributesSchema.describe("Player's combat attributes."),
 });
 
 const ChunkSchema = z.object({
@@ -71,6 +81,8 @@ const GenerateNarrativeOutputSchema = z.object({
     items: z.array(z.string()).optional().describe("The player's new inventory. Used when the player picks up or uses an item."),
     quests: z.array(z.string()).optional().describe("The player's new quest list."),
     hp: z.number().optional().describe("The player's new HP, if they took damage or healed."),
+    mana: z.number().optional().describe("The player's new Mana, if they cast a spell."),
+    stamina: z.number().optional().describe("The player's new Stamina, if they performed a physical action."),
   }).optional().describe("Optional: Changes to the player's status."),
   systemMessage: z.string().optional().describe("An optional, short system message for important events (e.g., 'Item added to inventory', 'Quest updated')."),
 });

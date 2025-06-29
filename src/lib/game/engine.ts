@@ -1,4 +1,4 @@
-import type { Chunk, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season } from "./types";
+import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season } from "./types";
 import { seasonConfig, templates, worldConfig } from "./config";
 
 // --- HELPER FUNCTIONS ---
@@ -30,26 +30,34 @@ const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 'descri
 };
 
 
-// Helper function to select entities based on rules
-const selectEntities = <T>(
+/**
+ * Selects entities based on conditions and chance.
+ * @param possibleEntities - An array of potential entities with their spawn conditions.
+ * @param chunk - The chunk data to check conditions against.
+ * @param maxCount - The maximum number of entity types to select.
+ * @returns An array of selected entities, with quantities calculated.
+ */
+const selectEntities = <T extends { quantity?: { min: number, max: number } }>(
     possibleEntities: { data: T; conditions: SpawnConditions }[],
     chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy'>,
-    maxCount: number = 1
-): T[] => {
+    maxCount: number = 3
+): (Omit<T, 'quantity'> & { quantity: number })[] => {
     const validEntities = possibleEntities.filter(entity => checkConditions(entity.conditions, chunk));
     
     const selected = [];
-    // Shuffle valid entities to add more randomness
     const shuffled = [...validEntities].sort(() => 0.5 - Math.random());
     
     for (const entity of shuffled) {
         if (selected.length >= maxCount) break;
         if (Math.random() < (entity.conditions.chance ?? 1.0)) {
-            selected.push(entity.data);
+            const { quantity, ...restOfData } = entity.data;
+            const finalQuantity = quantity ? getRandomInRange(quantity) : 1;
+            selected.push({ ...restOfData, quantity: finalQuantity });
         }
     }
-    return selected;
+    return selected as (Omit<T, 'quantity'> & { quantity: number })[];
 };
+
 
 // --- WORLD GENERATION LOGIC ---
 
@@ -184,7 +192,7 @@ function generateChunkContent(chunkData: Omit<Chunk, 'description' | 'actions' |
     let finalDescription = baseDescriptionTemplate.replace('[adjective]', adjective).replace('[feature]', feature);
     
     // NPCs, Items, Enemy
-    const spawnedNPCs = selectEntities(template.NPCs, chunkData, 1);
+    const spawnedNPCs = selectEntities(template.NPCs, chunkData, 1).map(npc => npc.type); // Keep NPCs as strings for now
     const spawnedItems = selectEntities(template.items, chunkData, 3);
     const spawnedEnemies = selectEntities(template.enemies, chunkData, 1);
     const spawnedEnemy = spawnedEnemies.length > 0 ? spawnedEnemies[0] : null;

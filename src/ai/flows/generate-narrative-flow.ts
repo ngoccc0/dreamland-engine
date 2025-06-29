@@ -25,11 +25,16 @@ const PlayerAttributesSchema = z.object({
     cooldownReduction: z.number().describe("Player's cooldown reduction (percentage)."),
 });
 
+const PlayerItemSchema = z.object({
+    name: z.string(),
+    quantity: z.number().int().positive(),
+});
+
 const PlayerStatusSchema = z.object({
     hp: z.number(),
     mana: z.number(),
     stamina: z.number().describe("Player's stamina, used for physical actions."),
-    items: z.array(z.string()),
+    items: z.array(PlayerItemSchema).describe("Player's inventory with item names and quantities."),
     quests: z.array(z.string()),
     attributes: PlayerAttributesSchema.describe("Player's combat attributes."),
 });
@@ -41,13 +46,19 @@ const EnemySchema = z.object({
     behavior: z.enum(['aggressive', 'passive']),
 });
 
+const ChunkItemSchema = z.object({
+    name: z.string(),
+    description: z.string(),
+    quantity: z.number().int(),
+});
+
 const ChunkSchema = z.object({
     x: z.number(),
     y: z.number(),
     terrain: z.enum(["forest", "grassland", "desert", "swamp", "mountain", "cave"]),
     description: z.string(),
     NPCs: z.array(z.string()),
-    items: z.array(z.object({ name: z.string(), description: z.string() })),
+    items: z.array(ChunkItemSchema).describe("Items present in the chunk, with quantities."),
     explored: z.boolean(),
     enemy: EnemySchema.nullable(),
     // We only need a subset of the full chunk attributes for the AI's context.
@@ -64,7 +75,7 @@ const ChunkSchema = z.object({
 // == STEP 1: DEFINE THE INPUT SCHEMA ==
 const GenerateNarrativeInputSchema = z.object({
   worldName: z.string().describe("The name of the game world."),
-  playerAction: z.string().describe("The action the player just performed. E.g., 'move north', 'attack wolf', 'explore area'."),
+  playerAction: z.string().describe("The action the player just performed. E.g., 'move north', 'attack wolf', 'explore area', 'pick up Healing Herb'."),
   playerStatus: PlayerStatusSchema.describe("The player's current status (HP, items, etc.)."),
   currentChunk: ChunkSchema.describe("The detailed attributes of the map tile the player is currently on."),
   recentNarrative: z.array(z.string()).describe("The last few entries from the narrative log to provide conversational context."),
@@ -79,13 +90,13 @@ const GenerateNarrativeOutputSchema = z.object({
   updatedChunk: z.object({
     // The AI can suggest changes to the current chunk.
     description: z.string().optional().describe("A new base description for the chunk if something significant changes."),
-    items: z.array(z.object({ name: z.string(), description: z.string() })).optional().describe("The new list of items in the chunk. Used to add or remove items."),
+    items: z.array(ChunkItemSchema).optional().describe("The new list of items in the chunk. Used to add or remove items. If an item's quantity is depleted, it should be removed from this list."),
     NPCs: z.array(z.string()).optional().describe("The new list of NPCs in the chunk."),
     enemy: EnemySchema.nullable().optional().describe("The state of the enemy in the chunk. Set to null if the enemy is defeated or flees."),
   }).optional().describe("Optional: Changes to the current game chunk based on the action's outcome."),
   updatedPlayerStatus: z.object({
     // The AI can suggest changes to the player's status.
-    items: z.array(z.string()).optional().describe("The player's new inventory. Used when the player picks up or uses an item."),
+    items: z.array(PlayerItemSchema).optional().describe("The player's new inventory, reflecting any items picked up or used. If an item is picked up, its quantity should be incremented or a new entry added."),
     quests: z.array(z.string()).optional().describe("The player's new quest list."),
     hp: z.number().optional().describe("The player's new HP, if they took damage or healed."),
     mana: z.number().optional().describe("The player's new Mana, if they cast a spell."),
@@ -123,7 +134,10 @@ Your role is to be a dynamic and creative storyteller and combat manager. You wi
 **Specific Action-Handling:**
 
 *   **Exploration:** If a player explores, describe what they find or see. Instead of "You explore", say "As you search the dense undergrowth, you uncover a moss-covered stone marker with faint, unreadable runes."
-*   **Item Interaction:** If the player picks up an item, add it to the player's inventory in 'updatedPlayerStatus' and remove it from the chunk's items in 'updatedChunk'.
+*   **Item Interaction:** If the player picks up an item (e.g., "pick up Healing Herb"), you MUST update the state. For example, if the chunk has a stack of 5 Healing Herbs and the player picks one up:
+    1.  In 'updatedChunk.items', decrease the quantity of 'Healing Herb' to 4. If the quantity becomes 0, remove the item entirely from the list.
+    2.  In 'updatedPlayerStatus.items', find 'Healing Herb'. If it exists, increment its quantity. If not, add '{ "name": "Healing Herb", "quantity": 1 }' to the list.
+    3.  Generate a system message like "Healing Herb added to inventory."
 *   **Combat:** If the player attacks an enemy, you will handle the **entire combat round**:
     1.  **Player's Attack:** Describe the player's attack. Use the \`playerStatus.attributes.physicalAttack\` value as the damage dealt to the enemy.
     2.  **Update Enemy HP:** Subtract the damage from the enemy's HP and reflect this change in \`updatedChunk.enemy.hp\`.

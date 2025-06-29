@@ -20,7 +20,7 @@ import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/gener
 // Import modularized game engine components
 import { generateRegion, getValidAdjacentTerrains, weightedRandom } from '@/lib/game/engine';
 import { worldConfig } from '@/lib/game/config';
-import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region, GameState, Terrain } from '@/lib/game/types';
+import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region, GameState, Terrain, PlayerItem, ChunkItem } from '@/lib/game/types';
 
 
 interface GameLayoutProps {
@@ -438,16 +438,44 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         } else if (actionId === 2) {
             addNarrativeEntry(t('exploreArea'), 'narrative');
         } else if (actionId === 3 && chunk.items.length > 0) {
-            const item = chunk.items[0];
-            addNarrativeEntry(t('pickupItem', { item: item.name }), 'narrative');
-            addNarrativeEntry(`(${item.description})`, 'system');
-            setPlayerStats(prev => ({ ...prev, items: [...new Set([...prev.items, item.name])] }));
-            const newChunk = {...chunk, items: chunk.items.slice(1)};
-             newChunk.actions = newChunk.actions.filter(a => a.id !== 3);
-             if (newChunk.items.length > 0) {
-                 newChunk.actions.push({ id: 3, text: `Nhặt ${newChunk.items[0].name}` });
-             }
-            setWorld(prev => ({...prev, [`${playerPosition.x},${playerPosition.y}`]: newChunk}));
+            const itemToPick = chunk.items[0];
+            addNarrativeEntry(t('pickupItem', { item: itemToPick.name }), 'narrative');
+            addNarrativeEntry(`(${itemToPick.description})`, 'system');
+
+            // Update Player Inventory
+            setPlayerStats(prev => {
+                const newItems: PlayerItem[] = JSON.parse(JSON.stringify(prev.items));
+                const existingItem = newItems.find(i => i.name === itemToPick.name);
+                if (existingItem) {
+                    existingItem.quantity += 1;
+                } else {
+                    newItems.push({ name: itemToPick.name, quantity: 1 });
+                }
+                return { ...prev, items: newItems };
+            });
+
+            // Update Chunk Items and Actions
+            setWorld(prevWorld => {
+                const newWorld = { ...prevWorld };
+                const currentKey = `${playerPosition.x},${playerPosition.y}`;
+                const newChunk: Chunk = JSON.parse(JSON.stringify(newWorld[currentKey]));
+                
+                const worldItem = newChunk.items.find(i => i.name === itemToPick.name);
+                if (worldItem) {
+                    worldItem.quantity -= 1;
+                    if (worldItem.quantity <= 0) {
+                        newChunk.items = newChunk.items.filter(i => i.name !== itemToPick.name);
+                    }
+                }
+                
+                newChunk.actions = newChunk.actions.filter(a => a.id !== 3);
+                if (newChunk.items.length > 0) {
+                    newChunk.actions.push({ id: 3, text: `Nhặt ${newChunk.items[0].name}` });
+                }
+
+                newWorld[currentKey] = newChunk;
+                return newWorld;
+            });
         }
         handleWorldTick();
     }
@@ -533,7 +561,16 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         addNarrativeEntry(response, 'narrative');
         
         if (text.toLowerCase() === 'gặt cỏ' && terrain === 'grassland') {
-            setPlayerStats(prev => ({...prev, items: [...new Set([...prev.items, 'cỏ khô'])]}));
+            setPlayerStats(prev => {
+                const newItems = [...prev.items];
+                const hay = newItems.find(i => i.name === 'cỏ khô');
+                if (hay) {
+                    hay.quantity += 1;
+                } else {
+                    newItems.push({ name: 'cỏ khô', quantity: 1 });
+                }
+                return { ...prev, items: newItems };
+            });
             addNarrativeEntry('Bạn đã thêm cỏ khô vào túi đồ.', 'system');
         }
         handleWorldTick();

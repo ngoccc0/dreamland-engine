@@ -1,5 +1,5 @@
 // --- Data Types and Interfaces for the Game Engine ---
-import type { WorldConcept } from "@/ai/flows/generate-world-setup";
+import type { WorldConcept as AIWorldConcept } from "@/ai/flows/generate-world-setup";
 
 export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave";
 export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky';
@@ -26,6 +26,17 @@ export interface SeasonModifiers {
     eventChance: number; // Base chance for seasonal events
 }
 
+export interface ChunkItem {
+    name: string;
+    description: string;
+    quantity: number;
+}
+
+export interface PlayerItem {
+    name: string;
+    quantity: number;
+}
+
 // This represents the detailed properties of a single tile/chunk in the world.
 export interface Chunk {
     x: number;
@@ -33,7 +44,7 @@ export interface Chunk {
     terrain: Terrain;
     description: string;
     NPCs: string[];
-    items: { name: string; description: string }[];
+    items: ChunkItem[];
     explored: boolean;
     enemy: {
         type: string;
@@ -70,7 +81,7 @@ export interface PlayerStatus {
     hp: number;
     mana: number;
     stamina: number;
-    items: string[];
+    items: PlayerItem[];
     quests: string[];
     attributes: {
         physicalAttack: number;
@@ -134,6 +145,12 @@ export type MapCell = {
   hasPlayer?: boolean;
   hasEnemy?: boolean;
 };
+
+// Re-exporting the AI-generated type with our PlayerItem type for consistency
+export type WorldConcept = Omit<AIWorldConcept, 'playerInventory'> & {
+    playerInventory: PlayerItem[];
+};
+
 
 // Represents the entire savable state of the game
 export interface GameState {

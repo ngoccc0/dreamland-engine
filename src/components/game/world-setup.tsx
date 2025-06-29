@@ -12,6 +12,7 @@ import { Skeleton } from "../ui/skeleton";
 import { Separator } from "../ui/separator";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { useLanguage } from "@/context/language-context";
+import type { PlayerItem } from "@/lib/game/types";
 
 
 interface WorldSetupProps {
@@ -297,7 +298,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                                             </CardHeader>
                                                             <CardContent className="p-4 pt-0">
                                                                 <ul className="list-disc list-inside text-sm text-muted-foreground">
-                                                                    {concept.playerInventory.map(item => <li key={item}>{item}</li>)}
+                                                                    {concept.playerInventory.map(item => <li key={item.name}>{item.name} (x{item.quantity})</li>)}
                                                                 </ul>
                                                             </CardContent>
                                                         </Card>

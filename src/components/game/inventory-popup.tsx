@@ -10,11 +10,12 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/context/language-context";
+import type { PlayerItem } from "@/lib/game/types";
 
 interface InventoryPopupProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  items: string[];
+  items: PlayerItem[];
 }
 
 export function InventoryPopup({ open, onOpenChange, items }: InventoryPopupProps) {
@@ -35,8 +36,9 @@ export function InventoryPopup({ open, onOpenChange, items }: InventoryPopupProp
             {items.length > 0 ? (
               <ul className="space-y-2">
                 {items.map((item, index) => (
-                  <li key={index} className="p-2 bg-muted rounded-md text-muted-foreground">
-                    {item}
+                  <li key={index} className="flex justify-between items-center p-2 bg-muted rounded-md text-muted-foreground">
+                    <span>{item.name}</span>
+                    <span className="font-mono text-sm font-bold text-foreground">x{item.quantity}</span>
                   </li>
                 ))}
               </ul>

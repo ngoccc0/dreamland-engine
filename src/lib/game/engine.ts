@@ -1,6 +1,10 @@
 import type { Chunk, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season } from "./types";
 import { seasonConfig, templates, worldConfig } from "./config";
 
+// --- HELPER FUNCTIONS ---
+const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
+const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+
 // --- ENTITY SPAWNING LOGIC ---
 
 // Helper function to check if a chunk meets the spawn conditions for an entity
@@ -122,6 +126,99 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
     return validTerrainsArray.length > 0 ? validTerrainsArray : Object.keys(worldConfig) as Terrain[];
 };
 
+/**
+ * Calculates attributes of a chunk that are dependent on other values
+ * (e.g., world profile, season, base attributes).
+ * @param terrain The terrain type of the chunk.
+ * @param baseAttributes The randomly generated base attributes for the chunk.
+ * @param worldProfile The global profile of the world.
+ * @param currentSeason The current season.
+ * @returns An object containing all calculated attributes.
+ */
+function calculateDependentChunkAttributes(
+    terrain: Terrain,
+    baseAttributes: {
+        vegetationDensity: number;
+        moisture: number; // This is the base moisture before seasonal/world mods
+        dangerLevel: number;
+    },
+    worldProfile: WorldProfile,
+    currentSeason: Season
+) {
+    const biomeDef = worldConfig[terrain];
+    const seasonMods = seasonConfig[currentSeason];
+
+    const temperature = clamp(getRandomInRange({min: 4, max: 7}) + seasonMods.temperatureMod + worldProfile.tempBias, 0, 10);
+    const finalMoisture = clamp(baseAttributes.moisture + seasonMods.moistureMod + worldProfile.moistureBias, 0, 10);
+    const windLevel = clamp(getRandomInRange({min: 2, max: 8}) + seasonMods.windMod, 0, 10);
+    const sunExposure = clamp(worldProfile.sunIntensity - (baseAttributes.vegetationDensity / 2) + seasonMods.sunExposureMod, 0, 10);
+    const lightLevel = clamp(sunExposure, terrain === 'cave' ? 0 : 1, 10); // Caves are dark
+    const explorability = clamp(10 - (baseAttributes.vegetationDensity / 2) - (baseAttributes.dangerLevel / 2), 0, 10);
+    const soilType = biomeDef.soilType[Math.floor(Math.random() * biomeDef.soilType.length)];
+    const travelCost = biomeDef.travelCost;
+    
+    return {
+        temperature,
+        moisture: finalMoisture, // Overwrites base moisture
+        windLevel,
+        sunExposure,
+        lightLevel,
+        explorability,
+        soilType,
+        travelCost,
+    };
+}
+
+/**
+ * Generates the "content" of a chunk (description, NPCs, items, enemies, actions)
+ * based on its final physical attributes.
+ * @param chunkData The complete physical data of the chunk.
+ * @returns An object containing the generated content.
+ */
+function generateChunkContent(chunkData: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy'>) {
+    const template = templates[chunkData.terrain];
+
+    // Description
+    const baseDescriptionTemplate = template.descriptionTemplates[Math.floor(Math.random() * template.descriptionTemplates.length)];
+    const adjective = template.adjectives[Math.floor(Math.random() * template.adjectives.length)];
+    const feature = template.features[Math.floor(Math.random() * template.features.length)];
+    let finalDescription = baseDescriptionTemplate.replace('[adjective]', adjective).replace('[feature]', feature);
+    
+    // NPCs, Items, Enemy
+    const spawnedNPCs = selectEntities(template.NPCs, chunkData, 1);
+    const spawnedItems = selectEntities(template.items, chunkData, 3);
+    const spawnedEnemy = selectEnemy(template.enemies, chunkData);
+
+    // More description based on calculated values
+    if (chunkData.moisture > 8) finalDescription += " Không khí đặc quánh hơi ẩm.";
+    if (chunkData.windLevel > 8) finalDescription += " Một cơn gió mạnh rít qua bên tai bạn.";
+    if (chunkData.temperature < 3) finalDescription += " Một cái lạnh buốt thấu xương.";
+    if (chunkData.dangerLevel > 8) finalDescription += " Bạn có cảm giác bất an ở nơi này.";
+    if (chunkData.humanPresence > 5) finalDescription += " Dường như có dấu vết của người khác ở đây.";
+    if (spawnedEnemy) finalDescription += ` Bạn cảm thấy sự hiện diện của một ${spawnedEnemy.type} nguy hiểm gần đây.`;
+
+    // Actions
+    const actions = [];
+    if (spawnedEnemy) {
+        actions.push({ id: 1, text: `Quan sát ${spawnedEnemy.type}` });
+    } else if (spawnedNPCs.length > 0) {
+        actions.push({ id: 1, text: `Nói chuyện với ${spawnedNPCs[0]}` });
+    }
+    actions.push({ id: 2, text: 'Khám phá khu vực' });
+    if (spawnedItems.length > 0) {
+         actions.push({ id: 3, text: `Nhặt ${spawnedItems[0].name}` });
+    }
+
+    return {
+        description: finalDescription,
+        NPCs: spawnedNPCs,
+        items: spawnedItems,
+        enemy: spawnedEnemy,
+        actions: actions,
+    };
+}
+
+
 // This is the core "factory" function for building a new region of the world.
 export const generateRegion = (
     startPos: { x: number; y: number }, 
@@ -136,10 +233,9 @@ export const generateRegion = (
     const newRegions = { ...currentRegions };
     let newRegionCounter = currentRegionCounter;
 
-    const template = templates[terrain];
     const biomeDef = worldConfig[terrain];
     
-    const size = Math.floor(Math.random() * (biomeDef.maxSize - biomeDef.minSize + 1)) + biomeDef.minSize;
+    const size = getRandomInRange({ min: biomeDef.minSize, max: biomeDef.maxSize });
     
     const regionCells: { x: number, y: number }[] = [];
     const visited = new Set<string>([`${startPos.x},${startPos.y}`]);
@@ -166,72 +262,44 @@ export const generateRegion = (
     const regionId = newRegionCounter++;
     newRegions[regionId] = { terrain, cells: regionCells };
 
-    const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
-    const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
-
     for (const pos of regionCells) {
         const posKey = `${pos.x},${pos.y}`;
 
-        const baseDescriptionTemplate = template.descriptionTemplates[Math.floor(Math.random() * template.descriptionTemplates.length)];
-        const adjective = template.adjectives[Math.floor(Math.random() * template.adjectives.length)];
-        const feature = template.features[Math.floor(Math.random() * template.features.length)];
-        const baseDescription = baseDescriptionTemplate.replace('[adjective]', adjective).replace('[feature]', feature);
-        
-        const seasonMods = seasonConfig[currentSeason];
-        
+        // Step 1: Generate base attributes from biome definitions
         const vegetationDensity = getRandomInRange(biomeDef.defaultValueRanges.vegetationDensity);
-        const moisture = getRandomInRange(biomeDef.defaultValueRanges.moisture);
+        const baseMoisture = getRandomInRange(biomeDef.defaultValueRanges.moisture);
         const elevation = getRandomInRange(biomeDef.defaultValueRanges.elevation);
         const dangerLevel = getRandomInRange(biomeDef.defaultValueRanges.dangerLevel);
         const magicAffinity = getRandomInRange(biomeDef.defaultValueRanges.magicAffinity);
         const humanPresence = getRandomInRange(biomeDef.defaultValueRanges.humanPresence);
         const predatorPresence = getRandomInRange(biomeDef.defaultValueRanges.predatorPresence);
-        
-        const temperature = clamp(getRandomInRange({min: 4, max: 7}) + seasonMods.temperatureMod + worldProfile.tempBias, 0, 10);
-        const finalMoisture = clamp(moisture + seasonMods.moistureMod + worldProfile.moistureBias, 0, 10);
-        const windLevel = clamp(getRandomInRange({min: 2, max: 8}) + seasonMods.windMod, 0, 10);
-        const sunExposure = clamp(worldProfile.sunIntensity - (vegetationDensity / 2) + seasonMods.sunExposureMod, 0, 10);
-        const lightLevel = clamp(sunExposure, terrain === 'cave' ? 0 : 1, 10); // Caves are dark
-        const explorability = clamp(10 - (vegetationDensity / 2) - (dangerLevel / 2), 0, 10);
-        const soilType = biomeDef.soilType[Math.floor(Math.random() * biomeDef.soilType.length)];
 
+        // Step 2: Calculate dependent attributes using the new function
+        const dependentAttributes = calculateDependentChunkAttributes(
+            terrain,
+            { vegetationDensity, moisture: baseMoisture, dangerLevel },
+            worldProfile,
+            currentSeason
+        );
+        
+        // Step 3: Combine all attributes to form the final chunk data for content generation
         const tempChunkData = {
             x: pos.x, y: pos.y, terrain, explored: false, regionId,
-            travelCost: biomeDef.travelCost, vegetationDensity, moisture: finalMoisture,
-            elevation, lightLevel, dangerLevel, magicAffinity, humanPresence, explorability,
-            soilType, sunExposure, windLevel, temperature, predatorPresence,
+            vegetationDensity,
+            elevation,
+            dangerLevel,
+            magicAffinity,
+            humanPresence,
+            predatorPresence,
+            ...dependentAttributes,
         };
 
-        const spawnedNPCs = selectEntities(template.NPCs, tempChunkData, 1);
-        const spawnedItems = selectEntities(template.items, tempChunkData, 3);
-        const spawnedEnemy = selectEnemy(template.enemies, tempChunkData);
-
-        let finalDescription = baseDescription;
-        if (tempChunkData.moisture > 8) finalDescription += " Không khí đặc quánh hơi ẩm.";
-        if (tempChunkData.windLevel > 8) finalDescription += " Một cơn gió mạnh rít qua bên tai bạn.";
-        if (tempChunkData.temperature < 3) finalDescription += " Một cái lạnh buốt thấu xương.";
-        if (tempChunkData.dangerLevel > 8) finalDescription += " Bạn có cảm giác bất an ở nơi này.";
-        if (tempChunkData.humanPresence > 5) finalDescription += " Dường như có dấu vết của người khác ở đây.";
-        if (spawnedEnemy) finalDescription += ` Bạn cảm thấy sự hiện diện của một ${spawnedEnemy.type} nguy hiểm gần đây.`;
-
-        const actions = [];
-        if (spawnedEnemy) {
-            actions.push({ id: 1, text: `Quan sát ${spawnedEnemy.type}` });
-        } else if (spawnedNPCs.length > 0) {
-            actions.push({ id: 1, text: `Nói chuyện với ${spawnedNPCs[0]}` });
-        }
-        actions.push({ id: 2, text: 'Khám phá khu vực' });
-        if (spawnedItems.length > 0) {
-             actions.push({ id: 3, text: `Nhặt ${spawnedItems[0].name}` });
-        }
-
+        // Step 4: Generate content based on the final chunk data
+        const content = generateChunkContent(tempChunkData);
+        
         newWorld[posKey] = {
             ...tempChunkData,
-            NPCs: spawnedNPCs,
-            items: spawnedItems,
-            enemy: spawnedEnemy,
-            description: finalDescription,
-            actions: actions,
+            ...content,
         };
     }
     return { newWorld, newRegions, newRegionCounter };

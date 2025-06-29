@@ -27,7 +27,7 @@ const PlayerAttributesSchema = z.object({
 
 const PlayerItemSchema = z.object({
     name: z.string(),
-    quantity: z.number().int().positive(),
+    quantity: z.number().int().min(1),
 });
 
 const PlayerStatusSchema = z.object({

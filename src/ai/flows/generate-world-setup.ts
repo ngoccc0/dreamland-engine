@@ -37,7 +37,7 @@ const WorldConceptSchema = z.object({
   startingBiome: z.enum(["forest", "grassland", "desert", "swamp", "mountain", "cave"]).describe('The primary biome for the starting area. Must be one of: forest, grassland, desert, swamp, mountain, cave.'),
   playerInventory: z.array(z.object({
     name: z.string(),
-    quantity: z.number().int().positive(),
+    quantity: z.number().int().min(1),
   })).describe('A list of 2-3 starting items for the player, fitting the world theme, each with a name and a quantity.'),
   initialQuests: z.array(z.string()).describe('A list of 1-2 starting quests for the player to begin their adventure.'),
 });

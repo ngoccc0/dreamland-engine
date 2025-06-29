@@ -16,7 +16,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import type { PlayerItem } from '@/lib/game/types';
 
 // == STEP 1: DEFINE THE INPUT SCHEMA ==
 // This defines the "contract" for calling our AI.
@@ -38,7 +37,8 @@ const WorldConceptSchema = z.object({
   playerInventory: z.array(z.object({
     name: z.string(),
     quantity: z.number().int().min(1),
-  })).describe('A list of 2-3 starting items for the player, fitting the world theme, each with a name and a quantity.'),
+    tier: z.number().int().min(1).max(6).describe("The tier of the item, from 1 (common) to 6 (legendary)."),
+  })).describe('A list of 2-3 starting items for the player, fitting the world theme, each with a name, quantity, and tier.'),
   initialQuests: z.array(z.string()).describe('A list of 1-2 starting quests for the player to begin their adventure.'),
 });
 export type WorldConcept = z.infer<typeof WorldConceptSchema>;
@@ -85,7 +85,7 @@ For EACH of the three concepts, generate the following:
 1.  **World Name:** A cool, evocative name for the world.
 2.  **Initial Narrative:** A rich, descriptive opening paragraph.
 3.  **Starting Biome:** The biome where the player begins (forest, grassland, desert, swamp, mountain, or cave).
-4.  **Player Inventory:** 2 or 3 thematically appropriate starting items, each with a name and a quantity (e.g., { "name": "Health Potion", "quantity": 3 }).
+4.  **Player Inventory:** 2 or 3 thematically appropriate starting items, each with a name, a reasonable quantity, and a tier (e.g., { "name": "Health Potion", "quantity": 3, "tier": 1 }). The tier should be between 1 (common) and 6 (legendary), reflecting the item's rarity and power.
 5.  **Initial Quests:** One or two simple starting quests.
 
 Provide the response in the required JSON format, as an object with a 'concepts' array containing the three generated world concepts.

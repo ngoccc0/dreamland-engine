@@ -31,11 +31,13 @@ export interface ChunkItem {
     name: string;
     description: string;
     quantity: number;
+    tier: number;
 }
 
 export interface PlayerItem {
     name: string;
     quantity: number;
+    tier: number;
 }
 
 // This represents the detailed properties of a single tile/chunk in the world.

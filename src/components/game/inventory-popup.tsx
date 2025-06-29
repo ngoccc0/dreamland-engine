@@ -37,7 +37,10 @@ export function InventoryPopup({ open, onOpenChange, items }: InventoryPopupProp
               <ul className="space-y-2">
                 {items.map((item, index) => (
                   <li key={index} className="flex justify-between items-center p-2 bg-muted rounded-md text-muted-foreground">
-                    <span>{item.name}</span>
+                    <div className="flex items-center gap-2">
+                      <span>{item.name}</span>
+                      <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary/10 text-primary-foreground font-semibold">{t('tier', { tier: item.tier })}</span>
+                    </div>
                     <span className="font-mono text-sm font-bold text-foreground">x{item.quantity}</span>
                   </li>
                 ))}

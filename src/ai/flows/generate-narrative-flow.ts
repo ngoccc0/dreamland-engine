@@ -28,13 +28,14 @@ const PlayerAttributesSchema = z.object({
 const PlayerItemSchema = z.object({
     name: z.string(),
     quantity: z.number().int().min(1),
+    tier: z.number(),
 });
 
 const PlayerStatusSchema = z.object({
     hp: z.number(),
     mana: z.number(),
     stamina: z.number().describe("Player's stamina, used for physical actions."),
-    items: z.array(PlayerItemSchema).describe("Player's inventory with item names and quantities."),
+    items: z.array(PlayerItemSchema).describe("Player's inventory with item names, quantities, and tiers."),
     quests: z.array(z.string()),
     attributes: PlayerAttributesSchema.describe("Player's combat attributes."),
 });
@@ -53,6 +54,7 @@ const ChunkItemSchema = z.object({
     name: z.string(),
     description: z.string(),
     quantity: z.number().int(),
+    tier: z.number(),
 });
 
 const ChunkSchema = z.object({
@@ -61,7 +63,7 @@ const ChunkSchema = z.object({
     terrain: z.enum(["forest", "grassland", "desert", "swamp", "mountain", "cave"]),
     description: z.string(),
     NPCs: z.array(z.string()),
-    items: z.array(ChunkItemSchema).describe("Items present in the chunk, with quantities."),
+    items: z.array(ChunkItemSchema).describe("Items present in the chunk, with quantities and tiers."),
     explored: z.boolean(),
     enemy: EnemySchema.nullable(),
     // We only need a subset of the full chunk attributes for the AI's context.
@@ -131,16 +133,17 @@ Your role is to be a dynamic and creative storyteller and combat manager. You wi
 **Your Primary Rules:**
 1.  **Be a Storyteller:** Write an engaging, descriptive narrative (2-4 sentences) that brings the world to life. Do not just repeat the chunk description. Build upon it based on the player's action.
 2.  **Be a Rules-Engine:** Logically determine the consequences of the player's action. If the action changes the environment or the player's status, you MUST reflect those changes in the 'updatedChunk' and 'updatedPlayerStatus' fields.
-3.  **Be Creative:** Use the provided chunk attributes (dangerLevel, magicAffinity, etc.) to influence the tone and events. A high dangerLevel might mean more dangerous outcomes. High magicAffinity could lead to strange phenomena.
-4.  **Language:** ALL TEXT in the response (narrative, item names, etc.) MUST be in the language corresponding to this code: {{language}}.
-5.  **Ecosystem Awareness:** The 'diet', 'satiation', and 'maxSatiation' fields for enemies tell you about a creature's state. A hungry creature ('satiation' is low) might be more aggressive or desperate. A full creature might be passive or preparing to reproduce. Use this to color your narrative when relevant.
+3.  **Item Tiers:** All items have a 'tier' from 1 (common) to 6 (legendary). When creating or modifying items, ensure this tier is present and logical. A simple crafted item should be tier 1. A legendary artifact found in a boss fight could be tier 5 or 6.
+4.  **Be Creative:** Use the provided chunk attributes (dangerLevel, magicAffinity, etc.) to influence the tone and events. A high dangerLevel might mean more dangerous outcomes. High magicAffinity could lead to strange phenomena.
+5.  **Language:** ALL TEXT in the response (narrative, item names, etc.) MUST be in the language corresponding to this code: {{language}}.
+6.  **Ecosystem Awareness:** The 'diet', 'satiation', and 'maxSatiation' fields for enemies tell you about a creature's state. A hungry creature ('satiation' is low) might be more aggressive or desperate. A full creature might be passive or preparing to reproduce. Use this to color your narrative when relevant.
 
 **Specific Action-Handling:**
 
 *   **Exploration:** If a player explores, describe what they find or see. Instead of "You explore", say "As you search the dense undergrowth, you uncover a moss-covered stone marker with faint, unreadable runes."
-*   **Item Interaction (Take All):** If the player picks up an item (e.g., "pick up Healing Herb"), you MUST update the state to move the ENTIRE STACK. For example, if the chunk has an item \`{ "name": "Healing Herb", "quantity": 5 }\` and the action is "pick up Healing Herb":
+*   **Item Interaction (Take All):** If the player picks up an item (e.g., "pick up Healing Herb"), you MUST update the state to move the ENTIRE STACK. For example, if the chunk has an item \`{ "name": "Healing Herb", "description": "...", "quantity": 5, "tier": 1 }\` and the action is "pick up Healing Herb":
     1.  In \`updatedChunk.items\`, REMOVE the 'Healing Herb' entry entirely from the list.
-    2.  In \`updatedPlayerStatus.items\`, find 'Healing Herb'. If it exists, increment its quantity by 5. If it doesn't exist, add \`{ "name": "Healing Herb", "quantity": 5 }\` to the list.
+    2.  In \`updatedPlayerStatus.items\`, find 'Healing Herb'. If it exists, increment its quantity by 5. If it doesn't exist, add \`{ "name": "Healing Herb", "quantity": 5, "tier": 1 }\` to the list.
     3.  Generate a system message reflecting the quantity, like "5 Healing Herbs added to inventory."
 *   **Combat:** If the player attacks an enemy, you will handle the **entire combat round**:
     1.  **Player's Attack:** Describe the player's attack. Use the \`playerStatus.attributes.physicalAttack\` value as the damage dealt to the enemy.

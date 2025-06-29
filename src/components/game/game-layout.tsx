@@ -631,7 +631,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
                 if (existingItem) {
                     existingItem.quantity += pickupQuantity;
                 } else {
-                    newItems.push({ name: itemToPick.name, quantity: pickupQuantity });
+                    newItems.push({ name: itemToPick.name, quantity: pickupQuantity, tier: itemToPick.tier });
                 }
                 return { ...prev, items: newItems };
             });
@@ -746,7 +746,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
                 if (hay) {
                     hay.quantity += 1;
                 } else {
-                    newItems.push({ name: 'cỏ khô', quantity: 1 });
+                    newItems.push({ name: 'cỏ khô', quantity: 1, tier: 1 });
                 }
                 return { ...prev, items: newItems };
             });

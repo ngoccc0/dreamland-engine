@@ -87,13 +87,13 @@ export const templates: Record<Terrain, any> = {
             { data: 'ẩn sĩ', conditions: { humanPresence: { min: 1, max: 3 }, chance: 0.05 } },
         ],
         items: [
-            { data: { name: 'Quả Mọng Ăn Được', description: 'Một loại quả mọng đỏ, có vẻ ngon miệng và an toàn.', quantity: { min: 3, max: 8 } }, conditions: { dangerLevel: { max: 4 }, chance: 0.3 } },
-            { data: { name: 'Nấm Độc', description: 'Một loại nấm có màu sắc sặc sỡ, tốt nhất không nên ăn.', quantity: { min: 2, max: 4 } }, conditions: { dangerLevel: { min: 5 }, moisture: { min: 6 }, chance: 0.25 } },
-            { data: { name: 'Thảo Dược Chữa Lành', description: 'Một loại lá cây có mùi thơm dễ chịu, có khả năng chữa lành vết thương nhỏ.', quantity: { min: 1, max: 3 } }, conditions: { vegetationDensity: { min: 8 }, chance: 0.2 } },
-            { data: { name: 'Cành Cây Chắc Chắn', description: 'Một cành cây thẳng và cứng, có thể dùng làm vũ khí tạm thời.', quantity: { min: 1, max: 2 } }, conditions: { chance: 0.4 } },
-            { data: { name: 'Mũi Tên Cũ', description: 'Một mũi tên có vẻ đã được sử dụng, cắm trên một thân cây.', quantity: { min: 1, max: 1 } }, conditions: { humanPresence: { min: 2 }, chance: 0.1 } },
-            { data: { name: 'Hoa Tinh Linh', description: 'Một bông hoa phát ra ánh sáng xanh lam yếu ớt, tỏa ra năng lượng phép thuật.', quantity: { min: 1, max: 1 } }, conditions: { magicAffinity: { min: 7 }, chance: 0.1 } },
-            { data: { name: 'Rễ Cây Hiếm', description: 'Một loại rễ cây chỉ mọc ở vùng nước độc, có giá trị cao trong giả kim thuật.', quantity: { min: 1, max: 2 } }, conditions: { magicAffinity: { min: 6 }, chance: 0.15 } },
+            { data: { name: 'Quả Mọng Ăn Được', description: 'Một loại quả mọng đỏ, có vẻ ngon miệng và an toàn.', quantity: { min: 3, max: 8 }, tier: 1 }, conditions: { dangerLevel: { max: 4 }, chance: 0.3 } },
+            { data: { name: 'Nấm Độc', description: 'Một loại nấm có màu sắc sặc sỡ, tốt nhất không nên ăn.', quantity: { min: 2, max: 4 }, tier: 2 }, conditions: { dangerLevel: { min: 5 }, moisture: { min: 6 }, chance: 0.25 } },
+            { data: { name: 'Thảo Dược Chữa Lành', description: 'Một loại lá cây có mùi thơm dễ chịu, có khả năng chữa lành vết thương nhỏ.', quantity: { min: 1, max: 3 }, tier: 1 }, conditions: { vegetationDensity: { min: 8 }, chance: 0.2 } },
+            { data: { name: 'Cành Cây Chắc Chắn', description: 'Một cành cây thẳng và cứng, có thể dùng làm vũ khí tạm thời.', quantity: { min: 1, max: 2 }, tier: 1 }, conditions: { chance: 0.4 } },
+            { data: { name: 'Mũi Tên Cũ', description: 'Một mũi tên có vẻ đã được sử dụng, cắm trên một thân cây.', quantity: { min: 1, max: 1 }, tier: 1 }, conditions: { humanPresence: { min: 2 }, chance: 0.1 } },
+            { data: { name: 'Hoa Tinh Linh', description: 'Một bông hoa phát ra ánh sáng xanh lam yếu ớt, tỏa ra năng lượng phép thuật.', quantity: { min: 1, max: 1 }, tier: 3 }, conditions: { magicAffinity: { min: 7 }, chance: 0.1 } },
+            { data: { name: 'Rễ Cây Hiếm', description: 'Một loại rễ cây chỉ mọc ở vùng nước độc, có giá trị cao trong giả kim thuật.', quantity: { min: 1, max: 2 }, tier: 3 }, conditions: { magicAffinity: { min: 6 }, chance: 0.15 } },
         ],
         enemies: [
             { data: { type: 'Sói', hp: 30, damage: 10, behavior: 'aggressive', diet: ['Heo Rừng', 'Thỏ hoang hung dữ'], maxSatiation: 2 }, conditions: { predatorPresence: { min: 5 }, chance: 0.4 } },
@@ -116,10 +116,10 @@ export const templates: Record<Terrain, any> = {
             { data: 'đàn ngựa hoang', conditions: { predatorPresence: { max: 4 }, vegetationDensity: { min: 3 }, chance: 0.1 } },
         ],
         items: [
-            { data: { name: 'Hoa Dại', description: 'Một bông hoa đẹp, có thể có giá trị với một nhà thảo dược học.', quantity: { min: 5, max: 10 } }, conditions: { vegetationDensity: { min: 3 }, chance: 0.4 } },
-            { data: { name: 'Lúa Mì', description: 'Một bó lúa mì chín vàng, có thể dùng làm thức ăn.', quantity: { min: 2, max: 6 } }, conditions: { soilType: ['loamy'], moisture: { min: 3, max: 6 }, chance: 0.2 } },
-            { data: { name: 'Lông Chim Ưng', description: 'Một chiếc lông vũ sắc bén từ một loài chim săn mồi.', quantity: { min: 1, max: 2 } }, conditions: { predatorPresence: { min: 3 }, chance: 0.15 } },
-            { data: { name: 'Đá Lửa', description: 'Hai hòn đá lửa, có thể dùng để nhóm lửa.', quantity: { min: 1, max: 1 } }, conditions: { chance: 0.2 } },
+            { data: { name: 'Hoa Dại', description: 'Một bông hoa đẹp, có thể có giá trị với một nhà thảo dược học.', quantity: { min: 5, max: 10 }, tier: 1 }, conditions: { vegetationDensity: { min: 3 }, chance: 0.4 } },
+            { data: { name: 'Lúa Mì', description: 'Một bó lúa mì chín vàng, có thể dùng làm thức ăn.', quantity: { min: 2, max: 6 }, tier: 1 }, conditions: { soilType: ['loamy'], moisture: { min: 3, max: 6 }, chance: 0.2 } },
+            { data: { name: 'Lông Chim Ưng', description: 'Một chiếc lông vũ sắc bén từ một loài chim săn mồi.', quantity: { min: 1, max: 2 }, tier: 2 }, conditions: { predatorPresence: { min: 3 }, chance: 0.15 } },
+            { data: { name: 'Đá Lửa', description: 'Hai hòn đá lửa, có thể dùng để nhóm lửa.', quantity: { min: 1, max: 1 }, tier: 1 }, conditions: { chance: 0.2 } },
         ],
         enemies: [
             { data: { type: 'Thỏ hoang hung dữ', hp: 20, damage: 5, behavior: 'aggressive', diet: ['Hoa Dại', 'Lúa Mì'], maxSatiation: 4 }, conditions: { dangerLevel: { min: 2, max: 5 }, chance: 0.3 } },
@@ -140,10 +140,10 @@ export const templates: Record<Terrain, any> = {
             { data: 'nhà thám hiểm lạc lối', conditions: { humanPresence: { min: 1, max: 2 }, dangerLevel: { min: 6 }, chance: 0.05 } },
         ],
         items: [
-            { data: { name: 'Bình Nước Cũ', description: 'Một bình nước quý giá, gần như còn đầy.', quantity: { min: 1, max: 1 } }, conditions: { humanPresence: { min: 1 }, chance: 0.15 } },
-            { data: { name: 'Mảnh Gốm Cổ', description: 'Một mảnh gốm vỡ có hoa văn kỳ lạ, có thể là của một nền văn minh đã mất.', quantity: { min: 1, max: 1 } }, conditions: { chance: 0.1 } },
-            { data: { name: 'Hoa Xương Rồng', description: 'Một bông hoa hiếm hoi nở trên sa mạc, có thể chứa nước.', quantity: { min: 1, max: 3 } }, conditions: { vegetationDensity: { min: 1 }, chance: 0.2 } },
-            { data: { name: 'Xương Động Vật', description: 'Một bộ xương lớn bị tẩy trắng bởi ánh mặt trời.', quantity: { min: 1, max: 1 } }, conditions: { chance: 0.3 } },
+            { data: { name: 'Bình Nước Cũ', description: 'Một bình nước quý giá, gần như còn đầy.', quantity: { min: 1, max: 1 }, tier: 1 }, conditions: { humanPresence: { min: 1 }, chance: 0.15 } },
+            { data: { name: 'Mảnh Gốm Cổ', description: 'Một mảnh gốm vỡ có hoa văn kỳ lạ, có thể là của một nền văn minh đã mất.', quantity: { min: 1, max: 1 }, tier: 2 }, conditions: { chance: 0.1 } },
+            { data: { name: 'Hoa Xương Rồng', description: 'Một bông hoa hiếm hoi nở trên sa mạc, có thể chứa nước.', quantity: { min: 1, max: 3 }, tier: 1 }, conditions: { vegetationDensity: { min: 1 }, chance: 0.2 } },
+            { data: { name: 'Xương Động Vật', description: 'Một bộ xương lớn bị tẩy trắng bởi ánh mặt trời.', quantity: { min: 1, max: 1 }, tier: 1 }, conditions: { chance: 0.3 } },
         ],
         enemies: [
             { data: { type: 'Rắn đuôi chuông', hp: 30, damage: 15, behavior: 'aggressive', diet: ['Thỏ hoang hung dữ'], maxSatiation: 2 }, conditions: { temperature: { min: 8 }, chance: 0.4 } },
@@ -164,9 +164,9 @@ export const templates: Record<Terrain, any> = {
             { data: 'thợ săn cá sấu', conditions: { humanPresence: { min: 2 }, predatorPresence: { min: 8 }, chance: 0.1 } },
         ],
         items: [
-            { data: { name: 'Rêu Phát Sáng', description: 'Một loại rêu có thể dùng để đánh dấu đường đi hoặc làm thuốc.', quantity: { min: 1, max: 4 } }, conditions: { lightLevel: { max: -4 }, chance: 0.3 } },
-            { data: { name: 'Trứng Bò Sát', description: 'Một ổ trứng lạ, có lớp vỏ dai và dày.', quantity: { min: 2, max: 5 } }, conditions: { predatorPresence: { min: 7 }, chance: 0.2 } },
-            { data: { name: 'Nấm Đầm Lầy', description: 'Một loại nấm ăn được nhưng có vị hơi tanh.', quantity: { min: 3, max: 6 } }, conditions: { moisture: { min: 9 }, chance: 0.25 } },
+            { data: { name: 'Rêu Phát Sáng', description: 'Một loại rêu có thể dùng để đánh dấu đường đi hoặc làm thuốc.', quantity: { min: 1, max: 4 }, tier: 2 }, conditions: { lightLevel: { max: -4 }, chance: 0.3 } },
+            { data: { name: 'Trứng Bò Sát', description: 'Một ổ trứng lạ, có lớp vỏ dai và dày.', quantity: { min: 2, max: 5 }, tier: 2 }, conditions: { predatorPresence: { min: 7 }, chance: 0.2 } },
+            { data: { name: 'Nấm Đầm Lầy', description: 'Một loại nấm ăn được nhưng có vị hơi tanh.', quantity: { min: 3, max: 6 }, tier: 1 }, conditions: { moisture: { min: 9 }, chance: 0.25 } },
         ],
         enemies: [
             { data: { type: 'Đỉa khổng lồ', hp: 40, damage: 5, behavior: 'aggressive', diet: ['Trứng Bò Sát'], maxSatiation: 3 }, conditions: { moisture: { min: 9 }, chance: 0.4 } },
@@ -188,10 +188,10 @@ export const templates: Record<Terrain, any> = {
             { data: 'nhà sư khổ hạnh', conditions: { elevation: { min: 8 }, chance: 0.05 } },
         ],
         items: [
-            { data: { name: 'Quặng Sắt', description: 'Một mỏm đá chứa quặng sắt có thể rèn thành vũ khí.', quantity: { min: 1, max: 3 } }, conditions: { soilType: ['rocky'], chance: 0.25 } },
-            { data: { name: 'Lông Đại Bàng', description: 'Một chiếc lông vũ lớn và đẹp, rơi ra từ một sinh vật bay lượn trên đỉnh núi.', quantity: { min: 1, max: 1 } }, conditions: { elevation: { min: 8 }, chance: 0.15 } },
-            { data: { name: 'Pha Lê Núi', description: 'Một tinh thể trong suốt, lạnh toát khi chạm vào.', quantity: { min: 1, max: 2 } }, conditions: { magicAffinity: { min: 5 }, elevation: { min: 7 }, chance: 0.1 } },
-            { data: { name: 'Cây Thuốc Núi', description: 'Một loại thảo dược quý hiếm chỉ mọc ở nơi cao.', quantity: { min: 1, max: 3 } }, conditions: { vegetationDensity: { min: 2 }, elevation: { min: 6 }, chance: 0.2 } },
+            { data: { name: 'Quặng Sắt', description: 'Một mỏm đá chứa quặng sắt có thể rèn thành vũ khí.', quantity: { min: 1, max: 3 }, tier: 2 }, conditions: { soilType: ['rocky'], chance: 0.25 } },
+            { data: { name: 'Lông Đại Bàng', description: 'Một chiếc lông vũ lớn và đẹp, rơi ra từ một sinh vật bay lượn trên đỉnh núi.', quantity: { min: 1, max: 1 }, tier: 3 }, conditions: { elevation: { min: 8 }, chance: 0.15 } },
+            { data: { name: 'Pha Lê Núi', description: 'Một tinh thể trong suốt, lạnh toát khi chạm vào.', quantity: { min: 1, max: 2 }, tier: 4 }, conditions: { magicAffinity: { min: 5 }, elevation: { min: 7 }, chance: 0.1 } },
+            { data: { name: 'Cây Thuốc Núi', description: 'Một loại thảo dược quý hiếm chỉ mọc ở nơi cao.', quantity: { min: 1, max: 3 }, tier: 2 }, conditions: { vegetationDensity: { min: 2 }, elevation: { min: 6 }, chance: 0.2 } },
         ],
         enemies: [
             { data: { type: 'Dê núi hung hãn', hp: 50, damage: 15, behavior: 'aggressive', diet: ['Cây Thuốc Núi', 'Hoa Dại'], maxSatiation: 3 }, conditions: { elevation: { min: 7 }, chance: 0.4 } },
@@ -213,10 +213,10 @@ export const templates: Record<Terrain, any> = {
             { data: 'sinh vật bóng tối', conditions: { lightLevel: { max: -8 }, magicAffinity: { min: 7 }, chance: 0.05 } },
         ],
         items: [
-            { data: { name: 'Mảnh Tinh Thể', description: 'Một mảnh tinh thể phát ra ánh sáng yếu ớt, có thể soi đường.', quantity: { min: 2, max: 7 } }, conditions: { magicAffinity: { min: 6 }, chance: 0.3 } },
-            { data: { name: 'Bản Đồ Cổ', description: 'Một tấm bản đồ da cũ kỹ, có vẻ chỉ đường đến một nơi bí mật trong hang.', quantity: { min: 1, max: 1 } }, conditions: { humanPresence: { min: 3 }, chance: 0.1 } },
-            { data: { name: 'Xương Cổ', description: 'Một bộ xương của một sinh vật lạ chưa từng thấy.', quantity: { min: 1, max: 1 } }, conditions: { dangerLevel: { min: 7 }, chance: 0.2 } },
-            { data: { name: 'Mỏ Vàng', description: 'Những vệt vàng lấp lánh trên vách đá.', quantity: { min: 1, max: 2 } }, conditions: { elevation: { min: -8 }, chance: 0.05 } },
+            { data: { name: 'Mảnh Tinh Thể', description: 'Một mảnh tinh thể phát ra ánh sáng yếu ớt, có thể soi đường.', quantity: { min: 2, max: 7 }, tier: 2 }, conditions: { magicAffinity: { min: 6 }, chance: 0.3 } },
+            { data: { name: 'Bản Đồ Cổ', description: 'Một tấm bản đồ da cũ kỹ, có vẻ chỉ đường đến một nơi bí mật trong hang.', quantity: { min: 1, max: 1 }, tier: 3 }, conditions: { humanPresence: { min: 3 }, chance: 0.1 } },
+            { data: { name: 'Xương Cổ', description: 'Một bộ xương của một sinh vật lạ chưa từng thấy.', quantity: { min: 1, max: 1 }, tier: 2 }, conditions: { dangerLevel: { min: 7 }, chance: 0.2 } },
+            { data: { name: 'Mỏ Vàng', description: 'Những vệt vàng lấp lánh trên vách đá.', quantity: { min: 1, max: 2 }, tier: 4 }, conditions: { elevation: { min: -8 }, chance: 0.05 } },
         ],
         enemies: [
             { data: { type: 'Dơi khổng lồ', hp: 25, damage: 10, behavior: 'aggressive', diet: ['Nhện hang'], maxSatiation: 2 }, conditions: { lightLevel: { max: -2 }, chance: 0.5 } },

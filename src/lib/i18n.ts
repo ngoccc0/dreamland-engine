@@ -105,6 +105,7 @@ export const translations = {
     inventoryPopupTitle: "Inventory",
     inventoryPopupDesc: "Items you have collected on your journey.",
     inventoryEmpty: "Your inventory is empty.",
+    tier: "Tier {tier}",
 
     // Minimap
     minimap: "Minimap",
@@ -222,6 +223,7 @@ export const translations = {
     inventoryPopupTitle: "Túi đồ",
     inventoryPopupDesc: "Các vật phẩm bạn đã thu thập trên hành trình.",
     inventoryEmpty: "Túi đồ của bạn trống rỗng.",
+    tier: "Cấp {tier}",
 
     // Minimap
     minimap: "Minimap",

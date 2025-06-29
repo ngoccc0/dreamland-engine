@@ -147,6 +147,8 @@ export type MapCell = {
   biome: "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave" | "empty";
   hasPlayer?: boolean;
   hasEnemy?: boolean;
+  hasNpc?: boolean;
+  hasItem?: boolean;
 };
 
 // Re-exporting the AI-generated type with our PlayerItem type for consistency

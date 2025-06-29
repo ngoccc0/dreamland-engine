@@ -1,16 +1,12 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { PlayerIcon, EnemyIcon } from "./icons";
+import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon } from "./icons";
 import { useLanguage } from "@/context/language-context";
 import { Trees, Wheat, Sun, Mountain, Shell, Droplets } from 'lucide-react';
 import type React from "react";
+import type { MapCell } from "@/lib/game/types";
 
-export type MapCell = {
-  biome: "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave" | "empty";
-  hasPlayer?: boolean;
-  hasEnemy?: boolean;
-};
 
 interface MinimapProps {
   grid: MapCell[][];
@@ -52,14 +48,18 @@ export function Minimap({ grid }: MinimapProps) {
                 biomeColors[cell.biome],
                 cell.hasPlayer && "ring-2 ring-white shadow-lg"
                 )}
-                aria-label={`Map cell at ${rowIndex}, ${colIndex}. Biome: ${cell.biome}${cell.hasPlayer ? '. Player is here.' : ''}${cell.hasEnemy ? '. Enemy is here.' : ''}`}
+                aria-label={`Map cell at ${rowIndex}, ${colIndex}. Biome: ${cell.biome}${cell.hasPlayer ? '. Player is here.' : ''}${cell.hasEnemy ? '. Enemy is here.' : ''}${cell.hasNpc ? '. NPC is here.' : ''}${cell.hasItem ? '. Item is here.' : ''}`}
             >
                 {/* Render the biome icon if the cell is not empty */}
                 {cell.biome !== 'empty' && biomeIcons[cell.biome]}
                 
-                {/* Player and Enemy icons will be rendered on top */}
-                {cell.hasPlayer && <PlayerIcon />}
+                {/* Player and Enemy icons will be rendered on top of biome */}
                 {cell.hasEnemy && <EnemyIcon />}
+                {cell.hasPlayer && <PlayerIcon />}
+                
+                {/* Corner indicators for other entities, rendered on top of everything */}
+                {cell.hasNpc && <NpcIcon />}
+                {cell.hasItem && <ItemIcon />}
             </div>
             ))
         )}

@@ -657,7 +657,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         const radius = 2;
         const size = radius * 2 + 1;
         const grid: MapCell[][] = Array(size).fill(null).map(() => 
-            Array(size).fill({ biome: 'empty', hasEnemy: false, hasPlayer: false })
+            Array(size).fill({ biome: 'empty', hasEnemy: false, hasPlayer: false, hasNpc: false, hasItem: false })
         );
 
         for (let gy = 0; gy < size; gy++) {
@@ -672,6 +672,8 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
                         biome: chunk.terrain,
                         hasEnemy: !!chunk.enemy,
                         hasPlayer: false,
+                        hasNpc: chunk.NPCs.length > 0,
+                        hasItem: chunk.items.length > 0,
                     };
                 }
             }

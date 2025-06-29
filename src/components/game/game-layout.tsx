@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Minimap } from "@/components/game/minimap";
 import { StatusPopup } from "@/components/game/status-popup";
 import { InventoryPopup } from "@/components/game/inventory-popup";
+import { FullMapPopup } from "@/components/game/full-map-popup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -69,6 +70,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
     
     const [isStatusOpen, setStatusOpen] = useState(false);
     const [isInventoryOpen, setInventoryOpen] = useState(false);
+    const [isFullMapOpen, setIsFullMapOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>(initialGameState?.narrativeLog || []);
     const [inputValue, setInputValue] = useState("");
@@ -654,7 +656,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
     }
 
     const generateMapGrid = useCallback((): MapCell[][] => {
-        const radius = 2;
+        const radius = 2; // This creates a 5x5 grid
         const size = radius * 2 + 1;
         const grid: MapCell[][] = Array(size).fill(null).map(() => 
             Array(size).fill({ biome: 'empty', hasEnemy: false, hasPlayer: false, hasNpc: false, hasItem: false })
@@ -708,7 +710,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
 
                     <main className="flex-grow p-4 md:p-6 overflow-y-auto">
                         <div className="prose prose-stone dark:prose-invert max-w-none">
-                            {narrativeLog.map((entry) => (
+                            {narrativeLog.slice(-50).map((entry) => (
                                 <p key={entry.id} className={`animate-in fade-in duration-500 ${entry.type === 'action' ? 'italic text-accent-foreground/80' : ''} ${entry.type === 'system' ? 'font-semibold text-accent' : ''}`}>
                                     {entry.text}
                                 </p>
@@ -727,7 +729,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
                 {/* Right Panel: Controls & Actions */}
                 <aside className="w-full md:w-[30%] bg-card border-l p-4 md:p-6 flex flex-col gap-6">
                     <div className="flex-shrink-0">
-                        <Minimap grid={generateMapGrid()} />
+                        <Minimap grid={generateMapGrid()} onTitleClick={() => setIsFullMapOpen(true)} />
                     </div>
                     
                     {/* UNIFIED CONTROLS SECTION */}
@@ -880,6 +882,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
                 
                 <StatusPopup open={isStatusOpen} onOpenChange={setStatusOpen} stats={playerStats} />
                 <InventoryPopup open={isInventoryOpen} onOpenChange={setInventoryOpen} items={playerStats.items} />
+                <FullMapPopup open={isFullMapOpen} onOpenChange={setIsFullMapOpen} world={world} playerPosition={playerPosition} />
             </div>
         </TooltipProvider>
     );

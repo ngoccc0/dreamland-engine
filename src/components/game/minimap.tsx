@@ -9,6 +9,7 @@ import type { MapCell } from "@/lib/game/types";
 
 interface MinimapProps {
   grid: MapCell[][];
+  onTitleClick?: () => void;
 }
 
 const biomeColors = {
@@ -32,11 +33,16 @@ const biomeIcons: Record<"forest" | "grassland" | "desert" | "swamp" | "mountain
 };
 
 
-export function Minimap({ grid }: MinimapProps) {
+export function Minimap({ grid, onTitleClick }: MinimapProps) {
   const { t } = useLanguage();
   return (
     <div className="flex flex-col items-center gap-4">
-        <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('minimap')}</h3>
+        <h3 
+            className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors"
+            onClick={onTitleClick}
+        >
+            {t('minimap')}
+        </h3>
         <div className="grid grid-cols-5 gap-1 p-2 bg-black/20 rounded-md shadow-inner">
         {grid.map((row, rowIndex) =>
             row.map((cell, colIndex) => (

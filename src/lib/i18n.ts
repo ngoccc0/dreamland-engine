@@ -108,6 +108,7 @@ export const translations = {
 
     // Minimap
     minimap: "Minimap",
+    fullMapDescription: "Hover over a cell to see details. The map shows all explored areas.",
 
     // Example Prompts
     example1: "A post-apocalyptic city overrun by sentient plants.",
@@ -224,6 +225,7 @@ export const translations = {
 
     // Minimap
     minimap: "Minimap",
+    fullMapDescription: "Di chuột qua một ô để xem chi tiết. Bản đồ hiển thị tất cả các khu vực đã được khám phá.",
 
     // Example Prompts
     example1: "Một thành phố hậu tận thế bị cây cối có tri giác xâm chiếm.",

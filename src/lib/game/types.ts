@@ -35,7 +35,12 @@ export interface Chunk {
     NPCs: string[];
     items: { name: string; description: string }[];
     explored: boolean;
-    enemy: { type: string; hp: number; damage: number } | null;
+    enemy: {
+        type: string;
+        hp: number;
+        damage: number;
+        behavior: 'aggressive' | 'passive';
+    } | null;
     actions: { id: number; text: string }[];
     regionId: number;
 

@@ -34,6 +34,13 @@ const PlayerStatusSchema = z.object({
     attributes: PlayerAttributesSchema.describe("Player's combat attributes."),
 });
 
+const EnemySchema = z.object({
+    type: z.string(),
+    hp: z.number(),
+    damage: z.number(),
+    behavior: z.enum(['aggressive', 'passive']),
+});
+
 const ChunkSchema = z.object({
     x: z.number(),
     y: z.number(),
@@ -42,7 +49,7 @@ const ChunkSchema = z.object({
     NPCs: z.array(z.string()),
     items: z.array(z.object({ name: z.string(), description: z.string() })),
     explored: z.boolean(),
-    enemy: z.object({ type: z.string(), hp: z.number(), damage: z.number() }).nullable(),
+    enemy: EnemySchema.nullable(),
     // We only need a subset of the full chunk attributes for the AI's context.
     vegetationDensity: z.number(),
     moisture: z.number(),
@@ -74,7 +81,7 @@ const GenerateNarrativeOutputSchema = z.object({
     description: z.string().optional().describe("A new base description for the chunk if something significant changes."),
     items: z.array(z.object({ name: z.string(), description: z.string() })).optional().describe("The new list of items in the chunk. Used to add or remove items."),
     NPCs: z.array(z.string()).optional().describe("The new list of NPCs in the chunk."),
-    enemy: z.object({ type: z.string(), hp: z.number(), damage: z.number() }).nullable().optional().describe("The state of the enemy in the chunk. Set to null if the enemy is defeated or flees."),
+    enemy: EnemySchema.nullable().optional().describe("The state of the enemy in the chunk. Set to null if the enemy is defeated or flees."),
   }).optional().describe("Optional: Changes to the current game chunk based on the action's outcome."),
   updatedPlayerStatus: z.object({
     // The AI can suggest changes to the player's status.
@@ -148,5 +155,3 @@ const generateNarrativeFlow = ai.defineFlow(
     return output!;
   }
 );
-
-    

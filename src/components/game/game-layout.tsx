@@ -224,6 +224,71 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         return { worldWithChunk: result.newWorld, chunk: result.newWorld[newPosKey] };
     }, [regionCounter, regions, worldProfile, currentSeason]);
 
+    const handleWorldTick = useCallback(() => {
+        const changes = {
+            worldUpdates: {} as World,
+            playerHpChange: 0,
+            narrativeEntries: [] as { text: string; type: NarrativeEntry['type'] }[],
+        };
+
+        const currentWorld = world;
+        const worldCopy = JSON.parse(JSON.stringify(currentWorld)) as World;
+
+        const mobileNpcs: { key: string; chunk: Chunk; enemy: NonNullable<Chunk['enemy']> }[] = [];
+        for (const key in currentWorld) {
+            const chunk = currentWorld[key];
+            if (chunk.enemy && chunk.enemy.behavior === 'aggressive') {
+                mobileNpcs.push({ key, chunk, enemy: chunk.enemy });
+            }
+        }
+        mobileNpcs.sort((a, b) => a.key.localeCompare(b.key));
+
+        for (const { key, chunk, enemy } of mobileNpcs) {
+            if (Math.random() > 0.3) continue;
+
+            const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }].sort(() => Math.random() - 0.5);
+            
+            for (const dir of directions) {
+                const newPos = { x: chunk.x + dir.x, y: chunk.y + dir.y };
+                const newKey = `${newPos.x},${newPos.y}`;
+
+                if (worldCopy[newKey] && !worldCopy[newKey].enemy) {
+                    worldCopy[newKey].enemy = { ...enemy };
+                    worldCopy[key].enemy = null;
+
+                    changes.worldUpdates[newKey] = { ...worldCopy[newKey] };
+                    changes.worldUpdates[key] = { ...worldCopy[key] };
+
+                    if (newPos.x === playerPosition.x && newPos.y === playerPosition.y) {
+                        changes.narrativeEntries.push({ text: `Một ${enemy.type} hung hãn đã di chuyển vào và tấn công bạn!`, type: 'system' });
+                        changes.playerHpChange -= enemy.damage;
+                    }
+                    
+                    break; 
+                }
+            }
+        }
+
+        if (Object.keys(changes.worldUpdates).length > 0) {
+            setWorld(prev => ({ ...prev, ...changes.worldUpdates }));
+        }
+
+        if (changes.playerHpChange !== 0) {
+            setPlayerStats(prev => {
+                const newHp = prev.hp + changes.playerHpChange;
+                if (newHp <= 0 && prev.hp > 0) {
+                    changes.narrativeEntries.push({ text: t('youFell'), type: 'system' });
+                }
+                return { ...prev, hp: Math.max(0, newHp) };
+            });
+        }
+
+        if (changes.narrativeEntries.length > 0) {
+            changes.narrativeEntries.forEach(entry => addNarrativeEntry(entry.text, entry.type));
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [world, playerPosition.x, playerPosition.y, addNarrativeEntry, t]);
+
 
     const handleOnlineNarrative = async (action: string, worldCtx: World, playerPosCtx: {x: number, y: number}, playerStatsCtx: PlayerStatus) => {
         setIsLoading(true);
@@ -271,7 +336,15 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
                 const updatedWorld = { ...prevWorld };
                 const key = `${currentChunk.x},${currentChunk.y}`;
                 if (result.updatedChunk) {
-                    updatedWorld[key] = { ...updatedWorld[key], ...result.updatedChunk };
+                    const chunkToUpdate = updatedWorld[key];
+                    // Ensure enemy object is fully formed if partially updated
+                    const updatedEnemy = result.updatedChunk.enemy !== undefined ? result.updatedChunk.enemy : chunkToUpdate.enemy;
+                    
+                    updatedWorld[key] = { 
+                        ...chunkToUpdate, 
+                        ...result.updatedChunk,
+                        enemy: updatedEnemy
+                    };
                 }
                 return updatedWorld;
             });
@@ -285,6 +358,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
             toast({ title: t('offlineModeActive'), description: t('offlineToastDesc'), variant: "destructive" });
             setIsOnline(false); // Fallback to offline mode
         } finally {
+            handleWorldTick();
             setIsLoading(false);
         }
     };
@@ -300,7 +374,6 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         const { worldWithChunk, chunk: destinationChunk } = ensureChunkExists(newPos, world);
         
         if (!destinationChunk) {
-            // This should not happen if ensureChunkExists works correctly
             console.error("Error: Could not find or generate destination chunk.");
             return;
         }
@@ -336,6 +409,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
             if (newWorld[newPosKey]) {
                 addNarrativeEntry(newWorld[newPosKey].description, 'narrative');
             }
+            handleWorldTick();
         }
     };
 
@@ -375,6 +449,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
              }
             setWorld(prev => ({...prev, [`${playerPosition.x},${playerPosition.y}`]: newChunk}));
         }
+        handleWorldTick();
     }
 
     const handleAttack = () => {
@@ -428,6 +503,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         
         updatedWorld[key] = updatedChunk;
         setWorld(updatedWorld);
+        handleWorldTick();
     };
 
     const handleCustomAction = (text: string) => {
@@ -460,6 +536,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
             setPlayerStats(prev => ({...prev, items: [...new Set([...prev.items, 'cỏ khô'])]}));
             addNarrativeEntry('Bạn đã thêm cỏ khô vào túi đồ.', 'system');
         }
+        handleWorldTick();
     }
 
     const generateMapGrid = useCallback((): MapCell[][] => {

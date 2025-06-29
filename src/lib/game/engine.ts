@@ -51,19 +51,6 @@ const selectEntities = <T>(
     return selected;
 };
 
-const selectEnemy = (
-    possibleEntities: { data: { type: string; hp: number; damage: number }; conditions: SpawnConditions }[],
-    chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy'>
-): { type: string; hp: number; damage: number } | null => {
-    const validEntities = possibleEntities.filter(entity => checkConditions(entity.conditions, chunk));
-    for (const entity of validEntities.sort(() => 0.5 - Math.random())) { // Shuffle to randomize check order
-        if (Math.random() < (entity.conditions.chance ?? 1.0)) {
-            return entity.data;
-        }
-    }
-    return null;
-}
-
 // --- WORLD GENERATION LOGIC ---
 
 // Selects a random terrain type based on weighted probabilities from worldConfig.
@@ -187,7 +174,8 @@ function generateChunkContent(chunkData: Omit<Chunk, 'description' | 'actions' |
     // NPCs, Items, Enemy
     const spawnedNPCs = selectEntities(template.NPCs, chunkData, 1);
     const spawnedItems = selectEntities(template.items, chunkData, 3);
-    const spawnedEnemy = selectEnemy(template.enemies, chunkData);
+    const spawnedEnemies = selectEntities(template.enemies, chunkData, 1);
+    const spawnedEnemy = spawnedEnemies.length > 0 ? spawnedEnemies[0] : null;
 
     // More description based on calculated values
     if (chunkData.moisture > 8) finalDescription += " Không khí đặc quánh hơi ẩm.";

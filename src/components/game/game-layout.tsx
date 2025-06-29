@@ -21,7 +21,7 @@ import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/gener
 // Import modularized game engine components
 import { generateRegion, getValidAdjacentTerrains, weightedRandom } from '@/lib/game/engine';
 import { worldConfig, templates } from '@/lib/game/config';
-import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region, GameState, Terrain, PlayerItem, ChunkItem } from '@/lib/game/types';
+import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region, GameState, Terrain, PlayerItem, ChunkItem } from "@/lib/game/types";
 
 
 interface GameLayoutProps {
@@ -206,10 +206,20 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         return () => clearTimeout(timer);
     }, [narrativeLog]);
 
-    const ensureChunkExists = useCallback((pos: {x: number, y: number}, currentWorld: World) => {
+    const ensureChunkExists = useCallback((
+        pos: {x: number, y: number}, 
+        currentWorld: World,
+        currentRegions: { [id: number]: Region },
+        currentRegionCounter: number
+    ) => {
         const newPosKey = `${pos.x},${pos.y}`;
         if (currentWorld[newPosKey]) {
-            return { worldWithChunk: { ...currentWorld }, chunk: currentWorld[newPosKey] };
+            return { 
+                worldWithChunk: currentWorld, 
+                chunk: currentWorld[newPosKey],
+                regions: currentRegions,
+                regionCounter: currentRegionCounter,
+            };
         }
     
         const validTerrains = getValidAdjacentTerrains(pos, currentWorld);
@@ -220,16 +230,19 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
             pos, 
             newTerrain, 
             currentWorld, 
-            regions, 
-            regionCounter,
+            currentRegions, 
+            currentRegionCounter,
             worldProfile,
             currentSeason
         );
         
-        setRegions(result.newRegions);
-        setRegionCounter(result.newRegionCounter);
-        return { worldWithChunk: result.newWorld, chunk: result.newWorld[newPosKey] };
-    }, [regionCounter, regions, worldProfile, currentSeason]);
+        return { 
+            worldWithChunk: result.newWorld, 
+            chunk: result.newWorld[newPosKey],
+            regions: result.newRegions,
+            regionCounter: result.newRegionCounter
+        };
+    }, [worldProfile, currentSeason]);
     
     // Proactively generate the world around the player after they move.
     useEffect(() => {
@@ -237,12 +250,12 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         // as it modifies the other state variables (world, regions, etc.).
         // We run this in a timeout to avoid blocking the UI thread immediately after a move.
         const generationTimer = setTimeout(() => {
-            const generationRadius = 10;
             let worldSnapshot = world;
             let regionsSnapshot = regions;
             let regionCounterSnapshot = regionCounter;
             let needsUpdate = false;
     
+            const generationRadius = 10;
             for (let dx = -generationRadius; dx <= generationRadius; dx++) {
                 for (let dy = -generationRadius; dy <= generationRadius; dy++) {
                     const pos = { x: playerPosition.x + dx, y: playerPosition.y + dy };
@@ -508,12 +521,17 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         else if (direction === 'east') { newPos.x++; dirKey = 'directionEast'; }
         else if (direction === 'west') { newPos.x--; dirKey = 'directionWest'; }
 
-        // Start with the current world state
-        let worldToUpdate = { ...world };
+        // Create snapshots of the state to update
+        let worldSnapshot = { ...world };
+        let regionsSnapshot = { ...regions };
+        let regionCounterSnapshot = regionCounter;
         
         // Ensure destination chunk exists to check for travel cost
-        const { worldWithChunk, chunk: destinationChunk } = ensureChunkExists(newPos, worldToUpdate);
-        worldToUpdate = worldWithChunk;
+        const destResult = ensureChunkExists(newPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
+        worldSnapshot = destResult.worldWithChunk;
+        regionsSnapshot = destResult.regions;
+        regionCounterSnapshot = destResult.regionCounter;
+        const destinationChunk = destResult.chunk;
         
         if (!destinationChunk) {
             console.error("Error: Could not find or generate destination chunk.");
@@ -534,37 +552,41 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         const newPlayerStats = { ...playerStats, stamina: newStamina };
         
         // --- REVEAL 3x3 VISION ---
-        // Now that we are committed to moving, reveal the area around the destination.
         const visionRadius = 1;
         for (let dy = -visionRadius; dy <= visionRadius; dy++) {
             for (let dx = -visionRadius; dx <= visionRadius; dx++) {
                 const revealPos = { x: newPos.x + dx, y: newPos.y + dy };
                 const key = `${revealPos.x},${revealPos.y}`;
 
-                // Ensure chunk exists. This has side effects (setRegions/setCounter), but is necessary.
-                const result = ensureChunkExists(revealPos, worldToUpdate);
-                worldToUpdate = result.worldWithChunk; // Update our copy with any new chunks
+                // Ensure chunk exists, updating our snapshots
+                const result = ensureChunkExists(revealPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
+                worldSnapshot = result.worldWithChunk;
+                regionsSnapshot = result.regions;
+                regionCounterSnapshot = result.regionCounter;
 
                 // Mark the chunk as explored
-                if (worldToUpdate[key]) {
-                    worldToUpdate[key] = { ...worldToUpdate[key], explored: true };
+                if (worldSnapshot[key]) {
+                    worldSnapshot[key] = { ...worldSnapshot[key], explored: true };
                 }
             }
         }
         
-        const newWorld = worldToUpdate;
         const newPosKey = `${newPos.x},${newPos.y}`;
 
         addNarrativeEntry(t('wentDirection', { direction: t(dirKey) }), 'action');
-        setWorld(newWorld);
+        
+        // Apply all state updates at once
+        setWorld(worldSnapshot);
+        setRegions(regionsSnapshot);
+        setRegionCounter(regionCounterSnapshot);
         setPlayerPosition(newPos);
         setPlayerStats(newPlayerStats);
 
         if (isOnline) {
-            handleOnlineNarrative(`move ${direction}`, newWorld, newPos, newPlayerStats);
+            handleOnlineNarrative(`move ${direction}`, worldSnapshot, newPos, newPlayerStats);
         } else {
-            if (newWorld[newPosKey]) {
-                addNarrativeEntry(newWorld[newPosKey].description, 'narrative');
+            if (worldSnapshot[newPosKey]) {
+                addNarrativeEntry(worldSnapshot[newPosKey].description, 'narrative');
             }
             handleWorldTick();
         }

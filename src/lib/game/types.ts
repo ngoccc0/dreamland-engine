@@ -104,6 +104,7 @@ export interface BiomeDefinition {
         magicAffinity: { min: number; max: number };
         humanPresence: { min: number; max: number };
         predatorPresence: { min: number; max: number };
+        temperature: { min: number; max: number };
     };
     soilType: SoilType[]; // Can now have multiple valid soil types
 }

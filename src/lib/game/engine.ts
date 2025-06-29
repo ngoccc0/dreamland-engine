@@ -128,6 +128,7 @@ function calculateDependentChunkAttributes(
         vegetationDensity: number;
         moisture: number; // This is the base moisture before seasonal/world mods
         dangerLevel: number;
+        temperature: number;
     },
     worldProfile: WorldProfile,
     currentSeason: Season
@@ -135,7 +136,7 @@ function calculateDependentChunkAttributes(
     const biomeDef = worldConfig[terrain];
     const seasonMods = seasonConfig[currentSeason];
 
-    const temperature = clamp(getRandomInRange({min: 4, max: 7}) + seasonMods.temperatureMod + worldProfile.tempBias, 0, 10);
+    const temperature = clamp(baseAttributes.temperature + seasonMods.temperatureMod + worldProfile.tempBias, 0, 10);
     const finalMoisture = clamp(baseAttributes.moisture + seasonMods.moistureMod + worldProfile.moistureBias, 0, 10);
     const windLevel = clamp(getRandomInRange({min: 2, max: 8}) + seasonMods.windMod, 0, 10);
     const sunExposure = clamp(worldProfile.sunIntensity - (baseAttributes.vegetationDensity / 2) + seasonMods.sunExposureMod, 0, 10);
@@ -228,7 +229,6 @@ export const generateRegion = (
     const regionCells: { x: number, y: number }[] = [];
     const visited = new Set<string>([`${startPos.x},${startPos.y}`]);
     const generationQueue: {x: number, y: number}[] = [startPos];
-    regionCells.push(startPos);
     const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }];
 
     while(generationQueue.length > 0 && regionCells.length < size) {
@@ -261,11 +261,12 @@ export const generateRegion = (
         const magicAffinity = getRandomInRange(biomeDef.defaultValueRanges.magicAffinity);
         const humanPresence = getRandomInRange(biomeDef.defaultValueRanges.humanPresence);
         const predatorPresence = getRandomInRange(biomeDef.defaultValueRanges.predatorPresence);
+        const baseTemperature = getRandomInRange(biomeDef.defaultValueRanges.temperature);
 
         // Step 2: Calculate dependent attributes using the new function
         const dependentAttributes = calculateDependentChunkAttributes(
             terrain,
-            { vegetationDensity, moisture: baseMoisture, dangerLevel },
+            { vegetationDensity, moisture: baseMoisture, dangerLevel, temperature: baseTemperature },
             worldProfile,
             currentSeason
         );

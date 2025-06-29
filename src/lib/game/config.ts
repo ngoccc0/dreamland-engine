@@ -16,7 +16,7 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
         defaultValueRanges: {
             vegetationDensity: { min: 7, max: 10 }, moisture: { min: 5, max: 8 }, elevation: { min: 1, max: 4 },
             dangerLevel: { min: 4, max: 7 }, magicAffinity: { min: 3, max: 6 }, humanPresence: { min: 0, max: 3 },
-            predatorPresence: { min: 5, max: 8 },
+            predatorPresence: { min: 5, max: 8 }, temperature: { min: 4, max: 7 },
         },
         soilType: ['loamy'],
     },
@@ -26,7 +26,7 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
         defaultValueRanges: {
             vegetationDensity: { min: 2, max: 5 }, moisture: { min: 2, max: 5 }, elevation: { min: 0, max: 2 },
             dangerLevel: { min: 1, max: 4 }, magicAffinity: { min: 0, max: 2 }, humanPresence: { min: 2, max: 6 },
-            predatorPresence: { min: 2, max: 5 },
+            predatorPresence: { min: 2, max: 5 }, temperature: { min: 5, max: 8 },
         },
         soilType: ['loamy', 'sandy'],
     },
@@ -36,7 +36,7 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
         defaultValueRanges: {
             vegetationDensity: { min: 0, max: 1 }, moisture: { min: 0, max: 1 }, elevation: { min: 0, max: 3 },
             dangerLevel: { min: 5, max: 8 }, magicAffinity: { min: 1, max: 4 }, humanPresence: { min: 0, max: 2 },
-            predatorPresence: { min: 6, max: 9 },
+            predatorPresence: { min: 6, max: 9 }, temperature: { min: 8, max: 10 },
         },
         soilType: ['sandy'],
     },
@@ -46,7 +46,7 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
         defaultValueRanges: {
             vegetationDensity: { min: 5, max: 8 }, moisture: { min: 8, max: 10 }, elevation: { min: 0, max: 1 },
             dangerLevel: { min: 7, max: 10 }, magicAffinity: { min: 4, max: 7 }, humanPresence: { min: 0, max: 1 },
-            predatorPresence: { min: 7, max: 10 },
+            predatorPresence: { min: 7, max: 10 }, temperature: { min: 6, max: 9 },
         },
         soilType: ['clay'],
     },
@@ -56,7 +56,7 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
         defaultValueRanges: {
             vegetationDensity: { min: 1, max: 4 }, moisture: { min: 2, max: 5 }, elevation: { min: 6, max: 10 },
             dangerLevel: { min: 6, max: 9 }, magicAffinity: { min: 2, max: 5 }, humanPresence: { min: 1, max: 4 },
-            predatorPresence: { min: 4, max: 7 },
+            predatorPresence: { min: 4, max: 7 }, temperature: { min: 1, max: 4 },
         },
         soilType: ['rocky'],
     },
@@ -66,7 +66,7 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
         defaultValueRanges: {
             vegetationDensity: { min: 0, max: 2 }, moisture: { min: 6, max: 9 }, elevation: { min: -10, max: -1 },
             dangerLevel: { min: 8, max: 10 }, magicAffinity: { min: 5, max: 8 }, humanPresence: { min: 0, max: 3 },
-            predatorPresence: { min: 8, max: 10 },
+            predatorPresence: { min: 8, max: 10 }, temperature: { min: 3, max: 6 },
         },
         soilType: ['rocky'],
     }

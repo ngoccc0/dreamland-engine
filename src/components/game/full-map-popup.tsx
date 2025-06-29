@@ -85,9 +85,6 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
     };
   }, [playerPosition.x, playerPosition.y]);
 
-  // Since the map is always centered on the player, we no longer need to programmatically scroll.
-  // The user can use the scrollbars provided by ScrollArea for manual exploration.
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-none w-[95vw] h-[90vh] flex flex-col">
@@ -99,10 +96,9 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
         </DialogHeader>
         <ScrollArea className="flex-grow bg-background rounded-md border">
             <div 
-                className="p-4 grid"
+                className="p-4 inline-grid"
                 style={{
-                    gridTemplateColumns: `repeat(${mapBounds.width}, minmax(0, 1fr))`,
-                    gridTemplateRows: `repeat(${mapBounds.height}, minmax(0, 1fr))`,
+                    gridTemplateColumns: `repeat(${mapBounds.width}, auto)`,
                     gap: '4px',
                 }}
             >

@@ -618,7 +618,9 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
             addNarrativeEntry(t('exploreArea'), 'narrative');
         } else if (actionId === 3 && chunk.items.length > 0) {
             const itemToPick = chunk.items[0];
-            addNarrativeEntry(t('pickupItem', { item: itemToPick.name }), 'narrative');
+            const pickupQuantity = itemToPick.quantity;
+
+            addNarrativeEntry(t('pickupItem', { item: `${itemToPick.name} (x${pickupQuantity})` }), 'narrative');
             addNarrativeEntry(`(${itemToPick.description})`, 'system');
 
             // Update Player Inventory
@@ -626,9 +628,9 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
                 const newItems: PlayerItem[] = JSON.parse(JSON.stringify(prev.items));
                 const existingItem = newItems.find(i => i.name === itemToPick.name);
                 if (existingItem) {
-                    existingItem.quantity += 1;
+                    existingItem.quantity += pickupQuantity;
                 } else {
-                    newItems.push({ name: itemToPick.name, quantity: 1 });
+                    newItems.push({ name: itemToPick.name, quantity: pickupQuantity });
                 }
                 return { ...prev, items: newItems };
             });
@@ -639,16 +641,13 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
                 const currentKey = `${playerPosition.x},${playerPosition.y}`;
                 const newChunk: Chunk = JSON.parse(JSON.stringify(newWorld[currentKey]));
                 
-                const worldItem = newChunk.items.find(i => i.name === itemToPick.name);
-                if (worldItem) {
-                    worldItem.quantity -= 1;
-                    if (worldItem.quantity <= 0) {
-                        newChunk.items = newChunk.items.filter(i => i.name !== itemToPick.name);
-                    }
-                }
+                // Remove the picked up item stack
+                newChunk.items = newChunk.items.filter(i => i.name !== itemToPick.name);
                 
+                // Re-generate actions based on remaining items
                 newChunk.actions = newChunk.actions.filter(a => a.id !== 3);
                 if (newChunk.items.length > 0) {
+                    // This creates a new pickup action for the *next* item in the list
                     newChunk.actions.push({ id: 3, text: `Nhặt ${newChunk.items[0].name}` });
                 }
 

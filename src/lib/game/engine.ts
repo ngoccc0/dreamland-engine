@@ -139,17 +139,28 @@ function calculateDependentChunkAttributes(
     const temperature = clamp(baseAttributes.temperature + seasonMods.temperatureMod + worldProfile.tempBias, 0, 10);
     const finalMoisture = clamp(baseAttributes.moisture + seasonMods.moistureMod + worldProfile.moistureBias, 0, 10);
     const windLevel = clamp(getRandomInRange({min: 2, max: 8}) + seasonMods.windMod, 0, 10);
-    const sunExposure = clamp(worldProfile.sunIntensity - (baseAttributes.vegetationDensity / 2) + seasonMods.sunExposureMod, 0, 10);
-    const lightLevel = clamp(sunExposure, terrain === 'cave' ? 0 : 1, 10); // Caves are dark
+    
+    let lightLevel: number;
+    if (terrain === 'cave') {
+        lightLevel = getRandomInRange({ min: -8, max: -5 });
+    } else {
+        // Base light from sun, modified by season
+        let baseLight = worldProfile.sunIntensity + seasonMods.sunExposureMod;
+        // Reduced by vegetation density
+        baseLight -= baseAttributes.vegetationDensity;
+        // Add some randomness
+        lightLevel = baseLight + getRandomInRange({ min: -1, max: 1 });
+    }
+    lightLevel = clamp(lightLevel, -10, 10);
+
     const explorability = clamp(10 - (baseAttributes.vegetationDensity / 2) - (baseAttributes.dangerLevel / 2), 0, 10);
     const soilType = biomeDef.soilType[Math.floor(Math.random() * biomeDef.soilType.length)];
     const travelCost = biomeDef.travelCost;
     
     return {
         temperature,
-        moisture: finalMoisture, // Overwrites base moisture
+        moisture: finalMoisture,
         windLevel,
-        sunExposure,
         lightLevel,
         explorability,
         soilType,

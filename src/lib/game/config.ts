@@ -14,7 +14,7 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
         minSize: 5, maxSize: 10, travelCost: 4, spreadWeight: 0.6,
         allowedNeighbors: ['grassland', 'mountain', 'swamp'],
         defaultValueRanges: {
-            vegetationDensity: { min: 7, max: 10 }, moisture: { min: 5, max: 8 }, elevation: { min: 1, max: 4 },
+            vegetationDensity: { min: 7, max: 10 }, moisture: { min: 5, max: 8 }, elevation: { min: 1, max: 5 },
             dangerLevel: { min: 4, max: 7 }, magicAffinity: { min: 3, max: 6 }, humanPresence: { min: 0, max: 3 },
             predatorPresence: { min: 5, max: 8 }, temperature: { min: 4, max: 7 },
         },
@@ -44,7 +44,7 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
         minSize: 4, maxSize: 8, travelCost: 5, spreadWeight: 0.2,
         allowedNeighbors: ['forest', 'grassland'],
         defaultValueRanges: {
-            vegetationDensity: { min: 5, max: 8 }, moisture: { min: 8, max: 10 }, elevation: { min: 0, max: 1 },
+            vegetationDensity: { min: 5, max: 8 }, moisture: { min: 8, max: 10 }, elevation: { min: -1, max: 1 },
             dangerLevel: { min: 7, max: 10 }, magicAffinity: { min: 4, max: 7 }, humanPresence: { min: 0, max: 1 },
             predatorPresence: { min: 7, max: 10 }, temperature: { min: 6, max: 9 },
         },
@@ -54,7 +54,7 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
         minSize: 3, maxSize: 7, travelCost: 6, spreadWeight: 0.1,
         allowedNeighbors: ['forest', 'desert'],
         defaultValueRanges: {
-            vegetationDensity: { min: 1, max: 4 }, moisture: { min: 2, max: 5 }, elevation: { min: 6, max: 10 },
+            vegetationDensity: { min: 1, max: 4 }, moisture: { min: 2, max: 5 }, elevation: { min: 5, max: 10 },
             dangerLevel: { min: 6, max: 9 }, magicAffinity: { min: 2, max: 5 }, humanPresence: { min: 1, max: 4 },
             predatorPresence: { min: 4, max: 7 }, temperature: { min: 1, max: 4 },
         },
@@ -164,13 +164,13 @@ export const templates: Record<Terrain, any> = {
         ],
         items: [
             { data: { name: 'Rễ Cây Hiếm', description: 'Một loại rễ cây chỉ mọc ở vùng nước độc, có giá trị cao trong giả kim thuật.' }, conditions: { magicAffinity: { min: 6 }, chance: 0.15 } },
-            { data: { name: 'Rêu Phát Sáng', description: 'Một loại rêu có thể dùng để đánh dấu đường đi hoặc làm thuốc.' }, conditions: { lightLevel: { max: 3 }, chance: 0.3 } },
+            { data: { name: 'Rêu Phát Sáng', description: 'Một loại rêu có thể dùng để đánh dấu đường đi hoặc làm thuốc.' }, conditions: { lightLevel: { max: -4 }, chance: 0.3 } },
             { data: { name: 'Trứng Bò Sát', description: 'Một ổ trứng lạ, có lớp vỏ dai và dày.' }, conditions: { predatorPresence: { min: 7 }, chance: 0.2 } },
             { data: { name: 'Nấm Đầm Lầy', description: 'Một loại nấm ăn được nhưng có vị hơi tanh.' }, conditions: { moisture: { min: 9 }, chance: 0.25 } },
         ],
         enemies: [
             { data: { type: 'Đỉa khổng lồ', hp: 40, damage: 5, behavior: 'aggressive' }, conditions: { moisture: { min: 9 }, chance: 0.4 } },
-            { data: { type: 'Ma trơi', hp: 25, damage: 20, behavior: 'aggressive' }, conditions: { magicAffinity: { min: 7 }, lightLevel: { max: 2 }, chance: 0.2 } },
+            { data: { type: 'Ma trơi', hp: 25, damage: 20, behavior: 'aggressive' }, conditions: { magicAffinity: { min: 7 }, lightLevel: { max: -5 }, chance: 0.2 } },
             { data: { type: 'Cá sấu', hp: 70, damage: 25, behavior: 'aggressive' }, conditions: { predatorPresence: { min: 8 }, moisture: { min: 8 }, chance: 0.25 } },
             { data: { type: 'Muỗi khổng lồ', hp: 15, damage: 5, behavior: 'aggressive' }, conditions: { chance: 0.5 } },
         ],
@@ -210,7 +210,7 @@ export const templates: Record<Terrain, any> = {
         NPCs: [
             { data: 'nhà thám hiểm bị lạc', conditions: { humanPresence: { min: 2, max: 3 }, chance: 0.1 } },
             { data: 'bộ lạc goblin', conditions: { humanPresence: { min: 4 }, dangerLevel: { min: 8 }, chance: 0.2 } },
-            { data: 'sinh vật bóng tối', conditions: { lightLevel: { max: 1 }, magicAffinity: { min: 7 }, chance: 0.05 } },
+            { data: 'sinh vật bóng tối', conditions: { lightLevel: { max: -8 }, magicAffinity: { min: 7 }, chance: 0.05 } },
         ],
         items: [
             { data: { name: 'Mảnh Tinh Thể', description: 'Một mảnh tinh thể phát ra ánh sáng yếu ớt, có thể soi đường.' }, conditions: { magicAffinity: { min: 6 }, chance: 0.3 } },
@@ -219,7 +219,7 @@ export const templates: Record<Terrain, any> = {
             { data: { name: 'Mỏ Vàng', description: 'Những vệt vàng lấp lánh trên vách đá.' }, conditions: { elevation: { min: -8 }, chance: 0.05 } },
         ],
         enemies: [
-            { data: { type: 'Dơi khổng lồ', hp: 25, damage: 10, behavior: 'aggressive' }, conditions: { lightLevel: { max: 3 }, chance: 0.5 } },
+            { data: { type: 'Dơi khổng lồ', hp: 25, damage: 10, behavior: 'aggressive' }, conditions: { lightLevel: { max: -2 }, chance: 0.5 } },
             { data: { type: 'Nhện hang', hp: 45, damage: 15, behavior: 'aggressive' }, conditions: { dangerLevel: { min: 8 }, chance: 0.4 } },
             { data: { type: 'Slime', hp: 30, damage: 8, behavior: 'passive' }, conditions: { moisture: { min: 8 }, chance: 0.3 } },
             { data: { type: 'Sâu Bò Khổng Lồ', hp: 100, damage: 20, behavior: 'aggressive' }, conditions: { dangerLevel: { min: 9 }, chance: 0.15 } },

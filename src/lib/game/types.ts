@@ -48,14 +48,13 @@ export interface Chunk {
     travelCost: number;          // How many turns/energy it costs to cross this tile.
     vegetationDensity: number;   // 0-10, density of plants, affects visibility.
     moisture: number;            // 0-10, affects fungi, swamps, slipperiness.
-    elevation: number;           // 0-10, height, creates slopes, hills.
-    lightLevel: number;          // 0-10, affects visibility, enemy spawning.
+    elevation: number;           // -10 to 10, height, creates slopes, hills.
+    lightLevel: number;          // -10 (pitch black) to 10 (bright sun), affects visibility, enemy spawning.
     dangerLevel: number;         // 0-10, probability of traps, enemies.
     magicAffinity: number;       // 0-10, presence of magical energy.
     humanPresence: number;       // 0-10, signs of human activity (camps, ruins).
     explorability: number;       // 0-10, ease of exploration.
     soilType: SoilType;          // Type of ground, affects what can grow.
-    sunExposure: number;         // 0-10, how much direct sunlight the tile gets.
     windLevel: number;           // 0-10, strength of the wind.
     temperature: number;         // 0-10, ambient temperature.
     predatorPresence: number;    // 0-10, likelihood of predator encounters.

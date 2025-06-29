@@ -37,7 +37,7 @@ const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 'descri
  * @param maxCount - The maximum number of entity types to select.
  * @returns An array of selected entities, with quantities calculated.
  */
-const selectEntities = <T extends { quantity?: { min: number, max: number } }>(
+const selectEntities = <T>(
     possibleEntities: { data: T; conditions: SpawnConditions }[],
     chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy'>,
     maxCount: number = 3
@@ -50,8 +50,9 @@ const selectEntities = <T extends { quantity?: { min: number, max: number } }>(
     for (const entity of shuffled) {
         if (selected.length >= maxCount) break;
         if (Math.random() < (entity.conditions.chance ?? 1.0)) {
-             if (entity.data.quantity) {
-                const finalQuantity = getRandomInRange(entity.data.quantity);
+             if (typeof entity.data === 'object' && entity.data !== null && 'quantity' in entity.data && typeof (entity.data as any).quantity === 'object') {
+                const item = entity.data as { quantity: { min: number, max: number } };
+                const finalQuantity = getRandomInRange(item.quantity);
                 selected.push({ ...entity.data, quantity: finalQuantity });
             } else {
                  selected.push(entity.data);
@@ -192,7 +193,7 @@ function generateChunkContent(chunkData: Omit<Chunk, 'description' | 'actions' |
     let finalDescription = baseDescriptionTemplate.replace('[adjective]', adjective).replace('[feature]', feature);
     
     // NPCs, Items, Enemy
-    const spawnedNPCs = selectEntities(template.NPCs, chunkData, 1).map(npc => npc.type); // Keep NPCs as strings for now
+    const spawnedNPCs = selectEntities(template.NPCs, chunkData, 1);
     const spawnedItems = selectEntities(template.items, chunkData, 3) as ChunkItem[];
     const spawnedEnemies = selectEntities(template.enemies, chunkData, 1);
     const enemyData = spawnedEnemies.length > 0 ? spawnedEnemies[0] : null;
@@ -246,7 +247,7 @@ export const generateRegion = (
     
     const size = getRandomInRange({ min: biomeDef.minSize, max: biomeDef.maxSize });
     
-    const regionCells: { x: number, y: number }[] = [];
+    const regionCells: { x: number, y: number }[] = [startPos];
     const visited = new Set<string>([`${startPos.x},${startPos.y}`]);
     const generationQueue: {x: number, y: number}[] = [startPos];
     const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }];

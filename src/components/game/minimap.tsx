@@ -3,7 +3,6 @@
 import { cn } from "@/lib/utils";
 import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon } from "./icons";
 import { useLanguage } from "@/context/language-context";
-import { Trees, Wheat, Sun, Mountain, Shell, Droplets } from 'lucide-react';
 import type React from "react";
 import type { MapCell } from "@/lib/game/types";
 
@@ -22,14 +21,14 @@ const biomeColors = {
   empty: "bg-map-empty",
 };
 
-// Map biome types to their respective icons
+// Map biome types to their respective emojis
 const biomeIcons: Record<"forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave", React.ReactNode> = {
-    forest: <Trees className="w-8 h-8 text-white/50" />,
-    grassland: <Wheat className="w-8 h-8 text-white/50" />,
-    desert: <Sun className="w-8 h-8 text-white/50" />,
-    swamp: <Droplets className="w-8 h-8 text-white/50" />,
-    mountain: <Mountain className="w-8 h-8 text-white/50" />,
-    cave: <Shell className="w-8 h-8 text-white/50" />,
+    forest: <span className="text-3xl opacity-80" role="img" aria-label="forest">🌳</span>,
+    grassland: <span className="text-3xl opacity-80" role="img" aria-label="grassland">🌾</span>,
+    desert: <span className="text-3xl opacity-80" role="img" aria-label="desert">🏜️</span>,
+    swamp: <span className="text-3xl opacity-80" role="img" aria-label="swamp">🌿</span>,
+    mountain: <span className="text-3xl opacity-80" role="img" aria-label="mountain">⛰️</span>,
+    cave: <span className="text-3xl opacity-80" role="img" aria-label="cave">🪨</span>,
 };
 
 

@@ -114,7 +114,8 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         setNarrativeLog(prev => {
             const newEntry = { id: narrativeIdCounter.current, text, type };
             narrativeIdCounter.current++;
-            return [...prev, newEntry];
+            // Keep the log to a max of 50 entries for performance
+            return [...prev, newEntry].slice(-50);
         });
     }, []);
     
@@ -658,35 +659,40 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
     const generateMapGrid = useCallback((): MapCell[][] => {
         const radius = 2; // This creates a 5x5 grid
         const size = radius * 2 + 1;
-        const grid: MapCell[][] = Array.from({ length: size }, () =>
-            Array.from({ length: size }, () => ({
-                biome: 'empty',
-                hasEnemy: false,
-                hasPlayer: false,
-                hasNpc: false,
-                hasItem: false,
-            }))
-        );
+        const grid: MapCell[][] = [];
 
         for (let gy = 0; gy < size; gy++) {
+            const row: MapCell[] = [];
             for (let gx = 0; gx < size; gx++) {
                 const wx = playerPosition.x - radius + gx;
                 const wy = playerPosition.y + radius - gy;
                 const chunkKey = `${wx},${wy}`;
                 const chunk = world[chunkKey];
-
+    
+                // If the chunk has been explored, show its details
                 if (chunk && chunk.explored) { 
-                    grid[gy][gx] = {
+                    row.push({
                         biome: chunk.terrain,
                         hasEnemy: !!chunk.enemy,
                         hasPlayer: false,
                         hasNpc: chunk.NPCs.length > 0,
                         hasItem: chunk.items.length > 0,
-                    };
+                    });
+                } else {
+                    // Otherwise, show a gray, 'empty' cell for the fog of war
+                    row.push({
+                        biome: 'empty',
+                        hasEnemy: false,
+                        hasPlayer: false,
+                        hasNpc: false,
+                        hasItem: false,
+                    });
                 }
             }
+            grid.push(row);
         }
         
+        // Mark the player's current position in the center of the grid
         const center = radius;
         if(grid[center]?.[center]) {
             grid[center][center].hasPlayer = true;
@@ -716,7 +722,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
 
                     <main className="flex-grow p-4 md:p-6 overflow-y-auto">
                         <div className="prose prose-stone dark:prose-invert max-w-none">
-                            {narrativeLog.slice(-50).map((entry) => (
+                            {narrativeLog.map((entry) => (
                                 <p key={entry.id} className={`animate-in fade-in duration-500 ${entry.type === 'action' ? 'italic text-accent-foreground/80' : ''} ${entry.type === 'system' ? 'font-semibold text-accent' : ''}`}>
                                     {entry.text}
                                 </p>

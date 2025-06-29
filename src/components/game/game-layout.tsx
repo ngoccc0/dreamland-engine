@@ -658,8 +658,14 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
     const generateMapGrid = useCallback((): MapCell[][] => {
         const radius = 2; // This creates a 5x5 grid
         const size = radius * 2 + 1;
-        const grid: MapCell[][] = Array(size).fill(null).map(() => 
-            Array(size).fill({ biome: 'empty', hasEnemy: false, hasPlayer: false, hasNpc: false, hasItem: false })
+        const grid: MapCell[][] = Array.from({ length: size }, () =>
+            Array.from({ length: size }, () => ({
+                biome: 'empty',
+                hasEnemy: false,
+                hasPlayer: false,
+                hasNpc: false,
+                hasItem: false,
+            }))
         );
 
         for (let gy = 0; gy < size; gy++) {
@@ -687,7 +693,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         }
         
         return grid;
-    }, [world, playerPosition]);
+    }, [world, playerPosition.x, playerPosition.y]);
     
     const currentChunk = world[`${playerPosition.x},${playerPosition.y}`];
 

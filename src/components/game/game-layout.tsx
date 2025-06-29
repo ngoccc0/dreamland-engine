@@ -199,7 +199,11 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
 
     useEffect(() => {
         // Scroll to the bottom of the page to show the latest narrative entry
-        pageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        // Use a timeout to ensure the DOM has updated before scrolling
+        const timer = setTimeout(() => {
+            pageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+        return () => clearTimeout(timer);
     }, [narrativeLog]);
 
     const ensureChunkExists = useCallback((pos: {x: number, y: number}, currentWorld: World) => {
@@ -504,7 +508,12 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         else if (direction === 'east') { newPos.x++; dirKey = 'directionEast'; }
         else if (direction === 'west') { newPos.x--; dirKey = 'directionWest'; }
 
-        const { worldWithChunk, chunk: destinationChunk } = ensureChunkExists(newPos, world);
+        // Start with the current world state
+        let worldToUpdate = { ...world };
+        
+        // Ensure destination chunk exists to check for travel cost
+        const { worldWithChunk, chunk: destinationChunk } = ensureChunkExists(newPos, worldToUpdate);
+        worldToUpdate = worldWithChunk;
         
         if (!destinationChunk) {
             console.error("Error: Could not find or generate destination chunk.");
@@ -524,12 +533,27 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         const newStamina = playerStats.stamina - travelCost;
         const newPlayerStats = { ...playerStats, stamina: newStamina };
         
-        const newWorld = { ...worldWithChunk };
-        const newPosKey = `${newPos.x},${newPos.y}`;
-        
-        if (newWorld[newPosKey]) {
-            newWorld[newPosKey] = { ...newWorld[newPosKey], explored: true };
+        // --- REVEAL 5x5 VISION ---
+        // Now that we are committed to moving, reveal the area around the destination.
+        const visionRadius = 2;
+        for (let dy = -visionRadius; dy <= visionRadius; dy++) {
+            for (let dx = -visionRadius; dx <= visionRadius; dx++) {
+                const revealPos = { x: newPos.x + dx, y: newPos.y + dy };
+                const key = `${revealPos.x},${revealPos.y}`;
+
+                // Ensure chunk exists. This has side effects (setRegions/setCounter), but is necessary.
+                const result = ensureChunkExists(revealPos, worldToUpdate);
+                worldToUpdate = result.worldWithChunk; // Update our copy with any new chunks
+
+                // Mark the chunk as explored
+                if (worldToUpdate[key]) {
+                    worldToUpdate[key] = { ...worldToUpdate[key], explored: true };
+                }
+            }
         }
+        
+        const newWorld = worldToUpdate;
+        const newPosKey = `${newPos.x},${newPos.y}`;
 
         addNarrativeEntry(t('wentDirection', { direction: t(dirKey) }), 'action');
         setWorld(newWorld);

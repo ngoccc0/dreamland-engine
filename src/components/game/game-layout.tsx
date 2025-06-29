@@ -533,9 +533,9 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         const newStamina = playerStats.stamina - travelCost;
         const newPlayerStats = { ...playerStats, stamina: newStamina };
         
-        // --- REVEAL 5x5 VISION ---
+        // --- REVEAL 3x3 VISION ---
         // Now that we are committed to moving, reveal the area around the destination.
-        const visionRadius = 2;
+        const visionRadius = 1;
         for (let dy = -visionRadius; dy <= visionRadius; dy++) {
             for (let dx = -visionRadius; dx <= visionRadius; dx++) {
                 const revealPos = { x: newPos.x + dx, y: newPos.y + dy };

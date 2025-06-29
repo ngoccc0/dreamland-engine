@@ -70,40 +70,23 @@ const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
 
 export function FullMapPopup({ open, onOpenChange, world, playerPosition }: FullMapPopupProps) {
   const { t } = useLanguage();
+  const mapRadius = 7; // This creates a 15x15 grid
 
   const mapBounds = React.useMemo(() => {
-    const keys = Object.keys(world);
-    if (keys.length === 0) {
-      return { minX: 0, maxX: 0, minY: 0, maxY: 0, width: 1, height: 1 };
-    }
-
-    const coords = keys.map(k => k.split(',').map(Number));
-    const allX = coords.map(([x]) => x);
-    const allY = coords.map(([, y]) => y);
-    
-    const minX = Math.min(...allX);
-    const maxX = Math.max(...allX);
-    const minY = Math.min(...allY);
-    const maxY = Math.max(...allY);
+    const minX = playerPosition.x - mapRadius;
+    const maxX = playerPosition.x + mapRadius;
+    const minY = playerPosition.y - mapRadius;
+    const maxY = playerPosition.y + mapRadius;
 
     return { 
         minX, maxX, minY, maxY,
-        width: maxX - minX + 1,
-        height: maxY - minY + 1,
+        width: (maxX - minX) + 1,
+        height: (maxY - minY) + 1,
     };
-  }, [world]);
+  }, [playerPosition.x, playerPosition.y]);
 
-  const gridRef = React.useRef<HTMLDivElement>(null);
-  
-  // Scroll to player position when map opens
-  React.useEffect(() => {
-      if(open && gridRef.current) {
-          const playerCell = gridRef.current.querySelector('[data-is-player="true"]');
-          if(playerCell) {
-              playerCell.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center' });
-          }
-      }
-  }, [open]);
+  // Since the map is always centered on the player, we no longer need to programmatically scroll.
+  // The user can use the scrollbars provided by ScrollArea for manual exploration.
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -116,7 +99,6 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
         </DialogHeader>
         <ScrollArea className="flex-grow bg-background rounded-md border">
             <div 
-                ref={gridRef}
                 className="p-4 grid"
                 style={{
                     gridTemplateColumns: `repeat(${mapBounds.width}, minmax(0, 1fr))`,

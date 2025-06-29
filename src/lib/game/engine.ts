@@ -41,7 +41,7 @@ const selectEntities = <T extends { quantity?: { min: number, max: number } }>(
     possibleEntities: { data: T; conditions: SpawnConditions }[],
     chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy'>,
     maxCount: number = 3
-): (Omit<T, 'quantity'> & { quantity: number })[] => {
+): T[] => {
     const validEntities = possibleEntities.filter(entity => checkConditions(entity.conditions, chunk));
     
     const selected = [];
@@ -50,12 +50,15 @@ const selectEntities = <T extends { quantity?: { min: number, max: number } }>(
     for (const entity of shuffled) {
         if (selected.length >= maxCount) break;
         if (Math.random() < (entity.conditions.chance ?? 1.0)) {
-            const { quantity, ...restOfData } = entity.data;
-            const finalQuantity = quantity ? getRandomInRange(quantity) : 1;
-            selected.push({ ...restOfData, quantity: finalQuantity });
+             if (entity.data.quantity) {
+                const finalQuantity = getRandomInRange(entity.data.quantity);
+                selected.push({ ...entity.data, quantity: finalQuantity });
+            } else {
+                 selected.push(entity.data);
+            }
         }
     }
-    return selected as (Omit<T, 'quantity'> & { quantity: number })[];
+    return selected as T[];
 };
 
 
@@ -152,11 +155,8 @@ function calculateDependentChunkAttributes(
     if (terrain === 'cave') {
         lightLevel = getRandomInRange({ min: -8, max: -5 });
     } else {
-        // Base light from sun, modified by season
-        let baseLight = worldProfile.sunIntensity + seasonMods.sunExposureMod;
-        // Reduced by vegetation density
-        baseLight -= baseAttributes.vegetationDensity;
-        // Add some randomness
+        // Base light from sun, modified by season, reduced by vegetation density
+        let baseLight = worldProfile.sunIntensity + seasonMods.sunExposureMod - baseAttributes.vegetationDensity;
         lightLevel = baseLight + getRandomInRange({ min: -1, max: 1 });
     }
     lightLevel = clamp(lightLevel, -10, 10);
@@ -193,9 +193,10 @@ function generateChunkContent(chunkData: Omit<Chunk, 'description' | 'actions' |
     
     // NPCs, Items, Enemy
     const spawnedNPCs = selectEntities(template.NPCs, chunkData, 1).map(npc => npc.type); // Keep NPCs as strings for now
-    const spawnedItems = selectEntities(template.items, chunkData, 3);
+    const spawnedItems = selectEntities(template.items, chunkData, 3) as ChunkItem[];
     const spawnedEnemies = selectEntities(template.enemies, chunkData, 1);
-    const spawnedEnemy = spawnedEnemies.length > 0 ? spawnedEnemies[0] : null;
+    const enemyData = spawnedEnemies.length > 0 ? spawnedEnemies[0] : null;
+    const spawnedEnemy = enemyData ? { ...enemyData, satiation: 0 } : null;
 
     // More description based on calculated values
     if (chunkData.moisture > 8) finalDescription += " Không khí đặc quánh hơi ẩm.";

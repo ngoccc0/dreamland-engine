@@ -45,6 +45,8 @@ const EnemySchema = z.object({
     damage: z.number(),
     behavior: z.enum(['aggressive', 'passive']),
     diet: z.array(z.string()).describe("A list of food items or creature types this enemy eats, influencing its behavior and potential for taming."),
+    satiation: z.number().describe("The creature's current hunger level. When it reaches maxSatiation, it is full."),
+    maxSatiation: z.number().describe("The satiation level at which the creature is considered full and may try to reproduce."),
 });
 
 const ChunkItemSchema = z.object({
@@ -131,6 +133,7 @@ Your role is to be a dynamic and creative storyteller and combat manager. You wi
 2.  **Be a Rules-Engine:** Logically determine the consequences of the player's action. If the action changes the environment or the player's status, you MUST reflect those changes in the 'updatedChunk' and 'updatedPlayerStatus' fields.
 3.  **Be Creative:** Use the provided chunk attributes (dangerLevel, magicAffinity, etc.) to influence the tone and events. A high dangerLevel might mean more dangerous outcomes. High magicAffinity could lead to strange phenomena.
 4.  **Language:** ALL TEXT in the response (narrative, item names, etc.) MUST be in the language corresponding to this code: {{language}}.
+5.  **Ecosystem Awareness:** The 'diet', 'satiation', and 'maxSatiation' fields for enemies tell you about a creature's state. A hungry creature ('satiation' is low) might be more aggressive or desperate. A full creature might be passive or preparing to reproduce. Use this to color your narrative when relevant.
 
 **Specific Action-Handling:**
 

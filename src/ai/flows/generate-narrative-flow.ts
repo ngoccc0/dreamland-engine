@@ -105,16 +105,24 @@ const narrativePrompt = ai.definePrompt({
     input: { schema: GenerateNarrativeInputSchema },
     output: { schema: GenerateNarrativeOutputSchema },
     prompt: `You are the Game Master for a text-based adventure game called '{{worldName}}'.
-Your role is to be a dynamic and creative storyteller. You will receive the player's current status, details about their environment (the current chunk), their most recent action, and the last few narrative lines.
+Your role is to be a dynamic and creative storyteller and combat manager. You will receive the player's current status, details about their environment, their most recent action, and conversational context. Based on this, you must generate a compelling narrative and determine the logical outcomes, including changes to the game state.
 
-Based on this context, you must generate a compelling narrative that describes the outcome of the player's action.
+**Your Primary Rules:**
+1.  **Be a Storyteller:** Write an engaging, descriptive narrative (2-4 sentences) that brings the world to life. Do not just repeat the chunk description. Build upon it based on the player's action.
+2.  **Be a Rules-Engine:** Logically determine the consequences of the player's action. If the action changes the environment or the player's status, you MUST reflect those changes in the 'updatedChunk' and 'updatedPlayerStatus' fields.
+3.  **Be Creative:** Use the provided chunk attributes (dangerLevel, magicAffinity, etc.) to influence the tone and events. A high dangerLevel might mean more dangerous outcomes. High magicAffinity could lead to strange phenomena.
+4.  **Language:** ALL TEXT in the response (narrative, item names, etc.) MUST be in the language corresponding to this code: {{language}}.
 
-**Your Goal:**
-- Write an engaging, descriptive narrative (2-4 sentences) that brings the world to life.
-- Logically determine the consequences of the player's action.
-- If the action changes the environment or the player's status, reflect those changes in the 'updatedChunk' and 'updatedPlayerStatus' fields.
-- Be creative! If a player explores, maybe they find something unexpected. If they attack, describe the fight.
-- Use the provided chunk attributes (dangerLevel, magicAffinity, etc.) to influence the tone and events. A high dangerLevel might mean the action has a negative consequence. High magicAffinity could lead to strange phenomena.
+**Specific Action-Handling:**
+
+*   **Exploration:** If a player explores, describe what they find or see. Instead of "You explore", say "As you search the dense undergrowth, you uncover a moss-covered stone marker with faint, unreadable runes."
+*   **Item Interaction:** If the player picks up an item, add it to the player's inventory in 'updatedPlayerStatus' and remove it from the chunk's items in 'updatedChunk'.
+*   **Combat:** If the player attacks an enemy, you will handle the **entire combat round**:
+    1.  **Player's Attack:** Describe the player's attack. Use the \`playerStatus.attributes.physicalAttack\` value as the damage dealt to the enemy.
+    2.  **Update Enemy HP:** Subtract the damage from the enemy's HP and reflect this change in \`updatedChunk.enemy.hp\`.
+    3.  **Check for Defeat:** If the enemy's HP is 0 or less, describe its defeat and set \`updatedChunk.enemy\` to \`null\`. The combat round ends.
+    4.  **Enemy's Counter-Attack:** If the enemy survives, it **must** retaliate. Describe a creative counter-attack that fits the enemy's type (e.g., a wolf bites, a goblin uses a crude weapon). Use the \`currentChunk.enemy.damage\` value as the damage dealt to the player.
+    5.  **Update Player HP:** Subtract the enemy's damage from the player's HP and reflect this change in \`updatedPlayerStatus.hp\`.
 
 **Context:**
 - Player's Action: {{{playerAction}}}
@@ -123,12 +131,7 @@ Based on this context, you must generate a compelling narrative that describes t
 - Recent Events: {{json recentNarrative}}
 
 **Task:**
-Generate the response in the required JSON format.
-ALL TEXT in the response MUST be in the language corresponding to this code: {{language}}.
-Do not just repeat the chunk description. Build upon it based on the player's action.
-For example, if playerAction is "explore area", don't just say "You explore". Describe what they find or see. "As you search the dense undergrowth, you uncover a moss-covered stone marker with faint, unreadable runes."
-If the player attacks an enemy, describe the blow and update the enemy's HP in 'updatedChunk'. Do not describe the enemy's counter-attack; the game engine will handle that separately if the enemy survives.
-If the player picks up an item, add it to the player's inventory in 'updatedPlayerStatus' and remove it from the chunk's items in 'updatedChunk'.
+Generate the response in the required JSON format based on all the rules above.
 `
 });
 
@@ -145,3 +148,5 @@ const generateNarrativeFlow = ai.defineFlow(
     return output!;
   }
 );
+
+    

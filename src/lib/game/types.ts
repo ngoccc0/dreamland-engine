@@ -51,6 +51,7 @@ export interface Chunk {
         hp: number;
         damage: number;
         behavior: 'aggressive' | 'passive';
+        diet?: 'carnivore' | 'herbivore' | 'omnivore';
     } | null;
     actions: { id: number; text: string }[];
     regionId: number;

@@ -95,11 +95,11 @@ export const templates: Record<Terrain, any> = {
             { data: { name: 'Hoa Tinh Linh', description: 'Một bông hoa phát ra ánh sáng xanh lam yếu ớt, tỏa ra năng lượng phép thuật.', quantity: { min: 1, max: 1 } }, conditions: { magicAffinity: { min: 7 }, chance: 0.1 } },
         ],
         enemies: [
-            { data: { type: 'Sói', hp: 30, damage: 10, behavior: 'aggressive' }, conditions: { predatorPresence: { min: 5 }, chance: 0.4 } },
-            { data: { type: 'Nhện khổng lồ', hp: 40, damage: 15, behavior: 'aggressive' }, conditions: { vegetationDensity: { min: 8 }, dangerLevel: { min: 6 }, chance: 0.3 } },
-            { data: { type: 'Heo Rừng', hp: 50, damage: 8, behavior: 'aggressive' }, conditions: { predatorPresence: { min: 4 }, chance: 0.3 } },
-            { data: { type: 'Yêu Tinh Rừng (Goblin)', hp: 25, damage: 8, behavior: 'aggressive' }, conditions: { dangerLevel: { min: 5 }, humanPresence: { min: 1 }, chance: 0.25 } },
-            { data: { type: 'Gấu', hp: 80, damage: 20, behavior: 'aggressive' }, conditions: { predatorPresence: { min: 8 }, dangerLevel: { min: 7 }, chance: 0.1 } },
+            { data: { type: 'Sói', hp: 30, damage: 10, behavior: 'aggressive', diet: 'carnivore' }, conditions: { predatorPresence: { min: 5 }, chance: 0.4 } },
+            { data: { type: 'Nhện khổng lồ', hp: 40, damage: 15, behavior: 'aggressive', diet: 'carnivore' }, conditions: { vegetationDensity: { min: 8 }, dangerLevel: { min: 6 }, chance: 0.3 } },
+            { data: { type: 'Heo Rừng', hp: 50, damage: 8, behavior: 'aggressive', diet: 'herbivore' }, conditions: { predatorPresence: { min: 4 }, chance: 0.3 } },
+            { data: { type: 'Yêu Tinh Rừng (Goblin)', hp: 25, damage: 8, behavior: 'aggressive', diet: 'omnivore' }, conditions: { dangerLevel: { min: 5 }, humanPresence: { min: 1 }, chance: 0.25 } },
+            { data: { type: 'Gấu', hp: 80, damage: 20, behavior: 'aggressive', diet: 'omnivore' }, conditions: { predatorPresence: { min: 8 }, dangerLevel: { min: 7 }, chance: 0.1 } },
         ],
     },
     grassland: {
@@ -121,10 +121,10 @@ export const templates: Record<Terrain, any> = {
             { data: { name: 'Đá Lửa', description: 'Hai hòn đá lửa, có thể dùng để nhóm lửa.', quantity: { min: 1, max: 1 } }, conditions: { chance: 0.2 } },
         ],
         enemies: [
-            { data: { type: 'Thỏ hoang hung dữ', hp: 20, damage: 5, behavior: 'aggressive' }, conditions: { dangerLevel: { min: 2, max: 5 }, chance: 0.3 } },
-            { data: { type: 'Cáo gian xảo', hp: 25, damage: 8, behavior: 'aggressive' }, conditions: { predatorPresence: { min: 3 }, chance: 0.25 } },
-            { data: { type: 'Bầy châu chấu', hp: 35, damage: 5, behavior: 'aggressive' }, conditions: { temperature: { min: 7 }, moisture: { max: 3 }, chance: 0.15 } },
-            { data: { type: 'Linh cẩu', hp: 40, damage: 12, behavior: 'aggressive' }, conditions: { predatorPresence: { min: 5 }, chance: 0.2 } },
+            { data: { type: 'Thỏ hoang hung dữ', hp: 20, damage: 5, behavior: 'aggressive', diet: 'herbivore' }, conditions: { dangerLevel: { min: 2, max: 5 }, chance: 0.3 } },
+            { data: { type: 'Cáo gian xảo', hp: 25, damage: 8, behavior: 'aggressive', diet: 'carnivore' }, conditions: { predatorPresence: { min: 3 }, chance: 0.25 } },
+            { data: { type: 'Bầy châu chấu', hp: 35, damage: 5, behavior: 'aggressive', diet: 'herbivore' }, conditions: { temperature: { min: 7 }, moisture: { max: 3 }, chance: 0.15 } },
+            { data: { type: 'Linh cẩu', hp: 40, damage: 12, behavior: 'aggressive', diet: 'carnivore' }, conditions: { predatorPresence: { min: 5 }, chance: 0.2 } },
         ],
     },
     desert: {
@@ -145,10 +145,10 @@ export const templates: Record<Terrain, any> = {
             { data: { name: 'Xương Động Vật', description: 'Một bộ xương lớn bị tẩy trắng bởi ánh mặt trời.', quantity: { min: 1, max: 1 } }, conditions: { chance: 0.3 } },
         ],
         enemies: [
-            { data: { type: 'Rắn đuôi chuông', hp: 30, damage: 15, behavior: 'aggressive' }, conditions: { temperature: { min: 8 }, chance: 0.4 } },
-            { data: { type: 'Bọ cạp khổng lồ', hp: 50, damage: 10, behavior: 'aggressive' }, conditions: { dangerLevel: { min: 7 }, chance: 0.35 } },
-            { data: { type: 'Kền kền', hp: 25, damage: 8, behavior: 'aggressive' }, conditions: { predatorPresence: { min: 6 }, chance: 0.3 } },
-            { data: { type: 'Linh hồn cát', hp: 60, damage: 12, behavior: 'aggressive' }, conditions: { magicAffinity: { min: 5 }, windLevel: { min: 6 }, chance: 0.1 } },
+            { data: { type: 'Rắn đuôi chuông', hp: 30, damage: 15, behavior: 'aggressive', diet: 'carnivore' }, conditions: { temperature: { min: 8 }, chance: 0.4 } },
+            { data: { type: 'Bọ cạp khổng lồ', hp: 50, damage: 10, behavior: 'aggressive', diet: 'carnivore' }, conditions: { dangerLevel: { min: 7 }, chance: 0.35 } },
+            { data: { type: 'Kền kền', hp: 25, damage: 8, behavior: 'aggressive', diet: 'carnivore' }, conditions: { predatorPresence: { min: 6 }, chance: 0.3 } },
+            { data: { type: 'Linh hồn cát', hp: 60, damage: 12, behavior: 'aggressive', diet: 'omnivore' }, conditions: { magicAffinity: { min: 5 }, windLevel: { min: 6 }, chance: 0.1 } },
         ],
     },
     swamp: {
@@ -169,10 +169,10 @@ export const templates: Record<Terrain, any> = {
             { data: { name: 'Nấm Đầm Lầy', description: 'Một loại nấm ăn được nhưng có vị hơi tanh.', quantity: { min: 3, max: 6 } }, conditions: { moisture: { min: 9 }, chance: 0.25 } },
         ],
         enemies: [
-            { data: { type: 'Đỉa khổng lồ', hp: 40, damage: 5, behavior: 'aggressive' }, conditions: { moisture: { min: 9 }, chance: 0.4 } },
-            { data: { type: 'Ma trơi', hp: 25, damage: 20, behavior: 'aggressive' }, conditions: { magicAffinity: { min: 7 }, lightLevel: { max: -5 }, chance: 0.2 } },
-            { data: { type: 'Cá sấu', hp: 70, damage: 25, behavior: 'aggressive' }, conditions: { predatorPresence: { min: 8 }, moisture: { min: 8 }, chance: 0.25 } },
-            { data: { type: 'Muỗi khổng lồ', hp: 15, damage: 5, behavior: 'aggressive' }, conditions: { chance: 0.5 } },
+            { data: { type: 'Đỉa khổng lồ', hp: 40, damage: 5, behavior: 'aggressive', diet: 'carnivore' }, conditions: { moisture: { min: 9 }, chance: 0.4 } },
+            { data: { type: 'Ma trơi', hp: 25, damage: 20, behavior: 'aggressive', diet: 'omnivore' }, conditions: { magicAffinity: { min: 7 }, lightLevel: { max: -5 }, chance: 0.2 } },
+            { data: { type: 'Cá sấu', hp: 70, damage: 25, behavior: 'aggressive', diet: 'carnivore' }, conditions: { predatorPresence: { min: 8 }, moisture: { min: 8 }, chance: 0.25 } },
+            { data: { type: 'Muỗi khổng lồ', hp: 15, damage: 5, behavior: 'aggressive', diet: 'carnivore' }, conditions: { chance: 0.5 } },
         ],
     },
     mountain: {
@@ -194,10 +194,10 @@ export const templates: Record<Terrain, any> = {
             { data: { name: 'Cây Thuốc Núi', description: 'Một loại thảo dược quý hiếm chỉ mọc ở nơi cao.', quantity: { min: 1, max: 3 } }, conditions: { vegetationDensity: { min: 2 }, elevation: { min: 6 }, chance: 0.2 } },
         ],
         enemies: [
-            { data: { type: 'Dê núi hung hãn', hp: 50, damage: 15, behavior: 'aggressive' }, conditions: { elevation: { min: 7 }, chance: 0.4 } },
-            { data: { type: 'Người đá (Stone Golem)', hp: 80, damage: 10, behavior: 'aggressive' }, conditions: { magicAffinity: { min: 6 }, elevation: { min: 8 }, chance: 0.2 } },
-            { data: { type: 'Harpie', hp: 45, damage: 18, behavior: 'aggressive' }, conditions: { elevation: { min: 9 }, windLevel: { min: 7 }, chance: 0.25 } },
-            { data: { type: 'Báo tuyết', hp: 60, damage: 20, behavior: 'aggressive' }, conditions: { predatorPresence: { min: 7 }, temperature: { max: 3 }, chance: 0.15 } },
+            { data: { type: 'Dê núi hung hãn', hp: 50, damage: 15, behavior: 'aggressive', diet: 'herbivore' }, conditions: { elevation: { min: 7 }, chance: 0.4 } },
+            { data: { type: 'Người đá (Stone Golem)', hp: 80, damage: 10, behavior: 'aggressive', diet: 'omnivore' }, conditions: { magicAffinity: { min: 6 }, elevation: { min: 8 }, chance: 0.2 } },
+            { data: { type: 'Harpie', hp: 45, damage: 18, behavior: 'aggressive', diet: 'carnivore' }, conditions: { elevation: { min: 9 }, windLevel: { min: 7 }, chance: 0.25 } },
+            { data: { type: 'Báo tuyết', hp: 60, damage: 20, behavior: 'aggressive', diet: 'carnivore' }, conditions: { predatorPresence: { min: 7 }, temperature: { max: 3 }, chance: 0.15 } },
         ],
     },
     cave: {
@@ -219,10 +219,10 @@ export const templates: Record<Terrain, any> = {
             { data: { name: 'Mỏ Vàng', description: 'Những vệt vàng lấp lánh trên vách đá.', quantity: { min: 1, max: 2 } }, conditions: { elevation: { min: -8 }, chance: 0.05 } },
         ],
         enemies: [
-            { data: { type: 'Dơi khổng lồ', hp: 25, damage: 10, behavior: 'aggressive' }, conditions: { lightLevel: { max: -2 }, chance: 0.5 } },
-            { data: { type: 'Nhện hang', hp: 45, damage: 15, behavior: 'aggressive' }, conditions: { dangerLevel: { min: 8 }, chance: 0.4 } },
-            { data: { type: 'Slime', hp: 30, damage: 8, behavior: 'passive' }, conditions: { moisture: { min: 8 }, chance: 0.3 } },
-            { data: { type: 'Sâu Bò Khổng Lồ', hp: 100, damage: 20, behavior: 'aggressive' }, conditions: { dangerLevel: { min: 9 }, chance: 0.15 } },
+            { data: { type: 'Dơi khổng lồ', hp: 25, damage: 10, behavior: 'aggressive', diet: 'carnivore' }, conditions: { lightLevel: { max: -2 }, chance: 0.5 } },
+            { data: { type: 'Nhện hang', hp: 45, damage: 15, behavior: 'aggressive', diet: 'carnivore' }, conditions: { dangerLevel: { min: 8 }, chance: 0.4 } },
+            { data: { type: 'Slime', hp: 30, damage: 8, behavior: 'passive', diet: 'omnivore' }, conditions: { moisture: { min: 8 }, chance: 0.3 } },
+            { data: { type: 'Sâu Bò Khổng Lồ', hp: 100, damage: 20, behavior: 'aggressive', diet: 'carnivore' }, conditions: { dangerLevel: { min: 9 }, chance: 0.15 } },
         ],
     },
 };

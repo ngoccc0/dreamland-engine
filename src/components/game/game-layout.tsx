@@ -225,54 +225,104 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
     }, [regionCounter, regions, worldProfile, currentSeason]);
 
     const handleWorldTick = useCallback(() => {
+        const worldCopy = JSON.parse(JSON.stringify(world)) as World;
         const changes = {
             worldUpdates: {} as World,
             playerHpChange: 0,
             narrativeEntries: [] as { text: string; type: NarrativeEntry['type'] }[],
         };
-
-        const currentWorld = world;
-        const worldCopy = JSON.parse(JSON.stringify(currentWorld)) as World;
-
-        const mobileNpcs: { key: string; chunk: Chunk; enemy: NonNullable<Chunk['enemy']> }[] = [];
-        for (const key in currentWorld) {
-            const chunk = currentWorld[key];
-            if (chunk.enemy && chunk.enemy.behavior === 'aggressive') {
-                mobileNpcs.push({ key, chunk, enemy: chunk.enemy });
-            }
-        }
-        mobileNpcs.sort((a, b) => a.key.localeCompare(b.key));
-
-        for (const { key, chunk, enemy } of mobileNpcs) {
-            if (Math.random() > 0.3) continue;
-
-            const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }].sort(() => Math.random() - 0.5);
-            
-            for (const dir of directions) {
-                const newPos = { x: chunk.x + dir.x, y: chunk.y + dir.y };
-                const newKey = `${newPos.x},${newPos.y}`;
-
-                if (worldCopy[newKey] && !worldCopy[newKey].enemy) {
-                    worldCopy[newKey].enemy = { ...enemy };
-                    worldCopy[key].enemy = null;
-
-                    changes.worldUpdates[newKey] = { ...worldCopy[newKey] };
-                    changes.worldUpdates[key] = { ...worldCopy[key] };
-
-                    if (newPos.x === playerPosition.x && newPos.y === playerPosition.y) {
-                        changes.narrativeEntries.push({ text: `Một ${enemy.type} hung hãn đã di chuyển vào và tấn công bạn!`, type: 'system' });
-                        changes.playerHpChange -= enemy.damage;
-                    }
-                    
-                    break; 
+    
+        // 1. Classify all creatures by diet
+        const creatures = {
+            carnivores: [] as { key: string; chunk: Chunk; enemy: NonNullable<Chunk['enemy']> }[],
+            herbivores: [] as { key: string; chunk: Chunk; enemy: NonNullable<Chunk['enemy']> }[],
+            others: [] as { key: string; chunk: Chunk; enemy: NonNullable<Chunk['enemy']> }[],
+        };
+    
+        for (const key in worldCopy) {
+            const chunk = worldCopy[key];
+            if (chunk.enemy) {
+                const creatureInfo = { key, chunk, enemy: chunk.enemy };
+                if (chunk.enemy.diet === 'carnivore') {
+                    creatures.carnivores.push(creatureInfo);
+                } else if (chunk.enemy.diet === 'herbivore') {
+                    creatures.herbivores.push(creatureInfo);
+                } else {
+                    creatures.others.push(creatureInfo);
                 }
             }
         }
+    
+        // Shuffle to prevent processing order bias
+        creatures.carnivores.sort(() => Math.random() - 0.5);
+        const allAggressiveCreatures = [...creatures.carnivores, ...creatures.others].filter(c => c.enemy.behavior === 'aggressive');
+        allAggressiveCreatures.sort(() => Math.random() - 0.5);
 
+        // 2. Process Creatures
+        for (const { key: creatureKey, chunk: creatureChunk, enemy: creatureData } of allAggressiveCreatures) {
+            
+            // Check if this creature was already eaten/moved this tick
+            if (!worldCopy[creatureKey]?.enemy || worldCopy[creatureKey]?.enemy?.type !== creatureData.type) continue; 
+    
+            let hasActed = false;
+            const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }].sort(() => Math.random() - 0.5);
+    
+            // Priority 1: Carnivores Hunt
+            if (creatureData.diet === 'carnivore' && Math.random() < 0.25) { // 25% chance to hunt
+                for (const dir of directions) {
+                    const targetPos = { x: creatureChunk.x + dir.x, y: creatureChunk.y + dir.y };
+                    const targetKey = `${targetPos.x},${targetPos.y}`;
+                    const targetChunk = worldCopy[targetKey];
+    
+                    if (targetChunk?.enemy?.diet === 'herbivore') {
+                        // Hunt successful!
+                        worldCopy[targetKey].enemy = { ...creatureData }; // Carnivore moves to target chunk
+                        worldCopy[creatureKey].enemy = null; // Carnivore leaves original chunk
+    
+                        changes.worldUpdates[targetKey] = { ...worldCopy[targetKey] };
+                        changes.worldUpdates[creatureKey] = { ...worldCopy[creatureKey] };
+                        
+                        const playerAdjacentChunks = directions.map(d => `${playerPosition.x + d.x},${playerPosition.y + d.y}`);
+                        if (playerAdjacentChunks.includes(targetKey)) {
+                             changes.narrativeEntries.push({ text: `Bạn nghe thấy một cuộc vật lộn ở gần đây. Có vẻ như một cuộc đi săn đã diễn ra.`, type: 'system' });
+                        }
+    
+                        hasActed = true;
+                        break; // Carnivore's action is done for this tick
+                    }
+                }
+            }
+    
+            // Priority 2: Wander if aggressive and hasn't acted
+            if (!hasActed && creatureData.behavior === 'aggressive' && Math.random() < 0.3) {
+                for (const dir of directions) {
+                    const newPos = { x: creatureChunk.x + dir.x, y: creatureChunk.y + dir.y };
+                    const newKey = `${newPos.x},${newPos.y}`;
+    
+                    if (worldCopy[newKey] && !worldCopy[newKey].enemy) {
+                        worldCopy[newKey].enemy = { ...creatureData };
+                        worldCopy[creatureKey].enemy = null;
+    
+                        changes.worldUpdates[newKey] = { ...worldCopy[newKey] };
+                        changes.worldUpdates[creatureKey] = { ...worldCopy[creatureKey] };
+    
+                        if (newPos.x === playerPosition.x && newPos.y === playerPosition.y) {
+                            changes.narrativeEntries.push({ text: `Một ${creatureData.type} hung hãn đã di chuyển vào và tấn công bạn!`, type: 'system' });
+                            changes.playerHpChange -= creatureData.damage;
+                        }
+                        
+                        hasActed = true;
+                        break; 
+                    }
+                }
+            }
+        }
+    
+        // 3. Apply all changes from the tick
         if (Object.keys(changes.worldUpdates).length > 0) {
             setWorld(prev => ({ ...prev, ...changes.worldUpdates }));
         }
-
+    
         if (changes.playerHpChange !== 0) {
             setPlayerStats(prev => {
                 const newHp = prev.hp + changes.playerHpChange;
@@ -282,7 +332,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
                 return { ...prev, hp: Math.max(0, newHp) };
             });
         }
-
+    
         if (changes.narrativeEntries.length > 0) {
             changes.narrativeEntries.forEach(entry => addNarrativeEntry(entry.text, entry.type));
         }

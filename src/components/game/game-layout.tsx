@@ -226,6 +226,59 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         setRegionCounter(result.newRegionCounter);
         return { worldWithChunk: result.newWorld, chunk: result.newWorld[newPosKey] };
     }, [regionCounter, regions, worldProfile, currentSeason]);
+    
+    // Proactively generate the world around the player after they move.
+    useEffect(() => {
+        // This effect is intentionally dependent only on playerPosition to prevent infinite loops,
+        // as it modifies the other state variables (world, regions, etc.).
+        // We run this in a timeout to avoid blocking the UI thread immediately after a move.
+        const generationTimer = setTimeout(() => {
+            const generationRadius = 10;
+            let worldSnapshot = world;
+            let regionsSnapshot = regions;
+            let regionCounterSnapshot = regionCounter;
+            let needsUpdate = false;
+    
+            for (let dx = -generationRadius; dx <= generationRadius; dx++) {
+                for (let dy = -generationRadius; dy <= generationRadius; dy++) {
+                    const pos = { x: playerPosition.x + dx, y: playerPosition.y + dy };
+                    const key = `${pos.x},${pos.y}`;
+    
+                    if (!worldSnapshot[key]) {
+                        const validTerrains = getValidAdjacentTerrains(pos, worldSnapshot);
+                        if (validTerrains.length === 0) continue; // Safeguard
+                        
+                        const terrainProbs = validTerrains.map(t => [t, worldConfig[t].spreadWeight] as [Terrain, number]);
+                        const newTerrain = weightedRandom(terrainProbs);
+                        
+                        const result = generateRegion(
+                            pos, 
+                            newTerrain, 
+                            worldSnapshot, 
+                            regionsSnapshot, 
+                            regionCounterSnapshot,
+                            worldProfile,
+                            currentSeason
+                        );
+                        
+                        worldSnapshot = result.newWorld;
+                        regionsSnapshot = result.newRegions;
+                        regionCounterSnapshot = result.newRegionCounter;
+                        needsUpdate = true;
+                    }
+                }
+            }
+            
+            if (needsUpdate) {
+                setWorld(worldSnapshot);
+                setRegions(regionsSnapshot);
+                setRegionCounter(regionCounterSnapshot);
+            }
+        }, 100);
+    
+        return () => clearTimeout(generationTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [playerPosition]);
 
     const handleWorldTick = useCallback(() => {
         const worldCopy = JSON.parse(JSON.stringify(world)) as World;
@@ -741,7 +794,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
                 {/* Right Panel: Controls & Actions */}
                 <aside className="w-full md:w-[30%] bg-card border-l p-4 md:p-6 flex flex-col gap-6">
                     <div className="flex-shrink-0">
-                        <Minimap grid={generateMapGrid()} onTitleClick={() => setIsFullMapOpen(true)} />
+                        <Minimap grid={generateMapGrid()} onTitleClick={() => setIsFullMapOpen(true)} playerPosition={playerPosition} />
                     </div>
                     
                     {/* UNIFIED CONTROLS SECTION */}

@@ -89,10 +89,16 @@ export default {
             height: '0',
           },
         },
+        'jump-in': {
+          '0%': { transform: 'scale(0.5) translateY(10px)', opacity: '0' },
+          '70%': { transform: 'scale(1.05)', opacity: '1' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'jump-in': 'jump-in 0.3s ease-out forwards',
       },
     },
   },

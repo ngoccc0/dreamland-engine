@@ -1,6 +1,6 @@
 export function PlayerIcon() {
   return (
-    <div className="absolute inset-0 flex items-center justify-center">
+    <div className="absolute inset-0 flex items-center justify-center animate-jump-in">
       <span className="text-3xl drop-shadow-lg" role="img" aria-label="Player">🧑</span>
     </div>
   );

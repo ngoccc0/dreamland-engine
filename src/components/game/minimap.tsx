@@ -10,6 +10,7 @@ import type { MapCell } from "@/lib/game/types";
 interface MinimapProps {
   grid: MapCell[][];
   onTitleClick?: () => void;
+  playerPosition: { x: number; y: number };
 }
 
 const biomeColors = {
@@ -33,7 +34,7 @@ const biomeIcons: Record<"forest" | "grassland" | "desert" | "swamp" | "mountain
 };
 
 
-export function Minimap({ grid, onTitleClick }: MinimapProps) {
+export function Minimap({ grid, onTitleClick, playerPosition }: MinimapProps) {
   const { t } = useLanguage();
   return (
     <div className="flex flex-col items-center gap-4">
@@ -60,7 +61,7 @@ export function Minimap({ grid, onTitleClick }: MinimapProps) {
                 
                 {/* Player and Enemy icons will be rendered on top of biome */}
                 {cell.hasEnemy && <EnemyIcon />}
-                {cell.hasPlayer && <PlayerIcon />}
+                {cell.hasPlayer && <PlayerIcon key={`${playerPosition.x},${playerPosition.y}`} />}
                 
                 {/* Corner indicators for other entities, rendered on top of everything */}
                 {cell.hasNpc && <NpcIcon />}

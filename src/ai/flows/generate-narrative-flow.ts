@@ -145,6 +145,11 @@ Your role is to be a dynamic and creative storyteller and combat manager. You wi
     1.  In \`updatedChunk.items\`, REMOVE the 'Healing Herb' entry entirely from the list.
     2.  In \`updatedPlayerStatus.items\`, find 'Healing Herb'. If it exists, increment its quantity by 5. If it doesn't exist, add \`{ "name": "Healing Herb", "quantity": 5, "tier": 1 }\` to the list.
     3.  Generate a system message reflecting the quantity, like "5 Healing Herbs added to inventory."
+*   **Item Usage:** If the player uses an item from their inventory (e.g., "use Healing Potion"), you MUST update their status:
+    1.  In \`updatedPlayerStatus.items\`, find the item and DECREMENT its quantity by 1.
+    2.  If the quantity becomes 0, REMOVE the item from the \`updatedPlayerStatus.items\` list.
+    3.  Apply the item's effect (e.g., for a Healing Potion, increase the player's HP in \`updatedPlayerStatus.hp\`).
+    4.  The narrative should describe the action and its effect.
 *   **Combat:** If the player attacks an enemy, you will handle the **entire combat round**:
     1.  **Player's Attack:** Describe the player's attack. Use the \`playerStatus.attributes.physicalAttack\` value as the damage dealt to the enemy.
     2.  **Update Enemy HP:** Subtract the damage from the enemy's HP and reflect this change in \`updatedChunk.enemy.hp\`.
@@ -160,7 +165,7 @@ Your role is to be a dynamic and creative storyteller and combat manager. You wi
 
 **Task:**
 Generate the response in the required JSON format based on all the rules above.
-`
+`,
 });
 
 

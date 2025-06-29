@@ -202,7 +202,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
     const ensureChunkExists = useCallback((pos: {x: number, y: number}, currentWorld: World) => {
         const newPosKey = `${pos.x},${pos.y}`;
         if (currentWorld[newPosKey]) {
-            return { ...currentWorld }; // Return a copy
+            return { worldWithChunk: { ...currentWorld }, chunk: currentWorld[newPosKey] };
         }
     
         const validTerrains = getValidAdjacentTerrains(pos, currentWorld);
@@ -221,13 +221,13 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         
         setRegions(result.newRegions);
         setRegionCounter(result.newRegionCounter);
-        return result.newWorld;
+        return { worldWithChunk: result.newWorld, chunk: result.newWorld[newPosKey] };
     }, [regionCounter, regions, worldProfile, currentSeason]);
 
 
-    const handleOnlineNarrative = useCallback(async (action: string, fullWorldState: World) => {
+    const handleOnlineNarrative = async (action: string, worldCtx: World, playerPosCtx: {x: number, y: number}, playerStatsCtx: PlayerStatus) => {
         setIsLoading(true);
-        const currentChunk = fullWorldState[`${playerPosition.x},${playerPosition.y}`];
+        const currentChunk = worldCtx[`${playerPosCtx.x},${playerPosCtx.y}`];
         if (!currentChunk || !finalWorldSetup) {
             setIsLoading(false);
             return;
@@ -237,7 +237,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
             const input: GenerateNarrativeInput = {
                 worldName: finalWorldSetup.worldName,
                 playerAction: action,
-                playerStatus: playerStats,
+                playerStatus: playerStatsCtx,
                 currentChunk: {
                     x: currentChunk.x,
                     y: currentChunk.y,
@@ -267,15 +267,18 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
             }
 
             // Apply updates from AI
-            let updatedWorld = { ...fullWorldState };
-            const key = `${currentChunk.x},${currentChunk.y}`;
-            if (result.updatedChunk) {
-                updatedWorld = { ...updatedWorld, [key]: { ...updatedWorld[key], ...result.updatedChunk } };
-            }
+            setWorld(prevWorld => {
+                const updatedWorld = { ...prevWorld };
+                const key = `${currentChunk.x},${currentChunk.y}`;
+                if (result.updatedChunk) {
+                    updatedWorld[key] = { ...updatedWorld[key], ...result.updatedChunk };
+                }
+                return updatedWorld;
+            });
+
             if (result.updatedPlayerStatus) {
                 setPlayerStats(prev => ({ ...prev, ...result.updatedPlayerStatus }));
             }
-            setWorld(updatedWorld); // Set world state after all modifications
 
         } catch (error) {
             console.error("AI narrative generation failed:", error);
@@ -284,7 +287,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         } finally {
             setIsLoading(false);
         }
-    }, [playerStats, playerPosition, finalWorldSetup, narrativeLog, language, toast, t, addNarrativeEntry]);
+    };
     
     const handleMove = (direction: "north" | "south" | "east" | "west") => {
         let newPos = { ...playerPosition };
@@ -294,9 +297,27 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         else if (direction === 'east') { newPos.x++; dirKey = 'directionEast'; }
         else if (direction === 'west') { newPos.x--; dirKey = 'directionWest'; }
 
-        addNarrativeEntry(t('wentDirection', { direction: t(dirKey) }), 'action');
+        const { worldWithChunk, chunk: destinationChunk } = ensureChunkExists(newPos, world);
+        
+        if (!destinationChunk) {
+            // This should not happen if ensureChunkExists works correctly
+            console.error("Error: Could not find or generate destination chunk.");
+            return;
+        }
 
-        const worldWithChunk = ensureChunkExists(newPos, world);
+        const travelCost = destinationChunk.travelCost;
+        if (playerStats.stamina < travelCost) {
+            toast({
+                title: "Quá mệt!",
+                description: "Bạn không đủ thể lực để di chuyển tới vùng đất này. Hãy nghỉ ngơi.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const newStamina = playerStats.stamina - travelCost;
+        const newPlayerStats = { ...playerStats, stamina: newStamina };
+        
         const newWorld = { ...worldWithChunk };
         const newPosKey = `${newPos.x},${newPos.y}`;
         
@@ -304,11 +325,13 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
             newWorld[newPosKey] = { ...newWorld[newPosKey], explored: true };
         }
 
+        addNarrativeEntry(t('wentDirection', { direction: t(dirKey) }), 'action');
         setWorld(newWorld);
         setPlayerPosition(newPos);
+        setPlayerStats(newPlayerStats);
 
         if (isOnline) {
-            handleOnlineNarrative(`move ${direction}`, newWorld);
+            handleOnlineNarrative(`move ${direction}`, newWorld, newPos, newPlayerStats);
         } else {
             if (newWorld[newPosKey]) {
                 addNarrativeEntry(newWorld[newPosKey].description, 'narrative');
@@ -324,7 +347,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         addNarrativeEntry(actionText, 'action');
 
         if (isOnline) {
-            handleOnlineNarrative(actionText, world);
+            handleOnlineNarrative(actionText, world, playerPosition, playerStats);
             return;
         }
         
@@ -366,7 +389,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         addNarrativeEntry(actionText, 'action');
 
         if (isOnline) {
-            handleOnlineNarrative(actionText, world);
+            handleOnlineNarrative(actionText, world, playerPosition, playerStats);
             return;
         }
 
@@ -413,7 +436,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         setInputValue("");
         
         if(isOnline) {
-            handleOnlineNarrative(text, world);
+            handleOnlineNarrative(text, world, playerPosition, playerStats);
             return;
         }
 

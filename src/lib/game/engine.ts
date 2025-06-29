@@ -89,29 +89,37 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
         return Object.keys(worldConfig) as Terrain[];
     }
 
-    const validTerrains: Terrain[] = [];
-    for (const terrain in worldConfig) {
-        const terrainKey = terrain as Terrain;
-        const config = worldConfig[terrainKey];
-        
-        let canBePlaced = true;
-        for(const adj of adjacentTerrains) {
-            if(!config.allowedNeighbors.includes(adj)) {
-                canBePlaced = false;
-                break;
-            }
-            const neighborConfig = worldConfig[adj];
-             if(!neighborConfig.allowedNeighbors.includes(terrainKey)) {
-                canBePlaced = false;
+    const validTerrains = new Set<Terrain>();
+    for (const terrain of Object.keys(worldConfig) as Terrain[]) {
+        const config = worldConfig[terrain];
+        // Check if this new terrain can be a neighbor to all existing adjacent terrains
+        let canBeNeighborToAll = true;
+        for (const adjTerrain of adjacentTerrains) {
+            const adjConfig = worldConfig[adjTerrain];
+            if (!adjConfig.allowedNeighbors.includes(terrain)) {
+                canBeNeighborToAll = false;
                 break;
             }
         }
 
-        if (canBePlaced) {
-            validTerrains.push(terrainKey);
+        // Check if all existing adjacent terrains can be neighbors to this new terrain
+        let allCanBeNeighborsTo = true;
+        if (canBeNeighborToAll) {
+            for (const adjTerrain of adjacentTerrains) {
+                if (!config.allowedNeighbors.includes(adjTerrain)) {
+                    allCanBeNeighborsTo = false;
+                    break;
+                }
+            }
+        }
+        
+        if (canBeNeighborToAll && allCanBeNeighborsTo) {
+            validTerrains.add(terrain);
         }
     }
-    return validTerrains.length > 0 ? validTerrains : Object.keys(worldConfig) as Terrain[];
+    
+    const validTerrainsArray = Array.from(validTerrains);
+    return validTerrainsArray.length > 0 ? validTerrainsArray : Object.keys(worldConfig) as Terrain[];
 };
 
 // This is the core "factory" function for building a new region of the world.

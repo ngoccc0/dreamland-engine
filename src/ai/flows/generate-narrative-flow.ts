@@ -44,7 +44,7 @@ const EnemySchema = z.object({
     hp: z.number(),
     damage: z.number(),
     behavior: z.enum(['aggressive', 'passive']),
-    diet: z.enum(['carnivore', 'herbivore', 'omnivore']).optional().describe("The creature's diet, which influences its behavior."),
+    diet: z.array(z.string()).describe("A list of food items or creature types this enemy eats, influencing its behavior and potential for taming."),
 });
 
 const ChunkItemSchema = z.object({

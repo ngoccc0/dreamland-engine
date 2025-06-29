@@ -232,83 +232,101 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
             narrativeEntries: [] as { text: string; type: NarrativeEntry['type'] }[],
         };
     
-        // 1. Classify all creatures by diet
-        const creatures = {
-            carnivores: [] as { key: string; chunk: Chunk; enemy: NonNullable<Chunk['enemy']> }[],
-            herbivores: [] as { key: string; chunk: Chunk; enemy: NonNullable<Chunk['enemy']> }[],
-            others: [] as { key: string; chunk: Chunk; enemy: NonNullable<Chunk['enemy']> }[],
-        };
-    
+        // 1. Get all creatures that can act
+        const allCreatures = [];
         for (const key in worldCopy) {
-            const chunk = worldCopy[key];
-            if (chunk.enemy) {
-                const creatureInfo = { key, chunk, enemy: chunk.enemy };
-                if (chunk.enemy.diet === 'carnivore') {
-                    creatures.carnivores.push(creatureInfo);
-                } else if (chunk.enemy.diet === 'herbivore') {
-                    creatures.herbivores.push(creatureInfo);
-                } else {
-                    creatures.others.push(creatureInfo);
-                }
+            if (worldCopy[key].enemy) {
+                allCreatures.push({
+                    key,
+                    chunk: worldCopy[key],
+                    enemyData: worldCopy[key].enemy!,
+                });
             }
         }
-    
+        
         // Shuffle to prevent processing order bias
-        creatures.carnivores.sort(() => Math.random() - 0.5);
-        const allAggressiveCreatures = [...creatures.carnivores, ...creatures.others].filter(c => c.enemy.behavior === 'aggressive');
-        allAggressiveCreatures.sort(() => Math.random() - 0.5);
-
-        // 2. Process Creatures
-        for (const { key: creatureKey, chunk: creatureChunk, enemy: creatureData } of allAggressiveCreatures) {
-            
-            // Check if this creature was already eaten/moved this tick
-            if (!worldCopy[creatureKey]?.enemy || worldCopy[creatureKey]?.enemy?.type !== creatureData.type) continue; 
+        allCreatures.sort(() => Math.random() - 0.5);
     
+        // 2. Process creature actions
+        for (const creature of allCreatures) {
+            const { key: creatureKey, chunk: creatureChunk, enemyData } = creature;
+    
+            // Skip if creature was already eaten/moved this tick
+            if (!worldCopy[creatureKey]?.enemy || worldCopy[creatureKey].enemy!.type !== enemyData.type) continue;
+            
             let hasActed = false;
             const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }].sort(() => Math.random() - 0.5);
     
-            // Priority 1: Carnivores Hunt
-            if (creatureData.diet === 'carnivore' && Math.random() < 0.25) { // 25% chance to hunt
+            // Priority 1: Hunt / Forage if diet is specified and has a chance to act
+            if (enemyData.diet.length > 0 && Math.random() < 0.25) { // 25% chance to hunt/forage
                 for (const dir of directions) {
                     const targetPos = { x: creatureChunk.x + dir.x, y: creatureChunk.y + dir.y };
                     const targetKey = `${targetPos.x},${targetPos.y}`;
                     const targetChunk = worldCopy[targetKey];
     
-                    if (targetChunk?.enemy?.diet === 'herbivore') {
-                        // Hunt successful!
-                        worldCopy[targetKey].enemy = { ...creatureData }; // Carnivore moves to target chunk
-                        worldCopy[creatureKey].enemy = null; // Carnivore leaves original chunk
+                    if (targetChunk) {
+                        // Check for prey (other creatures)
+                        if (targetChunk.enemy && enemyData.diet.includes(targetChunk.enemy.type)) {
+                            // Hunt successful!
+                            worldCopy[targetKey].enemy = { ...enemyData }; // Hunter moves to target chunk
+                            worldCopy[creatureKey].enemy = null; // Hunter leaves original chunk
     
-                        changes.worldUpdates[targetKey] = { ...worldCopy[targetKey] };
-                        changes.worldUpdates[creatureKey] = { ...worldCopy[creatureKey] };
-                        
-                        const playerAdjacentChunks = directions.map(d => `${playerPosition.x + d.x},${playerPosition.y + d.y}`);
-                        if (playerAdjacentChunks.includes(targetKey)) {
-                             changes.narrativeEntries.push({ text: `Bạn nghe thấy một cuộc vật lộn ở gần đây. Có vẻ như một cuộc đi săn đã diễn ra.`, type: 'system' });
+                            changes.worldUpdates[targetKey] = { ...worldCopy[targetKey] };
+                            changes.worldUpdates[creatureKey] = { ...worldCopy[creatureKey] };
+                            
+                            const playerAdjacentChunks = directions.map(d => `${playerPosition.x + d.x},${playerPosition.y + d.y}`);
+                            if (playerAdjacentChunks.includes(targetKey) || playerAdjacentChunks.includes(creatureKey)) {
+                                 changes.narrativeEntries.push({ text: `Bạn nghe thấy một cuộc vật lộn ở gần đây. Có vẻ như một cuộc đi săn đã diễn ra.`, type: 'system' });
+                            }
+    
+                            hasActed = true;
+                            break; // Action is done for this tick
                         }
     
-                        hasActed = true;
-                        break; // Carnivore's action is done for this tick
+                        // Check for food (plants/items)
+                        const foodItem = targetChunk.items.find(item => enemyData.diet.includes(item.name));
+                        if (foodItem) {
+                            // Forage successful!
+                            // Creature moves to the new spot and eats one item
+                            worldCopy[targetKey].enemy = { ...enemyData };
+                            worldCopy[creatureKey].enemy = null;
+    
+                            // Reduce item quantity
+                            foodItem.quantity -= 1;
+                            if (foodItem.quantity <= 0) {
+                                targetChunk.items = targetChunk.items.filter(item => item.name !== foodItem.name);
+                                // Also remove the action to pick it up if it was the first item
+                                if (targetChunk.actions.some(a => a.id === 3 && a.text.includes(foodItem.name))) {
+                                    targetChunk.actions = targetChunk.actions.filter(a => a.id !== 3);
+                                }
+                            }
+    
+                            changes.worldUpdates[targetKey] = { ...worldCopy[targetKey] };
+                            changes.worldUpdates[creatureKey] = { ...worldCopy[creatureKey] };
+    
+                            hasActed = true;
+                            break; // Action is done for this tick
+                        }
                     }
                 }
             }
     
             // Priority 2: Wander if aggressive and hasn't acted
-            if (!hasActed && creatureData.behavior === 'aggressive' && Math.random() < 0.3) {
+            if (!hasActed && enemyData.behavior === 'aggressive' && Math.random() < 0.3) {
                 for (const dir of directions) {
                     const newPos = { x: creatureChunk.x + dir.x, y: creatureChunk.y + dir.y };
                     const newKey = `${newPos.x},${newPos.y}`;
     
                     if (worldCopy[newKey] && !worldCopy[newKey].enemy) {
-                        worldCopy[newKey].enemy = { ...creatureData };
+                        worldCopy[newKey].enemy = { ...enemyData };
                         worldCopy[creatureKey].enemy = null;
     
                         changes.worldUpdates[newKey] = { ...worldCopy[newKey] };
                         changes.worldUpdates[creatureKey] = { ...worldCopy[creatureKey] };
     
                         if (newPos.x === playerPosition.x && newPos.y === playerPosition.y) {
-                            changes.narrativeEntries.push({ text: `Một ${creatureData.type} hung hãn đã di chuyển vào và tấn công bạn!`, type: 'system' });
-                            changes.playerHpChange -= creatureData.damage;
+                            changes.narrativeEntries.push({ text: `Một ${enemyData.type} hung hãn đã di chuyển vào và tấn công bạn!`, type: 'system' });
+                            changes.playerHpChange -= enemyData.damage;
                         }
                         
                         hasActed = true;

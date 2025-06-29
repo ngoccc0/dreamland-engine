@@ -51,7 +51,7 @@ export interface Chunk {
         hp: number;
         damage: number;
         behavior: 'aggressive' | 'passive';
-        diet?: 'carnivore' | 'herbivore' | 'omnivore';
+        diet: string[]; // e.g., ['Thỏ hoang hung dữ', 'Quả Mọng Ăn Được']
     } | null;
     actions: { id: number; text: string }[];
     regionId: number;

@@ -5,7 +5,7 @@ import GameLayout from '@/components/game/game-layout';
 import { WorldSetup } from '@/components/game/world-setup';
 import type { WorldConcept } from '@/ai/flows/generate-world-setup';
 import { LanguageSelector } from '@/components/game/language-selector';
-import type { GameState } from '@/lib/game/types';
+import type { GameState, PlayerItem } from '@/lib/game/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
@@ -19,13 +19,26 @@ export default function Home() {
     try {
       const savedData = localStorage.getItem('gameState');
       if (savedData) {
-        setSavedGameState(JSON.parse(savedData));
+        const gameState: GameState = JSON.parse(savedData);
+        
+        // Data migration for old save files where player items were strings
+        if (gameState.playerStats?.items && gameState.playerStats.items.length > 0 && typeof (gameState.playerStats.items[0] as any) === 'string') {
+          console.log("Migrating old inventory format...");
+          gameState.playerStats.items = (gameState.playerStats.items as unknown as string[]).map((itemName): PlayerItem => ({
+            name: itemName.replace(/ \(.*/, ''), // Attempt to clean up names like "Item (description)"
+            quantity: 1,
+          }));
+        }
+
+        setSavedGameState(gameState);
         setLoadState('prompt');
       } else {
         setLoadState('new_game');
       }
     } catch (error) {
-      console.error("Failed to load game state:", error);
+      console.error("Failed to load or migrate game state, starting a new game to prevent crash:", error);
+      // If migration fails or any other error, treat as a new game to prevent crashes
+      localStorage.removeItem('gameState');
       setLoadState('new_game');
     }
   }, []);

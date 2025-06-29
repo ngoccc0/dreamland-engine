@@ -46,7 +46,7 @@ const selectEntities = <T>(
 ): T[] => {
     const validEntities = possibleEntities.filter(entity => checkConditions(entity.conditions, chunk));
     
-    const selected = [];
+    const selected: T[] = [];
     const shuffled = [...validEntities].sort(() => 0.5 - Math.random());
     
     for (const entity of shuffled) {
@@ -54,24 +54,28 @@ const selectEntities = <T>(
         if (Math.random() < (entity.conditions.chance ?? 1.0)) {
             if (typeof entity.data === 'object' && entity.data !== null && 'quantity' in entity.data && typeof (entity.data as any).quantity === 'object') {
                 const item = entity.data as { quantity: { min: number, max: number } };
-                let finalQuantity = getRandomInRange(item.quantity);
+                const baseQuantity = getRandomInRange(item.quantity);
 
-                // If worldProfile is provided, scale the quantity based on resourceDensity
                 if (worldProfile) {
-                    // Default resourceDensity is 5, which is a 1x multiplier.
-                    // A density of 10 is 2x, a density of 0 is 0x.
                     const multiplier = worldProfile.resourceDensity / 5.0;
-                    const scaledQuantity = Math.round(finalQuantity * multiplier);
-                    finalQuantity = Math.max(1, scaledQuantity);
+                    const scaledQuantity = Math.round(baseQuantity * multiplier);
+                    
+                    if (scaledQuantity > 0) {
+                        selected.push({ ...entity.data, quantity: scaledQuantity });
+                    }
+                    // If quantity is 0, the item doesn't spawn.
+                } else {
+                    // Fallback for when worldProfile is not provided
+                    if (baseQuantity > 0) {
+                        selected.push({ ...entity.data, quantity: baseQuantity });
+                    }
                 }
-                
-                selected.push({ ...entity.data, quantity: finalQuantity });
             } else {
                  selected.push(entity.data);
             }
         }
     }
-    return selected as T[];
+    return selected;
 };
 
 

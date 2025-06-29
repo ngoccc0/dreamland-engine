@@ -13,6 +13,7 @@ export interface WorldProfile {
     weatherTypesAllowed: ('clear' | 'rain' | 'fog' | 'snow')[];
     moistureBias: number; // -5 to +5, global moisture offset
     tempBias: number; // -5 to +5, global temperature offset
+    resourceDensity: number; // 0-10, affects amount of spawned resources
 }
 
 // 2. Season: Global modifiers based on the time of year.

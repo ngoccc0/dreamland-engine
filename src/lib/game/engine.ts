@@ -34,12 +34,14 @@ const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 'descri
  * Selects entities based on conditions and chance.
  * @param possibleEntities - An array of potential entities with their spawn conditions.
  * @param chunk - The chunk data to check conditions against.
+ * @param worldProfile - The global profile of the world, used to scale item quantities.
  * @param maxCount - The maximum number of entity types to select.
  * @returns An array of selected entities, with quantities calculated.
  */
 const selectEntities = <T>(
     possibleEntities: { data: T; conditions: SpawnConditions }[],
     chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy'>,
+    worldProfile?: WorldProfile,
     maxCount: number = 3
 ): T[] => {
     const validEntities = possibleEntities.filter(entity => checkConditions(entity.conditions, chunk));
@@ -50,9 +52,19 @@ const selectEntities = <T>(
     for (const entity of shuffled) {
         if (selected.length >= maxCount) break;
         if (Math.random() < (entity.conditions.chance ?? 1.0)) {
-             if (typeof entity.data === 'object' && entity.data !== null && 'quantity' in entity.data && typeof (entity.data as any).quantity === 'object') {
+            if (typeof entity.data === 'object' && entity.data !== null && 'quantity' in entity.data && typeof (entity.data as any).quantity === 'object') {
                 const item = entity.data as { quantity: { min: number, max: number } };
-                const finalQuantity = getRandomInRange(item.quantity);
+                let finalQuantity = getRandomInRange(item.quantity);
+
+                // If worldProfile is provided, scale the quantity based on resourceDensity
+                if (worldProfile) {
+                    // Default resourceDensity is 5, which is a 1x multiplier.
+                    // A density of 10 is 2x, a density of 0 is 0x.
+                    const multiplier = worldProfile.resourceDensity / 5.0;
+                    const scaledQuantity = Math.round(finalQuantity * multiplier);
+                    finalQuantity = Math.max(1, scaledQuantity);
+                }
+                
                 selected.push({ ...entity.data, quantity: finalQuantity });
             } else {
                  selected.push(entity.data);
@@ -181,9 +193,13 @@ function calculateDependentChunkAttributes(
  * Generates the "content" of a chunk (description, NPCs, items, enemies, actions)
  * based on its final physical attributes.
  * @param chunkData The complete physical data of the chunk.
+ * @param worldProfile The global settings for the world.
  * @returns An object containing the generated content.
  */
-function generateChunkContent(chunkData: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy'>) {
+function generateChunkContent(
+    chunkData: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy'>,
+    worldProfile: WorldProfile
+) {
     const template = templates[chunkData.terrain];
 
     // Description
@@ -193,9 +209,9 @@ function generateChunkContent(chunkData: Omit<Chunk, 'description' | 'actions' |
     let finalDescription = baseDescriptionTemplate.replace('[adjective]', adjective).replace('[feature]', feature);
     
     // NPCs, Items, Enemy
-    const spawnedNPCs = selectEntities(template.NPCs, chunkData, 1);
-    const spawnedItems = selectEntities(template.items, chunkData, 3) as ChunkItem[];
-    const spawnedEnemies = selectEntities(template.enemies, chunkData, 1);
+    const spawnedNPCs = selectEntities(template.NPCs, chunkData, undefined, 1);
+    const spawnedItems = selectEntities(template.items, chunkData, worldProfile, 3) as ChunkItem[];
+    const spawnedEnemies = selectEntities(template.enemies, chunkData, undefined, 1);
     const enemyData = spawnedEnemies.length > 0 ? spawnedEnemies[0] : null;
     const spawnedEnemy = enemyData ? { ...enemyData, satiation: 0 } : null;
 
@@ -305,7 +321,7 @@ export const generateRegion = (
         };
 
         // Step 4: Generate content based on the final chunk data
-        const content = generateChunkContent(tempChunkData);
+        const content = generateChunkContent(tempChunkData, worldProfile);
         
         newWorld[posKey] = {
             ...tempChunkData,

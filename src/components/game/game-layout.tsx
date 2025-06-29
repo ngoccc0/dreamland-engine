@@ -42,6 +42,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
             weatherTypesAllowed: ['clear', 'rain', 'fog'],
             moistureBias: 0,
             tempBias: 0,
+            resourceDensity: 5,
         }
     );
     const [currentSeason, setCurrentSeason] = useState<Season>(initialGameState?.currentSeason || 'spring');

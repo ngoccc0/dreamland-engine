@@ -51,7 +51,21 @@ const selectEntities = <T>(
     
     for (const entity of shuffled) {
         if (selected.length >= maxCount) break;
-        if (Math.random() < (entity.conditions.chance ?? 1.0)) {
+
+        // Dynamically calculate spawn chance based on tier.
+        let spawnChance = entity.conditions.chance ?? 1.0;
+        
+        // Check if the entity data is an object and has a 'tier' property
+        const itemData = entity.data as any;
+        if (typeof itemData === 'object' && itemData !== null && typeof itemData.tier === 'number') {
+            const tier = itemData.tier as number;
+            // Reduce spawn chance by 50% for each tier above 1.
+            // e.g., tier 1: x1, tier 2: x0.5, tier 3: x0.25
+            const tierMultiplier = Math.pow(0.5, tier - 1);
+            spawnChance *= tierMultiplier;
+        }
+
+        if (Math.random() < spawnChance) {
             if (typeof entity.data === 'object' && entity.data !== null && 'quantity' in entity.data && typeof (entity.data as any).quantity === 'object') {
                 const item = entity.data as { quantity: { min: number, max: number } };
                 const baseQuantity = getRandomInRange(item.quantity);
@@ -63,9 +77,7 @@ const selectEntities = <T>(
                     if (scaledQuantity > 0) {
                         selected.push({ ...entity.data, quantity: scaledQuantity });
                     }
-                    // If quantity is 0, the item doesn't spawn.
                 } else {
-                    // Fallback for when worldProfile is not provided
                     if (baseQuantity > 0) {
                         selected.push({ ...entity.data, quantity: baseQuantity });
                     }

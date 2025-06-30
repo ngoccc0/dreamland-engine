@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
-import type { PlayerItem, Recipe, RecipeIngredient } from "@/lib/game/types";
+import type { PlayerItem, Recipe, RecipeIngredient, RecipeAlternative } from "@/lib/game/types";
 import { recipes } from "@/lib/game/recipes";
 import { Hammer } from "lucide-react";
 
@@ -17,47 +17,56 @@ interface CraftingPopupProps {
   onCraft: (recipe: Recipe) => void;
 }
 
-// This check is now smarter, allowing for substitutes.
-// It confirms if a craft is *possible* with any combination of available items.
-const hasIngredients = (playerItems: PlayerItem[], ingredients: RecipeIngredient[]) => {
-  // Use a map to track available items to "spend" them during the check.
-  const availableItems = new Map(playerItems.map(item => [item.name, item.quantity]));
-
-  for (const ingredient of ingredients) {
-    let satisfied = false;
-    // The list of possible items includes the primary one and any alternatives.
-    const possibleItems = [ingredient.name, ...(ingredient.alternatives || [])];
-
-    for (const itemName of possibleItems) {
-      if ((availableItems.get(itemName) || 0) >= ingredient.quantity) {
-        satisfied = true;
-        break; // Found a valid item for this ingredient, move to the next ingredient.
-      }
+const getPossibleItemsForIngredient = (ingredient: RecipeIngredient): { name: string, tier?: 1 | 2 | 3 }[] => {
+    const items = [{ name: ingredient.name, tier: 1 as const }]; // Primary is always Tier 1 effective
+    if (ingredient.alternatives) {
+        items.push(...ingredient.alternatives);
     }
-    
-    if (!satisfied) {
-      return false; // If any single ingredient cannot be satisfied, the craft is impossible.
-    }
-  }
-
-  return true; // All ingredients were satisfied.
+    return items;
 };
 
-// Helper to find the player's quantity of a specific ingredient, including substitutes
-const getPlayerQuantity = (playerItems: PlayerItem[], ingredient: RecipeIngredient) => {
-    const possibleItems = [ingredient.name, ...(ingredient.alternatives || [])];
+const hasIngredients = (playerItems: PlayerItem[], ingredients: RecipeIngredient[]): boolean => {
+    const availableItems = new Map(playerItems.map(item => [item.name, item.quantity]));
+
+    for (const ingredient of ingredients) {
+        let satisfied = false;
+        const possibleItems = getPossibleItemsForIngredient(ingredient);
+
+        for (const item of possibleItems) {
+            if ((availableItems.get(item.name) || 0) >= ingredient.quantity) {
+                satisfied = true;
+                break;
+            }
+        }
+        
+        if (!satisfied) return false;
+    }
+    return true;
+};
+
+const getPlayerQuantityForIngredient = (playerItems: PlayerItem[], ingredient: RecipeIngredient): number => {
+    const possibleItems = getPossibleItemsForIngredient(ingredient);
     let total = 0;
-    for(const itemName of possibleItems) {
-        const playerItem = playerItems.find(pi => pi.name === itemName);
-        if(playerItem) {
+    for (const item of possibleItems) {
+        const playerItem = playerItems.find(pi => pi.name === item.name);
+        if (playerItem) {
             total += playerItem.quantity;
         }
     }
     return total;
-}
+};
 
 export function CraftingPopup({ open, onOpenChange, playerItems, onCraft }: CraftingPopupProps) {
   const { t } = useLanguage();
+
+  const getTooltipContent = (ingredient: RecipeIngredient): string => {
+    let content = `Cần: ${ingredient.name}`;
+    if (ingredient.alternatives && ingredient.alternatives.length > 0) {
+        const altStrings = ingredient.alternatives.map(alt => `${alt.name} (Bậc ${alt.tier})`);
+        content += ` (hoặc: ${altStrings.join(', ')})`;
+    }
+    return content;
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -82,13 +91,8 @@ export function CraftingPopup({ open, onOpenChange, playerItems, onCraft }: Craf
                       <span className="font-semibold">{t('ingredients')}:</span>
                       <ul className="list-disc list-inside ml-4">
                         {recipe.ingredients.map(ing => {
-                          const playerQty = getPlayerQuantity(playerItems, ing);
+                          const playerQty = getPlayerQuantityForIngredient(playerItems, ing);
                           const hasEnough = playerQty >= ing.quantity;
-                          
-                          // Tooltip to show alternatives
-                          const alternativesTooltip = ing.alternatives?.length 
-                            ? ` (hoặc: ${ing.alternatives.join(', ')})`
-                            : '';
 
                           return (
                             <TooltipProvider key={ing.name}>
@@ -99,7 +103,7 @@ export function CraftingPopup({ open, onOpenChange, playerItems, onCraft }: Craf
                                   </li>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  <p>Cần: {ing.name}{alternativesTooltip}</p>
+                                  <p>{getTooltipContent(ing)}</p>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>

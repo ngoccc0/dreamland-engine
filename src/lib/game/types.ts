@@ -239,10 +239,15 @@ export interface GeneratedItem {
     }
 }
 
+export interface RecipeAlternative {
+    name: string;
+    tier: 1 | 2 | 3; // 1: Perfect, 2: Good, 3: Viable but risky
+}
+
 export interface RecipeIngredient {
     name: string; // The primary/ideal ingredient
     quantity: number;
-    alternatives?: string[]; // A list of substitute item names
+    alternatives?: RecipeAlternative[]; // A list of tiered substitute items
 }
 
 export interface Recipe {

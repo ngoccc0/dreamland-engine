@@ -23,7 +23,7 @@ import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/gener
 import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, checkConditions } from '@/lib/game/engine';
 import { worldConfig, templates, itemDefinitions as staticItemDefinitions } from '@/lib/game/config';
 import { recipes } from "@/lib/game/recipes";
-import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region, GameState, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe } from "@/lib/game/types";
+import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region, GameState, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, RecipeIngredient } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
 
@@ -1014,32 +1014,39 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
         handleGameTick();
     }
 
+    const getPossibleItemsForIngredient = (ingredient: RecipeIngredient): { name: string, tier: 1 | 2 | 3}[] => {
+        const options = [{ name: ingredient.name, tier: 1 as const }];
+        if (ingredient.alternatives) {
+            options.push(...ingredient.alternatives);
+        }
+        return options.sort((a, b) => (a.tier || 1) - (b.tier || 1)); // Sort by best tier first
+    };
+
     const handleCraft = useCallback((recipe: Recipe) => {
-        // This is the new, intelligent crafting logic that handles substitutes.
-        // 1. Determine the exact items to consume.
+        // For now, crafting is always successful if ingredients are available.
+        // The probabilistic system will be added in a future update.
         const itemsToConsume: { name: string, quantity: number }[] = [];
         const tempPlayerItems = new Map(playerStats.items.map(item => [item.name, item.quantity]));
         let canCraft = true;
 
         for (const ing of recipe.ingredients) {
             let foundItemForIngredient: string | null = null;
-            // Check primary item first
-            if ((tempPlayerItems.get(ing.name) || 0) >= ing.quantity) {
-                foundItemForIngredient = ing.name;
-            } 
-            // If primary not available, check alternatives
-            else if (ing.alternatives) {
-                for (const altName of ing.alternatives) {
-                    if ((tempPlayerItems.get(altName) || 0) >= ing.quantity) {
-                        foundItemForIngredient = altName;
-                        break;
-                    }
+            const possibleItems = getPossibleItemsForIngredient(ing);
+            
+            for (const possibleItem of possibleItems) {
+                 if ((tempPlayerItems.get(possibleItem.name) || 0) >= ing.quantity) {
+                    foundItemForIngredient = possibleItem.name;
+                    break;
                 }
             }
 
             if (foundItemForIngredient) {
-                itemsToConsume.push({ name: foundItemForIngredient, quantity: ing.quantity });
-                // "Spend" the items from the temporary inventory for the next check
+                const existing = itemsToConsume.find(i => i.name === foundItemForIngredient);
+                if (existing) {
+                    existing.quantity += ing.quantity;
+                } else {
+                    itemsToConsume.push({ name: foundItemForIngredient, quantity: ing.quantity });
+                }
                 tempPlayerItems.set(foundItemForIngredient, tempPlayerItems.get(foundItemForIngredient)! - ing.quantity);
             } else {
                 canCraft = false;
@@ -1052,9 +1059,6 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
             return;
         }
 
-        // For now, crafting is always successful if ingredients are available.
-        // The probabilistic system will be added in a future update.
-
         // 2. Remove consumed ingredients from player's inventory
         let updatedItems = [...playerStats.items];
         itemsToConsume.forEach(itemToConsume => {
@@ -1063,7 +1067,6 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                 updatedItems[itemIndex].quantity -= itemToConsume.quantity;
             }
         });
-        // Filter out items with zero quantity
         updatedItems = updatedItems.filter(i => i.quantity > 0);
 
         // 3. Add the crafted item

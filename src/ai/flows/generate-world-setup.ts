@@ -16,6 +16,9 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import type { Terrain } from '@/lib/game/types';
+
+const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave"];
 
 // == STEP 1: DEFINE THE INPUT SCHEMA ==
 // This defines the "contract" for calling our AI.
@@ -30,20 +33,36 @@ export type GenerateWorldSetupInput = z.infer<typeof GenerateWorldSetupInputSche
 // == STEP 2: DEFINE THE OUTPUT SCHEMA(S) ==
 // We first define the schema for a single, complete world idea.
 // This forces the AI to structure its response, making it reliable.
-const WorldConceptSchema = z.object({
-  worldName: z.string().describe('A cool and fitting name for this world.'),
-  initialNarrative: z.string().describe('A detailed, engaging opening narrative to start the game. This should set the scene for the player.'),
-  startingBiome: z.enum(["forest", "grassland", "desert", "swamp", "mountain", "cave"]).describe('The primary biome for the starting area. Must be one of: forest, grassland, desert, swamp, mountain, cave.'),
-  playerInventory: z.array(z.object({
+
+const GeneratedItemSchema = z.object({
     name: z.string().describe("A unique and thematic name for the item."),
-    quantity: z.number().int().min(1),
-    tier: z.number().int().min(1).max(6).describe("The tier of the item, from 1 (common) to 6 (legendary)."),
     description: z.string().describe("A flavorful, one-sentence description of the item."),
+    tier: z.number().int().min(1).max(6).describe("The tier of the item, from 1 (common) to 6 (legendary)."),
     effects: z.array(z.object({
         type: z.enum(['HEAL', 'RESTORE_STAMINA']).describe("The type of effect the item has."),
         amount: z.number().describe("The numerical power of the effect (e.g., the amount of HP to heal).")
-    })).min(1).describe("An array of effects the item provides. Should have at least one effect.")
-  })).length(2, 3).describe('A list of 2-3 starting items for the player, fitting the world theme. You must invent these items.'),
+    })).describe("An array of effects the item provides. Can be empty for non-consumable items."),
+    baseQuantity: z.object({
+        min: z.number().int().min(1),
+        max: z.number().int().min(1)
+    }).describe("The typical quantity range this item is found in."),
+    spawnBiomes: z.array(z.enum(allTerrains)).min(1).describe("An array of one or more biomes where this item can naturally be found."),
+});
+
+const WorldConceptSchema = z.object({
+  worldName: z.string().describe('A cool and fitting name for this world.'),
+  initialNarrative: z.string().describe('A detailed, engaging opening narrative to start the game. This should set the scene for the player.'),
+  startingBiome: z.enum(allTerrains).describe('The primary biome for the starting area.'),
+  
+  // The full catalog of unique items for this world.
+  customItemCatalog: z.array(GeneratedItemSchema).min(10).max(15).describe("A catalog of 10-15 unique, thematic items invented for this specific world. These items will be found by the player as they explore."),
+  
+  // The player's starting inventory, which should be a subset of the catalog.
+  playerInventory: z.array(z.object({
+    name: z.string().describe("The name of the item, which MUST match an item from the customItemCatalog."),
+    quantity: z.number().int().min(1),
+  })).min(2).max(3).describe('A list of 2-3 starting items for the player, chosen from the customItemCatalog you just generated.'),
+
   initialQuests: z.array(z.string()).describe('A list of 1-2 starting quests for the player to begin their adventure.'),
 });
 export type WorldConcept = z.infer<typeof WorldConceptSchema>;
@@ -80,23 +99,25 @@ const worldSetupPrompt = ai.definePrompt({
     schema: GenerateWorldSetupOutputSchema,
   },
   prompt: `You are a creative and brilliant Game Master, designing a new text-based adventure game.
-A player has provided you with an idea. Your task is to take their input, expand upon it, and generate THREE DISTINCT AND VARIED concepts for a compelling starting point. Each concept should be a unique take on the user's idea.
+A player has provided you with an idea. Your task is to take their input, expand upon it, and generate THREE DISTINCT AND VARIED concepts for a compelling game world. Each concept should be a unique take on the user's idea.
 
 If their input is vague or short, be highly imaginative and create three very different interpretations.
 
 Player's Idea: {{{userInput}}}
 
-For EACH of the three concepts, generate the following:
+For EACH of the three concepts, you must generate the following:
 1.  **World Name:** A cool, evocative name for the world.
 2.  **Initial Narrative:** A rich, descriptive opening paragraph.
 3.  **Starting Biome:** The biome where the player begins (forest, grassland, desert, swamp, mountain, or cave).
-4.  **Player Inventory:** You must INVENT 2 or 3 thematically appropriate starting items. For each item, you must define:
+4.  **Custom Item Catalog:** This is the most important step. You must INVENT a catalog of 10 to 15 unique, thematically appropriate items that will be found throughout this world. For each item in the catalog, you must define:
     *   **name**: A creative and unique name.
-    *   **quantity**: A reasonable starting quantity.
-    *   **tier**: A tier from 1 (common) to 6 (legendary).
     *   **description**: A one-sentence flavorful description.
-    *   **effects**: An array of one or more effects, like healing HP or restoring stamina, with an appropriate amount. Example: \`[{ "type": "HEAL", "amount": 25 }]\`.
-5.  **Initial Quests:** One or two simple starting quests.
+    *   **tier**: A tier from 1 (common) to 6 (legendary).
+    *   **effects**: An array of one or more effects, like healing HP or restoring stamina. This can be an empty array \`[]\` for items that are not consumable. Example: \`[{ "type": "HEAL", "amount": 25 }]\`.
+    *   **baseQuantity**: The typical quantity range this item is found in (e.g., min 1, max 3).
+    *   **spawnBiomes**: An array of one or more biome names where this item can be found (e.g., ["forest", "swamp"]).
+5.  **Player Inventory:** After creating the item catalog, select 2-3 items from that catalog to give to the player as their starting equipment. You only need to provide the item's name and a starting quantity.
+6.  **Initial Quests:** One or two simple starting quests.
 
 Provide the response in the required JSON format, as an object with a 'concepts' array containing the three generated world concepts.
 ALL TEXT in the response (worldName, initialNarrative, item names, item descriptions, initialQuests) MUST be in the language corresponding to this code: {{language}}.

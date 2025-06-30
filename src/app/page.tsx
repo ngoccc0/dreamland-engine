@@ -8,10 +8,12 @@ import { LanguageSelector } from '@/components/game/language-selector';
 import type { GameState, PlayerItem, ItemDefinition, GeneratedItem } from '@/lib/game/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { itemDefinitions as staticItemDefinitions } from '@/lib/game/config';
 
 type NewGameData = {
-  worldSetup: Omit<WorldConcept, 'playerInventory'> & { playerInventory: PlayerItem[] };
+  worldSetup: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[] };
   customItemDefinitions: Record<string, ItemDefinition>;
+  customItemCatalog: GeneratedItem[];
 }
 
 export default function Home() {
@@ -59,33 +61,42 @@ export default function Home() {
   };
 
   const onWorldCreated = (world: WorldConcept) => {
-    // 1. Transform AI-generated inventory into player items and custom definitions
-    const initialPlayerItems: PlayerItem[] = world.playerInventory.map(item => ({
-        name: item.name,
-        quantity: item.quantity,
-        tier: item.tier
-    }));
-
-    const initialCustomItemDefs: Record<string, ItemDefinition> = (world.playerInventory as GeneratedItem[]).reduce((acc, item) => {
+    // 1. Process the AI's custom item catalog into the format the game engine uses.
+    const customDefs: Record<string, ItemDefinition> = world.customItemCatalog.reduce((acc, item) => {
         acc[item.name] = {
             description: item.description,
             tier: item.tier,
             effects: item.effects,
-            baseQuantity: { min: item.quantity, max: item.quantity }
+            baseQuantity: item.baseQuantity,
         };
         return acc;
     }, {} as Record<string, ItemDefinition>);
 
-    // 2. Create a version of the world setup suitable for the GameLayout
+    // Combine with static definitions, allowing customs to override.
+    const allItemDefinitions = { ...staticItemDefinitions, ...customDefs };
+
+    // 2. Transform the AI's chosen starting inventory into player items.
+    // We need to look up the tier from the definitions we just created.
+    const initialPlayerItems: PlayerItem[] = world.playerInventory.map(item => ({
+        name: item.name,
+        quantity: item.quantity,
+        tier: allItemDefinitions[item.name]?.tier || 1 // Get tier from the combined list
+    }));
+
+    // 3. Create a version of the world setup suitable for the GameLayout
     const worldSetupForLayout = {
-        ...world,
+        worldName: world.worldName,
+        initialNarrative: world.initialNarrative,
+        startingBiome: world.startingBiome,
+        initialQuests: world.initialQuests,
         playerInventory: initialPlayerItems,
     };
     
-    // 3. Set the complete new game data in state
+    // 4. Set the complete new game data in state
     setNewGameData({
         worldSetup: worldSetupForLayout,
-        customItemDefinitions: initialCustomItemDefs,
+        customItemDefinitions: allItemDefinitions,
+        customItemCatalog: world.customItemCatalog, // Pass the raw catalog for spawning logic
     });
   };
 
@@ -131,5 +142,9 @@ export default function Home() {
     return <WorldSetup onWorldCreated={onWorldCreated} />;
   }
   
-  return <GameLayout worldSetup={newGameData.worldSetup} customItemDefinitions={newGameData.customItemDefinitions} />;
+  return <GameLayout 
+            worldSetup={newGameData.worldSetup} 
+            customItemDefinitions={newGameData.customItemDefinitions}
+            customItemCatalog={newGameData.customItemCatalog}
+          />;
 }

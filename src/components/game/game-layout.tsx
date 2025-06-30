@@ -20,17 +20,18 @@ import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/gener
 
 // Import modularized game engine components
 import { generateRegion, getValidAdjacentTerrains, weightedRandom } from '@/lib/game/engine';
-import { worldConfig, templates } from '@/lib/game/config';
-import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region, GameState, Terrain, PlayerItem, ChunkItem, ItemDefinition } from "@/lib/game/types";
+import { worldConfig, templates, itemDefinitions as staticItemDefinitions } from '@/lib/game/config';
+import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region, GameState, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem } from "@/lib/game/types";
 
 
 interface GameLayoutProps {
-    worldSetup?: Omit<WorldConcept, 'playerInventory'> & { playerInventory: PlayerItem[] };
+    worldSetup?: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[] };
     initialGameState?: GameState;
     customItemDefinitions?: Record<string, ItemDefinition>;
+    customItemCatalog?: GeneratedItem[];
 }
 
-export default function GameLayout({ worldSetup, initialGameState, customItemDefinitions: initialCustomDefs }: GameLayoutProps) {
+export default function GameLayout({ worldSetup, initialGameState, customItemDefinitions: initialCustomDefs, customItemCatalog: initialCustomCatalog }: GameLayoutProps) {
     const { t, language } = useLanguage();
     
     // --- State for Global World Settings ---
@@ -69,7 +70,11 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
             }
         }
     );
-    const [customItemDefinitions, setCustomItemDefinitions] = useState<Record<string, ItemDefinition>>(initialGameState?.customItemDefinitions || initialCustomDefs || {});
+    // The full definition of all items (static + custom) for use by tools
+    const [customItemDefinitions, setCustomItemDefinitions] = useState<Record<string, ItemDefinition>>(initialGameState?.customItemDefinitions || initialCustomDefs || staticItemDefinitions);
+    // The catalog of AI-generated items for spawning purposes
+    const [customItemCatalog, setCustomItemCatalog] = useState<GeneratedItem[]>(initialGameState?.customItemCatalog || initialCustomCatalog || []);
+
     
     const [isStatusOpen, setStatusOpen] = useState(false);
     const [isInventoryOpen, setInventoryOpen] = useState(false);
@@ -148,7 +153,9 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                 {}, 
                 0,
                 worldProfile,
-                currentSeason
+                currentSeason,
+                customItemDefinitions, // Pass definitions
+                customItemCatalog      // Pass catalog
             );
             
             const startKey = `${startPos.x},${startPos.y}`;
@@ -180,6 +187,7 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
             narrativeLog,
             worldSetup: finalWorldSetup,
             customItemDefinitions,
+            customItemCatalog,
         };
 
         try {
@@ -198,7 +206,8 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
         playerStats,
         narrativeLog,
         finalWorldSetup,
-        customItemDefinitions
+        customItemDefinitions,
+        customItemCatalog
     ]);
 
 
@@ -238,7 +247,9 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
             currentRegions, 
             currentRegionCounter,
             worldProfile,
-            currentSeason
+            currentSeason,
+            customItemDefinitions, // Pass definitions
+            customItemCatalog      // Pass catalog
         );
         
         return { 
@@ -247,7 +258,7 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
             regions: result.newRegions,
             regionCounter: result.newRegionCounter
         };
-    }, [worldProfile, currentSeason]);
+    }, [worldProfile, currentSeason, customItemDefinitions, customItemCatalog]);
     
     // Proactively generate the world around the player after they move.
     useEffect(() => {
@@ -280,7 +291,9 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                             regionsSnapshot, 
                             regionCounterSnapshot,
                             worldProfile,
-                            currentSeason
+                            currentSeason,
+                            customItemDefinitions,
+                            customItemCatalog
                         );
                         
                         worldSnapshot = result.newWorld;

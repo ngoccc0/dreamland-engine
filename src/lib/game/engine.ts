@@ -1,5 +1,5 @@
-import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season } from "./types";
-import { seasonConfig, templates, worldConfig, itemDefinitions } from "./config";
+import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem } from "./types";
+import { seasonConfig, templates, worldConfig, itemDefinitions as staticItemDefinitions } from "./config";
 
 // --- HELPER FUNCTIONS ---
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
@@ -40,6 +40,7 @@ const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 'descri
 const selectEntities = <T extends {name: string, conditions: SpawnConditions} | {data: any, conditions: SpawnConditions}>(
     possibleEntities: T[],
     chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy'>,
+    allItemDefinitions: Record<string, ItemDefinition>, // Pass in all definitions
     maxCount: number = 3
 ): any[] => {
     const validEntities = possibleEntities.filter(entity => checkConditions(entity.conditions, chunk));
@@ -57,8 +58,8 @@ const selectEntities = <T extends {name: string, conditions: SpawnConditions} | 
         const entityData = 'data' in entity ? entity.data : entity;
         const itemName = entityData.name || entityData.type || entityData;
 
-        // For items, check the central catalog for the tier
-        const itemDef = itemDefinitions[itemName];
+        // For items, check the definition catalog for the tier
+        const itemDef = allItemDefinitions[itemName];
         if (itemDef) {
             const tier = itemDef.tier;
             // Reduce spawn chance by 50% for each tier above 1.
@@ -197,7 +198,9 @@ function calculateDependentChunkAttributes(
  */
 function generateChunkContent(
     chunkData: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy'>,
-    worldProfile: WorldProfile
+    worldProfile: WorldProfile,
+    allItemDefinitions: Record<string, ItemDefinition>,
+    customItemCatalog: GeneratedItem[]
 ) {
     const template = templates[chunkData.terrain];
 
@@ -207,11 +210,20 @@ function generateChunkContent(
     const feature = template.features[Math.floor(Math.random() * template.features.length)];
     let finalDescription = baseDescriptionTemplate.replace('[adjective]', adjective).replace('[feature]', feature);
     
-    // --- Generate Items from central catalog ---
-    const spawnedItemRefs = selectEntities(template.items, chunkData, 3);
+    // --- Create a combined list of all possible items for this biome ---
+    const staticSpawnCandidates = template.items;
+    const customSpawnCandidates = customItemCatalog
+        .filter(item => item.spawnBiomes.includes(chunkData.terrain))
+        .map(item => ({ name: item.name, conditions: { chance: 0.15 } })); // Give custom items a base chance
+    
+    const allSpawnCandidates = [...staticSpawnCandidates, ...customSpawnCandidates];
+
+    // --- Generate Items from the combined list ---
+    const spawnedItemRefs = selectEntities(allSpawnCandidates, chunkData, allItemDefinitions, 3);
     const spawnedItems: ChunkItem[] = [];
+
     for (const itemRef of spawnedItemRefs) {
-        const itemDef = itemDefinitions[itemRef.name];
+        const itemDef = allItemDefinitions[itemRef.name];
         if (itemDef) {
             const baseQuantity = getRandomInRange(itemDef.baseQuantity);
             const multiplier = worldProfile.resourceDensity / 5.0;
@@ -229,8 +241,8 @@ function generateChunkContent(
     }
     
     // NPCs & Enemies (still using old system for now)
-    const spawnedNPCs = selectEntities(template.NPCs, chunkData, 1);
-    const spawnedEnemies = selectEntities(template.enemies, chunkData, 1);
+    const spawnedNPCs = selectEntities(template.NPCs, chunkData, allItemDefinitions, 1);
+    const spawnedEnemies = selectEntities(template.enemies, chunkData, allItemDefinitions, 1);
     const enemyData = spawnedEnemies.length > 0 ? spawnedEnemies[0] : null;
     const spawnedEnemy = enemyData ? { ...enemyData, satiation: 0 } : null;
 
@@ -273,7 +285,9 @@ export const generateRegion = (
     currentRegions: { [id: number]: Region }, 
     currentRegionCounter: number,
     worldProfile: WorldProfile,
-    currentSeason: Season
+    currentSeason: Season,
+    allItemDefinitions: Record<string, ItemDefinition>, // Pass in all definitions
+    customItemCatalog: GeneratedItem[]                   // Pass in custom catalog for spawning
 ) => {
     const newWorld = { ...currentWorld };
     const newRegions = { ...currentRegions };
@@ -341,7 +355,7 @@ export const generateRegion = (
         };
 
         // Step 4: Generate content based on the final chunk data
-        const content = generateChunkContent(tempChunkData, worldProfile);
+        const content = generateChunkContent(tempChunkData, worldProfile, allItemDefinitions, customItemCatalog);
         
         newWorld[posKey] = {
             ...tempChunkData,

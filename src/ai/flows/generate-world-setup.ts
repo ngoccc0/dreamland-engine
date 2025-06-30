@@ -176,7 +176,7 @@ const generateWorldSetupFlow = ai.defineFlow(
     
     // Task B: Generate Narrative Concepts (using OpenAI)
     const narrativeConceptsTask = ai.generate({
-        model: 'genkitx-openai/gpt-3.5-turbo',
+        model: 'openai/gpt-3.5-turbo',
         prompt: narrativeConceptsFinalPrompt,
         output: { schema: NarrativeConceptArraySchema },
     });

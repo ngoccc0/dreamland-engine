@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
-import type { PlayerItem, Recipe } from "@/lib/game/types";
+import type { PlayerItem, Recipe, RecipeIngredient } from "@/lib/game/types";
 import { recipes } from "@/lib/game/recipes";
 import { Hammer } from "lucide-react";
 
@@ -17,12 +17,44 @@ interface CraftingPopupProps {
   onCraft: (recipe: Recipe) => void;
 }
 
-const hasIngredients = (playerItems: PlayerItem[], ingredients: { name: string; quantity: number }[]) => {
-  return ingredients.every(ingredient => {
-    const playerItem = playerItems.find(item => item.name === ingredient.name);
-    return playerItem && playerItem.quantity >= ingredient.quantity;
-  });
+// This check is now smarter, allowing for substitutes.
+// It confirms if a craft is *possible* with any combination of available items.
+const hasIngredients = (playerItems: PlayerItem[], ingredients: RecipeIngredient[]) => {
+  // Use a map to track available items to "spend" them during the check.
+  const availableItems = new Map(playerItems.map(item => [item.name, item.quantity]));
+
+  for (const ingredient of ingredients) {
+    let satisfied = false;
+    // The list of possible items includes the primary one and any alternatives.
+    const possibleItems = [ingredient.name, ...(ingredient.alternatives || [])];
+
+    for (const itemName of possibleItems) {
+      if ((availableItems.get(itemName) || 0) >= ingredient.quantity) {
+        satisfied = true;
+        break; // Found a valid item for this ingredient, move to the next ingredient.
+      }
+    }
+    
+    if (!satisfied) {
+      return false; // If any single ingredient cannot be satisfied, the craft is impossible.
+    }
+  }
+
+  return true; // All ingredients were satisfied.
 };
+
+// Helper to find the player's quantity of a specific ingredient, including substitutes
+const getPlayerQuantity = (playerItems: PlayerItem[], ingredient: RecipeIngredient) => {
+    const possibleItems = [ingredient.name, ...(ingredient.alternatives || [])];
+    let total = 0;
+    for(const itemName of possibleItems) {
+        const playerItem = playerItems.find(pi => pi.name === itemName);
+        if(playerItem) {
+            total += playerItem.quantity;
+        }
+    }
+    return total;
+}
 
 export function CraftingPopup({ open, onOpenChange, playerItems, onCraft }: CraftingPopupProps) {
   const { t } = useLanguage();
@@ -50,13 +82,27 @@ export function CraftingPopup({ open, onOpenChange, playerItems, onCraft }: Craf
                       <span className="font-semibold">{t('ingredients')}:</span>
                       <ul className="list-disc list-inside ml-4">
                         {recipe.ingredients.map(ing => {
-                          const playerItem = playerItems.find(pi => pi.name === ing.name);
-                          const playerQty = playerItem ? playerItem.quantity : 0;
+                          const playerQty = getPlayerQuantity(playerItems, ing);
                           const hasEnough = playerQty >= ing.quantity;
+                          
+                          // Tooltip to show alternatives
+                          const alternativesTooltip = ing.alternatives?.length 
+                            ? ` (hoặc: ${ing.alternatives.join(', ')})`
+                            : '';
+
                           return (
-                            <li key={ing.name} className={hasEnough ? 'text-green-400' : 'text-red-400'}>
-                              {ing.name} ({playerQty}/{ing.quantity})
-                            </li>
+                            <TooltipProvider key={ing.name}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <li className={hasEnough ? 'text-green-400' : 'text-red-400'}>
+                                    {ing.name} ({playerQty}/{ing.quantity})
+                                  </li>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Cần: {ing.name}{alternativesTooltip}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           )
                         })}
                       </ul>

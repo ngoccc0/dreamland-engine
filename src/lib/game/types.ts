@@ -239,8 +239,14 @@ export interface GeneratedItem {
     }
 }
 
+export interface RecipeIngredient {
+    name: string; // The primary/ideal ingredient
+    quantity: number;
+    alternatives?: string[]; // A list of substitute item names
+}
+
 export interface Recipe {
     result: { name: string; quantity: number };
-    ingredients: { name: string; quantity: number }[];
+    ingredients: RecipeIngredient[];
     description: string;
 }

@@ -4,9 +4,9 @@ export const recipes: Record<string, Recipe> = {
     'Rìu Đá Đơn Giản': {
         result: { name: 'Rìu Đá Đơn Giản', quantity: 1 },
         ingredients: [
-            { name: 'Cành Cây Chắc Chắn', quantity: 2 },
-            { name: 'Đá Cuội', quantity: 1 },
-            { name: 'Dây Gai', quantity: 1 }
+            { name: 'Cành Cây Chắc Chắn', quantity: 1, alternatives: ['Lõi Gỗ'] },
+            { name: 'Đá Cuội', quantity: 1, alternatives: ['Đá Lửa', 'Đá Granit'] },
+            { name: 'Dây Gai', quantity: 1, alternatives: ['Tơ Nhện Khổng lồ', 'Da Thú Nhỏ'] }
         ],
         description: 'Chế tạo một chiếc rìu đá cơ bản. Công cụ cần thiết để sinh tồn.',
     },
@@ -14,7 +14,7 @@ export const recipes: Record<string, Recipe> = {
         result: { name: 'Thuốc Máu Yếu', quantity: 1 },
         ingredients: [
             { name: 'Thảo Dược Chữa Lành', quantity: 1 },
-            { name: 'Nước Ngầm', quantity: 1 }
+            { name: 'Nước Ngầm', quantity: 1, alternatives: ['Nước Bùn'] }
         ],
         description: 'Pha chế một lọ thuốc hồi máu từ thảo dược và nước sạch.',
     },

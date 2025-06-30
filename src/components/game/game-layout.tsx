@@ -1015,28 +1015,58 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
     }
 
     const handleCraft = useCallback((recipe: Recipe) => {
-        // 1. Check if player has ingredients (redundant check, but safe)
-        const canCraft = recipe.ingredients.every(ing => {
-            const playerItem = playerStats.items.find(i => i.name === ing.name);
-            return playerItem && playerItem.quantity >= ing.quantity;
-        });
+        // This is the new, intelligent crafting logic that handles substitutes.
+        // 1. Determine the exact items to consume.
+        const itemsToConsume: { name: string, quantity: number }[] = [];
+        const tempPlayerItems = new Map(playerStats.items.map(item => [item.name, item.quantity]));
+        let canCraft = true;
+
+        for (const ing of recipe.ingredients) {
+            let foundItemForIngredient: string | null = null;
+            // Check primary item first
+            if ((tempPlayerItems.get(ing.name) || 0) >= ing.quantity) {
+                foundItemForIngredient = ing.name;
+            } 
+            // If primary not available, check alternatives
+            else if (ing.alternatives) {
+                for (const altName of ing.alternatives) {
+                    if ((tempPlayerItems.get(altName) || 0) >= ing.quantity) {
+                        foundItemForIngredient = altName;
+                        break;
+                    }
+                }
+            }
+
+            if (foundItemForIngredient) {
+                itemsToConsume.push({ name: foundItemForIngredient, quantity: ing.quantity });
+                // "Spend" the items from the temporary inventory for the next check
+                tempPlayerItems.set(foundItemForIngredient, tempPlayerItems.get(foundItemForIngredient)! - ing.quantity);
+            } else {
+                canCraft = false;
+                break;
+            }
+        }
 
         if (!canCraft) {
             toast({ title: t('error'), description: t('notEnoughIngredients'), variant: "destructive" });
             return;
         }
 
-        // 2. Remove ingredients
+        // For now, crafting is always successful if ingredients are available.
+        // The probabilistic system will be added in a future update.
+
+        // 2. Remove consumed ingredients from player's inventory
         let updatedItems = [...playerStats.items];
-        recipe.ingredients.forEach(ing => {
-            const itemIndex = updatedItems.findIndex(i => i.name === ing.name);
+        itemsToConsume.forEach(itemToConsume => {
+            const itemIndex = updatedItems.findIndex(i => i.name === itemToConsume.name);
             if (itemIndex > -1) {
-                updatedItems[itemIndex].quantity -= ing.quantity;
+                updatedItems[itemIndex].quantity -= itemToConsume.quantity;
             }
         });
+        // Filter out items with zero quantity
         updatedItems = updatedItems.filter(i => i.quantity > 0);
 
-        // 3. Add result
+        // 3. Add the crafted item
         const resultItem = updatedItems.find(i => i.name === recipe.result.name);
         const itemDef = customItemDefinitions[recipe.result.name];
         if (resultItem) {
@@ -1053,7 +1083,9 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
         setPlayerStats(prev => ({ ...prev, items: updatedItems }));
         addNarrativeEntry(t('craftSuccess', { itemName: recipe.result.name }), 'system');
         toast({ title: t('craftSuccessTitle'), description: t('craftSuccess', { itemName: recipe.result.name }) });
-    }, [playerStats.items, customItemDefinitions, addNarrativeEntry, toast, t]);
+        handleGameTick();
+    }, [playerStats.items, customItemDefinitions, addNarrativeEntry, toast, t, handleGameTick]);
+
 
     const generateMapGrid = useCallback((): MapCell[][] => {
         const radius = 2; // This creates a 5x5 grid

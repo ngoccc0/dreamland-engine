@@ -17,6 +17,8 @@ import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerIt
 import { playerAttackTool, takeItemTool, useItemTool } from '@/ai/tools/game-actions';
 
 // == STEP 1: DEFINE THE INPUT SCHEMA ==
+const SuccessLevelSchema = z.enum(['CriticalFailure', 'Failure', 'Success', 'GreatSuccess', 'CriticalSuccess']);
+
 const GenerateNarrativeInputSchema = z.object({
   worldName: z.string().describe("The name of the game world."),
   playerAction: z.string().describe("The action the player just performed. E.g., 'move north', 'attack wolf', 'explore area', 'pick up Healing Herb'."),
@@ -25,6 +27,8 @@ const GenerateNarrativeInputSchema = z.object({
   recentNarrative: z.array(z.string()).describe("The last few entries from the narrative log to provide conversational context."),
   language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
   customItemDefinitions: z.record(ItemDefinitionSchema).optional().describe("An optional map of AI-generated item definitions specific to this game world."),
+  diceRoll: z.number().describe("The result of a d20 dice roll (1-20)."),
+  successLevel: SuccessLevelSchema.describe("The categorized outcome of the dice roll."),
 });
 export type GenerateNarrativeInput = z.infer<typeof GenerateNarrativeInputSchema>;
 
@@ -65,28 +69,38 @@ const narrativePrompt = ai.definePrompt({
     output: { schema: AINarrativeResponseSchema },
     tools: [playerAttackTool, takeItemTool, useItemTool],
     prompt: `You are the Game Master for a text-based adventure game called '{{worldName}}'.
-Your role is to be a dynamic and creative storyteller. You will receive the player's action and the game state. Your primary job is to call the correct tool to execute the action, and then use the tool's result to write a compelling narrative.
+Your role is to be a dynamic and creative storyteller. You will receive the player's action, the result of a d20 dice roll, and the game state. Your primary job is to call the correct tool to execute the action (if necessary), and then use the tool's result AND the dice roll outcome to write a compelling narrative.
+
+**Dice Rolls & Success Levels:**
+All player actions are accompanied by a d20 roll, categorized into a success level. Your narrative MUST strictly follow this outcome.
+- **CriticalFailure (Roll: 1):** The action fails spectacularly, backfires, or has a negative, unintended consequence.
+- **Failure (Roll: 2-8):** The action simply fails. No progress is made.
+- **Success (Roll: 9-16):** The action succeeds as expected. This is the normal outcome.
+- **GreatSuccess (Roll: 17-19):** The action succeeds with an extra bonus, flair, or positive detail.
+- **CriticalSuccess (Roll: 20):** An amazing, legendary outcome. The action succeeds beyond all expectations, providing a significant advantage or revealing something new.
 
 **Your Primary Rules:**
-1.  **Use Tools for Actions:** You MUST use the provided tools to handle game logic.
-    *   If the player's action is to attack, call the \`playerAttack\` tool with the current player and enemy status. **You MUST also pass the \`lightLevel\` and \`moisture\` values from the \`currentChunk\` context into the tool's corresponding parameters. This is crucial for environmental combat effects.**
-    *   If the player's action is to take an item (e.g., "pick up Healing Herb"), find the item in the chunk's item list and call the \`takeItem\` tool.
-    *   If the player's action is to use an item (e.g., "use Potion"), call the \`useItem\` tool. When calling \`useItem\`, you MUST pass the \`customItemDefinitions\` from your input context into the tool's \`customItemDefinitions\` parameter. This is critical for using AI-generated items.
-    *   For simple exploration or observation, you do not need to call a tool.
-2.  **Narrate the Results:** After the tool provides a result, your job is to craft a story around it. DO NOT invent outcomes or numbers. If the tool says the player took 10 damage, narrate that. **If the tool provides a \`combatLog\`, use that information to explain *why* the outcome was what it was (e.g., "The thick fog made your swing go wide...").** If an enemy was defeated, describe its dramatic demise.
-3.  **Be a Storyteller:** Write an engaging, descriptive narrative (2-4 sentences) that brings the world to life. Incorporate details from the environment, like the weather or the creature's status (e.g., "The wolf looks hungry...").
-4.  **Language and Translation:** Your entire response MUST be in the language corresponding to this code: {{language}}. The context you receive is primarily in Vietnamese. You MUST translate these names and concepts into the target language before using them in your narrative. For example, if the input shows an enemy "Sói", refer to it as "Wolf" in your English response.
+1.  **Respect the Dice:** The \`successLevel\` is the absolute source of truth for the outcome. If the level is 'Failure', you MUST narrate a failure, even if a tool is called. If the level is 'CriticalSuccess', narrate a legendary outcome.
+2.  **Use Tools for Logic:** You MUST use the provided tools to handle game logic.
+    *   If the player's action is to attack, call the \`playerAttack\` tool. The tool calculates the base damage. **Your narration should then modify this based on the \`successLevel\`**. A 'Success' is normal damage. A 'GreatSuccess' might be a well-aimed shot that does a bit more. A 'Failure' could be a complete miss.
+    *   If the player's action is to take or use an item, call the appropriate tool. A 'Failure' might mean the player fumbles and drops the item, so the tool action doesn't complete.
+    *   For simple exploration or observation, you do not need to call a tool, but the \`successLevel\` still dictates what the player finds. A 'Failure' might mean they see nothing, while a 'CriticalSuccess' could reveal a hidden passage.
+3.  **Narrate the Results:** Combine the dice outcome and any tool results to craft a story. DO NOT invent outcomes or numbers that contradict the dice or tools. If a tool provides a \`combatLog\`, use it.
+4.  **Be a Storyteller:** Write an engaging, descriptive narrative (2-4 sentences) that brings the world to life.
+5.  **Language and Translation:** Your entire response MUST be in the language corresponding to this code: {{language}}.
 
 **Context:**
 - Player's Action: {{{playerAction}}}
+- Dice Roll: {{diceRoll}} ({{successLevel}})
 - Player's Status: {{json playerStatus}}
 - Current Environment (Chunk): {{json currentChunk}}
 - Recent Events: {{json recentNarrative}}
 - Custom Item Definitions: {{json customItemDefinitions}}
 
 **Task:**
-1.  Analyze the player's action and call the appropriate tool.
-2.  Based on the tool's output, generate the narrative and an optional system message in the required JSON format.
+1.  Analyze the player's action and the \`successLevel\`.
+2.  If the action involves game logic (attack, use item), call the appropriate tool.
+3.  Based on the tool's output AND the dice roll \`successLevel\`, generate the narrative and an optional system message in the required JSON format.
 `,
 });
 

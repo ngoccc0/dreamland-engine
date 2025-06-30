@@ -23,10 +23,29 @@ import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeath
 import { worldConfig, templates, itemDefinitions as staticItemDefinitions } from '@/lib/game/config';
 import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region, GameState, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
+import type { TranslationKey } from "@/lib/i18n";
 
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
 
+// --- DICE ROLL HELPERS ---
+type SuccessLevel = 'CriticalFailure' | 'Failure' | 'Success' | 'GreatSuccess' | 'CriticalSuccess';
+
+function getSuccessLevel(roll: number): SuccessLevel {
+    if (roll === 1) return 'CriticalFailure';
+    if (roll <= 8) return 'Failure';
+    if (roll <= 16) return 'Success';
+    if (roll <= 19) return 'GreatSuccess';
+    return 'CriticalSuccess'; // for roll === 20
+}
+
+const successLevelToTranslationKey: Record<SuccessLevel, TranslationKey> = {
+    CriticalFailure: 'criticalFailure',
+    Failure: 'failure',
+    Success: 'success',
+    GreatSuccess: 'greatSuccess',
+    CriticalSuccess: 'criticalSuccess',
+}
 
 interface GameLayoutProps {
     worldSetup?: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[] };
@@ -584,6 +603,12 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
             return;
         }
 
+        // --- NEW DICE ROLL LOGIC ---
+        const diceRoll = Math.floor(Math.random() * 20) + 1;
+        const successLevel = getSuccessLevel(diceRoll);
+        const successLevelKey = successLevelToTranslationKey[successLevel];
+        addNarrativeEntry(t('diceRollMessage', { roll: diceRoll, level: t(successLevelKey) }), 'system');
+
         // Apply dynamic weather effects to the chunk before sending to the AI
         const currentChunk = getEffectiveChunk(baseChunk);
 
@@ -615,6 +640,8 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                 recentNarrative: narrativeLog.slice(-5).map(e => e.text),
                 language,
                 customItemDefinitions,
+                diceRoll,
+                successLevel,
             };
 
             const result = await generateNarrative(input);

@@ -116,6 +116,14 @@ export const translations = {
     example2: "A high-fantasy kingdom floating on clouds.",
     example3: "A cyberpunk noir detective story on Mars.",
     example4: "A peaceful village of talking animals with a dark secret.",
+
+    // Dice Rolls
+    diceRollMessage: "You roll a d20... It's a {roll}! ({level})",
+    criticalFailure: "Critical Failure",
+    failure: "Failure",
+    success: "Success",
+    greatSuccess: "Great Success",
+    criticalSuccess: "Critical Success",
   },
   vi: {
     // Language Selector
@@ -234,8 +242,16 @@ export const translations = {
     example2: "Một vương quốc giả tưởng cao trên mây.",
     example3: "Một câu chuyện trinh thám cyberpunk noir trên Sao Hỏa.",
     example4: "Một ngôi làng yên bình của các loài động vật biết nói với một bí mật đen tối.",
+    
+    // Dice Rolls
+    diceRollMessage: "Bạn gieo xúc xắc d20... Kết quả là {roll}! ({level})",
+    criticalFailure: "Thất bại Thảm hại",
+    failure: "Thất bại",
+    success: "Thành công",
+    greatSuccess: "Thành công Lớn",
+    criticalSuccess: "Thành công Xuất sắc",
   }
 };
 
 export type Language = keyof typeof translations;
-export type TranslationKey = keyof (typeof translations)['en'];
+export type TranslationKey = keyof (typeof translations)['en'] | keyof (typeof translations)['vi'];

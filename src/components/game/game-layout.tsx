@@ -19,12 +19,14 @@ import { SwordIcon } from "@/components/game/icons";
 import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/generate-narrative-flow";
 
 // Import modularized game engine components
-import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, getRandomInRange, checkConditions } from '@/lib/game/engine';
+import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, checkConditions } from '@/lib/game/engine';
 import { worldConfig, templates, itemDefinitions as staticItemDefinitions } from '@/lib/game/config';
 import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region, GameState, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
 
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
+const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+
 
 interface GameLayoutProps {
     worldSetup?: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[] };
@@ -137,13 +139,11 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
      * @returns A new chunk object with weather effects applied.
      */
     const getEffectiveChunk = useCallback((baseChunk: Chunk): Chunk => {
-        if (!baseChunk?.regionId) return baseChunk;
-
-        const weatherZone = weatherZones[baseChunk.regionId];
-        if (!weatherZone) {
-            return baseChunk;
+        if (!baseChunk?.regionId || !weatherZones[baseChunk.regionId]) {
+             return baseChunk;
         }
 
+        const weatherZone = weatherZones[baseChunk.regionId];
         const weather = weatherZone.currentWeather;
         const effectiveChunk: Chunk = JSON.parse(JSON.stringify(baseChunk)); // Deep copy
 
@@ -802,13 +802,16 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
 
     const handleAttack = () => {
         const key = `${playerPosition.x},${playerPosition.y}`;
-        const currentChunk = world[key];
-        if (!currentChunk || !currentChunk.enemy) {
+        const baseChunk = world[key];
+        if (!baseChunk || !baseChunk.enemy) {
             addNarrativeEntry("Không có gì để tấn công ở đây.", 'system');
             return;
         }
 
-        const actionText = `Attack ${currentChunk.enemy.type}`;
+        // Get the chunk with weather effects applied
+        const currentChunkWithWeather = getEffectiveChunk(baseChunk);
+        
+        const actionText = `Attack ${baseChunk.enemy.type}`;
         addNarrativeEntry(actionText, 'action');
 
         if (isOnline) {
@@ -818,38 +821,62 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
 
         // --- OFFLINE LOGIC ---
         let updatedWorld = { ...world };
-        let updatedChunk = { ...updatedWorld[key] };
+        let updatedChunkInWorld = { ...updatedWorld[key] };
         
-        if (!updatedChunk.enemy) return; // Should not happen but for type safety
+        if (!updatedChunkInWorld.enemy) return; // Should not happen but for type safety
 
-        const updatedEnemy = { ...updatedChunk.enemy };
-        const playerDamage = playerStats.attributes.physicalAttack; 
-        const enemyDamage = updatedEnemy.damage || 10;
+        const enemyInWorld = { ...updatedChunkInWorld.enemy };
 
-        updatedEnemy.hp -= playerDamage;
-        addNarrativeEntry(t('attackEnemy', { enemyType: updatedEnemy.type, playerDamage }), 'narrative');
+        // Apply environmental modifiers
+        let playerDamageModifier = 1.0;
+        if (currentChunkWithWeather.lightLevel < -3) {
+            playerDamageModifier *= 0.8; // 20% penalty
+            addNarrativeEntry("Sương mù dày đặc làm giảm độ chính xác của bạn.", "system");
+        }
+        if (currentChunkWithWeather.moisture > 8) {
+            playerDamageModifier *= 0.9; // 10% penalty
+            addNarrativeEntry("Mưa lớn làm vũ khí nặng trĩu, cản trở đòn tấn công.", "system");
+        }
 
-        if (updatedEnemy.hp <= 0) {
-            addNarrativeEntry(t('enemyDefeated', { enemyType: updatedEnemy.type }), 'system');
-            updatedChunk = { ...updatedChunk, enemy: null };
-            updatedChunk.actions = updatedChunk.actions.filter(a => a.id !== 1);
-            if (updatedChunk.NPCs.length > 0) {
-                updatedChunk.actions.unshift({ id: 1, text: `Nói chuyện với ${updatedChunk.NPCs[0]}` });
+        let enemyDamageModifier = 1.0;
+        if (currentChunkWithWeather.lightLevel < -3) {
+            enemyDamageModifier *= 0.8;
+        }
+        if (currentChunkWithWeather.moisture > 8) {
+            enemyDamageModifier *= 0.9;
+        }
+
+        const playerDamage = Math.round(playerStats.attributes.physicalAttack * playerDamageModifier);
+        const enemyDamage = Math.round(enemyInWorld.damage * enemyDamageModifier);
+
+        enemyInWorld.hp -= playerDamage;
+        addNarrativeEntry(t('attackEnemy', { enemyType: enemyInWorld.type, playerDamage }), 'narrative');
+
+        if (enemyInWorld.hp <= 0) {
+            addNarrativeEntry(t('enemyDefeated', { enemyType: enemyInWorld.type }), 'system');
+            updatedChunkInWorld.enemy = null;
+            updatedChunkInWorld.actions = updatedChunkInWorld.actions.filter(a => a.id !== 1);
+            if (updatedChunkInWorld.NPCs.length > 0) {
+                updatedChunkInWorld.actions.unshift({ id: 1, text: `Nói chuyện với ${updatedChunkInWorld.NPCs[0]}` });
             }
         } else {
-            addNarrativeEntry(t('enemyHpLeft', { enemyType: updatedEnemy.type, hp: updatedEnemy.hp }), 'narrative');
+            addNarrativeEntry(t('enemyHpLeft', { enemyType: enemyInWorld.type, hp: enemyInWorld.hp }), 'narrative');
             setPlayerStats(prev => {
                 const newHp = prev.hp - enemyDamage;
-                addNarrativeEntry(t('enemyRetaliates', { enemyType: updatedEnemy.type, enemyDamage }), 'narrative');
+                if (enemyDamage > 0) {
+                   addNarrativeEntry(t('enemyRetaliates', { enemyType: enemyInWorld.type, enemyDamage }), 'narrative');
+                } else {
+                    addNarrativeEntry(`Kẻ địch tấn công nhưng bị trượt do ảnh hưởng của môi trường!`, 'narrative');
+                }
                 if (newHp <= 0) {
                     addNarrativeEntry(t('youFell'), 'system');
                 }
                 return { ...prev, hp: newHp };
             });
-            updatedChunk = { ...updatedChunk, enemy: updatedEnemy };
+            updatedChunkInWorld.enemy = enemyInWorld;
         }
         
-        updatedWorld[key] = updatedChunk;
+        updatedWorld[key] = updatedChunkInWorld;
         setWorld(updatedWorld);
         handleGameTick();
     };

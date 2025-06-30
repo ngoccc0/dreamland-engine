@@ -19,6 +19,8 @@ export const playerAttackTool = ai.defineTool({
     inputSchema: z.object({
         playerStatus: PlayerStatusSchema,
         enemy: EnemySchema,
+        lightLevel: z.number().optional().describe("The current light level (-10 to 10). Low light (e.g., < -3) can reduce accuracy."),
+        moisture: z.number().optional().describe("The current moisture level (0-10). High moisture (e.g., > 8) can impede physical attacks."),
     }),
     outputSchema: z.object({
         playerDamageDealt: z.number().describe("Damage dealt by the player."),
@@ -26,19 +28,46 @@ export const playerAttackTool = ai.defineTool({
         finalPlayerHp: z.number().describe("Player's HP after the exchange."),
         finalEnemyHp: z.number().describe("Enemy's HP after being attacked."),
         enemyDefeated: z.boolean().describe("True if the enemy's HP is 0 or less."),
+        combatLog: z.string().optional().describe("A brief, factual log of environmental effects on combat, e.g. 'Sương mù làm giảm độ chính xác của người chơi.'"),
     })
-}, async ({ playerStatus, enemy }) => {
-    const playerDamage = playerStatus.attributes.physicalAttack;
+}, async ({ playerStatus, enemy, lightLevel, moisture }) => {
+    let playerDamageModifier = 1.0;
+    const combatLogParts: string[] = [];
+
+    // Environmental effects on player's attack
+    if (lightLevel !== undefined && lightLevel < -3) {
+        playerDamageModifier *= 0.8; // 20% penalty in fog/darkness
+        combatLogParts.push("Tầm nhìn kém trong sương mù/bóng tối làm giảm độ chính xác của người chơi.");
+    }
+    if (moisture !== undefined && moisture > 8) {
+        playerDamageModifier *= 0.9; // 10% penalty in heavy rain
+        combatLogParts.push("Mưa lớn cản trở đòn tấn công của người chơi.");
+    }
+
+    const playerDamage = Math.round(playerStatus.attributes.physicalAttack * playerDamageModifier);
     const finalEnemyHp = Math.max(0, enemy.hp - playerDamage);
     const enemyDefeated = finalEnemyHp <= 0;
-    const enemyDamage = enemyDefeated ? 0 : enemy.damage;
+
+    // Environmental effects on enemy's attack (can be symmetrical for now)
+    let enemyDamageModifier = 1.0;
+     if (lightLevel !== undefined && lightLevel < -3) {
+        enemyDamageModifier *= 0.8;
+        combatLogParts.push("Kẻ địch cũng bị ảnh hưởng bởi tầm nhìn kém.");
+    }
+    if (moisture !== undefined && moisture > 8) {
+        enemyDamageModifier *= 0.9;
+    }
+
+    const enemyDamage = enemyDefeated ? 0 : Math.round(enemy.damage * enemyDamageModifier);
     const finalPlayerHp = Math.max(0, playerStatus.hp - enemyDamage);
+
     return {
         playerDamageDealt: playerDamage,
         enemyDamageDealt: enemyDamage,
         finalPlayerHp,
         finalEnemyHp,
         enemyDefeated,
+        combatLog: combatLogParts.length > 0 ? combatLogParts.join(' ') : undefined,
     };
 });
 

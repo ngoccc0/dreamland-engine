@@ -4,7 +4,7 @@ import { weatherPresets } from "./weatherPresets";
 
 // --- HELPER FUNCTIONS ---
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
-export const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
 
 // --- WEATHER GENERATION ---
 export const generateWeatherForZone = (terrain: Terrain, season: Season, previousWeather?: WeatherState): WeatherState => {

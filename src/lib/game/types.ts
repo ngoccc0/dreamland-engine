@@ -3,7 +3,7 @@
 export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave";
 export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky';
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
-export type ItemCategory = 'Weapon' | 'Tool' | 'Consumable' | 'Material' | 'QuestItem' | 'Misc';
+export type ItemCategory = 'Weapon' | 'Material' | 'Energy Source' | 'Food' | 'Data' | 'Tool' | 'Equipment' | 'Support' | 'Magic' | 'Fusion';
 
 // --- NEW WEATHER SYSTEM TYPES ---
 

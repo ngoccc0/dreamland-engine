@@ -7,7 +7,7 @@
 
 import {z} from 'genkit';
 
-export const ItemCategorySchema = z.enum(['Weapon', 'Tool', 'Consumable', 'Material', 'QuestItem', 'Misc']).describe("The category of the item.");
+export const ItemCategorySchema = z.enum(['Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion']).describe("The category of the item.");
 
 export const ItemEffectSchema = z.object({
     type: z.enum(['HEAL', 'RESTORE_STAMINA']),

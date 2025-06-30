@@ -124,7 +124,7 @@ const itemsAndNamesPrompt = ai.definePrompt({
 
 **User's Idea:** {{{userInput}}}
 
-For each item, define all required fields. For the 'category' field, you MUST use one of these exact values: 'Weapon', 'Tool', 'Consumable', 'Material', 'QuestItem', 'Misc'.
+For each item, define all required fields. For the 'category' field, you MUST use one of these exact values: 'Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion'.
 
 Provide the response in the required JSON format. ALL TEXT in the response MUST be in the language corresponding to this code: {{language}}.`,
 });

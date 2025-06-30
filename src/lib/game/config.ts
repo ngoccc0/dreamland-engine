@@ -92,7 +92,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Chìa Khóa Rỉ Sét': {
         description: 'Một chiếc chìa khóa cũ kỹ, không rõ nó mở được ổ khóa nào.',
         tier: 2,
-        category: 'QuestItem',
+        category: 'Data',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -108,7 +108,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Thuốc Máu Yếu': {
         description: 'Một loại thuốc pha chế đơn giản, giúp phục hồi một lượng máu nhỏ.',
         tier: 1,
-        category: 'Consumable',
+        category: 'Support',
         effects: [{ type: 'HEAL', amount: 35 }],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -131,7 +131,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Thịt Sói Sống': {
         description: 'Miếng thịt tươi nhưng còn sống, cần nấu chín để ăn an toàn.',
         tier: 1,
-        category: 'Consumable',
+        category: 'Food',
         effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -159,14 +159,14 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Thịt Heo Rừng': {
         description: 'Một tảng thịt lớn, giàu năng lượng nhưng cần được chế biến.',
         tier: 2,
-        category: 'Consumable',
+        category: 'Food',
         effects: [{ type: 'RESTORE_STAMINA', amount: 20 }],
         baseQuantity: { min: 1, max: 2 }
     },
     'Tai Yêu Tinh': {
         description: 'Một chiếc tai nhọn hoắt, được cắt một cách thô bạo. Thường được dùng làm bằng chứng.',
         tier: 2,
-        category: 'QuestItem',
+        category: 'Data',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -187,7 +187,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Thịt Thỏ': {
         description: 'Thịt từ một con thỏ hoang, nhỏ nhưng ngon.',
         tier: 1,
-        category: 'Consumable',
+        category: 'Food',
         effects: [{ type: 'RESTORE_STAMINA', amount: 10 }],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -222,7 +222,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Trứng Rắn': {
         description: 'Một quả trứng rắn có vỏ dai.',
         tier: 2,
-        category: 'Consumable',
+        category: 'Food',
         effects: [],
         baseQuantity: { min: 2, max: 4 }
     },
@@ -243,7 +243,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Cát Ma Thuật': {
         description: 'Những hạt cát lấp lánh năng lượng ma thuật, tàn dư của một linh hồn cát.',
         tier: 4,
-        category: 'Material',
+        category: 'Magic',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -257,7 +257,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Tinh chất Ma trơi': {
         description: 'Một quả cầu ánh sáng yếu ớt, ấm áp khi chạm vào.',
         tier: 4,
-        category: 'Material',
+        category: 'Magic',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -292,14 +292,14 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Thịt Dê Núi': {
         description: 'Thịt dê hơi dai nhưng rất bổ dưỡng.',
         tier: 2,
-        category: 'Consumable',
+        category: 'Food',
         effects: [{ type: 'RESTORE_STAMINA', amount: 25 }],
         baseQuantity: { min: 1, max: 2 }
     },
     'Lõi Người Đá': {
         description: 'Một hòn đá phát ra năng lượng sống yếu ớt, trái tim của một Stone Golem.',
         tier: 5,
-        category: 'Material',
+        category: 'Energy Source',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -320,7 +320,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Thịt Báo Tuyết': {
         description: 'Thịt của một kẻ săn mồi đỉnh cao, chứa đầy năng lượng.',
         tier: 3,
-        category: 'Consumable',
+        category: 'Food',
         effects: [{ type: 'RESTORE_STAMINA', amount: 40 }],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -357,7 +357,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Quả Mọng Ăn Được': {
         description: 'Một loại quả mọng đỏ, có vẻ ngon miệng và an toàn, giúp phục hồi chút thể lực.',
         tier: 1,
-        category: 'Consumable',
+        category: 'Food',
         effects: [{ type: 'RESTORE_STAMINA', amount: 15 }],
         baseQuantity: { min: 2, max: 6 },
         growthConditions: {
@@ -379,7 +379,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Thảo Dược Chữa Lành': {
         description: 'Một loại lá cây có mùi thơm dễ chịu, có khả năng chữa lành vết thương nhỏ.',
         tier: 2,
-        category: 'Consumable',
+        category: 'Support',
         effects: [{ type: 'HEAL', amount: 20 }],
         baseQuantity: { min: 1, max: 2 },
         growthConditions: {
@@ -404,7 +404,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Hoa Tinh Linh': {
         description: 'Một bông hoa phát ra ánh sáng xanh lam yếu ớt, tỏa ra năng lượng phép thuật.',
         tier: 4,
-        category: 'Material',
+        category: 'Magic',
         effects: [], // Would be 'RESTORE_MANA' if mana existed
         baseQuantity: { min: 1, max: 1 },
         growthConditions: {
@@ -436,7 +436,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Mật Ong Hoang': {
         description: 'Mật ong vàng óng từ một tổ ong hoang, vừa ngọt ngào vừa bổ dưỡng.',
         tier: 2,
-        category: 'Consumable',
+        category: 'Food',
         effects: [{ type: 'HEAL', amount: 10 }, { type: 'RESTORE_STAMINA', amount: 15 }],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -450,14 +450,14 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Cỏ Ba Lá': {
         description: 'Một cây cỏ ba lá. Người ta nói nó mang lại may mắn, nhưng có lẽ chỉ là lời đồn.',
         tier: 2,
-        category: 'Misc',
+        category: 'Material',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
     'Tổ Chim Rỗng': {
         description: 'Một chiếc tổ chim được đan khéo léo nhưng đã bị bỏ trống.',
         tier: 1,
-        category: 'Misc',
+        category: 'Material',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -474,7 +474,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Lúa Mì': {
         description: 'Một bó lúa mì chín vàng, có thể dùng làm thức ăn.',
         tier: 1,
-        category: 'Consumable',
+        category: 'Food',
         effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
         baseQuantity: { min: 2, max: 5 }
     },
@@ -495,28 +495,28 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Trứng Chim Hoang': {
         description: 'Một quả trứng chim hoang, giàu dinh dưỡng.',
         tier: 1,
-        category: 'Consumable',
+        category: 'Food',
         effects: [{ type: 'RESTORE_STAMINA', amount: 20 }],
         baseQuantity: { min: 2, max: 4 }
     },
     'Rễ Củ Ăn Được': {
         description: 'Một loại củ có nhiều tinh bột, có thể ăn để phục hồi năng lượng.',
         tier: 1,
-        category: 'Consumable',
+        category: 'Food',
         effects: [{ type: 'RESTORE_STAMINA', amount: 25 }],
         baseQuantity: { min: 1, max: 3 }
     },
     'Hạt Giống Hoa Dại': {
         description: 'Những hạt giống nhỏ li ti, có thể gieo trồng để mọc ra những bông hoa đẹp.',
         tier: 1,
-        category: 'Misc',
+        category: 'Material',
         effects: [],
         baseQuantity: { min: 5, max: 10 }
     },
     'Nấm Mỡ': {
         description: 'Một cây nấm phổ biến, ăn được và giúp phục hồi chút thể lực.',
         tier: 1,
-        category: 'Consumable',
+        category: 'Food',
         effects: [{ type: 'RESTORE_STAMINA', amount: 10 }],
         baseQuantity: { min: 2, max: 5 }
     },
@@ -532,21 +532,21 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Bình Nước Cũ': {
         description: 'Một bình nước quý giá, gần như còn đầy.',
         tier: 1,
-        category: 'Consumable',
+        category: 'Support',
         effects: [{ type: 'RESTORE_STAMINA', amount: 25 }],
         baseQuantity: { min: 1, max: 1 }
     },
     'Mảnh Gốm Cổ': {
         description: 'Một mảnh gốm vỡ có hoa văn kỳ lạ, có thể là của một nền văn minh đã mất.',
         tier: 2,
-        category: 'Misc',
+        category: 'Data',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
     'Hoa Xương Rồng': {
         description: 'Một bông hoa hiếm hoi nở trên sa mạc, chứa đầy nước giúp phục hồi thể lực.',
         tier: 1,
-        category: 'Consumable',
+        category: 'Food',
         effects: [{ type: 'RESTORE_STAMINA', amount: 20 }],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -574,7 +574,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Cây Xương Rồng Nhỏ': {
         description: 'Một cây xương rồng nhỏ, có thể ép lấy nước.',
         tier: 1,
-        category: 'Consumable',
+        category: 'Food',
         effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
         baseQuantity: { min: 1, max: 3 },
         growthConditions: {
@@ -612,7 +612,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Nấm Đầm Lầy': {
         description: 'Một loại nấm ăn được nhưng có vị hơi tanh.',
         tier: 1,
-        category: 'Consumable',
+        category: 'Food',
         effects: [{ type: 'RESTORE_STAMINA', amount: 10 }],
         baseQuantity: { min: 2, max: 4 }
     },
@@ -633,7 +633,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Nước Bùn': {
         description: 'Một chai nước bùn đặc quánh, có thể chứa các vi sinh vật lạ.',
         tier: 1,
-        category: 'Misc',
+        category: 'Material',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -656,21 +656,21 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Pha Lê Núi': {
         description: 'Một tinh thể trong suốt, lạnh toát khi chạm vào.',
         tier: 4,
-        category: 'Material',
+        category: 'Magic',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
     'Cây Thuốc Núi': {
         description: 'Một loại thảo dược quý hiếm chỉ mọc ở nơi cao, có tác dụng chữa bệnh.',
         tier: 3,
-        category: 'Consumable',
+        category: 'Support',
         effects: [{ type: 'HEAL', amount: 50 }],
         baseQuantity: { min: 1, max: 1 }
     },
     'Trứng Griffon': {
         description: 'Một quả trứng lớn, có vỏ cứng như đá. Vô cùng quý hiếm.',
         tier: 6,
-        category: 'QuestItem',
+        category: 'Data',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -698,14 +698,14 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Trứng Đại Bàng': {
         description: 'Một quả trứng lớn từ tổ của đại bàng núi.',
         tier: 3,
-        category: 'Consumable',
+        category: 'Food',
         effects: [{ type: 'RESTORE_STAMINA', amount: 50 }],
         baseQuantity: { min: 1, max: 2 }
     },
     'Tuyết': {
         description: 'Một nắm tuyết sạch, có thể làm tan ra để lấy nước.',
         tier: 1,
-        category: 'Consumable',
+        category: 'Support',
         effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
         baseQuantity: { min: 1, max: 3 }
     },
@@ -714,14 +714,14 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
      'Mảnh Tinh Thể': {
         description: 'Một mảnh tinh thể phát ra ánh sáng yếu ớt, có thể soi đường.',
         tier: 2,
-        category: 'Material',
+        category: 'Magic',
         effects: [],
         baseQuantity: { min: 2, max: 7 }
     },
     'Bản Đồ Cổ': {
         description: 'Một tấm bản đồ da cũ kỹ, có vẻ chỉ đường đến một nơi bí mật trong hang.',
         tier: 3,
-        category: 'QuestItem',
+        category: 'Data',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -760,7 +760,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Nước Ngầm': {
         description: 'Nước trong vắt và mát lạnh chảy từ một kẽ đá.',
         tier: 1,
-        category: 'Consumable',
+        category: 'Support',
         effects: [{ type: 'HEAL', amount: 5 }, { type: 'RESTORE_STAMINA', amount: 10 }],
         baseQuantity: { min: 1, max: 1 }
     },

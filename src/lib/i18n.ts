@@ -140,11 +140,15 @@ export const translations = {
 
     // Item Categories
     Weapon: "Weapon",
-    Tool: "Tool",
-    Consumable: "Consumable",
     Material: "Material",
-    QuestItem: "Quest Item",
-    Misc: "Misc",
+    "Energy Source": "Energy Source",
+    Food: "Food",
+    Data: "Data",
+    Tool: "Tool",
+    Equipment: "Equipment",
+    Support: "Support",
+    Magic: "Magic",
+    Fusion: "Fusion",
   },
   vi: {
     // Language Selector
@@ -287,11 +291,15 @@ export const translations = {
     
     // Item Categories
     Weapon: "Vũ khí",
-    Tool: "Công cụ",
-    Consumable: "Tiêu hao",
     Material: "Nguyên liệu",
-    QuestItem: "Nhiệm vụ",
-    Misc: "Linh tinh",
+    "Energy Source": "Nguồn năng lượng",
+    Food: "Thức ăn",
+    Data: "Data",
+    Tool: "Công cụ",
+    Equipment: "Trang bị",
+    Support: "Vật phẩm hỗ trợ",
+    Magic: "Phép thuật",
+    Fusion: "Fusion",
   }
 };
 

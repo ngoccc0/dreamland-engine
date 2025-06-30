@@ -7,14 +7,23 @@ const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, 
 export const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
 
 // --- WEATHER GENERATION ---
-export const generateWeatherForZone = (terrain: Terrain, season: Season): WeatherState => {
-    const candidateWeather = weatherPresets.filter(
+export const generateWeatherForZone = (terrain: Terrain, season: Season, previousWeather?: WeatherState): WeatherState => {
+    let candidateWeather = weatherPresets.filter(
       w => w.biome_affinity.includes(terrain) &&
            w.season_affinity.includes(season)
     );
 
+    // "Cooldown" logic to prevent back-to-back extreme weather
+    if (previousWeather) {
+        const extremeTags = ['storm', 'heat', 'cold'];
+        const previousIsExtreme = previousWeather.exclusive_tags.some(tag => extremeTags.includes(tag));
+        if (previousIsExtreme) {
+            candidateWeather = candidateWeather.filter(w => !w.exclusive_tags.some(tag => extremeTags.includes(tag)));
+        }
+    }
+    
     if (candidateWeather.length === 0) {
-        // Fallback to clear weather if no specific weather is found
+        // Fallback to clear weather if no valid weather is found after filtering
         return weatherPresets.find(w => w.name === 'Clear Skies')!;
     }
 

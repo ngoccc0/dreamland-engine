@@ -15,6 +15,7 @@ export interface WeatherState {
   temperature_delta: number;
   moisture_delta: number;
   wind_delta: number;
+  light_delta: number;
   spawnWeight: number; // How likely this weather is to be chosen
   exclusive_tags: string[]; // e.g., ["rain", "storm"]. Prevents illogical combinations.
   duration_range: [number, number]; // in game ticks

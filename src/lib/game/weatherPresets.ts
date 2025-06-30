@@ -10,9 +10,10 @@ export const weatherPresets: WeatherState[] = [
         temperature_delta: 0,
         moisture_delta: 0,
         wind_delta: 0,
+        light_delta: 0,
         spawnWeight: 10,
         exclusive_tags: [],
-        duration_range: [20, 40] // Long duration for default weather
+        duration_range: [20, 40]
     },
 
     // --- POSITIVE/MILD ---
@@ -24,6 +25,7 @@ export const weatherPresets: WeatherState[] = [
         temperature_delta: -1,
         moisture_delta: 0,
         wind_delta: 2,
+        light_delta: 0,
         spawnWeight: 8,
         exclusive_tags: ['windy'],
         duration_range: [10, 20]
@@ -36,6 +38,7 @@ export const weatherPresets: WeatherState[] = [
         temperature_delta: -2,
         moisture_delta: 2,
         wind_delta: 1,
+        light_delta: -1,
         spawnWeight: 7,
         exclusive_tags: ['rain'],
         duration_range: [15, 30]
@@ -50,6 +53,7 @@ export const weatherPresets: WeatherState[] = [
         temperature_delta: -3,
         moisture_delta: 4,
         wind_delta: 3,
+        light_delta: -3,
         spawnWeight: 4,
         exclusive_tags: ['rain', 'storm'],
         duration_range: [10, 20]
@@ -62,6 +66,7 @@ export const weatherPresets: WeatherState[] = [
         temperature_delta: -1,
         moisture_delta: 1,
         wind_delta: -2,
+        light_delta: -4,
         spawnWeight: 5,
         exclusive_tags: ['fog'],
         duration_range: [20, 35]
@@ -74,6 +79,7 @@ export const weatherPresets: WeatherState[] = [
         temperature_delta: 4,
         moisture_delta: -3,
         wind_delta: 0,
+        light_delta: 2,
         spawnWeight: 6,
         exclusive_tags: ['heat'],
         duration_range: [15, 25]
@@ -86,6 +92,7 @@ export const weatherPresets: WeatherState[] = [
         temperature_delta: -5,
         moisture_delta: 1,
         wind_delta: 1,
+        light_delta: -1,
         spawnWeight: 7,
         exclusive_tags: ['snow', 'cold'],
         duration_range: [20, 40]
@@ -98,6 +105,7 @@ export const weatherPresets: WeatherState[] = [
         temperature_delta: -8,
         moisture_delta: 2,
         wind_delta: 6,
+        light_delta: -5,
         spawnWeight: 2,
         exclusive_tags: ['snow', 'cold', 'storm', 'windy'],
         duration_range: [10, 20]
@@ -110,6 +118,7 @@ export const weatherPresets: WeatherState[] = [
         temperature_delta: 1,
         moisture_delta: -2,
         wind_delta: 7,
+        light_delta: -4,
         spawnWeight: 3,
         exclusive_tags: ['windy', 'storm'],
         duration_range: [10, 20]
@@ -123,7 +132,8 @@ export const weatherPresets: WeatherState[] = [
         season_affinity: ['spring', 'summer', 'autumn', 'winter'],
         temperature_delta: 0,
         moisture_delta: 1,
-        wind_delta: -5, // Caves are not windy
+        wind_delta: -5,
+        light_delta: 0,
         spawnWeight: 10,
         exclusive_tags: [],
         duration_range: [30, 60]
@@ -136,6 +146,7 @@ export const weatherPresets: WeatherState[] = [
         temperature_delta: -2,
         moisture_delta: 0,
         wind_delta: 2,
+        light_delta: 0,
         spawnWeight: 5,
         exclusive_tags: ['windy'],
         duration_range: [15, 30]

@@ -22,6 +22,7 @@ import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/gener
 import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, getRandomInRange } from '@/lib/game/engine';
 import { worldConfig, templates, itemDefinitions as staticItemDefinitions } from '@/lib/game/config';
 import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region, GameState, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone } from "@/lib/game/types";
+import { cn } from "@/lib/utils";
 
 
 interface GameLayoutProps {
@@ -171,7 +172,7 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
             let currentTick = 0; // Start at tick 0
             Object.entries(newRegions).forEach(([regionId, region]) => {
                 const initialWeather = generateWeatherForZone(region.terrain, currentSeason);
-                const nextChangeTime = currentTick + getRandomInRange(initialWeather.duration_range);
+                const nextChangeTime = currentTick + getRandomInRange({min: initialWeather.duration_range[0], max: initialWeather.duration_range[1]});
                 initialWeatherZones[regionId] = {
                     id: regionId,
                     terrain: region.terrain,
@@ -352,9 +353,9 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
         for (const zoneId in newWeatherZones) {
             const zone = newWeatherZones[zoneId];
             if (nextTick >= zone.nextChangeTime) {
-                const newWeather = generateWeatherForZone(zone.terrain, currentSeason);
+                const newWeather = generateWeatherForZone(zone.terrain, currentSeason, zone.currentWeather);
                 zone.currentWeather = newWeather;
-                zone.nextChangeTime = nextTick + getRandomInRange(newWeather.duration_range);
+                zone.nextChangeTime = nextTick + getRandomInRange({min: newWeather.duration_range[0], max: newWeather.duration_range[1]});
                 changes.narrativeEntries.push({ text: newWeather.description, type: 'system'});
                 weatherHasChanged = true;
             }
@@ -487,13 +488,40 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
     }, [world, playerPosition.x, playerPosition.y, addNarrativeEntry, t, gameTicks, weatherZones, currentSeason]);
 
 
+    /**
+     * Calculates the effective state of a chunk by applying dynamic weather effects.
+     * @param baseChunk The base chunk data from the world state.
+     * @returns A new chunk object with weather effects applied.
+     */
+    const getEffectiveChunk = useCallback((baseChunk: Chunk): Chunk => {
+        const weatherZone = weatherZones[baseChunk.regionId];
+        if (!weatherZone) {
+            return baseChunk;
+        }
+
+        const weather = weatherZone.currentWeather;
+        const effectiveChunk = { ...baseChunk };
+
+        // Apply weather deltas
+        effectiveChunk.temperature = cn(baseChunk.temperature + weather.temperature_delta, 0, 10);
+        effectiveChunk.moisture = cn(baseChunk.moisture + weather.moisture_delta, 0, 10);
+        effectiveChunk.windLevel = cn(baseChunk.windLevel + weather.wind_delta, 0, 10);
+        effectiveChunk.lightLevel = cn(baseChunk.lightLevel + weather.light_delta, -10, 10);
+
+        return effectiveChunk;
+    }, [weatherZones]);
+    
+
     const handleOnlineNarrative = async (action: string, worldCtx: World, playerPosCtx: {x: number, y: number}, playerStatsCtx: PlayerStatus) => {
         setIsLoading(true);
-        const currentChunk = worldCtx[`${playerPosCtx.x},${playerPosCtx.y}`];
-        if (!currentChunk || !finalWorldSetup) {
+        const baseChunk = worldCtx[`${playerPosCtx.x},${playerPosCtx.y}`];
+        if (!baseChunk || !finalWorldSetup) {
             setIsLoading(false);
             return;
         }
+
+        // Apply dynamic weather effects to the chunk before sending to the AI
+        const currentChunk = getEffectiveChunk(baseChunk);
 
         try {
             const input: GenerateNarrativeInput = {

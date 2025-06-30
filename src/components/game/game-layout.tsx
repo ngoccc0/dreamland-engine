@@ -131,8 +131,31 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
         });
     }, []);
     
-    // --- Component Effects and Handlers ---
-    
+    /**
+     * Calculates the effective state of a chunk by applying dynamic weather effects.
+     * @param baseChunk The base chunk data from the world state.
+     * @returns A new chunk object with weather effects applied.
+     */
+    const getEffectiveChunk = useCallback((baseChunk: Chunk): Chunk => {
+        if (!baseChunk?.regionId) return baseChunk;
+
+        const weatherZone = weatherZones[baseChunk.regionId];
+        if (!weatherZone) {
+            return baseChunk;
+        }
+
+        const weather = weatherZone.currentWeather;
+        const effectiveChunk: Chunk = JSON.parse(JSON.stringify(baseChunk)); // Deep copy
+
+        // Apply weather deltas
+        effectiveChunk.temperature = clamp((baseChunk.temperature ?? 5) + weather.temperature_delta, 0, 10);
+        effectiveChunk.moisture = clamp(baseChunk.moisture + weather.moisture_delta, 0, 10);
+        effectiveChunk.windLevel = clamp((baseChunk.windLevel ?? 3) + weather.wind_delta, 0, 10);
+        effectiveChunk.lightLevel = clamp(baseChunk.lightLevel + weather.light_delta, -10, 10);
+
+        return effectiveChunk;
+    }, [weatherZones]);
+
     // Initial setup effect
     useEffect(() => {
         // If we are loading a game, the state is already initialized.
@@ -341,8 +364,9 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
     const handleGameTick = useCallback(() => {
         const nextTick = gameTicks + 1;
         setGameTicks(nextTick);
-
-        const worldCopy = JSON.parse(JSON.stringify(world)) as World;
+    
+        let newWorldState = { ...world }; // Create a shallow copy to modify
+        let worldWasModified = false;
         const changes = {
             playerHpChange: 0,
             narrativeEntries: [] as { text: string; type: NarrativeEntry['type'] }[],
@@ -352,62 +376,70 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
         const newWeatherZones = { ...weatherZones };
         let weatherHasChanged = false;
         for (const zoneId in newWeatherZones) {
-            const zone = newWeatherZones[zoneId];
+            const zone = { ...newWeatherZones[zoneId] }; // Ensure zone is a copy
             if (nextTick >= zone.nextChangeTime) {
                 const newWeather = generateWeatherForZone(zone.terrain, currentSeason, zone.currentWeather);
                 zone.currentWeather = newWeather;
                 zone.nextChangeTime = nextTick + getRandomInRange({min: newWeather.duration_range[0], max: newWeather.duration_range[1]});
                 changes.narrativeEntries.push({ text: newWeather.description, type: 'system'});
+                newWeatherZones[zoneId] = zone; // Assign the modified copy back
                 weatherHasChanged = true;
             }
         }
         if (weatherHasChanged) {
             setWeatherZones(newWeatherZones);
         }
-
+    
         // --- CREATURE ECOLOGY TICK ---
         const allCreatures = [];
-        for (const key in worldCopy) {
-            if (worldCopy[key].enemy) {
+        for (const key in newWorldState) {
+            if (newWorldState[key].enemy) {
                 allCreatures.push({
                     key,
-                    chunk: worldCopy[key],
-                    enemyData: worldCopy[key].enemy!,
+                    chunk: newWorldState[key],
+                    enemyData: newWorldState[key].enemy!,
                 });
             }
         }
-    
-        // Shuffle to prevent processing order bias
         allCreatures.sort(() => Math.random() - 0.5);
     
         for (const creature of allCreatures) {
-            const { key: creatureKey, chunk: creatureChunk, enemyData } = creature;
+            const { key: creatureKey } = creature;
     
-            if (!worldCopy[creatureKey]?.enemy || worldCopy[creatureKey].enemy!.type !== enemyData.type) {
+            if (!newWorldState[creatureKey]?.enemy || newWorldState[creatureKey].enemy!.type !== creature.enemyData.type) {
                 continue;
             }
     
             let hasActed = false;
             const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }].sort(() => Math.random() - 0.5);
     
-            // 1. Reproduction
+            const creatureChunk = newWorldState[creatureKey];
+            const enemyData = creatureChunk.enemy!;
+    
             if (enemyData.satiation >= enemyData.maxSatiation) {
                 for (const dir of directions) {
                     const partnerPos = { x: creatureChunk.x + dir.x, y: creatureChunk.y + dir.y };
                     const partnerKey = `${partnerPos.x},${partnerPos.y}`;
-                    const partnerChunk = worldCopy[partnerKey];
+                    const partnerChunk = newWorldState[partnerKey];
                     
                     if (partnerChunk?.enemy && partnerChunk.enemy.type === enemyData.type && partnerChunk.enemy.satiation >= partnerChunk.enemy.maxSatiation) {
                         for (const birthDir of directions) {
                             const birthPos = { x: creatureChunk.x + birthDir.x, y: creatureChunk.y + birthDir.y };
                             const birthKey = `${birthPos.x},${birthPos.y}`;
                             
-                            if (worldCopy[birthKey] && !worldCopy[birthKey].enemy) {
-                                const enemyTemplate = templates[worldCopy[birthKey].terrain].enemies.find(e => e.data.type === enemyData.type)?.data;
+                            if (newWorldState[birthKey] && !newWorldState[birthKey].enemy) {
+                                const enemyTemplate = templates[newWorldState[birthKey].terrain].enemies.find(e => e.data.type === enemyData.type)?.data;
                                 if (enemyTemplate) {
-                                    worldCopy[birthKey].enemy = { ...enemyTemplate, satiation: 0 };
-                                    worldCopy[creatureKey].enemy!.satiation = 0;
-                                    worldCopy[partnerKey].enemy!.satiation = 0;
+                                    // Make copies before modifying
+                                    const currentCreatureChunkCopy = { ...newWorldState[creatureKey], enemy: { ...newWorldState[creatureKey].enemy!, satiation: 0 }};
+                                    const partnerChunkCopy = { ...newWorldState[partnerKey], enemy: { ...newWorldState[partnerKey].enemy!, satiation: 0 }};
+                                    const birthChunkCopy = { ...newWorldState[birthKey], enemy: { ...enemyTemplate, satiation: 0 }};
+
+                                    newWorldState[creatureKey] = currentCreatureChunkCopy;
+                                    newWorldState[partnerKey] = partnerChunkCopy;
+                                    newWorldState[birthKey] = birthChunkCopy;
+                                    
+                                    worldWasModified = true;
                                     hasActed = true;
                                     break;
                                 }
@@ -418,34 +450,32 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                 }
             }
             
-            // 2. Eating
             if (!hasActed && enemyData.satiation < enemyData.maxSatiation) {
                 for (const dir of directions) {
                     const targetPos = { x: creatureChunk.x + dir.x, y: creatureChunk.y + dir.y };
                     const targetKey = `${targetPos.x},${targetPos.y}`;
-                    const targetChunk = worldCopy[targetKey];
+                    const targetChunk = newWorldState[targetKey];
     
                     if (targetChunk) {
-                        // Eat other creatures
                         if (targetChunk.enemy && enemyData.diet.includes(targetChunk.enemy.type)) {
-                            worldCopy[creatureKey].enemy!.satiation++;
-                            worldCopy[targetKey].enemy = null;
+                            newWorldState[creatureKey] = { ...creatureChunk, enemy: { ...enemyData, satiation: enemyData.satiation + 1 }};
+                            newWorldState[targetKey] = { ...targetChunk, enemy: null };
+                            worldWasModified = true;
                             hasActed = true;
                             break;
                         }
     
-                        // Eat items from the ground
-                        const foodItem = targetChunk.items.find(item => enemyData.diet.includes(item.name));
-                        if (foodItem) {
+                        const foodItemIndex = targetChunk.items.findIndex(item => enemyData.diet.includes(item.name));
+                        if (foodItemIndex > -1) {
                             const newEnemyState = { ...enemyData, satiation: enemyData.satiation + 1 };
-                            worldCopy[targetKey].enemy = newEnemyState;
-                            worldCopy[creatureKey].enemy = null;
-    
-                            foodItem.quantity -= 1;
-                            if (foodItem.quantity <= 0) {
-                                targetChunk.items = targetChunk.items.filter(item => item.name !== foodItem.name);
-                            }
-    
+                            
+                            const newTargetItems = [...targetChunk.items];
+                            newTargetItems[foodItemIndex] = { ...newTargetItems[foodItemIndex], quantity: newTargetItems[foodItemIndex].quantity - 1};
+
+                            newWorldState[targetKey] = { ...targetChunk, enemy: newEnemyState, items: newTargetItems.filter(i => i.quantity > 0) };
+                            newWorldState[creatureKey] = { ...creatureChunk, enemy: null };
+
+                            worldWasModified = true;
                             hasActed = true;
                             break;
                         }
@@ -453,21 +483,21 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                 }
             }
     
-            // 3. Wandering
-            if (!hasActed && Math.random() < 0.2) { // 20% chance to wander if no other action was taken
+            if (!hasActed && Math.random() < 0.2) {
                 for (const dir of directions) {
                     const newPos = { x: creatureChunk.x + dir.x, y: creatureChunk.y + dir.y };
                     const newKey = `${newPos.x},${newPos.y}`;
     
-                    if (worldCopy[newKey] && !worldCopy[newKey].enemy) {
-                        worldCopy[newKey].enemy = { ...enemyData };
-                        worldCopy[creatureKey].enemy = null;
+                    if (newWorldState[newKey] && !newWorldState[newKey].enemy) {
+                        newWorldState[newKey] = { ...newWorldState[newKey], enemy: { ...enemyData } };
+                        newWorldState[creatureKey] = { ...creatureChunk, enemy: null };
     
                         if (newPos.x === playerPosition.x && newPos.y === playerPosition.y) {
                             changes.narrativeEntries.push({ text: `Một ${enemyData.type} hung hãn đã di chuyển vào và tấn công bạn!`, type: 'system' });
                             changes.playerHpChange -= enemyData.damage;
                         }
                         
+                        worldWasModified = true;
                         hasActed = true;
                         break; 
                     }
@@ -476,67 +506,59 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
         }
         
         // --- PLANT & ITEM ECOLOGY TICK ---
-        const ITEM_ECOLOGY_CHANCE = 0.1; // 10% chance per tick for any item stack to be processed
-        for (const key in worldCopy) {
-            if (!worldCopy[key].items || worldCopy[key].items.length === 0) continue;
+        const ITEM_ECOLOGY_CHANCE = 0.1;
+        for (const key in newWorldState) {
+            const chunk = newWorldState[key];
+            if (!chunk.items || chunk.items.length === 0) continue;
             
-            const effectiveChunk = getEffectiveChunk(worldCopy[key]);
-            const originalItems = worldCopy[key].items;
+            const effectiveChunk = getEffectiveChunk(chunk);
+            const originalItems = chunk.items;
             const newItems: ChunkItem[] = [];
             let itemsChanged = false;
 
             for (const item of originalItems) {
-                // Decide if this stack gets processed this tick
                 if (Math.random() > ITEM_ECOLOGY_CHANCE) {
                     newItems.push(item);
                     continue;
                 }
 
                 const itemDef = customItemDefinitions[item.name];
-                // Only process items that have growth conditions defined
                 if (!itemDef?.growthConditions) {
                     newItems.push(item);
                     continue;
                 }
 
                 const { optimal, subOptimal } = itemDef.growthConditions;
-                const newItem = { ...item }; // Work on a copy
-                let quantityChanged = false;
-
+                const newItem = { ...item };
+                
                 if (checkConditions(optimal, effectiveChunk)) {
-                    // Optimal growth: 100% chance to attempt growth
-                    const newQuantity = Math.round(newItem.quantity * 1.5);
-                    newItem.quantity = Math.min(newQuantity, 50); // Cap at 50
+                    newItem.quantity = Math.min(Math.round(newItem.quantity * 1.5), 50);
                 } else if (checkConditions(subOptimal, effectiveChunk)) {
-                    // Sub-optimal growth: 50% chance to attempt growth (doubles the time)
                     if (Math.random() < 0.5) {
-                        const newQuantity = Math.round(newItem.quantity * 1.5);
-                        newItem.quantity = Math.min(newQuantity, 50); // Cap at 50
+                        newItem.quantity = Math.min(Math.round(newItem.quantity * 1.5), 50);
                     }
                 } else {
-                    // Unsuitable conditions: Decay
                     newItem.quantity -= 1;
                 }
                 
                 if (newItem.quantity !== item.quantity) {
-                    quantityChanged = true;
+                    itemsChanged = true;
                 }
 
                 if (newItem.quantity > 0) {
                     newItems.push(newItem);
                 }
-                
-                if (quantityChanged) {
-                    itemsChanged = true;
-                }
             }
 
             if (itemsChanged) {
-                worldCopy[key] = { ...worldCopy[key], items: newItems };
+                newWorldState[key] = { ...chunk, items: newItems };
+                worldWasModified = true;
             }
         }
     
-        setWorld(worldCopy);
+        if (worldWasModified) {
+            setWorld(newWorldState);
+        }
     
         if (changes.playerHpChange !== 0) {
             setPlayerStats(prev => {
@@ -551,34 +573,7 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
         if (changes.narrativeEntries.length > 0) {
             changes.narrativeEntries.forEach(entry => addNarrativeEntry(entry.text, entry.type));
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [world, playerPosition.x, playerPosition.y, addNarrativeEntry, t, gameTicks, weatherZones, currentSeason, customItemDefinitions]);
-
-
-    /**
-     * Calculates the effective state of a chunk by applying dynamic weather effects.
-     * @param baseChunk The base chunk data from the world state.
-     * @returns A new chunk object with weather effects applied.
-     */
-    const getEffectiveChunk = useCallback((baseChunk: Chunk): Chunk => {
-        if (!baseChunk?.regionId) return baseChunk;
-
-        const weatherZone = weatherZones[baseChunk.regionId];
-        if (!weatherZone) {
-            return baseChunk;
-        }
-
-        const weather = weatherZone.currentWeather;
-        const effectiveChunk: Chunk = JSON.parse(JSON.stringify(baseChunk)); // Deep copy
-
-        // Apply weather deltas
-        effectiveChunk.temperature = clamp((baseChunk.temperature ?? 5) + weather.temperature_delta, 0, 10);
-        effectiveChunk.moisture = clamp(baseChunk.moisture + weather.moisture_delta, 0, 10);
-        effectiveChunk.windLevel = clamp((baseChunk.windLevel ?? 3) + weather.wind_delta, 0, 10);
-        effectiveChunk.lightLevel = clamp(baseChunk.lightLevel + weather.light_delta, -10, 10);
-
-        return effectiveChunk;
-    }, [weatherZones]);
+    }, [world, gameTicks, weatherZones, currentSeason, customItemDefinitions, getEffectiveChunk, addNarrativeEntry, t, playerPosition]);
     
 
     const handleOnlineNarrative = async (action: string, worldCtx: World, playerPosCtx: {x: number, y: number}, playerStatsCtx: PlayerStatus) => {

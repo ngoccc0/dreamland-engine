@@ -9,7 +9,8 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { PlayerStatusSchema, EnemySchema, PlayerItemSchema, ChunkItemSchema } from '@/ai/schemas';
-import type { PlayerItem } from '@/lib/game/types';
+import type { PlayerItem, PlayerStatus } from '@/lib/game/types';
+import { itemDefinitions } from '@/lib/game/config';
 
 // --- Tool for Player Attacking Enemy ---
 export const playerAttackTool = ai.defineTool({
@@ -64,7 +65,10 @@ export const takeItemTool = ai.defineTool({
     if (existingItem) {
         existingItem.quantity += itemToTake.quantity;
     } else {
-        updatedPlayerInventory.push({ name: itemToTake.name, quantity: itemToTake.quantity, tier: itemToTake.tier });
+        // Find the tier from the item definition catalog if needed, though itemToTake should have it.
+        const definition = itemDefinitions[itemToTake.name];
+        const tier = definition ? definition.tier : itemToTake.tier || 1;
+        updatedPlayerInventory.push({ name: itemToTake.name, quantity: itemToTake.quantity, tier: tier });
     }
 
     return { updatedPlayerInventory, updatedChunkItems };
@@ -81,30 +85,55 @@ export const useItemTool = ai.defineTool({
     outputSchema: z.object({
         updatedPlayerStatus: PlayerStatusSchema,
         wasUsed: z.boolean().describe("Whether the item was successfully found and used."),
-        effectDescription: z.string().describe("A simple description of what the item did, e.g., 'Healed 25 HP'."),
+        effectDescription: z.string().describe("A simple, factual description of what the item did, e.g., 'Healed for 25 HP. Restored 10 Stamina.'"),
     }),
 }, async ({ itemName, playerStatus }) => {
-    const newStatus = JSON.parse(JSON.stringify(playerStatus)); // Deep copy to avoid mutation
+    const newStatus: PlayerStatus = JSON.parse(JSON.stringify(playerStatus)); // Deep copy
     const itemIndex = newStatus.items.findIndex((i: PlayerItem) => i.name.toLowerCase() === itemName.toLowerCase());
 
     if (itemIndex === -1) {
         return { updatedPlayerStatus: playerStatus, wasUsed: false, effectDescription: 'Item not found.' };
     }
+
+    const itemDef = itemDefinitions[newStatus.items[itemIndex].name];
+    if (!itemDef) {
+         return { updatedPlayerStatus: playerStatus, wasUsed: false, effectDescription: 'Item has no defined effect.' };
+    }
     
-    // Decrement quantity
-    newStatus.items[itemIndex].quantity -= 1;
-    
-    // Apply effect (simple healing example)
-    let effectDescription = 'Used item.';
-    if (itemName.toLowerCase().includes('heal')) {
-        newStatus.hp = Math.min(100, newStatus.hp + 25);
-        effectDescription = 'Healed for 25 HP.';
+    // Apply effects
+    const effectDescriptions: string[] = [];
+    itemDef.effects.forEach(effect => {
+        switch (effect.type) {
+            case 'HEAL':
+                const oldHp = newStatus.hp;
+                newStatus.hp = Math.min(100, newStatus.hp + effect.amount);
+                if (newStatus.hp > oldHp) {
+                    effectDescriptions.push(`Hồi ${newStatus.hp - oldHp} máu.`);
+                }
+                break;
+            case 'RESTORE_STAMINA':
+                 const oldStamina = newStatus.stamina;
+                 newStatus.stamina = Math.min(100, newStatus.stamina + effect.amount);
+                 if (newStatus.stamina > oldStamina) {
+                    effectDescriptions.push(`Phục hồi ${newStatus.stamina - oldStamina} thể lực.`);
+                 }
+                break;
+        }
+    });
+
+    if (effectDescriptions.length === 0) {
+        return { updatedPlayerStatus: playerStatus, wasUsed: false, effectDescription: 'Item had no effect.' };
     }
 
-    // Remove if quantity is zero
+    // Decrement quantity and remove if zero
+    newStatus.items[itemIndex].quantity -= 1;
     if (newStatus.items[itemIndex].quantity <= 0) {
         newStatus.items.splice(itemIndex, 1);
     }
     
-    return { updatedPlayerStatus: newStatus, wasUsed: true, effectDescription };
+    return { 
+        updatedPlayerStatus: newStatus, 
+        wasUsed: true, 
+        effectDescription: effectDescriptions.join(' ') 
+    };
 });

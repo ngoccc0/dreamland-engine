@@ -1,5 +1,5 @@
 import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season } from "./types";
-import { seasonConfig, templates, worldConfig } from "./config";
+import { seasonConfig, templates, worldConfig, itemDefinitions } from "./config";
 
 // --- HELPER FUNCTIONS ---
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
@@ -34,57 +34,40 @@ const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 'descri
  * Selects entities based on conditions and chance.
  * @param possibleEntities - An array of potential entities with their spawn conditions.
  * @param chunk - The chunk data to check conditions against.
- * @param worldProfile - The global profile of the world, used to scale item quantities.
  * @param maxCount - The maximum number of entity types to select.
- * @returns An array of selected entities, with quantities calculated.
+ * @returns An array of selected entity names.
  */
-const selectEntities = <T>(
-    possibleEntities: { data: T; conditions: SpawnConditions }[],
+const selectEntities = <T extends {name: string, conditions: SpawnConditions} | {data: any, conditions: SpawnConditions}>(
+    possibleEntities: T[],
     chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy'>,
-    worldProfile?: WorldProfile,
     maxCount: number = 3
-): T[] => {
+): any[] => {
     const validEntities = possibleEntities.filter(entity => checkConditions(entity.conditions, chunk));
     
-    const selected: T[] = [];
+    const selected: any[] = [];
     const shuffled = [...validEntities].sort(() => 0.5 - Math.random());
     
     for (const entity of shuffled) {
         if (selected.length >= maxCount) break;
 
-        // Dynamically calculate spawn chance based on tier.
         let spawnChance = entity.conditions.chance ?? 1.0;
         
-        // Check if the entity data is an object and has a 'tier' property
-        const itemData = entity.data as any;
-        if (typeof itemData === 'object' && itemData !== null && typeof itemData.tier === 'number') {
-            const tier = itemData.tier as number;
+        // This handles both the old format {data: {type: '...'}, ...} for enemies/NPCs
+        // and the new format {name: '...', ...} for items.
+        const entityData = 'data' in entity ? entity.data : entity;
+        const itemName = entityData.name || entityData.type || entityData;
+
+        // For items, check the central catalog for the tier
+        const itemDef = itemDefinitions[itemName];
+        if (itemDef) {
+            const tier = itemDef.tier;
             // Reduce spawn chance by 50% for each tier above 1.
-            // e.g., tier 1: x1, tier 2: x0.5, tier 3: x0.25
             const tierMultiplier = Math.pow(0.5, tier - 1);
             spawnChance *= tierMultiplier;
         }
 
         if (Math.random() < spawnChance) {
-            if (typeof entity.data === 'object' && entity.data !== null && 'quantity' in entity.data && typeof (entity.data as any).quantity === 'object') {
-                const item = entity.data as { quantity: { min: number, max: number } };
-                const baseQuantity = getRandomInRange(item.quantity);
-
-                if (worldProfile) {
-                    const multiplier = worldProfile.resourceDensity / 5.0;
-                    const scaledQuantity = Math.round(baseQuantity * multiplier);
-                    
-                    if (scaledQuantity > 0) {
-                        selected.push({ ...entity.data, quantity: scaledQuantity });
-                    }
-                } else {
-                    if (baseQuantity > 0) {
-                        selected.push({ ...entity.data, quantity: baseQuantity });
-                    }
-                }
-            } else {
-                 selected.push(entity.data);
-            }
+            selected.push(entityData);
         }
     }
     return selected;
@@ -224,12 +207,33 @@ function generateChunkContent(
     const feature = template.features[Math.floor(Math.random() * template.features.length)];
     let finalDescription = baseDescriptionTemplate.replace('[adjective]', adjective).replace('[feature]', feature);
     
-    // NPCs, Items, Enemy
-    const spawnedNPCs = selectEntities(template.NPCs, chunkData, undefined, 1);
-    const spawnedItems = selectEntities(template.items, chunkData, worldProfile, 3) as ChunkItem[];
-    const spawnedEnemies = selectEntities(template.enemies, chunkData, undefined, 1);
+    // --- Generate Items from central catalog ---
+    const spawnedItemRefs = selectEntities(template.items, chunkData, 3);
+    const spawnedItems: ChunkItem[] = [];
+    for (const itemRef of spawnedItemRefs) {
+        const itemDef = itemDefinitions[itemRef.name];
+        if (itemDef) {
+            const baseQuantity = getRandomInRange(itemDef.baseQuantity);
+            const multiplier = worldProfile.resourceDensity / 5.0;
+            const finalQuantity = Math.round(baseQuantity * multiplier);
+
+            if (finalQuantity > 0) {
+                spawnedItems.push({
+                    name: itemRef.name,
+                    description: itemDef.description,
+                    tier: itemDef.tier,
+                    quantity: finalQuantity,
+                });
+            }
+        }
+    }
+    
+    // NPCs & Enemies (still using old system for now)
+    const spawnedNPCs = selectEntities(template.NPCs, chunkData, 1);
+    const spawnedEnemies = selectEntities(template.enemies, chunkData, 1);
     const enemyData = spawnedEnemies.length > 0 ? spawnedEnemies[0] : null;
     const spawnedEnemy = enemyData ? { ...enemyData, satiation: 0 } : null;
+
 
     // More description based on calculated values
     if (chunkData.moisture > 8) finalDescription += " Không khí đặc quánh hơi ẩm.";

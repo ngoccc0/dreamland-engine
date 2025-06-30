@@ -172,3 +172,16 @@ export interface GameState {
     narrativeLog: NarrativeEntry[];
     worldSetup: WorldConcept;
 }
+
+// --- NEW DATA-DRIVEN ITEM SYSTEM ---
+
+export type ItemEffect =
+  | { type: 'HEAL'; amount: number }
+  | { type: 'RESTORE_STAMINA'; amount: number };
+
+export interface ItemDefinition {
+  description: string;
+  tier: number;
+  effects: ItemEffect[];
+  baseQuantity: { min: number, max: number };
+}

@@ -1,11 +1,9 @@
 import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
-import { openai } from 'genkitx-openai';
-import { config } from 'dotenv';
+import openai from 'genkitx-openai';
 
-// Explicitly load environment variables from the .env file in the project root.
-// This ensures API keys are available for the Next.js server environment.
-config({ path: '.env' });
+// NOTE: .env file is automatically loaded by Next.js.
+// No need for explicit dotenv configuration.
 
 export const ai = genkit({
   plugins: [

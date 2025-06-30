@@ -16,6 +16,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import type { Terrain } from '@/lib/game/types';
+import Handlebars from 'handlebars';
 
 const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave"];
 
@@ -102,16 +103,8 @@ export async function generateWorldSetup(input: GenerateWorldSetupInput): Promis
 }
 
 
-// == STEP 3: DEFINE THE AI PROMPT ==
-const worldSetupPrompt = ai.definePrompt({
-  name: 'worldSetupPrompt',
-  input: {
-    schema: GenerateWorldSetupInputSchema,
-  },
-  output: {
-    schema: GenerateWorldSetupOutputSchema,
-  },
-  prompt: `You are a creative and brilliant Game Master, designing a new text-based adventure game.
+// == STEP 3: DEFINE THE AI PROMPT TEMPLATE ==
+const worldSetupPromptTemplate = `You are a creative and brilliant Game Master, designing a new text-based adventure game.
 A player has provided you with an idea. Your task is to generate a rich set of options for them.
 
 Player's Idea: {{{userInput}}}
@@ -137,10 +130,10 @@ After creating the shared item catalog, create THREE DISTINCT AND VARIED concept
 5.  **Initial Quests:** One or two simple starting quests.
 
 Provide the response in the required JSON format. ALL TEXT in the response (worldName, initialNarrative, item names, item descriptions, initialQuests) MUST be in the language corresponding to this code: {{language}}.
-`,
-});
+`;
 
-// == STEP 4: DEFINE THE GENKIT FLOW ==
+
+// == STEP 4: DEFINE THE GENKIT FLOW (with parallel execution) ==
 const generateWorldSetupFlow = ai.defineFlow(
   {
     name: 'generateWorldSetupFlow',
@@ -148,11 +141,28 @@ const generateWorldSetupFlow = ai.defineFlow(
     outputSchema: GenerateWorldSetupOutputSchema,
   },
   async input => {
-    // 1. Call the AI prompt with the user's input and language preference.
-    const {output} = await worldSetupPrompt(input);
+    // 1. Compile the Handlebars template
+    const template = Handlebars.compile(worldSetupPromptTemplate);
+    const finalPrompt = template(input);
+    
+    // 2. Create two promises, one for each AI model provider
+    const geminiPromise = ai.generate({
+        model: 'googleai/gemini-2.0-flash',
+        prompt: finalPrompt,
+        output: { schema: GenerateWorldSetupOutputSchema },
+    });
+    
+    const openaiPromise = ai.generate({
+        model: 'openai/gpt-4o',
+        prompt: finalPrompt,
+        output: { schema: GenerateWorldSetupOutputSchema },
+    });
 
-    // 2. The 'output' is guaranteed by Genkit to match the GenerateWorldSetupOutputSchema.
-    // The '!' tells TypeScript we are confident the output will not be null.
-    return output!;
+    // 3. Race the two promises and take the result from whichever finishes first.
+    // Promise.any() waits for the first promise to fulfill.
+    const firstResult = await Promise.any([geminiPromise, openaiPromise]);
+    
+    // 4. Return the output from the winning promise.
+    return firstResult.output!;
   }
 );

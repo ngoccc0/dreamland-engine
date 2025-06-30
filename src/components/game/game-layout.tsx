@@ -24,6 +24,7 @@ import { worldConfig, templates, itemDefinitions as staticItemDefinitions } from
 import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region, GameState, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
 
+const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
 
 interface GameLayoutProps {
     worldSetup?: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[] };
@@ -494,19 +495,21 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
      * @returns A new chunk object with weather effects applied.
      */
     const getEffectiveChunk = useCallback((baseChunk: Chunk): Chunk => {
+        if (!baseChunk?.regionId) return baseChunk;
+
         const weatherZone = weatherZones[baseChunk.regionId];
         if (!weatherZone) {
             return baseChunk;
         }
 
         const weather = weatherZone.currentWeather;
-        const effectiveChunk = { ...baseChunk };
+        const effectiveChunk: Chunk = { ...baseChunk };
 
         // Apply weather deltas
-        effectiveChunk.temperature = cn(baseChunk.temperature + weather.temperature_delta, 0, 10);
-        effectiveChunk.moisture = cn(baseChunk.moisture + weather.moisture_delta, 0, 10);
-        effectiveChunk.windLevel = cn(baseChunk.windLevel + weather.wind_delta, 0, 10);
-        effectiveChunk.lightLevel = cn(baseChunk.lightLevel + weather.light_delta, -10, 10);
+        effectiveChunk.temperature = clamp(baseChunk.temperature + weather.temperature_delta, 0, 10);
+        effectiveChunk.moisture = clamp(baseChunk.moisture + weather.moisture_delta, 0, 10);
+        effectiveChunk.windLevel = clamp(baseChunk.windLevel + weather.wind_delta, 0, 10);
+        effectiveChunk.lightLevel = clamp(baseChunk.lightLevel + weather.light_delta, -10, 10);
 
         return effectiveChunk;
     }, [weatherZones]);

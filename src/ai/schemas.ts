@@ -69,6 +69,7 @@ export const ChunkSchema = z.object({
     items: z.array(ChunkItemSchema).describe("Items present in the chunk, with quantities and tiers."),
     explored: z.boolean(),
     enemy: EnemySchema.nullable(),
+    // These detailed attributes are now included for the AI to have full context
     vegetationDensity: z.number(),
     moisture: z.number(),
     elevation: z.number(),
@@ -77,4 +78,6 @@ export const ChunkSchema = z.object({
     magicAffinity: z.number(),
     humanPresence: z.number(),
     predatorPresence: z.number(),
+    temperature: z.number().optional(), // Now optional to handle dynamic calculation
+    windLevel: z.number().optional(),   // Now optional to handle dynamic calculation
 });

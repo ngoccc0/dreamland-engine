@@ -390,6 +390,7 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
             let hasActed = false;
             const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }].sort(() => Math.random() - 0.5);
     
+            // 1. Reproduction
             if (enemyData.satiation >= enemyData.maxSatiation) {
                 for (const dir of directions) {
                     const partnerPos = { x: creatureChunk.x + dir.x, y: creatureChunk.y + dir.y };
@@ -417,6 +418,7 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                 }
             }
             
+            // 2. Eating
             if (!hasActed && enemyData.satiation < enemyData.maxSatiation) {
                 for (const dir of directions) {
                     const targetPos = { x: creatureChunk.x + dir.x, y: creatureChunk.y + dir.y };
@@ -424,6 +426,7 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                     const targetChunk = worldCopy[targetKey];
     
                     if (targetChunk) {
+                        // Eat other creatures
                         if (targetChunk.enemy && enemyData.diet.includes(targetChunk.enemy.type)) {
                             worldCopy[creatureKey].enemy!.satiation++;
                             worldCopy[targetKey].enemy = null;
@@ -431,6 +434,7 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                             break;
                         }
     
+                        // Eat items from the ground
                         const foodItem = targetChunk.items.find(item => enemyData.diet.includes(item.name));
                         if (foodItem) {
                             const newEnemyState = { ...enemyData, satiation: enemyData.satiation + 1 };
@@ -449,7 +453,8 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                 }
             }
     
-            if (!hasActed && enemyData.behavior === 'aggressive' && Math.random() < 0.2) {
+            // 3. Wandering
+            if (!hasActed && Math.random() < 0.2) { // 20% chance to wander if no other action was taken
                 for (const dir of directions) {
                     const newPos = { x: creatureChunk.x + dir.x, y: creatureChunk.y + dir.y };
                     const newKey = `${newPos.x},${newPos.y}`;
@@ -503,12 +508,12 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
         }
 
         const weather = weatherZone.currentWeather;
-        const effectiveChunk: Chunk = { ...baseChunk };
+        const effectiveChunk: Chunk = JSON.parse(JSON.stringify(baseChunk)); // Deep copy
 
         // Apply weather deltas
-        effectiveChunk.temperature = clamp(baseChunk.temperature + weather.temperature_delta, 0, 10);
+        effectiveChunk.temperature = clamp((baseChunk.temperature ?? 5) + weather.temperature_delta, 0, 10);
         effectiveChunk.moisture = clamp(baseChunk.moisture + weather.moisture_delta, 0, 10);
-        effectiveChunk.windLevel = clamp(baseChunk.windLevel + weather.wind_delta, 0, 10);
+        effectiveChunk.windLevel = clamp((baseChunk.windLevel ?? 3) + weather.wind_delta, 0, 10);
         effectiveChunk.lightLevel = clamp(baseChunk.lightLevel + weather.light_delta, -10, 10);
 
         return effectiveChunk;
@@ -548,6 +553,8 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                     magicAffinity: currentChunk.magicAffinity,
                     humanPresence: currentChunk.humanPresence,
                     predatorPresence: currentChunk.predatorPresence,
+                    temperature: currentChunk.temperature,
+                    windLevel: currentChunk.windLevel,
                 },
                 recentNarrative: narrativeLog.slice(-5).map(e => e.text),
                 language,

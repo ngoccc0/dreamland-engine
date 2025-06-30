@@ -238,3 +238,9 @@ export interface GeneratedItem {
       subOptimal: SpawnConditions;
     }
 }
+
+export interface Recipe {
+    result: { name: string; quantity: number };
+    ingredients: { name: string; quantity: number }[];
+    description: string;
+}

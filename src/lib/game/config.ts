@@ -11,7 +11,7 @@ export const seasonConfig: Record<Season, SeasonModifiers> = {
 
 // --- CENTRAL ITEM CATALOG ---
 export const itemDefinitions: Record<string, ItemDefinition> = {
-    // --- VẬT PHẨM CHẾ TÁC CƠ BẢN ---
+    // --- VẬT PHẨM CHẾ TẠO CƠ BẢN ---
     'Sỏi': {
         description: 'Những viên sỏi nhỏ, có thể dùng để ném hoặc làm vật liệu cơ bản.',
         tier: 1,
@@ -81,6 +81,26 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     'Chìa Khóa Rỉ Sét': {
         description: 'Một chiếc chìa khóa cũ kỹ, không rõ nó mở được ổ khóa nào.',
         tier: 2,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+
+    // --- VẬT PHẨM CHẾ TẠO ĐƯỢC ---
+    'Rìu Đá Đơn Giản': {
+        description: 'Một chiếc rìu đá thô sơ, hữu ích để chặt cây hoặc chiến đấu.',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 } 
+    },
+    'Thuốc Máu Yếu': {
+        description: 'Một loại thuốc pha chế đơn giản, giúp phục hồi một lượng máu nhỏ.',
+        tier: 1,
+        effects: [{ type: 'HEAL', amount: 35 }],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Bó Đuốc': {
+        description: 'Một bó đuốc tạm bợ, tỏa ra ánh sáng và hơi ấm.',
+        tier: 1,
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },

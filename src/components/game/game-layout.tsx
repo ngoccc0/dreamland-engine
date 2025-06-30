@@ -5,11 +5,12 @@ import { Minimap } from "@/components/game/minimap";
 import { StatusPopup } from "@/components/game/status-popup";
 import { InventoryPopup } from "@/components/game/inventory-popup";
 import { FullMapPopup } from "@/components/game/full-map-popup";
+import { CraftingPopup } from "@/components/game/crafting-popup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Backpack, Shield, Cpu, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from "lucide-react";
+import { Backpack, Shield, Cpu, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Hammer } from "lucide-react";
 import type { WorldConcept } from "@/ai/flows/generate-world-setup";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
@@ -21,7 +22,8 @@ import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/gener
 // Import modularized game engine components
 import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, checkConditions } from '@/lib/game/engine';
 import { worldConfig, templates, itemDefinitions as staticItemDefinitions } from '@/lib/game/config';
-import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region, GameState, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone } from "@/lib/game/types";
+import { recipes } from "@/lib/game/recipes";
+import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region, GameState, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
 
@@ -103,6 +105,7 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
     
     const [isStatusOpen, setStatusOpen] = useState(false);
     const [isInventoryOpen, setInventoryOpen] = useState(false);
+    const [isCraftingOpen, setCraftingOpen] = useState(false);
     const [isFullMapOpen, setIsFullMapOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>(initialGameState?.narrativeLog || []);
@@ -1010,6 +1013,48 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
     
         handleGameTick();
     }
+
+    const handleCraft = useCallback((recipe: Recipe) => {
+        // 1. Check if player has ingredients (redundant check, but safe)
+        const canCraft = recipe.ingredients.every(ing => {
+            const playerItem = playerStats.items.find(i => i.name === ing.name);
+            return playerItem && playerItem.quantity >= ing.quantity;
+        });
+
+        if (!canCraft) {
+            toast({ title: t('error'), description: t('notEnoughIngredients'), variant: "destructive" });
+            return;
+        }
+
+        // 2. Remove ingredients
+        let updatedItems = [...playerStats.items];
+        recipe.ingredients.forEach(ing => {
+            const itemIndex = updatedItems.findIndex(i => i.name === ing.name);
+            if (itemIndex > -1) {
+                updatedItems[itemIndex].quantity -= ing.quantity;
+            }
+        });
+        updatedItems = updatedItems.filter(i => i.quantity > 0);
+
+        // 3. Add result
+        const resultItem = updatedItems.find(i => i.name === recipe.result.name);
+        const itemDef = customItemDefinitions[recipe.result.name];
+        if (resultItem) {
+            resultItem.quantity += recipe.result.quantity;
+        } else {
+            updatedItems.push({
+                name: recipe.result.name,
+                quantity: recipe.result.quantity,
+                tier: itemDef?.tier || 1
+            });
+        }
+
+        // 4. Update state and give feedback
+        setPlayerStats(prev => ({ ...prev, items: updatedItems }));
+        addNarrativeEntry(t('craftSuccess', { itemName: recipe.result.name }), 'system');
+        toast({ title: t('craftSuccessTitle'), description: t('craftSuccess', { itemName: recipe.result.name }) });
+    }, [playerStats.items, customItemDefinitions, addNarrativeEntry, toast, t]);
+
     const generateMapGrid = useCallback((): MapCell[][] => {
         const radius = 2; // This creates a 5x5 grid
         const size = radius * 2 + 1;
@@ -1104,12 +1149,15 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                         
                         {/* Mobile Layout */}
                         <div className="md:hidden w-full flex flex-col items-center space-y-2">
-                            <div className="grid grid-cols-2 gap-2 w-full max-w-xs">
-                                <Button variant="outline" onClick={() => setStatusOpen(true)} className="w-full justify-center">
-                                    <Shield className="mr-2"/> <span>{t('status')}</span>
+                             <div className="grid grid-cols-3 gap-2 w-full max-w-xs">
+                                <Button variant="outline" onClick={() => setStatusOpen(true)} className="w-full justify-center text-xs px-2">
+                                    <Shield className="mr-1 h-4 w-4"/> <span>{t('status')}</span>
                                 </Button>
-                                <Button variant="outline" onClick={() => setInventoryOpen(true)} className="w-full justify-center">
-                                    <Backpack className="mr-2"/> <span>{t('inventory')}</span>
+                                <Button variant="outline" onClick={() => setInventoryOpen(true)} className="w-full justify-center text-xs px-2">
+                                    <Backpack className="mr-1 h-4 w-4"/> <span>{t('inventory')}</span>
+                                </Button>
+                                <Button variant="outline" onClick={() => setCraftingOpen(true)} className="w-full justify-center text-xs px-2">
+                                    <Hammer className="mr-1 h-4 w-4"/> <span>{t('crafting')}</span>
                                 </Button>
                             </div>
                             <Button variant="accent" className="w-full max-w-xs justify-center" onClick={() => handleMove("north")}>
@@ -1199,6 +1247,17 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                                 </Tooltip>
                             </div>
 
+                             <div className="col-start-1 row-start-3 flex justify-center items-center">
+                                <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="outline" className={desktopButtonSize} onClick={() => setCraftingOpen(true)} aria-label="Crafting">
+                                    <Hammer />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>{t('craftingTooltip')}</p></TooltipContent>
+                                </Tooltip>
+                            </div>
+
                             <div className="col-start-2 row-start-3 flex justify-center items-center">
                                 <Tooltip>
                                 <TooltipTrigger asChild>
@@ -1247,7 +1306,8 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                 </aside>
                 
                 <StatusPopup open={isStatusOpen} onOpenChange={setStatusOpen} stats={playerStats} />
-                <InventoryPopup open={isInventoryOpen} onOpenChange={setInventoryOpen} items={playerStats.items} />
+                <InventoryPopup open={isInventoryOpen} onOpenChange={setInventoryOpen} items={playerStats.items} itemDefinitions={customItemDefinitions} />
+                <CraftingPopup open={isCraftingOpen} onOpenChange={setCraftingOpen} playerItems={playerStats.items} onCraft={handleCraft} />
                 <FullMapPopup open={isFullMapOpen} onOpenChange={setIsFullMapOpen} world={world} playerPosition={playerPosition} />
             </div>
         </TooltipProvider>

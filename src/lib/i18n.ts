@@ -36,6 +36,9 @@ export const translations = {
     worldGenErrorDesc: "Cosmic energies are disturbed. Please try again.",
     offlineModeActive: "Offline Mode Active",
     offlineToastDesc: "Don't worry, you can continue your journey without an internet connection, but having one provides the best experience.",
+    notEnoughIngredients: "Not enough ingredients.",
+    craftSuccessTitle: "Crafting Successful!",
+    craftSuccess: "You successfully crafted: {itemName}",
 
     // Game Layout
     wentDirection: "You go {direction}.",
@@ -67,6 +70,8 @@ export const translations = {
     statusTooltip: "View health, mana, and quests.",
     inventory: "Inventory",
     inventoryTooltip: "Check the items you are carrying.",
+    crafting: "Crafting",
+    craftingTooltip: "Open the crafting window.",
     availableActions: "Available Actions",
     customActionPlaceholder: "Custom action...",
     submit: "Submit",
@@ -107,6 +112,11 @@ export const translations = {
     inventoryEmpty: "Your inventory is empty.",
     tier: "Tier {tier}",
 
+    // Crafting Popup
+    craftingDesc: "Combine items to create new tools and supplies.",
+    ingredients: "Ingredients",
+    craft: "Craft",
+    
     // Minimap
     minimap: "Minimap",
     fullMapDescription: "Hover over a cell to see details. The map shows all explored areas.",
@@ -162,6 +172,9 @@ export const translations = {
     worldGenErrorDesc: "Năng lượng vũ trụ đang bị nhiễu loạn. Vui lòng thử lại.",
     offlineModeActive: "Chế độ Ngoại tuyến",
     offlineToastDesc: "Đừng lo, bạn vẫn có thể tiếp tục cuộc hành trình của mình khi không có mạng, nhưng có kết nối sẽ cho trải nghiệm tốt nhất.",
+    notEnoughIngredients: "Không đủ nguyên liệu.",
+    craftSuccessTitle: "Chế tạo thành công!",
+    craftSuccess: "Bạn đã chế tạo thành công: {itemName}",
 
     // Game Layout
     wentDirection: "Bạn đi về phía {direction}.",
@@ -193,6 +206,8 @@ export const translations = {
     statusTooltip: "Xem máu, năng lượng và nhiệm vụ.",
     inventory: "Túi đồ",
     inventoryTooltip: "Kiểm tra các vật phẩm bạn đang mang.",
+    crafting: "Chế tạo",
+    craftingTooltip: "Mở cửa sổ chế tạo.",
     availableActions: "Hành động có sẵn",
     customActionPlaceholder: "Hành động tùy chỉnh...",
     submit: "Gửi",
@@ -232,6 +247,11 @@ export const translations = {
     inventoryPopupDesc: "Các vật phẩm bạn đã thu thập trên hành trình.",
     inventoryEmpty: "Túi đồ của bạn trống rỗng.",
     tier: "Cấp {tier}",
+    
+    // Crafting Popup
+    craftingDesc: "Kết hợp vật phẩm để tạo công cụ và vật tư mới.",
+    ingredients: "Nguyên liệu",
+    craft: "Chế tạo",
 
     // Minimap
     minimap: "Minimap",

@@ -55,7 +55,7 @@ const WorldConceptSchema = z.object({
   startingBiome: z.enum(allTerrains).describe('The primary biome for the starting area.'),
   
   // The full catalog of unique items for this world.
-  customItemCatalog: z.array(GeneratedItemSchema).min(10).max(15).describe("A catalog of 10-15 unique, thematic items invented for this specific world. These items will be found by the player as they explore."),
+  customItemCatalog: z.array(GeneratedItemSchema).min(5).max(7).describe("A catalog of 5-7 unique, thematic items invented for this specific world. These items will be found by the player as they explore."),
   
   // The player's starting inventory, which should be a subset of the catalog.
   playerInventory: z.array(z.object({
@@ -109,7 +109,7 @@ For EACH of the three concepts, you must generate the following:
 1.  **World Name:** A cool, evocative name for the world.
 2.  **Initial Narrative:** A rich, descriptive opening paragraph.
 3.  **Starting Biome:** The biome where the player begins (forest, grassland, desert, swamp, mountain, or cave).
-4.  **Custom Item Catalog:** This is the most important step. You must INVENT a catalog of 10 to 15 unique, thematically appropriate items that will be found throughout this world. For each item in the catalog, you must define:
+4.  **Custom Item Catalog:** This is the most important step. You must INVENT a catalog of 5 to 7 unique, thematically appropriate items that will be found throughout this world. For each item in the catalog, you must define:
     *   **name**: A creative and unique name.
     *   **description**: A one-sentence flavorful description.
     *   **tier**: A tier from 1 (common) to 6 (legendary).

@@ -8,6 +8,7 @@ import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/comp
 import { useLanguage } from "@/context/language-context";
 import type { PlayerItem, Recipe, RecipeIngredient, RecipeAlternative } from "@/lib/game/types";
 import { recipes } from "@/lib/game/recipes";
+import { calculateCraftingOutcome } from "@/lib/game/engine";
 import { Hammer } from "lucide-react";
 
 interface CraftingPopupProps {
@@ -23,25 +24,6 @@ const getPossibleItemsForIngredient = (ingredient: RecipeIngredient): { name: st
         items.push(...ingredient.alternatives);
     }
     return items;
-};
-
-const hasIngredients = (playerItems: PlayerItem[], ingredients: RecipeIngredient[]): boolean => {
-    const availableItems = new Map(playerItems.map(item => [item.name, item.quantity]));
-
-    for (const ingredient of ingredients) {
-        let satisfied = false;
-        const possibleItems = getPossibleItemsForIngredient(ingredient);
-
-        for (const item of possibleItems) {
-            if ((availableItems.get(item.name) || 0) >= ingredient.quantity) {
-                satisfied = true;
-                break;
-            }
-        }
-        
-        if (!satisfied) return false;
-    }
-    return true;
 };
 
 const getPlayerQuantityForIngredient = (playerItems: PlayerItem[], ingredient: RecipeIngredient): number => {
@@ -81,7 +63,7 @@ export function CraftingPopup({ open, onOpenChange, playerItems, onCraft }: Craf
         <ScrollArea className="h-96">
           <div className="p-4 space-y-4">
             {Object.values(recipes).map((recipe, index) => {
-              const canCraft = hasIngredients(playerItems, recipe.ingredients);
+              const { canCraft, chance } = calculateCraftingOutcome(playerItems, recipe);
               return (
                 <div key={index} className="p-4 border rounded-lg bg-muted/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div className="flex-grow">
@@ -117,11 +99,13 @@ export function CraftingPopup({ open, onOpenChange, playerItems, onCraft }: Craf
                       <TooltipTrigger asChild>
                         <div className="flex-shrink-0">
                           <Button onClick={() => onCraft(recipe)} disabled={!canCraft}>
-                            {t('craft')}
+                            {canCraft ? `${t('craft')} (${chance}%)` : t('craft')}
                           </Button>
                         </div>
                       </TooltipTrigger>
-                      {!canCraft && <TooltipContent><p>{t('notEnoughIngredients')}</p></TooltipContent>}
+                      <TooltipContent>
+                        {canCraft ? <p>{t('successChance', { chance })}</p> : <p>{t('notEnoughIngredients')}</p>}
+                      </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </div>

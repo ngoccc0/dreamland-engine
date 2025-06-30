@@ -20,7 +20,7 @@ import { SwordIcon } from "@/components/game/icons";
 import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/generate-narrative-flow";
 
 // Import modularized game engine components
-import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, checkConditions } from '@/lib/game/engine';
+import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, checkConditions, calculateCraftingOutcome } from '@/lib/game/engine';
 import { worldConfig, templates, itemDefinitions as staticItemDefinitions } from '@/lib/game/config';
 import { recipes } from "@/lib/game/recipes";
 import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region, GameState, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, RecipeIngredient } from "@/lib/game/types";
@@ -1014,78 +1014,56 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
         handleGameTick();
     }
 
-    const getPossibleItemsForIngredient = (ingredient: RecipeIngredient): { name: string, tier: 1 | 2 | 3}[] => {
-        const options = [{ name: ingredient.name, tier: 1 as const }];
-        if (ingredient.alternatives) {
-            options.push(...ingredient.alternatives);
-        }
-        return options.sort((a, b) => (a.tier || 1) - (b.tier || 1)); // Sort by best tier first
-    };
-
     const handleCraft = useCallback((recipe: Recipe) => {
-        // For now, crafting is always successful if ingredients are available.
-        // The probabilistic system will be added in a future update.
-        const itemsToConsume: { name: string, quantity: number }[] = [];
-        const tempPlayerItems = new Map(playerStats.items.map(item => [item.name, item.quantity]));
-        let canCraft = true;
-
-        for (const ing of recipe.ingredients) {
-            let foundItemForIngredient: string | null = null;
-            const possibleItems = getPossibleItemsForIngredient(ing);
-            
-            for (const possibleItem of possibleItems) {
-                 if ((tempPlayerItems.get(possibleItem.name) || 0) >= ing.quantity) {
-                    foundItemForIngredient = possibleItem.name;
-                    break;
-                }
-            }
-
-            if (foundItemForIngredient) {
-                const existing = itemsToConsume.find(i => i.name === foundItemForIngredient);
-                if (existing) {
-                    existing.quantity += ing.quantity;
-                } else {
-                    itemsToConsume.push({ name: foundItemForIngredient, quantity: ing.quantity });
-                }
-                tempPlayerItems.set(foundItemForIngredient, tempPlayerItems.get(foundItemForIngredient)! - ing.quantity);
-            } else {
-                canCraft = false;
-                break;
-            }
-        }
+        const { canCraft, chance, ingredientsToConsume } = calculateCraftingOutcome(playerStats.items, recipe);
 
         if (!canCraft) {
             toast({ title: t('error'), description: t('notEnoughIngredients'), variant: "destructive" });
             return;
         }
 
-        // 2. Remove consumed ingredients from player's inventory
+        // 1. Consume ingredients first (high-stakes crafting)
         let updatedItems = [...playerStats.items];
-        itemsToConsume.forEach(itemToConsume => {
+        ingredientsToConsume.forEach(itemToConsume => {
             const itemIndex = updatedItems.findIndex(i => i.name === itemToConsume.name);
             if (itemIndex > -1) {
                 updatedItems[itemIndex].quantity -= itemToConsume.quantity;
             }
         });
         updatedItems = updatedItems.filter(i => i.quantity > 0);
-
-        // 3. Add the crafted item
-        const resultItem = updatedItems.find(i => i.name === recipe.result.name);
-        const itemDef = customItemDefinitions[recipe.result.name];
-        if (resultItem) {
-            resultItem.quantity += recipe.result.quantity;
-        } else {
-            updatedItems.push({
-                name: recipe.result.name,
-                quantity: recipe.result.quantity,
-                tier: itemDef?.tier || 1
-            });
-        }
-
-        // 4. Update state and give feedback
+        
+        // We update the player's inventory immediately with the consumed items
         setPlayerStats(prev => ({ ...prev, items: updatedItems }));
-        addNarrativeEntry(t('craftSuccess', { itemName: recipe.result.name }), 'system');
-        toast({ title: t('craftSuccessTitle'), description: t('craftSuccess', { itemName: recipe.result.name }) });
+
+        // 2. Roll for success
+        const roll = Math.random() * 100;
+
+        if (roll < chance) {
+            // SUCCESS
+            // Add the crafted item
+            // We need to operate on a fresh copy of updatedItems, because the state update is async
+            const newInventory = [...updatedItems];
+            const resultItemIndex = newInventory.findIndex(i => i.name === recipe.result.name);
+            const itemDef = customItemDefinitions[recipe.result.name];
+            
+            if (resultItemIndex > -1) {
+                newInventory[resultItemIndex].quantity += recipe.result.quantity;
+            } else {
+                newInventory.push({
+                    name: recipe.result.name,
+                    quantity: recipe.result.quantity,
+                    tier: itemDef?.tier || 1
+                });
+            }
+            setPlayerStats(prev => ({ ...prev, items: newInventory })); // update again with the new item
+            addNarrativeEntry(t('craftSuccess', { itemName: recipe.result.name }), 'system');
+            toast({ title: t('craftSuccessTitle'), description: t('craftSuccess', { itemName: recipe.result.name }) });
+        } else {
+            // FAILURE
+            addNarrativeEntry(t('craftFail', { itemName: recipe.result.name }), 'system');
+            toast({ title: t('craftFailTitle'), description: t('craftFail', { itemName: recipe.result.name }), variant: 'destructive' });
+        }
+        
         handleGameTick();
     }, [playerStats.items, customItemDefinitions, addNarrativeEntry, toast, t, handleGameTick]);
 

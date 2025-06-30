@@ -1,4 +1,4 @@
-import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState } from "./types";
+import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient } from "./types";
 import { seasonConfig, templates, worldConfig, itemDefinitions as staticItemDefinitions } from "./config";
 import { weatherPresets } from "./weatherPresets";
 
@@ -405,4 +405,56 @@ export const generateRegion = (
         };
     }
     return { newWorld, newRegions, newRegionCounter };
+};
+
+// --- CRAFTING SYSTEM ---
+export const calculateCraftingOutcome = (playerItems: PlayerItem[], recipe: Recipe): { canCraft: boolean, chance: number, ingredientsToConsume: {name: string, quantity: number}[] } => {
+    const ingredientsToConsume: {name: string, quantity: number}[] = [];
+    const tempPlayerItems = new Map(playerItems.map(item => [item.name, item.quantity]));
+    let canCraft = true;
+    let worstTier = 1;
+
+    const getPossibleItemsForIngredient = (ingredient: RecipeIngredient): { name: string, tier: 1 | 2 | 3}[] => {
+        const options = [{ name: ingredient.name, tier: 1 as const }];
+        if (ingredient.alternatives) {
+            options.push(...ingredient.alternatives);
+        }
+        return options.sort((a, b) => (a.tier || 1) - (b.tier || 1)); // Best tier first
+    };
+
+    for (const ing of recipe.ingredients) {
+        let foundItemForIngredient: { name: string, tier: number } | null = null;
+        const possibleItems = getPossibleItemsForIngredient(ing);
+        
+        for (const possibleItem of possibleItems) {
+            if ((tempPlayerItems.get(possibleItem.name) || 0) >= ing.quantity) {
+                foundItemForIngredient = possibleItem;
+                break;
+            }
+        }
+
+        if (foundItemForIngredient) {
+            worstTier = Math.max(worstTier, foundItemForIngredient.tier);
+            const existing = ingredientsToConsume.find(i => i.name === foundItemForIngredient!.name);
+            if (existing) {
+                existing.quantity += ing.quantity;
+            } else {
+                ingredientsToConsume.push({ name: foundItemForIngredient.name, quantity: ing.quantity });
+            }
+            tempPlayerItems.set(foundItemForIngredient.name, tempPlayerItems.get(foundItemForIngredient.name)! - ing.quantity);
+        } else {
+            canCraft = false;
+            break;
+        }
+    }
+
+    if (!canCraft) {
+        return { canCraft: false, chance: 0, ingredientsToConsume: [] };
+    }
+
+    let chance = 100;
+    if (worstTier === 2) chance = 50;
+    if (worstTier === 3) chance = 10;
+    
+    return { canCraft: true, chance, ingredientsToConsume };
 };

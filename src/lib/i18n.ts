@@ -39,6 +39,8 @@ export const translations = {
     notEnoughIngredients: "Not enough ingredients.",
     craftSuccessTitle: "Crafting Successful!",
     craftSuccess: "You successfully crafted: {itemName}",
+    craftFailTitle: "Crafting Failed!",
+    craftFail: "Your attempt to craft {itemName} failed, and the ingredients were lost.",
 
     // Game Layout
     wentDirection: "You go {direction}.",
@@ -116,6 +118,7 @@ export const translations = {
     craftingDesc: "Combine items to create new tools and supplies.",
     ingredients: "Ingredients",
     craft: "Craft",
+    successChance: "Success chance: {chance}%",
     
     // Minimap
     minimap: "Minimap",
@@ -175,6 +178,8 @@ export const translations = {
     notEnoughIngredients: "Không đủ nguyên liệu.",
     craftSuccessTitle: "Chế tạo thành công!",
     craftSuccess: "Bạn đã chế tạo thành công: {itemName}",
+    craftFailTitle: "Chế tạo Thất bại!",
+    craftFail: "Nỗ lực chế tạo {itemName} của bạn đã thất bại và các nguyên liệu đã bị mất.",
 
     // Game Layout
     wentDirection: "Bạn đi về phía {direction}.",
@@ -252,6 +257,7 @@ export const translations = {
     craftingDesc: "Kết hợp vật phẩm để tạo công cụ và vật tư mới.",
     ingredients: "Nguyên liệu",
     craft: "Chế tạo",
+    successChance: "Tỷ lệ thành công: {chance}%",
 
     // Minimap
     minimap: "Minimap",

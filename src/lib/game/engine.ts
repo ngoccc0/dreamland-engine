@@ -1,9 +1,36 @@
-import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem } from "./types";
+import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState } from "./types";
 import { seasonConfig, templates, worldConfig, itemDefinitions as staticItemDefinitions } from "./config";
+import { weatherPresets } from "./weatherPresets";
 
 // --- HELPER FUNCTIONS ---
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
-const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+export const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+
+// --- WEATHER GENERATION ---
+export const generateWeatherForZone = (terrain: Terrain, season: Season): WeatherState => {
+    const candidateWeather = weatherPresets.filter(
+      w => w.biome_affinity.includes(terrain) &&
+           w.season_affinity.includes(season)
+    );
+
+    if (candidateWeather.length === 0) {
+        // Fallback to clear weather if no specific weather is found
+        return weatherPresets.find(w => w.name === 'Clear Skies')!;
+    }
+
+    const totalWeight = candidateWeather.reduce((sum, w) => sum + w.spawnWeight, 0);
+    let random = Math.random() * totalWeight;
+
+    for (const weather of candidateWeather) {
+        random -= weather.spawnWeight;
+        if (random <= 0) {
+            return weather;
+        }
+    }
+    
+    return candidateWeather[0]; // Should not be reached, but as a fallback
+};
+
 
 // --- ENTITY SPAWNING LOGIC ---
 

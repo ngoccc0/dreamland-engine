@@ -19,9 +19,9 @@ import { SwordIcon } from "@/components/game/icons";
 import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/generate-narrative-flow";
 
 // Import modularized game engine components
-import { generateRegion, getValidAdjacentTerrains, weightedRandom } from '@/lib/game/engine';
+import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, getRandomInRange } from '@/lib/game/engine';
 import { worldConfig, templates, itemDefinitions as staticItemDefinitions } from '@/lib/game/config';
-import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region, GameState, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem } from "@/lib/game/types";
+import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region, GameState, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone } from "@/lib/game/types";
 
 
 interface GameLayoutProps {
@@ -48,6 +48,8 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
         }
     );
     const [currentSeason, setCurrentSeason] = useState<Season>(initialGameState?.currentSeason || 'spring');
+    const [gameTicks, setGameTicks] = useState(initialGameState?.gameTicks || 0);
+    const [weatherZones, setWeatherZones] = useState<{ [zoneId: string]: WeatherZone }>(initialGameState?.weatherZones || {});
 
     // --- State for Game Progression ---
     const [world, setWorld] = useState<World>(initialGameState?.world || {});
@@ -146,7 +148,7 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
             const startPos = { x: 0, y: 0 };
             const startingTerrain = worldSetup.startingBiome as Terrain;
             
-            const { newWorld, newRegions, newRegionCounter } = generateRegion(
+            let { newWorld, newRegions, newRegionCounter } = generateRegion(
                 startPos, 
                 startingTerrain, 
                 {}, 
@@ -164,6 +166,21 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                 addNarrativeEntry(newWorld[startKey].description, 'narrative');
             }
 
+            // --- Initialize Weather Zones ---
+            const initialWeatherZones: { [zoneId: string]: WeatherZone } = {};
+            let currentTick = 0; // Start at tick 0
+            Object.entries(newRegions).forEach(([regionId, region]) => {
+                const initialWeather = generateWeatherForZone(region.terrain, currentSeason);
+                const nextChangeTime = currentTick + getRandomInRange(initialWeather.duration_range);
+                initialWeatherZones[regionId] = {
+                    id: regionId,
+                    terrain: region.terrain,
+                    currentWeather: initialWeather,
+                    nextChangeTime: nextChangeTime
+                };
+            });
+            
+            setWeatherZones(initialWeatherZones);
             setWorld(newWorld);
             setRegions(newRegions);
             setRegionCounter(newRegionCounter);
@@ -188,6 +205,8 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
             worldSetup: finalWorldSetup,
             customItemDefinitions,
             customItemCatalog,
+            weatherZones,
+            gameTicks,
         };
 
         try {
@@ -207,7 +226,9 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
         narrativeLog,
         finalWorldSetup,
         customItemDefinitions,
-        customItemCatalog
+        customItemCatalog,
+        weatherZones,
+        gameTicks,
     ]);
 
 
@@ -315,14 +336,34 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [playerPosition]);
 
-    const handleWorldTick = useCallback(() => {
+    const handleGameTick = useCallback(() => {
+        const nextTick = gameTicks + 1;
+        setGameTicks(nextTick);
+
         const worldCopy = JSON.parse(JSON.stringify(world)) as World;
         const changes = {
             playerHpChange: 0,
             narrativeEntries: [] as { text: string; type: NarrativeEntry['type'] }[],
         };
     
-        // 1. Get all creatures that can act
+        // --- WEATHER SYSTEM TICK ---
+        const newWeatherZones = { ...weatherZones };
+        let weatherHasChanged = false;
+        for (const zoneId in newWeatherZones) {
+            const zone = newWeatherZones[zoneId];
+            if (nextTick >= zone.nextChangeTime) {
+                const newWeather = generateWeatherForZone(zone.terrain, currentSeason);
+                zone.currentWeather = newWeather;
+                zone.nextChangeTime = nextTick + getRandomInRange(newWeather.duration_range);
+                changes.narrativeEntries.push({ text: newWeather.description, type: 'system'});
+                weatherHasChanged = true;
+            }
+        }
+        if (weatherHasChanged) {
+            setWeatherZones(newWeatherZones);
+        }
+
+        // --- CREATURE ECOLOGY TICK ---
         const allCreatures = [];
         for (const key in worldCopy) {
             if (worldCopy[key].enemy) {
@@ -337,11 +378,9 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
         // Shuffle to prevent processing order bias
         allCreatures.sort(() => Math.random() - 0.5);
     
-        // 2. Process creature actions
         for (const creature of allCreatures) {
             const { key: creatureKey, chunk: creatureChunk, enemyData } = creature;
     
-            // CRITICAL CHECK: Ensure this creature hasn't been moved or eaten this tick
             if (!worldCopy[creatureKey]?.enemy || worldCopy[creatureKey].enemy!.type !== enemyData.type) {
                 continue;
             }
@@ -349,7 +388,6 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
             let hasActed = false;
             const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }].sort(() => Math.random() - 0.5);
     
-            // Priority 1: REPRODUCE if full
             if (enemyData.satiation >= enemyData.maxSatiation) {
                 for (const dir of directions) {
                     const partnerPos = { x: creatureChunk.x + dir.x, y: creatureChunk.y + dir.y };
@@ -357,7 +395,6 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                     const partnerChunk = worldCopy[partnerKey];
                     
                     if (partnerChunk?.enemy && partnerChunk.enemy.type === enemyData.type && partnerChunk.enemy.satiation >= partnerChunk.enemy.maxSatiation) {
-                        // Found a mate! Find a spot for the offspring.
                         for (const birthDir of directions) {
                             const birthPos = { x: creatureChunk.x + birthDir.x, y: creatureChunk.y + birthDir.y };
                             const birthKey = `${birthPos.x},${birthPos.y}`;
@@ -378,7 +415,6 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                 }
             }
             
-            // Priority 2: HUNT/FORAGE if hungry
             if (!hasActed && enemyData.satiation < enemyData.maxSatiation) {
                 for (const dir of directions) {
                     const targetPos = { x: creatureChunk.x + dir.x, y: creatureChunk.y + dir.y };
@@ -386,24 +422,19 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                     const targetChunk = worldCopy[targetKey];
     
                     if (targetChunk) {
-                        // Check for prey (other creatures)
                         if (targetChunk.enemy && enemyData.diet.includes(targetChunk.enemy.type)) {
-                            // Eat the prey
                             worldCopy[creatureKey].enemy!.satiation++;
-                            worldCopy[targetKey].enemy = null; // Prey is gone
+                            worldCopy[targetKey].enemy = null;
                             hasActed = true;
                             break;
                         }
     
-                        // Check for food (plants/items)
                         const foodItem = targetChunk.items.find(item => enemyData.diet.includes(item.name));
                         if (foodItem) {
-                            // Move to the new spot and eat one item
                             const newEnemyState = { ...enemyData, satiation: enemyData.satiation + 1 };
                             worldCopy[targetKey].enemy = newEnemyState;
                             worldCopy[creatureKey].enemy = null;
     
-                            // Reduce item quantity
                             foodItem.quantity -= 1;
                             if (foodItem.quantity <= 0) {
                                 targetChunk.items = targetChunk.items.filter(item => item.name !== foodItem.name);
@@ -416,7 +447,6 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                 }
             }
     
-            // Priority 3: WANDER if aggressive and hasn't acted
             if (!hasActed && enemyData.behavior === 'aggressive' && Math.random() < 0.2) {
                 for (const dir of directions) {
                     const newPos = { x: creatureChunk.x + dir.x, y: creatureChunk.y + dir.y };
@@ -438,8 +468,7 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
             }
         }
     
-        // 3. Apply all changes from the tick
-        setWorld(worldCopy); // Directly set the mutated world state
+        setWorld(worldCopy);
     
         if (changes.playerHpChange !== 0) {
             setPlayerStats(prev => {
@@ -455,7 +484,7 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
             changes.narrativeEntries.forEach(entry => addNarrativeEntry(entry.text, entry.type));
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [world, playerPosition.x, playerPosition.y, addNarrativeEntry, t]);
+    }, [world, playerPosition.x, playerPosition.y, addNarrativeEntry, t, gameTicks, weatherZones, currentSeason]);
 
 
     const handleOnlineNarrative = async (action: string, worldCtx: World, playerPosCtx: {x: number, y: number}, playerStatsCtx: PlayerStatus) => {
@@ -527,7 +556,7 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
             toast({ title: t('offlineModeActive'), description: t('offlineToastDesc'), variant: "destructive" });
             setIsOnline(false); // Fallback to offline mode
         } finally {
-            handleWorldTick();
+            handleGameTick();
             setIsLoading(false);
         }
     };
@@ -607,7 +636,7 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
             if (worldSnapshot[newPosKey]) {
                 addNarrativeEntry(worldSnapshot[newPosKey].description, 'narrative');
             }
-            handleWorldTick();
+            handleGameTick();
         }
     };
 
@@ -674,7 +703,7 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                 return newWorld;
             });
         }
-        handleWorldTick();
+        handleGameTick();
     }
 
     const handleAttack = () => {
@@ -728,7 +757,7 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
         
         updatedWorld[key] = updatedChunk;
         setWorld(updatedWorld);
-        handleWorldTick();
+        handleGameTick();
     };
 
     const handleCustomAction = (text: string) => {
@@ -770,7 +799,7 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
             });
             addNarrativeEntry('Bạn đã thêm cỏ khô vào túi đồ.', 'system');
         }
-        handleWorldTick();
+        handleGameTick();
     }
 
     const generateMapGrid = useCallback((): MapCell[][] => {

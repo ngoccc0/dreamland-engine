@@ -3,6 +3,32 @@ import type { WorldConcept as AIWorldConcept } from "@/ai/flows/generate-world-s
 
 export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave";
 export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky';
+export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
+
+// --- NEW WEATHER SYSTEM TYPES ---
+
+export interface WeatherState {
+  name: string;
+  description: string;
+  biome_affinity: Terrain[];
+  season_affinity: Season[];
+  temperature_delta: number;
+  moisture_delta: number;
+  wind_delta: number;
+  spawnWeight: number; // How likely this weather is to be chosen
+  exclusive_tags: string[]; // e.g., ["rain", "storm"]. Prevents illogical combinations.
+  duration_range: [number, number]; // in game ticks
+}
+
+export interface WeatherZone {
+  id: string; // Typically the regionId
+  terrain: Terrain;
+  currentWeather: WeatherState;
+  nextChangeTime: number; // The game tick when the weather will change
+}
+
+
+// --- WORLD & GAME STATE TYPES ---
 
 // 1. WorldProfile: Global settings for the world, affecting all biomes.
 export interface WorldProfile {
@@ -17,8 +43,6 @@ export interface WorldProfile {
 }
 
 // 2. Season: Global modifiers based on the time of year.
-export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
-
 export interface SeasonModifiers {
     temperatureMod: number;
     moistureMod: number;
@@ -174,6 +198,9 @@ export interface GameState {
     worldSetup: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[] };
     customItemDefinitions: Record<string, ItemDefinition>;
     customItemCatalog: GeneratedItem[];
+    // New properties for weather system
+    weatherZones: { [zoneId: string]: WeatherZone };
+    gameTicks: number;
 }
 
 // --- NEW DATA-DRIVEN ITEM SYSTEM ---

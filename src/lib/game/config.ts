@@ -11,7 +11,281 @@ export const seasonConfig: Record<Season, SeasonModifiers> = {
 
 // --- CENTRAL ITEM CATALOG ---
 export const itemDefinitions: Record<string, ItemDefinition> = {
-    // Forest Items
+    // --- VẬT PHẨM CHẾ TÁC CƠ BẢN ---
+    'Sỏi': {
+        description: 'Những viên sỏi nhỏ, có thể dùng để ném hoặc làm vật liệu cơ bản.',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 3, max: 8 }
+    },
+    'Đá Cuội': {
+        description: 'Một hòn đá cuội vừa tay, cứng và nặng.',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 2, max: 5 }
+    },
+    'Đất Sét': {
+        description: 'Một khối đất sét dẻo, có thể dùng để nặn hình hoặc xây dựng.',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 1, max: 3 }
+    },
+    'Cát Thường': {
+        description: 'Một nắm cát khô, lọt qua kẽ tay.',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 2, max: 6 }
+    },
+    'Mảnh Xương': {
+        description: 'Một mảnh xương không rõ của sinh vật nào.',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 1, max: 4 }
+    },
+    'Dây Gai': {
+        description: 'Một đoạn dây leo có gai sắc, rất bền.',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 1, max: 3 }
+    },
+    'Da Thú Nhỏ': {
+        description: 'Một tấm da nhỏ từ một con thú không xác định.',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Mảnh Vải Rách': {
+        description: 'Một miếng vải cũ đã rách, có thể dùng để băng bó tạm thời.',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 1, max: 2 }
+    },
+    'Lõi Gỗ': {
+        description: 'Phần lõi cứng nhất của một cành cây.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 1, max: 2 }
+    },
+    'Đá Mài': {
+        description: 'Một viên đá nhám, dùng để mài sắc công cụ.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Bột Xương': {
+        description: 'Xương được nghiền mịn, có thể dùng trong giả kim thuật.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 1, max: 2 }
+    },
+    'Chìa Khóa Rỉ Sét': {
+        description: 'Một chiếc chìa khóa cũ kỹ, không rõ nó mở được ổ khóa nào.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+
+    // --- VẬT PHẨM TỪ SINH VẬT ---
+    'Nanh Sói': {
+        description: 'Một chiếc nanh sắc nhọn, chiến lợi phẩm từ một con sói.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 1, max: 2 }
+    },
+    'Thịt Sói Sống': {
+        description: 'Miếng thịt tươi nhưng còn sống, cần nấu chín để ăn an toàn.',
+        tier: 1,
+        effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Tơ Nhện Khổng Lồ': {
+        description: 'Những sợi tơ cực kỳ bền chắc và dính, lấy từ một con nhện khổng lồ.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 1, max: 3 }
+    },
+    'Mắt Nhện': {
+        description: 'Một con mắt đa diện, vẫn còn nhìn chằm chằm một cách đáng sợ.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 2, max: 8 }
+    },
+    'Da Heo Rừng': {
+        description: 'Một tấm da dày và cứng, phủ đầy lông cứng như lông bàn chải.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Thịt Heo Rừng': {
+        description: 'Một tảng thịt lớn, giàu năng lượng nhưng cần được chế biến.',
+        tier: 2,
+        effects: [{ type: 'RESTORE_STAMINA', amount: 20 }],
+        baseQuantity: { min: 1, max: 2 }
+    },
+    'Tai Yêu Tinh': {
+        description: 'Một chiếc tai nhọn hoắt, được cắt một cách thô bạo. Thường được dùng làm bằng chứng.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Móng Vuốt Gấu': {
+        description: 'Một chiếc móng vuốt to và sắc, có thể xé toạc cả kim loại.',
+        tier: 4,
+        effects: [],
+        baseQuantity: { min: 2, max: 4 }
+    },
+    'Da Gấu': {
+        description: 'Một tấm da gấu dày và ấm, là vật liệu tuyệt vời cho áo giáp mùa đông.',
+        tier: 4,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Thịt Thỏ': {
+        description: 'Thịt từ một con thỏ hoang, nhỏ nhưng ngon.',
+        tier: 1,
+        effects: [{ type: 'RESTORE_STAMINA', amount: 10 }],
+        baseQuantity: { min: 1, max: 2 }
+    },
+    'Da Cáo': {
+        description: 'Một tấm da cáo mềm mại và mượt mà.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Cánh Châu Chấu': {
+        description: 'Cánh của một con châu chấu, mỏng như giấy nhưng rất dai.',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 5, max: 10 }
+    },
+    'Răng Linh Cẩu': {
+        description: 'Một chiếc răng chắc khỏe, có khả năng nghiền nát xương.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 1, max: 3 }
+    },
+    'Da Rắn': {
+        description: 'Da của một con rắn đuôi chuông, có hoa văn đẹp mắt.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Trứng Rắn': {
+        description: 'Một quả trứng rắn có vỏ dai.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 2, max: 4 }
+    },
+    'Đuôi Bọ Cạp': {
+        description: 'Chiếc đuôi của một con bọ cạp khổng lồ, ngòi độc đã bị loại bỏ.',
+        tier: 3,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Lông Kền Kền': {
+        description: 'Một chiếc lông vũ đen và bẩn thỉu.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 2, max: 5 }
+    },
+    'Cát Ma Thuật': {
+        description: 'Những hạt cát lấp lánh năng lượng ma thuật, tàn dư của một linh hồn cát.',
+        tier: 4,
+        effects: [],
+        baseQuantity: { min: 1, max: 2 }
+    },
+    'Chất nhờn của Đỉa': {
+        description: 'Một chất lỏng nhớt và có khả năng chống đông máu.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 1, max: 2 }
+    },
+    'Tinh chất Ma trơi': {
+        description: 'Một quả cầu ánh sáng yếu ớt, ấm áp khi chạm vào.',
+        tier: 4,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Da Cá Sấu': {
+        description: 'Một tấm da cực kỳ cứng và bền, gần như không thể xuyên thủng.',
+        tier: 4,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Răng Cá Sấu': {
+        description: 'Một chiếc răng hình nón, sắc như dao găm.',
+        tier: 3,
+        effects: [],
+        baseQuantity: { min: 1, max: 4 }
+    },
+    'Cánh Muỗi': {
+        description: 'Cánh của một con muỗi khổng lồ, trong suốt và mỏng manh.',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 2, max: 6 }
+    },
+    'Sừng Dê Núi': {
+        description: 'Một cặp sừng xoắn và cứng, có thể dùng làm vũ khí hoặc trang trí.',
+        tier: 3,
+        effects: [],
+        baseQuantity: { min: 1, max: 2 }
+    },
+    'Thịt Dê Núi': {
+        description: 'Thịt dê hơi dai nhưng rất bổ dưỡng.',
+        tier: 2,
+        effects: [{ type: 'RESTORE_STAMINA', amount: 25 }],
+        baseQuantity: { min: 1, max: 2 }
+    },
+    'Lõi Người Đá': {
+        description: 'Một hòn đá phát ra năng lượng sống yếu ớt, trái tim của một Stone Golem.',
+        tier: 5,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Lông Harpie': {
+        description: 'Một chiếc lông vũ dài và sắc, dính máu.',
+        tier: 3,
+        effects: [],
+        baseQuantity: { min: 3, max: 6 }
+    },
+    'Da Báo Tuyết': {
+        description: 'Một tấm da báo có hoa văn tuyệt đẹp, giữ ấm cực tốt.',
+        tier: 4,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Thịt Báo Tuyết': {
+        description: 'Thịt của một kẻ săn mồi đỉnh cao, chứa đầy năng lượng.',
+        tier: 3,
+        effects: [{ type: 'RESTORE_STAMINA', amount: 40 }],
+        baseQuantity: { min: 1, max: 2 }
+    },
+    'Cánh Dơi': {
+        description: 'Một chiếc cánh dơi bằng da, dùng để chế tạo các vật phẩm bay lượn.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 1, max: 2 }
+    },
+    'Nọc Độc Nhện Hang': {
+        description: 'Một túi nọc độc đặc quánh, có khả năng làm tê liệt con mồi.',
+        tier: 3,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Chất nhờn Slime': {
+        description: 'Một khối chất nhờn co giãn, có tính axit nhẹ.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 1, max: 3 }
+    },
+    'Răng Sâu Bò': {
+        description: 'Một chiếc răng khổng lồ, cứng như kim cương.',
+        tier: 5,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+
+    // --- TÀI NGUYÊN BIOME - RỪNG ---
     'Quả Mọng Ăn Được': {
         description: 'Một loại quả mọng đỏ, có vẻ ngon miệng và an toàn, giúp phục hồi chút thể lực.',
         tier: 1,
@@ -66,8 +340,33 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
+    'Mật Ong Hoang': {
+        description: 'Mật ong vàng óng từ một tổ ong hoang, vừa ngọt ngào vừa bổ dưỡng.',
+        tier: 2,
+        effects: [{ type: 'HEAL', amount: 10 }, { type: 'RESTORE_STAMINA', amount: 15 }],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Rêu Xanh': {
+        description: 'Một mảng rêu mềm mại mọc trên đá, dùng để ngụy trang hoặc làm thuốc.',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 1, max: 3 }
+    },
+    'Cỏ Ba Lá': {
+        description: 'Một cây cỏ ba lá. Người ta nói nó mang lại may mắn, nhưng có lẽ chỉ là lời đồn.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Tổ Chim Rỗng': {
+        description: 'Một chiếc tổ chim được đan khéo léo nhưng đã bị bỏ trống.',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
 
-    // Grassland Items
+
+    // --- TÀI NGUYÊN BIOME - ĐỒNG CỎ ---
     'Hoa Dại': {
         description: 'Một bông hoa đẹp, có thể có giá trị với một nhà thảo dược học.',
         tier: 1,
@@ -104,8 +403,26 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [{ type: 'RESTORE_STAMINA', amount: 25 }],
         baseQuantity: { min: 1, max: 3 }
     },
+    'Hạt Giống Hoa Dại': {
+        description: 'Những hạt giống nhỏ li ti, có thể gieo trồng để mọc ra những bông hoa đẹp.',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 5, max: 10 }
+    },
+    'Nấm Mỡ': {
+        description: 'Một cây nấm phổ biến, ăn được và giúp phục hồi chút thể lực.',
+        tier: 1,
+        effects: [{ type: 'RESTORE_STAMINA', amount: 10 }],
+        baseQuantity: { min: 2, max: 5 }
+    },
+    'Cỏ Khô': {
+        description: 'Cỏ đã được phơi khô, là thức ăn ưa thích của các loài ăn cỏ.',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 1, max: 4 }
+    },
 
-    // Desert Items
+    // --- TÀI NGUYÊN BIOME - SA MẠC ---
     'Bình Nước Cũ': {
         description: 'Một bình nước quý giá, gần như còn đầy.',
         tier: 1,
@@ -142,8 +459,20 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
+    'Cây Xương Rồng Nhỏ': {
+        description: 'Một cây xương rồng nhỏ, có thể ép lấy nước.',
+        tier: 1,
+        effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
+        baseQuantity: { min: 1, max: 3 }
+    },
+    'Thủy tinh sa mạc': {
+        description: 'Một mảnh thủy tinh tự nhiên được tạo ra khi sét đánh vào cát.',
+        tier: 3,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
 
-    // Swamp Items
+    // --- TÀI NGUYÊN BIOME - ĐẦM LẦY ---
     'Rêu Phát Sáng': {
         description: 'Một loại rêu có thể dùng để đánh dấu đường đi hoặc làm thuốc.',
         tier: 2,
@@ -162,8 +491,26 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [{ type: 'RESTORE_STAMINA', amount: 10 }],
         baseQuantity: { min: 2, max: 4 }
     },
+    'Cây Sậy': {
+        description: 'Thân cây sậy dài và rỗng, có thể dùng làm ống thổi hoặc chế tạo.',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 3, max: 7 }
+    },
+    'Hoa Độc': {
+        description: 'Một bông hoa có màu sắc quyến rũ nhưng lại chứa độc tố.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 1, max: 2 }
+    },
+    'Nước Bùn': {
+        description: 'Một chai nước bùn đặc quánh, có thể chứa các vi sinh vật lạ.',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
 
-    // Mountain Items
+    // --- TÀI NGUYÊN BIOME - NÚI ---
     'Quặng Sắt': {
         description: 'Một mỏm đá chứa quặng sắt có thể rèn thành vũ khí.',
         tier: 2,
@@ -200,8 +547,32 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
+    'Đá Granit': {
+        description: 'Một khối đá granit cứng, vật liệu xây dựng tuyệt vời.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 1, max: 2 }
+    },
+    'Cây Địa Y': {
+        description: 'Một loại địa y bám trên đá, có thể dùng làm thuốc nhuộm hoặc thuốc chữa bệnh.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 2, max: 4 }
+    },
+    'Trứng Đại Bàng': {
+        description: 'Một quả trứng lớn từ tổ của đại bàng núi.',
+        tier: 3,
+        effects: [{ type: 'RESTORE_STAMINA', amount: 50 }],
+        baseQuantity: { min: 1, max: 2 }
+    },
+    'Tuyết': {
+        description: 'Một nắm tuyết sạch, có thể làm tan ra để lấy nước.',
+        tier: 1,
+        effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
+        baseQuantity: { min: 1, max: 3 }
+    },
 
-    // Cave Items
+    // --- TÀI NGUYÊN BIOME - HANG ĐỘNG ---
      'Mảnh Tinh Thể': {
         description: 'Một mảnh tinh thể phát ra ánh sáng yếu ớt, có thể soi đường.',
         tier: 2,
@@ -237,6 +608,24 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         tier: 3,
         effects: [],
         baseQuantity: { min: 1, max: 1 }
+    },
+    'Nước Ngầm': {
+        description: 'Nước trong vắt và mát lạnh chảy từ một kẽ đá.',
+        tier: 1,
+        effects: [{ type: 'HEAL', amount: 5 }, { type: 'RESTORE_STAMINA', amount: 10 }],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Đá Vôi': {
+        description: 'Một loại đá trầm tích mềm hơn granit, dễ dàng chế tác.',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 1, max: 3 }
+    },
+    'Guano (Phân dơi)': {
+        description: 'Một đống phân dơi giàu nitrat, là một loại phân bón tuyệt vời.',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 1, max: 2 }
     },
 };
 
@@ -308,11 +697,13 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
 export const templates: Record<Terrain, any> = {
     forest: {
         descriptionTemplates: [
-            'Bạn đang ở trong một khu rừng [adjective]. Những cây [feature] cao vút che khuất ánh mặt trời.',
-            'Một khu rừng [adjective] bao quanh bạn. Tiếng lá xào xạc dưới chân khi bạn di chuyển giữa những cây [feature].',
+            'Bạn đang ở trong một khu rừng [adjective]. Những cây [feature] cao vút che khuất ánh mặt trời, và không khí phảng phất mùi [smell].',
+            'Một khu rừng [adjective] bao quanh bạn. Tiếng lá xào xạc dưới chân khi bạn di chuyển giữa những cây [feature]. Bạn nghe thấy âm thanh của [sound].',
         ],
-        adjectives: ['rậm rạp', 'u ám', 'cổ xưa', 'yên tĩnh', 'ma mị'],
-        features: ['sồi', 'thông', 'dương xỉ', 'nấm phát quang', 'dây leo chằng chịt'],
+        adjectives: ['rậm rạp', 'u ám', 'cổ xưa', 'yên tĩnh', 'ma mị', 'ẩm ướt', 'ngập nắng'],
+        features: ['sồi', 'thông', 'dương xỉ', 'nấm phát quang', 'dây leo chằng chịt', 'thân cây mục', 'suối nhỏ'],
+        smells: ['đất ẩm', 'lá cây mục', 'nhựa thông', 'hoa dại'],
+        sounds: ['chim hót', 'gió rít', 'cành cây gãy', 'sự im lặng đáng sợ'],
         NPCs: [
             { data: 'thợ săn bí ẩn', conditions: { humanPresence: { min: 2 }, chance: 0.1 } },
             { data: 'linh hồn cây', conditions: { magicAffinity: { min: 6 }, chance: 0.05 } },
@@ -327,6 +718,18 @@ export const templates: Record<Terrain, any> = {
             { name: 'Hoa Tinh Linh', conditions: { magicAffinity: { min: 7 }, chance: 0.1 } },
             { name: 'Vỏ Cây Cổ Thụ', conditions: { vegetationDensity: { min: 9 }, chance: 0.05 } },
             { name: 'Nhựa Cây Dính', conditions: { chance: 0.15 } },
+            { name: 'Nanh Sói', conditions: { predatorPresence: { min: 6 }, chance: 0.15 } },
+            { name: 'Thịt Sói Sống', conditions: { predatorPresence: { min: 6 }, chance: 0.1 } },
+            { name: 'Tơ Nhện Khổng Lồ', conditions: { dangerLevel: { min: 6 }, chance: 0.2 } },
+            { name: 'Mắt Nhện', conditions: { dangerLevel: { min: 6 }, chance: 0.1 } },
+            { name: 'Da Heo Rừng', conditions: { predatorPresence: { min: 4 }, chance: 0.1 } },
+            { name: 'Tai Yêu Tinh', conditions: { dangerLevel: { min: 5 }, humanPresence: { min: 1 }, chance: 0.1 } },
+            { name: 'Móng Vuốt Gấu', conditions: { predatorPresence: { min: 8 }, chance: 0.05 } },
+            { name: 'Mật Ong Hoang', conditions: { vegetationDensity: { min: 6 }, chance: 0.1 } },
+            { name: 'Sỏi', conditions: { chance: 0.3 } },
+            { name: 'Lá Cây', conditions: { chance: 0.5 } },
+            { name: 'Tổ Chim Rỗng', conditions: { chance: 0.1 } },
+            { name: 'Dây Gai', conditions: { vegetationDensity: { min: 5 }, chance: 0.2 } },
         ],
         enemies: [
             { data: { type: 'Sói', hp: 30, damage: 10, behavior: 'aggressive', diet: ['Heo Rừng', 'Thỏ hoang hung dữ'], maxSatiation: 2 }, conditions: { predatorPresence: { min: 5 }, chance: 0.4 } },
@@ -338,11 +741,12 @@ export const templates: Record<Terrain, any> = {
     },
     grassland: {
         descriptionTemplates: [
-            'Một đồng cỏ [adjective] trải dài đến tận chân trời. Những ngọn đồi [feature] nhấp nhô nhẹ nhàng.',
+            'Một đồng cỏ [adjective] trải dài đến tận chân trời. Những ngọn đồi [feature] nhấp nhô nhẹ nhàng dưới bầu trời [sky].',
             'Bạn đang đứng giữa một thảo nguyên [adjective]. Gió thổi qua làm những ngọn cỏ [feature] lay động như sóng.',
         ],
-        adjectives: ['xanh mướt', 'bạt ngàn', 'khô cằn', 'lộng gió'],
-        features: ['hoa dại', 'cỏ cao', 'đá tảng', 'lối mòn'],
+        adjectives: ['xanh mướt', 'bạt ngàn', 'khô cằn', 'lộng gió', 'yên bình'],
+        features: ['hoa dại', 'cỏ cao', 'đá tảng', 'lối mòn', 'đàn gia súc'],
+        sky: ['trong xanh', 'đầy mây', 'u ám', 'hoàng hôn'],
         NPCs: [
             { data: 'người du mục', conditions: { humanPresence: { min: 4 }, chance: 0.15 } },
             { data: 'nông dân', conditions: { humanPresence: { min: 5 }, soilType: ['loamy'], chance: 0.2 } },
@@ -355,6 +759,14 @@ export const templates: Record<Terrain, any> = {
             { name: 'Đá Lửa', conditions: { chance: 0.2 } },
             { name: 'Trứng Chim Hoang', conditions: { chance: 0.25 } },
             { name: 'Rễ Củ Ăn Được', conditions: { soilType: ['loamy'], chance: 0.15 } },
+            { name: 'Thịt Thỏ', conditions: { dangerLevel: { min: 2, max: 5 }, chance: 0.2 } },
+            { name: 'Da Cáo', conditions: { predatorPresence: { min: 3 }, chance: 0.1 } },
+            { name: 'Cánh Châu Chấu', conditions: { temperature: { min: 7 }, chance: 0.1 } },
+            { name: 'Răng Linh Cẩu', conditions: { predatorPresence: { min: 5 }, chance: 0.1 } },
+            { name: 'Đất Sét', conditions: { moisture: { min: 4 }, chance: 0.15 } },
+            { name: 'Cỏ Khô', conditions: { moisture: { max: 3 }, chance: 0.3 } },
+            { name: 'Hạt Giống Hoa Dại', conditions: { chance: 0.2 } },
+            { name: 'Mảnh Vải Rách', conditions: { humanPresence: { min: 3 }, chance: 0.1 } },
         ],
         enemies: [
             { data: { type: 'Thỏ hoang hung dữ', hp: 20, damage: 5, behavior: 'aggressive', diet: ['Hoa Dại', 'Lúa Mì'], maxSatiation: 4 }, conditions: { dangerLevel: { min: 2, max: 5 }, chance: 0.3 } },
@@ -368,8 +780,8 @@ export const templates: Record<Terrain, any> = {
             'Cát, cát và cát. Một sa mạc [adjective] bao la. Những [feature] là cảnh tượng duy nhất phá vỡ sự đơn điệu.',
             'Cái nóng của sa mạc [adjective] thật khắc nghiệt. Bạn thấy một [feature] ở phía xa, có thể là ảo ảnh.',
         ],
-        adjectives: ['nóng bỏng', 'khô cằn', 'vô tận', 'lặng im'],
-        features: ['cồn cát', 'ốc đảo', 'xương rồng khổng lồ', 'bộ xương cũ'],
+        adjectives: ['nóng bỏng', 'khô cằn', 'vô tận', 'lặng im', 'gió cát'],
+        features: ['cồn cát', 'ốc đảo', 'xương rồng khổng lồ', 'bộ xương cũ', 'tàn tích đá'],
         NPCs: [
             { data: 'thương nhân lạc đà', conditions: { humanPresence: { min: 3 }, chance: 0.1 } },
             { data: 'nhà thám hiểm lạc lối', conditions: { humanPresence: { min: 1, max: 2 }, dangerLevel: { min: 6 }, chance: 0.05 } },
@@ -381,6 +793,13 @@ export const templates: Record<Terrain, any> = {
             { name: 'Xương Động Vật', conditions: { chance: 0.3 } },
             { name: 'Đá Sa Thạch', conditions: { chance: 0.25 } },
             { name: 'Nọc Bọ Cạp', conditions: { predatorPresence: { min: 7 }, chance: 0.1 } },
+            { name: 'Da Rắn', conditions: { temperature: { min: 8 }, chance: 0.1 } },
+            { name: 'Đuôi Bọ Cạp', conditions: { dangerLevel: { min: 7 }, chance: 0.1 } },
+            { name: 'Lông Kền Kền', conditions: { predatorPresence: { min: 6 }, chance: 0.15 } },
+            { name: 'Cát Ma Thuật', conditions: { magicAffinity: { min: 5 }, chance: 0.05 } },
+            { name: 'Cát Thường', conditions: { chance: 0.4 } },
+            { name: 'Thủy tinh sa mạc', conditions: { magicAffinity: { min: 4 }, chance: 0.05 } },
+            { name: 'Chìa Khóa Rỉ Sét', conditions: { humanPresence: { min: 2 }, chance: 0.05 } },
         ],
         enemies: [
             { data: { type: 'Rắn đuôi chuông', hp: 30, damage: 15, behavior: 'aggressive', diet: ['Thỏ hoang hung dữ'], maxSatiation: 2 }, conditions: { temperature: { min: 8 }, chance: 0.4 } },
@@ -394,8 +813,8 @@ export const templates: Record<Terrain, any> = {
             'Bạn đang lội qua một đầm lầy [adjective]. Nước bùn [feature] ngập đến đầu gối.',
             'Không khí đặc quánh mùi cây cỏ mục rữa. Những cây [feature] mọc lên từ làn nước tù đọng.',
         ],
-        adjectives: ['hôi thối', 'âm u', 'chết chóc', 'sương giăng'],
-        features: ['đước', 'dây leo', 'khí độc', 'bong bóng bùn'],
+        adjectives: ['hôi thối', 'âm u', 'chết chóc', 'sương giăng', 'ngập nước'],
+        features: ['đước', 'dây leo', 'khí độc', 'bong bóng bùn', 'côn trùng'],
         NPCs: [
             { data: 'ẩn sĩ', conditions: { humanPresence: { min: 1, max: 2 }, magicAffinity: { min: 5 }, chance: 0.05 } },
             { data: 'thợ săn cá sấu', conditions: { humanPresence: { min: 2 }, predatorPresence: { min: 8 }, chance: 0.1 } },
@@ -405,6 +824,13 @@ export const templates: Record<Terrain, any> = {
             { name: 'Trứng Bò Sát', conditions: { predatorPresence: { min: 7 }, chance: 0.2 } },
             { name: 'Nấm Đầm Lầy', conditions: { moisture: { min: 9 }, chance: 0.25 } },
             { name: 'Rễ Cây Hiếm', conditions: { magicAffinity: { min: 6 }, moisture: {min: 8}, chance: 0.1 } },
+            { name: 'Chất nhờn của Đỉa', conditions: { moisture: { min: 9 }, chance: 0.15 } },
+            { name: 'Tinh chất Ma trơi', conditions: { magicAffinity: { min: 7 }, chance: 0.1 } },
+            { name: 'Da Cá Sấu', conditions: { predatorPresence: { min: 8 }, chance: 0.1 } },
+            { name: 'Cánh Muỗi', conditions: { chance: 0.2 } },
+            { name: 'Nước Bùn', conditions: { chance: 0.3 } },
+            { name: 'Hoa Độc', conditions: { vegetationDensity: { min: 6 }, chance: 0.15 } },
+            { name: 'Cây Sậy', conditions: { moisture: { min: 7 }, chance: 0.2 } },
         ],
         enemies: [
             { data: { type: 'Đỉa khổng lồ', hp: 40, damage: 5, behavior: 'aggressive', diet: ['Trứng Bò Sát'], maxSatiation: 3 }, conditions: { moisture: { min: 9 }, chance: 0.4 } },
@@ -416,10 +842,11 @@ export const templates: Record<Terrain, any> = {
     mountain: {
         descriptionTemplates: [
             'Bạn đang leo lên một sườn núi [adjective]. Gió [feature] thổi mạnh và lạnh buốt.',
-            'Con đường mòn [feature] cheo leo dẫn lên đỉnh núi. Không khí loãng dần.',
+            'Con đường mòn [feature] cheo leo dẫn lên đỉnh núi. Không khí loãng dần và tầm nhìn [visibility].',
         ],
-        adjectives: ['hiểm trở', 'lộng gió', 'hùng vĩ', 'tuyết phủ'],
-        features: ['vách đá', 'tuyết', 'hang động', 'dòng sông băng'],
+        adjectives: ['hiểm trở', 'lộng gió', 'hùng vĩ', 'tuyết phủ', 'trơ trọi'],
+        features: ['vách đá', 'tuyết', 'hang động', 'dòng sông băng', 'mỏm đá'],
+        visibility: ['cực tốt', 'bị mây che phủ', 'hạn chế'],
         NPCs: [
             { data: 'thợ mỏ già', conditions: { humanPresence: { min: 3 }, elevation: { min: 7 }, chance: 0.15 } },
             { data: 'người cưỡi griffon', conditions: { magicAffinity: { min: 6 }, elevation: { min: 9 }, chance: 0.05 } },
@@ -432,6 +859,14 @@ export const templates: Record<Terrain, any> = {
             { name: 'Cây Thuốc Núi', conditions: { vegetationDensity: { min: 2 }, elevation: { min: 6 }, chance: 0.2 } },
             { name: 'Trứng Griffon', conditions: { elevation: { min: 9 }, magicAffinity: {min: 7}, chance: 0.01 } },
             { name: 'Đá Vỏ Chai', conditions: { elevation: { min: 6 }, chance: 0.1 } },
+            { name: 'Sừng Dê Núi', conditions: { elevation: { min: 7 }, chance: 0.15 } },
+            { name: 'Lõi Người Đá', conditions: { magicAffinity: { min: 6 }, elevation: { min: 8 }, chance: 0.05 } },
+            { name: 'Lông Harpie', conditions: { elevation: { min: 9 }, chance: 0.1 } },
+            { name: 'Da Báo Tuyết', conditions: { temperature: { max: 3 }, chance: 0.05 } },
+            { name: 'Đá Granit', conditions: { chance: 0.2 } },
+            { name: 'Tuyết', conditions: { temperature: { max: 2 }, chance: 0.4 } },
+            { name: 'Cây Địa Y', conditions: { moisture: { min: 4 }, chance: 0.1 } },
+            { name: 'Trứng Đại Bàng', conditions: { elevation: { min: 8 }, chance: 0.1 } },
         ],
         enemies: [
             { data: { type: 'Dê núi hung hãn', hp: 50, damage: 15, behavior: 'aggressive', diet: ['Cây Thuốc Núi', 'Hoa Dại'], maxSatiation: 3 }, conditions: { elevation: { min: 7 }, chance: 0.4 } },
@@ -442,11 +877,12 @@ export const templates: Record<Terrain, any> = {
     },
     cave: {
         descriptionTemplates: [
-            'Bên trong hang động tối [adjective] và ẩm ướt. Tiếng bước chân của bạn vang vọng.',
-            'Những khối [feature] lấp lánh dưới ánh sáng yếu ớt lọt vào từ bên ngoài.',
+            'Bên trong hang động tối [adjective] và ẩm ướt. Tiếng bước chân của bạn vang vọng giữa những [feature].',
+            'Những khối [feature] lấp lánh dưới ánh sáng yếu ớt lọt vào từ bên ngoài. Không khí có mùi [smell].',
         ],
-        adjectives: ['sâu thẳm', 'lạnh lẽo', 'bí ẩn', 'chằng chịt'],
-        features: ['thạch nhũ', 'tinh thể', 'dòng sông ngầm', 'tranh vẽ cổ'],
+        adjectives: ['sâu thẳm', 'lạnh lẽo', 'bí ẩn', 'chằng chịt', 'tối đen'],
+        features: ['thạch nhũ', 'tinh thể', 'dòng sông ngầm', 'tranh vẽ cổ', 'mạng nhện'],
+        smells: ['đất ẩm', 'nước tù', 'khoáng chất', 'lưu huỳnh'],
         NPCs: [
             { data: 'nhà thám hiểm bị lạc', conditions: { humanPresence: { min: 2, max: 3 }, chance: 0.1 } },
             { data: 'bộ lạc goblin', conditions: { humanPresence: { min: 4 }, dangerLevel: { min: 8 }, chance: 0.2 } },
@@ -459,6 +895,14 @@ export const templates: Record<Terrain, any> = {
             { name: 'Mỏ Vàng', conditions: { elevation: { min: -8 }, chance: 0.05 } },
             { name: 'Nấm Phát Quang', conditions: { lightLevel: { max: -6 }, chance: 0.25 } },
             { name: 'Túi Trứng Nhện', conditions: { dangerLevel: { min: 7 }, chance: 0.1 } },
+            { name: 'Cánh Dơi', conditions: { chance: 0.2 } },
+            { name: 'Nọc Độc Nhện Hang', conditions: { dangerLevel: { min: 8 }, chance: 0.1 } },
+            { name: 'Chất nhờn Slime', conditions: { moisture: { min: 8 }, chance: 0.15 } },
+            { name: 'Răng Sâu Bò', conditions: { dangerLevel: { min: 9 }, chance: 0.05 } },
+            { name: 'Nước Ngầm', conditions: { moisture: { min: 7 }, chance: 0.2 } },
+            { name: 'Guano (Phân dơi)', conditions: { chance: 0.15 } },
+            { name: 'Đá Vôi', conditions: { chance: 0.2 } },
+            { name: 'Mảnh Xương', conditions: { chance: 0.3 } },
         ],
         enemies: [
             { data: { type: 'Dơi khổng lồ', hp: 25, damage: 10, behavior: 'aggressive', diet: ['Nhện hang'], maxSatiation: 2 }, conditions: { lightLevel: { max: -2 }, chance: 0.5 } },

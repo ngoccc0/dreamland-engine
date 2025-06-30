@@ -1161,35 +1161,48 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                         <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('moveAndAttack')}</h3>
                         
                         {/* Mobile Layout */}
-                        <div className="md:hidden w-full flex flex-col items-center space-y-2">
-                             <div className="grid grid-cols-3 gap-2 w-full max-w-xs">
-                                <Button variant="outline" onClick={() => setStatusOpen(true)} className="w-full justify-center text-xs px-2">
-                                    <Shield className="mr-1 h-4 w-4"/> <span>{t('status')}</span>
+                        <div className="md:hidden w-full grid grid-cols-2 justify-center items-start gap-4">
+                            {/* Left Side: Function Buttons */}
+                            <div className="flex flex-col gap-2 justify-center">
+                                <Button variant="outline" onClick={() => setStatusOpen(true)} className="w-full justify-start text-xs px-2 h-10">
+                                    <Shield className="mr-2 h-4 w-4 shrink-0"/> <span>{t('status')}</span>
                                 </Button>
-                                <Button variant="outline" onClick={() => setInventoryOpen(true)} className="w-full justify-center text-xs px-2">
-                                    <Backpack className="mr-1 h-4 w-4"/> <span>{t('inventory')}</span>
+                                <Button variant="outline" onClick={() => setInventoryOpen(true)} className="w-full justify-start text-xs px-2 h-10">
+                                    <Backpack className="mr-2 h-4 w-4 shrink-0"/> <span>{t('inventory')}</span>
                                 </Button>
-                                <Button variant="outline" onClick={() => setCraftingOpen(true)} className="w-full justify-center text-xs px-2">
-                                    <Hammer className="mr-1 h-4 w-4"/> <span>{t('crafting')}</span>
-                                </Button>
-                            </div>
-                            <Button variant="accent" className="w-full max-w-xs justify-center" onClick={() => handleMove("north")}>
-                                <ArrowUp className="mr-2" /> {t('moveUp')}
-                            </Button>
-                            <div className="grid grid-cols-3 gap-2 w-full max-w-xs">
-                                <Button variant="accent" className="justify-center" onClick={() => handleMove("west")}>
-                                    <ArrowLeft className="mr-2" /> {t('moveLeft')}
-                                </Button>
-                                <Button variant="destructive" onClick={handleAttack} aria-label="Attack">
-                                    <SwordIcon />
-                                </Button>
-                                <Button variant="accent" className="justify-center" onClick={() => handleMove("east")}>
-                                    {t('moveRight')} <ArrowRight className="ml-2" />
+                                <Button variant="outline" onClick={() => setCraftingOpen(true)} className="w-full justify-start text-xs px-2 h-10">
+                                    <Hammer className="mr-2 h-4 w-4 shrink-0"/> <span>{t('crafting')}</span>
                                 </Button>
                             </div>
-                            <Button variant="accent" className="w-full max-w-xs justify-center" onClick={() => handleMove("south")}>
-                                <ArrowDown className="mr-2" /> {t('moveDown')}
-                            </Button>
+
+                            {/* Right Side: D-Pad */}
+                            <div className="grid grid-cols-3 grid-rows-3 gap-1 place-items-center h-full">
+                                <div className="col-start-2 row-start-1">
+                                    <Button variant="accent" className="h-10 w-10 p-0" onClick={() => handleMove("north")} aria-label={t('moveNorthTooltip')}>
+                                        <ArrowUp />
+                                    </Button>
+                                </div>
+                                <div className="col-start-1 row-start-2">
+                                    <Button variant="accent" className="h-10 w-10 p-0" onClick={() => handleMove("west")} aria-label={t('moveWestTooltip')}>
+                                        <ArrowLeft />
+                                    </Button>
+                                </div>
+                                <div className="col-start-2 row-start-2">
+                                    <Button variant="destructive" className="h-10 w-10 p-0" onClick={handleAttack} aria-label={t('attackTooltip')}>
+                                        <SwordIcon />
+                                    </Button>
+                                </div>
+                                <div className="col-start-3 row-start-2">
+                                    <Button variant="accent" className="h-10 w-10 p-0" onClick={() => handleMove("east")} aria-label={t('moveEastTooltip')}>
+                                        <ArrowRight />
+                                    </Button>
+                                </div>
+                                <div className="col-start-2 row-start-3">
+                                    <Button variant="accent" className="h-10 w-10 p-0" onClick={() => handleMove("south")} aria-label={t('moveSouthTooltip')}>
+                                        <ArrowDown />
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Desktop Layout (with Tooltips) */}

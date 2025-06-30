@@ -3,6 +3,7 @@
 export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave";
 export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky';
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
+export type ItemCategory = 'Weapon' | 'Tool' | 'Consumable' | 'Material' | 'QuestItem' | 'Misc';
 
 // --- NEW WEATHER SYSTEM TYPES ---
 
@@ -217,6 +218,7 @@ export type ItemEffect =
 export interface ItemDefinition {
   description: string;
   tier: number;
+  category: ItemCategory;
   effects: ItemEffect[];
   baseQuantity: { min: number, max: number };
   growthConditions?: {
@@ -230,6 +232,7 @@ export interface GeneratedItem {
     name: string;
     description: string;
     tier: number;
+    category: ItemCategory;
     effects: ItemEffect[];
     baseQuantity: { min: number; max: number; };
     spawnBiomes: Terrain[];

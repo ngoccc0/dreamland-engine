@@ -7,6 +7,8 @@
 
 import {z} from 'genkit';
 
+export const ItemCategorySchema = z.enum(['Weapon', 'Tool', 'Consumable', 'Material', 'QuestItem', 'Misc']).describe("The category of the item.");
+
 export const ItemEffectSchema = z.object({
     type: z.enum(['HEAL', 'RESTORE_STAMINA']),
     amount: z.number(),
@@ -15,6 +17,7 @@ export const ItemEffectSchema = z.object({
 export const ItemDefinitionSchema = z.object({
     description: z.string(),
     tier: z.number(),
+    category: ItemCategorySchema,
     effects: z.array(ItemEffectSchema),
     baseQuantity: z.object({ min: z.number(), max: z.number() }),
 });

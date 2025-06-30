@@ -65,6 +65,7 @@ export default function Home() {
         acc[item.name] = {
             description: item.description,
             tier: item.tier,
+            category: item.category,
             effects: item.effects,
             baseQuantity: item.baseQuantity,
             growthConditions: item.growthConditions as any, // Cast to handle potential type mismatch from Zod

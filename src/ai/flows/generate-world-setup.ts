@@ -18,6 +18,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import type { Terrain } from '@/lib/game/types';
 import Handlebars from 'handlebars';
+import { ItemCategorySchema } from '@/ai/schemas';
 
 const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave"];
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
@@ -51,9 +52,11 @@ const SpawnConditionsSchema = z.object({
   temperature: ConditionRangeSchema.optional(),
   soilType: z.array(z.string()).optional(),
 }).describe("A set of environmental conditions.");
+
 const GeneratedItemSchema = z.object({
     name: z.string().describe("A unique and thematic name for the item."),
     description: z.string().describe("A flavorful, one-sentence description of the item."),
+    category: ItemCategorySchema,
     tier: z.number().int().min(1).max(6).describe("The tier of the item, from 1 (common) to 6 (legendary)."),
     effects: z.array(z.object({
         type: z.enum(['HEAL', 'RESTORE_STAMINA']).describe("The type of effect the item has."),
@@ -121,7 +124,7 @@ const itemsAndNamesPrompt = ai.definePrompt({
 
 **User's Idea:** {{{userInput}}}
 
-For each item, define all required fields: name, description, tier, effects, baseQuantity, spawnBiomes, and optional growthConditions.
+For each item, define all required fields. For the 'category' field, you MUST use one of these exact values: 'Weapon', 'Tool', 'Consumable', 'Material', 'QuestItem', 'Misc'.
 
 Provide the response in the required JSON format. ALL TEXT in the response MUST be in the language corresponding to this code: {{language}}.`,
 });

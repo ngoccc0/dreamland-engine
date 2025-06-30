@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/context/language-context";
 import type { PlayerItem, ItemDefinition } from "@/lib/game/types";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import type { TranslationKey } from "@/lib/i18n";
 
 interface InventoryPopupProps {
   open: boolean;
@@ -44,9 +45,10 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions }: I
                       <Tooltip key={index}>
                         <TooltipTrigger asChild>
                           <li className="flex justify-between items-center p-2 bg-muted rounded-md text-muted-foreground cursor-help">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span>{item.name}</span>
                               <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary/10 text-primary-foreground font-semibold">{t('tier', { tier: item.tier })}</span>
+                              {definition && definition.category && <span className="text-xs px-1.5 py-0.5 rounded-full bg-accent/80 text-accent-foreground">{t(definition.category as TranslationKey)}</span>}
                             </div>
                             <span className="font-mono text-sm font-bold text-foreground">x{item.quantity}</span>
                           </li>

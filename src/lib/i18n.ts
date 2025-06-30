@@ -137,6 +137,14 @@ export const translations = {
     success: "Success",
     greatSuccess: "Great Success",
     criticalSuccess: "Critical Success",
+
+    // Item Categories
+    Weapon: "Weapon",
+    Tool: "Tool",
+    Consumable: "Consumable",
+    Material: "Material",
+    QuestItem: "Quest Item",
+    Misc: "Misc",
   },
   vi: {
     // Language Selector
@@ -276,6 +284,14 @@ export const translations = {
     success: "Thành công",
     greatSuccess: "Thành công Lớn",
     criticalSuccess: "Thành công Xuất sắc",
+    
+    // Item Categories
+    Weapon: "Vũ khí",
+    Tool: "Công cụ",
+    Consumable: "Tiêu hao",
+    Material: "Nguyên liệu",
+    QuestItem: "Nhiệm vụ",
+    Misc: "Linh tinh",
   }
 };
 

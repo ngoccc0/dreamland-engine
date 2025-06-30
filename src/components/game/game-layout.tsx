@@ -834,51 +834,66 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
             addNarrativeEntry("Không có gì để tấn công ở đây.", 'system');
             return;
         }
-
-        // Get the chunk with weather effects applied
-        const currentChunkWithWeather = getEffectiveChunk(baseChunk);
-        
+    
         const actionText = `Attack ${baseChunk.enemy.type}`;
         addNarrativeEntry(actionText, 'action');
-
+    
         if (isOnline) {
             handleOnlineNarrative(actionText, world, playerPosition, playerStats);
             return;
         }
-
+    
         // --- OFFLINE LOGIC ---
+        const currentChunkWithWeather = getEffectiveChunk(baseChunk);
+        const diceRoll = Math.floor(Math.random() * 20) + 1;
+        const successLevel = getSuccessLevel(diceRoll);
+        const successLevelKey = successLevelToTranslationKey[successLevel];
+        addNarrativeEntry(t('diceRollMessage', { roll: diceRoll, level: t(successLevelKey) }), 'system');
+    
         let updatedWorld = { ...world };
-        let updatedChunkInWorld = { ...updatedWorld[key] };
-        
-        if (!updatedChunkInWorld.enemy) return; // Should not happen but for type safety
-
-        const enemyInWorld = { ...updatedChunkInWorld.enemy };
-
-        // Apply environmental modifiers
-        let playerDamageModifier = 1.0;
-        if (currentChunkWithWeather.lightLevel < -3) {
-            playerDamageModifier *= 0.8; // 20% penalty
-            addNarrativeEntry("Sương mù dày đặc làm giảm độ chính xác của bạn.", "system");
+        let updatedChunkInWorld = { ...updatedWorld[key]! };
+        let enemyInWorld = { ...updatedChunkInWorld.enemy! };
+    
+        let playerDamage = 0;
+    
+        switch (successLevel) {
+            case 'CriticalFailure':
+                setPlayerStats(prev => ({ ...prev, stamina: Math.max(0, prev.stamina - 5) }));
+                addNarrativeEntry("Bạn tấn công một cách vụng về và mất thăng bằng, lãng phí thể lực.", 'narrative');
+                break;
+            case 'Failure':
+                addNarrativeEntry("Bạn vung vũ khí nhưng đánh trượt mục tiêu một cách đáng tiếc.", 'narrative');
+                break;
+            case 'Success':
+            case 'GreatSuccess':
+            case 'CriticalSuccess':
+                let damageMultiplier = 1.0;
+                if (successLevel === 'GreatSuccess') damageMultiplier = 1.5;
+                if (successLevel === 'CriticalSuccess') damageMultiplier = 2.0;
+    
+                let envDamageModifier = 1.0;
+                if (currentChunkWithWeather.lightLevel < -3) {
+                    envDamageModifier *= 0.8;
+                    addNarrativeEntry("Sương mù dày đặc làm giảm độ chính xác của bạn.", "system");
+                }
+                if (currentChunkWithWeather.moisture > 8) {
+                    envDamageModifier *= 0.9;
+                    addNarrativeEntry("Mưa lớn làm vũ khí nặng trĩu, cản trở đòn tấn công.", "system");
+                }
+    
+                playerDamage = Math.round(playerStats.attributes.physicalAttack * damageMultiplier * envDamageModifier);
+    
+                let attackNarrative = `Bạn tấn công ${enemyInWorld.type}, gây ${playerDamage} sát thương.`;
+                if (successLevel === 'GreatSuccess') attackNarrative = `Một đòn đánh hiểm hóc! Bạn tấn công ${enemyInWorld.type}, gây ${playerDamage} sát thương.`;
+                if (successLevel === 'CriticalSuccess') attackNarrative = `Một đòn CHÍ MẠNG! Bạn tấn công ${enemyInWorld.type}, gây ${playerDamage} sát thương khủng khiếp.`;
+                addNarrativeEntry(attackNarrative, 'narrative');
+                break;
         }
-        if (currentChunkWithWeather.moisture > 8) {
-            playerDamageModifier *= 0.9; // 10% penalty
-            addNarrativeEntry("Mưa lớn làm vũ khí nặng trĩu, cản trở đòn tấn công.", "system");
+    
+        if (playerDamage > 0) {
+            enemyInWorld.hp -= playerDamage;
         }
-
-        let enemyDamageModifier = 1.0;
-        if (currentChunkWithWeather.lightLevel < -3) {
-            enemyDamageModifier *= 0.8;
-        }
-        if (currentChunkWithWeather.moisture > 8) {
-            enemyDamageModifier *= 0.9;
-        }
-
-        const playerDamage = Math.round(playerStats.attributes.physicalAttack * playerDamageModifier);
-        const enemyDamage = Math.round(enemyInWorld.damage * enemyDamageModifier);
-
-        enemyInWorld.hp -= playerDamage;
-        addNarrativeEntry(t('attackEnemy', { enemyType: enemyInWorld.type, playerDamage }), 'narrative');
-
+    
         if (enemyInWorld.hp <= 0) {
             addNarrativeEntry(t('enemyDefeated', { enemyType: enemyInWorld.type }), 'system');
             updatedChunkInWorld.enemy = null;
@@ -887,69 +902,114 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                 updatedChunkInWorld.actions.unshift({ id: 1, text: `Nói chuyện với ${updatedChunkInWorld.NPCs[0]}` });
             }
         } else {
-            addNarrativeEntry(t('enemyHpLeft', { enemyType: enemyInWorld.type, hp: enemyInWorld.hp }), 'narrative');
+            if (playerDamage > 0) {
+                addNarrativeEntry(t('enemyHpLeft', { enemyType: enemyInWorld.type, hp: enemyInWorld.hp }), 'narrative');
+            }
+    
+            let enemyDamageModifier = 1.0;
+            if (currentChunkWithWeather.lightLevel < -3) enemyDamageModifier *= 0.8;
+            if (currentChunkWithWeather.moisture > 8) enemyDamageModifier *= 0.9;
+            const enemyDamage = Math.round(enemyInWorld.damage * enemyDamageModifier);
+    
             setPlayerStats(prev => {
                 const newHp = prev.hp - enemyDamage;
                 if (enemyDamage > 0) {
-                   addNarrativeEntry(t('enemyRetaliates', { enemyType: enemyInWorld.type, enemyDamage }), 'narrative');
+                    addNarrativeEntry(t('enemyRetaliates', { enemyType: enemyInWorld.type, enemyDamage }), 'narrative');
                 } else {
                     addNarrativeEntry(`Kẻ địch tấn công nhưng bị trượt do ảnh hưởng của môi trường!`, 'narrative');
                 }
-                if (newHp <= 0) {
+                if (newHp <= 0 && prev.hp > 0) {
                     addNarrativeEntry(t('youFell'), 'system');
                 }
                 return { ...prev, hp: newHp };
             });
             updatedChunkInWorld.enemy = enemyInWorld;
         }
-        
+    
         updatedWorld[key] = updatedChunkInWorld;
         setWorld(updatedWorld);
         handleGameTick();
     };
-
+    
     const handleCustomAction = (text: string) => {
         if (!text.trim()) return;
         addNarrativeEntry(text, 'action');
         setInputValue("");
-        
+    
         if(isOnline) {
             handleOnlineNarrative(text, world, playerPosition, playerStats);
             return;
         }
-
+    
         // --- OFFLINE LOGIC ---
+        const diceRoll = Math.floor(Math.random() * 20) + 1;
+        const successLevel = getSuccessLevel(diceRoll);
+        const successLevelKey = successLevelToTranslationKey[successLevel];
+        addNarrativeEntry(t('diceRollMessage', { roll: diceRoll, level: t(successLevelKey) }), 'system');
+    
         const chunk = world[`${playerPosition.x},${playerPosition.y}`];
-        if (!chunk) return;
-        const terrain = chunk.terrain;
-        
-        const responses: Record<string, () => string> = {
-            'kiểm tra cây': () => terrain === 'forest' ? t('customActionResponses.checkTree') : t('customActionResponses.noTree'),
-            'đào đất': () => terrain === 'desert' ? t('customActionResponses.dig') : t('customActionResponses.groundTooHard'),
-            'gặt cỏ': () => terrain === 'grassland' ? t('customActionResponses.reapGrass') : t('customActionResponses.noGrass'),
-            'nhìn xung quanh': () => t('customActionResponses.lookAround')
-        };
-
-        const responseFunc = responses[text.toLowerCase()];
-        const response = responseFunc ? responseFunc() : t('customActionResponses.actionFailed');
-        addNarrativeEntry(response, 'narrative');
-        
-        if (text.toLowerCase() === 'gặt cỏ' && terrain === 'grassland') {
-            setPlayerStats(prev => {
-                const newItems = [...prev.items];
-                const hay = newItems.find(i => i.name === 'cỏ khô');
-                if (hay) {
-                    hay.quantity += 1;
-                } else {
-                    newItems.push({ name: 'cỏ khô', quantity: 1, tier: 1 });
-                }
-                return { ...prev, items: newItems };
-            });
-            addNarrativeEntry('Bạn đã thêm cỏ khô vào túi đồ.', 'system');
+        if (!chunk) {
+            handleGameTick();
+            return;
         }
+    
+        if (successLevel === 'Failure' || successLevel === 'CriticalFailure') {
+            let failureNarrative = "Nỗ lực của bạn không mang lại kết quả gì.";
+            if (chunk.moisture > 8 && Math.random() < 0.5) {
+                failureNarrative = "Bạn cố gắng hành động nhưng bị trượt chân trên mặt đất ẩm ướt.";
+            }
+            addNarrativeEntry(failureNarrative, 'narrative');
+    
+            if (successLevel === 'CriticalFailure') {
+                setPlayerStats(prev => ({...prev, stamina: Math.max(0, prev.stamina - 5)}));
+                addNarrativeEntry("Hành động vụng về khiến bạn mất một chút thể lực.", 'system');
+            }
+        } else {
+            const terrain = chunk.terrain;
+    
+            const responses: Record<string, () => string> = {
+                'kiểm tra cây': () => terrain === 'forest' ? t('customActionResponses.checkTree') : t('customActionResponses.noTree'),
+                'đào đất': () => terrain === 'desert' ? t('customActionResponses.dig') : t('customActionResponses.groundTooHard'),
+                'gặt cỏ': () => terrain === 'grassland' ? t('customActionResponses.reapGrass') : t('customActionResponses.noGrass'),
+                'nhìn xung quanh': () => t('customActionResponses.lookAround')
+            };
+    
+            const responseFunc = responses[text.toLowerCase()];
+            const response = responseFunc ? responseFunc() : t('customActionResponses.actionFailed');
+            let finalResponse = response;
+            let gotItem = false;
+    
+            if (text.toLowerCase() === 'gặt cỏ' && terrain === 'grassland') {
+                 setPlayerStats(prev => {
+                    const newItems = [...prev.items];
+                    const hay = newItems.find(i => i.name === 'Cỏ Khô');
+                    const quantityToAdd = successLevel === 'CriticalSuccess' ? 2 : 1;
+                    if (hay) {
+                        hay.quantity += quantityToAdd;
+                    } else {
+                        newItems.push({ name: 'Cỏ Khô', quantity: quantityToAdd, tier: 1 });
+                    }
+                    return { ...prev, items: newItems };
+                });
+                gotItem = true;
+            }
+    
+            if (successLevel === 'GreatSuccess') {
+                finalResponse = `Với kỹ năng đáng ngạc nhiên, bạn đã... ${response.toLowerCase()}`;
+            } else if (successLevel === 'CriticalSuccess' && gotItem) {
+                finalResponse = `Thật xuất sắc! ${response} Bạn còn nhận được thêm một chút!`;
+            } else if (successLevel === 'CriticalSuccess') {
+                finalResponse = `Thật xuất sắc! ${response}`;
+            }
+    
+            addNarrativeEntry(finalResponse, 'narrative');
+            if (gotItem) {
+                 addNarrativeEntry('Bạn đã thêm Cỏ Khô vào túi đồ.', 'system');
+            }
+        }
+    
         handleGameTick();
     }
-
     const generateMapGrid = useCallback((): MapCell[][] => {
         const radius = 2; // This creates a 5x5 grid
         const size = radius * 2 + 1;

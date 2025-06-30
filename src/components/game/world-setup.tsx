@@ -5,15 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { generateWorldSetup, type WorldConcept } from "@/ai/flows/generate-world-setup";
+import { generateWorldSetup, type GenerateWorldSetupOutput } from "@/ai/flows/generate-world-setup";
 import { suggestKeywords } from "@/ai/flows/suggest-keywords";
 import { Sparkles, Wand2, ArrowRight, BrainCircuit, Loader2 } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 import { Separator } from "../ui/separator";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { useLanguage } from "@/context/language-context";
-import type { PlayerItem } from "@/lib/game/types";
-
+import type { WorldConcept } from "@/lib/game/types";
 
 interface WorldSetupProps {
     onWorldCreated: (worldSetup: WorldConcept) => void;
@@ -36,7 +35,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
     const [suggestedKeywords, setSuggestedKeywords] = useState<string[]>([]);
     
     const [isLoading, setIsLoading] = useState(false);
-    const [generatedConcepts, setGeneratedConcepts] = useState<WorldConcept[] | null>(null);
+    const [generatedData, setGeneratedData] = useState<GenerateWorldSetupOutput | null>(null);
     const [selection, setSelection] = useState<Selection>({
         worldName: 0,
         initialNarrative: 0,
@@ -117,11 +116,11 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
             return;
         }
         setIsLoading(true);
-        setGeneratedConcepts(null);
+        setGeneratedData(null);
         setStep(1); // Move to the next step to show loading
         try {
             const result = await generateWorldSetup({ userInput, language });
-            setGeneratedConcepts(result.concepts);
+            setGeneratedData(result);
         } catch (error) {
             console.error("Failed to generate world:", error);
             toast({ title: t('worldGenError'), description: t('worldGenErrorDesc'), variant: "destructive" });
@@ -132,15 +131,19 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
     };
 
     const handleStartGame = () => {
-        if (!generatedConcepts) return;
+        if (!generatedData) return;
 
+        const concepts = generatedData.concepts;
+        
         // Construct the final world object based on user selections
         const finalWorld: WorldConcept = {
-            worldName: generatedConcepts[selection.worldName].worldName,
-            initialNarrative: generatedConcepts[selection.initialNarrative].initialNarrative,
-            startingBiome: generatedConcepts[selection.startingBiome].startingBiome,
-            playerInventory: generatedConcepts[selection.playerInventory].playerInventory,
-            initialQuests: generatedConcepts[selection.initialQuests].initialQuests,
+            worldName: concepts[selection.worldName].worldName,
+            initialNarrative: concepts[selection.initialNarrative].initialNarrative,
+            startingBiome: concepts[selection.startingBiome].startingBiome,
+            playerInventory: concepts[selection.playerInventory].playerInventory,
+            initialQuests: concepts[selection.initialQuests].initialQuests,
+            // Important: Use the single, shared item catalog
+            customItemCatalog: generatedData.customItemCatalog,
         };
         onWorldCreated(finalWorld);
     }
@@ -215,14 +218,14 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                         <p className="mt-4 text-muted-foreground">{t('generatingUniverses')}</p>
                     </div>
                 ) : (
-                    generatedConcepts && (
+                    generatedData && (
                         <div className="space-y-8 animate-in fade-in duration-500">
                              {/* World Name */}
                              <div className="space-y-2">
                                 <h3 className="text-lg font-semibold font-headline text-center">{t('worldName')}</h3>
                                 <Carousel setApi={setApiWorldName} opts={{ align: "start", loop: true }} className="w-full max-w-sm mx-auto">
                                     <CarouselContent>
-                                        {generatedConcepts.map((concept, index) => (
+                                        {generatedData.concepts.map((concept, index) => (
                                             <CarouselItem key={index}>
                                                 <div className="p-1">
                                                     <Card className="flex items-center justify-center p-6 h-24 shadow-inner bg-muted/30">
@@ -244,7 +247,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                 <h3 className="text-lg font-semibold font-headline text-center">{t('openingNarrative')}</h3>
                                 <Carousel setApi={setApiNarrative} opts={{ align: "start", loop: true }} className="w-full max-w-2xl mx-auto">
                                     <CarouselContent>
-                                        {generatedConcepts.map((concept, index) => (
+                                        {generatedData.concepts.map((concept, index) => (
                                             <CarouselItem key={index}>
                                                 <div className="p-1">
                                                     <Card className="shadow-inner bg-muted/30">
@@ -268,7 +271,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                 <h3 className="text-lg font-semibold font-headline text-center">{t('startingBiome')}</h3>
                                 <Carousel setApi={setApiBiome} opts={{ align: "start", loop: true }} className="w-full max-w-xs mx-auto">
                                     <CarouselContent>
-                                        {generatedConcepts.map((concept, index) => (
+                                        {generatedData.concepts.map((concept, index) => (
                                             <CarouselItem key={index}>
                                                 <div className="p-1">
                                                     <Card className="flex items-center justify-center p-4 h-20 shadow-inner bg-muted/30">
@@ -289,7 +292,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                     <h3 className="text-lg font-semibold font-headline text-center">{t('startingEquipment')}</h3>
                                     <Carousel setApi={setApiInventory} opts={{ align: "start", loop: true }} className="w-full max-w-md mx-auto">
                                         <CarouselContent>
-                                            {generatedConcepts.map((concept, index) => (
+                                            {generatedData.concepts.map((concept, index) => (
                                                 <CarouselItem key={index}>
                                                     <div className="p-1">
                                                         <Card className="h-40 shadow-inner bg-muted/30">
@@ -316,7 +319,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                     <h3 className="text-lg font-semibold font-headline text-center">{t('firstQuest')}</h3>
                                     <Carousel setApi={setApiQuests} opts={{ align: "start", loop: true }} className="w-full max-w-md mx-auto">
                                         <CarouselContent>
-                                            {generatedConcepts.map((concept, index) => (
+                                            {generatedData.concepts.map((concept, index) => (
                                                 <CarouselItem key={index}>
                                                     <div className="p-1">
                                                         <Card className="h-40 shadow-inner bg-muted/30">
@@ -343,8 +346,8 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                 <h3 className="font-headline text-xl font-bold">{t('yourWorld')}</h3>
                                 <p className="text-muted-foreground">{t('yourWorldDescription')}</p>
                                 <Card className="mt-4 p-4 bg-background">
-                                    <h4 className="font-bold text-lg">{generatedConcepts[selection.worldName].worldName}</h4>
-                                    <p className="italic text-muted-foreground mt-2">{generatedConcepts[selection.initialNarrative].initialNarrative}</p>
+                                    <h4 className="font-bold text-lg">{generatedData.concepts[selection.worldName].worldName}</h4>
+                                    <p className="italic text-muted-foreground mt-2">{generatedData.concepts[selection.initialNarrative].initialNarrative}</p>
                                 </Card>
                             </div>
                         </div>
@@ -352,10 +355,10 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                 )}
             </CardContent>
             <CardFooter className="flex justify-between gap-2">
-                <Button variant="ghost" onClick={() => { setStep(0); setGeneratedConcepts(null); }}>
+                <Button variant="ghost" onClick={() => { setStep(0); setGeneratedData(null); }}>
                     {t('backAndEdit')}
                 </Button>
-                <Button onClick={handleStartGame} disabled={isLoading || !generatedConcepts}>
+                <Button onClick={handleStartGame} disabled={isLoading || !generatedData}>
                     {t('startAdventure')}
                 </Button>
             </CardFooter>

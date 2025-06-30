@@ -1,5 +1,4 @@
 // --- Data Types and Interfaces for the Game Engine ---
-import type { WorldConcept as AIWorldConcept } from "@/ai/flows/generate-world-setup";
 
 export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave";
 export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky';
@@ -179,11 +178,16 @@ export type MapCell = {
   hasItem?: boolean;
 };
 
-// Re-exporting the AI-generated type with our PlayerItem type for consistency
-export type WorldConcept = Omit<AIWorldConcept, 'playerInventory' | 'customItemCatalog'> & {
-    playerInventory: {name: string, quantity: number}[];
-    customItemCatalog: GeneratedItem[];
-};
+// This defines the final, assembled world concept object that the game uses.
+// It's constructed in the WorldSetup component from the AI's generated data.
+export interface WorldConcept {
+  worldName: string;
+  initialNarrative: string;
+  startingBiome: Terrain;
+  customItemCatalog: GeneratedItem[];
+  playerInventory: { name: string; quantity: number }[];
+  initialQuests: string[];
+}
 
 
 // Represents the entire savable state of the game

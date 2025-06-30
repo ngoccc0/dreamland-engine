@@ -10,8 +10,7 @@
  *
  * - generateWorldSetup - The main function for the application to use.
  * - GenerateWorldSetupInput - The type definition for the input.
- * - GenerateWorldSetupOutput - The type definition for the structured output (an array of 3 concepts).
- * - WorldConcept - The type definition for a single world concept.
+ * - GenerateWorldSetupOutput - The type definition for the structured output (a shared item catalog and 3 concepts).
  */
 
 import {ai} from '@/ai/genkit';
@@ -21,8 +20,6 @@ import type { Terrain } from '@/lib/game/types';
 const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave"];
 
 // == STEP 1: DEFINE THE INPUT SCHEMA ==
-// This defines the "contract" for calling our AI.
-// It requires a 'userInput' string and a 'language' string (e.g., 'en', 'vi').
 const GenerateWorldSetupInputSchema = z.object({
   userInput: z.string().describe("The user's initial idea, prompt, or description for the game world."),
   language: z.string().describe("The language for the generated content (e.g., 'en' for English, 'vi' for Vietnamese)."),
@@ -49,28 +46,25 @@ const GeneratedItemSchema = z.object({
     spawnBiomes: z.array(z.enum(allTerrains)).min(1).describe("An array of one or more biomes where this item can naturally be found."),
 });
 
+// Schema for a single world concept. Note it does NOT contain the item catalog.
 const WorldConceptSchema = z.object({
   worldName: z.string().describe('A cool and fitting name for this world.'),
   initialNarrative: z.string().describe('A detailed, engaging opening narrative to start the game. This should set the scene for the player.'),
   startingBiome: z.enum(allTerrains).describe('The primary biome for the starting area.'),
   
-  // The full catalog of unique items for this world.
-  customItemCatalog: z.array(GeneratedItemSchema).min(5).max(7).describe("A catalog of 5-7 unique, thematic items invented for this specific world. These items will be found by the player as they explore."),
-  
-  // The player's starting inventory, which should be a subset of the catalog.
+  // The player's starting inventory, which should be a subset of the shared catalog.
   playerInventory: z.array(z.object({
-    name: z.string().describe("The name of the item, which MUST match an item from the customItemCatalog."),
+    name: z.string().describe("The name of the item, which MUST match an item from the shared customItemCatalog."),
     quantity: z.number().int().min(1),
-  })).min(2).max(3).describe('A list of 2-3 starting items for the player, chosen from the customItemCatalog you just generated.'),
+  })).min(2).max(3).describe('A list of 2-3 starting items for the player, chosen from the shared customItemCatalog you generated.'),
 
   initialQuests: z.array(z.string()).describe('A list of 1-2 starting quests for the player to begin their adventure.'),
 });
-export type WorldConcept = z.infer<typeof WorldConceptSchema>;
 
-// Now, we define the final output schema. We instruct the AI to return an object
-// containing an array of exactly THREE distinct world concepts.
+// The final output schema. It contains ONE shared catalog and THREE concepts.
 const GenerateWorldSetupOutputSchema = z.object({
-    concepts: z.array(WorldConceptSchema).length(3).describe("An array of three distinct and creative world concepts based on the user's input."),
+    customItemCatalog: z.array(GeneratedItemSchema).min(10).max(15).describe("A shared catalog of 10-15 unique, thematic items invented for this specific game world theme. These items will be used by all concepts."),
+    concepts: z.array(WorldConceptSchema).length(3).describe("An array of three distinct and creative world concepts based on the user's input and the shared item catalog."),
 });
 export type GenerateWorldSetupOutput = z.infer<typeof GenerateWorldSetupOutputSchema>;
 
@@ -79,7 +73,7 @@ export type GenerateWorldSetupOutput = z.infer<typeof GenerateWorldSetupOutputSc
  * This is the primary function that the application's frontend will call.
  * It wraps the Genkit flow for easier use.
  * @param input The user's idea for a world and the desired language.
- * @returns A promise that resolves to an object containing three generated world concepts.
+ * @returns A promise that resolves to the structured world generation data.
  */
 export async function generateWorldSetup(input: GenerateWorldSetupInput): Promise<GenerateWorldSetupOutput> {
   return generateWorldSetupFlow(input);
@@ -87,45 +81,43 @@ export async function generateWorldSetup(input: GenerateWorldSetupInput): Promis
 
 
 // == STEP 3: DEFINE THE AI PROMPT ==
-// This is the "brain" of our operation. It's a detailed set of instructions for the AI.
 const worldSetupPrompt = ai.definePrompt({
   name: 'worldSetupPrompt',
   input: {
     schema: GenerateWorldSetupInputSchema,
   },
   output: {
-    // By providing the output schema, we enable Genkit's structured output feature.
-    // The AI will be instructed to respond with a JSON object matching this schema.
     schema: GenerateWorldSetupOutputSchema,
   },
   prompt: `You are a creative and brilliant Game Master, designing a new text-based adventure game.
-A player has provided you with an idea. Your task is to take their input, expand upon it, and generate THREE DISTINCT AND VARIED concepts for a compelling game world. Each concept should be a unique take on the user's idea.
-
-If their input is vague or short, be highly imaginative and create three very different interpretations.
+A player has provided you with an idea. Your task is to generate a rich set of options for them.
 
 Player's Idea: {{{userInput}}}
 
-For EACH of the three concepts, you must generate the following:
+**Your task is a two-step process:**
+
+**Step 1: Create a Shared Item Catalog**
+First, you must INVENT a single, shared catalog of 10 to 15 unique, thematically appropriate items that will be found throughout this world. This catalog will be the foundation for all concepts. For each item in the catalog, you must define:
+*   **name**: A creative and unique name.
+*   **description**: A one-sentence flavorful description.
+*   **tier**: A tier from 1 (common) to 6 (legendary).
+*   **effects**: An array of one or more effects, like healing HP or restoring stamina. This can be an empty array \`[]\` for items that are not consumable. Example: \`[{ "type": "HEAL", "amount": 25 }]\`.
+*   **baseQuantity**: The typical quantity range this item is found in (e.g., min 1, max 3).
+*   **spawnBiomes**: An array of one or more biome names where this item can be found (e.g., ["forest", "swamp"]).
+
+**Step 2: Create Three Distinct World Concepts**
+After creating the shared item catalog, create THREE DISTINCT AND VARIED concepts for a compelling game world. Each concept should be a unique take on the user's idea. For EACH of the three concepts, you must generate:
 1.  **World Name:** A cool, evocative name for the world.
 2.  **Initial Narrative:** A rich, descriptive opening paragraph.
 3.  **Starting Biome:** The biome where the player begins (forest, grassland, desert, swamp, mountain, or cave).
-4.  **Custom Item Catalog:** This is the most important step. You must INVENT a catalog of 5 to 7 unique, thematically appropriate items that will be found throughout this world. For each item in the catalog, you must define:
-    *   **name**: A creative and unique name.
-    *   **description**: A one-sentence flavorful description.
-    *   **tier**: A tier from 1 (common) to 6 (legendary).
-    *   **effects**: An array of one or more effects, like healing HP or restoring stamina. This can be an empty array \`[]\` for items that are not consumable. Example: \`[{ "type": "HEAL", "amount": 25 }]\`.
-    *   **baseQuantity**: The typical quantity range this item is found in (e.g., min 1, max 3).
-    *   **spawnBiomes**: An array of one or more biome names where this item can be found (e.g., ["forest", "swamp"]).
-5.  **Player Inventory:** After creating the item catalog, select 2-3 items from that catalog to give to the player as their starting equipment. You only need to provide the item's name and a starting quantity.
-6.  **Initial Quests:** One or two simple starting quests.
+4.  **Player Inventory:** Select 2-3 items FROM THE SHARED CATALOG you just created to give to the player as their starting equipment. You only need to provide the item's name and a starting quantity.
+5.  **Initial Quests:** One or two simple starting quests.
 
-Provide the response in the required JSON format, as an object with a 'concepts' array containing the three generated world concepts.
-ALL TEXT in the response (worldName, initialNarrative, item names, item descriptions, initialQuests) MUST be in the language corresponding to this code: {{language}}.
+Provide the response in the required JSON format. ALL TEXT in the response (worldName, initialNarrative, item names, item descriptions, initialQuests) MUST be in the language corresponding to this code: {{language}}.
 `,
 });
 
 // == STEP 4: DEFINE THE GENKIT FLOW ==
-// A flow is a sequence of steps that can be run by Genkit.
 const generateWorldSetupFlow = ai.defineFlow(
   {
     name: 'generateWorldSetupFlow',

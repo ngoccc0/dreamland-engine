@@ -153,7 +153,7 @@ const generateWorldSetupFlow = ai.defineFlow(
     });
     
     const openaiPromise = ai.generate({
-        model: 'genkitx-openai/gpt-4o',
+        model: 'genkitx-openai/gpt-3.5-turbo',
         prompt: finalPrompt,
         output: { schema: GenerateWorldSetupOutputSchema },
     });

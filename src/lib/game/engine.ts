@@ -235,12 +235,12 @@ function calculateDependentChunkAttributes(
  * @returns An object containing the generated content.
  */
 function generateChunkContent(
-    chunkData: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored'>,
+    chunkData: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'explored'>,
     worldProfile: WorldProfile,
     allItemDefinitions: Record<string, ItemDefinition>,
     customItemCatalog: GeneratedItem[]
 ) {
-    const template = templates[chunkData.terrain as Terrain];
+    const template = templates[chunkData.terrain];
 
     // Description
     const baseDescriptionTemplate = template.descriptionTemplates[Math.floor(Math.random() * template.descriptionTemplates.length)];
@@ -382,6 +382,7 @@ export const generateRegion = (
         
         // Step 3: Combine all attributes to form the final chunk data for content generation
         const tempChunkData = {
+            terrain,
             vegetationDensity,
             elevation,
             dangerLevel,

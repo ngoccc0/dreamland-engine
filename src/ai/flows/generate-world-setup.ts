@@ -3,14 +3,14 @@
 /**
  * @fileOverview An AI agent for generating multiple, distinct game world concepts from a user's prompt.
  *
- * This file defines the AI workflow for world creation. It includes:
- * 1. Schemas: Strict definitions for what the AI receives and returns.
- * 2. The AI Prompt: Detailed instructions for the AI model.
- * 3. The Genkit Flow: The wrapper that connects the schemas and prompt into a callable function.
+ * This file defines the AI workflow for world creation. It is now a two-step process
+ * to improve quality and allow for a larger number of generated items.
+ * 1. Generate a large catalog of items and three world names.
+ * 2. Generate the narrative details for three concepts based on the items and names.
  *
  * - generateWorldSetup - The main function for the application to use.
  * - GenerateWorldSetupInput - The type definition for the input.
- * - GenerateWorldSetupOutput - The type definition for the structured output (a shared item catalog and 3 concepts).
+ * - GenerateWorldSetupOutput - The type definition for the final structured output.
  */
 
 import {ai} from '@/ai/genkit';
@@ -20,7 +20,7 @@ import Handlebars from 'handlebars';
 
 const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave"];
 
-// == STEP 1: DEFINE THE INPUT SCHEMA ==
+// == INPUT SCHEMA ==
 const GenerateWorldSetupInputSchema = z.object({
   userInput: z.string().describe("The user's initial idea, prompt, or description for the game world."),
   language: z.string().describe("The language for the generated content (e.g., 'en' for English, 'vi' for Vietnamese)."),
@@ -28,13 +28,13 @@ const GenerateWorldSetupInputSchema = z.object({
 export type GenerateWorldSetupInput = z.infer<typeof GenerateWorldSetupInputSchema>;
 
 
-// == STEP 2: DEFINE THE OUTPUT SCHEMA(S) ==
-// Schemas for resource growth conditions
+// == INTERMEDIATE & FINAL OUTPUT SCHEMAS ==
+
+// -- Item Schemas --
 const ConditionRangeSchema = z.object({
     min: z.number().optional(),
     max: z.number().optional()
 });
-
 const SpawnConditionsSchema = z.object({
   chance: z.number().optional(),
   vegetationDensity: ConditionRangeSchema.optional(),
@@ -48,8 +48,6 @@ const SpawnConditionsSchema = z.object({
   temperature: ConditionRangeSchema.optional(),
   soilType: z.array(z.string()).optional(),
 }).describe("A set of environmental conditions.");
-
-
 const GeneratedItemSchema = z.object({
     name: z.string().describe("A unique and thematic name for the item."),
     description: z.string().describe("A flavorful, one-sentence description of the item."),
@@ -69,100 +67,174 @@ const GeneratedItemSchema = z.object({
     }).optional().describe("For living resources like plants or fungi, define the conditions under which they grow. If not provided, the item will be static."),
 });
 
-// Schema for a single world concept. Note it does NOT contain the item catalog.
-const WorldConceptSchema = z.object({
-  worldName: z.string().describe('A cool and fitting name for this world.'),
-  initialNarrative: z.string().describe('A detailed, engaging opening narrative to start the game. This should set the scene for the player.'),
-  startingBiome: z.enum(allTerrains).describe('The primary biome for the starting area.'),
-  
-  // The player's starting inventory, which should be a subset of the shared catalog.
-  playerInventory: z.array(z.object({
-    name: z.string().describe("The name of the item, which MUST match an item from the shared customItemCatalog."),
-    quantity: z.number().int().min(1),
-  })).min(2).max(3).describe('A list of 2-3 starting items for the player, chosen from the shared customItemCatalog you generated.'),
-
-  initialQuests: z.array(z.string()).describe('A list of 1-2 starting quests for the player to begin their adventure.'),
+// -- Step 1 Output Schema: Items and Names --
+const ItemsAndNamesOutputSchema = z.object({
+    customItemCatalog: z.array(GeneratedItemSchema).min(20).max(30).describe("A shared catalog of 20-30 unique, thematic items invented for this specific game world theme."),
+    worldNames: z.array(z.string()).length(3).describe("An array of three distinct and creative world names based on the user's input."),
 });
 
-// The final output schema. It contains ONE shared catalog and THREE concepts.
+// -- Step 2 Output Schema: Concept Details --
+const ConceptDetailsSchema = z.object({
+  initialNarrative: z.string().describe('A detailed, engaging opening narrative to start the game. This should set the scene for the player.'),
+  startingBiome: z.enum(allTerrains).describe('The primary biome for the starting area.'),
+  playerInventory: z.array(z.object({
+    name: z.string().describe("The name of the item, which MUST match an item from the provided customItemCatalog."),
+    quantity: z.number().int().min(1),
+  })).min(2).max(3).describe('A list of 2-3 starting items for the player, chosen from the provided customItemCatalog.'),
+  initialQuests: z.array(z.string()).describe('A list of 1-2 starting quests for the player to begin their adventure.'),
+});
+const ConceptDetailsArraySchema = z.array(ConceptDetailsSchema).length(3);
+
+// -- Final Combined Output Schema (for the frontend) --
+const WorldConceptSchema = z.object({
+  worldName: z.string(),
+  initialNarrative: z.string(),
+  startingBiome: z.enum(allTerrains),
+  playerInventory: z.array(z.object({ name: z.string(), quantity: z.number().int().min(1) })),
+  initialQuests: z.array(z.string()),
+});
 const GenerateWorldSetupOutputSchema = z.object({
-    customItemCatalog: z.array(GeneratedItemSchema).min(10).max(15).describe("A shared catalog of 10-15 unique, thematic items invented for this specific game world theme. These items will be used by all concepts."),
-    concepts: z.array(WorldConceptSchema).length(3).describe("An array of three distinct and creative world concepts based on the user's input and the shared item catalog."),
+    customItemCatalog: z.array(GeneratedItemSchema),
+    concepts: z.array(WorldConceptSchema).length(3),
 });
 export type GenerateWorldSetupOutput = z.infer<typeof GenerateWorldSetupOutputSchema>;
 
 
 /**
  * This is the primary function that the application's frontend will call.
- * It wraps the Genkit flow for easier use.
- * @param input The user's idea for a world and the desired language.
- * @returns A promise that resolves to the structured world generation data.
  */
 export async function generateWorldSetup(input: GenerateWorldSetupInput): Promise<GenerateWorldSetupOutput> {
   return generateWorldSetupFlow(input);
 }
 
 
-// == STEP 3: DEFINE THE AI PROMPT TEMPLATE ==
-const worldSetupPromptTemplate = `You are a creative and brilliant Game Master, designing a new text-based adventure game.
-A player has provided you with an idea. Your task is to generate a rich set of options for them.
+// == PROMPTS ==
 
-Player's Idea: {{{userInput}}}
+// -- Prompt for Step 1: Items & Names --
+const itemsAndNamesPrompt = ai.definePrompt({
+    name: 'generateItemsAndNamesPrompt',
+    input: { schema: GenerateWorldSetupInputSchema },
+    output: { schema: ItemsAndNamesOutputSchema },
+    prompt: `You are a creative world-building assistant. Based on the user's idea, your task is to generate TWO things:
+1.  **A list of three (3) cool and evocative world names.**
+2.  **A large, shared catalog of 20 to 30 unique, thematically appropriate items** that could be found in this world.
 
-**Your task is a two-step process:**
+**User's Idea:** {{{userInput}}}
 
-**Step 1: Create a Shared Item Catalog**
-First, you must INVENT a single, shared catalog of 10 to 15 unique, thematically appropriate items that will be found throughout this world. This catalog will be the foundation for all concepts. For each item in the catalog, you must define:
-*   **name**: A creative and unique name.
-*   **description**: A one-sentence flavorful description.
-*   **tier**: A tier from 1 (common) to 6 (legendary).
-*   **effects**: An array of one or more effects, like healing HP or restoring stamina. This can be an empty array \`[]\` for items that are not consumable. Example: \`[{ "type": "HEAL", "amount": 25 }]\`.
-*   **baseQuantity**: The typical quantity range this item is found in (e.g., min 1, max 3).
-*   **spawnBiomes**: An array of one or more biome names where this item can be found (e.g., ["forest", "swamp"]).
-*   **growthConditions (Optional)**: For living resources like plants or fungi, you can define how they reproduce over time. Define 'optimal' and 'subOptimal' conditions using environmental factors like moisture, temperature, and lightLevel. Items in optimal conditions will spread quickly, while those in unsuitable conditions may decay. If you don't provide this, the item will be static and will not reproduce.
+For each item, define all required fields: name, description, tier, effects, baseQuantity, spawnBiomes, and optional growthConditions.
 
-**Step 2: Create Three Distinct World Concepts**
-After creating the shared item catalog, create THREE DISTINCT AND VARIED concepts for a compelling game world. Each concept should be a unique take on the user's idea. For EACH of the three concepts, you must generate:
-1.  **World Name:** A cool, evocative name for the world.
-2.  **Initial Narrative:** A rich, descriptive opening paragraph.
-3.  **Starting Biome:** The biome where the player begins (forest, grassland, desert, swamp, mountain, or cave).
-4.  **Player Inventory:** Select 2-3 items FROM THE SHARED CATALOG you just created to give to the player as their starting equipment. You only need to provide the item's name and a starting quantity.
-5.  **Initial Quests:** One or two simple starting quests.
+Provide the response in the required JSON format. ALL TEXT in the response MUST be in the language corresponding to this code: {{language}}.`,
+});
 
-Provide the response in the required JSON format. ALL TEXT in the response (worldName, initialNarrative, item names, item descriptions, initialQuests) MUST be in the language corresponding to this code: {{language}}.
-`;
+// -- Prompt for Step 2: Concept Details --
+const conceptDetailsPrompt = ai.definePrompt({
+    name: 'generateConceptDetailsPrompt',
+    input: { schema: z.object({
+        userInput: z.string(),
+        language: z.string(),
+        worldNames: z.array(z.string()),
+        customItemCatalog: z.array(GeneratedItemSchema),
+    })},
+    output: { schema: ConceptDetailsArraySchema },
+    prompt: `You are a creative Game Master. A world concept has been started, and now you need to flesh it out.
+You have been given a user's idea, three world names, and a specific catalog of items.
+
+**User's Idea:** {{{userInput}}}
+
+**Provided World Names:**
+{{#each worldNames}}
+- {{{this}}}
+{{/each}}
+
+**Provided Item Catalog (for reference and for player inventory):**
+{{json customItemCatalog}}
+
+**Your Task:**
+For EACH of the three world names provided, create the specific narrative details. You MUST generate an array of exactly three objects. For EACH object, create:
+1.  **initialNarrative:** A rich, descriptive opening paragraph for that world.
+2.  **startingBiome:** The biome where the player begins (forest, grassland, desert, swamp, mountain, or cave).
+3.  **playerInventory:** Select 2-3 items *FROM THE PROVIDED ITEM CATALOG* to give to the player.
+4.  **initialQuests:** One or two simple starting quests.
+
+Provide the response as a JSON array of three objects. ALL TEXT in the response MUST be in the language corresponding to this code: {{language}}.`,
+});
 
 
-// == STEP 4: DEFINE THE GENKIT FLOW (with parallel execution) ==
+// == THE GENKIT FLOW (Sequential orchestration) ==
 const generateWorldSetupFlow = ai.defineFlow(
   {
     name: 'generateWorldSetupFlow',
     inputSchema: GenerateWorldSetupInputSchema,
     outputSchema: GenerateWorldSetupOutputSchema,
   },
-  async input => {
-    // 1. Compile the Handlebars template
-    const template = Handlebars.compile(worldSetupPromptTemplate);
-    const finalPrompt = template(input);
-    
-    // 2. Create two promises, one for each AI model provider
-    const geminiPromise = ai.generate({
-        model: 'googleai/gemini-2.0-flash',
-        prompt: finalPrompt,
-        output: { schema: GenerateWorldSetupOutputSchema },
-    });
-    
-    const openaiPromise = ai.generate({
-        model: 'genkitx-openai/gpt-3.5-turbo',
-        prompt: finalPrompt,
-        output: { schema: GenerateWorldSetupOutputSchema },
-    });
+  async (input) => {
+    // --- Step 1: Generate Items and World Names ---
+    const itemsAndNamesTemplate = Handlebars.compile(itemsAndNamesPrompt.prompt as string);
+    const itemsAndNamesFinalPrompt = itemsAndNamesTemplate(input);
 
-    // 3. Race the two promises and take the result from whichever finishes first.
-    // Promise.any() waits for the first promise to fulfill.
-    const firstResult = await Promise.any([geminiPromise, openaiPromise]);
+    const itemsAndNamesResult = await Promise.any([
+        ai.generate({
+            model: 'googleai/gemini-2.0-flash',
+            prompt: itemsAndNamesFinalPrompt,
+            output: { schema: ItemsAndNamesOutputSchema },
+        }),
+        ai.generate({
+            model: 'genkitx-openai/gpt-3.5-turbo',
+            prompt: itemsAndNamesFinalPrompt,
+            output: { schema: ItemsAndNamesOutputSchema },
+        }),
+    ]);
+
+    const itemsAndNames = itemsAndNamesResult.output;
+    if (!itemsAndNames) {
+        throw new Error("Failed to generate items and names in the first step.");
+    }
     
-    // 4. Return the output from the winning promise.
-    return firstResult.output!;
+    // --- Step 2: Generate Narrative Details using results from Step 1 ---
+    const conceptDetailsInput = {
+        ...input,
+        worldNames: itemsAndNames.worldNames,
+        customItemCatalog: itemsAndNames.customItemCatalog,
+    };
+    const conceptDetailsTemplate = Handlebars.compile(conceptDetailsPrompt.prompt as string);
+    const conceptDetailsFinalPrompt = conceptDetailsTemplate(conceptDetailsInput);
+
+    const conceptDetailsResult = await Promise.any([
+       ai.generate({
+            model: 'googleai/gemini-2.0-flash',
+            prompt: conceptDetailsFinalPrompt,
+            output: { schema: ConceptDetailsArraySchema },
+        }),
+        ai.generate({
+            model: 'genkitx-openai/gpt-3.5-turbo',
+            prompt: conceptDetailsFinalPrompt,
+            output: { schema: ConceptDetailsArraySchema },
+        }),
+    ]);
+    
+    const conceptDetails = conceptDetailsResult.output;
+    if (!conceptDetails) {
+        throw new Error("Failed to generate concept details in the second step.");
+    }
+
+    // --- Step 3: Combine the results into the final output structure ---
+    const finalOutput: GenerateWorldSetupOutput = {
+        customItemCatalog: itemsAndNames.customItemCatalog,
+        concepts: itemsAndNames.worldNames.map((name, index) => {
+            const details = conceptDetails[index];
+            if (!details) {
+                throw new Error(`Mismatch in concept details length. Expected 3, got ${conceptDetails.length}`);
+            }
+            return {
+                worldName: name,
+                initialNarrative: details.initialNarrative,
+                startingBiome: details.startingBiome,
+                playerInventory: details.playerInventory,
+                initialQuests: details.initialQuests,
+            };
+        }),
+    };
+
+    return finalOutput;
   }
 );

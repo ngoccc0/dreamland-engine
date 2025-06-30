@@ -290,19 +290,31 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một loại quả mọng đỏ, có vẻ ngon miệng và an toàn, giúp phục hồi chút thể lực.',
         tier: 1,
         effects: [{ type: 'RESTORE_STAMINA', amount: 15 }],
-        baseQuantity: { min: 2, max: 6 }
+        baseQuantity: { min: 2, max: 6 },
+        growthConditions: {
+            optimal: { moisture: { min: 5 }, vegetationDensity: { min: 7 } },
+            subOptimal: { moisture: { min: 3, max: 4 } }
+        }
     },
     'Nấm Độc': {
         description: 'Một loại nấm có màu sắc sặc sỡ, tốt nhất không nên ăn.',
         tier: 2,
         effects: [], // No positive effects
-        baseQuantity: { min: 1, max: 3 }
+        baseQuantity: { min: 1, max: 3 },
+        growthConditions: {
+            optimal: { moisture: { min: 7, max: 10 }, lightLevel: { max: -2 } },
+            subOptimal: { moisture: { min: 5, max: 6 }, lightLevel: { min: -1, max: 1 } }
+        }
     },
     'Thảo Dược Chữa Lành': {
         description: 'Một loại lá cây có mùi thơm dễ chịu, có khả năng chữa lành vết thương nhỏ.',
         tier: 2,
         effects: [{ type: 'HEAL', amount: 20 }],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        growthConditions: {
+            optimal: { moisture: { min: 6, max: 8 }, temperature: { min: 5, max: 8 }, lightLevel: { min: 2, max: 6 } },
+            subOptimal: { moisture: { min: 4, max: 5 }, temperature: { min: 3, max: 4 } }
+        }
     },
     'Cành Cây Chắc Chắn': {
         description: 'Một cành cây thẳng và cứng, có thể dùng làm vũ khí tạm thời.',
@@ -320,7 +332,11 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một bông hoa phát ra ánh sáng xanh lam yếu ớt, tỏa ra năng lượng phép thuật.',
         tier: 4,
         effects: [], // Would be 'RESTORE_MANA' if mana existed
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        growthConditions: {
+            optimal: { magicAffinity: { min: 7 } },
+            subOptimal: { magicAffinity: { min: 5, max: 6 } }
+        }
     },
      'Rễ Cây Hiếm': {
         description: 'Một loại rễ cây chỉ mọc ở vùng nước độc, có giá trị cao trong giả kim thuật.',
@@ -463,7 +479,11 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một cây xương rồng nhỏ, có thể ép lấy nước.',
         tier: 1,
         effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
-        baseQuantity: { min: 1, max: 3 }
+        baseQuantity: { min: 1, max: 3 },
+        growthConditions: {
+            optimal: { temperature: { min: 8 }, moisture: { max: 1 } },
+            subOptimal: { temperature: { min: 6, max: 7 }, moisture: { min: 2, max: 3 } }
+        }
     },
     'Thủy tinh sa mạc': {
         description: 'Một mảnh thủy tinh tự nhiên được tạo ra khi sét đánh vào cát.',
@@ -477,7 +497,11 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một loại rêu có thể dùng để đánh dấu đường đi hoặc làm thuốc.',
         tier: 2,
         effects: [],
-        baseQuantity: { min: 1, max: 4 }
+        baseQuantity: { min: 1, max: 4 },
+        growthConditions: {
+            optimal: { moisture: { min: 8 }, lightLevel: { max: -5 } },
+            subOptimal: { moisture: { min: 6, max: 7 }, lightLevel: { min: -4, max: -2 } }
+        }
     },
     'Trứng Bò Sát': {
         description: 'Một ổ trứng lạ, có lớp vỏ dai và dày.',
@@ -601,7 +625,11 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một loại nấm phát ra ánh sáng dịu nhẹ, có thể ăn để tăng cường thị lực trong bóng tối.',
         tier: 3,
         effects: [], // Special effect would require new logic, so no effect for now.
-        baseQuantity: { min: 2, max: 5 }
+        baseQuantity: { min: 2, max: 5 },
+        growthConditions: {
+            optimal: { lightLevel: { max: -6 }, moisture: { min: 7 } },
+            subOptimal: { lightLevel: { min: -5, max: -3 } }
+        }
     },
     'Túi Trứng Nhện': {
         description: 'Một bọc trứng nhện tơ, cảm giác có gì đó đang ngọ nguậy bên trong.',

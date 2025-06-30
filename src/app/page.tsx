@@ -67,6 +67,7 @@ export default function Home() {
             tier: item.tier,
             effects: item.effects,
             baseQuantity: item.baseQuantity,
+            growthConditions: item.growthConditions as any, // Cast to handle potential type mismatch from Zod
         };
         return acc;
     }, {} as Record<string, ItemDefinition>);

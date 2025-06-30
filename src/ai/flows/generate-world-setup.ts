@@ -28,8 +28,26 @@ export type GenerateWorldSetupInput = z.infer<typeof GenerateWorldSetupInputSche
 
 
 // == STEP 2: DEFINE THE OUTPUT SCHEMA(S) ==
-// We first define the schema for a single, complete world idea.
-// This forces the AI to structure its response, making it reliable.
+// Schemas for resource growth conditions
+const ConditionRangeSchema = z.object({
+    min: z.number().optional(),
+    max: z.number().optional()
+});
+
+const SpawnConditionsSchema = z.object({
+  chance: z.number().optional(),
+  vegetationDensity: ConditionRangeSchema.optional(),
+  moisture: ConditionRangeSchema.optional(),
+  elevation: ConditionRangeSchema.optional(),
+  dangerLevel: ConditionRangeSchema.optional(),
+  magicAffinity: ConditionRangeSchema.optional(),
+  humanPresence: ConditionRangeSchema.optional(),
+  predatorPresence: ConditionRangeSchema.optional(),
+  lightLevel: ConditionRangeSchema.optional(),
+  temperature: ConditionRangeSchema.optional(),
+  soilType: z.array(z.string()).optional(),
+}).describe("A set of environmental conditions.");
+
 
 const GeneratedItemSchema = z.object({
     name: z.string().describe("A unique and thematic name for the item."),
@@ -44,6 +62,10 @@ const GeneratedItemSchema = z.object({
         max: z.number().int().min(1)
     }).describe("The typical quantity range this item is found in."),
     spawnBiomes: z.array(z.enum(allTerrains)).min(1).describe("An array of one or more biomes where this item can naturally be found."),
+    growthConditions: z.object({
+      optimal: SpawnConditionsSchema.describe("The ideal conditions for the resource to thrive and reproduce."),
+      subOptimal: SpawnConditionsSchema.describe("Conditions where the resource can survive and reproduce slowly."),
+    }).optional().describe("For living resources like plants or fungi, define the conditions under which they grow. If not provided, the item will be static."),
 });
 
 // Schema for a single world concept. Note it does NOT contain the item catalog.
@@ -104,6 +126,7 @@ First, you must INVENT a single, shared catalog of 10 to 15 unique, thematically
 *   **effects**: An array of one or more effects, like healing HP or restoring stamina. This can be an empty array \`[]\` for items that are not consumable. Example: \`[{ "type": "HEAL", "amount": 25 }]\`.
 *   **baseQuantity**: The typical quantity range this item is found in (e.g., min 1, max 3).
 *   **spawnBiomes**: An array of one or more biome names where this item can be found (e.g., ["forest", "swamp"]).
+*   **growthConditions (Optional)**: For living resources like plants or fungi, you can define how they reproduce over time. Define 'optimal' and 'subOptimal' conditions using environmental factors like moisture, temperature, and lightLevel. Items in optimal conditions will spread quickly, while those in unsuitable conditions may decay. If you don't provide this, the item will be static and will not reproduce.
 
 **Step 2: Create Three Distinct World Concepts**
 After creating the shared item catalog, create THREE DISTINCT AND VARIED concepts for a compelling game world. Each concept should be a unique take on the user's idea. For EACH of the three concepts, you must generate:

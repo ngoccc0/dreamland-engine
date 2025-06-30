@@ -12,7 +12,7 @@ import { Skeleton } from "../ui/skeleton";
 import { Separator } from "../ui/separator";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { useLanguage } from "@/context/language-context";
-import type { WorldConcept } from "@/lib/game/types";
+import type { WorldConcept, ItemDefinition } from "@/lib/game/types";
 
 interface WorldSetupProps {
     onWorldCreated: (worldSetup: WorldConcept) => void;

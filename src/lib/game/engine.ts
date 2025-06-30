@@ -44,15 +44,17 @@ export const generateWeatherForZone = (terrain: Terrain, season: Season, previou
 // --- ENTITY SPAWNING LOGIC ---
 
 // Helper function to check if a chunk meets the spawn conditions for an entity
-const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy'>): boolean => {
+export const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored'>): boolean => {
     for (const key in conditions) {
         if (key === 'chance') continue;
         const condition = conditions[key as keyof typeof conditions];
-        const chunkValue = chunk[key as keyof typeof chunk];
         
+        // This handles the new optional `chunk` parameter in the type
+        const chunkValue = chunk[key as keyof typeof chunk];
+
         if (key === 'soilType') {
             const soilConditions = condition as SoilType[];
-            if (!soilConditions.includes(chunk.soilType)) return false;
+            if (!soilConditions.includes((chunk as any).soilType)) return false;
             continue;
         }
 
@@ -75,7 +77,7 @@ const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 'descri
  */
 const selectEntities = <T extends {name: string, conditions: SpawnConditions} | {data: any, conditions: SpawnConditions}>(
     possibleEntities: T[],
-    chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy'>,
+    chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored'>,
     allItemDefinitions: Record<string, ItemDefinition>, // Pass in all definitions
     maxCount: number = 3
 ): any[] => {
@@ -233,12 +235,12 @@ function calculateDependentChunkAttributes(
  * @returns An object containing the generated content.
  */
 function generateChunkContent(
-    chunkData: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy'>,
+    chunkData: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored'>,
     worldProfile: WorldProfile,
     allItemDefinitions: Record<string, ItemDefinition>,
     customItemCatalog: GeneratedItem[]
 ) {
-    const template = templates[chunkData.terrain];
+    const template = templates[chunkData.terrain as Terrain];
 
     // Description
     const baseDescriptionTemplate = template.descriptionTemplates[Math.floor(Math.random() * template.descriptionTemplates.length)];
@@ -249,7 +251,7 @@ function generateChunkContent(
     // --- Create a combined list of all possible items for this biome ---
     const staticSpawnCandidates = template.items;
     const customSpawnCandidates = customItemCatalog
-        .filter(item => item.spawnBiomes.includes(chunkData.terrain))
+        .filter(item => item.spawnBiomes.includes(chunkData.terrain as Terrain))
         .map(item => ({ name: item.name, conditions: { chance: 0.15 } })); // Give custom items a base chance
     
     const allSpawnCandidates = [...staticSpawnCandidates, ...customSpawnCandidates];
@@ -380,7 +382,6 @@ export const generateRegion = (
         
         // Step 3: Combine all attributes to form the final chunk data for content generation
         const tempChunkData = {
-            x: pos.x, y: pos.y, terrain, explored: false, regionId,
             vegetationDensity,
             elevation,
             dangerLevel,
@@ -394,6 +395,11 @@ export const generateRegion = (
         const content = generateChunkContent(tempChunkData, worldProfile, allItemDefinitions, customItemCatalog);
         
         newWorld[posKey] = {
+            x: pos.x, 
+            y: pos.y, 
+            terrain, 
+            explored: false, 
+            regionId,
             ...tempChunkData,
             ...content,
         };

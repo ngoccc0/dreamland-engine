@@ -19,7 +19,7 @@ import { SwordIcon } from "@/components/game/icons";
 import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/generate-narrative-flow";
 
 // Import modularized game engine components
-import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, getRandomInRange } from '@/lib/game/engine';
+import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, getRandomInRange, checkConditions } from '@/lib/game/engine';
 import { worldConfig, templates, itemDefinitions as staticItemDefinitions } from '@/lib/game/config';
 import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region, GameState, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
@@ -474,6 +474,67 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                 }
             }
         }
+        
+        // --- PLANT & ITEM ECOLOGY TICK ---
+        const ITEM_ECOLOGY_CHANCE = 0.1; // 10% chance per tick for any item stack to be processed
+        for (const key in worldCopy) {
+            if (!worldCopy[key].items || worldCopy[key].items.length === 0) continue;
+            
+            const effectiveChunk = getEffectiveChunk(worldCopy[key]);
+            const originalItems = worldCopy[key].items;
+            const newItems: ChunkItem[] = [];
+            let itemsChanged = false;
+
+            for (const item of originalItems) {
+                // Decide if this stack gets processed this tick
+                if (Math.random() > ITEM_ECOLOGY_CHANCE) {
+                    newItems.push(item);
+                    continue;
+                }
+
+                const itemDef = customItemDefinitions[item.name];
+                // Only process items that have growth conditions defined
+                if (!itemDef?.growthConditions) {
+                    newItems.push(item);
+                    continue;
+                }
+
+                const { optimal, subOptimal } = itemDef.growthConditions;
+                const newItem = { ...item }; // Work on a copy
+                let quantityChanged = false;
+
+                if (checkConditions(optimal, effectiveChunk)) {
+                    // Optimal growth: 100% chance to attempt growth
+                    const newQuantity = Math.round(newItem.quantity * 1.5);
+                    newItem.quantity = Math.min(newQuantity, 50); // Cap at 50
+                } else if (checkConditions(subOptimal, effectiveChunk)) {
+                    // Sub-optimal growth: 50% chance to attempt growth (doubles the time)
+                    if (Math.random() < 0.5) {
+                        const newQuantity = Math.round(newItem.quantity * 1.5);
+                        newItem.quantity = Math.min(newQuantity, 50); // Cap at 50
+                    }
+                } else {
+                    // Unsuitable conditions: Decay
+                    newItem.quantity -= 1;
+                }
+                
+                if (newItem.quantity !== item.quantity) {
+                    quantityChanged = true;
+                }
+
+                if (newItem.quantity > 0) {
+                    newItems.push(newItem);
+                }
+                
+                if (quantityChanged) {
+                    itemsChanged = true;
+                }
+            }
+
+            if (itemsChanged) {
+                worldCopy[key] = { ...worldCopy[key], items: newItems };
+            }
+        }
     
         setWorld(worldCopy);
     
@@ -491,7 +552,7 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
             changes.narrativeEntries.forEach(entry => addNarrativeEntry(entry.text, entry.type));
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [world, playerPosition.x, playerPosition.y, addNarrativeEntry, t, gameTicks, weatherZones, currentSeason]);
+    }, [world, playerPosition.x, playerPosition.y, addNarrativeEntry, t, gameTicks, weatherZones, currentSeason, customItemDefinitions]);
 
 
     /**

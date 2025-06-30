@@ -5,14 +5,19 @@ import GameLayout from '@/components/game/game-layout';
 import { WorldSetup } from '@/components/game/world-setup';
 import type { WorldConcept } from '@/ai/flows/generate-world-setup';
 import { LanguageSelector } from '@/components/game/language-selector';
-import type { GameState, PlayerItem } from '@/lib/game/types';
+import type { GameState, PlayerItem, ItemDefinition, GeneratedItem } from '@/lib/game/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+
+type NewGameData = {
+  worldSetup: Omit<WorldConcept, 'playerInventory'> & { playerInventory: PlayerItem[] };
+  customItemDefinitions: Record<string, ItemDefinition>;
+}
 
 export default function Home() {
   const [loadState, setLoadState] = useState<'loading' | 'prompt' | 'new_game' | 'continue_game'>('loading');
   const [savedGameState, setSavedGameState] = useState<GameState | null>(null);
-  const [worldSetup, setWorldSetup] = useState<WorldConcept | null>(null);
+  const [newGameData, setNewGameData] = useState<NewGameData | null>(null);
   const [languageSelected, setLanguageSelected] = useState(false);
 
   useEffect(() => {
@@ -27,6 +32,7 @@ export default function Home() {
           gameState.playerStats.items = (gameState.playerStats.items as unknown as string[]).map((itemName): PlayerItem => ({
             name: itemName.replace(/ \(.*/, ''), // Attempt to clean up names like "Item (description)"
             quantity: 1,
+            tier: 1, // Add a default tier
           }));
         }
 
@@ -48,11 +54,39 @@ export default function Home() {
   const handleNewGame = () => {
     localStorage.removeItem('gameState');
     setSavedGameState(null);
+    setNewGameData(null); // Clear new game data as well
     setLoadState('new_game');
   };
 
   const onWorldCreated = (world: WorldConcept) => {
-    setWorldSetup(world);
+    // 1. Transform AI-generated inventory into player items and custom definitions
+    const initialPlayerItems: PlayerItem[] = world.playerInventory.map(item => ({
+        name: item.name,
+        quantity: item.quantity,
+        tier: item.tier
+    }));
+
+    const initialCustomItemDefs: Record<string, ItemDefinition> = (world.playerInventory as GeneratedItem[]).reduce((acc, item) => {
+        acc[item.name] = {
+            description: item.description,
+            tier: item.tier,
+            effects: item.effects,
+            baseQuantity: { min: item.quantity, max: item.quantity }
+        };
+        return acc;
+    }, {} as Record<string, ItemDefinition>);
+
+    // 2. Create a version of the world setup suitable for the GameLayout
+    const worldSetupForLayout = {
+        ...world,
+        playerInventory: initialPlayerItems,
+    };
+    
+    // 3. Set the complete new game data in state
+    setNewGameData({
+        worldSetup: worldSetupForLayout,
+        customItemDefinitions: initialCustomItemDefs,
+    });
   };
 
   if (loadState === 'loading') {
@@ -93,9 +127,9 @@ export default function Home() {
     return <LanguageSelector onLanguageSelected={() => setLanguageSelected(true)} />;
   }
   
-  if (!worldSetup) {
+  if (!newGameData) {
     return <WorldSetup onWorldCreated={onWorldCreated} />;
   }
   
-  return <GameLayout worldSetup={worldSetup} />;
+  return <GameLayout worldSetup={newGameData.worldSetup} customItemDefinitions={newGameData.customItemDefinitions} />;
 }

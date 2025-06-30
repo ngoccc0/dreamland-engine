@@ -35,10 +35,15 @@ const WorldConceptSchema = z.object({
   initialNarrative: z.string().describe('A detailed, engaging opening narrative to start the game. This should set the scene for the player.'),
   startingBiome: z.enum(["forest", "grassland", "desert", "swamp", "mountain", "cave"]).describe('The primary biome for the starting area. Must be one of: forest, grassland, desert, swamp, mountain, cave.'),
   playerInventory: z.array(z.object({
-    name: z.string(),
+    name: z.string().describe("A unique and thematic name for the item."),
     quantity: z.number().int().min(1),
     tier: z.number().int().min(1).max(6).describe("The tier of the item, from 1 (common) to 6 (legendary)."),
-  })).describe('A list of 2-3 starting items for the player, fitting the world theme, each with a name, quantity, and tier.'),
+    description: z.string().describe("A flavorful, one-sentence description of the item."),
+    effects: z.array(z.object({
+        type: z.enum(['HEAL', 'RESTORE_STAMINA']).describe("The type of effect the item has."),
+        amount: z.number().describe("The numerical power of the effect (e.g., the amount of HP to heal).")
+    })).min(1).describe("An array of effects the item provides. Should have at least one effect.")
+  })).length(2, 3).describe('A list of 2-3 starting items for the player, fitting the world theme. You must invent these items.'),
   initialQuests: z.array(z.string()).describe('A list of 1-2 starting quests for the player to begin their adventure.'),
 });
 export type WorldConcept = z.infer<typeof WorldConceptSchema>;
@@ -85,11 +90,16 @@ For EACH of the three concepts, generate the following:
 1.  **World Name:** A cool, evocative name for the world.
 2.  **Initial Narrative:** A rich, descriptive opening paragraph.
 3.  **Starting Biome:** The biome where the player begins (forest, grassland, desert, swamp, mountain, or cave).
-4.  **Player Inventory:** 2 or 3 thematically appropriate starting items, each with a name, a reasonable quantity, and a tier (e.g., { "name": "Health Potion", "quantity": 3, "tier": 1 }). The tier should be between 1 (common) and 6 (legendary), reflecting the item's rarity and power.
+4.  **Player Inventory:** You must INVENT 2 or 3 thematically appropriate starting items. For each item, you must define:
+    *   **name**: A creative and unique name.
+    *   **quantity**: A reasonable starting quantity.
+    *   **tier**: A tier from 1 (common) to 6 (legendary).
+    *   **description**: A one-sentence flavorful description.
+    *   **effects**: An array of one or more effects, like healing HP or restoring stamina, with an appropriate amount. Example: \`[{ "type": "HEAL", "amount": 25 }]\`.
 5.  **Initial Quests:** One or two simple starting quests.
 
 Provide the response in the required JSON format, as an object with a 'concepts' array containing the three generated world concepts.
-ALL TEXT in the response (worldName, initialNarrative, playerInventory, initialQuests) MUST be in the language corresponding to this code: {{language}}.
+ALL TEXT in the response (worldName, initialNarrative, item names, item descriptions, initialQuests) MUST be in the language corresponding to this code: {{language}}.
 `,
 });
 

@@ -7,6 +7,19 @@
 
 import {z} from 'genkit';
 
+export const ItemEffectSchema = z.object({
+    type: z.enum(['HEAL', 'RESTORE_STAMINA']),
+    amount: z.number(),
+});
+
+export const ItemDefinitionSchema = z.object({
+    description: z.string(),
+    tier: z.number(),
+    effects: z.array(ItemEffectSchema),
+    baseQuantity: z.object({ min: z.number(), max: z.number() }),
+});
+
+
 export const PlayerAttributesSchema = z.object({
     physicalAttack: z.number().describe("Player's base physical damage."),
     magicalAttack: z.number().describe("Player's base magical damage."),

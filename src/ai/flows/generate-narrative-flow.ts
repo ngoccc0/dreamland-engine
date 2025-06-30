@@ -13,7 +13,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema } from '@/ai/schemas';
+import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema } from '@/ai/schemas';
 import { playerAttackTool, takeItemTool, useItemTool } from '@/ai/tools/game-actions';
 
 // == STEP 1: DEFINE THE INPUT SCHEMA ==
@@ -24,6 +24,7 @@ const GenerateNarrativeInputSchema = z.object({
   currentChunk: ChunkSchema.describe("The detailed attributes of the map tile the player is currently on."),
   recentNarrative: z.array(z.string()).describe("The last few entries from the narrative log to provide conversational context."),
   language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
+  customItemDefinitions: z.record(ItemDefinitionSchema).optional().describe("An optional map of AI-generated item definitions specific to this game world."),
 });
 export type GenerateNarrativeInput = z.infer<typeof GenerateNarrativeInputSchema>;
 
@@ -70,7 +71,7 @@ Your role is to be a dynamic and creative storyteller. You will receive the play
 1.  **Use Tools for Actions:** You MUST use the provided tools to handle game logic.
     *   If the player's action is to attack, call the \`playerAttack\` tool with the current player and enemy status.
     *   If the player's action is to take an item (e.g., "pick up Healing Herb"), find the item in the chunk's item list and call the \`takeItem\` tool.
-    *   If the player's action is to use an item (e.g., "use Potion"), call the \`useItem\` tool.
+    *   If the player's action is to use an item (e.g., "use Potion"), call the \`useItem\` tool. When calling \`useItem\`, you MUST pass the \`customItemDefinitions\` from your input context into the tool's \`customItemDefinitions\` parameter. This is critical for using AI-generated items.
     *   For simple exploration or observation, you do not need to call a tool.
 2.  **Narrate the Results:** After the tool provides a result, your job is to craft a story around it. DO NOT invent outcomes or numbers. If the tool says the player took 10 damage, narrate that. If it says an enemy was defeated, describe its dramatic demise.
 3.  **Be a Storyteller:** Write an engaging, descriptive narrative (2-4 sentences) that brings the world to life.
@@ -81,6 +82,7 @@ Your role is to be a dynamic and creative storyteller. You will receive the play
 - Player's Status: {{json playerStatus}}
 - Current Environment (Chunk): {{json currentChunk}}
 - Recent Events: {{json recentNarrative}}
+- Custom Item Definitions: {{json customItemDefinitions}}
 
 **Task:**
 1.  Analyze the player's action and call the appropriate tool.

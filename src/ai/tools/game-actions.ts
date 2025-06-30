@@ -8,7 +8,7 @@
  */
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { PlayerStatusSchema, EnemySchema, PlayerItemSchema, ChunkItemSchema } from '@/ai/schemas';
+import { PlayerStatusSchema, EnemySchema, PlayerItemSchema, ChunkItemSchema, ItemDefinitionSchema } from '@/ai/schemas';
 import type { PlayerItem, PlayerStatus } from '@/lib/game/types';
 import { itemDefinitions } from '@/lib/game/config';
 
@@ -81,13 +81,14 @@ export const useItemTool = ai.defineTool({
     inputSchema: z.object({
         itemName: z.string().describe("The name of the item to use from the inventory."),
         playerStatus: PlayerStatusSchema,
+        customItemDefinitions: z.record(ItemDefinitionSchema).optional().describe("A map of AI-generated item definitions for the current game session."),
     }),
     outputSchema: z.object({
         updatedPlayerStatus: PlayerStatusSchema,
         wasUsed: z.boolean().describe("Whether the item was successfully found and used."),
         effectDescription: z.string().describe("A simple, factual description of what the item did, e.g., 'Healed for 25 HP. Restored 10 Stamina.'"),
     }),
-}, async ({ itemName, playerStatus }) => {
+}, async ({ itemName, playerStatus, customItemDefinitions }) => {
     const newStatus: PlayerStatus = JSON.parse(JSON.stringify(playerStatus)); // Deep copy
     const itemIndex = newStatus.items.findIndex((i: PlayerItem) => i.name.toLowerCase() === itemName.toLowerCase());
 
@@ -95,7 +96,10 @@ export const useItemTool = ai.defineTool({
         return { updatedPlayerStatus: playerStatus, wasUsed: false, effectDescription: 'Item not found.' };
     }
 
-    const itemDef = itemDefinitions[newStatus.items[itemIndex].name];
+    const customDef = customItemDefinitions?.[newStatus.items[itemIndex].name];
+    const staticDef = itemDefinitions[newStatus.items[itemIndex].name];
+    const itemDef = customDef || staticDef;
+
     if (!itemDef) {
          return { updatedPlayerStatus: playerStatus, wasUsed: false, effectDescription: 'Item has no defined effect.' };
     }

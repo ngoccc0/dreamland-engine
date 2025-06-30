@@ -21,15 +21,16 @@ import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/gener
 // Import modularized game engine components
 import { generateRegion, getValidAdjacentTerrains, weightedRandom } from '@/lib/game/engine';
 import { worldConfig, templates } from '@/lib/game/config';
-import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region, GameState, Terrain, PlayerItem, ChunkItem } from "@/lib/game/types";
+import type { World, PlayerStatus, NarrativeEntry, MapCell, Chunk, Season, WorldProfile, Region, GameState, Terrain, PlayerItem, ChunkItem, ItemDefinition } from "@/lib/game/types";
 
 
 interface GameLayoutProps {
-    worldSetup?: WorldConcept;
+    worldSetup?: Omit<WorldConcept, 'playerInventory'> & { playerInventory: PlayerItem[] };
     initialGameState?: GameState;
+    customItemDefinitions?: Record<string, ItemDefinition>;
 }
 
-export default function GameLayout({ worldSetup, initialGameState }: GameLayoutProps) {
+export default function GameLayout({ worldSetup, initialGameState, customItemDefinitions: initialCustomDefs }: GameLayoutProps) {
     const { t, language } = useLanguage();
     
     // --- State for Global World Settings ---
@@ -68,6 +69,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
             }
         }
     );
+    const [customItemDefinitions, setCustomItemDefinitions] = useState<Record<string, ItemDefinition>>(initialGameState?.customItemDefinitions || initialCustomDefs || {});
     
     const [isStatusOpen, setStatusOpen] = useState(false);
     const [isInventoryOpen, setInventoryOpen] = useState(false);
@@ -176,7 +178,8 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
             playerPosition,
             playerStats,
             narrativeLog,
-            worldSetup: finalWorldSetup
+            worldSetup: finalWorldSetup,
+            customItemDefinitions,
         };
 
         try {
@@ -194,7 +197,8 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
         playerPosition,
         playerStats,
         narrativeLog,
-        finalWorldSetup
+        finalWorldSetup,
+        customItemDefinitions
     ]);
 
 
@@ -474,6 +478,7 @@ export default function GameLayout({ worldSetup, initialGameState }: GameLayoutP
                 },
                 recentNarrative: narrativeLog.slice(-5).map(e => e.text),
                 language,
+                customItemDefinitions,
             };
 
             const result = await generateNarrative(input);

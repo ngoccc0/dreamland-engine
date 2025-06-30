@@ -354,7 +354,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                     )
                 )}
             </CardContent>
-            <CardFooter className="flex justify-between gap-2">
+            <CardFooter className="flex flex-col-reverse sm:flex-row sm:justify-between gap-2">
                 <Button variant="ghost" onClick={() => { setStep(0); setGeneratedData(null); }}>
                     {t('backAndEdit')}
                 </Button>

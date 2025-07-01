@@ -29,12 +29,12 @@ const biomeColors = {
 };
 
 const biomeIcons: Record<"forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave", React.ReactNode> = {
-    forest: <span className="text-xl opacity-80" role="img" aria-label="forest">🌳</span>,
-    grassland: <span className="text-xl opacity-80" role="img" aria-label="grassland">🌾</span>,
-    desert: <span className="text-xl opacity-80" role="img" aria-label="desert">🏜️</span>,
-    swamp: <span className="text-xl opacity-80" role="img" aria-label="swamp">🌿</span>,
-    mountain: <span className="text-xl opacity-80" role="img" aria-label="mountain">⛰️</span>,
-    cave: <span className="text-xl opacity-80" role="img" aria-label="cave">🪨</span>,
+    forest: <span className="text-2xl opacity-80" role="img" aria-label="forest">🌳</span>,
+    grassland: <span className="text-2xl opacity-80" role="img" aria-label="grassland">🌾</span>,
+    desert: <span className="text-2xl opacity-80" role="img" aria-label="desert">🏜️</span>,
+    swamp: <span className="text-2xl opacity-80" role="img" aria-label="swamp">🌿</span>,
+    mountain: <span className="text-2xl opacity-80" role="img" aria-label="mountain">⛰️</span>,
+    cave: <span className="text-2xl opacity-80" role="img" aria-label="cave">🪨</span>,
 };
 
 const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
@@ -97,10 +97,9 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
         </DialogHeader>
         <ScrollArea className="flex-grow bg-background rounded-md border">
             <div 
-                className="p-4 inline-grid"
+                className="p-4 inline-grid border-l border-t border-dashed border-border/50"
                 style={{
                     gridTemplateColumns: `repeat(${mapBounds.width}, auto)`,
-                    gap: '4px',
                 }}
             >
                 {Array.from({ length: mapBounds.height }).map((_, yIndex) => 
@@ -111,7 +110,7 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
                         const chunk = world[chunkKey];
 
                         if (!chunk || !chunk.explored) {
-                            return <div key={chunkKey} className="w-12 h-12 bg-map-empty rounded-sm" />;
+                            return <div key={chunkKey} className="w-12 h-12 bg-map-empty border-r border-b border-dashed border-border/50" />;
                         }
 
                         const isPlayerHere = playerPosition.x === worldX && playerPosition.y === worldY;
@@ -122,9 +121,9 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
                                     <div
                                         data-is-player={isPlayerHere}
                                         className={cn(
-                                            "w-12 h-12 rounded-sm relative transition-all duration-300 flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-white",
+                                            "w-12 h-12 relative transition-all duration-300 flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-white border-r border-b border-dashed border-border/50",
                                             biomeColors[chunk.terrain as keyof typeof biomeColors],
-                                            isPlayerHere && "ring-2 ring-white shadow-lg"
+                                            isPlayerHere && "ring-2 ring-white shadow-lg z-10"
                                         )}
                                         aria-label={`Map cell at ${chunk.x}, ${chunk.y}. Biome: ${chunk.terrain}`}
                                     >

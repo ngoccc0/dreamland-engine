@@ -45,15 +45,15 @@ export function Minimap({ grid, onTitleClick, playerPosition }: MinimapProps) {
         >
             {t('minimap')}
         </h3>
-        <div className="grid grid-cols-5 gap-1 p-2 bg-black/20 rounded-md shadow-inner">
+        <div className="grid grid-cols-5 border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-hidden">
         {grid.map((row, rowIndex) =>
             row.map((cell, colIndex) => (
             <div
                 key={`${rowIndex}-${colIndex}`}
                 className={cn(
-                "w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-sm relative transition-all duration-300 flex items-center justify-center",
+                "w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 relative transition-all duration-300 flex items-center justify-center border-r border-b border-dashed border-border/50",
                 biomeColors[cell.biome],
-                cell.hasPlayer && "ring-2 ring-white shadow-lg"
+                cell.hasPlayer && "ring-2 ring-white shadow-lg z-10"
                 )}
                 aria-label={`Map cell at ${rowIndex}, ${colIndex}. Biome: ${cell.biome}${cell.hasPlayer ? '. Player is here.' : ''}${cell.hasEnemy ? '. Enemy is here.' : ''}${cell.hasNpc ? '. NPC is here.' : ''}${cell.hasItem ? '. Item is here.' : ''}`}
             >

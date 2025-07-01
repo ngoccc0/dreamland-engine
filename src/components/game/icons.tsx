@@ -27,23 +27,16 @@ export function SwordIcon() {
 
 export function NpcIcon() {
   return (
-    <div className="absolute bottom-1 left-1 p-0.5 bg-black/50 rounded-sm" aria-label="NPC">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
-      </svg>
+    <div className="absolute bottom-0 left-1 text-lg drop-shadow-lg" aria-label="NPC">
+      <span>🗣️</span>
     </div>
   );
 }
 
 export function ItemIcon() {
   return (
-    <div className="absolute bottom-1 right-1 p-0.5 bg-black/50 rounded-sm" aria-label="Item">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M6 3h12l4 6-10 13L2 9z"/>
-        <path d="m12 22 4-13-3-6h-2L8 9l4 13"/>
-        <path d="M2 9h20"/>
-      </svg>
+    <div className="absolute bottom-0 right-1 text-lg drop-shadow-lg" aria-label="Item">
+      <span>✨</span>
     </div>
   );
 }

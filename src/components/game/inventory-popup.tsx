@@ -79,6 +79,22 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                                         <p className="font-bold">{item.name}</p>
                                         <p className="text-xs text-muted-foreground whitespace-normal">{definition?.description}</p>
                                     </DropdownMenuLabel>
+                                    
+                                    {definition && definition.effects.length > 0 && (
+                                        <>
+                                            <DropdownMenuSeparator />
+                                            <div className="px-2 py-1.5 text-xs space-y-1">
+                                                <p className="font-semibold text-muted-foreground">{t('effects')}:</p>
+                                                {definition.effects.map((effect, i) => (
+                                                    <p key={i} className="text-green-500 ml-2">
+                                                        {effect.type === 'HEAL' && `+${effect.amount} ${t('healthShort')}`}
+                                                        {effect.type === 'RESTORE_STAMINA' && `+${effect.amount} ${t('staminaShort')}`}
+                                                    </p>
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
+
                                     <DropdownMenuSeparator />
                                     {isUsableOnSelf && <DropdownMenuItem onClick={() => handleUseItem(item.name, 'player')}>{t('useOnSelf')}</DropdownMenuItem>}
                                     {isUsableOnEnemy && <DropdownMenuItem onClick={() => handleUseItem(item.name, enemy!.type)}>{t('useOnTarget', { target: enemy!.type })}</DropdownMenuItem>}

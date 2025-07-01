@@ -118,6 +118,9 @@ export const translations = {
     tier: "Tier {tier}",
     useOnSelf: "Use on Self",
     useOnTarget: "Use on {target}",
+    effects: "Effects",
+    healthShort: "HP",
+    staminaShort: "Stamina",
 
     // Crafting Popup
     craftingDesc: "Combine items to create new tools and supplies.",
@@ -273,6 +276,9 @@ export const translations = {
     tier: "Cấp {tier}",
     useOnSelf: "Dùng cho bản thân",
     useOnTarget: "Dùng cho {target}",
+    effects: "Hiệu ứng",
+    healthShort: "Máu",
+    staminaShort: "Thể lực",
     
     // Crafting Popup
     craftingDesc: "Kết hợp vật phẩm để tạo công cụ và vật tư mới.",

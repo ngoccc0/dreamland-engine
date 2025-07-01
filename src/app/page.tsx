@@ -8,6 +8,8 @@ import type { GameState, PlayerItem, ItemDefinition, GeneratedItem, WorldConcept
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
+import { useLanguage } from '@/context/language-context';
+import { BrainCircuit, Loader2 } from 'lucide-react';
 
 type NewGameData = {
   worldSetup: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[], startingSkill: Skill };
@@ -16,6 +18,7 @@ type NewGameData = {
 }
 
 export default function Home() {
+  const { t } = useLanguage();
   const [loadState, setLoadState] = useState<'loading' | 'prompt' | 'new_game' | 'continue_game'>('loading');
   const [savedGameState, setSavedGameState] = useState<GameState | null>(null);
   const [newGameData, setNewGameData] = useState<NewGameData | null>(null);
@@ -111,7 +114,14 @@ export default function Home() {
   if (loadState === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
-        <p>Loading your adventure...</p>
+        <div className="flex flex-col items-center gap-4 text-center p-4 animate-in fade-in duration-1000">
+          <BrainCircuit className="h-20 w-20 text-primary" />
+          <h1 className="text-5xl font-bold font-headline tracking-tighter">Ký Sự Lãng Du</h1>
+          <div className="flex items-center gap-2 mt-4 text-muted-foreground">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <p>{t('loadingAdventure')}</p>
+          </div>
+        </div>
       </div>
     );
   }

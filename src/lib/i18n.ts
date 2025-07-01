@@ -178,6 +178,7 @@ export const translations = {
     Support: "Support",
     Magic: "Magic",
     Fusion: "Fusion",
+    loadingAdventure: "Loading your adventure...",
   },
   vi: {
     // Language Selector
@@ -356,6 +357,7 @@ export const translations = {
     Support: "Vật phẩm hỗ trợ",
     Magic: "Phép thuật",
     Fusion: "Fusion",
+    loadingAdventure: "Đang tải cuộc phiêu lưu của bạn...",
   }
 };
 

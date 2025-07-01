@@ -65,6 +65,12 @@ export interface PlayerItem {
     tier: number;
 }
 
+export interface Pet {
+    type: string;
+    name?: string;
+    level: number;
+}
+
 // This represents the detailed properties of a single tile/chunk in the world.
 export interface Chunk {
     x: number;
@@ -121,6 +127,7 @@ export interface PlayerStatus {
         attackSpeed: number;
         cooldownReduction: number;
     };
+    pets?: Pet[];
 }
 
 // Represents a contiguous region of a single biome.

@@ -37,6 +37,13 @@ export const PlayerItemSchema = z.object({
     tier: z.number(),
 });
 
+export const PetSchema = z.object({
+    type: z.string().describe("The type of creature, e.g., 'Sói'."),
+    name: z.string().optional().describe("A custom name given by the player."),
+    level: z.number().describe("The pet's level."),
+});
+export type Pet = z.infer<typeof PetSchema>;
+
 export const PlayerStatusSchema = z.object({
     hp: z.number(),
     mana: z.number(),
@@ -44,6 +51,7 @@ export const PlayerStatusSchema = z.object({
     items: z.array(PlayerItemSchema).describe("Player's inventory with item names, quantities, and tiers."),
     quests: z.array(z.string()),
     attributes: PlayerAttributesSchema.describe("Player's combat attributes."),
+    pets: z.array(PetSchema).optional().describe("A list of the player's tamed companions."),
 });
 
 export const EnemySchema = z.object({

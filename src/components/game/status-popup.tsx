@@ -12,6 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/context/language-context";
 import type { PlayerStatus } from "@/lib/game/types";
+import { Heart } from "lucide-react";
 
 interface StatusPopupProps {
   open: boolean;
@@ -22,6 +23,7 @@ interface StatusPopupProps {
 export function StatusPopup({ open, onOpenChange, stats }: StatusPopupProps) {
   const { t } = useLanguage();
   const quests = stats.quests;
+  const pets = stats.pets || [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -66,6 +68,24 @@ export function StatusPopup({ open, onOpenChange, stats }: StatusPopupProps) {
               <span>{t('cooldownReduction')}:</span>
               <span className="font-medium text-right text-foreground">{stats.attributes.cooldownReduction}%</span>
             </div>
+          </div>
+          <Separator />
+          <div className="py-4">
+            <h3 className="mb-2 font-headline font-semibold flex items-center gap-2">
+              <Heart className="h-4 w-4" /> {t('companions')}
+            </h3>
+            {pets.length > 0 ? (
+              <ul className="space-y-2">
+                {pets.map((pet, index) => (
+                  <li key={index} className="p-2 bg-muted rounded-md text-muted-foreground">
+                    <div className="font-semibold text-foreground">{pet.name || pet.type}</div>
+                    <div className="text-xs">Level {pet.level} {pet.type}</div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-center text-muted-foreground">{t('noCompanions')}</p>
+            )}
           </div>
           <Separator />
           <div className="py-4">

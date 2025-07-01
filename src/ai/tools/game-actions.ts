@@ -8,8 +8,8 @@
  */
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { PlayerStatusSchema, EnemySchema, PlayerItemSchema, ChunkItemSchema, ItemDefinitionSchema } from '@/ai/schemas';
-import type { PlayerItem, PlayerStatus } from '@/lib/game/types';
+import { PlayerStatusSchema, EnemySchema, PlayerItemSchema, ChunkItemSchema, ItemDefinitionSchema, PetSchema } from '@/ai/schemas';
+import type { PlayerItem, PlayerStatus, Pet } from '@/lib/game/types';
 import { itemDefinitions } from '@/lib/game/config';
 
 // --- Tool for Player Attacking Enemy ---
@@ -106,7 +106,7 @@ export const takeItemTool = ai.defineTool({
 // --- Tool for Using an Item from Inventory ---
 export const useItemTool = ai.defineTool({
     name: 'useItem',
-    description: "Uses one item from the player's inventory, applying its effect and decrementing its quantity. Call this when the player action is to use an item.",
+    description: "Uses one item from the player's inventory, applying its effect and decrementing its quantity. Call this when the player action is to use an item ON THEMSELVES (e.g. 'eat berry', 'drink potion').",
     inputSchema: z.object({
         itemName: z.string().describe("The name of the item to use from the inventory."),
         playerStatus: PlayerStatusSchema,
@@ -169,4 +169,98 @@ export const useItemTool = ai.defineTool({
         wasUsed: true, 
         effectDescription: effectDescriptions.join(' ') 
     };
+});
+
+
+// --- Tool for Taming an Enemy ---
+export const tameEnemyTool = ai.defineTool({
+    name: 'tameEnemy',
+    description: "Attempts to tame an enemy by giving it a food item from the player's inventory. Call this when the player's action is to use an item on a creature (e.g. 'give meat to wolf').",
+    inputSchema: z.object({
+        itemName: z.string().describe("The name of the food item to use for taming."),
+        playerStatus: PlayerStatusSchema,
+        enemy: EnemySchema,
+    }),
+    outputSchema: z.object({
+        wasTamed: z.boolean().describe("Whether the taming attempt succeeded."),
+        itemConsumed: z.boolean().describe("Whether the creature ate the item."),
+        updatedPlayerStatus: PlayerStatusSchema.describe("The player's status after consuming the item from inventory."),
+        updatedEnemy: EnemySchema.nullable().describe("The enemy's new state, or null if tamed."),
+        newPet: PetSchema.nullable().describe("The new pet data, if taming was successful."),
+        log: z.string().describe("A factual log of what happened, e.g., 'The wolf ate the Raw Wolf Meat. Taming failed.'"),
+    }),
+}, async ({ itemName, playerStatus, enemy }) => {
+    const newStatus: PlayerStatus = JSON.parse(JSON.stringify(playerStatus)); // Deep copy
+    const itemIndex = newStatus.items.findIndex(i => i.name.toLowerCase() === itemName.toLowerCase());
+
+    if (itemIndex === -1) {
+        return {
+            wasTamed: false,
+            itemConsumed: false,
+            updatedPlayerStatus: playerStatus,
+            updatedEnemy: enemy,
+            newPet: null,
+            log: "Player does not have the specified item."
+        };
+    }
+
+    // Check if the item is in the enemy's diet
+    if (!enemy.diet.includes(itemName)) {
+        return {
+            wasTamed: false,
+            itemConsumed: false,
+            updatedPlayerStatus: playerStatus,
+            updatedEnemy: enemy,
+            newPet: null,
+            log: `The ${enemy.type} is not interested in the ${itemName}.`
+        };
+    }
+    
+    // Consume the item
+    newStatus.items[itemIndex].quantity -= 1;
+    if (newStatus.items[itemIndex].quantity <= 0) {
+        newStatus.items.splice(itemIndex, 1);
+    }
+    
+    const newEnemyState = { ...enemy };
+    newEnemyState.satiation = Math.min(newEnemyState.satiation + 1, newEnemyState.maxSatiation);
+
+    // Taming Logic
+    // Chance increases with higher satiation and lower enemy HP.
+    const baseTameChance = 0.1; // 10% base chance
+    const satiationBonus = (newEnemyState.satiation / newEnemyState.maxSatiation) * 0.4; // up to 40% bonus
+    const healthPenalty = (newEnemyState.hp / 100) * 0.2; // penalty for high health, up to 20%
+    const tamingChance = baseTameChance + satiationBonus - healthPenalty;
+
+    if (Math.random() < tamingChance) {
+        // SUCCESS
+        const newPet: Pet = {
+            type: enemy.type,
+            level: 1,
+        };
+        
+        if (!newStatus.pets) {
+            newStatus.pets = [];
+        }
+        newStatus.pets.push(newPet);
+
+        return {
+            wasTamed: true,
+            itemConsumed: true,
+            updatedPlayerStatus: newStatus,
+            updatedEnemy: null, // Enemy is gone
+            newPet: newPet,
+            log: `The ${enemy.type} ate the ${itemName}. Taming was successful!`
+        };
+    } else {
+        // FAILURE
+        return {
+            wasTamed: false,
+            itemConsumed: true,
+            updatedPlayerStatus: newStatus,
+            updatedEnemy: newEnemyState,
+            newPet: null,
+            log: `The ${enemy.type} ate the ${itemName}, but remains wild.`
+        };
+    }
 });

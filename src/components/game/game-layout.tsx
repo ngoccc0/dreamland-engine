@@ -88,6 +88,7 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
             stamina: 100,
             items: worldSetup?.playerInventory || [],
             quests: worldSetup?.initialQuests || [],
+            pets: [],
             attributes: {
                 physicalAttack: 10,
                 magicalAttack: 5,

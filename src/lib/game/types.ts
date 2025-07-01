@@ -57,12 +57,14 @@ export interface ChunkItem {
     description: string;
     quantity: number;
     tier: number;
+    emoji: string;
 }
 
 export interface PlayerItem {
     name: string;
     quantity: number;
     tier: number;
+    emoji: string;
 }
 
 export interface Pet {
@@ -102,6 +104,7 @@ export interface Chunk {
         diet: string[]; // e.g., ['Thỏ hoang hung dữ', 'Quả Mọng Ăn Được']
         satiation: number; // Current food level
         maxSatiation: number; // How much food it needs to be "full"
+        emoji: string;
     } | null;
     actions: { id: number; text: string }[];
     regionId: number;
@@ -198,9 +201,9 @@ export type NarrativeEntry = {
 export type MapCell = {
   biome: "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave" | "empty";
   hasPlayer?: boolean;
-  hasEnemy?: boolean;
+  enemyEmoji?: string;
+  itemEmoji?: string;
   hasNpc?: boolean;
-  hasItem?: boolean;
 };
 
 // This defines the final, assembled world concept object that the game uses.
@@ -244,6 +247,7 @@ export interface ItemDefinition {
   description: string;
   tier: number;
   category: ItemCategory;
+  emoji: string;
   effects: ItemEffect[];
   baseQuantity: { min: number, max: number };
   growthConditions?: {
@@ -258,6 +262,7 @@ export interface GeneratedItem {
     description: string;
     tier: number;
     category: ItemCategory;
+    emoji: string;
     effects: ItemEffect[];
     baseQuantity: { min: number; max: number; };
     spawnBiomes: Terrain[];
@@ -279,7 +284,7 @@ export interface RecipeIngredient {
 }
 
 export interface Recipe {
-    result: { name: string; quantity: number };
+    result: { name: string; quantity: number, emoji: string; };
     ingredients: RecipeIngredient[];
     description: string;
 }

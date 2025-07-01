@@ -55,18 +55,18 @@ export function Minimap({ grid, onTitleClick, playerPosition }: MinimapProps) {
                 biomeColors[cell.biome],
                 cell.hasPlayer && "ring-2 ring-white shadow-lg z-10"
                 )}
-                aria-label={`Map cell at ${rowIndex}, ${colIndex}. Biome: ${cell.biome}${cell.hasPlayer ? '. Player is here.' : ''}${cell.hasEnemy ? '. Enemy is here.' : ''}${cell.hasNpc ? '. NPC is here.' : ''}${cell.hasItem ? '. Item is here.' : ''}`}
+                aria-label={`Map cell at ${rowIndex}, ${colIndex}. Biome: ${cell.biome}${cell.hasPlayer ? '. Player is here.' : ''}${cell.enemyEmoji ? '. Enemy is here.' : ''}${cell.hasNpc ? '. NPC is here.' : ''}${cell.itemEmoji ? '. Item is here.' : ''}`}
             >
                 {/* Render the biome icon if the cell is not empty */}
                 {cell.biome !== 'empty' && biomeIcons[cell.biome]}
                 
                 {/* Player and Enemy icons will be rendered on top of biome */}
-                {cell.hasEnemy && <EnemyIcon />}
+                {cell.enemyEmoji && <EnemyIcon emoji={cell.enemyEmoji} />}
                 {cell.hasPlayer && <PlayerIcon key={`${playerPosition.x},${playerPosition.y}`} />}
                 
                 {/* Corner indicators for other entities, rendered on top of everything */}
                 {cell.hasNpc && <NpcIcon />}
-                {cell.hasItem && <ItemIcon />}
+                {cell.itemEmoji && <ItemIcon emoji={cell.itemEmoji} />}
             </div>
             ))
         )}

@@ -6,10 +6,10 @@ export function PlayerIcon() {
   );
 }
 
-export function EnemyIcon() {
+export function EnemyIcon({ emoji }: { emoji: string }) {
   return (
     <div className="absolute inset-0 flex items-center justify-center">
-      <span className="text-3xl drop-shadow-lg" role="img" aria-label="Enemy">👹</span>
+      <span className="text-3xl drop-shadow-lg" role="img" aria-label="Enemy">{emoji}</span>
     </div>
   );
 }
@@ -33,10 +33,10 @@ export function NpcIcon() {
   );
 }
 
-export function ItemIcon() {
+export function ItemIcon({ emoji }: { emoji: string }) {
   return (
     <div className="absolute bottom-0 right-1 text-lg drop-shadow-lg" aria-label="Item">
-      <span>✨</span>
+      <span>{emoji}</span>
     </div>
   );
 }

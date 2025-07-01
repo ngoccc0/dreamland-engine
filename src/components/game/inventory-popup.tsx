@@ -65,9 +65,14 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                                     disabled={!isInteractable}
                                 >
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        <span className="text-foreground">{item.name}</span>
-                                        <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary/10 text-primary-foreground font-semibold">{t('tier', { tier: item.tier })}</span>
-                                        {definition && definition.category && <span className="text-xs px-1.5 py-0.5 rounded-full bg-accent/80 text-accent-foreground">{t(definition.category as TranslationKey)}</span>}
+                                        <span className="text-2xl mr-2">{item.emoji}</span>
+                                        <div className="flex flex-col items-start">
+                                            <span className="text-foreground">{item.name}</span>
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary/10 text-primary-foreground font-semibold">{t('tier', { tier: item.tier })}</span>
+                                              {definition && definition.category && <span className="text-xs px-1.5 py-0.5 rounded-full bg-accent/80 text-accent-foreground">{t(definition.category as TranslationKey)}</span>}
+                                            </div>
+                                        </div>
                                     </div>
                                     <span className="font-mono text-sm font-bold text-foreground">x{item.quantity}</span>
                                 </button>
@@ -76,7 +81,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                             {isInteractable && (
                                 <DropdownMenuContent className="w-56">
                                     <DropdownMenuLabel className="font-normal">
-                                        <p className="font-bold">{item.name}</p>
+                                        <p className="font-bold">{item.emoji} {item.name}</p>
                                         <p className="text-xs text-muted-foreground whitespace-normal">{definition?.description}</p>
                                     </DropdownMenuLabel>
                                     

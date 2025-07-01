@@ -73,6 +73,7 @@ export const playerAttackTool = ai.defineTool({
                             description: definition.description,
                             tier: definition.tier,
                             quantity: quantity,
+                            emoji: definition.emoji,
                         });
                     }
                 }
@@ -152,10 +153,12 @@ export const takeItemTool = ai.defineTool({
     if (existingItem) {
         existingItem.quantity += itemToTake.quantity;
     } else {
-        // Find the tier from the item definition catalog if needed, though itemToTake should have it.
-        const definition = staticItemDefinitions[itemToTake.name]; // Note: This doesn't include custom defs, but should be fine for now.
-        const tier = definition ? definition.tier : itemToTake.tier || 1;
-        updatedPlayerInventory.push({ name: itemToTake.name, quantity: itemToTake.quantity, tier: tier });
+        updatedPlayerInventory.push({ 
+            name: itemToTake.name, 
+            quantity: itemToTake.quantity, 
+            tier: itemToTake.tier,
+            emoji: itemToTake.emoji,
+        });
     }
 
     return { updatedPlayerInventory, updatedChunkItems };

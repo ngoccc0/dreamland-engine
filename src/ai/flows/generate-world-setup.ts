@@ -58,6 +58,7 @@ const SpawnConditionsSchema = z.object({
 const GeneratedItemSchema = z.object({
     name: z.string().describe("A unique and thematic name for the item."),
     description: z.string().describe("A flavorful, one-sentence description of the item."),
+    emoji: z.string().describe("A single emoji that represents the item."),
     category: ItemCategorySchema,
     tier: z.number().int().min(1).max(6).describe("The tier of the item, from 1 (common) to 6 (legendary)."),
     effects: z.array(z.object({
@@ -127,7 +128,7 @@ const itemsAndNamesPrompt = ai.definePrompt({
 
 **User's Idea:** {{{userInput}}}
 
-For each item, define all required fields. For the 'category' field, you MUST use one of these exact values: 'Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion'.
+For each item, define all required fields, including a single, representative emoji. For the 'category' field, you MUST use one of these exact values: 'Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion'.
 
 Provide the response in the required JSON format. ALL TEXT in the response MUST be in the language corresponding to this code: {{language}}.`,
 });

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -67,7 +68,10 @@ export function CraftingPopup({ open, onOpenChange, playerItems, onCraft }: Craf
               return (
                 <div key={index} className="p-4 border rounded-lg bg-muted/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div className="flex-grow">
-                    <h4 className="font-bold text-lg text-foreground">{recipe.result.name}</h4>
+                    <h4 className="font-bold text-lg text-foreground flex items-center gap-2">
+                      <span className="text-2xl">{recipe.result.emoji}</span>
+                      {recipe.result.name}
+                    </h4>
                     <p className="text-sm text-muted-foreground italic mb-2">{recipe.description}</p>
                     <div className="text-sm">
                       <span className="font-semibold">{t('ingredients')}:</span>

@@ -18,6 +18,7 @@ export const ItemDefinitionSchema = z.object({
     description: z.string(),
     tier: z.number(),
     category: ItemCategorySchema,
+    emoji: z.string().describe("A single emoji that represents the item."),
     effects: z.array(ItemEffectSchema),
     baseQuantity: z.object({ min: z.number(), max: z.number() }),
 });
@@ -35,6 +36,7 @@ export const PlayerItemSchema = z.object({
     name: z.string(),
     quantity: z.number().int().min(1),
     tier: z.number(),
+    emoji: z.string(),
 });
 
 export const PetSchema = z.object({
@@ -69,6 +71,7 @@ export const PlayerStatusSchema = z.object({
 
 export const EnemySchema = z.object({
     type: z.string(),
+    emoji: z.string().describe("A single emoji that represents the creature."),
     hp: z.number(),
     damage: z.number(),
     behavior: z.enum(['aggressive', 'passive', 'defensive', 'territorial']),
@@ -83,6 +86,7 @@ export const ChunkItemSchema = z.object({
     description: z.string(),
     quantity: z.number().int(),
     tier: z.number(),
+    emoji: z.string(),
 });
 
 export const ChunkSchema = z.object({

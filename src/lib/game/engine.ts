@@ -275,6 +275,7 @@ function generateChunkContent(
                     description: itemDef.description,
                     tier: itemDef.tier,
                     quantity: finalQuantity,
+                    emoji: itemDef.emoji,
                 });
             }
         }
@@ -284,7 +285,7 @@ function generateChunkContent(
     const spawnedNPCs = selectEntities(template.NPCs, chunkData, allItemDefinitions, 1);
     const spawnedEnemies = selectEntities(template.enemies, chunkData, allItemDefinitions, 1);
     const enemyData = spawnedEnemies.length > 0 ? spawnedEnemies[0] : null;
-    const spawnedEnemy = enemyData ? { ...enemyData, satiation: 0 } : null;
+    const spawnedEnemy = enemyData ? { ...enemyData, satiation: 0, emoji: enemyData.emoji } : null;
 
 
     // More description based on calculated values

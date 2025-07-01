@@ -2,7 +2,7 @@ import type { Recipe } from "./types";
 
 export const recipes: Record<string, Recipe> = {
     'Rìu Đá Đơn Giản': {
-        result: { name: 'Rìu Đá Đơn Giản', quantity: 1 },
+        result: { name: 'Rìu Đá Đơn Giản', quantity: 1, emoji: '🪓' },
         ingredients: [
             { 
                 name: 'Cành Cây Chắc Chắn', 
@@ -34,7 +34,7 @@ export const recipes: Record<string, Recipe> = {
         description: 'Chế tạo một chiếc rìu đá cơ bản. Công cụ cần thiết để sinh tồn.',
     },
     'Thuốc Máu Yếu': {
-        result: { name: 'Thuốc Máu Yếu', quantity: 1 },
+        result: { name: 'Thuốc Máu Yếu', quantity: 1, emoji: '🧪' },
         ingredients: [
             { 
                 name: 'Thảo Dược Chữa Lành', 
@@ -54,7 +54,7 @@ export const recipes: Record<string, Recipe> = {
         description: 'Pha chế một lọ thuốc hồi máu từ thảo dược và nước sạch.',
     },
     'Bó Đuốc': {
-        result: { name: 'Bó Đuốc', quantity: 1 },
+        result: { name: 'Bó Đuốc', quantity: 1, emoji: '🔥' },
         ingredients: [
             { name: 'Cành Cây Chắc Chắn', quantity: 1 },
             { 

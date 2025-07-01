@@ -46,14 +46,14 @@ const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
                 <div>
                     <h5 className="font-semibold">Items:</h5>
                     <ul className="list-disc list-inside text-xs">
-                        {chunk.items.map(item => <li key={item.name}>{item.name} (x{item.quantity})</li>)}
+                        {chunk.items.map(item => <li key={item.name}>{item.emoji} {item.name} (x{item.quantity})</li>)}
                     </ul>
                 </div>
             )}
             {chunk.enemy && (
                 <div>
                     <h5 className="font-semibold">Enemy:</h5>
-                    <p className="text-xs">{chunk.enemy.type} (HP: {chunk.enemy.hp})</p>
+                    <p className="text-xs">{chunk.enemy.emoji} {chunk.enemy.type} (HP: {chunk.enemy.hp})</p>
                 </div>
             )}
             {chunk.NPCs.length > 0 && (
@@ -128,10 +128,10 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
                                         aria-label={`Map cell at ${chunk.x}, ${chunk.y}. Biome: ${chunk.terrain}`}
                                     >
                                         {biomeIcons[chunk.terrain as keyof typeof biomeIcons]}
-                                        {chunk.enemy && <EnemyIcon />}
+                                        {chunk.enemy && <EnemyIcon emoji={chunk.enemy.emoji} />}
                                         {isPlayerHere && <PlayerIcon />}
                                         {chunk.NPCs.length > 0 && <NpcIcon />}
-                                        {chunk.items.length > 0 && <ItemIcon />}
+                                        {chunk.items.length > 0 && <ItemIcon emoji={chunk.items[0].emoji} />}
                                     </div>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-80">

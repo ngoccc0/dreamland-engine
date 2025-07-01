@@ -314,7 +314,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                                 if (enemyTemplate) {
                                     const currentCreatureChunkCopy = { ...newWorldState[creatureKey], enemy: { ...newWorldState[creatureKey].enemy!, satiation: 0 }};
                                     const partnerChunkCopy = { ...newWorldState[partnerKey], enemy: { ...newWorldState[partnerKey].enemy!, satiation: 0 }};
-                                    const birthChunkCopy = { ...newWorldState[birthKey], enemy: { ...enemyTemplate, satiation: 0 }};
+                                    const birthChunkCopy = { ...newWorldState[birthKey], enemy: { ...enemyTemplate, satiation: 0, emoji: enemyTemplate.emoji }};
 
                                     newWorldState[creatureKey] = currentCreatureChunkCopy;
                                     newWorldState[partnerKey] = partnerChunkCopy;
@@ -690,7 +690,12 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 if (existingItem) {
                     existingItem.quantity += pickupQuantity;
                 } else {
-                    newItems.push({ name: itemToPick.name, quantity: pickupQuantity, tier: itemToPick.tier });
+                    newItems.push({ 
+                        name: itemToPick.name, 
+                        quantity: pickupQuantity, 
+                        tier: itemToPick.tier,
+                        emoji: itemToPick.emoji,
+                    });
                 }
                 return { ...prev, items: newItems };
             });
@@ -871,7 +876,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                     if (hay) {
                         hay.quantity += quantityToAdd;
                     } else {
-                        newItems.push({ name: 'Cỏ Khô', quantity: quantityToAdd, tier: 1 });
+                        newItems.push({ name: 'Cỏ Khô', quantity: quantityToAdd, tier: 1, emoji: '🌿' });
                     }
                     return { ...prev, items: newItems };
                 });
@@ -927,7 +932,8 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 newInventory.push({
                     name: recipe.result.name,
                     quantity: recipe.result.quantity,
-                    tier: itemDef?.tier || 1
+                    tier: itemDef?.tier || 1,
+                    emoji: recipe.result.emoji
                 });
             }
             setPlayerStats(prev => ({ ...prev, items: newInventory }));

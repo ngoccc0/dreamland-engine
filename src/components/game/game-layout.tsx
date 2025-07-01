@@ -79,18 +79,14 @@ export default function GameLayout(props: GameLayoutProps) {
                 if (chunk && chunk.explored) { 
                     row.push({
                         biome: chunk.terrain,
-                        hasEnemy: !!chunk.enemy,
-                        hasPlayer: false,
                         hasNpc: chunk.NPCs.length > 0,
-                        hasItem: chunk.items.length > 0,
+                        enemyEmoji: chunk.enemy?.emoji,
+                        itemEmoji: chunk.items.length > 0 ? chunk.items[0].emoji : undefined,
                     });
                 } else {
                     row.push({
                         biome: 'empty',
-                        hasEnemy: false,
-                        hasPlayer: false,
                         hasNpc: false,
-                        hasItem: false,
                     });
                 }
             }

@@ -7,6 +7,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Những viên sỏi nhỏ, có thể dùng để ném hoặc làm vật liệu cơ bản.',
         tier: 1,
         category: 'Material',
+        emoji: '🪨',
         effects: [],
         baseQuantity: { min: 3, max: 8 }
     },
@@ -14,6 +15,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một hòn đá cuội vừa tay, cứng và nặng.',
         tier: 1,
         category: 'Material',
+        emoji: '🗿',
         effects: [],
         baseQuantity: { min: 2, max: 5 }
     },
@@ -21,6 +23,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một khối đất sét dẻo, có thể dùng để nặn hình hoặc xây dựng.',
         tier: 1,
         category: 'Material',
+        emoji: '🧱',
         effects: [],
         baseQuantity: { min: 1, max: 3 }
     },
@@ -28,6 +31,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một nắm cát khô, lọt qua kẽ tay.',
         tier: 1,
         category: 'Material',
+        emoji: '⏳',
         effects: [],
         baseQuantity: { min: 2, max: 6 }
     },
@@ -35,6 +39,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một mảnh xương không rõ của sinh vật nào.',
         tier: 1,
         category: 'Material',
+        emoji: '🦴',
         effects: [],
         baseQuantity: { min: 1, max: 4 }
     },
@@ -42,6 +47,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một đoạn dây leo có gai sắc, rất bền.',
         tier: 1,
         category: 'Material',
+        emoji: '🌿',
         effects: [],
         baseQuantity: { min: 1, max: 3 }
     },
@@ -49,6 +55,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một tấm da nhỏ từ một con thú không xác định.',
         tier: 1,
         category: 'Material',
+        emoji: '🩹',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -56,6 +63,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một miếng vải cũ đã rách, có thể dùng để băng bó tạm thời.',
         tier: 1,
         category: 'Material',
+        emoji: ' rags ',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -63,6 +71,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Phần lõi cứng nhất của một cành cây.',
         tier: 2,
         category: 'Material',
+        emoji: '🪵',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -70,6 +79,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một viên đá nhám, dùng để mài sắc công cụ.',
         tier: 2,
         category: 'Tool',
+        emoji: '🔪',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -77,6 +87,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Xương được nghiền mịn, có thể dùng trong giả kim thuật.',
         tier: 2,
         category: 'Material',
+        emoji: '💀',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -84,6 +95,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một chiếc chìa khóa cũ kỹ, không rõ nó mở được ổ khóa nào.',
         tier: 2,
         category: 'Data',
+        emoji: '🗝️',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -93,6 +105,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một chiếc rìu đá thô sơ, hữu ích để chặt cây hoặc chiến đấu.',
         tier: 1,
         category: 'Tool',
+        emoji: '🪓',
         effects: [],
         baseQuantity: { min: 1, max: 1 } 
     },
@@ -100,6 +113,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một loại thuốc pha chế đơn giản, giúp phục hồi một lượng máu nhỏ.',
         tier: 1,
         category: 'Support',
+        emoji: '🧪',
         effects: [{ type: 'HEAL', amount: 35 }],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -107,6 +121,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một bó đuốc tạm bợ, tỏa ra ánh sáng và hơi ấm.',
         tier: 1,
         category: 'Tool',
+        emoji: '🔥',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -116,6 +131,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một chiếc nanh sắc nhọn, chiến lợi phẩm từ một con sói.',
         tier: 2,
         category: 'Material',
+        emoji: '🦷',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -123,6 +139,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Miếng thịt tươi nhưng còn sống, cần nấu chín để ăn an toàn.',
         tier: 1,
         category: 'Food',
+        emoji: '🥩',
         effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -130,6 +147,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Những sợi tơ cực kỳ bền chắc và dính, lấy từ một con nhện khổng lồ.',
         tier: 2,
         category: 'Material',
+        emoji: '🕸️',
         effects: [],
         baseQuantity: { min: 1, max: 3 }
     },
@@ -137,6 +155,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một con mắt đa diện, vẫn còn nhìn chằm chằm một cách đáng sợ.',
         tier: 2,
         category: 'Material',
+        emoji: '👁️',
         effects: [],
         baseQuantity: { min: 2, max: 8 }
     },
@@ -144,6 +163,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một tấm da dày và cứng, phủ đầy lông cứng như lông bàn chải.',
         tier: 2,
         category: 'Material',
+        emoji: '🐗',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -151,6 +171,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một tảng thịt lớn, giàu năng lượng nhưng cần được chế biến.',
         tier: 2,
         category: 'Food',
+        emoji: '🍖',
         effects: [{ type: 'RESTORE_STAMINA', amount: 20 }],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -158,6 +179,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một chiếc tai nhọn hoắt, được cắt một cách thô bạo. Thường được dùng làm bằng chứng.',
         tier: 2,
         category: 'Data',
+        emoji: '👂',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -165,6 +187,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một chiếc móng vuốt to và sắc, có thể xé toạc cả kim loại.',
         tier: 4,
         category: 'Material',
+        emoji: '🐾',
         effects: [],
         baseQuantity: { min: 2, max: 4 }
     },
@@ -172,6 +195,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một tấm da gấu dày và ấm, là vật liệu tuyệt vời cho áo giáp mùa đông.',
         tier: 4,
         category: 'Material',
+        emoji: '🐻',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -179,6 +203,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Thịt từ một con thỏ hoang, nhỏ nhưng ngon.',
         tier: 1,
         category: 'Food',
+        emoji: '🐰',
         effects: [{ type: 'RESTORE_STAMINA', amount: 10 }],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -186,6 +211,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một tấm da cáo mềm mại và mượt mà.',
         tier: 2,
         category: 'Material',
+        emoji: '🦊',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -193,6 +219,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Cánh của một con châu chấu, mỏng như giấy nhưng rất dai.',
         tier: 1,
         category: 'Material',
+        emoji: '🦗',
         effects: [],
         baseQuantity: { min: 5, max: 10 }
     },
@@ -200,6 +227,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một chiếc răng chắc khỏe, có khả năng nghiền nát xương.',
         tier: 2,
         category: 'Material',
+        emoji: '🦷',
         effects: [],
         baseQuantity: { min: 1, max: 3 }
     },
@@ -207,6 +235,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Da của một con rắn đuôi chuông, có hoa văn đẹp mắt.',
         tier: 2,
         category: 'Material',
+        emoji: '🐍',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -214,6 +243,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một quả trứng rắn có vỏ dai.',
         tier: 2,
         category: 'Food',
+        emoji: '🥚',
         effects: [],
         baseQuantity: { min: 2, max: 4 }
     },
@@ -221,6 +251,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Chiếc đuôi của một con bọ cạp khổng lồ, ngòi độc đã bị loại bỏ.',
         tier: 3,
         category: 'Material',
+        emoji: '🦂',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -228,6 +259,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một chiếc lông vũ đen và bẩn thỉu.',
         tier: 2,
         category: 'Material',
+        emoji: '🪶',
         effects: [],
         baseQuantity: { min: 2, max: 5 }
     },
@@ -235,6 +267,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Những hạt cát lấp lánh năng lượng ma thuật, tàn dư của một linh hồn cát.',
         tier: 4,
         category: 'Magic',
+        emoji: '✨',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -242,6 +275,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một chất lỏng nhớt và có khả năng chống đông máu.',
         tier: 2,
         category: 'Material',
+        emoji: '💧',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -249,6 +283,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một quả cầu ánh sáng yếu ớt, ấm áp khi chạm vào.',
         tier: 4,
         category: 'Magic',
+        emoji: '💡',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -256,6 +291,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một tấm da cực kỳ cứng và bền, gần như không thể xuyên thủng.',
         tier: 4,
         category: 'Material',
+        emoji: '🐊',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -263,6 +299,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một chiếc răng hình nón, sắc như dao găm.',
         tier: 3,
         category: 'Material',
+        emoji: '🦷',
         effects: [],
         baseQuantity: { min: 1, max: 4 }
     },
@@ -270,6 +307,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Cánh của một con muỗi khổng lồ, trong suốt và mỏng manh.',
         tier: 1,
         category: 'Material',
+        emoji: '🦟',
         effects: [],
         baseQuantity: { min: 2, max: 6 }
     },
@@ -277,6 +315,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một cặp sừng xoắn và cứng, có thể dùng làm vũ khí hoặc trang trí.',
         tier: 3,
         category: 'Material',
+        emoji: '🐐',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -284,6 +323,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Thịt dê hơi dai nhưng rất bổ dưỡng.',
         tier: 2,
         category: 'Food',
+        emoji: '🍖',
         effects: [{ type: 'RESTORE_STAMINA', amount: 25 }],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -291,6 +331,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một hòn đá phát ra năng lượng sống yếu ớt, trái tim của một Stone Golem.',
         tier: 5,
         category: 'Energy Source',
+        emoji: '💖',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -298,6 +339,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một chiếc lông vũ dài và sắc, dính máu.',
         tier: 3,
         category: 'Material',
+        emoji: '🪶',
         effects: [],
         baseQuantity: { min: 3, max: 6 }
     },
@@ -305,6 +347,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một tấm da báo có hoa văn tuyệt đẹp, giữ ấm cực tốt.',
         tier: 4,
         category: 'Material',
+        emoji: '🐆',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -312,6 +355,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Thịt của một kẻ săn mồi đỉnh cao, chứa đầy năng lượng.',
         tier: 3,
         category: 'Food',
+        emoji: '🍖',
         effects: [{ type: 'RESTORE_STAMINA', amount: 40 }],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -319,6 +363,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một chiếc cánh dơi bằng da, dùng để chế tạo các vật phẩm bay lượn.',
         tier: 2,
         category: 'Material',
+        emoji: '🦇',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -326,6 +371,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một túi nọc độc đặc quánh, có khả năng làm tê liệt con mồi.',
         tier: 3,
         category: 'Material',
+        emoji: '☠️',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -333,6 +379,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một khối chất nhờn co giãn, có tính axit nhẹ.',
         tier: 2,
         category: 'Material',
+        emoji: '💧',
         effects: [],
         baseQuantity: { min: 1, max: 3 }
     },
@@ -340,6 +387,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một chiếc răng khổng lồ, cứng như kim cương.',
         tier: 5,
         category: 'Material',
+        emoji: '🦷',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -349,6 +397,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một loại quả mọng đỏ, có vẻ ngon miệng và an toàn, giúp phục hồi chút thể lực.',
         tier: 1,
         category: 'Food',
+        emoji: '🍓',
         effects: [{ type: 'RESTORE_STAMINA', amount: 15 }],
         baseQuantity: { min: 2, max: 6 },
         growthConditions: {
@@ -360,6 +409,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một loại nấm có màu sắc sặc sỡ, tốt nhất không nên ăn.',
         tier: 2,
         category: 'Material',
+        emoji: '🍄',
         effects: [], // No positive effects
         baseQuantity: { min: 1, max: 3 },
         growthConditions: {
@@ -371,6 +421,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một loại lá cây có mùi thơm dễ chịu, có khả năng chữa lành vết thương nhỏ.',
         tier: 2,
         category: 'Support',
+        emoji: '🌿',
         effects: [{ type: 'HEAL', amount: 20 }],
         baseQuantity: { min: 1, max: 2 },
         growthConditions: {
@@ -382,6 +433,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một cành cây thẳng và cứng, có thể dùng làm vũ khí tạm thời.',
         tier: 1,
         category: 'Material',
+        emoji: '🪵',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -389,6 +441,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một mũi tên có vẻ đã được sử dụng, cắm trên một thân cây.',
         tier: 1,
         category: 'Material',
+        emoji: '🏹',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -396,6 +449,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một bông hoa phát ra ánh sáng xanh lam yếu ớt, tỏa ra năng lượng phép thuật.',
         tier: 4,
         category: 'Magic',
+        emoji: '🌸',
         effects: [], // Would be 'RESTORE_MANA' if mana existed
         baseQuantity: { min: 1, max: 1 },
         growthConditions: {
@@ -407,6 +461,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một loại rễ cây chỉ mọc ở vùng nước độc, có giá trị cao trong giả kim thuật.',
         tier: 3,
         category: 'Material',
+        emoji: '🌱',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -414,6 +469,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một miếng vỏ cây cứng như đá từ một cây cổ thụ, có đặc tính phòng thủ.',
         tier: 3,
         category: 'Material',
+        emoji: '🌳',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -421,6 +477,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một cục nhựa cây dính, có thể dùng để bẫy hoặc chế tạo.',
         tier: 2,
         category: 'Material',
+        emoji: '💧',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -428,6 +485,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Mật ong vàng óng từ một tổ ong hoang, vừa ngọt ngào vừa bổ dưỡng.',
         tier: 2,
         category: 'Food',
+        emoji: '🍯',
         effects: [{ type: 'HEAL', amount: 10 }, { type: 'RESTORE_STAMINA', amount: 15 }],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -435,6 +493,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một mảng rêu mềm mại mọc trên đá, dùng để ngụy trang hoặc làm thuốc.',
         tier: 1,
         category: 'Material',
+        emoji: ' moss ',
         effects: [],
         baseQuantity: { min: 1, max: 3 }
     },
@@ -442,6 +501,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một cây cỏ ba lá. Người ta nói nó mang lại may mắn, nhưng có lẽ chỉ là lời đồn.',
         tier: 2,
         category: 'Material',
+        emoji: '🍀',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -449,6 +509,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một chiếc tổ chim được đan khéo léo nhưng đã bị bỏ trống.',
         tier: 1,
         category: 'Material',
+        emoji: ' nests ',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -459,6 +520,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một bông hoa đẹp, có thể có giá trị với một nhà thảo dược học.',
         tier: 1,
         category: 'Material',
+        emoji: '🌻',
         effects: [],
         baseQuantity: { min: 3, max: 8 }
     },
@@ -466,6 +528,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một bó lúa mì chín vàng, có thể dùng làm thức ăn.',
         tier: 1,
         category: 'Food',
+        emoji: '🌾',
         effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
         baseQuantity: { min: 2, max: 5 }
     },
@@ -473,6 +536,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một chiếc lông vũ sắc bén từ một loài chim săn mồi.',
         tier: 2,
         category: 'Material',
+        emoji: '🪶',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -480,6 +544,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Hai hòn đá lửa, có thể dùng để nhóm lửa.',
         tier: 1,
         category: 'Tool',
+        emoji: '🔥',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -487,6 +552,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một quả trứng chim hoang, giàu dinh dưỡng.',
         tier: 1,
         category: 'Food',
+        emoji: '🥚',
         effects: [{ type: 'RESTORE_STAMINA', amount: 20 }],
         baseQuantity: { min: 2, max: 4 }
     },
@@ -494,6 +560,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một loại củ có nhiều tinh bột, có thể ăn để phục hồi năng lượng.',
         tier: 1,
         category: 'Food',
+        emoji: '🥔',
         effects: [{ type: 'RESTORE_STAMINA', amount: 25 }],
         baseQuantity: { min: 1, max: 3 }
     },
@@ -501,6 +568,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Những hạt giống nhỏ li ti, có thể gieo trồng để mọc ra những bông hoa đẹp.',
         tier: 1,
         category: 'Material',
+        emoji: '🌱',
         effects: [],
         baseQuantity: { min: 5, max: 10 }
     },
@@ -508,6 +576,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một cây nấm phổ biến, ăn được và giúp phục hồi chút thể lực.',
         tier: 1,
         category: 'Food',
+        emoji: '🍄',
         effects: [{ type: 'RESTORE_STAMINA', amount: 10 }],
         baseQuantity: { min: 2, max: 5 }
     },
@@ -515,6 +584,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Cỏ đã được phơi khô, là thức ăn ưa thích của các loài ăn cỏ.',
         tier: 1,
         category: 'Material',
+        emoji: '🌿',
         effects: [],
         baseQuantity: { min: 1, max: 4 }
     },
@@ -524,6 +594,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một bình nước quý giá, gần như còn đầy.',
         tier: 1,
         category: 'Support',
+        emoji: '💧',
         effects: [{ type: 'RESTORE_STAMINA', amount: 25 }],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -531,6 +602,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một mảnh gốm vỡ có hoa văn kỳ lạ, có thể là của một nền văn minh đã mất.',
         tier: 2,
         category: 'Data',
+        emoji: '🏺',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -538,6 +610,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một bông hoa hiếm hoi nở trên sa mạc, chứa đầy nước giúp phục hồi thể lực.',
         tier: 1,
         category: 'Food',
+        emoji: '🌵',
         effects: [{ type: 'RESTORE_STAMINA', amount: 20 }],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -545,6 +618,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một bộ xương lớn bị tẩy trắng bởi ánh mặt trời.',
         tier: 1,
         category: 'Material',
+        emoji: '💀',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -552,6 +626,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một phiến đá sa thạch mềm, có thể được khắc hoặc dùng làm công cụ mài.',
         tier: 1,
         category: 'Material',
+        emoji: '🏜️',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -559,6 +634,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một chiếc ngòi chứa đầy nọc độc chết người. Cực kỳ nguy hiểm.',
         tier: 4,
         category: 'Material',
+        emoji: '☠️',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -566,6 +642,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một cây xương rồng nhỏ, có thể ép lấy nước.',
         tier: 1,
         category: 'Food',
+        emoji: '🌵',
         effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
         baseQuantity: { min: 1, max: 3 },
         growthConditions: {
@@ -577,6 +654,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một mảnh thủy tinh tự nhiên được tạo ra khi sét đánh vào cát.',
         tier: 3,
         category: 'Material',
+        emoji: '🔍',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -586,6 +664,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một loại rêu có thể dùng để đánh dấu đường đi hoặc làm thuốc.',
         tier: 2,
         category: 'Material',
+        emoji: '✨',
         effects: [],
         baseQuantity: { min: 1, max: 4 },
         growthConditions: {
@@ -597,6 +676,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một ổ trứng lạ, có lớp vỏ dai và dày.',
         tier: 2,
         category: 'Material',
+        emoji: '🥚',
         effects: [],
         baseQuantity: { min: 2, max: 5 }
     },
@@ -604,6 +684,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một loại nấm ăn được nhưng có vị hơi tanh.',
         tier: 1,
         category: 'Food',
+        emoji: '🍄',
         effects: [{ type: 'RESTORE_STAMINA', amount: 10 }],
         baseQuantity: { min: 2, max: 4 }
     },
@@ -611,6 +692,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Thân cây sậy dài và rỗng, có thể dùng làm ống thổi hoặc chế tạo.',
         tier: 1,
         category: 'Material',
+        emoji: '🌿',
         effects: [],
         baseQuantity: { min: 3, max: 7 }
     },
@@ -618,6 +700,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một bông hoa có màu sắc quyến rũ nhưng lại chứa độc tố.',
         tier: 2,
         category: 'Material',
+        emoji: '🌺',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -625,6 +708,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một chai nước bùn đặc quánh, có thể chứa các vi sinh vật lạ.',
         tier: 1,
         category: 'Material',
+        emoji: '💧',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -634,6 +718,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một mỏm đá chứa quặng sắt có thể rèn thành vũ khí.',
         tier: 2,
         category: 'Material',
+        emoji: '⛏️',
         effects: [],
         baseQuantity: { min: 1, max: 3 }
     },
@@ -641,6 +726,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một chiếc lông vũ lớn và đẹp, rơi ra từ một sinh vật bay lượn trên đỉnh núi.',
         tier: 3,
         category: 'Material',
+        emoji: '🪶',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -648,6 +734,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một tinh thể trong suốt, lạnh toát khi chạm vào.',
         tier: 4,
         category: 'Magic',
+        emoji: '💎',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -655,6 +742,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một loại thảo dược quý hiếm chỉ mọc ở nơi cao, có tác dụng chữa bệnh.',
         tier: 3,
         category: 'Support',
+        emoji: '🌿',
         effects: [{ type: 'HEAL', amount: 50 }],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -662,6 +750,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một quả trứng lớn, có vỏ cứng như đá. Vô cùng quý hiếm.',
         tier: 6,
         category: 'Data',
+        emoji: '🥚',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -669,6 +758,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một mảnh đá vỏ chai sắc như dao cạo, được hình thành từ dung nham nguội lạnh.',
         tier: 3,
         category: 'Material',
+        emoji: '🪨',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -676,6 +766,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một khối đá granit cứng, vật liệu xây dựng tuyệt vời.',
         tier: 2,
         category: 'Material',
+        emoji: '🪨',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -683,6 +774,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một loại địa y bám trên đá, có thể dùng làm thuốc nhuộm hoặc thuốc chữa bệnh.',
         tier: 2,
         category: 'Material',
+        emoji: '🌿',
         effects: [],
         baseQuantity: { min: 2, max: 4 }
     },
@@ -690,6 +782,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một quả trứng lớn từ tổ của đại bàng núi.',
         tier: 3,
         category: 'Food',
+        emoji: '🥚',
         effects: [{ type: 'RESTORE_STAMINA', amount: 50 }],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -697,6 +790,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một nắm tuyết sạch, có thể làm tan ra để lấy nước.',
         tier: 1,
         category: 'Support',
+        emoji: '❄️',
         effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
         baseQuantity: { min: 1, max: 3 }
     },
@@ -706,6 +800,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một mảnh tinh thể phát ra ánh sáng yếu ớt, có thể soi đường.',
         tier: 2,
         category: 'Magic',
+        emoji: '💎',
         effects: [],
         baseQuantity: { min: 2, max: 7 }
     },
@@ -713,6 +808,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một tấm bản đồ da cũ kỹ, có vẻ chỉ đường đến một nơi bí mật trong hang.',
         tier: 3,
         category: 'Data',
+        emoji: '🗺️',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -720,6 +816,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một bộ xương của một sinh vật lạ chưa từng thấy.',
         tier: 2,
         category: 'Material',
+        emoji: '💀',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -727,6 +824,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Những vệt vàng lấp lánh trên vách đá.',
         tier: 5,
         category: 'Material',
+        emoji: '💰',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
@@ -734,6 +832,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một loại nấm phát ra ánh sáng dịu nhẹ, có thể ăn để tăng cường thị lực trong bóng tối.',
         tier: 3,
         category: 'Material',
+        emoji: '🍄',
         effects: [], // Special effect would require new logic, so no effect for now.
         baseQuantity: { min: 2, max: 5 },
         growthConditions: {
@@ -745,6 +844,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một bọc trứng nhện tơ, cảm giác có gì đó đang ngọ nguậy bên trong.',
         tier: 3,
         category: 'Material',
+        emoji: '🥚',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -752,6 +852,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Nước trong vắt và mát lạnh chảy từ một kẽ đá.',
         tier: 1,
         category: 'Support',
+        emoji: '💧',
         effects: [{ type: 'HEAL', amount: 5 }, { type: 'RESTORE_STAMINA', amount: 10 }],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -759,6 +860,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một loại đá trầm tích mềm hơn granit, dễ dàng chế tác.',
         tier: 2,
         category: 'Material',
+        emoji: '🪨',
         effects: [],
         baseQuantity: { min: 1, max: 3 }
     },
@@ -766,6 +868,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'Một đống phân dơi giàu nitrat, là một loại phân bón tuyệt vời.',
         tier: 1,
         category: 'Material',
+        emoji: '💩',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },

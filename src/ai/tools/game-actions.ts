@@ -29,11 +29,12 @@ export const playerAttackTool = ai.defineTool({
     }),
     outputSchema: z.object({
         playerDamageDealt: z.number().describe("Damage dealt by the player."),
-        enemyDamageDealt: z.number().describe("Damage dealt by the enemy in retaliation."),
+        enemyDamageDealt: z.number().describe("Damage dealt by the enemy. Can be 0 if it fled."),
         finalPlayerHp: z.number().describe("Player's HP after the exchange."),
         finalEnemyHp: z.number().describe("Enemy's HP after being attacked."),
         enemyDefeated: z.boolean().describe("True if the enemy's HP is 0 or less."),
-        combatLog: z.string().optional().describe("A brief, factual log of environmental effects on combat, e.g. 'Sương mù làm giảm độ chính xác của người chơi.'"),
+        fled: z.boolean().describe("True if the enemy fled instead of fighting back."),
+        combatLog: z.string().optional().describe("A brief, factual log of what happened, e.g., 'The creature fought back fiercely.' or 'The small creature fled in terror!'"),
         lootDrops: z.array(ChunkItemSchema).optional().describe("A list of items dropped by the defeated enemy. The narrative should mention these items."),
     })
 }, async ({ playerStatus, enemy, terrain, customItemDefinitions, lightLevel, moisture }) => {
@@ -53,21 +54,9 @@ export const playerAttackTool = ai.defineTool({
     const playerDamage = Math.round(playerStatus.attributes.physicalAttack * playerDamageModifier);
     const finalEnemyHp = Math.max(0, enemy.hp - playerDamage);
     const enemyDefeated = finalEnemyHp <= 0;
-
-    // Environmental effects on enemy's attack (can be symmetrical for now)
-    let enemyDamageModifier = 1.0;
-     if (lightLevel !== undefined && lightLevel < -3) {
-        enemyDamageModifier *= 0.8;
-        combatLogParts.push("Kẻ địch cũng bị ảnh hưởng bởi tầm nhìn kém.");
-    }
-    if (moisture !== undefined && moisture > 8) {
-        enemyDamageModifier *= 0.9;
-    }
-
-    const enemyDamage = enemyDefeated ? 0 : Math.round(enemy.damage * enemyDamageModifier);
-    const finalPlayerHp = Math.max(0, playerStatus.hp - enemyDamage);
-
     let lootDrops: ChunkItem[] | undefined = undefined;
+    
+    // If enemy is defeated, it can't flee or retaliate.
     if (enemyDefeated) {
         const enemyTemplate = templates[terrain]?.enemies.find(e => e.data.type === enemy.type);
         if (enemyTemplate && enemyTemplate.data.loot) {
@@ -92,16 +81,51 @@ export const playerAttackTool = ai.defineTool({
                  lootDrops = drops;
             }
         }
+        
+        return {
+            playerDamageDealt: playerDamage,
+            enemyDamageDealt: 0,
+            finalPlayerHp: playerStatus.hp, // No retaliation if defeated
+            finalEnemyHp,
+            enemyDefeated: true,
+            fled: false,
+            combatLog: combatLogParts.length > 0 ? combatLogParts.join(' ') : undefined,
+            lootDrops,
+        };
     }
+    
+    // If not defeated, decide if creature flees or fights back.
+    let fled = false;
+    let enemyDamage = 0;
+
+    if (enemy.behavior === 'passive') {
+        fled = true;
+        combatLogParts.push('Sinh vật thụ động đã bỏ chạy trong kinh hoàng!');
+    } else {
+        // Aggressive, Defensive, and Territorial creatures fight back.
+        fled = false;
+        let enemyDamageModifier = 1.0;
+        if (lightLevel !== undefined && lightLevel < -3) {
+            enemyDamageModifier *= 0.8;
+            combatLogParts.push("Kẻ địch cũng bị ảnh hưởng bởi tầm nhìn kém.");
+        }
+        if (moisture !== undefined && moisture > 8) {
+            enemyDamageModifier *= 0.9;
+        }
+        enemyDamage = Math.round(enemy.damage * enemyDamageModifier);
+    }
+    
+    const finalPlayerHp = Math.max(0, playerStatus.hp - enemyDamage);
 
     return {
         playerDamageDealt: playerDamage,
         enemyDamageDealt: enemyDamage,
         finalPlayerHp,
         finalEnemyHp,
-        enemyDefeated,
+        enemyDefeated: false,
+        fled,
         combatLog: combatLogParts.length > 0 ? combatLogParts.join(' ') : undefined,
-        lootDrops,
+        lootDrops: undefined, // No loot if not defeated
     };
 });
 

@@ -90,8 +90,13 @@ All player actions are accompanied by a d20 roll, categorized into a success lev
     *   **If the player's action is to use or cast a skill (e.g. 'use Heal', 'cast Fireball'), you MUST call the \`useSkill\` tool.** The tool now incorporates the \`successLevel\` to determine the outcome (fizzle, success, critical hit) and handles all state changes (mana, HP, etc.). Your job is simply to narrate the factual \`log\` that the tool returns.
     *   For simple exploration or observation, you do not need to call a tool, but the \`successLevel\` still dictates what the player finds. A 'Failure' might mean they see nothing, while a 'CriticalSuccess' could reveal a hidden passage.
 3.  **Narrate the Results:** Combine the dice outcome and any tool results to craft a story. DO NOT invent outcomes or numbers that contradict the dice or tools. If a tool provides a \`combatLog\`, a taming \`log\`, or a skill usage \`log\`, use it.
-4.  **Be a Storyteller:** Write an engaging, descriptive narrative (2-4 sentences) that brings the world to life.
-5.  **Language and Translation:** Your entire response MUST be in the language corresponding to this code: {{language}}.
+4.  **Respect Creature Behavior:** Creatures now have distinct personalities. Your narration MUST reflect their behavior as described by the tool's output.
+    *   **aggressive:** These creatures attack on sight, often driven by hunger.
+    *   **defensive:** These creatures (like boars) won't attack first, but will fight back fiercely if attacked.
+    *   **territorial:** These creatures (like spiders or bears) will attack anyone who threatens their space.
+    *   **passive:** These creatures (like rabbits or bats) will attempt to flee when attacked. If the \`playerAttack\` tool returns \`fled: true\`, your narrative MUST describe the creature running away instead of fighting.
+5.  **Be a Storyteller:** Write an engaging, descriptive narrative (2-4 sentences) that brings the world to life.
+6.  **Language and Translation:** Your entire response MUST be in the language corresponding to this code: {{language}}.
 
 **Context:**
 - Player's Action: {{{playerAction}}}
@@ -134,8 +139,11 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
       if (toolCall.tool === 'playerAttack') {
           const result = toolOutput as z.infer<typeof playerAttackTool.outputSchema>;
           finalOutput.updatedPlayerStatus = { hp: result.finalPlayerHp };
-          const newEnemyState = { ...input.currentChunk.enemy!, hp: result.finalEnemyHp };
-          finalOutput.updatedChunk = { enemy: result.enemyDefeated ? null : newEnemyState };
+          
+          // If creature fled OR was defeated, it is removed from the chunk.
+          const shouldRemoveEnemy = result.enemyDefeated || result.fled;
+          const newEnemyState = shouldRemoveEnemy ? null : { ...input.currentChunk.enemy!, hp: result.finalEnemyHp };
+          finalOutput.updatedChunk = { enemy: newEnemyState };
 
           // Handle loot drops by adding them to the chunk's items
           if (result.lootDrops && result.lootDrops.length > 0) {

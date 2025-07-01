@@ -97,7 +97,8 @@ export interface Chunk {
         type: string;
         hp: number;
         damage: number;
-        behavior: 'aggressive' | 'passive';
+        behavior: 'aggressive' | 'passive' | 'defensive' | 'territorial';
+        size: 'small' | 'medium' | 'large';
         diet: string[]; // e.g., ['Thỏ hoang hung dữ', 'Quả Mọng Ăn Được']
         satiation: number; // Current food level
         maxSatiation: number; // How much food it needs to be "full"

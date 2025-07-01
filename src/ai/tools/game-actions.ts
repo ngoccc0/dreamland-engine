@@ -22,7 +22,7 @@ export const playerAttackTool = ai.defineTool({
     inputSchema: z.object({
         playerStatus: PlayerStatusSchema,
         enemy: EnemySchema,
-        terrain: z.enum(["forest", "grassland", "desert", "swamp", "mountain", "cave"]).describe("The terrain of the chunk where the combat takes place."),
+        terrain: z.enum(["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic"]).describe("The terrain of the chunk where the combat takes place."),
         customItemDefinitions: z.record(ItemDefinitionSchema).optional().describe("A map of AI-generated item definitions for the current game session."),
         lightLevel: z.number().optional().describe("The current light level (-10 to 10). Low light (e.g., < -3) can reduce accuracy."),
         moisture: z.number().optional().describe("The current moisture level (0-10). High moisture (e.g., > 8) can impede physical attacks."),
@@ -51,7 +51,13 @@ export const playerAttackTool = ai.defineTool({
         combatLogParts.push("Mưa lớn cản trở đòn tấn công của người chơi.");
     }
 
-    const playerDamage = Math.round(playerStatus.attributes.physicalAttack * playerDamageModifier);
+    let playerBaseDamage = playerStatus.attributes.physicalAttack;
+    if (playerStatus.persona === 'warrior') {
+        playerBaseDamage += 2; // Warrior persona bonus
+        combatLogParts.push("Kỹ năng chiến đấu dày dạn giúp đòn tấn công của bạn mạnh hơn một chút.");
+    }
+
+    const playerDamage = Math.round(playerBaseDamage * playerDamageModifier);
     const finalEnemyHp = Math.max(0, enemy.hp - playerDamage);
     const enemyDefeated = finalEnemyHp <= 0;
     let lootDrops: ChunkItem[] | undefined = undefined;

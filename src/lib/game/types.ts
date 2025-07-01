@@ -4,6 +4,7 @@ export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" |
 export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky';
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
 export type ItemCategory = 'Weapon' | 'Material' | 'Energy Source' | 'Food' | 'Data' | 'Tool' | 'Equipment' | 'Support' | 'Magic' | 'Fusion';
+export type PlayerPersona = 'none' | 'explorer' | 'warrior' | 'artisan';
 
 // --- NEW WEATHER SYSTEM TYPES ---
 
@@ -140,6 +141,7 @@ export interface PlayerStatus {
     items: PlayerItem[];
     quests: string[];
     skills: Skill[];
+    persona: PlayerPersona;
     attributes: {
         physicalAttack: number;
         magicalAttack: number;

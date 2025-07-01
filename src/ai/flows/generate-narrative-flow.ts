@@ -82,6 +82,13 @@ All player actions are accompanied by a d20 roll, categorized into a success lev
 - **GreatSuccess (Roll: 17-19):** The action succeeds with an extra bonus, flair, or positive detail.
 - **CriticalSuccess (Roll: 20):** An amazing, legendary outcome. The action succeeds beyond all expectations, providing a significant advantage or revealing something new.
 
+**Player Persona:** The player has developed a persona based on their actions: '{{playerStatus.persona}}'.
+- If 'explorer', their movements are efficient and perceptive.
+- If 'warrior', their attacks are practiced and powerful.
+- If 'artisan', their hands are skilled in crafting.
+- If 'none', they are a jack-of-all-trades.
+Incorporate this into your narrative for subtle flavor. For example, 'As a seasoned explorer, you quickly find the easiest path.' or 'Your warrior instincts take over as you launch a precise strike.'
+
 **Your Primary Rules:**
 1.  **Quest-Awareness (IMPORTANT FIRST STEP):** Before anything else, review the player's active quests: \`{{json playerStatus.quests}}\`. If you believe the player's action (\`{{{playerAction}}}\`) directly fulfills the requirements of one of these quests (e.g., giving a specific item to an NPC, defeating a target), you MUST call the \`completeQuest\` tool. The tool will handle giving a reward. Your narrative should then describe the quest completion based on the tool's output.
 2.  **Respect the Dice:** The \`successLevel\` is the absolute source of truth for the outcome. If the level is 'Failure', you MUST narrate a failure, even if a tool is called. If the level is 'CriticalSuccess', narrate a legendary outcome.

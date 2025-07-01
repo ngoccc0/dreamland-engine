@@ -12,7 +12,7 @@ import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { skillDefinitions } from '@/lib/game/skills';
 import { templates } from '@/lib/game/templates';
 import { worldConfig } from '@/lib/game/world-config';
-import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile } from "@/lib/game/types";
+import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, PlayerPersona } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 
 
@@ -84,6 +84,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             quests: worldSetup?.initialQuests || [],
             skills: worldSetup?.startingSkill ? [worldSetup.startingSkill] : [], // Start with only the chosen skill for new games. Fallback to empty for old saves.
             pets: [],
+            persona: 'none',
             attributes: {
                 physicalAttack: 10,
                 magicalAttack: 5,
@@ -139,6 +140,39 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             return [...prev, newEntry].slice(-50);
         });
     }, []);
+
+    // Effect for calculating player persona
+    useEffect(() => {
+        const totalActions = playerBehaviorProfile.moves + playerBehaviorProfile.attacks + playerBehaviorProfile.crafts + playerBehaviorProfile.customActions;
+        
+        // Only start classifying after a certain number of actions
+        if (totalActions < 20) return;
+
+        const movePercentage = playerBehaviorProfile.moves / totalActions;
+        const attackPercentage = playerBehaviorProfile.attacks / totalActions;
+        const craftPercentage = playerBehaviorProfile.crafts / totalActions;
+        
+        let newPersona: PlayerPersona = 'none';
+
+        if (movePercentage > 0.6) {
+            newPersona = 'explorer';
+        } else if (attackPercentage > 0.6) {
+            newPersona = 'warrior';
+        } else if (craftPercentage > 0.5) { // Lower threshold for crafting as it's less frequent
+            newPersona = 'artisan';
+        }
+
+        if (newPersona !== playerStats.persona && newPersona !== 'none') {
+            setPlayerStats(prev => ({ ...prev, persona: newPersona }));
+            let message = '';
+            if (newPersona === 'explorer') message = 'Những chuyến đi liên tục đã giúp bạn dẻo dai hơn trên đường.';
+            if (newPersona === 'warrior') message = 'Kinh nghiệm chiến đấu đã mài sắc các đòn tấn công của bạn.';
+            if (newPersona === 'artisan') message = 'Đôi tay của bạn di chuyển với sự tự tin mới trong nghề thủ công.';
+            addNarrativeEntry(message, 'system');
+        }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [playerBehaviorProfile]);
     
     const getEffectiveChunk = useCallback((baseChunk: Chunk): Chunk => {
         if (!baseChunk?.regionId || !weatherZones[baseChunk.regionId]) {
@@ -634,7 +668,14 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             return;
         }
 
-        const travelCost = destinationChunk.travelCost;
+        const travelCost = (() => {
+            let cost = destinationChunk.travelCost;
+            if (playerStats.persona === 'explorer') {
+                cost = Math.max(1, cost - 1); // Apply Explorer persona discount
+            }
+            return cost;
+        })();
+        
         if (playerStats.stamina < travelCost) {
             toast({
                 title: "Quá mệt!",
@@ -805,7 +846,11 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                     addNarrativeEntry("Mưa lớn làm vũ khí nặng trĩu, cản trở đòn tấn công.", "system");
                 }
     
-                playerDamage = Math.round(playerStats.attributes.physicalAttack * damageMultiplier * envDamageModifier);
+                let baseDamage = playerStats.attributes.physicalAttack;
+                if (playerStats.persona === 'warrior') {
+                    baseDamage += 2;
+                }
+                playerDamage = Math.round(baseDamage * damageMultiplier * envDamageModifier);
     
                 let attackNarrative = `Bạn tấn công ${enemyInWorld.type}, gây ${playerDamage} sát thương.`;
                 if (successLevel === 'GreatSuccess') attackNarrative = `Một đòn đánh hiểm hóc! Bạn tấn công ${enemyInWorld.type}, gây ${playerDamage} sát thương.`;
@@ -936,12 +981,20 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
 
     const handleCraft = useCallback((recipe: Recipe) => {
         setPlayerBehaviorProfile(p => ({ ...p, crafts: p.crafts + 1 }));
-        const { canCraft, chance, ingredientsToConsume } = calculateCraftingOutcome(playerStats.items, recipe);
+        const { canCraft, chance: baseChance, ingredientsToConsume } = calculateCraftingOutcome(playerStats.items, recipe);
 
         if (!canCraft) {
             toast({ title: t('error'), description: t('notEnoughIngredients'), variant: "destructive" });
             return;
         }
+
+        const chance = (() => {
+            let finalChance = baseChance;
+            if (playerStats.persona === 'artisan') {
+                finalChance += 5; // Artisan persona bonus
+            }
+            return Math.min(100, finalChance);
+        })();
 
         let updatedItems = [...playerStats.items];
         ingredientsToConsume.forEach(itemToConsume => {
@@ -980,7 +1033,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         }
         
         handleGameTick();
-    }, [playerStats.items, customItemDefinitions, addNarrativeEntry, toast, t, handleGameTick]);
+    }, [playerStats.items, playerStats.persona, customItemDefinitions, addNarrativeEntry, toast, t, handleGameTick]);
 
     const handleItemUsed = useCallback((itemName: string, target: 'player' | string) => {
         const actionText = target === 'player'

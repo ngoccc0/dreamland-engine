@@ -70,6 +70,7 @@ export const PlayerStatusSchema = z.object({
     skills: z.array(SkillSchema).describe("The skills the player knows."),
     attributes: PlayerAttributesSchema.describe("Player's combat attributes."),
     pets: z.array(PetSchema).optional().describe("A list of the player's tamed companions."),
+    persona: z.enum(['none', 'explorer', 'warrior', 'artisan']).optional().default('none').describe("The player's determined playstyle, which may grant subtle bonuses."),
 });
 
 export const EnemySchema = z.object({

@@ -875,11 +875,11 @@ export const templates: Record<Terrain, any> = {
             { name: 'Dây Gai', conditions: { vegetationDensity: { min: 5 }, chance: 0.2 } },
         ],
         enemies: [
-            { data: { type: 'Sói', hp: 30, damage: 10, behavior: 'aggressive', diet: ['Heo Rừng', 'Thịt Thỏ'], satiation: 0, maxSatiation: 2, loot: [{name: 'Thịt Sói Sống', chance: 1, quantity: {min: 1, max: 1}}, {name: 'Nanh Sói', chance: 0.5, quantity: {min: 1, max: 2}}] }, conditions: { predatorPresence: { min: 5 }, chance: 0.4 } },
-            { data: { type: 'Nhện khổng lồ', hp: 40, damage: 15, behavior: 'aggressive', diet: ['Heo Rừng', 'Yêu Tinh Rừng'], satiation: 0, maxSatiation: 2, loot: [{name: 'Tơ Nhện Khổng lồ', chance: 1, quantity: {min: 1, max: 3}}, {name: 'Mắt Nhện', chance: 0.3, quantity: {min: 2, max: 8}}] }, conditions: { vegetationDensity: { min: 8 }, dangerLevel: { min: 6 }, chance: 0.3 } },
-            { data: { type: 'Heo Rừng', hp: 50, damage: 8, behavior: 'aggressive', diet: ['Quả Mọng Ăn Được', 'Rễ Cây Hiếm'], satiation: 0, maxSatiation: 3, loot: [{name: 'Thịt Heo Rừng', chance: 1, quantity: {min: 1, max: 2}}, {name: 'Da Heo Rừng', chance: 0.75, quantity: {min: 1, max: 1}}] }, conditions: { predatorPresence: { min: 4 }, chance: 0.3 } },
-            { data: { type: 'Yêu Tinh Rừng', hp: 25, damage: 8, behavior: 'aggressive', diet: ['Thịt Thỏ', 'Nấm Độc'], satiation: 0, maxSatiation: 3, loot: [{name: 'Tai Yêu Tinh', chance: 1, quantity: {min: 1, max: 1}}, {name: 'Mũi Tên Cũ', chance: 0.25, quantity: {min: 1, max: 1}}, {name: 'Sỏi', chance: 0.5, quantity: {min: 1, max: 3}}] }, conditions: { dangerLevel: { min: 5 }, humanPresence: { min: 1 }, chance: 0.25 } },
-            { data: { type: 'Gấu', hp: 80, damage: 20, behavior: 'aggressive', diet: ['Heo Rừng', 'Cá sấu'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Gấu', chance: 1, quantity: {min: 1, max: 1}}, {name: 'Móng Vuốt Gấu', chance: 0.75, quantity: {min: 2, max: 4}}] }, conditions: { predatorPresence: { min: 8 }, dangerLevel: { min: 7 }, chance: 0.1 } },
+            { data: { type: 'Sói', hp: 30, damage: 10, behavior: 'aggressive', diet: ['Heo Rừng', 'Thịt Thỏ'], satiation: 0, maxSatiation: 2, loot: [{name: 'Thịt Sói Sống', chance: 0.9, quantity: {min: 1, max: 1}}, {name: 'Nanh Sói', chance: 0.3, quantity: {min: 1, max: 2}}] }, conditions: { predatorPresence: { min: 5 }, chance: 0.4 } },
+            { data: { type: 'Nhện khổng lồ', hp: 40, damage: 15, behavior: 'aggressive', diet: ['Heo Rừng', 'Yêu Tinh Rừng'], satiation: 0, maxSatiation: 2, loot: [{name: 'Tơ Nhện Khổng lồ', chance: 0.8, quantity: {min: 1, max: 3}}, {name: 'Mắt Nhện', chance: 0.15, quantity: {min: 2, max: 8}}] }, conditions: { vegetationDensity: { min: 8 }, dangerLevel: { min: 6 }, chance: 0.3 } },
+            { data: { type: 'Heo Rừng', hp: 50, damage: 8, behavior: 'aggressive', diet: ['Quả Mọng Ăn Được', 'Rễ Cây Hiếm'], satiation: 0, maxSatiation: 3, loot: [{name: 'Thịt Heo Rừng', chance: 0.9, quantity: {min: 1, max: 2}}, {name: 'Da Heo Rừng', chance: 0.4, quantity: {min: 1, max: 1}}] }, conditions: { predatorPresence: { min: 4 }, chance: 0.3 } },
+            { data: { type: 'Yêu Tinh Rừng', hp: 25, damage: 8, behavior: 'aggressive', diet: ['Thịt Thỏ', 'Nấm Độc'], satiation: 0, maxSatiation: 3, loot: [{name: 'Tai Yêu Tinh', chance: 0.75, quantity: {min: 1, max: 1}}, {name: 'Mũi Tên Cũ', chance: 0.15, quantity: {min: 1, max: 1}}, {name: 'Sỏi', chance: 0.4, quantity: {min: 1, max: 3}}] }, conditions: { dangerLevel: { min: 5 }, humanPresence: { min: 1 }, chance: 0.25 } },
+            { data: { type: 'Gấu', hp: 80, damage: 20, behavior: 'aggressive', diet: ['Heo Rừng', 'Cá sấu'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Gấu', chance: 0.7, quantity: {min: 1, max: 1}}, {name: 'Móng Vuốt Gấu', chance: 0.5, quantity: {min: 2, max: 4}}] }, conditions: { predatorPresence: { min: 8 }, dangerLevel: { min: 7 }, chance: 0.1 } },
         ],
     },
     grassland: {
@@ -908,10 +908,10 @@ export const templates: Record<Terrain, any> = {
             { name: 'Mảnh Vải Rách', conditions: { humanPresence: { min: 3 }, chance: 0.1 } },
         ],
         enemies: [
-            { data: { type: 'Thỏ hoang hung dữ', hp: 20, damage: 5, behavior: 'aggressive', diet: ['Hoa Dại', 'Lúa Mì'], satiation: 0, maxSatiation: 4, loot: [{name: 'Thịt Thỏ', chance: 1, quantity: {min: 1, max: 2}}, {name: 'Da Thú Nhỏ', chance: 0.5, quantity: {min: 1, max: 1}}] }, conditions: { dangerLevel: { min: 2, max: 5 }, chance: 0.3 } },
-            { data: { type: 'Cáo gian xảo', hp: 25, damage: 8, behavior: 'aggressive', diet: ['Thỏ hoang hung dữ'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Cáo', chance: 1, quantity: {min: 1, max: 1}}, {name: 'Mảnh Xương', chance: 0.25, quantity: {min: 1, max: 2}}] }, conditions: { predatorPresence: { min: 3 }, chance: 0.25 } },
-            { data: { type: 'Bầy châu chấu', hp: 35, damage: 5, behavior: 'aggressive', diet: ['Lúa Mì', 'Hoa Dại'], satiation: 0, maxSatiation: 5, loot: [{name: 'Cánh Châu Chấu', chance: 1, quantity: {min: 5, max: 10}}] }, conditions: { temperature: { min: 7 }, moisture: { max: 3 }, chance: 0.15 } },
-            { data: { type: 'Linh cẩu', hp: 40, damage: 12, behavior: 'aggressive', diet: ['Thỏ hoang hung dữ', 'Xương Động Vật'], satiation: 0, maxSatiation: 2, loot: [{name: 'Răng Linh Cẩu', chance: 1, quantity: {min: 1, max: 3}}, {name: 'Mảnh Xương', chance: 0.5, quantity: {min: 2, max: 4}}] }, conditions: { predatorPresence: { min: 5 }, chance: 0.2 } },
+            { data: { type: 'Thỏ hoang hung dữ', hp: 20, damage: 5, behavior: 'aggressive', diet: ['Hoa Dại', 'Lúa Mì'], satiation: 0, maxSatiation: 4, loot: [{name: 'Thịt Thỏ', chance: 0.9, quantity: {min: 1, max: 2}}, {name: 'Da Thú Nhỏ', chance: 0.35, quantity: {min: 1, max: 1}}] }, conditions: { dangerLevel: { min: 2, max: 5 }, chance: 0.3 } },
+            { data: { type: 'Cáo gian xảo', hp: 25, damage: 8, behavior: 'aggressive', diet: ['Thỏ hoang hung dữ'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Cáo', chance: 0.6, quantity: {min: 1, max: 1}}, {name: 'Mảnh Xương', chance: 0.2, quantity: {min: 1, max: 2}}] }, conditions: { predatorPresence: { min: 3 }, chance: 0.25 } },
+            { data: { type: 'Bầy châu chấu', hp: 35, damage: 5, behavior: 'aggressive', diet: ['Lúa Mì', 'Hoa Dại'], satiation: 0, maxSatiation: 5, loot: [{name: 'Cánh Châu Chấu', chance: 0.85, quantity: {min: 5, max: 10}}] }, conditions: { temperature: { min: 7 }, moisture: { max: 3 }, chance: 0.15 } },
+            { data: { type: 'Linh cẩu', hp: 40, damage: 12, behavior: 'aggressive', diet: ['Thỏ hoang hung dữ', 'Xương Động Vật'], satiation: 0, maxSatiation: 2, loot: [{name: 'Răng Linh Cẩu', chance: 0.5, quantity: {min: 1, max: 3}}, {name: 'Mảnh Xương', chance: 0.3, quantity: {min: 2, max: 4}}] }, conditions: { predatorPresence: { min: 5 }, chance: 0.2 } },
         ],
     },
     desert: {
@@ -936,10 +936,10 @@ export const templates: Record<Terrain, any> = {
             { name: 'Chìa Khóa Rỉ Sét', conditions: { humanPresence: { min: 2 }, chance: 0.05 } },
         ],
         enemies: [
-            { data: { type: 'Rắn đuôi chuông', hp: 30, damage: 15, behavior: 'aggressive', diet: ['Thỏ hoang hung dữ'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Rắn', chance: 1, quantity: {min: 1, max: 1}}, {name: 'Trứng Rắn', chance: 0.2, quantity: {min: 2, max: 4}}] }, conditions: { temperature: { min: 8 }, chance: 0.4 } },
-            { data: { type: 'Bọ cạp khổng lồ', hp: 50, damage: 10, behavior: 'aggressive', diet: ['Rắn đuôi chuông'], satiation: 0, maxSatiation: 2, loot: [{name: 'Đuôi Bọ Cạp', chance: 1, quantity: {min: 1, max: 1}}, {name: 'Nọc Bọ Cạp', chance: 0.2, quantity: {min: 1, max: 1}}] }, conditions: { dangerLevel: { min: 7 }, chance: 0.35 } },
-            { data: { type: 'Kền kền', hp: 25, damage: 8, behavior: 'aggressive', diet: ['Xương Động Vật'], satiation: 0, maxSatiation: 1, loot: [{name: 'Lông Kền Kền', chance: 1, quantity: {min: 2, max: 5}}, {name: 'Xương Động Vật', chance: 0.3, quantity: {min: 1, max: 1}}] }, conditions: { predatorPresence: { min: 6 }, chance: 0.3 } },
-            { data: { type: 'Linh hồn cát', hp: 60, damage: 12, behavior: 'aggressive', diet: ['Pha Lê Núi'], satiation: 0, maxSatiation: 1, loot: [{name: 'Cát Ma Thuật', chance: 1, quantity: {min: 1, max: 2}}] }, conditions: { magicAffinity: { min: 5 }, chance: 0.1 } },
+            { data: { type: 'Rắn đuôi chuông', hp: 30, damage: 15, behavior: 'aggressive', diet: ['Thỏ hoang hung dữ'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Rắn', chance: 0.65, quantity: {min: 1, max: 1}}, {name: 'Trứng Rắn', chance: 0.1, quantity: {min: 2, max: 4}}] }, conditions: { temperature: { min: 8 }, chance: 0.4 } },
+            { data: { type: 'Bọ cạp khổng lồ', hp: 50, damage: 10, behavior: 'aggressive', diet: ['Rắn đuôi chuông'], satiation: 0, maxSatiation: 2, loot: [{name: 'Đuôi Bọ Cạp', chance: 0.4, quantity: {min: 1, max: 1}}, {name: 'Nọc Bọ Cạp', chance: 0.15, quantity: {min: 1, max: 1}}] }, conditions: { dangerLevel: { min: 7 }, chance: 0.35 } },
+            { data: { type: 'Kền kền', hp: 25, damage: 8, behavior: 'aggressive', diet: ['Xương Động Vật'], satiation: 0, maxSatiation: 1, loot: [{name: 'Lông Kền Kền', chance: 0.8, quantity: {min: 2, max: 5}}, {name: 'Xương Động Vật', chance: 0.25, quantity: {min: 1, max: 1}}] }, conditions: { predatorPresence: { min: 6 }, chance: 0.3 } },
+            { data: { type: 'Linh hồn cát', hp: 60, damage: 12, behavior: 'aggressive', diet: ['Pha Lê Núi'], satiation: 0, maxSatiation: 1, loot: [{name: 'Cát Ma Thuật', chance: 0.25, quantity: {min: 1, max: 2}}] }, conditions: { magicAffinity: { min: 5 }, chance: 0.1 } },
         ],
     },
     swamp: {
@@ -963,10 +963,10 @@ export const templates: Record<Terrain, any> = {
             { name: 'Cây Sậy', conditions: { moisture: { min: 7 }, chance: 0.2 } },
         ],
         enemies: [
-            { data: { type: 'Đỉa khổng lồ', hp: 40, damage: 5, behavior: 'aggressive', diet: ['Trứng Bò Sát'], satiation: 0, maxSatiation: 3, loot: [{name: 'Chất nhờn của Đỉa', chance: 1, quantity: {min: 1, max: 2}}] }, conditions: { moisture: { min: 9 }, chance: 0.4 } },
-            { data: { type: 'Ma trơi', hp: 25, damage: 20, behavior: 'aggressive', diet: ['Hoa Tinh Linh'], satiation: 0, maxSatiation: 1, loot: [{name: 'Tinh chất Ma trơi', chance: 1, quantity: {min: 1, max: 1}}] }, conditions: { magicAffinity: { min: 7 }, lightLevel: { max: -5 }, chance: 0.2 } },
-            { data: { type: 'Cá sấu', hp: 70, damage: 25, behavior: 'aggressive', diet: ['Heo Rừng', 'Dê núi hung hãn'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Cá Sấu', chance: 1, quantity: {min: 1, max: 1}}, {name: 'Răng Cá Sấu', chance: 0.75, quantity: {min: 1, max: 4}}] }, conditions: { predatorPresence: { min: 8 }, moisture: { min: 8 }, chance: 0.25 } },
-            { data: { type: 'Muỗi khổng lồ', hp: 15, damage: 5, behavior: 'aggressive', diet: [], satiation: 0, maxSatiation: 1, loot: [{name: 'Cánh Muỗi', chance: 1, quantity: {min: 2, max: 6}}] }, conditions: { chance: 0.5 } },
+            { data: { type: 'Đỉa khổng lồ', hp: 40, damage: 5, behavior: 'aggressive', diet: ['Trứng Bò Sát'], satiation: 0, maxSatiation: 3, loot: [{name: 'Chất nhờn của Đỉa', chance: 0.7, quantity: {min: 1, max: 2}}] }, conditions: { moisture: { min: 9 }, chance: 0.4 } },
+            { data: { type: 'Ma trơi', hp: 25, damage: 20, behavior: 'aggressive', diet: ['Hoa Tinh Linh'], satiation: 0, maxSatiation: 1, loot: [{name: 'Tinh chất Ma trơi', chance: 0.3, quantity: {min: 1, max: 1}}] }, conditions: { magicAffinity: { min: 7 }, lightLevel: { max: -5 }, chance: 0.2 } },
+            { data: { type: 'Cá sấu', hp: 70, damage: 25, behavior: 'aggressive', diet: ['Heo Rừng', 'Dê núi hung hãn'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Cá Sấu', chance: 0.6, quantity: {min: 1, max: 1}}, {name: 'Răng Cá Sấu', chance: 0.5, quantity: {min: 1, max: 4}}] }, conditions: { predatorPresence: { min: 8 }, moisture: { min: 8 }, chance: 0.25 } },
+            { data: { type: 'Muỗi khổng lồ', hp: 15, damage: 5, behavior: 'aggressive', diet: [], satiation: 0, maxSatiation: 1, loot: [{name: 'Cánh Muỗi', chance: 0.9, quantity: {min: 2, max: 6}}] }, conditions: { chance: 0.5 } },
         ],
     },
     mountain: {
@@ -995,10 +995,10 @@ export const templates: Record<Terrain, any> = {
             { name: 'Trứng Đại Bàng', conditions: { elevation: { min: 8 }, chance: 0.1 } },
         ],
         enemies: [
-            { data: { type: 'Dê núi hung hãn', hp: 50, damage: 15, behavior: 'aggressive', diet: ['Cây Thuốc Núi', 'Hoa Dại'], satiation: 0, maxSatiation: 3, loot: [{name: 'Sừng Dê Núi', chance: 1, quantity: {min: 1, max: 2}}, {name: 'Thịt Dê Núi', chance: 1, quantity: {min: 1, max: 2}}] }, conditions: { elevation: { min: 7 }, chance: 0.4 } },
-            { data: { type: 'Người đá', hp: 80, damage: 10, behavior: 'aggressive', diet: ['Quặng Sắt', 'Pha Lê Núi'], satiation: 0, maxSatiation: 1, loot: [{name: 'Lõi Người Đá', chance: 1, quantity: {min: 1, max: 1}}, {name: 'Đá Cuội', chance: 0.5, quantity: {min: 2, max: 3}}] }, conditions: { magicAffinity: { min: 6 }, elevation: { min: 8 }, chance: 0.2 } },
-            { data: { type: 'Harpie', hp: 45, damage: 18, behavior: 'aggressive', diet: ['Dê núi hung hãn', 'Thỏ hoang hung dữ'], satiation: 0, maxSatiation: 2, loot: [{name: 'Lông Harpie', chance: 1, quantity: {min: 3, max: 6}}] }, conditions: { elevation: { min: 9 }, windLevel: { min: 7 }, chance: 0.25 } },
-            { data: { type: 'Báo tuyết', hp: 60, damage: 20, behavior: 'aggressive', diet: ['Dê núi hung hãn'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Báo Tuyết', chance: 1, quantity: {min: 1, max: 1}}, {name: 'Thịt Báo Tuyết', chance: 1, quantity: {min: 1, max: 2}}] }, conditions: { predatorPresence: { min: 7 }, temperature: { max: 3 }, chance: 0.15 } },
+            { data: { type: 'Dê núi hung hãn', hp: 50, damage: 15, behavior: 'aggressive', diet: ['Cây Thuốc Núi', 'Hoa Dại'], satiation: 0, maxSatiation: 3, loot: [{name: 'Sừng Dê Núi', chance: 0.6, quantity: {min: 1, max: 2}}, {name: 'Thịt Dê Núi', chance: 0.9, quantity: {min: 1, max: 2}}] }, conditions: { elevation: { min: 7 }, chance: 0.4 } },
+            { data: { type: 'Người đá', hp: 80, damage: 10, behavior: 'aggressive', diet: ['Quặng Sắt', 'Pha Lê Núi'], satiation: 0, maxSatiation: 1, loot: [{name: 'Lõi Người Đá', chance: 0.2, quantity: {min: 1, max: 1}}, {name: 'Đá Cuội', chance: 0.4, quantity: {min: 2, max: 3}}] }, conditions: { magicAffinity: { min: 6 }, elevation: { min: 8 }, chance: 0.2 } },
+            { data: { type: 'Harpie', hp: 45, damage: 18, behavior: 'aggressive', diet: ['Dê núi hung hãn', 'Thỏ hoang hung dữ'], satiation: 0, maxSatiation: 2, loot: [{name: 'Lông Harpie', chance: 0.75, quantity: {min: 3, max: 6}}] }, conditions: { elevation: { min: 9 }, windLevel: { min: 7 }, chance: 0.25 } },
+            { data: { type: 'Báo tuyết', hp: 60, damage: 20, behavior: 'aggressive', diet: ['Dê núi hung hãn'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Báo Tuyết', chance: 0.5, quantity: {min: 1, max: 1}}, {name: 'Thịt Báo Tuyết', chance: 0.8, quantity: {min: 1, max: 2}}] }, conditions: { predatorPresence: { min: 7 }, temperature: { max: 3 }, chance: 0.15 } },
         ],
     },
     cave: {
@@ -1027,10 +1027,10 @@ export const templates: Record<Terrain, any> = {
             { name: 'Mảnh Xương', conditions: { chance: 0.3 } },
         ],
         enemies: [
-            { data: { type: 'Dơi khổng lồ', hp: 25, damage: 10, behavior: 'aggressive', diet: ['Nhện hang'], satiation: 0, maxSatiation: 2, loot: [{name: 'Cánh Dơi', chance: 1, quantity: {min: 1, max: 2}}, {name: 'Guano (Phân dơi)', chance: 0.5, quantity: {min: 1, max: 2}}] }, conditions: { lightLevel: { max: -2 }, chance: 0.5 } },
-            { data: { type: 'Nhện hang', hp: 45, damage: 15, behavior: 'aggressive', diet: ['Dơi khổng lồ'], satiation: 0, maxSatiation: 2, loot: [{name: 'Nọc Độc Nhện Hang', chance: 1, quantity: {min: 1, max: 1}}, {name: 'Túi Trứng Nhện', chance: 0.2, quantity: {min: 1, max: 1}}] }, conditions: { dangerLevel: { min: 8 }, chance: 0.4 } },
-            { data: { type: 'Slime', hp: 30, damage: 8, behavior: 'passive', diet: ['Mảnh Tinh Thể', 'Rêu Phát Sáng'], satiation: 0, maxSatiation: 3, loot: [{name: 'Chất nhờn Slime', chance: 1, quantity: {min: 1, max: 3}}] }, conditions: { moisture: { min: 8 }, chance: 0.3 } },
-            { data: { type: 'Sâu Bò Khổng Lồ', hp: 100, damage: 20, behavior: 'aggressive', diet: ['Người đá'], satiation: 0, maxSatiation: 1, loot: [{name: 'Răng Sâu Bò', chance: 1, quantity: {min: 1, max: 1}}] }, conditions: { dangerLevel: { min: 9 }, chance: 0.15 } },
+            { data: { type: 'Dơi khổng lồ', hp: 25, damage: 10, behavior: 'aggressive', diet: ['Nhện hang'], satiation: 0, maxSatiation: 2, loot: [{name: 'Cánh Dơi', chance: 0.8, quantity: {min: 1, max: 2}}, {name: 'Guano (Phân dơi)', chance: 0.4, quantity: {min: 1, max: 2}}] }, conditions: { lightLevel: { max: -2 }, chance: 0.5 } },
+            { data: { type: 'Nhện hang', hp: 45, damage: 15, behavior: 'aggressive', diet: ['Dơi khổng lồ'], satiation: 0, maxSatiation: 2, loot: [{name: 'Nọc Độc Nhện Hang', chance: 0.5, quantity: {min: 1, max: 1}}, {name: 'Túi Trứng Nhện', chance: 0.15, quantity: {min: 1, max: 1}}] }, conditions: { dangerLevel: { min: 8 }, chance: 0.4 } },
+            { data: { type: 'Slime', hp: 30, damage: 8, behavior: 'passive', diet: ['Mảnh Tinh Thể', 'Rêu Phát Sáng'], satiation: 0, maxSatiation: 3, loot: [{name: 'Chất nhờn Slime', chance: 0.9, quantity: {min: 1, max: 3}}] }, conditions: { moisture: { min: 8 }, chance: 0.3 } },
+            { data: { type: 'Sâu Bò Khổng Lồ', hp: 100, damage: 20, behavior: 'aggressive', diet: ['Người đá'], satiation: 0, maxSatiation: 1, loot: [{name: 'Răng Sâu Bò', chance: 0.25, quantity: {min: 1, max: 1}}] }, conditions: { dangerLevel: { min: 9 }, chance: 0.15 } },
         ],
     },
 };

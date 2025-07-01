@@ -1054,9 +1054,65 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     }, [handleCustomAction]);
 
     const handleBuild = useCallback((structureName: string) => {
-        const actionText = `build ${structureName}`;
-        handleCustomAction(actionText);
-    }, [handleCustomAction]);
+        const structureToBuild = staticBuildableStructures[structureName];
+
+        if (!structureToBuild || !structureToBuild.buildable) {
+            toast({ title: t('error'), description: `Không thể xây dựng ${structureName}.`, variant: "destructive" });
+            return;
+        }
+
+        const buildCost = structureToBuild.buildCost || [];
+        const inventoryMap = new Map(playerStats.items.map(item => [item.name, item.quantity]));
+        let canBuild = true;
+        const missingItems: string[] = [];
+
+        for (const cost of buildCost) {
+            const playerQty = inventoryMap.get(cost.name) || 0;
+            if (playerQty < cost.quantity) {
+                canBuild = false;
+                missingItems.push(`${cost.name} (cần ${cost.quantity}, có ${playerQty})`);
+            }
+        }
+
+        if (!canBuild) {
+            toast({ 
+                title: t('notEnoughIngredients'), 
+                description: `Thiếu: ${missingItems.join(', ')}`, 
+                variant: "destructive" 
+            });
+            return;
+        }
+
+        // Consume items from inventory
+        let updatedItems = [...playerStats.items];
+        for (const cost of buildCost) {
+            const itemIndex = updatedItems.findIndex(i => i.name === cost.name);
+            if (itemIndex > -1) {
+                updatedItems[itemIndex].quantity -= cost.quantity;
+            }
+        }
+        const finalInventory = updatedItems.filter(item => item.quantity > 0);
+        setPlayerStats(prev => ({...prev, items: finalInventory}));
+
+        // Add the structure to the current chunk
+        const key = `${playerPosition.x},${playerPosition.y}`;
+        setWorld(prevWorld => {
+            const newWorld = { ...prevWorld };
+            const chunkToUpdate = { ...newWorld[key]! };
+            const newStructure: Structure = {
+                name: structureToBuild.name,
+                description: structureToBuild.description,
+                emoji: structureToBuild.emoji,
+                providesShelter: structureToBuild.providesShelter,
+            };
+            chunkToUpdate.structures = [...(chunkToUpdate.structures || []), newStructure];
+            newWorld[key] = chunkToUpdate;
+            return newWorld;
+        });
+
+        addNarrativeEntry(t('builtStructure', { structureName }), 'system');
+        handleGameTick();
+    }, [playerStats.items, playerPosition, addNarrativeEntry, handleGameTick, toast, t]);
 
     return {
         // State

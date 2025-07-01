@@ -141,6 +141,7 @@ export const translations = {
     materialsNeeded: "Materials Needed",
     noMaterialsNeeded: "No materials needed.",
     buildStructure: "Build {structureName}",
+    builtStructure: "You have successfully built a {structureName}.",
     
     // Minimap
     minimap: "Minimap",
@@ -318,6 +319,7 @@ export const translations = {
     materialsNeeded: "Vật liệu cần thiết",
     noMaterialsNeeded: "Không cần vật liệu.",
     buildStructure: "Xây {structureName}",
+    builtStructure: "Bạn đã xây dựng thành công một {structureName}.",
 
     // Minimap
     minimap: "Minimap",

@@ -44,6 +44,7 @@ const GenerateNarrativeOutputSchema = z.object({
     items: z.array(ChunkItemSchema).optional(),
     NPCs: z.array(z.string()).optional(),
     enemy: EnemySchema.nullable().optional(),
+    structures: z.array(z.any()).optional(),
   }).optional().describe("Optional: Changes to the current game chunk based on the action's outcome."),
   updatedPlayerStatus: z.object({
     items: z.array(PlayerItemSchema).optional(),
@@ -97,6 +98,7 @@ Incorporate this into your narrative for subtle flavor. For example, 'As a seaso
     *   If the player's action is to take an item, or use an item on themselves, call the appropriate tool. A 'Failure' might mean the player fumbles and drops the item, so the tool action doesn't complete.
     *   If the player's action is to use an item ON a creature (e.g. 'give meat to wolf', 'use food on creature'), you MUST call the \`tameEnemy\` tool. The tool will determine if the creature can be tamed. Your narration should reflect the outcome.
     *   **If the player's action is to use or cast a skill (e.g. 'use Heal', 'cast Fireball'), you MUST call the \`useSkill\` tool.** The tool now incorporates the \`successLevel\` to determine the outcome (fizzle, success, critical hit) and handles all state changes (mana, HP, etc.). Your job is simply to narrate the factual \`log\` that the tool returns.
+    *   **Building Actions:** If the player tries to build something (e.g., 'build campfire'), do not use a tool. Instead, gently guide them in your narrative to use the dedicated "Build" button in the game interface. For example: 'To build something, it's best to use the dedicated Build menu.'
     *   For simple exploration or observation, you do not need to call a tool, but the \`successLevel\` still dictates what the player finds. A 'Failure' might mean they see nothing, while a 'CriticalSuccess' could reveal a hidden passage.
 4.  **Narrate the Results:** Combine the dice outcome and any tool results to craft a story. DO NOT invent outcomes or numbers that contradict the dice or tools. If a tool provides a \`combatLog\`, a taming \`log\`, or a skill usage \`log\`, use it.
 5.  **Respect Creature Behavior:** Creatures now have distinct personalities. Your narration MUST reflect their behavior as described by the tool's output.

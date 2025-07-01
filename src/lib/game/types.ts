@@ -87,6 +87,17 @@ export interface Skill {
     };
 }
 
+// Represents a structure in the world (natural or player-built)
+export interface Structure {
+    name: string;
+    description: string;
+    emoji: string;
+    providesShelter?: boolean;
+    buildable?: boolean;
+    buildCost?: { name: string; quantity: number }[];
+}
+
+
 // This represents the detailed properties of a single tile/chunk in the world.
 export interface Chunk {
     x: number;
@@ -95,6 +106,7 @@ export interface Chunk {
     description: string;
     NPCs: string[];
     items: ChunkItem[];
+    structures: Structure[];
     explored: boolean;
     enemy: {
         type: string;
@@ -213,6 +225,7 @@ export type MapCell = {
   enemyEmoji?: string;
   itemEmoji?: string;
   hasNpc?: boolean;
+  structureEmoji?: string;
 };
 
 // This defines the final, assembled world concept object that the game uses.
@@ -253,6 +266,7 @@ export interface GameState {
     world: World;
     regions: { [id: number]: Region };
     recipes: Record<string, Recipe>;
+    buildableStructures: Record<string, Structure>;
     regionCounter: number;
     playerPosition: { x: number; y: number };
     playerBehaviorProfile: PlayerBehaviorProfile;

@@ -2,7 +2,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon } from "./icons";
+import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon, StructureIcon } from "./icons";
 import { useLanguage } from "@/context/language-context";
 import type React from "react";
 import type { MapCell, Terrain } from "@/lib/game/types";
@@ -59,7 +59,7 @@ export function Minimap({ grid, onTitleClick, playerPosition }: MinimapProps) {
                 biomeColors[cell.biome],
                 cell.hasPlayer && "ring-2 ring-white shadow-lg z-10"
                 )}
-                aria-label={`Map cell at ${rowIndex}, ${colIndex}. Biome: ${cell.biome}${cell.hasPlayer ? '. Player is here.' : ''}${cell.enemyEmoji ? '. Enemy is here.' : ''}${cell.hasNpc ? '. NPC is here.' : ''}${cell.itemEmoji ? '. Item is here.' : ''}`}
+                aria-label={`Map cell at ${rowIndex}, ${colIndex}. Biome: ${cell.biome}${cell.hasPlayer ? '. Player is here.' : ''}${cell.enemyEmoji ? '. Enemy is here.' : ''}${cell.hasNpc ? '. NPC is here.' : ''}${cell.itemEmoji ? '. Item is here.' : ''}${cell.structureEmoji ? '. Structure is here.' : ''}`}
             >
                 {/* Render the biome icon if the cell is not empty */}
                 {cell.biome !== 'empty' && biomeIcons[cell.biome as Exclude<Terrain, 'empty'>]}
@@ -71,6 +71,7 @@ export function Minimap({ grid, onTitleClick, playerPosition }: MinimapProps) {
                 {/* Corner indicators for other entities, rendered on top of everything */}
                 {cell.hasNpc && <NpcIcon />}
                 {cell.itemEmoji && <ItemIcon emoji={cell.itemEmoji} />}
+                {cell.structureEmoji && <StructureIcon emoji={cell.structureEmoji} />}
             </div>
             ))
         )}

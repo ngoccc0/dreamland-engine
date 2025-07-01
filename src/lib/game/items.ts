@@ -1,7 +1,10 @@
 import type { ItemDefinition } from "./types";
+import { newBuildItems } from './structures';
+
 
 // --- CENTRAL ITEM CATALOG ---
 export const itemDefinitions: Record<string, ItemDefinition> = {
+    ...newBuildItems,
     // --- VẬT PHẨM CHẾ TẠO CƠ BẢN ---
     'Sỏi': {
         description: 'Những viên sỏi nhỏ, có thể dùng để ném hoặc làm vật liệu cơ bản.',

@@ -7,10 +7,11 @@ import { StatusPopup } from "@/components/game/status-popup";
 import { InventoryPopup } from "@/components/game/inventory-popup";
 import { FullMapPopup } from "@/components/game/full-map-popup";
 import { CraftingPopup } from "@/components/game/crafting-popup";
+import { BuildingPopup } from "@/components/game/building-popup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Backpack, Shield, Cpu, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Hammer, WandSparkles } from "lucide-react";
+import { Backpack, Shield, Cpu, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Hammer, WandSparkles, Home } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
 import { SwordIcon } from "@/components/game/icons";
@@ -33,6 +34,7 @@ export default function GameLayout(props: GameLayoutProps) {
     const {
         world,
         recipes,
+        buildableStructures,
         playerStats,
         playerPosition,
         narrativeLog,
@@ -44,6 +46,7 @@ export default function GameLayout(props: GameLayoutProps) {
         handleAction,
         handleCustomAction,
         handleCraft,
+        handleBuild,
         handleItemUsed,
         handleUseSkill,
     } = useGameEngine(props);
@@ -51,6 +54,7 @@ export default function GameLayout(props: GameLayoutProps) {
     const [isStatusOpen, setStatusOpen] = useState(false);
     const [isInventoryOpen, setInventoryOpen] = useState(false);
     const [isCraftingOpen, setCraftingOpen] = useState(false);
+    const [isBuildingOpen, setBuildingOpen] = useState(false);
     const [isFullMapOpen, setIsFullMapOpen] = useState(false);
     const [inputValue, setInputValue] = useState("");
     
@@ -83,6 +87,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         hasNpc: chunk.NPCs.length > 0,
                         enemyEmoji: chunk.enemy?.emoji,
                         itemEmoji: chunk.items.length > 0 ? chunk.items[0].emoji : undefined,
+                        structureEmoji: chunk.structures.length > 0 ? chunk.structures[0].emoji : undefined,
                     });
                 } else {
                     row.push({
@@ -165,6 +170,9 @@ export default function GameLayout(props: GameLayoutProps) {
                                 </Button>
                                 <Button variant="outline" onClick={() => setCraftingOpen(true)} className="w-full justify-start text-xs px-2 h-10">
                                     <Hammer className="mr-2 h-4 w-4 shrink-0"/> <span>{t('crafting')}</span>
+                                </Button>
+                                 <Button variant="outline" onClick={() => setBuildingOpen(true)} className="w-full justify-start text-xs px-2 h-10">
+                                    <Home className="mr-2 h-4 w-4 shrink-0"/> <span>{t('building')}</span>
                                 </Button>
                             </div>
                             <div className="grid grid-cols-3 grid-rows-3 gap-1 place-items-center h-full">
@@ -285,6 +293,17 @@ export default function GameLayout(props: GameLayoutProps) {
                                 <TooltipContent><p>{t('moveSouthTooltip')}</p></TooltipContent>
                                 </Tooltip>
                             </div>
+
+                            <div className="col-start-3 row-start-3 flex justify-center items-center">
+                                <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="outline" className={desktopButtonSize} onClick={() => setBuildingOpen(true)} aria-label="Building">
+                                    <Home />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>{t('buildingTooltip')}</p></TooltipContent>
+                                </Tooltip>
+                            </div>
                         </div>
                     </div>
                     
@@ -359,6 +378,7 @@ export default function GameLayout(props: GameLayoutProps) {
                     onUseItem={handleItemUsed}
                 />
                 <CraftingPopup open={isCraftingOpen} onOpenChange={setCraftingOpen} playerItems={playerStats.items} recipes={recipes} onCraft={handleCraft} />
+                <BuildingPopup open={isBuildingOpen} onOpenChange={setBuildingOpen} playerItems={playerStats.items} buildableStructures={buildableStructures} onBuild={handleBuild} />
                 <FullMapPopup open={isFullMapOpen} onOpenChange={setIsFullMapOpen} world={world} playerPosition={playerPosition} />
             </div>
         </TooltipProvider>

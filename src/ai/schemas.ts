@@ -93,6 +93,13 @@ export const ChunkItemSchema = z.object({
     emoji: z.string(),
 });
 
+export const StructureSchema = z.object({
+    name: z.string().describe("The name of the structure."),
+    description: z.string().describe("A description of the structure."),
+    emoji: z.string().describe("An emoji representing the structure."),
+});
+export type Structure = z.infer<typeof StructureSchema>;
+
 export const ChunkSchema = z.object({
     x: z.number(),
     y: z.number(),
@@ -100,6 +107,7 @@ export const ChunkSchema = z.object({
     description: z.string(),
     NPCs: z.array(z.string()),
     items: z.array(ChunkItemSchema).describe("Items present in the chunk, with quantities and tiers."),
+    structures: z.array(StructureSchema).optional().describe("Structures present in the chunk."),
     explored: z.boolean(),
     enemy: EnemySchema.nullable(),
     // These detailed attributes are now included for the AI to have full context

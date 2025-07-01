@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/language-context";
 import type { World, Chunk, Terrain } from "@/lib/game/types";
-import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon } from "./icons";
+import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon, StructureIcon } from "./icons";
 
 interface FullMapPopupProps {
   open: boolean;
@@ -46,6 +46,14 @@ const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
         <div className="p-2 text-sm space-y-2">
             <h4 className="font-bold capitalize">{chunk.terrain} ({chunk.x}, {chunk.y})</h4>
             <p className="text-xs text-muted-foreground italic line-clamp-3">{chunk.description}</p>
+            {chunk.structures.length > 0 && (
+                <div>
+                    <h5 className="font-semibold">Structures:</h5>
+                    <ul className="list-disc list-inside text-xs">
+                        {chunk.structures.map(s => <li key={s.name}>{s.emoji} {s.name}</li>)}
+                    </ul>
+                </div>
+            )}
             {chunk.items.length > 0 && (
                 <div>
                     <h5 className="font-semibold">Items:</h5>
@@ -136,6 +144,7 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
                                         {isPlayerHere && <PlayerIcon />}
                                         {chunk.NPCs.length > 0 && <NpcIcon />}
                                         {chunk.items.length > 0 && <ItemIcon emoji={chunk.items[0].emoji} />}
+                                        {chunk.structures.length > 0 && <StructureIcon emoji={chunk.structures[0].emoji} />}
                                     </div>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-80">

@@ -8,10 +8,12 @@
  */
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { PlayerStatusSchema, EnemySchema, PlayerItemSchema, ChunkItemSchema, ItemDefinitionSchema, PetSchema, SkillSchema } from '@/ai/schemas';
-import type { PlayerItem, PlayerStatus, Pet, ChunkItem, Skill } from '@/lib/game/types';
+import { PlayerStatusSchema, EnemySchema, PlayerItemSchema, ChunkItemSchema, ItemDefinitionSchema, PetSchema, SkillSchema, StructureSchema } from '@/ai/schemas';
+import type { PlayerItem, PlayerStatus, Pet, ChunkItem, Skill, Structure } from '@/lib/game/types';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import { templates } from '@/lib/game/templates';
+import { buildableStructures } from '@/lib/game/structures';
+
 
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
 
@@ -479,5 +481,66 @@ export const completeQuestTool = ai.defineTool({
         isCompleted: true,
         rewardDescription: "As a token of gratitude, you receive a reward.",
         rewardItems: rewardItems,
+    };
+});
+
+
+// --- Tool for Building a Structure ---
+export const buildStructureTool = ai.defineTool({
+    name: 'buildStructure',
+    description: "Builds a structure in the current location if the player has the required materials. Call this for actions like 'build shelter', 'construct campfire'.",
+    inputSchema: z.object({
+        structureName: z.string().describe("The name of the structure to build, e.g., 'Lều trú ẩn'."),
+        playerInventory: z.array(PlayerItemSchema),
+    }),
+    outputSchema: z.object({
+        wasBuilt: z.boolean().describe("Whether the structure was successfully built."),
+        log: z.string().describe("A factual log of what happened."),
+        updatedPlayerInventory: z.array(PlayerItemSchema),
+        newStructure: StructureSchema.nullable().describe("The structure object that was built."),
+    }),
+}, async ({ structureName, playerInventory }) => {
+    const structureToBuild = buildableStructures[structureName];
+
+    if (!structureToBuild || !structureToBuild.buildable) {
+        return { wasBuilt: false, log: `Không thể xây dựng ${structureName}.`, updatedPlayerInventory: playerInventory, newStructure: null };
+    }
+
+    const buildCost = structureToBuild.buildCost || [];
+    const inventoryMap = new Map(playerInventory.map(item => [item.name, item.quantity]));
+    let canBuild = true;
+
+    for (const cost of buildCost) {
+        if ((inventoryMap.get(cost.name) || 0) < cost.quantity) {
+            canBuild = false;
+            break;
+        }
+    }
+
+    if (!canBuild) {
+        return { wasBuilt: false, log: `Không đủ nguyên liệu để xây dựng ${structureName}.`, updatedPlayerInventory: playerInventory, newStructure: null };
+    }
+
+    // Consume items
+    const newInventory = [...playerInventory];
+    for (const cost of buildCost) {
+        const itemIndex = newInventory.findIndex(i => i.name === cost.name);
+        if (itemIndex > -1) {
+            newInventory[itemIndex].quantity -= cost.quantity;
+        }
+    }
+
+    const finalInventory = newInventory.filter(item => item.quantity > 0);
+    const newStructure: Structure = {
+        name: structureToBuild.name,
+        description: structureToBuild.description,
+        emoji: structureToBuild.emoji,
+    };
+
+    return {
+        wasBuilt: true,
+        log: `Bạn đã xây dựng thành công ${structureName}.`,
+        updatedPlayerInventory: finalInventory,
+        newStructure,
     };
 });

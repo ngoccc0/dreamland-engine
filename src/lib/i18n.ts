@@ -77,6 +77,8 @@ export const translations = {
     inventoryTooltip: "Check the items you are carrying.",
     crafting: "Crafting",
     craftingTooltip: "Open the crafting window.",
+    building: "Building",
+    buildingTooltip: "Open the building window.",
     availableActions: "Available Actions",
     customActionPlaceholder: "Custom action...",
     submit: "Submit",
@@ -132,6 +134,13 @@ export const translations = {
     ingredients: "Ingredients",
     craft: "Craft",
     successChance: "Success chance: {chance}%",
+
+    // Building Popup
+    buildingDesc: "Use materials to build structures.",
+    build: "Build",
+    materialsNeeded: "Materials Needed",
+    noMaterialsNeeded: "No materials needed.",
+    buildStructure: "Build {structureName}",
     
     // Minimap
     minimap: "Minimap",
@@ -246,6 +255,8 @@ export const translations = {
     inventoryTooltip: "Kiểm tra các vật phẩm bạn đang mang.",
     crafting: "Chế tạo",
     craftingTooltip: "Mở cửa sổ chế tạo.",
+    building: "Xây dựng",
+    buildingTooltip: "Mở cửa sổ xây dựng.",
     availableActions: "Hành động có sẵn",
     customActionPlaceholder: "Hành động tùy chỉnh...",
     submit: "Gửi",
@@ -300,6 +311,13 @@ export const translations = {
     ingredients: "Nguyên liệu",
     craft: "Chế tạo",
     successChance: "Tỷ lệ thành công: {chance}%",
+
+    // Building Popup
+    buildingDesc: "Sử dụng vật liệu để xây dựng các công trình.",
+    build: "Xây",
+    materialsNeeded: "Vật liệu cần thiết",
+    noMaterialsNeeded: "Không cần vật liệu.",
+    buildStructure: "Xây {structureName}",
 
     // Minimap
     minimap: "Minimap",

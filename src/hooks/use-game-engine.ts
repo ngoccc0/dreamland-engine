@@ -9,10 +9,11 @@ import { generateNewRecipe, type Recipe as AiRecipe } from "@/ai/flows/generate-
 import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, checkConditions, calculateCraftingOutcome } from '@/lib/game/engine';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import { recipes as staticRecipes } from '@/lib/game/recipes';
+import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
 import { skillDefinitions } from '@/lib/game/skills';
 import { templates } from '@/lib/game/templates';
 import { worldConfig } from '@/lib/game/world-config';
-import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, PlayerPersona } from "@/lib/game/types";
+import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, PlayerPersona, Structure } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 
 
@@ -69,6 +70,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     // --- State for Game Progression ---
     const [world, setWorld] = useState<World>(initialGameState?.world || {});
     const [recipes, setRecipes] = useState<Record<string, Recipe>>(initialGameState?.recipes || staticRecipes);
+    const [buildableStructures, setBuildableStructures] = useState<Record<string, Structure>>(initialGameState?.buildableStructures || staticBuildableStructures);
     const [regions, setRegions] = useState<{ [id: number]: Region }>(initialGameState?.regions || {});
     const [regionCounter, setRegionCounter] = useState<number>(initialGameState?.regionCounter || 0);
     const [playerPosition, setPlayerPosition] = useState(initialGameState?.playerPosition || { x: 0, y: 0 });
@@ -253,6 +255,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             currentSeason,
             world,
             recipes,
+            buildableStructures,
             regions,
             regionCounter,
             playerPosition,
@@ -276,6 +279,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         currentSeason,
         world,
         recipes,
+        buildableStructures,
         regions,
         regionCounter,
         playerPosition,
@@ -547,6 +551,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                     description: currentChunk.description,
                     NPCs: currentChunk.NPCs,
                     items: currentChunk.items,
+                    structures: currentChunk.structures,
                     explored: currentChunk.explored,
                     enemy: currentChunk.enemy,
                     vegetationDensity: currentChunk.vegetationDensity,
@@ -1048,10 +1053,16 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         handleCustomAction(actionText);
     }, [handleCustomAction]);
 
+    const handleBuild = useCallback((structureName: string) => {
+        const actionText = `build ${structureName}`;
+        handleCustomAction(actionText);
+    }, [handleCustomAction]);
+
     return {
         // State
         world,
         recipes,
+        buildableStructures,
         playerStats,
         playerPosition,
         narrativeLog,
@@ -1065,6 +1076,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         handleAction,
         handleCustomAction,
         handleCraft,
+        handleBuild,
         handleItemUsed,
         handleUseSkill,
     }

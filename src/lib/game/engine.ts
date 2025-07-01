@@ -1,4 +1,4 @@
-import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient } from "./types";
+import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient, Structure } from "./types";
 import { seasonConfig, worldConfig } from "./world-config";
 import { templates } from "./templates";
 import { itemDefinitions as staticItemDefinitions } from "./items";
@@ -46,7 +46,7 @@ export const generateWeatherForZone = (terrain: Terrain, season: Season, previou
 // --- ENTITY SPAWNING LOGIC ---
 
 // Helper function to check if a chunk meets the spawn conditions for an entity
-export const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored'>): boolean => {
+export const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored' | 'structures'>): boolean => {
     for (const key in conditions) {
         if (key === 'chance') continue;
         const condition = conditions[key as keyof typeof conditions];
@@ -79,7 +79,7 @@ export const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 
  */
 const selectEntities = <T extends {name: string, conditions: SpawnConditions} | {data: any, conditions: SpawnConditions}>(
     possibleEntities: T[],
-    chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored'>,
+    chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored' | 'structures'>,
     allItemDefinitions: Record<string, ItemDefinition>, // Pass in all definitions
     maxCount: number = 3
 ): any[] => {
@@ -237,7 +237,7 @@ function calculateDependentChunkAttributes(
  * @returns An object containing the generated content.
  */
 function generateChunkContent(
-    chunkData: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'explored' | 'terrain'> & { terrain: Terrain },
+    chunkData: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'explored' | 'structures' | 'terrain'> & { terrain: Terrain },
     worldProfile: WorldProfile,
     allItemDefinitions: Record<string, ItemDefinition>,
     customItemCatalog: GeneratedItem[]
@@ -281,20 +281,23 @@ function generateChunkContent(
         }
     }
     
-    // NPCs & Enemies (still using old system for now)
+    // NPCs, Enemies, and Structures
     const spawnedNPCs = selectEntities(template.NPCs, chunkData, allItemDefinitions, 1);
     const spawnedEnemies = selectEntities(template.enemies, chunkData, allItemDefinitions, 1);
+    const spawnedStructures = selectEntities(template.structures, chunkData, allItemDefinitions, 1);
+    
     const enemyData = spawnedEnemies.length > 0 ? spawnedEnemies[0] : null;
     const spawnedEnemy = enemyData ? { ...enemyData, satiation: 0, emoji: enemyData.emoji } : null;
 
-
-    // More description based on calculated values
+    // More description based on calculated values and spawned entities
     if (chunkData.moisture > 8) finalDescription += " Không khí đặc quánh hơi ẩm.";
     if (chunkData.windLevel && chunkData.windLevel > 8) finalDescription += " Một cơn gió mạnh rít qua bên tai bạn.";
     if (chunkData.temperature && chunkData.temperature < 3) finalDescription += " Một cái lạnh buốt thấu xương.";
     if (chunkData.dangerLevel > 8) finalDescription += " Bạn có cảm giác bất an ở nơi này.";
     if (chunkData.humanPresence > 5) finalDescription += " Dường như có dấu vết của người khác ở đây.";
     if (spawnedEnemy) finalDescription += ` Bạn cảm thấy sự hiện diện của một ${spawnedEnemy.type} nguy hiểm gần đây.`;
+    if (spawnedStructures.length > 0) finalDescription += ` Ở phía xa, bạn thấy ${spawnedStructures[0].description.toLowerCase()}`;
+
 
     // Actions
     const actions = [];
@@ -312,6 +315,7 @@ function generateChunkContent(
         description: finalDescription,
         NPCs: spawnedNPCs,
         items: spawnedItems,
+        structures: spawnedStructures,
         enemy: spawnedEnemy,
         actions: actions,
     };

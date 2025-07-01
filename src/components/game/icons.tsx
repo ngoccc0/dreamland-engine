@@ -40,3 +40,11 @@ export function ItemIcon({ emoji }: { emoji: string }) {
     </div>
   );
 }
+
+export function StructureIcon({ emoji }: { emoji: string }) {
+  return (
+    <div className="absolute top-1 right-1 text-lg drop-shadow-lg" aria-label="Structure">
+      <span>{emoji}</span>
+    </div>
+  );
+}

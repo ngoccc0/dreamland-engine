@@ -13,6 +13,7 @@ import { Separator } from "../ui/separator";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { useLanguage } from "@/context/language-context";
 import type { WorldConcept, ItemDefinition } from "@/lib/game/types";
+import type { TranslationKey } from "@/lib/i18n";
 
 interface WorldSetupProps {
     onWorldCreated: (worldSetup: WorldConcept) => void;
@@ -33,6 +34,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
     const [userInput, setUserInput] = useState("");
     const [isSuggesting, setIsSuggesting] = useState(false);
     const [suggestedKeywords, setSuggestedKeywords] = useState<string[]>([]);
+    const [examplePrompts, setExamplePrompts] = useState<string[]>([]);
     
     const [isLoading, setIsLoading] = useState(false);
     const [generatedData, setGeneratedData] = useState<GenerateWorldSetupOutput | null>(null);
@@ -52,12 +54,19 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
 
     const { toast } = useToast();
 
-    const examplePrompts = [
-        t('example1'),
-        t('example2'),
-        t('example3'),
-        t('example4'),
-    ];
+    // Randomly select 4 example prompts to display
+    useEffect(() => {
+        const allExampleKeys: TranslationKey[] = [
+            'example1', 'example2', 'example3', 'example4', 'example5', 
+            'example6', 'example7', 'example8', 'example9', 'example10'
+        ];
+
+        const shuffled = [...allExampleKeys].sort(() => 0.5 - Math.random());
+        const selectedPrompts = shuffled.slice(0, 4).map(key => t(key));
+        
+        setExamplePrompts(selectedPrompts);
+    }, [t]);
+
 
     // Attach listeners to each carousel to update the selection state
     useEffect(() => {

@@ -137,6 +137,12 @@ export const translations = {
     example2: "A high-fantasy kingdom floating on clouds.",
     example3: "A cyberpunk noir detective story on Mars.",
     example4: "A peaceful village of talking animals with a dark secret.",
+    example5: "An underwater research facility that has lost contact with the surface.",
+    example6: "A Wild West town where dinosaurs are used instead of horses.",
+    example7: "A magical library where books come to life and can be dangerous.",
+    example8: "A generation ship traveling through space, where society has forgotten its original mission.",
+    example9: "A steampunk world powered by captured lightning elementals.",
+    example10: "A journey into the dream world to save someone from a magical coma.",
 
     // Dice Rolls
     diceRollMessage: "You roll a d20... It's a {roll}! ({level})",
@@ -295,6 +301,12 @@ export const translations = {
     example2: "Một vương quốc giả tưởng cao trên mây.",
     example3: "Một câu chuyện trinh thám cyberpunk noir trên Sao Hỏa.",
     example4: "Một ngôi làng yên bình của các loài động vật biết nói với một bí mật đen tối.",
+    example5: "Một cơ sở nghiên cứu dưới nước đã mất liên lạc với bề mặt.",
+    example6: "Một thị trấn miền Tây hoang dã nơi khủng long được dùng thay cho ngựa.",
+    example7: "Một thư viện phép thuật nơi những cuốn sách trở nên sống động và có thể gây nguy hiểm.",
+    example8: "Một con tàu thế hệ du hành trong không gian, nơi xã hội đã quên mất sứ mệnh ban đầu.",
+    example9: "Một thế giới steampunk được cung cấp năng lượng bởi các nguyên tố sét bị bắt giữ.",
+    example10: "Hành trình vào thế giới giấc mơ để cứu ai đó khỏi cơn hôn mê phép thuật.",
     
     // Dice Rolls
     diceRollMessage: "Bạn gieo xúc xắc d20... Kết quả là {roll}! ({level})",

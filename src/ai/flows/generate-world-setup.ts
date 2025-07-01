@@ -20,7 +20,7 @@ import {z} from 'genkit';
 import type { Terrain, Skill } from '@/lib/game/types';
 import Handlebars from 'handlebars';
 import { ItemCategorySchema, SkillSchema } from '@/ai/schemas';
-import { skillDefinitions } from '@/lib/game/config';
+import { skillDefinitions } from '@/lib/game/skills';
 
 const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave"];
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;

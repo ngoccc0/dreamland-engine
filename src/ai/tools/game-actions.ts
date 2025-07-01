@@ -10,7 +10,8 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { PlayerStatusSchema, EnemySchema, PlayerItemSchema, ChunkItemSchema, ItemDefinitionSchema, PetSchema, SkillSchema } from '@/ai/schemas';
 import type { PlayerItem, PlayerStatus, Pet, ChunkItem, Skill } from '@/lib/game/types';
-import { itemDefinitions as staticItemDefinitions, templates } from '@/lib/game/config';
+import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
+import { templates } from '@/lib/game/templates';
 
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
 

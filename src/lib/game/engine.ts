@@ -1,5 +1,7 @@
 import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient } from "./types";
-import { seasonConfig, templates, worldConfig, itemDefinitions as staticItemDefinitions } from "./config";
+import { seasonConfig, worldConfig } from "./world-config";
+import { templates } from "./templates";
+import { itemDefinitions as staticItemDefinitions } from "./items";
 import { weatherPresets } from "./weatherPresets";
 
 // --- HELPER FUNCTIONS ---

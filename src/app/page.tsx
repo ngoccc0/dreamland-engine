@@ -7,7 +7,7 @@ import { LanguageSelector } from '@/components/game/language-selector';
 import type { GameState, PlayerItem, ItemDefinition, GeneratedItem, WorldConcept, Skill } from '@/lib/game/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { itemDefinitions as staticItemDefinitions } from '@/lib/game/config';
+import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 
 type NewGameData = {
   worldSetup: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[], startingSkill: Skill };

@@ -1,0 +1,71 @@
+import type { BiomeDefinition, Season, SeasonModifiers, Terrain } from "./types";
+
+export const seasonConfig: Record<Season, SeasonModifiers> = {
+    spring: { temperatureMod: 0, moistureMod: 2, sunExposureMod: 1, windMod: 1, eventChance: 0.3 },
+    summer: { temperatureMod: 3, moistureMod: -1, sunExposureMod: 3, windMod: 0, eventChance: 0.1 },
+    autumn: { temperatureMod: -1, moistureMod: 1, sunExposureMod: -1, windMod: 2, eventChance: 0.4 },
+    winter: { temperatureMod: -4, moistureMod: -2, sunExposureMod: -3, windMod: 3, eventChance: 0.2 },
+};
+
+export const worldConfig: Record<Terrain, BiomeDefinition> = {
+    forest: {
+        minSize: 5, maxSize: 10, travelCost: 4, spreadWeight: 0.6,
+        allowedNeighbors: ['grassland', 'mountain', 'swamp'],
+        defaultValueRanges: {
+            vegetationDensity: { min: 7, max: 10 }, moisture: { min: 5, max: 8 }, elevation: { min: 1, max: 4 },
+            dangerLevel: { min: 4, max: 7 }, magicAffinity: { min: 3, max: 6 }, humanPresence: { min: 0, max: 3 },
+            predatorPresence: { min: 5, max: 8 }, temperature: { min: 4, max: 7 },
+        },
+        soilType: ['loamy'],
+    },
+    grassland: {
+        minSize: 8, maxSize: 15, travelCost: 1, spreadWeight: 0.8,
+        allowedNeighbors: ['forest', 'desert', 'swamp'],
+        defaultValueRanges: {
+            vegetationDensity: { min: 2, max: 5 }, moisture: { min: 2, max: 5 }, elevation: { min: 0, max: 2 },
+            dangerLevel: { min: 1, max: 4 }, magicAffinity: { min: 0, max: 2 }, humanPresence: { min: 2, max: 6 },
+            predatorPresence: { min: 2, max: 5 }, temperature: { min: 5, max: 8 },
+        },
+        soilType: ['loamy', 'sandy'],
+    },
+    desert: {
+        minSize: 6, maxSize: 12, travelCost: 3, spreadWeight: 0.4,
+        allowedNeighbors: ['grassland', 'mountain'],
+        defaultValueRanges: {
+            vegetationDensity: { min: 0, max: 1 }, moisture: { min: 0, max: 1 }, elevation: { min: 0, max: 3 },
+            dangerLevel: { min: 5, max: 8 }, magicAffinity: { min: 1, max: 4 }, humanPresence: { min: 0, max: 2 },
+            predatorPresence: { min: 6, max: 9 }, temperature: { min: 8, max: 10 },
+        },
+        soilType: ['sandy'],
+    },
+    swamp: {
+        minSize: 4, maxSize: 8, travelCost: 5, spreadWeight: 0.2,
+        allowedNeighbors: ['forest', 'grassland'],
+        defaultValueRanges: {
+            vegetationDensity: { min: 5, max: 8 }, moisture: { min: 8, max: 10 }, elevation: { min: -1, max: 1 },
+            dangerLevel: { min: 7, max: 10 }, magicAffinity: { min: 4, max: 7 }, humanPresence: { min: 0, max: 1 },
+            predatorPresence: { min: 7, max: 10 }, temperature: { min: 6, max: 9 },
+        },
+        soilType: ['clay'],
+    },
+    mountain: {
+        minSize: 3, maxSize: 7, travelCost: 6, spreadWeight: 0.1,
+        allowedNeighbors: ['forest', 'desert'],
+        defaultValueRanges: {
+            vegetationDensity: { min: 1, max: 4 }, moisture: { min: 2, max: 5 }, elevation: { min: 5, max: 10 },
+            dangerLevel: { min: 6, max: 9 }, magicAffinity: { min: 2, max: 5 }, humanPresence: { min: 1, max: 4 },
+            predatorPresence: { min: 4, max: 7 }, temperature: { min: 1, max: 4 },
+        },
+        soilType: ['rocky'],
+    },
+    cave: {
+        minSize: 10, maxSize: 20, travelCost: 7, spreadWeight: 0.05,
+        allowedNeighbors: ['mountain'],
+        defaultValueRanges: {
+            vegetationDensity: { min: 0, max: 2 }, moisture: { min: 6, max: 9 }, elevation: { min: -10, max: -1 },
+            dangerLevel: { min: 8, max: 10 }, magicAffinity: { min: 5, max: 8 }, humanPresence: { min: 0, max: 3 },
+            predatorPresence: { min: 8, max: 10 }, temperature: { min: 3, max: 6 },
+        },
+        soilType: ['rocky'],
+    }
+};

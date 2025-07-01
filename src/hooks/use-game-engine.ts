@@ -6,7 +6,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/context/language-context";
 import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/generate-narrative-flow";
 import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, checkConditions, calculateCraftingOutcome } from '@/lib/game/engine';
-import { worldConfig, templates, itemDefinitions as staticItemDefinitions, skillDefinitions } from '@/lib/game/config';
+import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
+import { skillDefinitions } from '@/lib/game/skills';
+import { templates } from '@/lib/game/templates';
+import { worldConfig } from '@/lib/game/world-config';
 import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 

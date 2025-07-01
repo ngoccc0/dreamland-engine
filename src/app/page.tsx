@@ -36,6 +36,12 @@ export default function Home() {
             tier: 1, // Add a default tier
           }));
         }
+        
+        // Data migration for skill unlock progress
+        if (!gameState.playerStats.unlockProgress) {
+          console.log("Initializing skill unlock progress...");
+          gameState.playerStats.unlockProgress = { kills: 0, damageSpells: 0, moves: 0 };
+        }
 
         setSavedGameState(gameState);
         setLoadState('prompt');

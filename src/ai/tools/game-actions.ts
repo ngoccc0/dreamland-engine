@@ -424,6 +424,14 @@ export const useSkillTool = ai.defineTool({
                      if (successLevel === 'GreatSuccess') log += ' Quả cầu lửa bay nhanh và chính xác hơn, gây thêm sát thương.';
                     if (successLevel === 'CriticalSuccess') log = `Một đòn CHÍ MẠNG phép thuật! ${skillToUse.name} của bạn bùng nổ dữ dội, gây ${finalDamage} sát thương hủy diệt lên ${newEnemy.type}.`;
 
+                    if (skillToUse.effect.healRatio) {
+                        const healedAmount = Math.round(finalDamage * skillToUse.effect.healRatio);
+                        const oldHp = newPlayerStatus.hp;
+                        newPlayerStatus.hp = Math.min(100, newPlayerStatus.hp + healedAmount);
+                        if (newPlayerStatus.hp > oldHp) {
+                            log += ` Bạn hút lại ${newPlayerStatus.hp - oldHp} máu từ đòn đánh.`
+                        }
+                    }
 
                     if (newEnemy.hp <= 0) {
                         log += ` ${newEnemy.type} đã bị tiêu diệt!`;

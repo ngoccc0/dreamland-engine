@@ -55,10 +55,15 @@ export const SkillSchema = z.object({
     tier: z.number().describe("The tier of the skill, from 1 (basic) to higher tiers (advanced)."),
     manaCost: z.number().describe("The amount of mana required to use the skill."),
     effect: z.object({
-        type: z.enum(['HEAL', 'DAMAGE']).describe("The type of effect."),
+        type: z.enum(['HEAL', 'DAMAGE', 'TELEPORT']).describe("The type of effect."),
         amount: z.number().describe("The amount of healing or damage."),
         target: z.enum(['SELF', 'ENEMY']).describe("Who the skill affects."),
+        healRatio: z.number().optional().describe("For damaging skills, the percentage of damage dealt that is returned as health to the caster."),
     }),
+    unlockCondition: z.object({
+        type: z.enum(['kills', 'damageSpells', 'moves']),
+        count: z.number(),
+    }).optional(),
 });
 
 export const PlayerStatusSchema = z.object({
@@ -71,6 +76,11 @@ export const PlayerStatusSchema = z.object({
     attributes: PlayerAttributesSchema.describe("Player's combat attributes."),
     pets: z.array(PetSchema).optional().describe("A list of the player's tamed companions."),
     persona: z.enum(['none', 'explorer', 'warrior', 'artisan']).optional().default('none').describe("The player's determined playstyle, which may grant subtle bonuses."),
+    unlockProgress: z.object({
+        kills: z.number(),
+        damageSpells: z.number(),
+        moves: z.number(),
+    }).optional().describe("Tracks player actions to unlock new skills."),
 });
 
 export const EnemySchema = z.object({

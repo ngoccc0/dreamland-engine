@@ -81,9 +81,14 @@ export interface Skill {
     tier: number;
     manaCost: number;
     effect: {
-        type: 'HEAL' | 'DAMAGE';
+        type: 'HEAL' | 'DAMAGE' | 'TELEPORT';
         amount: number;
         target: 'SELF' | 'ENEMY';
+        healRatio?: number;
+    };
+    unlockCondition?: {
+        type: 'kills' | 'damageSpells' | 'moves';
+        count: number;
     };
 }
 
@@ -162,6 +167,11 @@ export interface PlayerStatus {
         cooldownReduction: number;
     };
     pets?: Pet[];
+    unlockProgress?: {
+        kills: number;
+        damageSpells: number;
+        moves: number;
+    };
 }
 
 export interface PlayerBehaviorProfile {

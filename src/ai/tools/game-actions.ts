@@ -9,8 +9,10 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { PlayerStatusSchema, EnemySchema, PlayerItemSchema, ChunkItemSchema, ItemDefinitionSchema, PetSchema } from '@/ai/schemas';
-import type { PlayerItem, PlayerStatus, Pet } from '@/lib/game/types';
-import { itemDefinitions } from '@/lib/game/config';
+import type { PlayerItem, PlayerStatus, Pet, ChunkItem } from '@/lib/game/types';
+import { itemDefinitions as staticItemDefinitions, templates } from '@/lib/game/config';
+
+const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
 
 // --- Tool for Player Attacking Enemy ---
 export const playerAttackTool = ai.defineTool({
@@ -19,6 +21,8 @@ export const playerAttackTool = ai.defineTool({
     inputSchema: z.object({
         playerStatus: PlayerStatusSchema,
         enemy: EnemySchema,
+        terrain: z.enum(["forest", "grassland", "desert", "swamp", "mountain", "cave"]).describe("The terrain of the chunk where the combat takes place."),
+        customItemDefinitions: z.record(ItemDefinitionSchema).optional().describe("A map of AI-generated item definitions for the current game session."),
         lightLevel: z.number().optional().describe("The current light level (-10 to 10). Low light (e.g., < -3) can reduce accuracy."),
         moisture: z.number().optional().describe("The current moisture level (0-10). High moisture (e.g., > 8) can impede physical attacks."),
     }),
@@ -29,8 +33,9 @@ export const playerAttackTool = ai.defineTool({
         finalEnemyHp: z.number().describe("Enemy's HP after being attacked."),
         enemyDefeated: z.boolean().describe("True if the enemy's HP is 0 or less."),
         combatLog: z.string().optional().describe("A brief, factual log of environmental effects on combat, e.g. 'Sương mù làm giảm độ chính xác của người chơi.'"),
+        lootDrops: z.array(ChunkItemSchema).optional().describe("A list of items dropped by the defeated enemy. The narrative should mention these items."),
     })
-}, async ({ playerStatus, enemy, lightLevel, moisture }) => {
+}, async ({ playerStatus, enemy, terrain, customItemDefinitions, lightLevel, moisture }) => {
     let playerDamageModifier = 1.0;
     const combatLogParts: string[] = [];
 
@@ -61,6 +66,33 @@ export const playerAttackTool = ai.defineTool({
     const enemyDamage = enemyDefeated ? 0 : Math.round(enemy.damage * enemyDamageModifier);
     const finalPlayerHp = Math.max(0, playerStatus.hp - enemyDamage);
 
+    let lootDrops: ChunkItem[] | undefined = undefined;
+    if (enemyDefeated) {
+        const enemyTemplate = templates[terrain]?.enemies.find(e => e.data.type === enemy.type);
+        if (enemyTemplate && enemyTemplate.data.loot) {
+            const allItemDefinitions = { ...staticItemDefinitions, ...customItemDefinitions };
+            const drops: ChunkItem[] = [];
+
+            for (const lootItem of enemyTemplate.data.loot) {
+                if (Math.random() < lootItem.chance) {
+                    const definition = allItemDefinitions[lootItem.name];
+                    if (definition) {
+                        const quantity = getRandomInRange(lootItem.quantity);
+                        drops.push({
+                            name: lootItem.name,
+                            description: definition.description,
+                            tier: definition.tier,
+                            quantity: quantity,
+                        });
+                    }
+                }
+            }
+            if (drops.length > 0) {
+                 lootDrops = drops;
+            }
+        }
+    }
+
     return {
         playerDamageDealt: playerDamage,
         enemyDamageDealt: enemyDamage,
@@ -68,6 +100,7 @@ export const playerAttackTool = ai.defineTool({
         finalEnemyHp,
         enemyDefeated,
         combatLog: combatLogParts.length > 0 ? combatLogParts.join(' ') : undefined,
+        lootDrops,
     };
 });
 
@@ -95,7 +128,7 @@ export const takeItemTool = ai.defineTool({
         existingItem.quantity += itemToTake.quantity;
     } else {
         // Find the tier from the item definition catalog if needed, though itemToTake should have it.
-        const definition = itemDefinitions[itemToTake.name];
+        const definition = staticItemDefinitions[itemToTake.name]; // Note: This doesn't include custom defs, but should be fine for now.
         const tier = definition ? definition.tier : itemToTake.tier || 1;
         updatedPlayerInventory.push({ name: itemToTake.name, quantity: itemToTake.quantity, tier: tier });
     }
@@ -126,7 +159,7 @@ export const useItemTool = ai.defineTool({
     }
 
     const customDef = customItemDefinitions?.[newStatus.items[itemIndex].name];
-    const staticDef = itemDefinitions[newStatus.items[itemIndex].name];
+    const staticDef = staticItemDefinitions[newStatus.items[itemIndex].name];
     const itemDef = customDef || staticDef;
 
     if (!itemDef) {

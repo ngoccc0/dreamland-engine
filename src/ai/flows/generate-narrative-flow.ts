@@ -83,7 +83,7 @@ All player actions are accompanied by a d20 roll, categorized into a success lev
 **Your Primary Rules:**
 1.  **Respect the Dice:** The \`successLevel\` is the absolute source of truth for the outcome. If the level is 'Failure', you MUST narrate a failure, even if a tool is called. If the level is 'CriticalSuccess', narrate a legendary outcome.
 2.  **Use Tools for Logic:** You MUST use the provided tools to handle game logic.
-    *   If the player's action is to attack, call the \`playerAttack\` tool. The tool calculates the base damage. **Your narration should then modify this based on the \`successLevel\`**. A 'Success' is normal damage. A 'GreatSuccess' might be a well-aimed shot that does a bit more. A 'Failure' could be a complete miss.
+    *   If the player's action is to attack, call the \`playerAttack\` tool. The tool calculates the base damage. **Your narration should then modify this based on the \`successLevel\`**. A 'Success' is normal damage. A 'GreatSuccess' might be a well-aimed shot that does a bit more. A 'Failure' could be a complete miss. If the tool reports that the enemy was defeated and returns \`lootDrops\`, your narrative MUST describe the player finding these items on the creature's body.
     *   If the player's action is to take an item, or use an item on themselves, call the appropriate tool. A 'Failure' might mean the player fumbles and drops the item, so the tool action doesn't complete.
     *   **If the player's action is to use an item ON a creature (e.g. 'give meat to wolf', 'use food on creature'), you MUST call the \`tameEnemy\` tool.** The tool will determine if the creature can be tamed. Your narration should reflect the outcome.
     *   For simple exploration or observation, you do not need to call a tool, but the \`successLevel\` still dictates what the player finds. A 'Failure' might mean they see nothing, while a 'CriticalSuccess' could reveal a hidden passage.
@@ -134,6 +134,26 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
           finalOutput.updatedPlayerStatus = { hp: result.finalPlayerHp };
           const newEnemyState = { ...input.currentChunk.enemy!, hp: result.finalEnemyHp };
           finalOutput.updatedChunk = { enemy: result.enemyDefeated ? null : newEnemyState };
+
+          // Handle loot drops by adding them to the chunk's items
+          if (result.lootDrops && result.lootDrops.length > 0) {
+            const currentItems = finalOutput.updatedChunk.items || input.currentChunk.items || [];
+            const newItemsMap = new Map<string, ChunkItemSchema>();
+
+            currentItems.forEach(item => newItemsMap.set(item.name, { ...item }));
+
+            result.lootDrops.forEach(droppedItem => {
+                const existingItem = newItemsMap.get(droppedItem.name);
+                if (existingItem) {
+                    existingItem.quantity += droppedItem.quantity;
+                } else {
+                    newItemsMap.set(droppedItem.name, droppedItem);
+                }
+            });
+
+            finalOutput.updatedChunk.items = Array.from(newItemsMap.values());
+          }
+
       } else if (toolCall.tool === 'takeItem') {
           const result = toolOutput as z.infer<typeof takeItemTool.outputSchema>;
           finalOutput.updatedPlayerStatus = { items: result.updatedPlayerInventory };

@@ -32,6 +32,7 @@ export default function GameLayout(props: GameLayoutProps) {
     
     const {
         world,
+        recipes,
         playerStats,
         playerPosition,
         narrativeLog,
@@ -357,7 +358,7 @@ export default function GameLayout(props: GameLayoutProps) {
                     enemy={currentChunk?.enemy || null}
                     onUseItem={handleItemUsed}
                 />
-                <CraftingPopup open={isCraftingOpen} onOpenChange={setCraftingOpen} playerItems={playerStats.items} onCraft={handleCraft} />
+                <CraftingPopup open={isCraftingOpen} onOpenChange={setCraftingOpen} playerItems={playerStats.items} recipes={recipes} onCraft={handleCraft} />
                 <FullMapPopup open={isFullMapOpen} onOpenChange={setIsFullMapOpen} world={world} playerPosition={playerPosition} />
             </div>
         </TooltipProvider>

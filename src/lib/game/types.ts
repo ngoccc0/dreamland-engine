@@ -150,6 +150,13 @@ export interface PlayerStatus {
     pets?: Pet[];
 }
 
+export interface PlayerBehaviorProfile {
+    moves: number;
+    attacks: number;
+    crafts: number;
+    customActions: number;
+}
+
 // Represents a contiguous region of a single biome.
 export interface Region {
     terrain: Terrain;
@@ -218,6 +225,24 @@ export interface WorldConcept {
   startingSkill: Skill;
 }
 
+// This represents a recipe for crafting, which can now be dynamic.
+export interface Recipe {
+    result: { name: string; quantity: number, emoji: string; };
+    ingredients: RecipeIngredient[];
+    description: string;
+}
+
+export interface RecipeAlternative {
+    name: string;
+    tier: 1 | 2 | 3; // 1: Perfect, 2: Good, 3: Viable but risky
+}
+
+export interface RecipeIngredient {
+    name: string; // The primary/ideal ingredient
+    quantity: number;
+    alternatives?: RecipeAlternative[]; // A list of tiered substitute items
+}
+
 
 // Represents the entire savable state of the game
 export interface GameState {
@@ -225,8 +250,10 @@ export interface GameState {
     currentSeason: Season;
     world: World;
     regions: { [id: number]: Region };
+    recipes: Record<string, Recipe>;
     regionCounter: number;
     playerPosition: { x: number; y: number };
+    playerBehaviorProfile: PlayerBehaviorProfile;
     playerStats: PlayerStatus;
     narrativeLog: NarrativeEntry[];
     worldSetup: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[], startingSkill: Skill };
@@ -270,21 +297,4 @@ export interface GeneratedItem {
       optimal: SpawnConditions;
       subOptimal: SpawnConditions;
     }
-}
-
-export interface RecipeAlternative {
-    name: string;
-    tier: 1 | 2 | 3; // 1: Perfect, 2: Good, 3: Viable but risky
-}
-
-export interface RecipeIngredient {
-    name: string; // The primary/ideal ingredient
-    quantity: number;
-    alternatives?: RecipeAlternative[]; // A list of tiered substitute items
-}
-
-export interface Recipe {
-    result: { name: string; quantity: number, emoji: string; };
-    ingredients: RecipeIngredient[];
-    description: string;
 }

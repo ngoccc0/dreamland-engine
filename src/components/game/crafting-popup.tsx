@@ -8,7 +8,6 @@ import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
 import type { PlayerItem, Recipe, RecipeIngredient, RecipeAlternative } from "@/lib/game/types";
-import { recipes } from "@/lib/game/recipes";
 import { calculateCraftingOutcome } from "@/lib/game/engine";
 import { Hammer } from "lucide-react";
 
@@ -16,19 +15,12 @@ interface CraftingPopupProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   playerItems: PlayerItem[];
+  recipes: Record<string, Recipe>;
   onCraft: (recipe: Recipe) => void;
 }
 
-const getPossibleItemsForIngredient = (ingredient: RecipeIngredient): { name: string, tier?: 1 | 2 | 3 }[] => {
-    const items = [{ name: ingredient.name, tier: 1 as const }]; // Primary is always Tier 1 effective
-    if (ingredient.alternatives) {
-        items.push(...ingredient.alternatives);
-    }
-    return items;
-};
-
 const getPlayerQuantityForIngredient = (playerItems: PlayerItem[], ingredient: RecipeIngredient): number => {
-    const possibleItems = getPossibleItemsForIngredient(ingredient);
+    const possibleItems = [{ name: ingredient.name, tier: 1 as const }, ...(ingredient.alternatives || [])];
     let total = 0;
     for (const item of possibleItems) {
         const playerItem = playerItems.find(pi => pi.name === item.name);
@@ -39,7 +31,7 @@ const getPlayerQuantityForIngredient = (playerItems: PlayerItem[], ingredient: R
     return total;
 };
 
-export function CraftingPopup({ open, onOpenChange, playerItems, onCraft }: CraftingPopupProps) {
+export function CraftingPopup({ open, onOpenChange, playerItems, recipes, onCraft }: CraftingPopupProps) {
   const { t } = useLanguage();
 
   const getTooltipContent = (ingredient: RecipeIngredient): string => {

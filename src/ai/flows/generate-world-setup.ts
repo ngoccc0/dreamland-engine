@@ -19,7 +19,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import type { Terrain, Skill } from '@/lib/game/types';
 import Handlebars from 'handlebars';
-import { ItemCategorySchema, SkillSchema } from '@/ai/schemas';
+import { ItemCategorySchema, SkillSchema, SpawnConditionsSchema, GeneratedItemSchema } from '@/ai/schemas';
 import { skillDefinitions } from '@/lib/game/skills';
 
 const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave"];
@@ -35,46 +35,6 @@ export type GenerateWorldSetupInput = z.infer<typeof GenerateWorldSetupInputSche
 
 
 // == INTERMEDIATE & FINAL OUTPUT SCHEMAS ==
-
-// -- Item Schemas --
-const ConditionRangeSchema = z.object({
-    min: z.number().optional(),
-    max: z.number().optional()
-});
-const SpawnConditionsSchema = z.object({
-  chance: z.number().optional(),
-  vegetationDensity: ConditionRangeSchema.optional(),
-  moisture: ConditionRangeSchema.optional(),
-  elevation: ConditionRangeSchema.optional(),
-  dangerLevel: ConditionRangeSchema.optional(),
-  magicAffinity: ConditionRangeSchema.optional(),
-  humanPresence: ConditionRangeSchema.optional(),
-  predatorPresence: ConditionRangeSchema.optional(),
-  lightLevel: ConditionRangeSchema.optional(),
-  temperature: ConditionRangeSchema.optional(),
-  soilType: z.array(z.string()).optional(),
-}).describe("A set of environmental conditions.");
-
-const GeneratedItemSchema = z.object({
-    name: z.string().describe("A unique and thematic name for the item."),
-    description: z.string().describe("A flavorful, one-sentence description of the item."),
-    emoji: z.string().describe("A single emoji that represents the item."),
-    category: ItemCategorySchema,
-    tier: z.number().int().min(1).max(6).describe("The tier of the item, from 1 (common) to 6 (legendary)."),
-    effects: z.array(z.object({
-        type: z.enum(['HEAL', 'RESTORE_STAMINA']).describe("The type of effect the item has."),
-        amount: z.number().describe("The numerical power of the effect (e.g., the amount of HP to heal).")
-    })).describe("An array of effects the item provides. Can be empty for non-consumable items."),
-    baseQuantity: z.object({
-        min: z.number().int().min(1),
-        max: z.number().int().min(1)
-    }).describe("The typical quantity range this item is found in."),
-    spawnBiomes: z.array(z.enum(allTerrains)).min(1).describe("An array of one or more biomes where this item can naturally be found."),
-    growthConditions: z.object({
-      optimal: SpawnConditionsSchema.describe("The ideal conditions for the resource to thrive and reproduce."),
-      subOptimal: SpawnConditionsSchema.describe("Conditions where the resource can survive and reproduce slowly."),
-    }).optional().describe("For living resources like plants or fungi, define the conditions under which they grow. If not provided, the item will be static."),
-});
 
 // -- Task A Output Schema: Items and Names --
 const ItemsAndNamesOutputSchema = z.object({

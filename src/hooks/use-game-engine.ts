@@ -5,12 +5,14 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/context/language-context";
 import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/generate-narrative-flow";
+import { generateNewRecipe, type Recipe as AiRecipe } from "@/ai/flows/generate-new-recipe";
 import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, checkConditions, calculateCraftingOutcome } from '@/lib/game/engine';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
+import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { skillDefinitions } from '@/lib/game/skills';
 import { templates } from '@/lib/game/templates';
 import { worldConfig } from '@/lib/game/world-config';
-import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill } from "@/lib/game/types";
+import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 
 
@@ -66,9 +68,13 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
 
     // --- State for Game Progression ---
     const [world, setWorld] = useState<World>(initialGameState?.world || {});
+    const [recipes, setRecipes] = useState<Record<string, Recipe>>(initialGameState?.recipes || staticRecipes);
     const [regions, setRegions] = useState<{ [id: number]: Region }>(initialGameState?.regions || {});
     const [regionCounter, setRegionCounter] = useState<number>(initialGameState?.regionCounter || 0);
     const [playerPosition, setPlayerPosition] = useState(initialGameState?.playerPosition || { x: 0, y: 0 });
+    const [playerBehaviorProfile, setPlayerBehaviorProfile] = useState<PlayerBehaviorProfile>(
+        initialGameState?.playerBehaviorProfile || { moves: 0, attacks: 0, crafts: 0, customActions: 0 }
+    );
     const [playerStats, setPlayerStats] = useState<PlayerStatus>(
         initialGameState?.playerStats || {
             hp: 100,
@@ -212,9 +218,11 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             worldProfile,
             currentSeason,
             world,
+            recipes,
             regions,
             regionCounter,
             playerPosition,
+            playerBehaviorProfile,
             playerStats,
             narrativeLog,
             worldSetup: finalWorldSetup,
@@ -233,9 +241,11 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         worldProfile,
         currentSeason,
         world,
+        recipes,
         regions,
         regionCounter,
         playerPosition,
+        playerBehaviorProfile,
         playerStats,
         narrativeLog,
         finalWorldSetup,
@@ -248,7 +258,27 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     const handleGameTick = useCallback(() => {
         const nextTick = gameTicks + 1;
         setGameTicks(nextTick);
+
+        // --- DYNAMIC AI EVENTS ---
+        const RECIPE_GENERATION_INTERVAL = 15;
+        if (isOnline && nextTick > 0 && nextTick % RECIPE_GENERATION_INTERVAL === 0) {
+            generateNewRecipe({
+                customItemCatalog,
+                existingRecipes: Object.keys(recipes),
+                language,
+            }).then(newRecipe => {
+                // Ensure the AI didn't generate a duplicate
+                if (!recipes[newRecipe.result.name]) {
+                    setRecipes(prev => ({...prev, [newRecipe.result.name]: newRecipe as Recipe}));
+                    addNarrativeEntry(t('newRecipeIdea'), 'system');
+                    toast({ title: t('newRecipeIdea'), description: `Bạn đã nghĩ ra cách chế tạo: ${newRecipe.result.name}` });
+                }
+            }).catch(error => {
+                console.error("Failed to generate new recipe:", error);
+            });
+        }
     
+        // --- WORLD SIMULATION ---
         let newWorldState = { ...world };
         let worldWasModified = false;
         const changes = {
@@ -453,7 +483,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         if (changes.narrativeEntries.length > 0) {
             changes.narrativeEntries.forEach(entry => addNarrativeEntry(entry.text, entry.type));
         }
-    }, [world, gameTicks, weatherZones, currentSeason, customItemDefinitions, getEffectiveChunk, addNarrativeEntry, t, playerPosition]);
+    }, [world, gameTicks, weatherZones, currentSeason, customItemDefinitions, getEffectiveChunk, addNarrativeEntry, t, playerPosition, isOnline, customItemCatalog, recipes, language, toast]);
     
 
     const handleOnlineNarrative = async (action: string, worldCtx: World, playerPosCtx: {x: number, y: number}, playerStatsCtx: PlayerStatus) => {
@@ -580,6 +610,8 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     }, [worldProfile, currentSeason, customItemDefinitions, customItemCatalog]);
 
     const handleMove = (direction: "north" | "south" | "east" | "west") => {
+        setPlayerBehaviorProfile(p => ({ ...p, moves: p.moves + 1 }));
+
         let newPos = { ...playerPosition };
         let dirKey: 'directionNorth' | 'directionSouth' | 'directionEast' | 'directionWest' = 'directionNorth';
         if (direction === 'north') { newPos.y++; dirKey = 'directionNorth'; }
@@ -720,6 +752,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     }
 
     const handleAttack = () => {
+        setPlayerBehaviorProfile(p => ({ ...p, attacks: p.attacks + 1 }));
         const key = `${playerPosition.x},${playerPosition.y}`;
         const baseChunk = world[key];
         if (!baseChunk || !baseChunk.enemy) {
@@ -824,6 +857,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     
     const handleCustomAction = (text: string) => {
         if (!text.trim()) return;
+        setPlayerBehaviorProfile(p => ({ ...p, customActions: p.customActions + 1 }));
         addNarrativeEntry(text, 'action');
     
         if(isOnline) {
@@ -901,6 +935,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     }
 
     const handleCraft = useCallback((recipe: Recipe) => {
+        setPlayerBehaviorProfile(p => ({ ...p, crafts: p.crafts + 1 }));
         const { canCraft, chance, ingredientsToConsume } = calculateCraftingOutcome(playerStats.items, recipe);
 
         if (!canCraft) {
@@ -924,7 +959,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         if (roll < chance) {
             const newInventory = [...updatedItems];
             const resultItemIndex = newInventory.findIndex(i => i.name === recipe.result.name);
-            const itemDef = customItemDefinitions[recipe.result.name];
+            const itemDef = customItemDefinitions[recipe.result.name] || staticItemDefinitions[recipe.result.name];
             
             if (resultItemIndex > -1) {
                 newInventory[resultItemIndex].quantity += recipe.result.quantity;
@@ -963,6 +998,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     return {
         // State
         world,
+        recipes,
         playerStats,
         playerPosition,
         narrativeLog,

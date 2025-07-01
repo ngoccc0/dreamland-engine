@@ -6,6 +6,9 @@
  */
 
 import {z} from 'genkit';
+import type { Terrain } from '@/lib/game/types';
+
+const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave"];
 
 export const ItemCategorySchema = z.enum(['Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion']).describe("The category of the item.");
 
@@ -109,4 +112,42 @@ export const ChunkSchema = z.object({
     predatorPresence: z.number(),
     temperature: z.number().optional(), // Now optional to handle dynamic calculation
     windLevel: z.number().optional(),   // Now optional to handle dynamic calculation
+});
+
+// -- Schemas for World Generation --
+const ConditionRangeSchema = z.object({
+    min: z.number().optional(),
+    max: z.number().optional()
+});
+
+export const SpawnConditionsSchema = z.object({
+  chance: z.number().optional(),
+  vegetationDensity: ConditionRangeSchema.optional(),
+  moisture: ConditionRangeSchema.optional(),
+  elevation: ConditionRangeSchema.optional(),
+  dangerLevel: ConditionRangeSchema.optional(),
+  magicAffinity: ConditionRangeSchema.optional(),
+  humanPresence: ConditionRangeSchema.optional(),
+  predatorPresence: ConditionRangeSchema.optional(),
+  lightLevel: ConditionRangeSchema.optional(),
+  temperature: ConditionRangeSchema.optional(),
+  soilType: z.array(z.string()).optional(),
+}).describe("A set of environmental conditions.");
+
+export const GeneratedItemSchema = z.object({
+    name: z.string().describe("A unique and thematic name for the item."),
+    description: z.string().describe("A flavorful, one-sentence description of the item."),
+    emoji: z.string().describe("A single emoji that represents the item."),
+    category: ItemCategorySchema,
+    tier: z.number().int().min(1).max(6).describe("The tier of the item, from 1 (common) to 6 (legendary)."),
+    effects: z.array(ItemEffectSchema).describe("An array of effects the item provides. Can be empty for non-consumable items."),
+    baseQuantity: z.object({
+        min: z.number().int().min(1),
+        max: z.number().int().min(1)
+    }).describe("The typical quantity range this item is found in."),
+    spawnBiomes: z.array(z.enum(allTerrains)).min(1).describe("An array of one or more biomes where this item can naturally be found."),
+    growthConditions: z.object({
+      optimal: SpawnConditionsSchema.describe("The ideal conditions for the resource to thrive and reproduce."),
+      subOptimal: SpawnConditionsSchema.describe("Conditions where the resource can survive and reproduce slowly."),
+    }).optional().describe("For living resources like plants or fungi, define the conditions under which they grow. If not provided, the item will be static."),
 });

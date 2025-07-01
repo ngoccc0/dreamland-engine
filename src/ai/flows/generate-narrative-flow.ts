@@ -5,7 +5,8 @@
  *
  * This file defines the Genkit flow responsible for generating dynamic, context-aware narratives
  * for the game. It acts as an AI Game Master, taking the current game state and player action
- * to produce a rich, evolving story. It uses tools to perform reliable game state calculations.
+ * to produce a rich, evolving story. It uses tools to perform reliable game state calculations
+ * and now also checks for quest completion.
  *
  * - generateNarrative - The main function called by the game layout.
  * - GenerateNarrativeInput - The Zod schema for the input data.
@@ -15,14 +16,14 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema } from '@/ai/schemas';
-import { playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool } from '@/ai/tools/game-actions';
+import { playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool, completeQuestTool } from '@/ai/tools/game-actions';
 
 // == STEP 1: DEFINE THE INPUT SCHEMA ==
 const SuccessLevelSchema = z.enum(['CriticalFailure', 'Failure', 'Success', 'GreatSuccess', 'CriticalSuccess']);
 
 const GenerateNarrativeInputSchema = z.object({
   worldName: z.string().describe("The name of the game world."),
-  playerAction: z.string().describe("The action the player just performed. E.g., 'move north', 'attack wolf', 'explore area', 'pick up Healing Herb', 'use Heal'."),
+  playerAction: z.string().describe("The action the player just performed. E.g., 'move north', 'attack wolf', 'explore area', 'pick up Healing Herb', 'use Heal', 'give wolf fang to hunter'."),
   playerStatus: PlayerStatusSchema.describe("The player's current status (HP, items, skills, etc.)."),
   currentChunk: ChunkSchema.describe("The detailed attributes of the map tile the player is currently on. This includes dynamic weather effects."),
   recentNarrative: z.array(z.string()).describe("The last few entries from the narrative log to provide conversational context."),
@@ -62,14 +63,14 @@ export type GenerateNarrativeOutput = z.infer<typeof GenerateNarrativeOutputSche
 // The state changes will come from the tools.
 const AINarrativeResponseSchema = z.object({
     narrative: z.string().describe("The main narrative description of what happens next. This should be engaging and based on the player's action and the tool's result. It should be 2-4 sentences long."),
-    systemMessage: z.string().optional().describe("An optional, short system message for important events (e.g., 'Item added to inventory', 'Quest updated')."),
+    systemMessage: z.string().optional().describe("An optional, short system message for important events (e.g., 'Item added to inventory', 'Quest updated', 'Quest Completed!')."),
 });
 
 const narrativePrompt = ai.definePrompt({
     name: 'narrativePrompt',
     input: { schema: GenerateNarrativeInputSchema },
     output: { schema: AINarrativeResponseSchema },
-    tools: [playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool],
+    tools: [playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool, completeQuestTool],
     prompt: `You are the Game Master for a text-based adventure game called '{{worldName}}'.
 Your role is to be a dynamic and creative storyteller. You will receive the player's action, the result of a d20 dice roll, and the game state. Your primary job is to call the correct tool to execute the action (if necessary), and then use the tool's result AND the dice roll outcome to write a compelling narrative.
 
@@ -82,21 +83,22 @@ All player actions are accompanied by a d20 roll, categorized into a success lev
 - **CriticalSuccess (Roll: 20):** An amazing, legendary outcome. The action succeeds beyond all expectations, providing a significant advantage or revealing something new.
 
 **Your Primary Rules:**
-1.  **Respect the Dice:** The \`successLevel\` is the absolute source of truth for the outcome. If the level is 'Failure', you MUST narrate a failure, even if a tool is called. If the level is 'CriticalSuccess', narrate a legendary outcome.
-2.  **Use Tools for Logic:** You MUST use the provided tools to handle game logic.
+1.  **Quest-Awareness (IMPORTANT FIRST STEP):** Before anything else, review the player's active quests: \`{{json playerStatus.quests}}\`. If you believe the player's action (\`{{{playerAction}}}\`) directly fulfills the requirements of one of these quests (e.g., giving a specific item to an NPC, defeating a target), you MUST call the \`completeQuest\` tool. The tool will handle giving a reward. Your narrative should then describe the quest completion based on the tool's output.
+2.  **Respect the Dice:** The \`successLevel\` is the absolute source of truth for the outcome. If the level is 'Failure', you MUST narrate a failure, even if a tool is called. If the level is 'CriticalSuccess', narrate a legendary outcome.
+3.  **Use Tools for Logic:** You MUST use the provided tools to handle game logic.
     *   If the player's action is to attack, call the \`playerAttack\` tool. The tool calculates the base damage. **Your narration should then modify this based on the \`successLevel\`**. A 'Success' is normal damage. A 'GreatSuccess' might be a well-aimed shot that does a bit more. A 'Failure' could be a complete miss. If the tool reports that the enemy was defeated and returns \`lootDrops\`, your narrative MUST describe the player finding these items on the creature's body.
     *   If the player's action is to take an item, or use an item on themselves, call the appropriate tool. A 'Failure' might mean the player fumbles and drops the item, so the tool action doesn't complete.
     *   If the player's action is to use an item ON a creature (e.g. 'give meat to wolf', 'use food on creature'), you MUST call the \`tameEnemy\` tool. The tool will determine if the creature can be tamed. Your narration should reflect the outcome.
     *   **If the player's action is to use or cast a skill (e.g. 'use Heal', 'cast Fireball'), you MUST call the \`useSkill\` tool.** The tool now incorporates the \`successLevel\` to determine the outcome (fizzle, success, critical hit) and handles all state changes (mana, HP, etc.). Your job is simply to narrate the factual \`log\` that the tool returns.
     *   For simple exploration or observation, you do not need to call a tool, but the \`successLevel\` still dictates what the player finds. A 'Failure' might mean they see nothing, while a 'CriticalSuccess' could reveal a hidden passage.
-3.  **Narrate the Results:** Combine the dice outcome and any tool results to craft a story. DO NOT invent outcomes or numbers that contradict the dice or tools. If a tool provides a \`combatLog\`, a taming \`log\`, or a skill usage \`log\`, use it.
-4.  **Respect Creature Behavior:** Creatures now have distinct personalities. Your narration MUST reflect their behavior as described by the tool's output.
+4.  **Narrate the Results:** Combine the dice outcome and any tool results to craft a story. DO NOT invent outcomes or numbers that contradict the dice or tools. If a tool provides a \`combatLog\`, a taming \`log\`, or a skill usage \`log\`, use it.
+5.  **Respect Creature Behavior:** Creatures now have distinct personalities. Your narration MUST reflect their behavior as described by the tool's output.
     *   **aggressive:** These creatures attack on sight, often driven by hunger.
     *   **defensive:** These creatures (like boars) won't attack first, but will fight back fiercely if attacked.
     *   **territorial:** These creatures (like spiders or bears) will attack anyone who threatens their space.
     *   **passive:** These creatures (like rabbits or bats) will attempt to flee when attacked. If the \`playerAttack\` tool returns \`fled: true\`, your narrative MUST describe the creature running away instead of fighting.
-5.  **Be a Storyteller:** Write an engaging, descriptive narrative (2-4 sentences) that brings the world to life.
-6.  **Language and Translation:** Your entire response MUST be in the language corresponding to this code: {{language}}.
+6.  **Be a Storyteller:** Write an engaging, descriptive narrative (2-4 sentences) that brings the world to life.
+7.  **Language and Translation:** Your entire response MUST be in the language corresponding to this code: {{language}}.
 
 **Context:**
 - Player's Action: {{{playerAction}}}
@@ -107,9 +109,10 @@ All player actions are accompanied by a d20 roll, categorized into a success lev
 - Custom Item Definitions: {{json customItemDefinitions}}
 
 **Task:**
-1.  Analyze the player's action and the \`successLevel\`.
-2.  If the action involves game logic (attack, use item, tame, use skill), call the appropriate tool.
-3.  Based on the tool's output AND the dice roll \`successLevel\`, generate the narrative and an optional system message in the required JSON format.
+1.  Analyze the player's action and active quests to see if a quest is completed. If so, call \`completeQuest\`.
+2.  If no quest is completed, analyze the action and the \`successLevel\`.
+3.  If the action involves game logic (attack, use item, tame, use skill), call the appropriate tool.
+4.  Based on the tool's output AND the dice roll \`successLevel\`, generate the narrative and an optional system message in the required JSON format.
 `,
 });
 
@@ -147,7 +150,7 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
 
           // Handle loot drops by adding them to the chunk's items
           if (result.lootDrops && result.lootDrops.length > 0) {
-            const currentItems = finalOutput.updatedChunk.items || input.currentChunk.items || [];
+            const currentItems = finalOutput.updatedChunk?.items || input.currentChunk.items || [];
             const newItemsMap = new Map<string, ChunkItemSchema>();
 
             currentItems.forEach(item => newItemsMap.set(item.name, { ...item }));
@@ -161,7 +164,7 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
                 }
             });
 
-            finalOutput.updatedChunk.items = Array.from(newItemsMap.values());
+            finalOutput.updatedChunk = { ...finalOutput.updatedChunk, items: Array.from(newItemsMap.values()) };
           }
 
       } else if (toolCall.tool === 'takeItem') {
@@ -181,6 +184,30 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
           const result = toolOutput as z.infer<typeof useSkillTool.outputSchema>;
           finalOutput.updatedPlayerStatus = result.updatedPlayerStatus;
           finalOutput.updatedChunk = { enemy: result.updatedEnemy };
+      } else if (toolCall.tool === 'completeQuest') {
+          const result = toolOutput as z.infer<typeof completeQuestTool.outputSchema>;
+          if (result.isCompleted) {
+              const currentQuests = input.playerStatus.quests || [];
+              const currentItems = input.playerStatus.items || [];
+              const newItemsMap = new Map<string, PlayerItemSchema>();
+              
+              currentItems.forEach(item => newItemsMap.set(item.name, { ...item }));
+              
+              result.rewardItems?.forEach(rewardItem => {
+                  const existingItem = newItemsMap.get(rewardItem.name);
+                  if (existingItem) {
+                      existingItem.quantity += rewardItem.quantity;
+                  } else {
+                      newItemsMap.set(rewardItem.name, rewardItem);
+                  }
+              });
+
+              finalOutput.updatedPlayerStatus = { 
+                  ...finalOutput.updatedPlayerStatus,
+                  quests: currentQuests.filter(q => q !== (toolCall.input as any).questText),
+                  items: Array.from(newItemsMap.values()),
+              };
+          }
       }
   }
 

@@ -432,3 +432,46 @@ export const useSkillTool = ai.defineTool({
         log,
     };
 });
+
+// --- Tool for Completing a Quest ---
+export const completeQuestTool = ai.defineTool({
+    name: 'completeQuest',
+    description: "Confirms a quest is completed and determines a suitable reward. Call this ONLY when the player's action directly fulfills a quest's objective.",
+    inputSchema: z.object({
+        questText: z.string().describe("The exact text of the quest being completed."),
+        playerStatus: PlayerStatusSchema.describe("The player's current status, for context."),
+    }),
+    outputSchema: z.object({
+        isCompleted: z.boolean().describe("Always returns true to confirm completion."),
+        rewardDescription: z.string().describe("A short, flavorful text describing the reward given, e.g., 'The hunter thanks you and gives you a handful of rare herbs.'"),
+        rewardItems: z.array(PlayerItemSchema).optional().describe("An array of items to be given to the player as a reward."),
+    }),
+}, async ({ questText, playerStatus }) => {
+    // This tool is a "rubber stamp". The LLM decides if the quest is complete.
+    // The tool's job is just to formalize the completion and generate a plausible reward.
+    
+    // Simple reward logic: Give 1-2 random-ish items.
+    const possibleRewards: PlayerItem[] = [
+        { name: 'Thuốc Máu Yếu', quantity: 2, tier: 1, emoji: '🧪' },
+        { name: 'Đá Mài', quantity: 1, tier: 2, emoji: '🔪' },
+        { name: 'Bột Xương', quantity: 3, tier: 2, emoji: '💀' },
+        { name: 'Cát Ma Thuật', quantity: 1, tier: 4, emoji: '✨'},
+    ];
+    
+    const rewardItems: PlayerItem[] = [];
+    const numberOfRewards = getRandomInRange({ min: 1, max: 2 });
+
+    for (let i = 0; i < numberOfRewards; i++) {
+        const reward = possibleRewards[Math.floor(Math.random() * possibleRewards.length)];
+        const existing = rewardItems.find(r => r.name === reward.name);
+        if (!existing) {
+            rewardItems.push(reward);
+        }
+    }
+
+    return {
+        isCompleted: true,
+        rewardDescription: "As a token of gratitude, you receive a reward.",
+        rewardItems: rewardItems,
+    };
+});

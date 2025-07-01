@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -1068,6 +1069,14 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
         handleGameTick();
     }, [playerStats.items, customItemDefinitions, addNarrativeEntry, toast, t, handleGameTick]);
 
+    const handleItemUsed = useCallback((itemName: string, target: 'player' | string) => {
+        const actionText = target === 'player'
+            ? `use ${itemName}`
+            : `use ${itemName} on ${target}`;
+        
+        handleCustomAction(actionText);
+    }, []);
+
 
     const generateMapGrid = useCallback((): MapCell[][] => {
         const radius = 2; // This creates a 5x5 grid
@@ -1333,7 +1342,14 @@ export default function GameLayout({ worldSetup, initialGameState, customItemDef
                 </aside>
                 
                 <StatusPopup open={isStatusOpen} onOpenChange={setStatusOpen} stats={playerStats} />
-                <InventoryPopup open={isInventoryOpen} onOpenChange={setInventoryOpen} items={playerStats.items} itemDefinitions={customItemDefinitions} />
+                <InventoryPopup 
+                    open={isInventoryOpen} 
+                    onOpenChange={setInventoryOpen} 
+                    items={playerStats.items} 
+                    itemDefinitions={customItemDefinitions}
+                    enemy={currentChunk?.enemy || null}
+                    onUseItem={handleItemUsed}
+                />
                 <CraftingPopup open={isCraftingOpen} onOpenChange={setCraftingOpen} playerItems={playerStats.items} onCraft={handleCraft} />
                 <FullMapPopup open={isFullMapOpen} onOpenChange={setIsFullMapOpen} world={world} playerPosition={playerPosition} />
             </div>

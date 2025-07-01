@@ -1,3 +1,4 @@
+
 export const translations = {
   en: {
     // Language Selector
@@ -112,9 +113,11 @@ export const translations = {
 
     // Inventory Popup
     inventoryPopupTitle: "Inventory",
-    inventoryPopupDesc: "Items you have collected on your journey.",
+    inventoryPopupDesc: "Items you've collected. Click an item to see available actions.",
     inventoryEmpty: "Your inventory is empty.",
     tier: "Tier {tier}",
+    useOnSelf: "Use on Self",
+    useOnTarget: "Use on {target}",
 
     // Crafting Popup
     craftingDesc: "Combine items to create new tools and supplies.",
@@ -265,9 +268,11 @@ export const translations = {
 
     // Inventory Popup
     inventoryPopupTitle: "Túi đồ",
-    inventoryPopupDesc: "Các vật phẩm bạn đã thu thập trên hành trình.",
+    inventoryPopupDesc: "Vật phẩm bạn đã thu thập. Nhấn vào một vật phẩm để xem các hành động có sẵn.",
     inventoryEmpty: "Túi đồ của bạn trống rỗng.",
     tier: "Cấp {tier}",
+    useOnSelf: "Dùng cho bản thân",
+    useOnTarget: "Dùng cho {target}",
     
     // Crafting Popup
     craftingDesc: "Kết hợp vật phẩm để tạo công cụ và vật tư mới.",

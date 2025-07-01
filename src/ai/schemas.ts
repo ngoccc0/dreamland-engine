@@ -47,6 +47,7 @@ export type Pet = z.infer<typeof PetSchema>;
 export const SkillSchema = z.object({
     name: z.string().describe("The name of the skill."),
     description: z.string().describe("A brief description of what the skill does."),
+    tier: z.number().describe("The tier of the skill, from 1 (basic) to higher tiers (advanced)."),
     manaCost: z.number().describe("The amount of mana required to use the skill."),
     effect: z.object({
         type: z.enum(['HEAL', 'DAMAGE']).describe("The type of effect."),

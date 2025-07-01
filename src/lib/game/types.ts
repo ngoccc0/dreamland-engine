@@ -75,6 +75,7 @@ export interface Pet {
 export interface Skill {
     name: string;
     description: string;
+    tier: number;
     manaCost: number;
     effect: {
         type: 'HEAL' | 'DAMAGE';

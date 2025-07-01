@@ -8,7 +8,7 @@
  * to improve quality, allow for a larger number of generated items, and reduce wait times.
  * 1. Task A (Gemini): Generate a large catalog of items and three world names.
  * 2. Task B (OpenAI): Simultaneously generate the narrative details for three concepts.
- * The results are then combined, with player inventory being assigned programmatically.
+ * The results are then combined, with player inventory and starting skills being assigned programmatically.
  *
  * - generateWorldSetup - The main function for the application to use.
  * - GenerateWorldSetupInput - The type definition for the input.
@@ -17,7 +17,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import type { Terrain } from '@/lib/game/types';
+import type { Terrain, Skill } from '@/lib/game/types';
 import Handlebars from 'handlebars';
 import { ItemCategorySchema, SkillSchema } from '@/ai/schemas';
 import { skillDefinitions } from '@/lib/game/config';
@@ -86,7 +86,6 @@ const NarrativeConceptSchema = z.object({
   initialNarrative: z.string().describe('A detailed, engaging opening narrative to start the game. This should set the scene for the player.'),
   startingBiome: z.enum(allTerrains).describe('The primary biome for the starting area.'),
   initialQuests: z.array(z.string()).describe('A list of 1-2 starting quests for the player to begin their adventure.'),
-  startingSkill: SkillSchema.describe('A single starting skill assigned to this concept from the available list.'),
 });
 const NarrativeConceptArraySchema = z.array(NarrativeConceptSchema).length(3);
 
@@ -136,24 +135,19 @@ Provide the response in the required JSON format. ALL TEXT in the response MUST 
 // -- Prompt for Task B: Narrative Concepts --
 const narrativeConceptsPrompt = ai.definePrompt({
     name: 'generateNarrativeConceptsPrompt',
-    input: { schema: z.object({ ...GenerateWorldSetupInputSchema.shape, skills: z.any() }) },
+    input: { schema: GenerateWorldSetupInputSchema },
     output: { schema: NarrativeConceptArraySchema },
     prompt: `You are a creative Game Master. Based on the user's idea, you need to flesh out three distinct starting concepts for a game.
 
 **User's Idea:** {{{userInput}}}
-
-**Available Skills:**
-You can choose from the following skills. You must assign exactly one skill to each of the three concepts.
-{{json skills}}
 
 **Your Task:**
 For EACH of the three concepts, create the specific narrative details. You MUST generate an array of exactly three objects. For EACH object, create:
 1.  **initialNarrative:** A rich, descriptive opening paragraph for a world based on the user's idea.
 2.  **startingBiome:** The biome where the player begins (forest, grassland, desert, swamp, mountain, or cave).
 3.  **initialQuests:** One or two simple starting quests.
-4.  **startingSkill:** A starting skill for the player, chosen from the available list.
 
-**DO NOT** create world names or player items. This will be handled by another process.
+**DO NOT** create world names, player items, or starting skills. These will be handled by other processes.
 
 Provide the response as a JSON array of three objects. ALL TEXT in the response MUST be in the language corresponding to this code: {{language}}.`,
 });
@@ -172,7 +166,7 @@ const generateWorldSetupFlow = ai.defineFlow(
     const itemsAndNamesFinalPrompt = itemsAndNamesTemplate(input);
 
     const narrativeConceptsTemplate = Handlebars.compile(narrativeConceptsPrompt.prompt as string);
-    const narrativeConceptsFinalPrompt = narrativeConceptsTemplate({ ...input, skills: skillDefinitions });
+    const narrativeConceptsFinalPrompt = narrativeConceptsTemplate(input);
 
     // --- Step 2: Define two independent AI tasks to run in parallel ---
     
@@ -206,8 +200,10 @@ const generateWorldSetupFlow = ai.defineFlow(
         throw new Error("Failed to generate valid narrative concepts.");
     }
     
-    // --- Step 4: Combine the results and programmatically create inventory ---
+    // --- Step 4: Combine the results and programmatically create inventory & skills ---
     const { customItemCatalog, worldNames } = itemsAndNames;
+    const tier1Skills = skillDefinitions.filter(s => s.tier === 1);
+    const tier2Skills = skillDefinitions.filter(s => s.tier === 2);
     
     const finalConcepts = worldNames.map((name, index) => {
         const concept = narrativeConcepts[index];
@@ -223,13 +219,23 @@ const generateWorldSetupFlow = ai.defineFlow(
             quantity: getRandomInRange(item.baseQuantity)
         }));
 
+        // Programmatically select starting skill based on tier
+        let selectedSkill: Skill;
+        if (Math.random() < 0.7 || tier2Skills.length === 0) {
+            // 70% chance for Tier 1, or if no Tier 2 skills exist
+            selectedSkill = tier1Skills[Math.floor(Math.random() * tier1Skills.length)];
+        } else {
+            // 30% chance for Tier 2
+            selectedSkill = tier2Skills[Math.floor(Math.random() * tier2Skills.length)];
+        }
+
         return {
             worldName: name,
             initialNarrative: concept.initialNarrative,
             startingBiome: concept.startingBiome,
             playerInventory: playerInventory,
             initialQuests: concept.initialQuests,
-            startingSkill: concept.startingSkill,
+            startingSkill: selectedSkill,
         };
     });
 

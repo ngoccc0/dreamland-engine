@@ -34,7 +34,7 @@ const successLevelToTranslationKey: Record<SuccessLevel, TranslationKey> = {
 }
 
 interface GameEngineProps {
-    worldSetup?: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[] };
+    worldSetup?: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[], startingSkill: Skill };
     initialGameState?: GameState;
     customItemDefinitions?: Record<string, ItemDefinition>;
     customItemCatalog?: GeneratedItem[];
@@ -73,7 +73,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             stamina: 100,
             items: worldSetup?.playerInventory || [],
             quests: worldSetup?.initialQuests || [],
-            skills: skillDefinitions, // Give player all skills by default
+            skills: worldSetup?.startingSkill ? [worldSetup.startingSkill] : [], // Start with only the chosen skill for new games. Fallback to empty for old saves.
             pets: [],
             attributes: {
                 physicalAttack: 10,

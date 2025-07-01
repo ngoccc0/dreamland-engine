@@ -210,6 +210,7 @@ export interface WorldConcept {
   customItemCatalog: GeneratedItem[];
   playerInventory: { name: string; quantity: number }[];
   initialQuests: string[];
+  startingSkill: Skill;
 }
 
 
@@ -223,7 +224,7 @@ export interface GameState {
     playerPosition: { x: number; y: number };
     playerStats: PlayerStatus;
     narrativeLog: NarrativeEntry[];
-    worldSetup: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[] };
+    worldSetup: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[], startingSkill: Skill };
     customItemDefinitions: Record<string, ItemDefinition>;
     customItemCatalog: GeneratedItem[];
     // New properties for weather system

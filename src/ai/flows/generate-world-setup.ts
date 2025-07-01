@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -18,7 +19,8 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import type { Terrain } from '@/lib/game/types';
 import Handlebars from 'handlebars';
-import { ItemCategorySchema } from '@/ai/schemas';
+import { ItemCategorySchema, SkillSchema } from '@/ai/schemas';
+import { skillDefinitions } from '@/lib/game/config';
 
 const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave"];
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
@@ -84,6 +86,7 @@ const NarrativeConceptSchema = z.object({
   initialNarrative: z.string().describe('A detailed, engaging opening narrative to start the game. This should set the scene for the player.'),
   startingBiome: z.enum(allTerrains).describe('The primary biome for the starting area.'),
   initialQuests: z.array(z.string()).describe('A list of 1-2 starting quests for the player to begin their adventure.'),
+  startingSkill: SkillSchema.describe('A single starting skill assigned to this concept from the available list.'),
 });
 const NarrativeConceptArraySchema = z.array(NarrativeConceptSchema).length(3);
 
@@ -95,6 +98,7 @@ const WorldConceptSchema = z.object({
   startingBiome: z.enum(allTerrains),
   playerInventory: z.array(z.object({ name: z.string(), quantity: z.number().int().min(1) })),
   initialQuests: z.array(z.string()),
+  startingSkill: SkillSchema,
 });
 const GenerateWorldSetupOutputSchema = z.object({
     customItemCatalog: z.array(GeneratedItemSchema),
@@ -132,17 +136,22 @@ Provide the response in the required JSON format. ALL TEXT in the response MUST 
 // -- Prompt for Task B: Narrative Concepts --
 const narrativeConceptsPrompt = ai.definePrompt({
     name: 'generateNarrativeConceptsPrompt',
-    input: { schema: GenerateWorldSetupInputSchema },
+    input: { schema: z.object({ ...GenerateWorldSetupInputSchema.shape, skills: z.any() }) },
     output: { schema: NarrativeConceptArraySchema },
     prompt: `You are a creative Game Master. Based on the user's idea, you need to flesh out three distinct starting concepts for a game.
 
 **User's Idea:** {{{userInput}}}
+
+**Available Skills:**
+You can choose from the following skills. You must assign exactly one skill to each of the three concepts.
+{{json skills}}
 
 **Your Task:**
 For EACH of the three concepts, create the specific narrative details. You MUST generate an array of exactly three objects. For EACH object, create:
 1.  **initialNarrative:** A rich, descriptive opening paragraph for a world based on the user's idea.
 2.  **startingBiome:** The biome where the player begins (forest, grassland, desert, swamp, mountain, or cave).
 3.  **initialQuests:** One or two simple starting quests.
+4.  **startingSkill:** A starting skill for the player, chosen from the available list.
 
 **DO NOT** create world names or player items. This will be handled by another process.
 
@@ -163,7 +172,7 @@ const generateWorldSetupFlow = ai.defineFlow(
     const itemsAndNamesFinalPrompt = itemsAndNamesTemplate(input);
 
     const narrativeConceptsTemplate = Handlebars.compile(narrativeConceptsPrompt.prompt as string);
-    const narrativeConceptsFinalPrompt = narrativeConceptsTemplate(input);
+    const narrativeConceptsFinalPrompt = narrativeConceptsTemplate({ ...input, skills: skillDefinitions });
 
     // --- Step 2: Define two independent AI tasks to run in parallel ---
     
@@ -220,6 +229,7 @@ const generateWorldSetupFlow = ai.defineFlow(
             startingBiome: concept.startingBiome,
             playerInventory: playerInventory,
             initialQuests: concept.initialQuests,
+            startingSkill: concept.startingSkill,
         };
     });
 

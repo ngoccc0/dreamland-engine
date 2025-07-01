@@ -4,13 +4,13 @@ import { useState, useEffect } from 'react';
 import GameLayout from '@/components/game/game-layout';
 import { WorldSetup } from '@/components/game/world-setup';
 import { LanguageSelector } from '@/components/game/language-selector';
-import type { GameState, PlayerItem, ItemDefinition, GeneratedItem, WorldConcept } from '@/lib/game/types';
+import type { GameState, PlayerItem, ItemDefinition, GeneratedItem, WorldConcept, Skill } from '@/lib/game/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/config';
 
 type NewGameData = {
-  worldSetup: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[] };
+  worldSetup: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[], startingSkill: Skill };
   customItemDefinitions: Record<string, ItemDefinition>;
   customItemCatalog: GeneratedItem[];
 }
@@ -91,6 +91,7 @@ export default function Home() {
         startingBiome: world.startingBiome,
         initialQuests: world.initialQuests,
         playerInventory: initialPlayerItems,
+        startingSkill: world.startingSkill,
     };
     
     // 4. Set the complete new game data in state

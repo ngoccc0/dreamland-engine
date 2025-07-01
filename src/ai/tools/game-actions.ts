@@ -301,18 +301,19 @@ export const tameEnemyTool = ai.defineTool({
 // --- Tool for Using a Skill ---
 export const useSkillTool = ai.defineTool({
     name: 'useSkill',
-    description: "Uses one of the player's known skills. Call this when the player's action is to use a skill (e.g., 'use Heal', 'cast Fireball').",
+    description: "Uses one of the player's known skills, considering the d20 roll's success level. Call this when the player's action is to use a skill (e.g., 'use Heal', 'cast Fireball').",
     inputSchema: z.object({
         skillName: z.string().describe("The name of the skill to use from the player's skill list."),
         playerStatus: PlayerStatusSchema,
         enemy: EnemySchema.nullable().optional().describe("The enemy, if the skill targets one."),
+        successLevel: z.enum(['CriticalFailure', 'Failure', 'Success', 'GreatSuccess', 'CriticalSuccess']).describe("The categorized result of a d20 dice roll, which dictates the skill's outcome."),
     }),
     outputSchema: z.object({
         updatedPlayerStatus: PlayerStatusSchema.describe("The player's status after the skill is used."),
         updatedEnemy: EnemySchema.nullable().optional().describe("The enemy's new state, or null if defeated."),
-        log: z.string().describe("A factual log of what happened, e.g., 'Player is out of mana.', 'Healed for 25 HP.'"),
+        log: z.string().describe("A factual log of what happened, e.g., 'Player is out of mana.', 'Healed for 25 HP.', 'The skill fizzles!'. This log should be narrated by the AI."),
     }),
-}, async ({ skillName, playerStatus, enemy }) => {
+}, async ({ skillName, playerStatus, enemy, successLevel }) => {
     const newPlayerStatus: PlayerStatus = JSON.parse(JSON.stringify(playerStatus));
     let newEnemy: typeof enemy | null = enemy ? JSON.parse(JSON.stringify(enemy)) : null;
 
@@ -326,19 +327,52 @@ export const useSkillTool = ai.defineTool({
         return { updatedPlayerStatus: playerStatus, updatedEnemy: enemy, log: `Không đủ mana để sử dụng ${skillToUse.name}.` };
     }
 
-    // Deduct mana
+    // Deduct mana regardless of outcome, unless it's a critical failure that prevents casting.
     newPlayerStatus.mana -= skillToUse.manaCost;
 
     let log = "";
+    let effectMultiplier = 1.0;
+
+    switch (successLevel) {
+        case 'CriticalFailure':
+            if (skillToUse.effect.type === 'HEAL') {
+                const backfireDamage = Math.round(skillToUse.effect.amount * 0.5);
+                newPlayerStatus.hp = Math.max(0, newPlayerStatus.hp - backfireDamage);
+                log = `Kỹ năng phản tác dụng! Phép thuật chữa lành của bạn gây ra ${backfireDamage} sát thương cho chính bạn.`;
+            } else if (skillToUse.effect.type === 'DAMAGE') {
+                 const backfireDamage = Math.round(skillToUse.effect.amount * 0.5);
+                newPlayerStatus.hp = Math.max(0, newPlayerStatus.hp - backfireDamage);
+                log = `Kỹ năng phản tác dụng! Quả cầu lửa nổ tung trên tay bạn, gây ${backfireDamage} sát thương.`;
+            }
+            return { updatedPlayerStatus: newPlayerStatus, updatedEnemy: newEnemy, log };
+
+        case 'Failure':
+            log = `Năng lượng ma thuật tiêu tán! Nỗ lực sử dụng ${skillToUse.name} của bạn đã thất bại.`;
+            return { updatedPlayerStatus: newPlayerStatus, updatedEnemy: newEnemy, log };
+
+        case 'GreatSuccess':
+            effectMultiplier = 1.5;
+            break;
+        case 'CriticalSuccess':
+            effectMultiplier = 2.0;
+            break;
+        case 'Success':
+        default:
+            effectMultiplier = 1.0;
+            break;
+    }
 
     // Apply skill effect
     switch (skillToUse.effect.type) {
         case 'HEAL':
             if (skillToUse.effect.target === 'SELF') {
+                const healAmount = Math.round(skillToUse.effect.amount * effectMultiplier);
                 const oldHp = newPlayerStatus.hp;
-                newPlayerStatus.hp = Math.min(100, newPlayerStatus.hp + skillToUse.effect.amount);
+                newPlayerStatus.hp = Math.min(100, newPlayerStatus.hp + healAmount);
                 const healedAmount = newPlayerStatus.hp - oldHp;
                 log = `Sử dụng ${skillToUse.name}, hồi ${healedAmount} máu.`;
+                if (successLevel === 'GreatSuccess') log += ' Luồng năng lượng mạnh mẽ giúp bạn cảm thấy sảng khoái hơn nhiều.';
+                if (successLevel === 'CriticalSuccess') log += ' Một luồng năng lượng thần thánh bao bọc lấy bạn, chữa lành vết thương một cách thần kỳ!';
             }
             break;
         case 'DAMAGE':
@@ -346,9 +380,15 @@ export const useSkillTool = ai.defineTool({
                 if (!newEnemy) {
                     log = `Sử dụng ${skillToUse.name}, nhưng không có mục tiêu.`;
                 } else {
-                    const damage = skillToUse.effect.amount + Math.round(newPlayerStatus.attributes.magicalAttack * 0.5);
-                    newEnemy.hp = Math.max(0, newEnemy.hp - damage);
-                    log = `Sử dụng ${skillToUse.name}, gây ${damage} sát thương phép lên ${newEnemy.type}.`;
+                    const baseDamage = skillToUse.effect.amount + Math.round(newPlayerStatus.attributes.magicalAttack * 0.5);
+                    const finalDamage = Math.round(baseDamage * effectMultiplier);
+
+                    newEnemy.hp = Math.max(0, newEnemy.hp - finalDamage);
+                    log = `Sử dụng ${skillToUse.name}, gây ${finalDamage} sát thương phép lên ${newEnemy.type}.`;
+                     if (successLevel === 'GreatSuccess') log += ' Quả cầu lửa bay nhanh và chính xác hơn, gây thêm sát thương.';
+                    if (successLevel === 'CriticalSuccess') log = `Một đòn CHÍ MẠNG phép thuật! ${skillToUse.name} của bạn bùng nổ dữ dội, gây ${finalDamage} sát thương hủy diệt lên ${newEnemy.type}.`;
+
+
                     if (newEnemy.hp <= 0) {
                         log += ` ${newEnemy.type} đã bị tiêu diệt!`;
                         newEnemy = null;

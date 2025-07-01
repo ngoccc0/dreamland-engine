@@ -12,7 +12,7 @@ import { Skeleton } from "../ui/skeleton";
 import { Separator } from "../ui/separator";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { useLanguage } from "@/context/language-context";
-import type { WorldConcept, ItemDefinition } from "@/lib/game/types";
+import type { WorldConcept, Skill } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 
 interface WorldSetupProps {
@@ -25,6 +25,7 @@ type Selection = {
     startingBiome: number;
     playerInventory: number;
     initialQuests: number;
+    startingSkill: number;
 };
 
 export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
@@ -44,6 +45,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         startingBiome: 0,
         playerInventory: 0,
         initialQuests: 0,
+        startingSkill: 0,
     });
     
     const [apiWorldName, setApiWorldName] = useState<CarouselApi>();
@@ -51,6 +53,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
     const [apiBiome, setApiBiome] = useState<CarouselApi>();
     const [apiInventory, setApiInventory] = useState<CarouselApi>();
     const [apiQuests, setApiQuests] = useState<CarouselApi>();
+    const [apiSkill, setApiSkill] = useState<CarouselApi>();
 
     const { toast } = useToast();
 
@@ -104,6 +107,13 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         return () => { apiQuests.off('select', onSelect); };
     }, [apiQuests]);
 
+    useEffect(() => {
+        if (!apiSkill) return;
+        const onSelect = () => setSelection(p => ({ ...p, startingSkill: apiSkill.selectedScrollSnap() }));
+        apiSkill.on('select', onSelect);
+        return () => { apiSkill.off('select', onSelect); };
+    }, [apiSkill]);
+
 
     const handleSuggest = async () => {
         if (!userInput.trim()) return;
@@ -151,6 +161,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
             startingBiome: concepts[selection.startingBiome].startingBiome,
             playerInventory: concepts[selection.playerInventory].playerInventory,
             initialQuests: concepts[selection.initialQuests].initialQuests,
+            startingSkill: concepts[selection.startingSkill].startingSkill,
             // Important: Use the single, shared item catalog
             customItemCatalog: generatedData.customItemCatalog,
         };
@@ -285,6 +296,34 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                                 <div className="p-1">
                                                     <Card className="flex items-center justify-center p-4 h-20 shadow-inner bg-muted/30">
                                                         <p className="font-semibold text-center text-lg capitalize">{concept.startingBiome}</p>
+                                                    </Card>
+                                                </div>
+                                            </CarouselItem>
+                                        ))}
+                                    </CarouselContent>
+                                    <CarouselPrevious />
+                                    <CarouselNext />
+                                </Carousel>
+                            </div>
+
+                             <Separator />
+
+                             {/* Starting Skill */}
+                            <div className="space-y-2">
+                                <h3 className="text-lg font-semibold font-headline text-center">{t('startingSkill')}</h3>
+                                <Carousel setApi={setApiSkill} opts={{ align: "start", loop: true }} className="w-full max-w-lg mx-auto">
+                                    <CarouselContent>
+                                        {generatedData.concepts.map((concept, index) => (
+                                            <CarouselItem key={index} className="md:basis-1/2">
+                                                <div className="p-1">
+                                                    <Card className="shadow-inner bg-muted/30 h-36">
+                                                        <CardHeader className="p-4">
+                                                            <CardTitle className="text-lg">{concept.startingSkill.name}</CardTitle>
+                                                        </CardHeader>
+                                                        <CardContent className="p-4 pt-0">
+                                                            <p className="text-sm text-muted-foreground">{concept.startingSkill.description}</p>
+                                                            <p className="text-xs mt-2">{t('manaCost')}: {concept.startingSkill.manaCost}</p>
+                                                        </CardContent>
                                                     </Card>
                                                 </div>
                                             </CarouselItem>

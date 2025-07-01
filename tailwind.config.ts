@@ -56,15 +56,17 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
         map: {
-          forest: '#2F4F4F', // Dark Slate Gray
-          grassland: '#8FBC8F', // Dark Sea Green
-          desert: '#F0E68C', // Khaki
-          swamp: '#2E473B', // Dark Green/Brown
-          mountain: '#8B4513', // Saddle Brown
-          cave: '#4A4A4A', // Dark Grey
-          empty: '#343434', // Dark gray for unexplored
-          player: '#DC143C', // Crimson
-          enemy: '#FF6347', // Tomato
+          forest: '#2F4F4F',      // Dark Slate Gray
+          grassland: '#8FBC8F',  // Dark Sea Green
+          desert: '#F0E68C',     // Khaki
+          swamp: '#2E473B',      // Dark Green/Brown
+          mountain: '#8B4513',   // Saddle Brown
+          cave: '#4A4A4A',       // Dark Grey
+          jungle: '#00532C',     // Very Dark Green
+          volcanic: '#4E0A0A',   // Dark Red/Brown
+          empty: '#343434',      // Dark gray for unexplored
+          player: '#DC143C',     // Crimson
+          enemy: '#FF6347',      // Tomato
         }
       },
       borderRadius: {

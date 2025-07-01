@@ -7,7 +7,7 @@
  * This file defines the AI workflow for world creation. It is now a two-step parallel process
  * to improve quality, allow for a larger number of generated items, and reduce wait times.
  * 1. Task A (Gemini): Generate a large catalog of items and three world names.
- * 2. Task B (OpenAI): Simultaneously generate the narrative details for three concepts.
+ * 2. Task B (Gemini): Simultaneously generate the narrative details for three concepts.
  * The results are then combined, with player inventory and starting skills being assigned programmatically.
  *
  * - generateWorldSetup - The main function for the application to use.
@@ -129,9 +129,9 @@ const generateWorldSetupFlow = ai.defineFlow(
         output: { schema: ItemsAndNamesOutputSchema },
     });
     
-    // Task B: Generate Narrative Concepts (using OpenAI)
+    // Task B: Generate Narrative Concepts (using Gemini)
     const narrativeConceptsTask = ai.generate({
-        model: 'openai/gpt-3.5-turbo',
+        model: 'googleai/gemini-2.0-flash',
         prompt: narrativeConceptsFinalPrompt,
         output: { schema: NarrativeConceptArraySchema },
     });

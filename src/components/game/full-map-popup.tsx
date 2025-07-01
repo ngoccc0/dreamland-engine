@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/language-context";
-import type { World, Chunk } from "@/lib/game/types";
+import type { World, Chunk, Terrain } from "@/lib/game/types";
 import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon } from "./icons";
 
 interface FullMapPopupProps {
@@ -18,23 +18,27 @@ interface FullMapPopupProps {
 }
 
 // Re-using styles and icons from minimap for consistency
-const biomeColors = {
+const biomeColors: Record<Terrain | 'empty', string> = {
   forest: "bg-map-forest",
   grassland: "bg-map-grassland",
   desert: "bg-map-desert",
   swamp: "bg-map-swamp",
   mountain: "bg-map-mountain",
   cave: "bg-map-cave",
+  jungle: "bg-map-jungle",
+  volcanic: "bg-map-volcanic",
   empty: "bg-black/20", // Use a different color for unexplored but within bounds
 };
 
-const biomeIcons: Record<"forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave", React.ReactNode> = {
+const biomeIcons: Record<Exclude<Terrain, 'empty'>, React.ReactNode> = {
     forest: <span className="text-2xl opacity-80" role="img" aria-label="forest">🌳</span>,
     grassland: <span className="text-2xl opacity-80" role="img" aria-label="grassland">🌾</span>,
     desert: <span className="text-2xl opacity-80" role="img" aria-label="desert">🏜️</span>,
     swamp: <span className="text-2xl opacity-80" role="img" aria-label="swamp">🌿</span>,
     mountain: <span className="text-2xl opacity-80" role="img" aria-label="mountain">⛰️</span>,
     cave: <span className="text-2xl opacity-80" role="img" aria-label="cave">🪨</span>,
+    jungle: <span className="text-2xl opacity-80" role="img" aria-label="jungle">🦜</span>,
+    volcanic: <span className="text-2xl opacity-80" role="img" aria-label="volcanic">🌋</span>,
 };
 
 const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {

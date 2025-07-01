@@ -8,7 +8,7 @@
 import {z} from 'genkit';
 import type { Terrain } from '@/lib/game/types';
 
-const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave"];
+const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic"];
 
 export const ItemCategorySchema = z.enum(['Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion']).describe("The category of the item.");
 
@@ -95,7 +95,7 @@ export const ChunkItemSchema = z.object({
 export const ChunkSchema = z.object({
     x: z.number(),
     y: z.number(),
-    terrain: z.enum(["forest", "grassland", "desert", "swamp", "mountain", "cave"]),
+    terrain: z.enum(["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic"]),
     description: z.string(),
     NPCs: z.array(z.string()),
     items: z.array(ChunkItemSchema).describe("Items present in the chunk, with quantities and tiers."),

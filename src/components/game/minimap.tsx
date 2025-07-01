@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon } from "./icons";
 import { useLanguage } from "@/context/language-context";
 import type React from "react";
-import type { MapCell } from "@/lib/game/types";
+import type { MapCell, Terrain } from "@/lib/game/types";
 
 
 interface MinimapProps {
@@ -14,24 +14,28 @@ interface MinimapProps {
   playerPosition: { x: number; y: number };
 }
 
-const biomeColors = {
+const biomeColors: Record<Terrain | 'empty', string> = {
   forest: "bg-map-forest",
   grassland: "bg-map-grassland",
   desert: "bg-map-desert",
   swamp: "bg-map-swamp",
   mountain: "bg-map-mountain",
   cave: "bg-map-cave",
+  jungle: "bg-map-jungle",
+  volcanic: "bg-map-volcanic",
   empty: "bg-map-empty",
 };
 
 // Map biome types to their respective emojis
-const biomeIcons: Record<"forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave", React.ReactNode> = {
+const biomeIcons: Record<Exclude<Terrain, 'empty'>, React.ReactNode> = {
     forest: <span className="text-3xl opacity-80" role="img" aria-label="forest">🌳</span>,
     grassland: <span className="text-3xl opacity-80" role="img" aria-label="grassland">🌾</span>,
     desert: <span className="text-3xl opacity-80" role="img" aria-label="desert">🏜️</span>,
     swamp: <span className="text-3xl opacity-80" role="img" aria-label="swamp">🌿</span>,
     mountain: <span className="text-3xl opacity-80" role="img" aria-label="mountain">⛰️</span>,
     cave: <span className="text-3xl opacity-80" role="img" aria-label="cave">🪨</span>,
+    jungle: <span className="text-3xl opacity-80" role="img" aria-label="jungle">🦜</span>,
+    volcanic: <span className="text-3xl opacity-80" role="img" aria-label="volcanic">🌋</span>,
 };
 
 
@@ -58,7 +62,7 @@ export function Minimap({ grid, onTitleClick, playerPosition }: MinimapProps) {
                 aria-label={`Map cell at ${rowIndex}, ${colIndex}. Biome: ${cell.biome}${cell.hasPlayer ? '. Player is here.' : ''}${cell.enemyEmoji ? '. Enemy is here.' : ''}${cell.hasNpc ? '. NPC is here.' : ''}${cell.itemEmoji ? '. Item is here.' : ''}`}
             >
                 {/* Render the biome icon if the cell is not empty */}
-                {cell.biome !== 'empty' && biomeIcons[cell.biome]}
+                {cell.biome !== 'empty' && biomeIcons[cell.biome as Exclude<Terrain, 'empty'>]}
                 
                 {/* Player and Enemy icons will be rendered on top of biome */}
                 {cell.enemyEmoji && <EnemyIcon emoji={cell.enemyEmoji} />}

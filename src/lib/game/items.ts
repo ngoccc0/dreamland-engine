@@ -872,4 +872,80 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
+
+    // --- TÀI NGUYÊN BIOME - RỪNG RẬM (JUNGLE) ---
+    'Dây leo Titan': {
+        description: 'Một sợi dây leo to và chắc như cáp thép, gần như không thể bị cắt đứt.',
+        tier: 3,
+        category: 'Material',
+        emoji: '🌿',
+        effects: [],
+        baseQuantity: { min: 1, max: 2 }
+    },
+    'Hoa ăn thịt': {
+        description: 'Một bông hoa có màu sắc rực rỡ và mùi hương quyến rũ, nhưng những chiếc lá của nó có gai sắc nhọn.',
+        tier: 3,
+        category: 'Material',
+        emoji: '🌺',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Nọc Ếch độc': {
+        description: 'Một loại độc tố cực mạnh được chiết xuất từ da của loài ếch cây sặc sỡ.',
+        tier: 4,
+        category: 'Material',
+        emoji: '🐸',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Lông Vẹt Sặc Sỡ': {
+        description: 'Một chiếc lông vũ có màu sắc cầu vồng, được các bộ lạc trong rừng rậm dùng làm vật trang trí.',
+        tier: 2,
+        category: 'Material',
+        emoji: '🦜',
+        effects: [],
+        baseQuantity: { min: 2, max: 5 }
+    },
+    'Quả Lạ': {
+        description: 'Một loại quả có vỏ cứng và hình thù kỳ dị, không rõ có ăn được không.',
+        tier: 2,
+        category: 'Food',
+        emoji: '🥥',
+        effects: [{ type: 'RESTORE_STAMINA', amount: 15 }],
+        baseQuantity: { min: 1, max: 3 }
+    },
+
+    // --- TÀI NGUYÊN BIOME - NÚI LỬA (VOLCANIC) ---
+    'Đá Obsidian': {
+        description: 'Một mảnh đá thủy tinh núi lửa đen bóng, có cạnh sắc như dao cạo.',
+        tier: 3,
+        category: 'Material',
+        emoji: '🪨',
+        effects: [],
+        baseQuantity: { min: 2, max: 4 }
+    },
+    'Lưu huỳnh': {
+        description: 'Một cục bột màu vàng có mùi trứng thối đặc trưng, là thành phần quan trọng trong chế tạo thuốc súng.',
+        tier: 2,
+        category: 'Material',
+        emoji: '✨',
+        effects: [],
+        baseQuantity: { min: 1, max: 3 }
+    },
+    'Trái tim Magma': {
+        description: 'Một hòn đá vẫn còn nóng hổi và phát ra ánh sáng le lói, chứa đựng năng lượng của dung nham.',
+        tier: 5,
+        category: 'Energy Source',
+        emoji: '❤️‍🔥',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Tro núi lửa': {
+        description: 'Một lớp bụi mịn màu xám, rất giàu khoáng chất và có thể dùng làm phân bón.',
+        tier: 1,
+        category: 'Material',
+        emoji: '🌋',
+        effects: [],
+        baseQuantity: { min: 1, max: 5 }
+    },
 };

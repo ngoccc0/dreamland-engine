@@ -5,7 +5,7 @@ export const weatherPresets: WeatherState[] = [
     {
         name: 'Clear Skies',
         description: 'Bầu trời quang đãng, không một gợn mây.',
-        biome_affinity: ['forest', 'grassland', 'desert', 'swamp', 'mountain'],
+        biome_affinity: ['forest', 'grassland', 'desert', 'swamp', 'mountain', 'jungle'],
         season_affinity: ['spring', 'summer', 'autumn', 'winter'],
         temperature_delta: 0,
         moisture_delta: 0,
@@ -20,7 +20,7 @@ export const weatherPresets: WeatherState[] = [
     {
         name: 'Gentle Breeze',
         description: 'Một làn gió nhẹ thổi qua, mang theo không khí trong lành.',
-        biome_affinity: ['grassland', 'mountain', 'forest'],
+        biome_affinity: ['grassland', 'mountain', 'forest', 'jungle'],
         season_affinity: ['spring', 'summer'],
         temperature_delta: -1,
         moisture_delta: 0,
@@ -33,7 +33,7 @@ export const weatherPresets: WeatherState[] = [
     {
         name: 'Light Rain',
         description: 'Một cơn mưa phùn nhẹ bắt đầu rơi, làm dịu đi không khí.',
-        biome_affinity: ['forest', 'grassland', 'swamp'],
+        biome_affinity: ['forest', 'grassland', 'swamp', 'jungle'],
         season_affinity: ['spring', 'autumn'],
         temperature_delta: -2,
         moisture_delta: 2,
@@ -48,7 +48,7 @@ export const weatherPresets: WeatherState[] = [
     {
         name: 'Heavy Rain',
         description: 'Mưa bắt đầu trút xuống nặng hạt, làm mặt đất trở nên lầy lội.',
-        biome_affinity: ['forest', 'swamp'],
+        biome_affinity: ['forest', 'swamp', 'jungle'],
         season_affinity: ['spring', 'autumn'],
         temperature_delta: -3,
         moisture_delta: 4,
@@ -61,7 +61,7 @@ export const weatherPresets: WeatherState[] = [
     {
         name: 'Thick Fog',
         description: 'Sương mù dày đặc bao trùm lấy cảnh vật, tầm nhìn bị hạn chế rất nhiều.',
-        biome_affinity: ['swamp', 'forest', 'mountain'],
+        biome_affinity: ['swamp', 'forest', 'mountain', 'jungle'],
         season_affinity: ['autumn', 'winter', 'spring'],
         temperature_delta: -1,
         moisture_delta: 1,
@@ -74,7 +74,7 @@ export const weatherPresets: WeatherState[] = [
     {
         name: 'Scorching Sun',
         description: 'Cái nóng như thiêu như đốt của mặt trời khiến không khí trở nên ngột ngạt.',
-        biome_affinity: ['desert', 'grassland'],
+        biome_affinity: ['desert', 'grassland', 'volcanic'],
         season_affinity: ['summer'],
         temperature_delta: 4,
         moisture_delta: -3,
@@ -124,7 +124,7 @@ export const weatherPresets: WeatherState[] = [
         duration_range: [10, 20]
     },
     
-    // --- CAVE (Special) ---
+    // --- SPECIAL BIOME WEATHER ---
     {
         name: 'Damp Stillness',
         description: 'Không khí trong hang ẩm ướt và tĩnh lặng đến lạ thường.',
@@ -149,6 +149,19 @@ export const weatherPresets: WeatherState[] = [
         light_delta: 0,
         spawnWeight: 5,
         exclusive_tags: ['windy'],
+        duration_range: [15, 30]
+    },
+    {
+        name: 'Ashfall',
+        description: 'Tro bụi từ ngọn núi lửa gần đó bắt đầu rơi xuống, bao phủ mọi thứ trong một lớp bụi xám.',
+        biome_affinity: ['volcanic'],
+        season_affinity: ['spring', 'summer', 'autumn', 'winter'],
+        temperature_delta: 1,
+        moisture_delta: -1,
+        wind_delta: 1,
+        light_delta: -3,
+        spawnWeight: 8,
+        exclusive_tags: ['ash'],
         duration_range: [15, 30]
     }
 ];

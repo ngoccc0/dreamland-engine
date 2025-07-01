@@ -1,6 +1,6 @@
 import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
-import openai from 'genkitx-openai';
+import {openai} from 'genkitx-openai';
 
 // NOTE: .env file is automatically loaded by Next.js.
 // No need for explicit dotenv configuration.

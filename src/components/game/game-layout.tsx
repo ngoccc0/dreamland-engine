@@ -10,7 +10,7 @@ import { CraftingPopup } from "@/components/game/crafting-popup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Backpack, Shield, Cpu, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Hammer } from "lucide-react";
+import { Backpack, Shield, Cpu, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Hammer, WandSparkles } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
 import { SwordIcon } from "@/components/game/icons";
@@ -44,6 +44,7 @@ export default function GameLayout(props: GameLayoutProps) {
         handleCustomAction,
         handleCraft,
         handleItemUsed,
+        handleUseSkill,
     } = useGameEngine(props);
 
     const [isStatusOpen, setStatusOpen] = useState(false);
@@ -293,6 +294,33 @@ export default function GameLayout(props: GameLayoutProps) {
                     <Separator className="flex-shrink-0" />
                     
                     <div className="space-y-4 flex-grow flex flex-col">
+                        <div className="flex flex-col space-y-2">
+                             <h2 className="font-headline text-lg font-semibold text-center text-foreground/80 flex-shrink-0">{t('skills')}</h2>
+                             <div className="grid grid-cols-2 gap-2">
+                                {playerStats.skills.map((skill) => (
+                                     <Tooltip key={skill.name}>
+                                        <TooltipTrigger asChild>
+                                            <Button 
+                                                variant="secondary" 
+                                                className="w-full justify-center text-xs" 
+                                                onClick={() => handleUseSkill(skill.name)} 
+                                                disabled={isLoading || playerStats.mana < skill.manaCost}
+                                            >
+                                                <WandSparkles className="mr-2 h-3 w-3" />
+                                                {skill.name} ({skill.manaCost} MP)
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{skill.description}</p>
+                                            <p className="text-muted-foreground">{t('manaCost')}: {skill.manaCost}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                ))}
+                             </div>
+                        </div>
+
+                        <Separator/>
+                        
                         <h2 className="font-headline text-lg font-semibold text-center text-foreground/80 flex-shrink-0">{t('availableActions')}</h2>
                         <div className="space-y-2 overflow-y-auto flex-grow">
                             {currentChunk?.actions.map(action => (

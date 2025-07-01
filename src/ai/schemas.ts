@@ -44,12 +44,24 @@ export const PetSchema = z.object({
 });
 export type Pet = z.infer<typeof PetSchema>;
 
+export const SkillSchema = z.object({
+    name: z.string().describe("The name of the skill."),
+    description: z.string().describe("A brief description of what the skill does."),
+    manaCost: z.number().describe("The amount of mana required to use the skill."),
+    effect: z.object({
+        type: z.enum(['HEAL', 'DAMAGE']).describe("The type of effect."),
+        amount: z.number().describe("The amount of healing or damage."),
+        target: z.enum(['SELF', 'ENEMY']).describe("Who the skill affects."),
+    }),
+});
+
 export const PlayerStatusSchema = z.object({
     hp: z.number(),
     mana: z.number(),
     stamina: z.number().describe("Player's stamina, used for physical actions."),
     items: z.array(PlayerItemSchema).describe("Player's inventory with item names, quantities, and tiers."),
     quests: z.array(z.string()),
+    skills: z.array(SkillSchema).describe("The skills the player knows."),
     attributes: PlayerAttributesSchema.describe("Player's combat attributes."),
     pets: z.array(PetSchema).optional().describe("A list of the player's tamed companions."),
 });

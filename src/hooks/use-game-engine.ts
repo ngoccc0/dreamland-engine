@@ -6,8 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/context/language-context";
 import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/generate-narrative-flow";
 import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, checkConditions, calculateCraftingOutcome } from '@/lib/game/engine';
-import { worldConfig, templates, itemDefinitions as staticItemDefinitions } from '@/lib/game/config';
-import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept } from "@/lib/game/types";
+import { worldConfig, templates, itemDefinitions as staticItemDefinitions, skillDefinitions } from '@/lib/game/config';
+import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 
 
@@ -73,6 +73,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             stamina: 100,
             items: worldSetup?.playerInventory || [],
             quests: worldSetup?.initialQuests || [],
+            skills: skillDefinitions, // Give player all skills by default
             pets: [],
             attributes: {
                 physicalAttack: 10,
@@ -945,6 +946,11 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         handleCustomAction(actionText);
     }, [handleCustomAction]);
 
+    const handleUseSkill = useCallback((skillName: string) => {
+        const actionText = `use skill ${skillName}`;
+        handleCustomAction(actionText);
+    }, [handleCustomAction]);
+
     return {
         // State
         world,
@@ -962,5 +968,6 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         handleCustomAction,
         handleCraft,
         handleItemUsed,
+        handleUseSkill,
     }
 }

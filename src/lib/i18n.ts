@@ -81,6 +81,9 @@ export const translations = {
     submitTooltip: "Submit your custom action.",
     aiStoryteller: "AI Storyteller",
     aiStorytellerDesc: "Enable to have an AI generate dynamic narratives. Disable for a classic, rule-based experience (works offline).",
+    skills: "Skills",
+    manaCost: "Mana Cost",
+
 
     // Controls
     moveAndAttack: "Move & Attack",
@@ -245,6 +248,8 @@ export const translations = {
     submitTooltip: "Gửi hành động tùy chỉnh của bạn.",
     aiStoryteller: "AI Kể Chuyện",
     aiStorytellerDesc: "Bật để AI tạo ra các câu chuyện động. Tắt để trải nghiệm kiểu cổ điển, dựa trên quy tắc (hoạt động ngoại tuyến).",
+    skills: "Kỹ năng",
+    manaCost: "Tiêu tốn Mana",
 
     // Controls
     moveAndAttack: "Di chuyển & Tấn công",

@@ -8,8 +8,8 @@
  */
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { PlayerStatusSchema, EnemySchema, PlayerItemSchema, ChunkItemSchema, ItemDefinitionSchema, PetSchema } from '@/ai/schemas';
-import type { PlayerItem, PlayerStatus, Pet, ChunkItem } from '@/lib/game/types';
+import { PlayerStatusSchema, EnemySchema, PlayerItemSchema, ChunkItemSchema, ItemDefinitionSchema, PetSchema, SkillSchema } from '@/ai/schemas';
+import type { PlayerItem, PlayerStatus, Pet, ChunkItem, Skill } from '@/lib/game/types';
 import { itemDefinitions as staticItemDefinitions, templates } from '@/lib/game/config';
 
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
@@ -296,4 +296,71 @@ export const tameEnemyTool = ai.defineTool({
             log: `The ${enemy.type} ate the ${itemName}, but remains wild.`
         };
     }
+});
+
+// --- Tool for Using a Skill ---
+export const useSkillTool = ai.defineTool({
+    name: 'useSkill',
+    description: "Uses one of the player's known skills. Call this when the player's action is to use a skill (e.g., 'use Heal', 'cast Fireball').",
+    inputSchema: z.object({
+        skillName: z.string().describe("The name of the skill to use from the player's skill list."),
+        playerStatus: PlayerStatusSchema,
+        enemy: EnemySchema.nullable().optional().describe("The enemy, if the skill targets one."),
+    }),
+    outputSchema: z.object({
+        updatedPlayerStatus: PlayerStatusSchema.describe("The player's status after the skill is used."),
+        updatedEnemy: EnemySchema.nullable().optional().describe("The enemy's new state, or null if defeated."),
+        log: z.string().describe("A factual log of what happened, e.g., 'Player is out of mana.', 'Healed for 25 HP.'"),
+    }),
+}, async ({ skillName, playerStatus, enemy }) => {
+    const newPlayerStatus: PlayerStatus = JSON.parse(JSON.stringify(playerStatus));
+    let newEnemy: typeof enemy | null = enemy ? JSON.parse(JSON.stringify(enemy)) : null;
+
+    const skillToUse = newPlayerStatus.skills.find(s => s.name.toLowerCase() === skillName.toLowerCase());
+
+    if (!skillToUse) {
+        return { updatedPlayerStatus: playerStatus, updatedEnemy: enemy, log: `Player does not know the skill: ${skillName}.` };
+    }
+
+    if (newPlayerStatus.mana < skillToUse.manaCost) {
+        return { updatedPlayerStatus: playerStatus, updatedEnemy: enemy, log: `Không đủ mana để sử dụng ${skillToUse.name}.` };
+    }
+
+    // Deduct mana
+    newPlayerStatus.mana -= skillToUse.manaCost;
+
+    let log = "";
+
+    // Apply skill effect
+    switch (skillToUse.effect.type) {
+        case 'HEAL':
+            if (skillToUse.effect.target === 'SELF') {
+                const oldHp = newPlayerStatus.hp;
+                newPlayerStatus.hp = Math.min(100, newPlayerStatus.hp + skillToUse.effect.amount);
+                const healedAmount = newPlayerStatus.hp - oldHp;
+                log = `Sử dụng ${skillToUse.name}, hồi ${healedAmount} máu.`;
+            }
+            break;
+        case 'DAMAGE':
+            if (skillToUse.effect.target === 'ENEMY') {
+                if (!newEnemy) {
+                    log = `Sử dụng ${skillToUse.name}, nhưng không có mục tiêu.`;
+                } else {
+                    const damage = skillToUse.effect.amount + Math.round(newPlayerStatus.attributes.magicalAttack * 0.5);
+                    newEnemy.hp = Math.max(0, newEnemy.hp - damage);
+                    log = `Sử dụng ${skillToUse.name}, gây ${damage} sát thương phép lên ${newEnemy.type}.`;
+                    if (newEnemy.hp <= 0) {
+                        log += ` ${newEnemy.type} đã bị tiêu diệt!`;
+                        newEnemy = null;
+                    }
+                }
+            }
+            break;
+    }
+
+    return {
+        updatedPlayerStatus: newPlayerStatus,
+        updatedEnemy: newEnemy,
+        log,
+    };
 });

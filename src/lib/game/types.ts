@@ -71,6 +71,18 @@ export interface Pet {
     level: number;
 }
 
+// Represents a skill the player can use.
+export interface Skill {
+    name: string;
+    description: string;
+    manaCost: number;
+    effect: {
+        type: 'HEAL' | 'DAMAGE';
+        amount: number;
+        target: 'SELF' | 'ENEMY';
+    };
+}
+
 // This represents the detailed properties of a single tile/chunk in the world.
 export interface Chunk {
     x: number;
@@ -122,6 +134,7 @@ export interface PlayerStatus {
     stamina: number;
     items: PlayerItem[];
     quests: string[];
+    skills: Skill[];
     attributes: {
         physicalAttack: number;
         magicalAttack: number;

@@ -17,6 +17,26 @@ export const ItemEffectSchema = z.object({
     amount: z.number(),
 });
 
+const ConditionRangeSchema = z.object({
+    min: z.number().optional(),
+    max: z.number().optional()
+});
+
+export const SpawnConditionsSchema = z.object({
+  chance: z.number().optional(),
+  vegetationDensity: ConditionRangeSchema.optional(),
+  moisture: ConditionRangeSchema.optional(),
+  elevation: ConditionRangeSchema.optional(),
+  dangerLevel: ConditionRangeSchema.optional(),
+  magicAffinity: ConditionRangeSchema.optional(),
+  humanPresence: ConditionRangeSchema.optional(),
+  predatorPresence: ConditionRangeSchema.optional(),
+  lightLevel: ConditionRangeSchema.optional(),
+  temperature: ConditionRangeSchema.optional(),
+  soilType: z.array(z.string()).optional(),
+}).describe("A set of environmental conditions.");
+
+
 export const ItemDefinitionSchema = z.object({
     description: z.string(),
     tier: z.number(),
@@ -24,6 +44,10 @@ export const ItemDefinitionSchema = z.object({
     emoji: z.string().describe("A single emoji that represents the item."),
     effects: z.array(ItemEffectSchema),
     baseQuantity: z.object({ min: z.number(), max: z.number() }),
+    growthConditions: z.object({
+      optimal: SpawnConditionsSchema.describe("The ideal conditions for the resource to thrive and reproduce."),
+      subOptimal: SpawnConditionsSchema.describe("Conditions where the resource can survive and reproduce slowly."),
+    }).optional().describe("For living resources like plants or fungi, define the conditions under which they grow. If not provided, the item will be static."),
 });
 
 
@@ -134,24 +158,6 @@ export const ChunkSchema = z.object({
 });
 
 // --- Schemas for World Generation ---
-const ConditionRangeSchema = z.object({
-    min: z.number().optional(),
-    max: z.number().optional()
-});
-
-export const SpawnConditionsSchema = z.object({
-  chance: z.number().optional(),
-  vegetationDensity: ConditionRangeSchema.optional(),
-  moisture: ConditionRangeSchema.optional(),
-  elevation: ConditionRangeSchema.optional(),
-  dangerLevel: ConditionRangeSchema.optional(),
-  magicAffinity: ConditionRangeSchema.optional(),
-  humanPresence: ConditionRangeSchema.optional(),
-  predatorPresence: ConditionRangeSchema.optional(),
-  lightLevel: ConditionRangeSchema.optional(),
-  temperature: ConditionRangeSchema.optional(),
-  soilType: z.array(z.string()).optional(),
-}).describe("A set of environmental conditions.");
 
 export const GeneratedItemSchema = z.object({
     name: z.string().describe("A unique and thematic name for the item."),

@@ -114,7 +114,7 @@ export const ChunkSchema = z.object({
     windLevel: z.number().optional(),   // Now optional to handle dynamic calculation
 });
 
-// -- Schemas for World Generation --
+// --- Schemas for World Generation ---
 const ConditionRangeSchema = z.object({
     min: z.number().optional(),
     max: z.number().optional()
@@ -151,3 +151,11 @@ export const GeneratedItemSchema = z.object({
       subOptimal: SpawnConditionsSchema.describe("Conditions where the resource can survive and reproduce slowly."),
     }).optional().describe("For living resources like plants or fungi, define the conditions under which they grow. If not provided, the item will be static."),
 });
+
+// Schema for Narrative Concepts (part of world generation)
+export const NarrativeConceptSchema = z.object({
+  initialNarrative: z.string().describe('A detailed, engaging opening narrative to start the game. This should set the scene for the player.'),
+  startingBiome: z.enum(allTerrains).describe('The primary biome for the starting area.'),
+  initialQuests: z.array(z.string()).describe('A list of 1-2 starting quests for the player to begin their adventure.'),
+});
+export const NarrativeConceptArraySchema = z.array(NarrativeConceptSchema).length(3);

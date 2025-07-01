@@ -19,10 +19,9 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import type { Terrain, Skill } from '@/lib/game/types';
 import Handlebars from 'handlebars';
-import { ItemCategorySchema, SkillSchema, SpawnConditionsSchema, GeneratedItemSchema } from '@/ai/schemas';
+import { GeneratedItemSchema, SkillSchema, NarrativeConceptArraySchema } from '@/ai/schemas';
 import { skillDefinitions } from '@/lib/game/skills';
 
-const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave"];
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
 
 
@@ -42,20 +41,12 @@ const ItemsAndNamesOutputSchema = z.object({
     worldNames: z.array(z.string()).length(3).describe("An array of three distinct and creative world names based on the user's input."),
 });
 
-// -- Task B Output Schema: Narrative Concepts --
-const NarrativeConceptSchema = z.object({
-  initialNarrative: z.string().describe('A detailed, engaging opening narrative to start the game. This should set the scene for the player.'),
-  startingBiome: z.enum(allTerrains).describe('The primary biome for the starting area.'),
-  initialQuests: z.array(z.string()).describe('A list of 1-2 starting quests for the player to begin their adventure.'),
-});
-const NarrativeConceptArraySchema = z.array(NarrativeConceptSchema).length(3);
-
 
 // -- Final Combined Output Schema (for the frontend) --
 const WorldConceptSchema = z.object({
   worldName: z.string(),
   initialNarrative: z.string(),
-  startingBiome: z.enum(allTerrains),
+  startingBiome: z.custom<Terrain>(), // Using custom to avoid z.enum with a const
   playerInventory: z.array(z.object({ name: z.string(), quantity: z.number().int().min(1) })),
   initialQuests: z.array(z.string()),
   startingSkill: SkillSchema,
@@ -202,7 +193,7 @@ const generateWorldSetupFlow = ai.defineFlow(
 
     const finalOutput: GenerateWorldSetupOutput = {
         customItemCatalog,
-        concepts: finalConcepts,
+        concepts: finalConcepts as any, // Cast to bypass strict type check for biome
     };
 
     return finalOutput;

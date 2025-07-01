@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -239,97 +240,6 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         weatherZones,
         gameTicks,
     ]);
-
-    const ensureChunkExists = useCallback((
-        pos: {x: number, y: number}, 
-        currentWorld: World,
-        currentRegions: { [id: number]: Region },
-        currentRegionCounter: number
-    ) => {
-        const newPosKey = `${pos.x},${pos.y}`;
-        if (currentWorld[newPosKey]) {
-            return { 
-                worldWithChunk: currentWorld, 
-                chunk: currentWorld[newPosKey],
-                regions: currentRegions,
-                regionCounter: currentRegionCounter,
-            };
-        }
-    
-        const validTerrains = getValidAdjacentTerrains(pos, currentWorld);
-        const terrainProbs = validTerrains.map(t => [t, worldConfig[t].spreadWeight] as [Terrain, number]);
-        const newTerrain = weightedRandom(terrainProbs);
-        
-        const result = generateRegion(
-            pos, 
-            newTerrain, 
-            currentWorld, 
-            currentRegions, 
-            currentRegionCounter,
-            worldProfile,
-            currentSeason,
-            customItemDefinitions,
-            customItemCatalog
-        );
-        
-        return { 
-            worldWithChunk: result.newWorld, 
-            chunk: result.newWorld[posKey],
-            regions: result.newRegions,
-            regionCounter: result.newRegionCounter
-        };
-    }, [worldProfile, currentSeason, customItemDefinitions, customItemCatalog]);
-    
-    useEffect(() => {
-        const generationTimer = setTimeout(() => {
-            let worldSnapshot = world;
-            let regionsSnapshot = regions;
-            let regionCounterSnapshot = regionCounter;
-            let needsUpdate = false;
-    
-            const generationRadius = 10;
-            for (let dx = -generationRadius; dx <= generationRadius; dx++) {
-                for (let dy = -generationRadius; dy <= generationRadius; dy++) {
-                    const pos = { x: playerPosition.x + dx, y: playerPosition.y + dy };
-                    const key = `${pos.x},${pos.y}`;
-    
-                    if (!worldSnapshot[key]) {
-                        const validTerrains = getValidAdjacentTerrains(pos, worldSnapshot);
-                        if (validTerrains.length === 0) continue;
-                        
-                        const terrainProbs = validTerrains.map(t => [t, worldConfig[t].spreadWeight] as [Terrain, number]);
-                        const newTerrain = weightedRandom(terrainProbs);
-                        
-                        const result = generateRegion(
-                            pos, 
-                            newTerrain, 
-                            worldSnapshot, 
-                            regionsSnapshot, 
-                            regionCounterSnapshot,
-                            worldProfile,
-                            currentSeason,
-                            customItemDefinitions,
-                            customItemCatalog
-                        );
-                        
-                        worldSnapshot = result.newWorld;
-                        regionsSnapshot = result.newRegions;
-                        regionCounterSnapshot = result.newRegionCounter;
-                        needsUpdate = true;
-                    }
-                }
-            }
-            
-            if (needsUpdate) {
-                setWorld(worldSnapshot);
-                setRegions(regionsSnapshot);
-                setRegionCounter(regionCounterSnapshot);
-            }
-        }, 100);
-    
-        return () => clearTimeout(generationTimer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [playerPosition]);
 
     const handleGameTick = useCallback(() => {
         const nextTick = gameTicks + 1;
@@ -625,6 +535,46 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         }
     };
     
+    const ensureChunkExists = useCallback((
+        pos: {x: number, y: number}, 
+        currentWorld: World,
+        currentRegions: { [id: number]: Region },
+        currentRegionCounter: number
+    ) => {
+        const newPosKey = `${pos.x},${pos.y}`;
+        if (currentWorld[newPosKey]) {
+            return { 
+                worldWithChunk: currentWorld, 
+                chunk: currentWorld[newPosKey],
+                regions: currentRegions,
+                regionCounter: currentRegionCounter,
+            };
+        }
+    
+        const validTerrains = getValidAdjacentTerrains(pos, currentWorld);
+        const terrainProbs = validTerrains.map(t => [t, worldConfig[t].spreadWeight] as [Terrain, number]);
+        const newTerrain = weightedRandom(terrainProbs);
+        
+        const result = generateRegion(
+            pos, 
+            newTerrain, 
+            currentWorld, 
+            currentRegions, 
+            currentRegionCounter,
+            worldProfile,
+            currentSeason,
+            customItemDefinitions,
+            customItemCatalog
+        );
+        
+        return { 
+            worldWithChunk: result.newWorld, 
+            chunk: result.newWorld[newPosKey], // Use newPosKey here
+            regions: result.newRegions,
+            regionCounter: result.newRegionCounter
+        };
+    }, [worldProfile, currentSeason, customItemDefinitions, customItemCatalog]);
+
     const handleMove = (direction: "north" | "south" | "east" | "west") => {
         let newPos = { ...playerPosition };
         let dirKey: 'directionNorth' | 'directionSouth' | 'directionEast' | 'directionWest' = 'directionNorth';
@@ -667,10 +617,12 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 const revealPos = { x: newPos.x + dx, y: newPos.y + dy };
                 const key = `${revealPos.x},${revealPos.y}`;
 
-                const result = ensureChunkExists(revealPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
-                worldSnapshot = result.worldWithChunk;
-                regionsSnapshot = result.regions;
-                regionCounterSnapshot = result.regionCounter;
+                if (!worldSnapshot[key]) {
+                    const result = ensureChunkExists(revealPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
+                    worldSnapshot = result.worldWithChunk;
+                    regionsSnapshot = result.regions;
+                    regionCounterSnapshot = result.regionCounter;
+                }
 
                 if (worldSnapshot[key]) {
                     worldSnapshot[key] = { ...worldSnapshot[key], explored: true };

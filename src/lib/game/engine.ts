@@ -287,8 +287,8 @@ function generateChunkContent(
 
     // More description based on calculated values
     if (chunkData.moisture > 8) finalDescription += " Không khí đặc quánh hơi ẩm.";
-    if (chunkData.windLevel > 8) finalDescription += " Một cơn gió mạnh rít qua bên tai bạn.";
-    if (chunkData.temperature < 3) finalDescription += " Một cái lạnh buốt thấu xương.";
+    if (chunkData.windLevel && chunkData.windLevel > 8) finalDescription += " Một cơn gió mạnh rít qua bên tai bạn.";
+    if (chunkData.temperature && chunkData.temperature < 3) finalDescription += " Một cái lạnh buốt thấu xương.";
     if (chunkData.dangerLevel > 8) finalDescription += " Bạn có cảm giác bất an ở nơi này.";
     if (chunkData.humanPresence > 5) finalDescription += " Dường như có dấu vết của người khác ở đây.";
     if (spawnedEnemy) finalDescription += ` Bạn cảm thấy sự hiện diện của một ${spawnedEnemy.type} nguy hiểm gần đây.`;
@@ -389,6 +389,7 @@ export const generateRegion = (
             magicAffinity,
             humanPresence,
             predatorPresence,
+            temperature: dependentAttributes.temperature,
             ...dependentAttributes,
         };
 

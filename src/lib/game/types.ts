@@ -103,9 +103,11 @@ export interface Chunk {
     humanPresence: number;       // 0-10, signs of human activity (camps, ruins).
     explorability: number;       // 0-10, ease of exploration.
     soilType: SoilType;          // Type of ground, affects what can grow.
-    windLevel: number;           // 0-10, strength of the wind.
-    temperature: number;         // 0-10, ambient temperature.
     predatorPresence: number;    // 0-10, likelihood of predator encounters.
+
+    // Optional because they are dynamically calculated by applying weather to a base value
+    windLevel?: number;
+    temperature?: number;
 }
 
 // Represents the entire game world as a collection of chunks.

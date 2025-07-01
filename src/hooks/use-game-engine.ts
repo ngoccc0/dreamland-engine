@@ -13,7 +13,7 @@ import { buildableStructures as staticBuildableStructures } from '@/lib/game/str
 import { skillDefinitions } from '@/lib/game/skills';
 import { templates } from '@/lib/game/templates';
 import { worldConfig } from '@/lib/game/world-config';
-import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, PlayerPersona, Structure } from "@/lib/game/types";
+import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, PlayerPersona, Structure, Pet } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 
 
@@ -1044,14 +1044,229 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         const actionText = target === 'player'
             ? `use ${itemName}`
             : `use ${itemName} on ${target}`;
+        addNarrativeEntry(actionText, 'action');
+
+        if (isOnline) {
+            handleOnlineNarrative(actionText, world, playerPosition, playerStats);
+            return;
+        }
+
+        // --- OFFLINE ITEM USAGE LOGIC ---
+        const itemIndex = playerStats.items.findIndex(i => i.name.toLowerCase() === itemName.toLowerCase());
+        if (itemIndex === -1) {
+            addNarrativeEntry("Bạn không có vật phẩm đó.", "system");
+            return;
+        }
+
+        // Logic for using item on self
+        if (target === 'player') {
+            const itemDef = customItemDefinitions[itemName] || staticItemDefinitions[itemName];
+            if (!itemDef || itemDef.effects.length === 0) {
+                addNarrativeEntry(`${itemName} không có tác dụng gì khi sử dụng theo cách này.`, 'narrative');
+                handleGameTick();
+                return;
+            }
+
+            const newStatus = { ...playerStats };
+            const effectDescriptions: string[] = [];
+            
+            itemDef.effects.forEach(effect => {
+                switch (effect.type) {
+                    case 'HEAL':
+                        const oldHp = newStatus.hp;
+                        newStatus.hp = Math.min(100, newStatus.hp + effect.amount);
+                        if (newStatus.hp > oldHp) {
+                            effectDescriptions.push(`hồi ${newStatus.hp - oldHp} máu`);
+                        }
+                        break;
+                    case 'RESTORE_STAMINA':
+                        const oldStamina = newStatus.stamina;
+                        newStatus.stamina = Math.min(100, newStatus.stamina + effect.amount);
+                        if (newStatus.stamina > oldStamina) {
+                            effectDescriptions.push(`phục hồi ${newStatus.stamina - oldStamina} thể lực`);
+                        }
+                        break;
+                }
+            });
+            
+            if (effectDescriptions.length === 0) {
+                addNarrativeEntry(`${itemName} không có hiệu quả.`, 'narrative');
+                handleGameTick();
+                return;
+            }
+
+            // Consume item
+            const newItems = [...newStatus.items];
+            newItems[itemIndex].quantity -= 1;
+            newStatus.items = newItems.filter(i => i.quantity > 0);
+
+            addNarrativeEntry(`Bạn sử dụng ${itemName}. Nó ${effectDescriptions.join(' và ')}.`, 'narrative');
+            setPlayerStats(newStatus);
+        }
+        // Logic for using item on an enemy (taming)
+        else {
+            const key = `${playerPosition.x},${playerPosition.y}`;
+            const enemy = world[key]?.enemy;
+            if (!enemy || enemy.type !== target) {
+                addNarrativeEntry(`Không có ${target} ở đây để sử dụng vật phẩm lên.`, 'narrative');
+                handleGameTick();
+                return;
+            }
+
+            if (!enemy.diet.includes(itemName)) {
+                addNarrativeEntry(`${enemy.type} không quan tâm đến ${itemName}.`, 'narrative');
+                handleGameTick();
+                return;
+            }
+            
+            // Consume the item
+            const newItems = [...playerStats.items];
+            newItems[itemIndex].quantity -= 1;
+            const newPlayerStatus = { ...playerStats, items: newItems.filter(i => i.quantity > 0) };
+            
+            const newEnemyState = { ...enemy };
+            newEnemyState.satiation = Math.min(newEnemyState.satiation + 1, newEnemyState.maxSatiation);
+
+            const baseTameChance = 0.1;
+            const satiationBonus = (newEnemyState.satiation / newEnemyState.maxSatiation) * 0.4;
+            const healthPenalty = (newEnemyState.hp / 100) * 0.2;
+            const tamingChance = baseTameChance + satiationBonus - healthPenalty;
+
+            if (Math.random() < tamingChance) {
+                const newPet: Pet = { type: enemy.type, level: 1 };
+                const updatedPets = [...(newPlayerStatus.pets || []), newPet];
+                
+                addNarrativeEntry(`Bạn đã thuần hóa thành công ${enemy.type}!`, 'system');
+                setWorld(prev => ({...prev, [key]: {...prev[key]!, enemy: null}}));
+                setPlayerStats({...newPlayerStatus, pets: updatedPets});
+
+            } else {
+                addNarrativeEntry(`${enemy.type} ăn ${itemName}, nhưng vẫn còn hoang dã.`, 'narrative');
+                setWorld(prev => ({...prev, [key]: {...prev[key]!, enemy: newEnemyState}}));
+                setPlayerStats(newPlayerStatus);
+            }
+        }
         
-        handleCustomAction(actionText);
-    }, [handleCustomAction]);
+        handleGameTick();
+    }, [playerStats, world, playerPosition, isOnline, customItemDefinitions, staticItemDefinitions, addNarrativeEntry, handleGameTick, handleOnlineNarrative]);
 
     const handleUseSkill = useCallback((skillName: string) => {
         const actionText = `use skill ${skillName}`;
-        handleCustomAction(actionText);
-    }, [handleCustomAction]);
+        addNarrativeEntry(actionText, 'action');
+
+        if (isOnline) {
+            handleOnlineNarrative(actionText, world, playerPosition, playerStats);
+            return;
+        }
+
+        // --- OFFLINE SKILL USAGE LOGIC ---
+        // This logic is adapted from the `useSkillTool` to provide a rich offline experience.
+        const skillToUse = playerStats.skills.find(s => s.name.toLowerCase() === skillName.toLowerCase());
+
+        if (!skillToUse) {
+            addNarrativeEntry(`Bạn không biết kỹ năng: ${skillName}.`, 'system');
+            return;
+        }
+
+        if (playerStats.mana < skillToUse.manaCost) {
+            addNarrativeEntry(`Không đủ mana để sử dụng ${skillToUse.name}.`, 'system');
+            return;
+        }
+
+        const diceRoll = Math.floor(Math.random() * 20) + 1;
+        const successLevel = getSuccessLevel(diceRoll);
+        addNarrativeEntry(t('diceRollMessage', { roll: diceRoll, level: t(successLevelToTranslationKey[successLevel]) }), 'system');
+
+        const newPlayerStatus = { ...playerStats, mana: playerStats.mana - skillToUse.manaCost };
+        let log = "";
+        let effectMultiplier = 1.0;
+        
+        // This logic is a direct adaptation from the online tool
+        switch (successLevel) {
+            case 'CriticalFailure':
+                if (skillToUse.effect.type === 'HEAL') {
+                    const backfireDamage = Math.round(skillToUse.effect.amount * 0.5);
+                    newPlayerStatus.hp = Math.max(0, newPlayerStatus.hp - backfireDamage);
+                    log = `Kỹ năng phản tác dụng! Phép thuật chữa lành của bạn gây ra ${backfireDamage} sát thương cho chính bạn.`;
+                } else if (skillToUse.effect.type === 'DAMAGE') {
+                     const backfireDamage = Math.round(skillToUse.effect.amount * 0.5);
+                    newPlayerStatus.hp = Math.max(0, newPlayerStatus.hp - backfireDamage);
+                    log = `Kỹ năng phản tác dụng! Quả cầu lửa nổ tung trên tay bạn, gây ${backfireDamage} sát thương.`;
+                }
+                break;
+
+            case 'Failure':
+                log = `Năng lượng ma thuật tiêu tán! Nỗ lực sử dụng ${skillToUse.name} của bạn đã thất bại.`;
+                break;
+
+            case 'GreatSuccess':
+                effectMultiplier = 1.5;
+                break;
+            case 'CriticalSuccess':
+                effectMultiplier = 2.0;
+                break;
+            case 'Success':
+            default:
+                effectMultiplier = 1.0;
+                break;
+        }
+
+        if (log) {
+            addNarrativeEntry(log, 'narrative');
+            setPlayerStats(newPlayerStatus);
+            handleGameTick();
+            return;
+        }
+
+        // Apply skill effect if not a failure
+        let finalLog = "";
+        let newWorld = { ...world };
+        const key = `${playerPosition.x},${playerPosition.y}`;
+        const enemy = newWorld[key]?.enemy;
+
+        switch (skillToUse.effect.type) {
+            case 'HEAL':
+                if (skillToUse.effect.target === 'SELF') {
+                    const healAmount = Math.round(skillToUse.effect.amount * effectMultiplier);
+                    const oldHp = newPlayerStatus.hp;
+                    newPlayerStatus.hp = Math.min(100, newPlayerStatus.hp + healAmount);
+                    const healedAmount = newPlayerStatus.hp - oldHp;
+                    finalLog = `Sử dụng ${skillToUse.name}, hồi ${healedAmount} máu.`;
+                    if (successLevel === 'GreatSuccess') finalLog += ' Luồng năng lượng mạnh mẽ giúp bạn cảm thấy sảng khoái hơn nhiều.';
+                    if (successLevel === 'CriticalSuccess') finalLog += ' Một luồng năng lượng thần thánh bao bọc lấy bạn, chữa lành vết thương một cách thần kỳ!';
+                }
+                break;
+            case 'DAMAGE':
+                if (skillToUse.effect.target === 'ENEMY') {
+                    if (!enemy) {
+                        finalLog = `Sử dụng ${skillToUse.name}, nhưng không có mục tiêu.`;
+                    } else {
+                        let newEnemy = { ...enemy };
+                        const baseDamage = skillToUse.effect.amount + Math.round(newPlayerStatus.attributes.magicalAttack * 0.5);
+                        const finalDamage = Math.round(baseDamage * effectMultiplier);
+
+                        newEnemy.hp = Math.max(0, newEnemy.hp - finalDamage);
+                        finalLog = `Sử dụng ${skillToUse.name}, gây ${finalDamage} sát thương phép lên ${newEnemy.type}.`;
+                         if (successLevel === 'GreatSuccess') finalLog += ' Quả cầu lửa bay nhanh và chính xác hơn, gây thêm sát thương.';
+                        if (successLevel === 'CriticalSuccess') finalLog = `Một đòn CHÍ MẠNG phép thuật! ${skillToUse.name} của bạn bùng nổ dữ dội, gây ${finalDamage} sát thương hủy diệt lên ${newEnemy.type}.`;
+
+                        if (newEnemy.hp <= 0) {
+                            finalLog += ` ${newEnemy.type} đã bị tiêu diệt!`;
+                            newWorld[key] = { ...newWorld[key]!, enemy: null };
+                        } else {
+                            newWorld[key] = { ...newWorld[key]!, enemy: newEnemy };
+                        }
+                    }
+                }
+                break;
+        }
+
+        addNarrativeEntry(finalLog, 'narrative');
+        setPlayerStats(newPlayerStatus);
+        setWorld(newWorld);
+        handleGameTick();
+
+    }, [playerStats, addNarrativeEntry, isOnline, handleOnlineNarrative, world, playerPosition, t, handleGameTick]);
 
     const handleBuild = useCallback((structureName: string) => {
         const structureToBuild = staticBuildableStructures[structureName];

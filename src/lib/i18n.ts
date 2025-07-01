@@ -1,6 +1,7 @@
 
 export const translations = {
   en: {
+    gameTitle: "Dreamland Engine",
     // Language Selector
     selectLanguage: "Select Language",
     
@@ -181,6 +182,7 @@ export const translations = {
     loadingAdventure: "Loading your adventure...",
   },
   vi: {
+    gameTitle: "Ký Sự Lãng Du",
     // Language Selector
     selectLanguage: "Chọn Ngôn Ngữ",
 

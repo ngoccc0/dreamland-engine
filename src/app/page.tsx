@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import GameLayout from '@/components/game/game-layout';
 import { WorldSetup } from '@/components/game/world-setup';
 import { LanguageSelector } from '@/components/game/language-selector';
@@ -19,30 +19,25 @@ type NewGameData = {
 
 export default function Home() {
   const { t } = useLanguage();
-  const [loadState, setLoadState] = useState<'loading' | 'prompt' | 'new_game' | 'continue_game'>('loading');
+  const [loadState, setLoadState] = useState<'loading' | 'select_language' | 'prompt' | 'new_game' | 'continue_game'>('loading');
   const [savedGameState, setSavedGameState] = useState<GameState | null>(null);
   const [newGameData, setNewGameData] = useState<NewGameData | null>(null);
-  const [languageSelected, setLanguageSelected] = useState(false);
 
-  useEffect(() => {
+  const parseAndSetSavedGame = useCallback(() => {
     try {
       const savedData = localStorage.getItem('gameState');
       if (savedData) {
         const gameState: GameState = JSON.parse(savedData);
         
-        // Data migration for old save files where player items were strings
+        // Data migration for old save files
         if (gameState.playerStats?.items && gameState.playerStats.items.length > 0 && typeof (gameState.playerStats.items[0] as any) === 'string') {
-          console.log("Migrating old inventory format...");
           gameState.playerStats.items = (gameState.playerStats.items as unknown as string[]).map((itemName): PlayerItem => ({
-            name: itemName.replace(/ \(.*/, ''), // Attempt to clean up names like "Item (description)"
+            name: itemName.replace(/ \(.*/, ''),
             quantity: 1,
-            tier: 1, // Add a default tier
+            tier: 1,
           }));
         }
-        
-        // Data migration for skill unlock progress
         if (!gameState.playerStats.unlockProgress) {
-          console.log("Initializing skill unlock progress...");
           gameState.playerStats.unlockProgress = { kills: 0, damageSpells: 0, moves: 0 };
         }
 
@@ -53,23 +48,35 @@ export default function Home() {
       }
     } catch (error) {
       console.error("Failed to load or migrate game state, starting a new game to prevent crash:", error);
-      // If migration fails or any other error, treat as a new game to prevent crashes
       localStorage.removeItem('gameState');
       setLoadState('new_game');
     }
   }, []);
+
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem('gameLanguage');
+    if (!savedLanguage) {
+      setLoadState('select_language');
+    } else {
+      parseAndSetSavedGame();
+    }
+  }, [parseAndSetSavedGame]);
 
   const handleContinue = () => setLoadState('continue_game');
   
   const handleNewGame = () => {
     localStorage.removeItem('gameState');
     setSavedGameState(null);
-    setNewGameData(null); // Clear new game data as well
+    setNewGameData(null);
     setLoadState('new_game');
   };
 
+  const handleLanguageSelected = () => {
+    // After language is selected, determine where to go next.
+    parseAndSetSavedGame();
+  };
+
   const onWorldCreated = (world: WorldConcept) => {
-    // 1. Process the AI's custom item catalog into the format the game engine uses.
     const customDefs: Record<string, ItemDefinition> = world.customItemCatalog.reduce((acc, item) => {
         acc[item.name] = {
             description: item.description,
@@ -77,23 +84,19 @@ export default function Home() {
             category: item.category,
             effects: item.effects,
             baseQuantity: item.baseQuantity,
-            growthConditions: item.growthConditions as any, // Cast to handle potential type mismatch from Zod
+            growthConditions: item.growthConditions as any,
         };
         return acc;
     }, {} as Record<string, ItemDefinition>);
 
-    // Combine with static definitions, allowing customs to override.
     const allItemDefinitions = { ...staticItemDefinitions, ...customDefs };
 
-    // 2. Transform the AI's chosen starting inventory into player items.
-    // We need to look up the tier from the definitions we just created.
     const initialPlayerItems: PlayerItem[] = world.playerInventory.map(item => ({
         name: item.name,
         quantity: item.quantity,
-        tier: allItemDefinitions[item.name]?.tier || 1 // Get tier from the combined list
+        tier: allItemDefinitions[item.name]?.tier || 1
     }));
 
-    // 3. Create a version of the world setup suitable for the GameLayout
     const worldSetupForLayout = {
         worldName: world.worldName,
         initialNarrative: world.initialNarrative,
@@ -103,11 +106,10 @@ export default function Home() {
         startingSkill: world.startingSkill,
     };
     
-    // 4. Set the complete new game data in state
     setNewGameData({
         worldSetup: worldSetupForLayout,
         customItemDefinitions: allItemDefinitions,
-        customItemCatalog: world.customItemCatalog, // Pass the raw catalog for spawning logic
+        customItemCatalog: world.customItemCatalog,
     });
   };
 
@@ -116,7 +118,7 @@ export default function Home() {
       <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
         <div className="flex flex-col items-center gap-4 text-center p-4 animate-in fade-in duration-1000">
           <BrainCircuit className="h-20 w-20 text-primary" />
-          <h1 className="text-5xl font-bold font-headline tracking-tighter">Ký Sự Lãng Du</h1>
+          <h1 className="text-5xl font-bold font-headline tracking-tighter">{t('gameTitle')}</h1>
           <div className="flex items-center gap-2 mt-4 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
             <p>{t('loadingAdventure')}</p>
@@ -124,6 +126,10 @@ export default function Home() {
         </div>
       </div>
     );
+  }
+
+  if (loadState === 'select_language') {
+    return <LanguageSelector onLanguageSelected={handleLanguageSelected} />;
   }
   
   if (loadState === 'prompt') {
@@ -150,19 +156,17 @@ export default function Home() {
   if (loadState === 'continue_game' && savedGameState) {
     return <GameLayout initialGameState={savedGameState} />;
   }
+  
+  if (loadState === 'new_game') {
+     if (!newGameData) {
+        return <WorldSetup onWorldCreated={onWorldCreated} />;
+    }
+    return <GameLayout 
+              worldSetup={newGameData.worldSetup} 
+              customItemDefinitions={newGameData.customItemDefinitions}
+              customItemCatalog={newGameData.customItemCatalog}
+            />;
+  }
 
-  // Flow for 'new_game'
-  if (!languageSelected) {
-    return <LanguageSelector onLanguageSelected={() => setLanguageSelected(true)} />;
-  }
-  
-  if (!newGameData) {
-    return <WorldSetup onWorldCreated={onWorldCreated} />;
-  }
-  
-  return <GameLayout 
-            worldSetup={newGameData.worldSetup} 
-            customItemDefinitions={newGameData.customItemDefinitions}
-            customItemCatalog={newGameData.customItemCatalog}
-          />;
+  return null; // Fallback for unexpected states
 }

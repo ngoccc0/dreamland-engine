@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { translations, Language, TranslationKey } from '@/lib/i18n';
 
 // A type for our t function to handle replacements
@@ -15,8 +15,23 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [language, setLanguage] = useState<Language>('vi'); // Start with a default language
+  // Default to 'vi' on server, will be corrected by useEffect on client.
+  // This prevents hydration mismatches.
+  const [language, setLanguageState] = useState<Language>('vi');
 
+  useEffect(() => {
+    // On mount, check localStorage for a saved language preference.
+    const savedLanguage = localStorage.getItem('gameLanguage') as Language;
+    if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'vi')) {
+      setLanguageState(savedLanguage);
+    }
+  }, []);
+
+  const setLanguage = (lang: Language) => {
+    localStorage.setItem('gameLanguage', lang);
+    setLanguageState(lang);
+  };
+  
   const t: TFunction = (key, replacements) => {
     // Fallback to English if translation is missing in the current language
     let translation = (translations[language] as any)[key] || (translations.en as any)[key] || key;

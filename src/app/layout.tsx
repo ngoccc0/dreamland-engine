@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { LanguageProvider } from '@/context/language-context';
 
 export const metadata: Metadata = {
-  title: 'Ký Sự Lãng Du',
+  title: 'Dreamland Engine',
   description: 'An AI-driven text-based adventure game.',
 };
 

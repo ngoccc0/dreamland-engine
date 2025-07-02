@@ -73,7 +73,6 @@ const itemsAndNamesPrompt = ai.definePrompt({
     name: 'generateItemsAndNamesPrompt',
     input: { schema: GenerateWorldSetupInputSchema },
     output: { schema: ItemsAndNamesOutputSchema },
-    model: 'openai/gpt-4o-mini', // Use OpenAI for this complex schema
     prompt: `You are a creative world-building assistant. Based on the user's idea, your task is to generate TWO things:
 1.  **A list of three (3) cool and evocative world names.**
 2.  **A large, shared catalog of 20 to 30 unique, thematically appropriate items** that could be found in this world.

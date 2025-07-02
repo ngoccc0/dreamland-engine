@@ -2,15 +2,21 @@
 'use server';
 
 /**
- * @fileOverview An AI agent for generating multiple, distinct game world concepts from a user's prompt.
+ * @fileOverview An AI agent for generating game world concepts by distributing tasks across multiple AI models.
  *
- * This file defines the AI workflow for world creation. It is now a two-step parallel process
- * that separates task definition from model execution and includes a fallback mechanism for robustness.
- * 1.  **Task A (Items & Names):** Uses a fallback chain (tries OpenAI, then Gemini) to generate a large catalog of
- *     items and three world names. This task is critical and benefits from the best available model.
- * 2.  **Task B (Narrative Concepts):** Simultaneously generates the narrative details for three concepts using the
- *     default, cost-effective model (Gemini Flash).
- * The results are then combined, with player inventory and starting skills being assigned programmatically.
+ * This file defines a sophisticated, parallelized AI workflow for world creation.
+ * It splits the generation process into two distinct, concurrent tasks to leverage the strengths
+ * of different AI models, increase speed, and improve reliability with a fallback mechanism.
+ *
+ * 1.  **Task A (Item Catalog Generation):** The most complex creative task. It uses a fallback chain of the
+ *     most powerful available models (OpenAI GPT-4, Gemini 1.5 Pro, Deepseek) to generate a rich,
+ *     thematic catalog of in-game items. This ensures the highest quality output for the most critical data.
+ *
+ * 2.  **Task B (Concepts & Names):** This task runs in parallel to Task A. It uses a fast and cost-effective
+ *     model (Gemini Flash) to generate world names and narrative starting points (descriptions, biomes, quests).
+ *
+ * The results from both tasks are then combined, and player inventory/skills are added programmatically to
+ * create the final, ready-to-play world concepts.
  *
  * - generateWorldSetup - The main function for the application to use.
  * - GenerateWorldSetupInput - The type definition for the input.
@@ -36,10 +42,15 @@ export type GenerateWorldSetupInput = z.infer<typeof GenerateWorldSetupInputSche
 
 // == INTERMEDIATE & FINAL OUTPUT SCHEMAS ==
 
-// -- Task A Output Schema: Items and Names --
-const ItemsAndNamesOutputSchema = z.object({
+// -- Task A Output: The most complex part, just the items. --
+const ItemCatalogOutputSchema = z.object({
     customItemCatalog: z.array(GeneratedItemSchema).describe("A shared catalog of 20-30 unique, thematic items invented for this specific game world theme."),
+});
+
+// -- Task B Output: Names and narrative concepts combined. --
+const ConceptsAndNamesOutputSchema = z.object({
     worldNames: z.array(z.string()).length(3).describe("An array of three distinct and creative world names based on the user's input."),
+    narrativeConcepts: NarrativeConceptArraySchema.describe("An array of three distinct narrative starting points, including descriptions, biomes, and quests."),
 });
 
 
@@ -69,34 +80,35 @@ export async function generateWorldSetup(input: GenerateWorldSetupInput): Promis
 
 // == PROMPT TEMPLATES (TASK DEFINITIONS) ==
 
-// -- Template for Task A: Items & Names --
-const itemsAndNamesPromptTemplate = `You are a creative world-building assistant. Based on the user's idea, your task is to generate TWO things:
-1.  **A list of three (3) cool and evocative world names.**
-2.  **A large, shared catalog of 20 to 30 unique, thematically appropriate items** that could be found in this world.
+// -- Template for Task A: Item Catalog Generation --
+const itemCatalogPromptTemplate = `You are a creative world-building assistant specializing in game item design. Based on the user's idea, your task is to generate **a large, shared catalog of 20 to 30 unique, thematically appropriate items** that could be found in this world.
 
 **User's Idea:** {{{userInput}}}
 
-For each item, define all required fields, including a single, representative emoji. For the 'category' field, you MUST use one of these exact values: 'Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion'.
+For each item, you MUST define all required fields: name, description, emoji, category, tier, effects, baseQuantity, and spawnBiomes. You may optionally define growthConditions.
+- For the 'category' field, use one of these exact values: 'Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion'.
+- The theme of the items should strongly reflect the user's input.
 
 Provide the response in the required JSON format. ALL TEXT in the response MUST be in the language corresponding to this code: {{language}}.`;
 
-// -- Template for Task B: Narrative Concepts --
-const narrativeConceptsPromptTemplate = `You are a creative Game Master. Based on the user's idea, you need to flesh out three distinct starting concepts for a game.
+// -- Template for Task B: Narrative Concepts & World Names --
+const conceptsAndNamesPromptTemplate = `You are a creative Game Master. Based on the user's idea, you need to generate TWO things:
+1.  **Three (3) distinct and creative world names.**
+2.  **Three (3) distinct starting concepts for a game.**
 
 **User's Idea:** {{{userInput}}}
 
-**Your Task:**
-For EACH of the three concepts, create the specific narrative details. You MUST generate an array of exactly three objects. For EACH object, create:
-1.  **initialNarrative:** A rich, descriptive opening paragraph for a world based on the user's idea.
+For EACH of the three concepts, create the specific narrative details:
+1.  **initialNarrative:** A rich, descriptive opening paragraph.
 2.  **startingBiome:** The biome where the player begins (forest, grassland, desert, swamp, mountain, or cave).
 3.  **initialQuests:** One or two simple starting quests.
 
-**DO NOT** create world names, player items, or starting skills. These will be handled by other processes.
+**DO NOT** create player items, an item catalog, or starting skills. These will be handled by other processes.
 
-Provide the response as a JSON array of three objects. ALL TEXT in the response MUST be in the language corresponding to this code: {{language}}.`;
+Provide the response as a single JSON object containing both the 'worldNames' array and the 'narrativeConcepts' array. ALL TEXT in the response MUST be in the language corresponding to this code: {{language}}.`;
 
 
-// == THE GENKIT FLOW (Orchestration with Fallback Logic) ==
+// == THE GENKIT FLOW (Orchestration with Parallel Tasks and Fallback Logic) ==
 const generateWorldSetupFlow = ai.defineFlow(
   {
     name: 'generateWorldSetupFlow',
@@ -107,54 +119,53 @@ const generateWorldSetupFlow = ai.defineFlow(
     
     // --- Step 1: Define two independent AI tasks to run in parallel ---
     
-    // Task A: Generate Items and World Names with a fallback mechanism.
-    // Tries the most powerful model first (OpenAI), then falls back to a strong alternative (Gemini Pro).
-    const itemsAndNamesTask = (async () => {
-        const modelsToTry = ['openai/gpt-4-turbo', 'googleai/gemini-1.5-pro', 'googleai/gemini-2.0-flash'];
+    // Task A: Generate the item catalog. This is complex, so we use a fallback chain of powerful models.
+    const itemCatalogTask = (async () => {
+        const modelsToTry = ['openai/gpt-4-turbo', 'googleai/gemini-1.5-pro', 'deepseek/deepseek-chat'];
         for (const modelName of modelsToTry) {
             try {
-                console.log(`Attempting item/name generation with model: ${modelName}`);
+                console.log(`Attempting item catalog generation with model: ${modelName}`);
                 const result = await ai.generate({
                     model: modelName,
-                    prompt: itemsAndNamesPromptTemplate,
+                    prompt: itemCatalogPromptTemplate,
                     input: input,
-                    output: { schema: ItemsAndNamesOutputSchema },
+                    output: { schema: ItemCatalogOutputSchema },
                 });
-                console.log(`Successfully generated items/names with ${modelName}.`);
+                console.log(`Successfully generated item catalog with ${modelName}.`);
                 return result;
             } catch (error) {
-                console.warn(`Model ${modelName} failed for item/name generation. Trying next model.`, error);
+                console.warn(`Model ${modelName} failed for item catalog generation. Trying next model.`, error);
             }
         }
-        // If all models in the list fail, throw an error.
-        throw new Error('All specified models failed for item and name generation.');
+        throw new Error('All primary models failed for item catalog generation.');
     })();
     
-    // Task B: Generate Narrative Concepts using the default, cost-effective model.
-    const narrativeConceptsTask = ai.generate({
-        prompt: narrativeConceptsPromptTemplate,
+    // Task B: Generate narrative concepts and world names. Use a fast, cost-effective model.
+    const conceptsAndNamesTask = ai.generate({
+        model: 'googleai/gemini-2.0-flash',
+        prompt: conceptsAndNamesPromptTemplate,
         input: input,
-        output: { schema: NarrativeConceptArraySchema },
+        output: { schema: ConceptsAndNamesOutputSchema },
     });
     
     // --- Step 2: Run both tasks in parallel and wait for them to complete ---
-    const [itemsAndNamesResult, narrativeConceptsResult] = await Promise.all([
-        itemsAndNamesTask,
-        narrativeConceptsTask,
+    const [itemCatalogResult, conceptsAndNamesResult] = await Promise.all([
+        itemCatalogTask,
+        conceptsAndNamesTask,
     ]);
     
-    const itemsAndNames = itemsAndNamesResult.output;
-    if (!itemsAndNames || !itemsAndNames.customItemCatalog || !itemsAndNames.worldNames) {
-        throw new Error("Failed to generate valid items and names from the AI.");
+    const customItemCatalog = itemCatalogResult.output?.customItemCatalog;
+    if (!customItemCatalog || customItemCatalog.length === 0) {
+        throw new Error("Failed to generate a valid item catalog from the AI.");
     }
     
-    const narrativeConcepts = narrativeConceptsResult.output;
-    if (!narrativeConcepts || narrativeConcepts.length !== 3) {
-        throw new Error("Failed to generate valid narrative concepts from the AI.");
+    const conceptsAndNames = conceptsAndNamesResult.output;
+    if (!conceptsAndNames || !conceptsAndNames.worldNames || !conceptsAndNames.narrativeConcepts || conceptsAndNames.narrativeConcepts.length !== 3) {
+        throw new Error("Failed to generate valid concepts and names from the AI.");
     }
     
     // --- Step 3: Combine the results and programmatically create inventory & skills ---
-    const { customItemCatalog, worldNames } = itemsAndNames;
+    const { worldNames, narrativeConcepts } = conceptsAndNames;
     const tier1Skills = skillDefinitions.filter(s => s.tier === 1);
     const tier2Skills = skillDefinitions.filter(s => s.tier === 2);
     
@@ -200,3 +211,5 @@ const generateWorldSetupFlow = ai.defineFlow(
     return finalOutput;
   }
 );
+
+    

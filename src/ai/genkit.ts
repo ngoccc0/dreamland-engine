@@ -1,6 +1,6 @@
 import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
-import {openai} from 'genkitx-openai';
+import {openAI} from 'genkitx-openai';
 
 // NOTE: .env file is automatically loaded by Next.js.
 // No need for explicit dotenv configuration.
@@ -8,7 +8,7 @@ import {openai} from 'genkitx-openai';
 export const ai = genkit({
   plugins: [
     googleAI(),
-    openai,
+    openAI(),
   ],
   model: 'googleai/gemini-2.0-flash',
 });

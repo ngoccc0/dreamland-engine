@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -34,6 +35,8 @@ export function StatusPopup({ open, onOpenChange, stats }: StatusPopupProps) {
             {t('playerStatusDesc')}
           </DialogDescription>
         </DialogHeader>
+        <Separator />
+        <p className="text-xs text-muted-foreground px-1 py-2">{t('bodyTempDesc')}</p>
         <ScrollArea className="max-h-[70vh] pr-6">
           <div className="grid gap-4 py-4">
             <div className="space-y-2">

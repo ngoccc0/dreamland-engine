@@ -10,7 +10,6 @@ import type { MapCell, Terrain } from "@/lib/game/types";
 
 interface MinimapProps {
   grid: MapCell[][];
-  onTitleClick?: () => void;
   playerPosition: { x: number; y: number };
 }
 
@@ -39,16 +38,10 @@ const biomeIcons: Record<Exclude<Terrain, 'empty'>, React.ReactNode> = {
 };
 
 
-export function Minimap({ grid, onTitleClick, playerPosition }: MinimapProps) {
+export function Minimap({ grid, playerPosition }: MinimapProps) {
   const { t } = useLanguage();
   return (
-    <div className="flex flex-col items-center gap-4">
-        <h3 
-            className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors"
-            onClick={onTitleClick}
-        >
-            {t('minimap')}
-        </h3>
+    <div className="flex flex-col items-center gap-2">
         <div className="grid grid-cols-5 border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-hidden">
         {grid.map((row, rowIndex) =>
             row.map((cell, colIndex) => (

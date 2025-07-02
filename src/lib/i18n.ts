@@ -1,3 +1,4 @@
+
 export const translations = {
   en: {
     gameTitle: "Dreamland Engine",
@@ -116,6 +117,7 @@ export const translations = {
     mana: "Mana: {mana}/50",
     stamina: "Stamina: {stamina}/100",
     bodyTemperature: "Body Temperature: {temp}°",
+    bodyTempDesc: "Your body constantly tries to maintain a stable 50°. Extreme temperatures will affect your stamina and health.",
     bodyTempTooLow: "You are freezing! Your health is dropping.",
     bodyTempTooHigh: "You are overheating! Your stamina is draining quickly.",
     companions: "Companions",
@@ -156,6 +158,8 @@ export const translations = {
     
     // Minimap
     minimap: "Minimap",
+    environmentTemperature: "Env. Temp: {temp}°C",
+    environmentTempTooltip: "The current temperature of the area, affected by weather and heat sources like campfires.",
     fullMapDescription: "Hover over a cell to see details. The map shows all explored areas.",
 
     // Example Prompts
@@ -307,6 +311,7 @@ export const translations = {
     mana: "Năng lượng: {mana}/50",
     stamina: "Thể lực: {stamina}/100",
     bodyTemperature: "Thân Nhiệt: {temp}°",
+    bodyTempDesc: "Cơ thể bạn luôn cố gắng duy trì ở mức 50°. Nhiệt độ quá cao hoặc quá thấp sẽ ảnh hưởng đến thể lực và máu.",
     bodyTempTooLow: "Bạn đang rét cóng! Máu đang giảm dần.",
     bodyTempTooHigh: "Bạn đang quá nóng! Thể lực giảm nhanh hơn.",
     companions: "Bạn đồng hành",
@@ -346,7 +351,9 @@ export const translations = {
     builtStructure: "Bạn đã xây dựng thành công một {structureName}.",
 
     // Minimap
-    minimap: "Minimap",
+    minimap: "Bản đồ nhỏ",
+    environmentTemperature: "Nhiệt độ MT: {temp}°C",
+    environmentTempTooltip: "Nhiệt độ hiện tại của khu vực, bị ảnh hưởng bởi thời tiết và các nguồn nhiệt như lửa trại.",
     fullMapDescription: "Di chuột qua một ô để xem chi tiết. Bản đồ hiển thị tất cả các khu vực đã được khám phá.",
 
     // Example Prompts

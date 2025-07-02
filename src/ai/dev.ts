@@ -1,6 +1,3 @@
-import { config } from 'dotenv';
-config();
-
 import '@/ai/schemas';
 import '@/ai/tools/game-actions';
 import '@/ai/flows/generate-world-setup.ts';

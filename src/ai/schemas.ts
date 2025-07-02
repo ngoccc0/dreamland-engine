@@ -208,3 +208,27 @@ export const RecipeSchema = z.object({
     description: z.string().describe("A brief, flavorful description of what this recipe creates."),
 });
 export type Recipe = z.infer<typeof RecipeSchema>;
+
+
+// --- Schemas for New Quest Generation ---
+export const GenerateNewQuestInputSchema = z.object({
+    worldName: z.string().describe("The name of the game world for thematic consistency."),
+    playerStatus: PlayerStatusSchema.describe("The player's current status (HP, items, skills, etc.)."),
+    currentChunk: ChunkSchema.describe("The detailed attributes of the map tile the player is currently on."),
+    existingQuests: z.array(z.string()).describe("A list of quests the player already has, to avoid duplicates."),
+    language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
+});
+
+export const GenerateNewQuestOutputSchema = z.object({
+    newQuest: z.string().describe("A single, short, and engaging quest objective."),
+});
+
+// --- Schemas for Quest Hint ---
+export const ProvideQuestHintInputSchema = z.object({
+    questText: z.string().describe("The full text of the quest for which a hint is needed."),
+    language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
+});
+
+export const ProvideQuestHintOutputSchema = z.object({
+    hint: z.string().describe("A single, short, helpful (but not spoiler-heavy) hint for the quest."),
+});

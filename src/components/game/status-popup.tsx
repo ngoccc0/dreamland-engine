@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,13 +9,15 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/context/language-context";
+import { provideQuestHint } from "@/ai/flows/provide-quest-hint";
 import type { PlayerStatus } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
-import { Heart } from "lucide-react";
+import { Heart, Loader2 } from "lucide-react";
 
 interface StatusPopupProps {
   open: boolean;
@@ -23,20 +26,50 @@ interface StatusPopupProps {
 }
 
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
-
-// Normalizes the temperature (e.g., 20-50°C range) to a 0-100% value for the UI bar.
 const normalizeTemp = (temp: number) => {
-    const minTemp = 20; // The coldest value visible on the bar
-    const maxTemp = 50; // The hottest value visible on the bar
+    const minTemp = 20;
+    const maxTemp = 50;
     return clamp(((temp - minTemp) / (maxTemp - minTemp)) * 100, 0, 100);
 }
 
+type HintState = {
+  hint?: string;
+  isLoading: boolean;
+  error?: string;
+}
 
 export function StatusPopup({ open, onOpenChange, stats }: StatusPopupProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const quests = stats.quests;
   const pets = stats.pets || [];
   const bodyTemp = stats.bodyTemperature ?? 37.0;
+
+  const [questHints, setQuestHints] = useState<Record<string, HintState>>({});
+
+  const handleQuestClick = async (questText: string) => {
+    if (questHints[questText]?.hint || questHints[questText]?.isLoading) {
+      return;
+    }
+
+    setQuestHints(prev => ({
+      ...prev,
+      [questText]: { isLoading: true }
+    }));
+
+    try {
+      const result = await provideQuestHint({ questText, language });
+      setQuestHints(prev => ({
+        ...prev,
+        [questText]: { hint: result.hint, isLoading: false }
+      }));
+    } catch (error) {
+      console.error("Failed to get quest hint:", error);
+      setQuestHints(prev => ({
+        ...prev,
+        [questText]: { error: t('suggestionError'), isLoading: false }
+      }));
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -72,7 +105,6 @@ export function StatusPopup({ open, onOpenChange, stats }: StatusPopupProps) {
                       style={{ left: `${normalizeTemp(bodyTemp)}%` }}
                       title={`Current: ${bodyTemp.toFixed(1)}°C`}
                   />
-                  {/* Ideal temperature marker */}
                   <div 
                       className="absolute top-0 h-full w-0.5 bg-white/50" 
                       style={{ left: `${normalizeTemp(37)}%` }}
@@ -123,13 +155,25 @@ export function StatusPopup({ open, onOpenChange, stats }: StatusPopupProps) {
           <div className="py-4">
             <h3 className="mb-2 font-headline font-semibold">{t('quests')}</h3>
             {quests.length > 0 ? (
-              <ul className="space-y-2">
+              <Accordion type="single" collapsible className="w-full space-y-2">
                 {quests.map((quest, index) => (
-                  <li key={index} className="p-2 bg-muted rounded-md text-muted-foreground">
-                    {quest}
-                  </li>
+                  <AccordionItem value={`item-${index}`} key={index} className="p-2 bg-muted rounded-md border-none">
+                    <AccordionTrigger onClick={() => handleQuestClick(quest)} className="py-0 text-left hover:no-underline text-muted-foreground">
+                      {quest}
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-2 text-accent-foreground italic">
+                      {questHints[quest]?.isLoading && (
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin"/>
+                          <span>{t('suggesting')}...</span>
+                        </div>
+                      )}
+                      {questHints[quest]?.error && <p className="text-destructive">{questHints[quest]?.error}</p>}
+                      {questHints[quest]?.hint && <p>"{questHints[quest]?.hint}"</p>}
+                    </AccordionContent>
+                  </AccordionItem>
                 ))}
-              </ul>
+              </Accordion>
             ) : (
               <p className="text-center text-muted-foreground">{t('noQuests')}</p>
             )}

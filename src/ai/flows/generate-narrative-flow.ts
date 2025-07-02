@@ -5,8 +5,8 @@
  *
  * This file defines the Genkit flow responsible for generating dynamic, context-aware narratives
  * for the game. It acts as an AI Game Master, taking the current game state and player action
- * to produce a rich, evolving story. It uses tools to perform reliable game state calculations
- * and now also checks for quest completion.
+ * to produce a rich, evolving story. It uses tools to perform reliable game state calculations,
+ * start new quests from NPCs, and handle quest completion.
  *
  * - generateNarrative - The main function called by the game layout.
  * - GenerateNarrativeInput - The Zod schema for the input data.
@@ -15,8 +15,9 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema } from '@/ai/schemas';
-import { playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool, completeQuestTool } from '@/ai/tools/game-actions';
+import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema } from '@/ai/schemas';
+import { playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool, completeQuestTool, startQuestTool } from '@/ai/tools/game-actions';
+import { generateNewQuest } from './generate-new-quest';
 
 // == STEP 1: DEFINE THE INPUT SCHEMA ==
 const SuccessLevelSchema = z.enum(['CriticalFailure', 'Failure', 'Success', 'GreatSuccess', 'CriticalSuccess']);
@@ -28,7 +29,6 @@ const GenerateNarrativeInputSchema = z.object({
   currentChunk: ChunkSchema.describe("The detailed attributes of the map tile the player is currently on. This includes dynamic weather effects."),
   recentNarrative: z.array(z.string()).describe("The last few entries from the narrative log to provide conversational context."),
   language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
-  customItemDefinitions: z.record(ItemDefinitionSchema).optional().describe("An optional map of AI-generated item definitions specific to this game world."),
   diceRoll: z.number().describe("The result of a d20 dice roll (1-20)."),
   successLevel: SuccessLevelSchema.describe("The categorized outcome of the dice roll."),
 });
@@ -71,17 +71,21 @@ const narrativePrompt = ai.definePrompt({
     name: 'narrativePrompt',
     input: { schema: GenerateNarrativeInputSchema },
     output: { schema: AINarrativeResponseSchema },
-    tools: [playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool, completeQuestTool],
+    tools: [playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool, completeQuestTool, startQuestTool],
     prompt: `You are the Game Master for a text-based adventure game called '{{worldName}}'. Your role is to be a dynamic and creative storyteller.
 
 **Core Task:**
-1.  **Analyze Action & Quests:** Check if the player's action '{{{playerAction}}}' completes an active quest in '{{json playerStatus.quests}}'. If so, you MUST call the 'completeQuestTool'.
-2.  **Call Tools:** If no quest is completed, use the most appropriate tool for the action (attack, take item, use item/skill, tame).
-3.  **Narrate the Outcome:** Craft an engaging 2-4 sentence narrative based on the tool's result AND the pre-determined 'successLevel'.
+1.  **Analyze Player Action:** Determine the player's intent based on '{{{playerAction}}}'.
+2.  **Prioritize Quests:**
+    - If the action completes a quest (e.g., 'give wolf fang to hunter' for quest 'Get wolf fang for hunter'), you MUST use \`completeQuestTool\`.
+    - If the action involves an NPC giving a new quest, you MUST use \`startQuestTool\`.
+3.  **Use Other Tools:** If no quest action is relevant, use the most appropriate tool (attack, take, use, tame, etc.).
+4.  **Narrate the Outcome:** Craft an engaging 2-4 sentence narrative based on the tool's result AND the pre-determined 'successLevel'.
 
 **Critical Rules:**
 - **Success Level is Law:** The 'successLevel' ('{{successLevel}}') dictates the outcome. A 'Failure' MUST be narrated as a failure, a 'CriticalSuccess' as a legendary event.
-- **Incorporate Persona:** Weave the player's persona ('{{playerStatus.persona}}') into the story for flavor. (e.g., "As a seasoned explorer, you easily spot a hidden path.")
+- **NPC Dialogue:** If the player talks to an NPC, generate a short, in-character response. The NPC might offer hints, lore, or a new quest.
+- **Incorporate Persona:** Weave the player's persona ('{{playerStatus.persona}}') into the story for flavor.
 - **Creature Behavior:** Respect the creature's behavior. If the 'playerAttack' tool returns 'fled: true', your narrative MUST describe the creature running away.
 - **Building Actions:** Guide players to use the dedicated 'Build' button for building actions. Do not use a tool for this. For example: 'To build something, it's best to use the dedicated Build menu.'
 - **Language:** Your entire response MUST be in the language for this code: {{language}}.
@@ -107,7 +111,6 @@ const narrativePrompt = ai.definePrompt({
 export async function generateNarrative(input: GenerateNarrativeInput): Promise<GenerateNarrativeOutput> {
   const llmResponse = await narrativePrompt(input);
   
-  // The llmResponse contains the final narrative text, and also the trace of tool calls.
   const toolCalls = llmResponse.usage?.toolCalls;
 
   const finalOutput: GenerateNarrativeOutput = {
@@ -116,7 +119,6 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
   };
 
   if (toolCalls && toolCalls.length > 0) {
-      // For simplicity, we'll process the first tool call.
       const toolCall = toolCalls[0];
       const toolOutput = toolCall.output;
 
@@ -124,18 +126,14 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
           const result = toolOutput as z.infer<typeof playerAttackTool.outputSchema>;
           finalOutput.updatedPlayerStatus = { hp: result.finalPlayerHp };
           
-          // If creature fled OR was defeated, it is removed from the chunk.
           const shouldRemoveEnemy = result.enemyDefeated || result.fled;
           const newEnemyState = shouldRemoveEnemy ? null : { ...input.currentChunk.enemy!, hp: result.finalEnemyHp };
           finalOutput.updatedChunk = { enemy: newEnemyState };
 
-          // Handle loot drops by adding them to the chunk's items
           if (result.lootDrops && result.lootDrops.length > 0) {
             const currentItems = finalOutput.updatedChunk?.items || input.currentChunk.items || [];
             const newItemsMap = new Map<string, ChunkItemSchema>();
-
             currentItems.forEach(item => newItemsMap.set(item.name, { ...item }));
-
             result.lootDrops.forEach(droppedItem => {
                 const existingItem = newItemsMap.get(droppedItem.name);
                 if (existingItem) {
@@ -144,7 +142,6 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
                     newItemsMap.set(droppedItem.name, droppedItem);
                 }
             });
-
             finalOutput.updatedChunk = { ...finalOutput.updatedChunk, items: Array.from(newItemsMap.values()) };
           }
 
@@ -160,15 +157,24 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
       } else if (toolCall.tool === 'tameEnemy') {
           const result = toolOutput as z.infer<typeof tameEnemyTool.outputSchema>;
           finalOutput.updatedPlayerStatus = result.updatedPlayerStatus;
-          finalOutput.updatedChunk = { enemy: result.updatedEnemy }; // This will be null if tamed
+          finalOutput.updatedChunk = { enemy: result.updatedEnemy }; 
       } else if (toolCall.tool === 'useSkill') {
           const result = toolOutput as z.infer<typeof useSkillTool.outputSchema>;
           finalOutput.updatedPlayerStatus = result.updatedPlayerStatus;
           finalOutput.updatedChunk = { enemy: result.updatedEnemy };
+      } else if (toolCall.tool === 'startQuest') {
+          const result = toolOutput as z.infer<typeof startQuestTool.outputSchema>;
+          const currentQuests = finalOutput.updatedPlayerStatus?.quests || input.playerStatus.quests || [];
+          if (!currentQuests.includes(result.questStarted)) {
+              finalOutput.updatedPlayerStatus = { 
+                  ...finalOutput.updatedPlayerStatus,
+                  quests: [...currentQuests, result.questStarted],
+              };
+          }
       } else if (toolCall.tool === 'completeQuest') {
           const result = toolOutput as z.infer<typeof completeQuestTool.outputSchema>;
           if (result.isCompleted) {
-              const currentQuests = input.playerStatus.quests || [];
+              let currentQuests = input.playerStatus.quests || [];
               const currentItems = input.playerStatus.items || [];
               const newItemsMap = new Map<string, PlayerItemSchema>();
               
@@ -183,11 +189,39 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
                   }
               });
 
+              const completedQuestText = (toolCall.input as any).questText;
+              currentQuests = currentQuests.filter(q => q !== completedQuestText);
+              const updatedItemsArray = Array.from(newItemsMap.values());
+
               finalOutput.updatedPlayerStatus = { 
                   ...finalOutput.updatedPlayerStatus,
-                  quests: currentQuests.filter(q => q !== (toolCall.input as any).questText),
-                  items: Array.from(newItemsMap.values()),
+                  quests: currentQuests,
+                  items: updatedItemsArray,
               };
+              
+              try {
+                  const newQuestResult = await generateNewQuest({
+                      worldName: input.worldName,
+                      playerStatus: { 
+                          ...input.playerStatus, 
+                          quests: currentQuests, 
+                          items: updatedItemsArray 
+                      },
+                      currentChunk: input.currentChunk,
+                      existingQuests: currentQuests,
+                      language: input.language,
+                  });
+
+                  if (newQuestResult.newQuest) {
+                      const updatedQuestsWithNew = [...currentQuests, newQuestResult.newQuest];
+                      finalOutput.updatedPlayerStatus.quests = updatedQuestsWithNew;
+                      
+                      const existingSystemMessage = finalOutput.systemMessage ? finalOutput.systemMessage + " " : "";
+                      finalOutput.systemMessage = existingSystemMessage + `New quest: ${newQuestResult.newQuest}`;
+                  }
+              } catch (e) {
+                  console.error("Failed to generate a new quest after completion:", e);
+              }
           }
       }
   }

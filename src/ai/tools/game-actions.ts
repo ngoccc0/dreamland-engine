@@ -491,3 +491,20 @@ export const completeQuestTool = ai.defineTool({
         rewardItems: rewardItems,
     };
 });
+
+// --- Tool for Starting a Quest ---
+export const startQuestTool = ai.defineTool({
+    name: 'startQuest',
+    description: "Starts a new quest for the player. Call this ONLY when an NPC gives the player a new quest during a conversation.",
+    inputSchema: z.object({
+        questText: z.string().describe("The full text of the new quest to be given to the player."),
+    }),
+    outputSchema: z.object({
+        questStarted: z.string().describe("The quest text that was successfully started."),
+    }),
+}, async ({ questText }) => {
+    // This tool is mainly a signal for the flow to add the quest to the player's state.
+    return {
+        questStarted: questText,
+    };
+});

@@ -24,13 +24,6 @@ export default function Home() {
   const [loadState, setLoadState] = useState<'loading' | 'select_language' | 'prompt' | 'new_game' | 'continue_game'>('loading');
   const [savedGameState, setSavedGameState] = useState<GameState | null>(null);
   const [newGameData, setNewGameData] = useState<NewGameData | null>(null);
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    // This ensures that we only render the text on the client, after the language has been determined.
-    // This prevents a hydration mismatch error and language flicker.
-    setIsClient(true);
-  }, []);
 
   const parseAndSetSavedGame = useCallback(() => {
     try {
@@ -132,21 +125,13 @@ export default function Home() {
         <div className="flex flex-col items-center gap-4 text-center p-4 animate-in fade-in duration-1000">
           <BrainCircuit className="h-20 w-20 text-primary" />
           <div className="h-[60px] flex items-center justify-center">
-            {isClient ? (
-              <h1 className="text-5xl font-bold font-headline tracking-tighter">
-                {t('gameTitle')}
-              </h1>
-            ) : (
-              <Skeleton className="h-12 w-[400px]" />
-            )}
+            <h1 className="text-5xl font-bold font-headline tracking-tighter">
+              {t('gameTitle')}
+            </h1>
           </div>
           <div className="flex items-center gap-2 mt-4 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
-            {isClient ? (
-              <p>{t('loadingAdventure')}</p>
-            ) : (
-              <Skeleton className="h-4 w-[200px]" />
-            )}
+            <p>{t('loadingAdventure')}</p>
           </div>
         </div>
       </div>

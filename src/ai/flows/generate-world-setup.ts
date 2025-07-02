@@ -6,7 +6,8 @@
  *
  * This file defines the AI workflow for world creation. It is now a two-step parallel process
  * to improve quality, allow for a larger number of generated items, and reduce wait times.
- * 1. Task A (Gemini): Generate a large catalog of items and three world names.
+ * 1. Task A (OpenAI): Generate a large catalog of items and three world names. This task uses a model
+ *    that is better suited for handling large, complex JSON schemas.
  * 2. Task B (Gemini): Simultaneously generate the narrative details for three concepts.
  * The results are then combined, with player inventory and starting skills being assigned programmatically.
  *
@@ -72,6 +73,7 @@ const itemsAndNamesPrompt = ai.definePrompt({
     name: 'generateItemsAndNamesPrompt',
     input: { schema: GenerateWorldSetupInputSchema },
     output: { schema: ItemsAndNamesOutputSchema },
+    model: 'openai/gpt-4o-mini', // Use OpenAI for this complex schema
     prompt: `You are a creative world-building assistant. Based on the user's idea, your task is to generate TWO things:
 1.  **A list of three (3) cool and evocative world names.**
 2.  **A large, shared catalog of 20 to 30 unique, thematically appropriate items** that could be found in this world.
@@ -88,6 +90,7 @@ const narrativeConceptsPrompt = ai.definePrompt({
     name: 'generateNarrativeConceptsPrompt',
     input: { schema: GenerateWorldSetupInputSchema },
     output: { schema: NarrativeConceptArraySchema },
+    // This prompt will use the default model (Gemini)
     prompt: `You are a creative Game Master. Based on the user's idea, you need to flesh out three distinct starting concepts for a game.
 
 **User's Idea:** {{{userInput}}}

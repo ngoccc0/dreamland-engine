@@ -1,10 +1,11 @@
+
 import type { Skill } from "./types";
 
 // --- SKILL DEFINITIONS ---
 export const skillDefinitions: Skill[] = [
     {
-        name: 'Heal',
-        description: 'Dùng mana để hồi lại một lượng máu.',
+        name: 'skillHealName',
+        description: 'skillHealDesc',
         tier: 1,
         manaCost: 20,
         effect: {
@@ -14,8 +15,8 @@ export const skillDefinitions: Skill[] = [
         }
     },
     {
-        name: 'Fireball',
-        description: 'Tung một quả cầu lửa vào kẻ địch, gây sát thương phép.',
+        name: 'skillFireballName',
+        description: 'skillFireballDesc',
         tier: 1,
         manaCost: 15,
         effect: {
@@ -25,8 +26,8 @@ export const skillDefinitions: Skill[] = [
         }
     },
     {
-        name: 'Life Siphon',
-        description: 'Gây sát thương phép và hồi lại máu bằng 50% sát thương gây ra.',
+        name: 'skillLifeSiphonName',
+        description: 'skillLifeSiphonDesc',
         tier: 2,
         manaCost: 30,
         effect: {
@@ -41,8 +42,8 @@ export const skillDefinitions: Skill[] = [
         }
     },
     {
-        name: 'Chain Lightning',
-        description: 'Tạo ra một tia sét mạnh mẽ. Sát thương cao hơn Fireball.',
+        name: 'skillChainLightningName',
+        description: 'skillChainLightningDesc',
         tier: 2,
         manaCost: 25,
         effect: {
@@ -57,8 +58,8 @@ export const skillDefinitions: Skill[] = [
     },
     // NOTE: Blink skill requires a targeting UI, which will be implemented in a future update.
     {
-        name: 'Blink',
-        description: 'Dịch chuyển tức thời đến một vị trí gần đó trong tầm mắt.',
+        name: 'skillBlinkName',
+        description: 'skillBlinkDesc',
         tier: 3,
         manaCost: 40,
         effect: {

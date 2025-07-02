@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -12,8 +13,7 @@ import { Skeleton } from "../ui/skeleton";
 import { Separator } from "../ui/separator";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { useLanguage } from "@/context/language-context";
-import type { WorldConcept, Skill } from "@/lib/game/types";
-import type { TranslationKey } from "@/lib/i18n";
+import type { WorldConcept, Skill, TranslationKey } from "@/lib/game/types";
 
 interface WorldSetupProps {
     onWorldCreated: (worldSetup: WorldConcept) => void;
@@ -318,10 +318,10 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                                 <div className="p-1">
                                                     <Card className="shadow-inner bg-muted/30 h-36">
                                                         <CardHeader className="p-4">
-                                                            <CardTitle className="text-lg">{concept.startingSkill.name}</CardTitle>
+                                                            <CardTitle className="text-lg">{t(concept.startingSkill.name as TranslationKey)}</CardTitle>
                                                         </CardHeader>
                                                         <CardContent className="p-4 pt-0">
-                                                            <p className="text-sm text-muted-foreground">{concept.startingSkill.description}</p>
+                                                            <p className="text-sm text-muted-foreground">{t(concept.startingSkill.description as TranslationKey)}</p>
                                                             <p className="text-xs mt-2">{t('manaCost')}: {concept.startingSkill.manaCost}</p>
                                                         </CardContent>
                                                     </Card>

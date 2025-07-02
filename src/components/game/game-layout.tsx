@@ -19,7 +19,7 @@ import { SwordIcon } from "@/components/game/icons";
 import { useGameEngine } from "@/hooks/use-game-engine";
 import type { MapCell, ItemDefinition, GeneratedItem, WorldConcept, PlayerItem } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
-import type { GameState } from "@/lib/game/types";
+import type { GameState, TranslationKey } from "@/lib/game/types";
 
 
 interface GameLayoutProps {
@@ -356,11 +356,11 @@ export default function GameLayout(props: GameLayoutProps) {
                                                 disabled={isLoading || playerStats.mana < skill.manaCost}
                                             >
                                                 <WandSparkles className="mr-2 h-3 w-3" />
-                                                {skill.name} ({skill.manaCost} MP)
+                                                {t(skill.name as TranslationKey)} ({skill.manaCost} MP)
                                             </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                            <p>{skill.description}</p>
+                                            <p>{t(skill.description as TranslationKey)}</p>
                                             <p className="text-muted-foreground">{t('manaCost')}: {skill.manaCost}</p>
                                         </TooltipContent>
                                     </Tooltip>

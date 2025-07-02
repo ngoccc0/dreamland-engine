@@ -144,7 +144,7 @@ export const translations = {
     effects: "Effects",
     healthShort: "HP",
     staminaShort: "Stamina",
-
+    
     // Crafting Popup
     craftingDesc: "Combine items to create new tools and supplies.",
     ingredients: "Ingredients",
@@ -234,6 +234,18 @@ export const translations = {
     gameInProgress: "You have a game in progress.",
     continueJourney: "Continue Journey",
     startNewAdventure: "Start New Adventure",
+
+    // Skills
+    skillHealName: 'Heal',
+    skillHealDesc: 'Use mana to restore a small amount of health.',
+    skillFireballName: 'Fireball',
+    skillFireballDesc: 'Launch a ball of fire at an enemy, dealing magical damage.',
+    skillLifeSiphonName: 'Life Siphon',
+    skillLifeSiphonDesc: 'Deals magical damage and heals you for 50% of the damage dealt.',
+    skillChainLightningName: 'Chain Lightning',
+    skillChainLightningDesc: 'Creates a powerful lightning bolt. Higher damage than Fireball.',
+    skillBlinkName: 'Blink',
+    skillBlinkDesc: 'Instantly teleport to a nearby location in sight.',
   },
   vi: {
     gameTitle: "Dreamland Engine",
@@ -468,6 +480,18 @@ export const translations = {
     gameInProgress: "Bạn có một trò chơi đang dang dở.",
     continueJourney: "Tiếp tục Hành trình",
     startNewAdventure: "Bắt đầu Cuộc phiêu lưu Mới",
+    
+    // Skills
+    skillHealName: 'Hồi Máu',
+    skillHealDesc: 'Dùng mana để hồi lại một lượng máu.',
+    skillFireballName: 'Quả Cầu Lửa',
+    skillFireballDesc: 'Tung một quả cầu lửa vào kẻ địch, gây sát thương phép.',
+    skillLifeSiphonName: 'Hút Sinh Lực',
+    skillLifeSiphonDesc: 'Gây sát thương phép và hồi lại máu bằng 50% sát thương gây ra.',
+    skillChainLightningName: 'Sét Chuỗi',
+    skillChainLightningDesc: 'Tạo ra một tia sét mạnh mẽ. Sát thương cao hơn Quả Cầu Lửa.',
+    skillBlinkName: 'Dịch Chuyển',
+    skillBlinkDesc: 'Dịch chuyển tức thời đến một vị trí gần đó trong tầm mắt.',
   }
 };
 

@@ -85,11 +85,12 @@ const itemCatalogPromptTemplate = `You are a creative world-building assistant s
 
 **User's Idea:** {{{userInput}}}
 
-For each item, you MUST define all required fields: name, description, emoji, category, tier, effects, baseQuantity, and spawnBiomes. You may optionally define growthConditions.
-- For the 'category' field, use one of these exact values: 'Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion'.
-- The theme of the items should strongly reflect the user's input.
-
-Provide the response in the required JSON format. ALL TEXT in the response MUST be in the language corresponding to this code: {{language}}.`;
+**Rules:**
+1.  The "customItemCatalog" array in your JSON output MUST contain between 5 and 10 items.
+2.  For each item, you MUST define all required fields: name, description, emoji, category, tier, effects, baseQuantity, and spawnBiomes. You may optionally define growthConditions.
+3.  For the 'category' field, use one of these exact values: 'Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion'.
+4.  The theme of the items should strongly reflect the user's input.
+5.  ALL TEXT in the response MUST be in the language corresponding to this code: {{language}}.`;
 
 // -- Template for Task B: Narrative Concepts & World Names --
 const conceptsAndNamesPromptTemplate = `You are a creative Game Master. Based on the user's idea, you need to generate TWO things:
@@ -103,9 +104,11 @@ For EACH of the three concepts, create the specific narrative details:
 2.  **startingBiome:** The biome where the player begins (forest, grassland, desert, swamp, mountain, or cave).
 3.  **initialQuests:** One or two simple starting quests.
 
-**DO NOT** create player items, an item catalog, or starting skills. These will be handled by other processes.
+**Critical Rules:**
+- **DO NOT** create player items, an item catalog, or starting skills. These will be handled by other processes.
+- **Language:** ALL TEXT in the response (world names, initial narrative, etc.) MUST be in the language corresponding to this code: {{language}}. This is a strict requirement.
 
-Provide the response as a single JSON object containing both the 'worldNames' array and the 'narrativeConcepts' array. ALL TEXT in the response MUST be in the language corresponding to this code: {{language}}.`;
+Provide the response as a single JSON object containing both the 'worldNames' array and the 'narrativeConcepts' array.`;
 
 
 // == THE GENKIT FLOW (Orchestration with Parallel Tasks and Fallback Logic) ==

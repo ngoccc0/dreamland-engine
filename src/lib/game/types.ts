@@ -1,4 +1,8 @@
+
+import type { translations } from "./i18n";
+
 // --- Data Types and Interfaces for the Game Engine ---
+export type TranslationKey = keyof (typeof translations)['en'] | keyof (typeof translations)['vi'];
 
 export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave" | "jungle" | "volcanic";
 export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky';

@@ -18,7 +18,6 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import type { Terrain, Skill } from '@/lib/game/types';
-import Handlebars from 'handlebars';
 import { GeneratedItemSchema, SkillSchema, NarrativeConceptArraySchema } from '@/ai/schemas';
 import { skillDefinitions } from '@/lib/game/skills';
 
@@ -113,30 +112,15 @@ const generateWorldSetupFlow = ai.defineFlow(
     outputSchema: GenerateWorldSetupOutputSchema,
   },
   async (input) => {
-    // --- Step 1: Compile prompts ---
-    const itemsAndNamesTemplate = Handlebars.compile(itemsAndNamesPrompt.prompt as string);
-    const itemsAndNamesFinalPrompt = itemsAndNamesTemplate(input);
-
-    const narrativeConceptsTemplate = Handlebars.compile(narrativeConceptsPrompt.prompt as string);
-    const narrativeConceptsFinalPrompt = narrativeConceptsTemplate(input);
-
-    // --- Step 2: Define two independent AI tasks to run in parallel ---
+    // --- Step 1: Define two independent AI tasks to run in parallel ---
     
-    // Task A: Generate Items and World Names (using Gemini)
-    const itemsAndNamesTask = ai.generate({
-        model: 'googleai/gemini-2.0-flash',
-        prompt: itemsAndNamesFinalPrompt,
-        output: { schema: ItemsAndNamesOutputSchema },
-    });
+    // Task A: Generate Items and World Names (using the defined prompt)
+    const itemsAndNamesTask = itemsAndNamesPrompt(input);
     
-    // Task B: Generate Narrative Concepts (using Gemini)
-    const narrativeConceptsTask = ai.generate({
-        model: 'googleai/gemini-2.0-flash',
-        prompt: narrativeConceptsFinalPrompt,
-        output: { schema: NarrativeConceptArraySchema },
-    });
+    // Task B: Generate Narrative Concepts (using the defined prompt)
+    const narrativeConceptsTask = narrativeConceptsPrompt(input);
     
-    // --- Step 3: Run both tasks in parallel and wait for them to complete ---
+    // --- Step 2: Run both tasks in parallel and wait for them to complete ---
     const [itemsAndNamesResult, narrativeConceptsResult] = await Promise.all([
         itemsAndNamesTask,
         narrativeConceptsTask,
@@ -152,7 +136,7 @@ const generateWorldSetupFlow = ai.defineFlow(
         throw new Error("Failed to generate valid narrative concepts.");
     }
     
-    // --- Step 4: Combine the results and programmatically create inventory & skills ---
+    // --- Step 3: Combine the results and programmatically create inventory & skills ---
     const { customItemCatalog, worldNames } = itemsAndNames;
     const tier1Skills = skillDefinitions.filter(s => s.tier === 1);
     const tier2Skills = skillDefinitions.filter(s => s.tier === 2);

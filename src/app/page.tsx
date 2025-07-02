@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import { useLanguage } from '@/context/language-context';
 import { BrainCircuit, Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type NewGameData = {
   worldSetup: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[], startingSkill: Skill };
@@ -43,9 +44,6 @@ export default function Home() {
             quantity: 1,
             tier: 1,
           }));
-        }
-        if (!gameState.playerStats.unlockProgress) {
-          gameState.playerStats.unlockProgress = { kills: 0, damageSpells: 0, moves: 0 };
         }
         if (!gameState.playerStats.skills) {
           gameState.playerStats.skills = [];
@@ -132,12 +130,12 @@ export default function Home() {
       <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
         <div className="flex flex-col items-center gap-4 text-center p-4 animate-in fade-in duration-1000">
           <BrainCircuit className="h-20 w-20 text-primary" />
-          <h1 className="text-5xl font-bold font-headline tracking-tighter h-[60px]">
-            {isClient ? t('gameTitle') : <>&nbsp;</>}
+          <h1 className="text-5xl font-bold font-headline tracking-tighter h-[60px] flex items-center justify-center">
+            {isClient ? t('gameTitle') : <Skeleton className="h-12 w-[400px]" />}
           </h1>
           <div className="flex items-center gap-2 mt-4 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
-            <p>{isClient ? t('loadingAdventure') : <>&nbsp;</>}</p>
+            <p>{isClient ? t('loadingAdventure') : <Skeleton className="h-4 w-[200px]" />}</p>
           </div>
         </div>
       </div>

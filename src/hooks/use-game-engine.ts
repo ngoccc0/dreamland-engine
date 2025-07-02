@@ -507,10 +507,13 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             const environmentCelsius = effectiveChunk.temperature || 15;
             const currentBodyTemp = nextPlayerStats.bodyTemperature;
             
-            // Body temperature regulation logic
-            const setpoint = 37;
-            const environmentPull = (environmentCelsius - currentBodyTemp) * 0.1;
-            const selfRegulation = (setpoint - currentBodyTemp) * 0.15;
+            const IDEAL_BODY_TEMP = 37;
+            const ENVIRONMENTAL_PULL_FACTOR = 0.1;
+            const SELF_REGULATION_FACTOR = 0.15;
+
+            const environmentPull = (environmentCelsius - currentBodyTemp) * ENVIRONMENTAL_PULL_FACTOR;
+            const selfRegulation = (IDEAL_BODY_TEMP - currentBodyTemp) * SELF_REGULATION_FACTOR;
+            
             const bodyTempDelta = environmentPull + selfRegulation;
             nextPlayerStats.bodyTemperature += bodyTempDelta;
 

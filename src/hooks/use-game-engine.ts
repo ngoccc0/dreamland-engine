@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/context/language-context";
+import { useSettings } from "@/context/settings-context";
 import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/generate-narrative-flow";
 import { generateNewRecipe } from "@/ai/flows/generate-new-recipe";
 import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, checkConditions, calculateCraftingOutcome } from '@/lib/game/engine';
@@ -13,7 +14,7 @@ import { buildableStructures as staticBuildableStructures } from '@/lib/game/str
 import { skillDefinitions } from '@/lib/game/skills';
 import { getTemplates } from '@/lib/game/templates';
 import { worldConfig } from '@/lib/game/world-config';
-import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, PlayerPersona, Structure, Pet } from "@/lib/game/types";
+import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, PlayerPersona, Structure, Pet, DiceType } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 
 
@@ -23,13 +24,44 @@ const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Mat
 // --- DICE ROLL HELPERS ---
 type SuccessLevel = 'CriticalFailure' | 'Failure' | 'Success' | 'GreatSuccess' | 'CriticalSuccess';
 
-function getSuccessLevel(roll: number): SuccessLevel {
-    if (roll === 1) return 'CriticalFailure';
-    if (roll <= 8) return 'Failure';
-    if (roll <= 16) return 'Success';
-    if (roll <= 19) return 'GreatSuccess';
-    return 'CriticalSuccess'; // for roll === 20
+function getSuccessLevel(roll: number, diceType: DiceType): SuccessLevel {
+    if (diceType === 'd20') {
+        if (roll === 1) return 'CriticalFailure';
+        if (roll <= 8) return 'Failure';
+        if (roll <= 16) return 'Success';
+        if (roll <= 19) return 'GreatSuccess';
+        return 'CriticalSuccess'; // 20
+    }
+    if (diceType === 'd12') {
+        if (roll === 1) return 'CriticalFailure';
+        if (roll <= 5) return 'Failure';
+        if (roll <= 10) return 'Success';
+        if (roll === 11) return 'GreatSuccess';
+        return 'CriticalSuccess'; // 12
+    }
+    if (diceType === '2d6') {
+        if (roll === 2) return 'CriticalFailure';
+        if (roll <= 5) return 'Failure';
+        if (roll <= 9) return 'Success';
+        if (roll <= 11) return 'GreatSuccess';
+        return 'CriticalSuccess'; // 12
+    }
+    return 'Success'; // fallback
 }
+
+const rollDice = (diceType: DiceType): { roll: number; range: string } => {
+    switch (diceType) {
+        case 'd12':
+            return { roll: Math.floor(Math.random() * 12) + 1, range: '1-12' };
+        case '2d6':
+            const d1 = Math.floor(Math.random() * 6) + 1;
+            const d2 = Math.floor(Math.random() * 6) + 1;
+            return { roll: d1 + d2, range: '2-12' };
+        case 'd20':
+        default:
+            return { roll: Math.floor(Math.random() * 20) + 1, range: '1-20' };
+    }
+};
 
 const successLevelToTranslationKey: Record<SuccessLevel, TranslationKey> = {
     CriticalFailure: 'criticalFailure',
@@ -48,6 +80,7 @@ interface GameEngineProps {
 
 export function useGameEngine({ worldSetup, initialGameState, customItemDefinitions: initialCustomDefs, customItemCatalog: initialCustomCatalog }: GameEngineProps) {
     const { t, language } = useLanguage();
+    const { settings } = useSettings();
     const { toast } = useToast();
     
     // --- State for Global World Settings ---
@@ -105,35 +138,9 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     const narrativeIdCounter = useRef(1);
     
     // --- State for AI vs. Rule-based mode ---
-    const [isOnline, setIsOnline] = useState(true);
+    const isOnline = settings.gameMode === 'ai';
 
     const finalWorldSetup = worldSetup || initialGameState?.worldSetup;
-
-    // Effect for handling online/offline status
-    useEffect(() => {
-        if (typeof window === 'undefined' || !navigator) return;
-
-        const handleOnline = () => setIsOnline(true);
-        const handleOffline = () => {
-            setIsOnline(false);
-            toast({
-                title: t('offlineModeActive'),
-                description: t('offlineToastDesc'),
-            });
-        };
-
-        // Set initial status
-        setIsOnline(navigator.onLine);
-
-        window.addEventListener('online', handleOnline);
-        window.addEventListener('offline', handleOffline);
-
-        return () => {
-            window.removeEventListener('online', handleOnline);
-            window.removeEventListener('offline', handleOffline);
-        };
-    }, [t, toast]);
-
 
     const addNarrativeEntry = useCallback((text: string, type: NarrativeEntry['type']) => {
         setNarrativeLog(prev => {
@@ -563,10 +570,10 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             return;
         }
 
-        const diceRoll = Math.floor(Math.random() * 20) + 1;
-        const successLevel = getSuccessLevel(diceRoll);
+        const { roll, range } = rollDice(settings.diceType);
+        const successLevel = getSuccessLevel(roll, settings.diceType);
         const successLevelKey = successLevelToTranslationKey[successLevel];
-        addNarrativeEntry(t('diceRollMessage', { roll: diceRoll, level: t(successLevelKey) }), 'system');
+        addNarrativeEntry(t('diceRollMessage', { roll, level: t(successLevelKey) }), 'system');
 
         const currentChunk = getEffectiveChunk(baseChunk);
 
@@ -599,7 +606,9 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 recentNarrative: narrativeLog.slice(-5).map(e => e.text),
                 language,
                 customItemDefinitions,
-                diceRoll,
+                diceRoll: roll,
+                diceType: settings.diceType,
+                diceRange: range,
                 successLevel,
             };
 
@@ -654,7 +663,6 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         } catch (error) {
             console.error("AI narrative generation failed:", error);
             toast({ title: t('offlineModeActive'), description: t('offlineToastDesc'), variant: "destructive" });
-            setIsOnline(false);
         } finally {
             handleGameTick();
             setIsLoading(false);
@@ -869,10 +877,10 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         }
     
         const currentChunkWithWeather = getEffectiveChunk(baseChunk);
-        const diceRoll = Math.floor(Math.random() * 20) + 1;
-        const successLevel = getSuccessLevel(diceRoll);
+        const { roll } = rollDice(settings.diceType);
+        const successLevel = getSuccessLevel(roll, settings.diceType);
         const successLevelKey = successLevelToTranslationKey[successLevel];
-        addNarrativeEntry(t('diceRollMessage', { roll: diceRoll, level: t(successLevelKey) }), 'system');
+        addNarrativeEntry(t('diceRollMessage', { roll: roll, level: t(successLevelKey) }), 'system');
     
         let updatedWorld = { ...world };
         let updatedChunkInWorld = { ...updatedWorld[key]! };
@@ -969,10 +977,10 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             return;
         }
     
-        const diceRoll = Math.floor(Math.random() * 20) + 1;
-        const successLevel = getSuccessLevel(diceRoll);
+        const { roll } = rollDice(settings.diceType);
+        const successLevel = getSuccessLevel(roll, settings.diceType);
         const successLevelKey = successLevelToTranslationKey[successLevel];
-        addNarrativeEntry(t('diceRollMessage', { roll: diceRoll, level: t(successLevelKey) }), 'system');
+        addNarrativeEntry(t('diceRollMessage', { roll: roll, level: t(successLevelKey) }), 'system');
     
         const chunk = world[`${playerPosition.x},${playerPosition.y}`];
         if (!chunk) {
@@ -1257,9 +1265,9 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             return;
         }
 
-        const diceRoll = Math.floor(Math.random() * 20) + 1;
-        const successLevel = getSuccessLevel(diceRoll);
-        addNarrativeEntry(t('diceRollMessage', { roll: diceRoll, level: t(successLevelToTranslationKey[successLevel]) }), 'system');
+        const { roll } = rollDice(settings.diceType);
+        const successLevel = getSuccessLevel(roll, settings.diceType);
+        addNarrativeEntry(t('diceRollMessage', { roll: roll, level: t(successLevelToTranslationKey[successLevel]) }), 'system');
 
         const newPlayerStatus = { ...playerStats, mana: playerStats.mana - skillToUse.manaCost };
         let log = "";
@@ -1350,7 +1358,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         setWorld(newWorld);
         handleGameTick();
 
-    }, [playerStats, addNarrativeEntry, isOnline, handleOnlineNarrative, world, playerPosition, t, handleGameTick]);
+    }, [playerStats, addNarrativeEntry, isOnline, handleOnlineNarrative, world, playerPosition, t, handleGameTick, settings.diceType]);
 
     const handleBuild = useCallback((structureName: string) => {
         const buildStaminaCost = 15;

@@ -32,7 +32,9 @@ const GenerateNarrativeInputSchema = z.object({
   currentChunk: ChunkSchema.describe("The detailed attributes of the map tile the player is currently on. This includes dynamic weather effects."),
   recentNarrative: z.array(z.string()).describe("The last few entries from the narrative log to provide conversational context."),
   language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
-  diceRoll: z.number().describe("The result of a d20 dice roll (1-20)."),
+  diceRoll: z.number().describe("The result of the dice roll."),
+  diceType: z.string().describe("The type of dice used (e.g., 'd20', '2d6')."),
+  diceRange: z.string().describe("The possible range of the dice roll (e.g., '1-20', '2-12')."),
   successLevel: SuccessLevelSchema.describe("The categorized outcome of the dice roll."),
   customItemDefinitions: z.record(ItemDefinitionSchema).optional().describe("A map of AI-generated item definitions for the current game session."),
 });
@@ -96,7 +98,7 @@ const narrativePrompt = ai.definePrompt({
 
 **Context:**
 - Player's Action: {{{playerAction}}}
-- Dice Roll Outcome: {{diceRoll}} ({{successLevel}})
+- Dice Roll Outcome: {{diceRoll}} (on a {{diceType}} with range {{diceRange}}, resulting in {{successLevel}})
 - Player's Status: {{json playerStatus}}
 - Current Environment: {{json currentChunk}}
 - Recent Events: {{json recentNarrative}}

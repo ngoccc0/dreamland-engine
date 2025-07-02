@@ -9,6 +9,8 @@ export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky';
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
 export type ItemCategory = 'Weapon' | 'Material' | 'Energy Source' | 'Food' | 'Data' | 'Tool' | 'Equipment' | 'Support' | 'Magic' | 'Fusion';
 export type PlayerPersona = 'none' | 'explorer' | 'warrior' | 'artisan';
+export type GameMode = 'ai' | 'offline';
+export type DiceType = 'd20' | 'd12' | '2d6';
 
 // --- NEW WEATHER SYSTEM TYPES ---
 

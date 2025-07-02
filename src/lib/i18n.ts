@@ -491,8 +491,6 @@ export const translations = {
     customActionPlaceholder: "Custom action...",
     submit: "Submit",
     submitTooltip: "Submit your custom action.",
-    aiStoryteller: "AI Storyteller",
-    aiStorytellerDesc: "Enable to have an AI generate dynamic narratives. Disable for a classic, rule-based experience (works offline).",
     skills: "Skills",
     manaCost: "Mana Cost",
     structureActions: "Structure Actions",
@@ -586,7 +584,7 @@ export const translations = {
     example10: "A journey into the dream world to save someone from a magical coma.",
 
     // Dice Rolls
-    diceRollMessage: "You roll a d20... It's a {roll}! ({level})",
+    diceRollMessage: "You roll a {diceType}... It's a {roll}! ({level})",
     criticalFailure: "Critical Failure",
     failure: "Failure",
     success: "Success",
@@ -623,7 +621,7 @@ export const translations = {
         - **Actions:** Context-sensitive actions based on what's in your current location.`,
     combatTitle: "⚔️ Combat & Skills",
     combatContent: `- **Attacking:** Use the Sword button to attack an enemy in your current location.
-    - **Dice Rolls:** All major actions (attacking, using skills) involve a d20 dice roll. The result (from Critical Failure to Critical Success) determines the outcome. The AI will narrate the result.
+    - **Dice Rolls:** All major actions (attacking, using skills) involve a dice roll. The result (from Critical Failure to Critical Success) determines the outcome. The AI will narrate the result.
     - **Skills:** Use skills to gain an advantage. They cost Mana. You can unlock new skills by performing certain actions (e.g., attacking, moving).`,
     craftingBuildTitle: "🛠️ Crafting & Building",
     craftingBuildContent: `- **Crafting:** Collect materials from the world and use the Crafting window to create new items. The AI might even invent new recipes for you as you play!
@@ -668,6 +666,15 @@ export const translations = {
     'Damp Stillness': 'Damp Stillness',
     'Mysterious Draft': 'Mysterious Draft',
     'Ashfall': 'Ashfall',
+
+    // Settings
+    gameSettings: "Game Settings",
+    gameSettingsDesc: "Adjust your game experience.",
+    aiStoryteller: "AI Storyteller",
+    aiStorytellerDesc: "Enable to have an AI generate dynamic narratives. Disable for a classic, rule-based experience (works offline).",
+    diceType: "Dice Type",
+    diceTypeDesc: "Choose the dice used for action resolution. This affects randomness and outcomes.",
+
   },
   vi: {
     ...Object.fromEntries(Object.keys(itemDefinitions).map(key => [key, key])),
@@ -874,8 +881,6 @@ export const translations = {
     customActionPlaceholder: "Hành động tùy chỉnh...",
     submit: "Gửi",
     submitTooltip: "Gửi hành động tùy chỉnh của bạn.",
-    aiStoryteller: "AI Kể Chuyện",
-    aiStorytellerDesc: "Bật để AI tạo ra các câu chuyện động. Tắt để trải nghiệm kiểu cổ điển, dựa trên quy tắc (hoạt động ngoại tuyến).",
     skills: "Kỹ năng",
     manaCost: "Tiêu tốn Mana",
     structureActions: "Hành động Công trình",
@@ -968,7 +973,7 @@ export const translations = {
     example10: "Hành trình vào thế giới giấc mơ để cứu ai đó khỏi cơn hôn mê phép thuật.",
     
     // Dice Rolls
-    diceRollMessage: "Bạn gieo xúc xắc d20... Kết quả là {roll}! ({level})",
+    diceRollMessage: "Bạn gieo xúc xắc {diceType}... Kết quả là {roll}! ({level})",
     criticalFailure: "Thất bại Thảm hại",
     failure: "Thất bại",
     success: "Thành công",
@@ -1005,7 +1010,7 @@ export const translations = {
         - **Hành động:** Các hành động theo ngữ cảnh dựa trên những gì có ở vị trí hiện tại của bạn.`,
     combatTitle: "⚔️ Chiến đấu & Kỹ năng",
     combatContent: `- **Tấn công:** Sử dụng nút Thanh kiếm để tấn công kẻ thù ở vị trí hiện tại của bạn.
-    - **Gieo xúc xắc:** Tất cả các hành động chính (tấn công, sử dụng kỹ năng) đều liên quan đến việc gieo xúc xắc d20. Kết quả (từ Thất bại Thảm hại đến Thành công Xuất sắc) quyết định kết quả. AI sẽ tường thuật lại kết quả.
+    - **Gieo xúc xắc:** Tất cả các hành động chính (tấn công, sử dụng kỹ năng) đều liên quan đến việc gieo xúc xắc. Kết quả (từ Thất bại Thảm hại đến Thành công Xuất sắc) quyết định kết quả. AI sẽ tường thuật lại kết quả.
     - **Kỹ năng:** Sử dụng kỹ năng để có lợi thế. Chúng tiêu tốn Mana. Bạn có thể mở khóa các kỹ năng mới bằng cách thực hiện các hành động nhất định (ví dụ: tấn công, di chuyển).`,
     craftingBuildTitle: "🛠️ Chế tạo & Xây dựng",
     craftingBuildContent: `- **Chế tạo:** Thu thập vật liệu từ thế giới và sử dụng cửa sổ Chế tạo để tạo ra các vật phẩm mới. AI thậm chí có thể phát minh ra các công thức mới cho bạn khi bạn chơi!
@@ -1050,6 +1055,14 @@ export const translations = {
     'Damp Stillness': 'Tĩnh lặng ẩm ướt',
     'Mysterious Draft': 'Gió lùa bí ẩn',
     'Ashfall': 'Mưa tro bụi',
+
+    // Settings
+    gameSettings: "Cài đặt Game",
+    gameSettingsDesc: "Điều chỉnh trải nghiệm trò chơi của bạn.",
+    aiStoryteller: "AI Kể Chuyện",
+    aiStorytellerDesc: "Bật để AI tạo ra các câu chuyện động. Tắt để trải nghiệm kiểu cổ điển, dựa trên quy tắc (hoạt động ngoại tuyến).",
+    diceType: "Loại xúc xắc",
+    diceTypeDesc: "Chọn loại xúc xắc dùng để phân giải hành động. Điều này ảnh hưởng đến sự ngẫu nhiên và kết quả.",
   }
 };
 

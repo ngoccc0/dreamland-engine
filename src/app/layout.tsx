@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { LanguageProvider } from '@/context/language-context';
+import { SettingsProvider } from '@/context/settings-context';
 
 export const metadata: Metadata = {
   title: 'Dreamland Engine',
@@ -22,7 +23,9 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <LanguageProvider>
-          {children}
+          <SettingsProvider>
+            {children}
+          </SettingsProvider>
         </LanguageProvider>
         <Toaster />
       </body>

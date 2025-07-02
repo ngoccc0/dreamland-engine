@@ -90,7 +90,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         hasNpc: chunk.NPCs.length > 0,
                         enemyEmoji: chunk.enemy?.emoji,
                         itemEmoji: chunk.items.length > 0 ? chunk.items[0].emoji : undefined,
-                        structureEmoji: chunk.structures.length > 0 ? chunk.structures[0].emoji : undefined,
+                        structureEmoji: chunk.structures?.length > 0 ? chunk.structures[0].emoji : undefined,
                     });
                 } else {
                     row.push({
@@ -111,7 +111,7 @@ export default function GameLayout(props: GameLayoutProps) {
     }, [world, playerPosition.x, playerPosition.y]);
     
     const currentChunk = world[`${playerPosition.x},${playerPosition.y}`];
-    const restingPlace = currentChunk?.structures.find(s => s.restEffect);
+    const restingPlace = currentChunk?.structures?.find(s => s.restEffect);
 
     if (!finalWorldSetup) {
         return (

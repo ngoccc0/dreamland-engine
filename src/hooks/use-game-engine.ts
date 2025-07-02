@@ -505,31 +505,30 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         if (currentPlayerChunk) {
             const effectiveChunk = getEffectiveChunk(currentPlayerChunk);
             const environmentCelsius = effectiveChunk.temperature || 15;
-            const currentBodyTemp = nextPlayerStats.bodyTemperature;
             
-            const IDEAL_BODY_TEMP = 37;
-            const ENVIRONMENTAL_PULL_FACTOR = 0.1;
-            const SELF_REGULATION_FACTOR = 0.15;
+            // Define constants for clarity
+            const IDEAL_BODY_TEMP = 37.0;
+            const ENVIRONMENTAL_PULL_FACTOR = 0.1; // How strongly the environment affects the player
+            const SELF_REGULATION_FACTOR = 0.15; // How strongly the body tries to return to ideal temp
 
-            const environmentPull = (environmentCelsius - currentBodyTemp) * ENVIRONMENTAL_PULL_FACTOR;
-            const selfRegulation = (IDEAL_BODY_TEMP - currentBodyTemp) * SELF_REGULATION_FACTOR;
+            const tempDelta = (environmentCelsius - nextPlayerStats.bodyTemperature) * ENVIRONMENTAL_PULL_FACTOR 
+                              + (IDEAL_BODY_TEMP - nextPlayerStats.bodyTemperature) * SELF_REGULATION_FACTOR;
             
-            const bodyTempDelta = environmentPull + selfRegulation;
-            nextPlayerStats.bodyTemperature += bodyTempDelta;
+            nextPlayerStats.bodyTemperature += tempDelta;
 
+            // Apply effects based on new body temperature
             const temp = nextPlayerStats.bodyTemperature;
-
             if (temp < 30) {
-                nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - 1);
+                nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - 1); // Freezing
                 changes.narrativeEntries.push({ text: t('tempDangerFreezing'), type: 'system' });
             } else if (temp < 35) {
-                nextPlayerStats.stamina = Math.max(0, nextPlayerStats.stamina - 0.5);
+                nextPlayerStats.stamina = Math.max(0, nextPlayerStats.stamina - 0.5); // Cold
                 changes.narrativeEntries.push({ text: t('tempWarningCold'), type: 'system' });
             } else if (temp > 42) {
-                 nextPlayerStats.stamina = Math.max(0, nextPlayerStats.stamina - 2);
+                nextPlayerStats.stamina = Math.max(0, nextPlayerStats.stamina - 2); // Overheating
                  changes.narrativeEntries.push({ text: t('tempDangerHot'), type: 'system' });
             } else if (temp > 40) {
-                 nextPlayerStats.stamina = Math.max(0, nextPlayerStats.stamina - 1);
+                nextPlayerStats.stamina = Math.max(0, nextPlayerStats.stamina - 1); // Hot
                  changes.narrativeEntries.push({ text: t('tempWarningHot'), type: 'system' });
             }
 
@@ -552,7 +551,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             uniqueNarratives.forEach(entry => addNarrativeEntry(entry.text, entry.type));
         }
 
-    }, [world, gameTicks, playerPosition, playerStats, weatherZones, currentSeason, customItemDefinitions, getEffectiveChunk, addNarrativeEntry, t, isOnline, customItemCatalog, recipes, language, toast]);
+    }, [world, gameTicks, playerPosition, playerStats, weatherZones, currentSeason, customItemDefinitions, getEffectiveChunk, addNarrativeEntry, t]);
     
 
     const handleOnlineNarrative = async (action: string, worldCtx: World, playerPosCtx: {x: number, y: number}, playerStatsCtx: PlayerStatus) => {
@@ -1015,22 +1014,14 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         handleGameTick();
     }
 
-    const handleCraft = useCallback((recipe: Recipe) => {
+    const handleCraft = useCallback(async (recipe: Recipe) => {
         setPlayerBehaviorProfile(p => ({ ...p, crafts: p.crafts + 1 }));
-        const { canCraft, chance: baseChance, ingredientsToConsume } = calculateCraftingOutcome(playerStats.items, recipe);
+        const { canCraft, chance, ingredientsToConsume } = calculateCraftingOutcome(playerStats.items, recipe);
 
         if (!canCraft) {
             toast({ title: t('error'), description: t('notEnoughIngredients'), variant: "destructive" });
             return;
         }
-
-        const chance = (() => {
-            let finalChance = baseChance;
-            if (playerStats.persona === 'artisan') {
-                finalChance += 5; // Artisan persona bonus
-            }
-            return Math.min(100, finalChance);
-        })();
 
         let updatedItems = [...playerStats.items];
         ingredientsToConsume.forEach(itemToConsume => {
@@ -1063,13 +1054,52 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             setPlayerStats(prev => ({ ...prev, items: newInventory }));
             addNarrativeEntry(t('craftSuccess', { itemName: recipe.result.name }), 'system');
             toast({ title: t('craftSuccessTitle'), description: t('craftSuccess', { itemName: recipe.result.name }) });
+
+            if (isOnline && Math.random() < 0.25) { // 25% chance to generate a new recipe
+                try {
+                    const allGameItems = [
+                        ...customItemCatalog,
+                        ...Object.keys(staticItemDefinitions).map(name => {
+                            const def = staticItemDefinitions[name];
+                            return {
+                                name,
+                                description: def.description,
+                                tier: def.tier,
+                                category: def.category,
+                                emoji: def.emoji,
+                                effects: def.effects,
+                                baseQuantity: def.baseQuantity,
+                                spawnBiomes: [],
+                                growthConditions: undefined
+                            } as GeneratedItem;
+                        })
+                    ];
+
+                    const newRecipe = await generateNewRecipe({
+                        customItemCatalog: allGameItems,
+                        existingRecipes: Object.keys(recipes),
+                        language,
+                    });
+                    
+                    if (!recipes[newRecipe.result.name]) {
+                         setRecipes(prev => ({ ...prev, [newRecipe.result.name]: newRecipe as Recipe }));
+                         toast({ 
+                            title: t('newRecipeIdea'), 
+                            description: `Bạn đã nghĩ ra cách chế tạo: ${newRecipe.result.name}!` 
+                        });
+                    }
+                } catch (error) {
+                    console.error("Lỗi khi tạo công thức mới:", error);
+                }
+            }
+
         } else {
             addNarrativeEntry(t('craftFail', { itemName: recipe.result.name }), 'system');
             toast({ title: t('craftFailTitle'), description: t('craftFail', { itemName: recipe.result.name }), variant: 'destructive' });
         }
         
         handleGameTick();
-    }, [playerStats.items, playerStats.persona, customItemDefinitions, addNarrativeEntry, toast, t, handleGameTick]);
+    }, [playerStats, isOnline, customItemCatalog, staticItemDefinitions, recipes, language, addNarrativeEntry, toast, t, handleGameTick, customItemDefinitions]);
 
     const handleItemUsed = useCallback((itemName: string, target: 'player' | string) => {
         const actionText = target === 'player'

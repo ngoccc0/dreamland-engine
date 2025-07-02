@@ -244,7 +244,7 @@ export const translations = {
     craftSuccess: "Bạn đã chế tạo thành công: {itemName}",
     craftFailTitle: "Chế tạo Thất bại!",
     craftFail: "Nỗ lực chế tạo {itemName} của bạn đã thất bại và các nguyên liệu đã bị mất.",
-    newRecipeIdea: "Ý tưởng chế tạo mới!",
+    newRecipeIdea: "Ý tưởng công thức mới!",
 
     // Game Layout
     wentDirection: "Bạn đi về phía {direction}.",

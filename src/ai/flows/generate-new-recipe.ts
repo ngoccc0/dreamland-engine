@@ -8,12 +8,12 @@
  *
  * - generateNewRecipe - The main function called by the game engine.
  * - GenerateNewRecipeInput - The Zod schema for the input data.
- * - RecipeSchema - The Zod schema for a single recipe output.
+ * - Recipe - The Zod schema for a single recipe output.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { GeneratedItemSchema, ItemCategorySchema } from '@/ai/schemas';
+import { GeneratedItemSchema, RecipeSchema, type Recipe } from '@/ai/schemas';
 
 // --- INPUT SCHEMA ---
 const GenerateNewRecipeInputSchema = z.object({
@@ -22,31 +22,6 @@ const GenerateNewRecipeInputSchema = z.object({
     language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
 });
 export type GenerateNewRecipeInput = z.infer<typeof GenerateNewRecipeInputSchema>;
-
-
-// --- OUTPUT SCHEMA ---
-// This defines a single, complete recipe structure.
-const RecipeIngredientSchema = z.object({
-  name: z.string().describe("The name of the ingredient item."),
-  quantity: z.number().int().min(1).describe("The required quantity of this ingredient."),
-  alternatives: z.array(z.object({
-    name: z.string(),
-    tier: z.enum(['1', '2', '3']).describe("The effectiveness tier of the alternative (1=best, 3=worst).")
-  })).optional().describe("An optional list of substitute ingredients and their effectiveness tier."),
-});
-
-const RecipeResultSchema = z.object({
-    name: z.string().describe("The name of the crafted item."),
-    quantity: z.number().int().min(1).describe("The quantity of the item produced."),
-    emoji: z.string().describe("A single emoji representing the crafted item."),
-});
-
-const RecipeSchema = z.object({
-    result: RecipeResultSchema,
-    ingredients: z.array(RecipeIngredientSchema).min(2).max(4).describe("A list of 2 to 4 ingredients required for the recipe."),
-    description: z.string().describe("A brief, flavorful description of what this recipe creates."),
-});
-export type Recipe = z.infer<typeof RecipeSchema>;
 
 
 // --- The Exported Function ---

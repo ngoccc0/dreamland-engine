@@ -170,7 +170,16 @@ export const templates: Record<Terrain, any> = {
             { name: 'Cây Địa Y', conditions: { moisture: { min: 4 }, chance: 0.1 } },
             { name: 'Trứng Đại Bàng', conditions: { elevation: { min: 8 }, chance: 0.1 } },
         ],
-        structures: [],
+        structures: [
+            { 
+                data: structureDefinitions['Cửa hầm mỏ bỏ hoang'], 
+                loot: [
+                    { name: 'Quặng Sắt', chance: 0.3, quantity: { min: 1, max: 2 } }, 
+                    { name: 'Chìa Khóa Rỉ Sét', chance: 0.1, quantity: { min: 1, max: 1 } }
+                ],
+                conditions: { elevation: { min: 5 }, dangerLevel: { min: 6 }, chance: 0.1 } 
+            },
+        ],
         enemies: [
             { data: { type: 'Dê núi hung hãn', emoji: '🐐', hp: 50, damage: 15, behavior: 'defensive', size: 'medium', diet: ['Cây Thuốc Núi', 'Hoa Dại'], satiation: 0, maxSatiation: 3, loot: [{name: 'Sừng Dê Núi', chance: 0.4, quantity: {min: 1, max: 2}}, {name: 'Thịt Dê Núi', chance: 0.7, quantity: {min: 1, max: 2}}] }, conditions: { elevation: { min: 7 }, chance: 0.4 } },
             { data: { type: 'Người đá', emoji: '🗿', hp: 80, damage: 10, behavior: 'defensive', size: 'large', diet: ['Quặng Sắt', 'Pha Lê Núi'], satiation: 0, maxSatiation: 1, loot: [{name: 'Lõi Người Đá', chance: 0.1, quantity: {min: 1, max: 1}}, {name: 'Đá Cuội', chance: 0.25, quantity: {min: 2, max: 3}}] }, conditions: { magicAffinity: { min: 6 }, elevation: { min: 8 }, chance: 0.2 } },
@@ -203,7 +212,17 @@ export const templates: Record<Terrain, any> = {
             { name: 'Đá Vôi', conditions: { chance: 0.2 } },
             { name: 'Mảnh Xương', conditions: { chance: 0.3 } },
         ],
-        structures: [],
+        structures: [
+            { 
+                data: structureDefinitions['Cửa hầm mỏ bỏ hoang'], 
+                loot: [
+                    { name: 'Quặng Sắt', chance: 0.2, quantity: { min: 2, max: 4 } }, 
+                    { name: 'Mỏ Vàng', chance: 0.02, quantity: { min: 1, max: 1 } },
+                    { name: 'Bản Đồ Cổ', chance: 0.05, quantity: { min: 1, max: 1 } }
+                ],
+                conditions: { dangerLevel: { min: 8 }, chance: 0.15 } 
+            },
+        ],
         enemies: [
             { data: { type: 'Dơi khổng lồ', emoji: '🦇', hp: 25, damage: 10, behavior: 'passive', size: 'small', diet: ['Nhện hang'], satiation: 0, maxSatiation: 2, loot: [{name: 'Cánh Dơi', chance: 0.6, quantity: {min: 1, max: 2}}, {name: 'Guano (Phân dơi)', chance: 0.2, quantity: {min: 1, max: 2}}] }, conditions: { lightLevel: { max: -2 }, chance: 0.5 } },
             { data: { type: 'Nhện hang', emoji: '🕷️', hp: 45, damage: 15, behavior: 'territorial', size: 'medium', diet: ['Dơi khổng lồ'], satiation: 0, maxSatiation: 2, loot: [{name: 'Nọc Độc Nhện Hang', chance: 0.3, quantity: {min: 1, max: 1}}, {name: 'Túi Trứng Nhện', chance: 0.08, quantity: {min: 1, max: 1}}] }, conditions: { dangerLevel: { min: 8 }, chance: 0.4 } },

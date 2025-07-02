@@ -36,6 +36,7 @@ export function StatusPopup({ open, onOpenChange, stats }: StatusPopupProps) {
   const { t } = useLanguage();
   const quests = stats.quests;
   const pets = stats.pets || [];
+  const bodyTemp = stats.bodyTemperature ?? 37.0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -63,13 +64,13 @@ export function StatusPopup({ open, onOpenChange, stats }: StatusPopupProps) {
               <Progress id="stamina" value={stats.stamina} className="h-4" indicatorClassName="bg-gradient-to-r from-yellow-400 to-orange-500" />
             </div>
              <div className="space-y-2">
-              <label htmlFor="bodyTemp" className="text-sm font-medium">{t('bodyTemperature', { temp: stats.bodyTemperature.toFixed(1) })}</label>
+              <label htmlFor="bodyTemp" className="text-sm font-medium">{t('bodyTemperature', { temp: bodyTemp.toFixed(1) })}</label>
               <p className="text-xs text-muted-foreground px-1">{t('bodyTempDesc')}</p>
               <div className="relative h-4 w-full overflow-hidden rounded-full bg-gradient-to-r from-blue-400 via-green-400 to-red-600 mt-2">
                   <div 
                       className="absolute top-0 h-full w-1 bg-white/80 border-x border-black/50" 
-                      style={{ left: `${normalizeTemp(stats.bodyTemperature)}%` }}
-                      title={`Current: ${stats.bodyTemperature.toFixed(1)}°C`}
+                      style={{ left: `${normalizeTemp(bodyTemp)}%` }}
+                      title={`Current: ${bodyTemp.toFixed(1)}°C`}
                   />
                   {/* Ideal temperature marker */}
                   <div 

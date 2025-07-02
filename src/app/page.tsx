@@ -50,6 +50,9 @@ export default function Home() {
         if (!gameState.playerStats.skills) {
           gameState.playerStats.skills = [];
         }
+        if (gameState.playerStats.bodyTemperature === undefined) {
+          gameState.playerStats.bodyTemperature = 37;
+        }
 
 
         setSavedGameState(gameState);

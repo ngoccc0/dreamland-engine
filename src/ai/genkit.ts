@@ -5,15 +5,22 @@ import {openAI} from 'genkitx-openai';
 // NOTE: .env file is automatically loaded by Next.js.
 // No need for explicit dotenv configuration.
 
-// Collect all provided Gemini API keys from environment variables.
-const geminiApiKeys = [
+// Flexible API key handling.
+// It will try to use multiple specific keys first, then fall back to a single default key.
+let geminiApiKeys = [
   process.env.GEMINI_API_KEY_PRIMARY,
   process.env.GEMINI_API_KEY_SECONDARY,
 ].filter((key): key is string => !!key); // Filters out any undefined/empty keys
 
+// If no specific keys are found, try the standard single key.
+if (geminiApiKeys.length === 0 && process.env.GEMINI_API_KEY) {
+  geminiApiKeys = [process.env.GEMINI_API_KEY];
+}
+
+
 export const ai = genkit({
   plugins: [
-    // Initialize Google AI with all provided keys.
+    // Initialize Google AI with any found keys.
     // Genkit will manage them for you (e.g., for rate limiting or failover).
     googleAI({
       apiKey: geminiApiKeys.length > 0 ? geminiApiKeys : undefined,

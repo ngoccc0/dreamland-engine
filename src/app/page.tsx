@@ -125,22 +125,31 @@ export default function Home() {
         <div className="flex flex-col items-center gap-4 text-center p-4 animate-in fade-in duration-1000">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-20 w-20 text-primary"
+            className="h-20 w-20"
             viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
           >
-            <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10Z" />
-            <circle cx="12" cy="13" r="2.5" />
-            <path d="M12 10.5V8" />
-            <path d="M12 18v-2.5" />
-            <path d="m14.5 11.5 2 1" />
-            <path d="m7.5 14.5-2 1" />
-            <path d="m14.5 14.5 2-1" />
-            <path d="m7.5 11.5-2-1" />
+            <style>
+              {`
+                .gear-group {
+                  transform-origin: 12px 13px;
+                }
+              `}
+            </style>
+            <path
+              d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10Z"
+              fill="#f9a8d4"
+              stroke="#f472b6"
+              strokeWidth="0.5"
+            />
+            <g className="gear-group animate-spin-gear" transform="translate(-6 5)">
+              <circle cx="12" cy="13" r="2.5" fill="#c4bcc1" stroke="#a39da0" strokeWidth="0.5" />
+              <path d="M12 10.5V8" stroke="#c4bcc1" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="M12 18v-2.5" stroke="#c4bcc1" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="m14.5 11.5 2 1" stroke="#c4bcc1" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="m7.5 14.5-2 1" stroke="#c4bcc1" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="m14.5 14.5 2-1" stroke="#c4bcc1" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="m7.5 11.5-2-1" stroke="#c4bcc1" strokeWidth="1.5" strokeLinecap="round" />
+            </g>
           </svg>
           <div className="h-[60px] flex items-center justify-center">
             <h1 className="text-5xl font-bold font-headline tracking-tighter">

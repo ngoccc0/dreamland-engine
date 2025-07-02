@@ -36,7 +36,7 @@ export type GenerateWorldSetupInput = z.infer<typeof GenerateWorldSetupInputSche
 
 // -- Task A Output Schema: Items and Names --
 const ItemsAndNamesOutputSchema = z.object({
-    customItemCatalog: z.array(GeneratedItemSchema).min(20).max(30).describe("A shared catalog of 20-30 unique, thematic items invented for this specific game world theme."),
+    customItemCatalog: z.array(GeneratedItemSchema).describe("A shared catalog of 20-30 unique, thematic items invented for this specific game world theme."),
     worldNames: z.array(z.string()).length(3).describe("An array of three distinct and creative world names based on the user's input."),
 });
 

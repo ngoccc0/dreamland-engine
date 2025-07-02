@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import { useLanguage } from '@/context/language-context';
-import { BrainCircuit, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 type NewGameData = {
@@ -123,10 +123,28 @@ export default function Home() {
     return (
       <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
         <div className="flex flex-col items-center gap-4 text-center p-4 animate-in fade-in duration-1000">
-          <BrainCircuit className="h-20 w-20 text-primary" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-20 w-20 text-primary"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10Z" />
+            <circle cx="12" cy="13" r="2.5" />
+            <path d="M12 10.5V8" />
+            <path d="M12 18v-2.5" />
+            <path d="m14.5 11.5 2 1" />
+            <path d="m7.5 14.5-2 1" />
+            <path d="m14.5 14.5 2-1" />
+            <path d="m7.5 11.5-2-1" />
+          </svg>
           <div className="h-[60px] flex items-center justify-center">
             <h1 className="text-5xl font-bold font-headline tracking-tighter">
-              {t('gameTitle')}
+              Dreamland Engine
             </h1>
           </div>
           <div className="flex items-center gap-2 mt-4 text-muted-foreground">

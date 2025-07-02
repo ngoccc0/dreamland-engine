@@ -236,7 +236,7 @@ export const translations = {
     startNewAdventure: "Start New Adventure",
   },
   vi: {
-    gameTitle: "Ký Sự Lãng Du",
+    gameTitle: "Dreamland Engine",
     // Language Selector
     selectLanguage: "Chọn Ngôn Ngữ",
 

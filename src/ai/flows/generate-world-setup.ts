@@ -44,7 +44,7 @@ export type GenerateWorldSetupInput = z.infer<typeof GenerateWorldSetupInputSche
 
 // -- Task A Output: The most complex part, just the items. --
 const ItemCatalogOutputSchema = z.object({
-    customItemCatalog: z.array(GeneratedItemSchema).describe("A shared catalog of 20-30 unique, thematic items invented for this specific game world theme."),
+    customItemCatalog: z.array(GeneratedItemSchema).describe("A shared catalog of 5-10 unique, thematic items invented for this specific game world theme."),
 });
 
 // -- Task B Output: Names and narrative concepts combined. --
@@ -81,7 +81,7 @@ export async function generateWorldSetup(input: GenerateWorldSetupInput): Promis
 // == PROMPT TEMPLATES (TASK DEFINITIONS) ==
 
 // -- Template for Task A: Item Catalog Generation --
-const itemCatalogPromptTemplate = `You are a creative world-building assistant specializing in game item design. Based on the user's idea, your task is to generate **a large, shared catalog of 20 to 30 unique, thematically appropriate items** that could be found in this world.
+const itemCatalogPromptTemplate = `You are a creative world-building assistant specializing in game item design. Based on the user's idea, your task is to generate **a small, initial catalog of 5 to 10 unique, thematically appropriate items** that could be found in this world.
 
 **User's Idea:** {{{userInput}}}
 

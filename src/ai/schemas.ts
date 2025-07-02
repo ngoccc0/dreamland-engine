@@ -223,6 +223,14 @@ export const GenerateNewQuestOutputSchema = z.object({
     newQuest: z.string().describe("A single, short, and engaging quest objective."),
 });
 
+// --- Schemas for New Item Generation ---
+export const GenerateNewItemInputSchema = z.object({
+    existingItemNames: z.array(z.string()).describe("A list of the names of ALL items that already exist in the world, to avoid generating duplicates."),
+    worldName: z.string().describe("The name of the game world for thematic consistency."),
+    playerPersona: PlayerStatusSchema.shape.persona,
+    language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
+});
+
 // --- Schemas for Quest Hint ---
 export const ProvideQuestHintInputSchema = z.object({
     questText: z.string().describe("The full text of the quest for which a hint is needed."),

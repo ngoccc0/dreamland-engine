@@ -15,9 +15,12 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema } from '@/ai/schemas';
+import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema, GeneratedItemSchema } from '@/ai/schemas';
 import { playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool, completeQuestTool, startQuestTool } from '@/ai/tools/game-actions';
 import { generateNewQuest } from './generate-new-quest';
+import { generateNewItem } from './generate-new-item';
+import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
+
 
 // == STEP 1: DEFINE THE INPUT SCHEMA ==
 const SuccessLevelSchema = z.enum(['CriticalFailure', 'Failure', 'Success', 'GreatSuccess', 'CriticalSuccess']);
@@ -56,6 +59,7 @@ const GenerateNarrativeOutputSchema = z.object({
     pets: z.array(z.any()).optional(),
   }).optional().describe("Optional: Changes to the player's status."),
   systemMessage: z.string().optional().describe("An optional, short system message for important events."),
+  newlyGeneratedItem: GeneratedItemSchema.optional().describe("A newly generated item to be added silently to the world's master item catalog."),
 });
 export type GenerateNarrativeOutput = z.infer<typeof GenerateNarrativeOutputSchema>;
 
@@ -222,6 +226,28 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
                   }
               } catch (e) {
                   console.error("Failed to generate a new quest after completion:", e);
+              }
+
+              // Silently generate a new item for the world
+              try {
+                  const allCurrentItemNames = [
+                      ...Object.keys(staticItemDefinitions),
+                      ...Object.keys(input.customItemDefinitions || {})
+                  ];
+                  
+                  const newItem = await generateNewItem({
+                      existingItemNames: allCurrentItemNames,
+                      worldName: input.worldName,
+                      playerPersona: input.playerStatus.persona,
+                      language: input.language,
+                  });
+                  
+                  if (newItem && !allCurrentItemNames.includes(newItem.name)) {
+                      finalOutput.newlyGeneratedItem = newItem;
+                  }
+              } catch (e) {
+                  console.error("Failed to generate new item after quest completion:", e);
+                  // Fail silently as requested.
               }
           }
       }

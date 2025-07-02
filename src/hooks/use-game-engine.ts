@@ -627,6 +627,28 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             if (result.updatedPlayerStatus) {
                 setPlayerStats(prev => ({ ...prev, ...result.updatedPlayerStatus }));
             }
+            
+            if (result.newlyGeneratedItem) {
+                const newItem = result.newlyGeneratedItem;
+                // This should not happen, but as a safeguard
+                if (!customItemDefinitions[newItem.name]) {
+                    // Silently update the game state
+                    setCustomItemCatalog(prev => [...prev, newItem]);
+                    setCustomItemDefinitions(prev => {
+                        const newDefs = { ...prev };
+                        newDefs[newItem.name] = {
+                            description: newItem.description,
+                            tier: newItem.tier,
+                            category: newItem.category,
+                            emoji: newItem.emoji,
+                            effects: newItem.effects,
+                            baseQuantity: newItem.baseQuantity,
+                            growthConditions: newItem.growthConditions as any,
+                        };
+                        return newDefs;
+                    });
+                }
+            }
 
         } catch (error) {
             console.error("AI narrative generation failed:", error);

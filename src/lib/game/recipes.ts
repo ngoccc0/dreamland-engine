@@ -31,7 +31,7 @@ export const recipes: Record<string, Recipe> = {
                 ] 
             }
         ],
-        description: 'Chế tạo một chiếc rìu đá cơ bản. Công cụ cần thiết để sinh tồn.',
+        description: 'recipe_simple_stone_axe_desc',
     },
     'Thuốc Máu Yếu': {
         result: { name: 'Thuốc Máu Yếu', quantity: 1, emoji: '🧪' },
@@ -51,7 +51,7 @@ export const recipes: Record<string, Recipe> = {
                 ] 
             }
         ],
-        description: 'Pha chế một lọ thuốc hồi máu từ thảo dược và nước sạch.',
+        description: 'recipe_weak_health_potion_desc',
     },
     'Bó Đuốc': {
         result: { name: 'Bó Đuốc', quantity: 1, emoji: '🔥' },
@@ -67,6 +67,6 @@ export const recipes: Record<string, Recipe> = {
             },
             { name: 'Nhựa Cây Dính', quantity: 1 }
         ],
-        description: 'Tạo ra một nguồn sáng tạm thời để khám phá những nơi tối tăm.',
+        description: 'recipe_torch_desc',
     },
 };

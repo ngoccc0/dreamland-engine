@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/context/language-context";
 import { provideQuestHint } from "@/ai/flows/provide-quest-hint";
 import type { PlayerStatus } from "@/lib/game/types";
+import type { TranslationKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Heart, Loader2 } from "lucide-react";
 
@@ -142,8 +143,8 @@ export function StatusPopup({ open, onOpenChange, stats }: StatusPopupProps) {
               <ul className="space-y-2">
                 {pets.map((pet, index) => (
                   <li key={index} className="p-2 bg-muted rounded-md text-muted-foreground">
-                    <div className="font-semibold text-foreground">{pet.name || pet.type}</div>
-                    <div className="text-xs">Level {pet.level} {pet.type}</div>
+                    <div className="font-semibold text-foreground">{pet.name || t(pet.type as TranslationKey)}</div>
+                    <div className="text-xs">{t('levelLabel')} {pet.level} {t(pet.type as TranslationKey)}</div>
                   </li>
                 ))}
               </ul>

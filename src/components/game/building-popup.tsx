@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
 import type { PlayerItem, Structure } from "@/lib/game/types";
+import type { TranslationKey } from "@/lib/i18n";
 import { Home } from "lucide-react";
 
 interface BuildingPopupProps {
@@ -51,9 +52,9 @@ export function BuildingPopup({ open, onOpenChange, playerItems, buildableStruct
                   <div className="flex-grow">
                     <h4 className="font-bold text-lg text-foreground flex items-center gap-2">
                       <span className="text-2xl">{structure.emoji}</span>
-                      {structure.name}
+                      {t(structure.name as TranslationKey)}
                     </h4>
-                    <p className="text-sm text-muted-foreground italic mb-2">{structure.description}</p>
+                    <p className="text-sm text-muted-foreground italic mb-2">{t(structure.description as TranslationKey)}</p>
                     <div className="text-sm">
                       <span className="font-semibold">{t('materialsNeeded')}:</span>
                       {structure.buildCost && structure.buildCost.length > 0 ? (
@@ -63,7 +64,7 @@ export function BuildingPopup({ open, onOpenChange, playerItems, buildableStruct
                             const hasEnough = playerQty >= cost.quantity;
                             return (
                               <li key={cost.name} className={hasEnough ? 'text-green-400' : 'text-red-400'}>
-                                {cost.name} ({playerQty}/{cost.quantity})
+                                {t(cost.name as TranslationKey)} ({playerQty}/{cost.quantity})
                               </li>
                             );
                           })}
@@ -83,7 +84,7 @@ export function BuildingPopup({ open, onOpenChange, playerItems, buildableStruct
                         </div>
                       </TooltipTrigger>
                       <TooltipContent>
-                        {buildable ? <p>{t('buildStructure', { structureName: structure.name })}</p> : <p>{t('notEnoughIngredients')}</p>}
+                        {buildable ? <p>{t('buildStructure', { structureName: t(structure.name as TranslationKey) })}</p> : <p>{t('notEnoughIngredients')}</p>}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

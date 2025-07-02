@@ -11,7 +11,7 @@ import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
 import { skillDefinitions } from '@/lib/game/skills';
-import { templates } from '@/lib/game/templates';
+import { getTemplates } from '@/lib/game/templates';
 import { worldConfig } from '@/lib/game/world-config';
 import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, PlayerPersona, Structure, Pet } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
@@ -228,7 +228,8 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 worldProfile,
                 currentSeason,
                 customItemDefinitions,
-                customItemCatalog
+                customItemCatalog,
+                language
             );
             
             const startKey = `${startPos.x},${startPos.y}`;
@@ -325,7 +326,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 const newWeather = generateWeatherForZone(zone.terrain, currentSeason, zone.currentWeather);
                 zone.currentWeather = newWeather;
                 zone.nextChangeTime = nextTick + getRandomInRange({min: newWeather.duration_range[0], max: newWeather.duration_range[1]});
-                changes.narrativeEntries.push({ text: newWeather.description, type: 'system'});
+                changes.narrativeEntries.push({ text: t(newWeather.description as TranslationKey), type: 'system'});
                 newWeatherZones[zoneId] = zone;
                 weatherHasChanged = true;
             }
@@ -335,6 +336,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         }
     
         const allCreatures = [];
+        const templates = getTemplates(language);
         for (const key in newWorldState) {
             if (newWorldState[key].enemy) {
                 allCreatures.push({
@@ -435,8 +437,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                         newWorldState[creatureKey] = { ...creatureChunk, enemy: null };
     
                         if (newPos.x === playerPosition.x && newPos.y === playerPosition.y) {
-                            changes.narrativeEntries.push({ text: `Một ${enemyData.type} hung hãn đã di chuyển vào và tấn công bạn!`, type: 'system' });
-                            // This direct player damage is now handled in the player stat simulation part
+                            changes.narrativeEntries.push({ text: t('enemyMovedIn', { enemy: t(enemyData.type as TranslationKey) }), type: 'system' });
                         }
                         
                         worldWasModified = true;
@@ -534,7 +535,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
 
 
             if (currentPlayerChunk.enemy && currentPlayerChunk.enemy.behavior === 'aggressive') {
-                 changes.narrativeEntries.push({ text: `The ${currentPlayerChunk.enemy.type} attacks you!`, type: 'system' });
+                 changes.narrativeEntries.push({ text: t('enemyAttacks', { enemy: t(currentPlayerChunk.enemy.type as TranslationKey) }), type: 'system' });
                  nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - currentPlayerChunk.enemy.damage);
             }
         }
@@ -551,7 +552,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             uniqueNarratives.forEach(entry => addNarrativeEntry(entry.text, entry.type));
         }
 
-    }, [world, gameTicks, playerPosition, playerStats, weatherZones, currentSeason, customItemDefinitions, getEffectiveChunk, addNarrativeEntry, t]);
+    }, [world, gameTicks, playerPosition, playerStats, weatherZones, currentSeason, customItemDefinitions, getEffectiveChunk, addNarrativeEntry, t, language]);
     
 
     const handleOnlineNarrative = async (action: string, worldCtx: World, playerPosCtx: {x: number, y: number}, playerStatsCtx: PlayerStatus) => {
@@ -689,7 +690,8 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             worldProfile,
             currentSeason,
             customItemDefinitions,
-            customItemCatalog
+            customItemCatalog,
+            language
         );
         
         return { 
@@ -698,7 +700,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             regions: result.newRegions,
             regionCounter: result.newRegionCounter
         };
-    }, [worldProfile, currentSeason, customItemDefinitions, customItemCatalog]);
+    }, [worldProfile, currentSeason, customItemDefinitions, customItemCatalog, language]);
 
     const handleMove = (direction: "north" | "south" | "east" | "west") => {
         setPlayerBehaviorProfile(p => ({ ...p, moves: p.moves + 1 }));
@@ -735,8 +737,8 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         
         if (playerStats.stamina < travelCost) {
             toast({
-                title: "Quá mệt!",
-                description: "Bạn không đủ thể lực để di chuyển tới vùng đất này. Hãy nghỉ ngơi.",
+                title: t('notEnoughStamina'),
+                description: t('notEnoughStaminaDesc', { cost: travelCost, current: playerStats.stamina.toFixed(0) }),
                 variant: "destructive",
             });
             return;
@@ -854,11 +856,11 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         const key = `${playerPosition.x},${playerPosition.y}`;
         const baseChunk = world[key];
         if (!baseChunk || !baseChunk.enemy) {
-            addNarrativeEntry("Không có gì để tấn công ở đây.", 'system');
+            addNarrativeEntry(t('noTarget'), 'system');
             return;
         }
     
-        const actionText = `Attack ${baseChunk.enemy.type}`;
+        const actionText = `${t('attackAction')} ${t(baseChunk.enemy.type as TranslationKey)}`;
         addNarrativeEntry(actionText, 'action');
     
         if (isOnline) {
@@ -881,10 +883,10 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         switch (successLevel) {
             case 'CriticalFailure':
                 setPlayerStats(prev => ({ ...prev, stamina: Math.max(0, prev.stamina - 5) }));
-                addNarrativeEntry("Bạn tấn công một cách vụng về và mất thăng bằng, lãng phí thể lực.", 'narrative');
+                addNarrativeEntry(t('attackCritFail'), 'narrative');
                 break;
             case 'Failure':
-                addNarrativeEntry("Bạn vung vũ khí nhưng đánh trượt mục tiêu một cách đáng tiếc.", 'narrative');
+                addNarrativeEntry(t('attackFail'), 'narrative');
                 break;
             case 'Success':
             case 'GreatSuccess':
@@ -896,11 +898,11 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 let envDamageModifier = 1.0;
                 if (currentChunkWithWeather.lightLevel < -3) {
                     envDamageModifier *= 0.8;
-                    addNarrativeEntry("Sương mù dày đặc làm giảm độ chính xác của bạn.", "system");
+                    addNarrativeEntry(t('attackEnvFog'), "system");
                 }
                 if (currentChunkWithWeather.moisture > 8) {
                     envDamageModifier *= 0.9;
-                    addNarrativeEntry("Mưa lớn làm vũ khí nặng trĩu, cản trở đòn tấn công.", "system");
+                    addNarrativeEntry(t('attackEnvRain'), "system");
                 }
     
                 let baseDamage = playerStats.attributes.physicalAttack;
@@ -909,9 +911,9 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 }
                 playerDamage = Math.round(baseDamage * damageMultiplier * envDamageModifier);
     
-                let attackNarrative = `Bạn tấn công ${enemyInWorld.type}, gây ${playerDamage} sát thương.`;
-                if (successLevel === 'GreatSuccess') attackNarrative = `Một đòn đánh hiểm hóc! Bạn tấn công ${enemyInWorld.type}, gây ${playerDamage} sát thương.`;
-                if (successLevel === 'CriticalSuccess') attackNarrative = `Một đòn CHÍ MẠNG! Bạn tấn công ${enemyInWorld.type}, gây ${playerDamage} sát thương khủng khiếp.`;
+                let attackNarrative = t('attackSuccess', { enemyType: t(enemyInWorld.type as TranslationKey), playerDamage });
+                if (successLevel === 'GreatSuccess') attackNarrative = t('attackGreatSuccess', { enemyType: t(enemyInWorld.type as TranslationKey), playerDamage });
+                if (successLevel === 'CriticalSuccess') attackNarrative = t('attackCritSuccess', { enemyType: t(enemyInWorld.type as TranslationKey), playerDamage });
                 addNarrativeEntry(attackNarrative, 'narrative');
                 break;
         }
@@ -921,15 +923,15 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         }
     
         if (enemyInWorld.hp <= 0) {
-            addNarrativeEntry(t('enemyDefeated', { enemyType: enemyInWorld.type }), 'system');
+            addNarrativeEntry(t('enemyDefeated', { enemyType: t(enemyInWorld.type as TranslationKey) }), 'system');
             updatedChunkInWorld.enemy = null;
             updatedChunkInWorld.actions = updatedChunkInWorld.actions.filter(a => a.id !== 1);
             if (updatedChunkInWorld.NPCs.length > 0) {
-                updatedChunkInWorld.actions.unshift({ id: 1, text: `Nói chuyện với ${updatedChunkInWorld.NPCs[0]}` });
+                updatedChunkInWorld.actions.unshift({ id: 1, text: `${t('talkToAction')} ${t(updatedChunkInWorld.NPCs[0] as TranslationKey)}` });
             }
         } else {
             if (playerDamage > 0) {
-                addNarrativeEntry(t('enemyHpLeft', { enemyType: enemyInWorld.type, hp: enemyInWorld.hp }), 'narrative');
+                addNarrativeEntry(t('enemyHpLeft', { enemyType: t(enemyInWorld.type as TranslationKey), hp: enemyInWorld.hp }), 'narrative');
             }
     
             let enemyDamageModifier = 1.0;
@@ -940,9 +942,9 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             setPlayerStats(prev => {
                 const newHp = prev.hp - enemyDamage;
                 if (enemyDamage > 0) {
-                    addNarrativeEntry(t('enemyRetaliates', { enemyType: enemyInWorld.type, enemyDamage }), 'narrative');
+                    addNarrativeEntry(t('enemyRetaliates', { enemyType: t(enemyInWorld.type as TranslationKey), enemyDamage }), 'narrative');
                 } else {
-                    addNarrativeEntry(`Kẻ địch tấn công nhưng bị trượt do ảnh hưởng của môi trường!`, 'narrative');
+                    addNarrativeEntry(t('enemyAttackMiss'), 'narrative');
                 }
                 if (newHp <= 0 && prev.hp > 0) {
                     addNarrativeEntry(t('youFell'), 'system');
@@ -979,15 +981,15 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         }
     
         if (successLevel === 'Failure' || successLevel === 'CriticalFailure') {
-            let failureNarrative = "Nỗ lực của bạn không mang lại kết quả gì.";
+            let failureNarrative = t('customActionFail');
             if (chunk.moisture > 8 && Math.random() < 0.5) {
-                failureNarrative = "Bạn cố gắng hành động nhưng bị trượt chân trên mặt đất ẩm ướt.";
+                failureNarrative = t('customActionFailSlippery');
             }
             addNarrativeEntry(failureNarrative, 'narrative');
     
             if (successLevel === 'CriticalFailure') {
                 setPlayerStats(prev => ({...prev, stamina: Math.max(0, prev.stamina - 5)}));
-                addNarrativeEntry("Hành động vụng về khiến bạn mất một chút thể lực.", 'system');
+                addNarrativeEntry(t('customActionCritFail'), 'system');
             }
         } else {
             const terrain = chunk.terrain;
@@ -1020,16 +1022,16 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             }
     
             if (successLevel === 'GreatSuccess') {
-                finalResponse = `Với kỹ năng đáng ngạc nhiên, bạn đã... ${response.toLowerCase()}`;
+                finalResponse = `${t('customActionGreatSuccessPrefix')} ${response.toLowerCase()}`;
             } else if (successLevel === 'CriticalSuccess' && gotItem) {
-                finalResponse = `Thật xuất sắc! ${response} Bạn còn nhận được thêm một chút!`;
+                finalResponse = `${t('customActionCritSuccessPrefix')} ${response} ${t('customActionCritSuccessExtra')}`;
             } else if (successLevel === 'CriticalSuccess') {
-                finalResponse = `Thật xuất sắc! ${response}`;
+                finalResponse = `${t('customActionCritSuccessPrefix')} ${response}`;
             }
     
             addNarrativeEntry(finalResponse, 'narrative');
             if (gotItem) {
-                 addNarrativeEntry('Bạn đã thêm Cỏ Khô vào túi đồ.', 'system');
+                 addNarrativeEntry(t('customActionHayAdded'), 'system');
             }
         }
     
@@ -1107,11 +1109,11 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                          setRecipes(prev => ({ ...prev, [newRecipe.result.name]: newRecipe as Recipe }));
                          toast({ 
                             title: t('newRecipeIdea'), 
-                            description: `Bạn đã nghĩ ra cách chế tạo: ${newRecipe.result.name}!` 
+                            description: t('newRecipeDiscovered', { recipeName: newRecipe.result.name})
                         });
                     }
                 } catch (error) {
-                    console.error("Lỗi khi tạo công thức mới:", error);
+                    console.error(t('newRecipeError'), error);
                 }
             }
 
@@ -1125,8 +1127,8 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
 
     const handleItemUsed = useCallback((itemName: string, target: 'player' | string) => {
         const actionText = target === 'player'
-            ? `use ${itemName}`
-            : `use ${itemName} on ${target}`;
+            ? `${t('useAction')} ${itemName}`
+            : `${t('useOnAction', {item: itemName, target: t(target as TranslationKey)})}`;
         addNarrativeEntry(actionText, 'action');
 
         if (isOnline) {
@@ -1137,7 +1139,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         // --- OFFLINE ITEM USAGE LOGIC ---
         const itemIndex = playerStats.items.findIndex(i => i.name.toLowerCase() === itemName.toLowerCase());
         if (itemIndex === -1) {
-            addNarrativeEntry("Bạn không có vật phẩm đó.", "system");
+            addNarrativeEntry(t('itemNotFound'), "system");
             return;
         }
 
@@ -1145,7 +1147,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         if (target === 'player') {
             const itemDef = customItemDefinitions[itemName] || staticItemDefinitions[itemName];
             if (!itemDef || itemDef.effects.length === 0) {
-                addNarrativeEntry(`${itemName} không có tác dụng gì khi sử dụng theo cách này.`, 'narrative');
+                addNarrativeEntry(t('itemNoEffect', { item: t(itemName as TranslationKey)}), 'narrative');
                 handleGameTick();
                 return;
             }
@@ -1159,21 +1161,21 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                         const oldHp = newStatus.hp;
                         newStatus.hp = Math.min(100, newStatus.hp + effect.amount);
                         if (newStatus.hp > oldHp) {
-                            effectDescriptions.push(`hồi ${newStatus.hp - oldHp} máu`);
+                            effectDescriptions.push(t('itemHealEffect', { amount: newStatus.hp - oldHp}));
                         }
                         break;
                     case 'RESTORE_STAMINA':
                         const oldStamina = newStatus.stamina;
                         newStatus.stamina = Math.min(100, newStatus.stamina + effect.amount);
                         if (newStatus.stamina > oldStamina) {
-                            effectDescriptions.push(`phục hồi ${newStatus.stamina - oldStamina} thể lực`);
+                            effectDescriptions.push(t('itemStaminaEffect', { amount: newStatus.stamina - oldStamina}));
                         }
                         break;
                 }
             });
             
             if (effectDescriptions.length === 0) {
-                addNarrativeEntry(`${itemName} không có hiệu quả.`, 'narrative');
+                addNarrativeEntry(t('itemDidNothing', { item: t(itemName as TranslationKey)}), 'narrative');
                 handleGameTick();
                 return;
             }
@@ -1183,7 +1185,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             newItems[itemIndex].quantity -= 1;
             newStatus.items = newItems.filter(i => i.quantity > 0);
 
-            addNarrativeEntry(`Bạn sử dụng ${itemName}. Nó ${effectDescriptions.join(' và ')}.`, 'narrative');
+            addNarrativeEntry(t('itemUsedSuccess', { item: t(itemName as TranslationKey), effect: effectDescriptions.join(t('andConnector'))}), 'narrative');
             setPlayerStats(newStatus);
         }
         // Logic for using item on an enemy (taming)
@@ -1191,13 +1193,13 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             const key = `${playerPosition.x},${playerPosition.y}`;
             const enemy = world[key]?.enemy;
             if (!enemy || enemy.type !== target) {
-                addNarrativeEntry(`Không có ${target} ở đây để sử dụng vật phẩm lên.`, 'narrative');
+                addNarrativeEntry(t('noTargetForITEM', { target: t(target as TranslationKey) }), 'narrative');
                 handleGameTick();
                 return;
             }
 
             if (!enemy.diet.includes(itemName)) {
-                addNarrativeEntry(`${enemy.type} không quan tâm đến ${itemName}.`, 'narrative');
+                addNarrativeEntry(t('targetNotInterested', { target: t(enemy.type as TranslationKey), item: t(itemName as TranslationKey) }), 'narrative');
                 handleGameTick();
                 return;
             }
@@ -1219,22 +1221,22 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 const newPet: Pet = { type: enemy.type, level: 1 };
                 const updatedPets = [...(newPlayerStatus.pets || []), newPet];
                 
-                addNarrativeEntry(`Bạn đã thuần hóa thành công ${enemy.type}!`, 'system');
+                addNarrativeEntry(t('tameSuccess', { target: t(enemy.type as TranslationKey) }), 'system');
                 setWorld(prev => ({...prev, [key]: {...prev[key]!, enemy: null}}));
                 setPlayerStats({...newPlayerStatus, pets: updatedPets});
 
             } else {
-                addNarrativeEntry(`${enemy.type} ăn ${itemName}, nhưng vẫn còn hoang dã.`, 'narrative');
+                addNarrativeEntry(t('tameFail', { target: t(enemy.type as TranslationKey), item: t(itemName as TranslationKey) }), 'narrative');
                 setWorld(prev => ({...prev, [key]: {...prev[key]!, enemy: newEnemyState}}));
                 setPlayerStats(newPlayerStatus);
             }
         }
         
         handleGameTick();
-    }, [playerStats, world, playerPosition, isOnline, customItemDefinitions, addNarrativeEntry, handleGameTick, handleOnlineNarrative]);
+    }, [playerStats, world, playerPosition, isOnline, customItemDefinitions, addNarrativeEntry, handleGameTick, handleOnlineNarrative, t]);
 
     const handleUseSkill = useCallback((skillName: string) => {
-        const actionText = `use skill ${skillName}`;
+        const actionText = `${t('useSkillAction')} ${t(skillName as TranslationKey)}`;
         addNarrativeEntry(actionText, 'action');
 
         if (isOnline) {
@@ -1243,16 +1245,15 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         }
 
         // --- OFFLINE SKILL USAGE LOGIC ---
-        // This logic is adapted from the `useSkillTool` to provide a rich offline experience.
         const skillToUse = playerStats.skills.find(s => s.name.toLowerCase() === skillName.toLowerCase());
 
         if (!skillToUse) {
-            addNarrativeEntry(`Bạn không biết kỹ năng: ${skillName}.`, 'system');
+            addNarrativeEntry(t('skillNotFound', { skillName: t(skillName as TranslationKey) }), 'system');
             return;
         }
 
         if (playerStats.mana < skillToUse.manaCost) {
-            addNarrativeEntry(`Không đủ mana để sử dụng ${skillToUse.name}.`, 'system');
+            addNarrativeEntry(t('notEnoughMana', { skillName: t(skillName as TranslationKey) }), 'system');
             return;
         }
 
@@ -1270,16 +1271,16 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 if (skillToUse.effect.type === 'HEAL') {
                     const backfireDamage = Math.round(skillToUse.effect.amount * 0.5);
                     newPlayerStatus.hp = Math.max(0, newPlayerStatus.hp - backfireDamage);
-                    log = `Kỹ năng phản tác dụng! Phép thuật chữa lành của bạn gây ra ${backfireDamage} sát thương cho chính bạn.`;
+                    log = t('skillHealCritFail', { damage: backfireDamage });
                 } else if (skillToUse.effect.type === 'DAMAGE') {
                      const backfireDamage = Math.round(skillToUse.effect.amount * 0.5);
                     newPlayerStatus.hp = Math.max(0, newPlayerStatus.hp - backfireDamage);
-                    log = `Kỹ năng phản tác dụng! Quả cầu lửa nổ tung trên tay bạn, gây ${backfireDamage} sát thương.`;
+                    log = t('skillDamageCritFail', { damage: backfireDamage });
                 }
                 break;
 
             case 'Failure':
-                log = `Năng lượng ma thuật tiêu tán! Nỗ lực sử dụng ${skillToUse.name} của bạn đã thất bại.`;
+                log = t('skillFail', { skillName: t(skillName as TranslationKey) });
                 break;
 
             case 'GreatSuccess':
@@ -1314,27 +1315,27 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                     const oldHp = newPlayerStatus.hp;
                     newPlayerStatus.hp = Math.min(100, newPlayerStatus.hp + healAmount);
                     const healedAmount = newPlayerStatus.hp - oldHp;
-                    finalLog = `Sử dụng ${skillToUse.name}, hồi ${healedAmount} máu.`;
-                    if (successLevel === 'GreatSuccess') finalLog += ' Luồng năng lượng mạnh mẽ giúp bạn cảm thấy sảng khoái hơn nhiều.';
-                    if (successLevel === 'CriticalSuccess') finalLog += ' Một luồng năng lượng thần thánh bao bọc lấy bạn, chữa lành vết thương một cách thần kỳ!';
+                    finalLog = t('skillHealSuccess', { skillName: t(skillName as TranslationKey), amount: healedAmount });
+                    if (successLevel === 'GreatSuccess') finalLog += ` ${t('skillGreatSuccessBonus')}`;
+                    if (successLevel === 'CriticalSuccess') finalLog += ` ${t('skillCritSuccessBonus')}`;
                 }
                 break;
             case 'DAMAGE':
                 if (skillToUse.effect.target === 'ENEMY') {
                     if (!enemy) {
-                        finalLog = `Sử dụng ${skillToUse.name}, nhưng không có mục tiêu.`;
+                        finalLog = t('skillNoTarget', { skillName: t(skillName as TranslationKey) });
                     } else {
                         let newEnemy = { ...enemy };
                         const baseDamage = skillToUse.effect.amount + Math.round(newPlayerStatus.attributes.magicalAttack * 0.5);
                         const finalDamage = Math.round(baseDamage * effectMultiplier);
 
                         newEnemy.hp = Math.max(0, newEnemy.hp - finalDamage);
-                        finalLog = `Sử dụng ${skillToUse.name}, gây ${finalDamage} sát thương phép lên ${newEnemy.type}.`;
-                         if (successLevel === 'GreatSuccess') finalLog += ' Quả cầu lửa bay nhanh và chính xác hơn, gây thêm sát thương.';
-                        if (successLevel === 'CriticalSuccess') finalLog = `Một đòn CHÍ MẠNG phép thuật! ${skillToUse.name} của bạn bùng nổ dữ dội, gây ${finalDamage} sát thương hủy diệt lên ${newEnemy.type}.`;
+                        finalLog = t('skillDamageSuccess', { skillName: t(skillName as TranslationKey), damage: finalDamage, enemy: t(newEnemy.type as TranslationKey) });
+                        if (successLevel === 'GreatSuccess') finalLog += ` ${t('skillDamageGreatSuccessBonus')}`;
+                        if (successLevel === 'CriticalSuccess') finalLog = t('skillDamageCritSuccess', { skillName: t(skillName as TranslationKey), damage: finalDamage, enemy: t(newEnemy.type as TranslationKey) });
 
                         if (newEnemy.hp <= 0) {
-                            finalLog += ` ${newEnemy.type} đã bị tiêu diệt!`;
+                            finalLog += ` ${t('enemyDefeated', { enemyType: t(newEnemy.type as TranslationKey) })}`;
                             newWorld[key] = { ...newWorld[key]!, enemy: null };
                         } else {
                             newWorld[key] = { ...newWorld[key]!, enemy: newEnemy };
@@ -1356,7 +1357,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         const structureToBuild = staticBuildableStructures[structureName];
 
         if (!structureToBuild || !structureToBuild.buildable) {
-            toast({ title: t('error'), description: `Không thể xây dựng ${structureName}.`, variant: "destructive" });
+            toast({ title: t('error'), description: t('cantBuild', { structureName: t(structureName as TranslationKey)}), variant: "destructive" });
             return;
         }
 
@@ -1378,14 +1379,14 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             const playerQty = inventoryMap.get(cost.name) || 0;
             if (playerQty < cost.quantity) {
                 canBuild = false;
-                missingItems.push(`${cost.name} (cần ${cost.quantity}, có ${playerQty})`);
+                missingItems.push(`${t(cost.name as TranslationKey)} (${t('buildNeed')}: ${cost.quantity}, ${t('buildHave')}: ${playerQty})`);
             }
         }
 
         if (!canBuild) {
             toast({ 
                 title: t('notEnoughIngredients'), 
-                description: `Thiếu: ${missingItems.join(', ')}`, 
+                description: `${t('buildMissing')}: ${missingItems.join(', ')}`, 
                 variant: "destructive" 
             });
             return;
@@ -1424,7 +1425,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             return newWorld;
         });
 
-        addNarrativeEntry(t('builtStructure', { structureName }), 'system');
+        addNarrativeEntry(t('builtStructure', { structureName: t(structureName as TranslationKey) }), 'system');
         handleGameTick();
     }, [playerStats.items, playerStats.stamina, playerPosition, addNarrativeEntry, handleGameTick, toast, t]);
 
@@ -1434,11 +1435,11 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         const shelter = chunk?.structures.find(s => s.restEffect);
 
         if (!shelter || !shelter.restEffect) {
-            toast({ title: "Không thể nghỉ ngơi", description: "Bạn cần ở trong một nơi trú ẩn phù hợp." });
+            toast({ title: t('cantRestTitle'), description: t('cantRestDesc') });
             return;
         }
 
-        addNarrativeEntry(t('restInShelter', { shelterName: shelter.name }), 'action');
+        addNarrativeEntry(t('restInShelter', { shelterName: t(shelter.name as TranslationKey) }), 'action');
 
         if (playerStats.hp >= 100 && playerStats.stamina >= 100) {
             addNarrativeEntry(t('restNoEffect'), 'narrative');
@@ -1457,11 +1458,11 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         setPlayerStats(prev => ({ ...prev, hp: newHp, stamina: newStamina, bodyTemperature: 37 }));
 
         const restoredParts = [];
-        if (newHp > oldHp) restoredParts.push(`${newHp - oldHp} máu`);
-        if (newStamina > oldStamina) restoredParts.push(`${newStamina - oldStamina} thể lực`);
+        if (newHp > oldHp) restoredParts.push(t('restHP', {amount: newHp - oldHp}));
+        if (newStamina > oldStamina) restoredParts.push(t('restStamina', {amount: newStamina - oldStamina}));
 
         if (restoredParts.length > 0) {
-            addNarrativeEntry(t('restSuccess', { restoration: restoredParts.join(' và ') }), 'system');
+            addNarrativeEntry(t('restSuccess', { restoration: restoredParts.join(` ${t('andConnector')} `) }), 'system');
             addNarrativeEntry(t('restSuccessTemp'), 'system');
         }
 

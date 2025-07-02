@@ -1,6 +1,6 @@
-import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient, Structure } from "./types";
+import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient, Structure, Language } from "./types";
 import { seasonConfig, worldConfig } from "./world-config";
-import { templates } from "./templates";
+import { getTemplates } from "./templates";
 import { itemDefinitions as staticItemDefinitions } from "./items";
 import { weatherPresets } from "./weatherPresets";
 
@@ -240,8 +240,10 @@ function generateChunkContent(
     chunkData: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'explored' | 'structures' | 'terrain'> & { terrain: Terrain },
     worldProfile: WorldProfile,
     allItemDefinitions: Record<string, ItemDefinition>,
-    customItemCatalog: GeneratedItem[]
+    customItemCatalog: GeneratedItem[],
+    language: Language
 ) {
+    const templates = getTemplates(language);
     const template = templates[chunkData.terrain];
 
     // Description
@@ -318,25 +320,24 @@ function generateChunkContent(
 
 
     // More description based on calculated values and spawned entities
-    if (chunkData.moisture > 8) finalDescription += " Không khí đặc quánh hơi ẩm.";
-    if (chunkData.windLevel && chunkData.windLevel > 8) finalDescription += " Một cơn gió mạnh rít qua bên tai bạn.";
-    if (chunkData.temperature && chunkData.temperature < 3) finalDescription += " Một cái lạnh buốt thấu xương.";
-    if (chunkData.dangerLevel > 8) finalDescription += " Bạn có cảm giác bất an ở nơi này.";
-    if (chunkData.humanPresence > 5) finalDescription += " Dường như có dấu vết của người khác ở đây.";
-    if (spawnedEnemy) finalDescription += ` Bạn cảm thấy sự hiện diện của một ${spawnedEnemy.type} nguy hiểm gần đây.`;
-    if (spawnedStructures.length > 0) finalDescription += ` Ở phía xa, bạn thấy ${spawnedStructures[0].description.toLowerCase()}`;
-
+    if (chunkData.moisture > 8) finalDescription += ` ${language === 'vi' ? 'Không khí đặc quánh hơi ẩm.' : 'The air is thick with moisture.'}`;
+    if (chunkData.windLevel && chunkData.windLevel > 8) finalDescription += ` ${language === 'vi' ? 'Một cơn gió mạnh rít qua bên tai bạn.' : 'A strong wind whistles past your ears.'}`;
+    if (chunkData.temperature && chunkData.temperature < 3) finalDescription += ` ${language === 'vi' ? 'Một cái lạnh buốt thấu xương.' : 'A bone-chilling cold sets in.'}`;
+    if (chunkData.dangerLevel > 8) finalDescription += ` ${language === 'vi' ? 'Bạn có cảm giác bất an ở nơi này.' : 'You feel a sense of unease in this place.'}`;
+    if (chunkData.humanPresence > 5) finalDescription += ` ${language === 'vi' ? 'Dường như có dấu vết của người khác ở đây.' : 'There seem to be traces of others here.'}`;
+    if (spawnedEnemy) finalDescription += ` ${language === 'vi' ? `Bạn cảm thấy sự hiện diện của một ${spawnedEnemy.type} nguy hiểm gần đây.` : `You sense the presence of a dangerous ${spawnedEnemy.type} nearby.`}`;
+    if (spawnedStructures.length > 0) finalDescription += ` ${language === 'vi' ? `Ở phía xa, bạn thấy ${spawnedStructures[0].description.toLowerCase()}` : `In the distance, you see ${spawnedStructures[0].description.toLowerCase()}`}`;
 
     // Actions
     const actions = [];
     if (spawnedEnemy) {
-        actions.push({ id: 1, text: `Quan sát ${spawnedEnemy.type}` });
+        actions.push({ id: 1, text: `${language === 'vi' ? 'Quan sát' : 'Observe'} ${spawnedEnemy.type}` });
     } else if (spawnedNPCs.length > 0) {
-        actions.push({ id: 1, text: `Nói chuyện với ${spawnedNPCs[0]}` });
+        actions.push({ id: 1, text: `${language === 'vi' ? 'Nói chuyện với' : 'Talk to'} ${spawnedNPCs[0]}` });
     }
-    actions.push({ id: 2, text: 'Khám phá khu vực' });
+    actions.push({ id: 2, text: language === 'vi' ? 'Khám phá khu vực' : 'Explore the area' });
     if (spawnedItems.length > 0) {
-         actions.push({ id: 3, text: `Nhặt ${spawnedItems[0].name}` });
+         actions.push({ id: 3, text: `${language === 'vi' ? 'Nhặt' : 'Pick up'} ${spawnedItems[0].name}` });
     }
 
     return {
@@ -360,7 +361,8 @@ export const generateRegion = (
     worldProfile: WorldProfile,
     currentSeason: Season,
     allItemDefinitions: Record<string, ItemDefinition>, // Pass in all definitions
-    customItemCatalog: GeneratedItem[]                   // Pass in custom catalog for spawning
+    customItemCatalog: GeneratedItem[],                   // Pass in custom catalog for spawning
+    language: Language
 ) => {
     const newWorld = { ...currentWorld };
     const newRegions = { ...currentRegions };
@@ -429,7 +431,7 @@ export const generateRegion = (
         };
 
         // Step 4: Generate content based on the final chunk data
-        const content = generateChunkContent(tempChunkData, worldProfile, allItemDefinitions, customItemCatalog);
+        const content = generateChunkContent(tempChunkData, worldProfile, allItemDefinitions, customItemCatalog, language);
         
         newWorld[posKey] = {
             x: pos.x, 

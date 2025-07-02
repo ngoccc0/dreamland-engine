@@ -11,7 +11,7 @@ import {z} from 'genkit';
 import { PlayerStatusSchema, EnemySchema, PlayerItemSchema, ChunkItemSchema, ItemDefinitionSchema, PetSchema, SkillSchema } from '@/ai/schemas';
 import type { PlayerItem, PlayerStatus, Pet, ChunkItem, Skill, Structure } from '@/lib/game/types';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
-import { templates } from '@/lib/game/templates';
+import { getTemplates } from '@/lib/game/templates';
 import { buildableStructures } from '@/lib/game/structures';
 
 
@@ -46,17 +46,17 @@ export const playerAttackTool = ai.defineTool({
     // Environmental effects on player's attack
     if (lightLevel !== undefined && lightLevel < -3) {
         playerDamageModifier *= 0.8; // 20% penalty in fog/darkness
-        combatLogParts.push("Tầm nhìn kém trong sương mù/bóng tối làm giảm độ chính xác của người chơi.");
+        combatLogParts.push("Poor visibility in the fog/darkness reduces the player's accuracy.");
     }
     if (moisture !== undefined && moisture > 8) {
         playerDamageModifier *= 0.9; // 10% penalty in heavy rain
-        combatLogParts.push("Mưa lớn cản trở đòn tấn công của người chơi.");
+        combatLogParts.push("Heavy rain impedes the player's attack.");
     }
 
     let playerBaseDamage = playerStatus.attributes.physicalAttack;
     if (playerStatus.persona === 'warrior') {
         playerBaseDamage += 2; // Warrior persona bonus
-        combatLogParts.push("Kỹ năng chiến đấu dày dạn giúp đòn tấn công của bạn mạnh hơn một chút.");
+        combatLogParts.push("Battle-honed skills make your attack a little stronger.");
     }
 
     const playerDamage = Math.round(playerBaseDamage * playerDamageModifier);
@@ -66,6 +66,7 @@ export const playerAttackTool = ai.defineTool({
     
     // If enemy is defeated, it can't flee or retaliate.
     if (enemyDefeated) {
+        const templates = getTemplates('en'); // Use english templates for loot definition lookup
         const enemyTemplate = templates[terrain]?.enemies.find(e => e.data.type === enemy.type);
         if (enemyTemplate && enemyTemplate.data.loot) {
             const allItemDefinitions = { ...staticItemDefinitions, ...customItemDefinitions };
@@ -109,14 +110,14 @@ export const playerAttackTool = ai.defineTool({
 
     if (enemy.behavior === 'passive') {
         fled = true;
-        combatLogParts.push('Sinh vật thụ động đã bỏ chạy trong kinh hoàng!');
+        combatLogParts.push('The passive creature fled in terror!');
     } else {
         // Aggressive, Defensive, and Territorial creatures fight back.
         fled = false;
         let enemyDamageModifier = 1.0;
         if (lightLevel !== undefined && lightLevel < -3) {
             enemyDamageModifier *= 0.8;
-            combatLogParts.push("Kẻ địch cũng bị ảnh hưởng bởi tầm nhìn kém.");
+            combatLogParts.push("The enemy is also affected by the poor visibility.");
         }
         if (moisture !== undefined && moisture > 8) {
             enemyDamageModifier *= 0.9;
@@ -210,14 +211,14 @@ export const useItemTool = ai.defineTool({
                 const oldHp = newStatus.hp;
                 newStatus.hp = Math.min(100, newStatus.hp + effect.amount);
                 if (newStatus.hp > oldHp) {
-                    effectDescriptions.push(`Hồi ${newStatus.hp - oldHp} máu.`);
+                    effectDescriptions.push(`Healed for ${newStatus.hp - oldHp} HP.`);
                 }
                 break;
             case 'RESTORE_STAMINA':
                  const oldStamina = newStatus.stamina;
                  newStatus.stamina = Math.min(100, newStatus.stamina + effect.amount);
                  if (newStatus.stamina > oldStamina) {
-                    effectDescriptions.push(`Phục hồi ${newStatus.stamina - oldStamina} thể lực.`);
+                    effectDescriptions.push(`Restored ${newStatus.stamina - oldStamina} stamina.`);
                  }
                 break;
         }
@@ -360,7 +361,7 @@ export const useSkillTool = ai.defineTool({
     }
 
     if (newPlayerStatus.mana < skillToUse.manaCost) {
-        return { updatedPlayerStatus: playerStatus, updatedEnemy: enemy, log: `Không đủ mana để sử dụng ${skillToUse.name}.` };
+        return { updatedPlayerStatus: playerStatus, updatedEnemy: enemy, log: `Not enough mana to use ${skillToUse.name}.` };
     }
 
     // Deduct mana regardless of outcome, unless it's a critical failure that prevents casting.
@@ -374,16 +375,16 @@ export const useSkillTool = ai.defineTool({
             if (skillToUse.effect.type === 'HEAL') {
                 const backfireDamage = Math.round(skillToUse.effect.amount * 0.5);
                 newPlayerStatus.hp = Math.max(0, newPlayerStatus.hp - backfireDamage);
-                log = `Kỹ năng phản tác dụng! Phép thuật chữa lành của bạn gây ra ${backfireDamage} sát thương cho chính bạn.`;
+                log = `Skill backfired! Your healing spell inflicts ${backfireDamage} damage on you instead.`;
             } else if (skillToUse.effect.type === 'DAMAGE') {
                  const backfireDamage = Math.round(skillToUse.effect.amount * 0.5);
                 newPlayerStatus.hp = Math.max(0, newPlayerStatus.hp - backfireDamage);
-                log = `Kỹ năng phản tác dụng! Quả cầu lửa nổ tung trên tay bạn, gây ${backfireDamage} sát thương.`;
+                log = `Skill backfired! The fireball explodes in your hand, dealing ${backfireDamage} damage.`;
             }
             return { updatedPlayerStatus: newPlayerStatus, updatedEnemy: newEnemy, log };
 
         case 'Failure':
-            log = `Năng lượng ma thuật tiêu tán! Nỗ lực sử dụng ${skillToUse.name} của bạn đã thất bại.`;
+            log = `The magic fizzles! Your attempt to cast ${skillToUse.name} fails.`;
             return { updatedPlayerStatus: newPlayerStatus, updatedEnemy: newEnemy, log };
 
         case 'GreatSuccess':
@@ -406,35 +407,35 @@ export const useSkillTool = ai.defineTool({
                 const oldHp = newPlayerStatus.hp;
                 newPlayerStatus.hp = Math.min(100, newPlayerStatus.hp + healAmount);
                 const healedAmount = newPlayerStatus.hp - oldHp;
-                log = `Sử dụng ${skillToUse.name}, hồi ${healedAmount} máu.`;
-                if (successLevel === 'GreatSuccess') log += ' Luồng năng lượng mạnh mẽ giúp bạn cảm thấy sảng khoái hơn nhiều.';
-                if (successLevel === 'CriticalSuccess') log += ' Một luồng năng lượng thần thánh bao bọc lấy bạn, chữa lành vết thương một cách thần kỳ!';
+                log = `Used ${skillToUse.name}, healing for ${healedAmount} HP.`;
+                if (successLevel === 'GreatSuccess') log += ' A powerful surge of energy makes you feel much more refreshed.';
+                if (successLevel === 'CriticalSuccess') log += ' A divine energy surrounds you, miraculously healing your wounds!';
             }
             break;
         case 'DAMAGE':
             if (skillToUse.effect.target === 'ENEMY') {
                 if (!newEnemy) {
-                    log = `Sử dụng ${skillToUse.name}, nhưng không có mục tiêu.`;
+                    log = `Used ${skillToUse.name}, but there was no target.`;
                 } else {
                     const baseDamage = skillToUse.effect.amount + Math.round(newPlayerStatus.attributes.magicalAttack * 0.5);
                     const finalDamage = Math.round(baseDamage * effectMultiplier);
 
                     newEnemy.hp = Math.max(0, newEnemy.hp - finalDamage);
-                    log = `Sử dụng ${skillToUse.name}, gây ${finalDamage} sát thương phép lên ${newEnemy.type}.`;
-                     if (successLevel === 'GreatSuccess') log += ' Quả cầu lửa bay nhanh và chính xác hơn, gây thêm sát thương.';
-                    if (successLevel === 'CriticalSuccess') log = `Một đòn CHÍ MẠNG phép thuật! ${skillToUse.name} của bạn bùng nổ dữ dội, gây ${finalDamage} sát thương hủy diệt lên ${newEnemy.type}.`;
+                    log = `Used ${skillToUse.name}, dealing ${finalDamage} magic damage to the ${newEnemy.type}.`;
+                     if (successLevel === 'GreatSuccess') log += ' The fireball flies faster and more accurately, dealing extra damage.';
+                    if (successLevel === 'CriticalSuccess') log = `A magical CRITICAL HIT! Your ${skillToUse.name} explodes violently, dealing a devastating ${finalDamage} damage to the ${newEnemy.type}.`;
 
                     if (skillToUse.effect.healRatio) {
                         const healedAmount = Math.round(finalDamage * skillToUse.effect.healRatio);
                         const oldHp = newPlayerStatus.hp;
                         newPlayerStatus.hp = Math.min(100, newPlayerStatus.hp + healedAmount);
                         if (newPlayerStatus.hp > oldHp) {
-                            log += ` Bạn hút lại ${newPlayerStatus.hp - oldHp} máu từ đòn đánh.`
+                            log += ` You siphon ${newPlayerStatus.hp - oldHp} health from the hit.`
                         }
                     }
 
                     if (newEnemy.hp <= 0) {
-                        log += ` ${newEnemy.type} đã bị tiêu diệt!`;
+                        log += ` The ${newEnemy.type} has been vanquished!`;
                         newEnemy = null;
                     }
                 }

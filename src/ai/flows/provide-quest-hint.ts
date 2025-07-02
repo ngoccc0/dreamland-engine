@@ -36,12 +36,12 @@ const provideQuestHintPrompt = ai.definePrompt({
 
 Your task is to provide a short, one or two-sentence hint. The hint should be helpful but not a complete spoiler. It should point the player in the right direction.
 
-**Examples:**
+**Examples (for your reference, do not copy directly):**
 - Quest: "Defeat the Goblin leader." -> Hint: "The Goblin leader is likely hiding in the deepest part of their cave, surrounded by guards."
 - Quest: "Find the Sunstone." -> Hint: "Legends say the Sunstone was lost in a place where the sun never shines."
-- Quest: "Craft a Healing Potion." -> Hint: "Look for healing herbs in forested areas, they often grow near water sources."
+- Quest: "Craft a Healing Potion." -> Hint: "Look for healing herbs in forested areas; they often grow near water sources."
 
-**Language:**
+**Language Requirement:**
 The hint MUST be in the language corresponding to this code: {{language}}.
 
 **Task:**

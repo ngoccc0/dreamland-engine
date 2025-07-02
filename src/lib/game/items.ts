@@ -3,11 +3,12 @@ import { newBuildItems } from './structures';
 
 
 // --- CENTRAL ITEM CATALOG ---
+// The description field now holds a key for the i18n system.
 export const itemDefinitions: Record<string, ItemDefinition> = {
     ...newBuildItems,
     // --- VẬT PHẨM CHẾ TẠO CƠ BẢN ---
     'Sỏi': {
-        description: 'Những viên sỏi nhỏ, có thể dùng để ném hoặc làm vật liệu cơ bản.',
+        description: 'item_soi_desc',
         tier: 1,
         category: 'Material',
         emoji: '🪨',
@@ -15,7 +16,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 3, max: 8 }
     },
     'Đá Cuội': {
-        description: 'Một hòn đá cuội vừa tay, cứng và nặng.',
+        description: 'item_da_cuoi_desc',
         tier: 1,
         category: 'Material',
         emoji: '🗿',
@@ -23,7 +24,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 2, max: 5 }
     },
     'Đất Sét': {
-        description: 'Một khối đất sét dẻo, có thể dùng để nặn hình hoặc xây dựng.',
+        description: 'item_dat_set_desc',
         tier: 1,
         category: 'Material',
         emoji: '🧱',
@@ -31,7 +32,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 3 }
     },
     'Cát Thường': {
-        description: 'Một nắm cát khô, lọt qua kẽ tay.',
+        description: 'item_cat_thuong_desc',
         tier: 1,
         category: 'Material',
         emoji: '⏳',
@@ -39,7 +40,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 2, max: 6 }
     },
     'Mảnh Xương': {
-        description: 'Một mảnh xương không rõ của sinh vật nào.',
+        description: 'item_manh_xuong_desc',
         tier: 1,
         category: 'Material',
         emoji: '🦴',
@@ -47,7 +48,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 4 }
     },
     'Dây Gai': {
-        description: 'Một đoạn dây leo có gai sắc, rất bền.',
+        description: 'item_day_gai_desc',
         tier: 1,
         category: 'Material',
         emoji: '🌿',
@@ -55,7 +56,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 3 }
     },
     'Da Thú Nhỏ': {
-        description: 'Một tấm da nhỏ từ một con thú không xác định.',
+        description: 'item_da_thu_nho_desc',
         tier: 1,
         category: 'Material',
         emoji: '🩹',
@@ -63,7 +64,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Mảnh Vải Rách': {
-        description: 'Một miếng vải cũ đã rách, có thể dùng để băng bó tạm thời.',
+        description: 'item_manh_vai_rach_desc',
         tier: 1,
         category: 'Material',
         emoji: ' rags ',
@@ -71,7 +72,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Lõi Gỗ': {
-        description: 'Phần lõi cứng nhất của một cành cây.',
+        description: 'item_loi_go_desc',
         tier: 2,
         category: 'Material',
         emoji: '🪵',
@@ -79,7 +80,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Đá Mài': {
-        description: 'Một viên đá nhám, dùng để mài sắc công cụ.',
+        description: 'item_da_mai_desc',
         tier: 2,
         category: 'Tool',
         emoji: '🔪',
@@ -87,7 +88,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Bột Xương': {
-        description: 'Xương được nghiền mịn, có thể dùng trong giả kim thuật.',
+        description: 'item_bot_xuong_desc',
         tier: 2,
         category: 'Material',
         emoji: '💀',
@@ -95,7 +96,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Chìa Khóa Rỉ Sét': {
-        description: 'Một chiếc chìa khóa cũ kỹ, không rõ nó mở được ổ khóa nào.',
+        description: 'item_chia_khoa_ri_set_desc',
         tier: 2,
         category: 'Data',
         emoji: '🗝️',
@@ -105,7 +106,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
 
     // --- VẬT PHẨM CHẾ TẠO ĐƯỢC ---
     'Rìu Đá Đơn Giản': {
-        description: 'Một chiếc rìu đá thô sơ, hữu ích để chặt cây hoặc chiến đấu.',
+        description: 'item_riu_da_don_gian_desc',
         tier: 1,
         category: 'Tool',
         emoji: '🪓',
@@ -113,7 +114,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 } 
     },
     'Thuốc Máu Yếu': {
-        description: 'Một loại thuốc pha chế đơn giản, giúp phục hồi một lượng máu nhỏ.',
+        description: 'item_thuoc_mau_yeu_desc',
         tier: 1,
         category: 'Support',
         emoji: '🧪',
@@ -121,7 +122,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Bó Đuốc': {
-        description: 'Một bó đuốc tạm bợ, tỏa ra ánh sáng và hơi ấm.',
+        description: 'item_bo_duoc_desc',
         tier: 1,
         category: 'Tool',
         emoji: '🔥',
@@ -131,7 +132,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
 
     // --- VẬT PHẨM TỪ SINH VẬT ---
     'Nanh Sói': {
-        description: 'Một chiếc nanh sắc nhọn, chiến lợi phẩm từ một con sói.',
+        description: 'item_nanh_soi_desc',
         tier: 2,
         category: 'Material',
         emoji: '🦷',
@@ -139,7 +140,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Thịt Sói Sống': {
-        description: 'Miếng thịt tươi nhưng còn sống, cần nấu chín để ăn an toàn.',
+        description: 'item_thit_soi_song_desc',
         tier: 1,
         category: 'Food',
         emoji: '🥩',
@@ -147,7 +148,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Tơ Nhện Khổng Lồ': {
-        description: 'Những sợi tơ cực kỳ bền chắc và dính, lấy từ một con nhện khổng lồ.',
+        description: 'item_to_nhen_khong_lo_desc',
         tier: 2,
         category: 'Material',
         emoji: '🕸️',
@@ -155,7 +156,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 3 }
     },
     'Mắt Nhện': {
-        description: 'Một con mắt đa diện, vẫn còn nhìn chằm chằm một cách đáng sợ.',
+        description: 'item_mat_nhen_desc',
         tier: 2,
         category: 'Material',
         emoji: '👁️',
@@ -163,7 +164,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 2, max: 8 }
     },
     'Da Heo Rừng': {
-        description: 'Một tấm da dày và cứng, phủ đầy lông cứng như lông bàn chải.',
+        description: 'item_da_heo_rung_desc',
         tier: 2,
         category: 'Material',
         emoji: '🐗',
@@ -171,7 +172,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Thịt Heo Rừng': {
-        description: 'Một tảng thịt lớn, giàu năng lượng nhưng cần được chế biến.',
+        description: 'item_thit_heo_rung_desc',
         tier: 2,
         category: 'Food',
         emoji: '🍖',
@@ -179,7 +180,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Tai Yêu Tinh': {
-        description: 'Một chiếc tai nhọn hoắt, được cắt một cách thô bạo. Thường được dùng làm bằng chứng.',
+        description: 'item_tai_yeu_tinh_desc',
         tier: 2,
         category: 'Data',
         emoji: '👂',
@@ -187,7 +188,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Móng Vuốt Gấu': {
-        description: 'Một chiếc móng vuốt to và sắc, có thể xé toạc cả kim loại.',
+        description: 'item_mong_vuot_gau_desc',
         tier: 4,
         category: 'Material',
         emoji: '🐾',
@@ -195,7 +196,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 2, max: 4 }
     },
     'Da Gấu': {
-        description: 'Một tấm da gấu dày và ấm, là vật liệu tuyệt vời cho áo giáp mùa đông.',
+        description: 'item_da_gau_desc',
         tier: 4,
         category: 'Material',
         emoji: '🐻',
@@ -203,7 +204,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Thịt Thỏ': {
-        description: 'Thịt từ một con thỏ hoang, nhỏ nhưng ngon.',
+        description: 'item_thit_tho_desc',
         tier: 1,
         category: 'Food',
         emoji: '🐰',
@@ -211,7 +212,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Da Cáo': {
-        description: 'Một tấm da cáo mềm mại và mượt mà.',
+        description: 'item_da_cao_desc',
         tier: 2,
         category: 'Material',
         emoji: '🦊',
@@ -219,7 +220,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Cánh Châu Chấu': {
-        description: 'Cánh của một con châu chấu, mỏng như giấy nhưng rất dai.',
+        description: 'item_canh_chau_chau_desc',
         tier: 1,
         category: 'Material',
         emoji: '🦗',
@@ -227,7 +228,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 5, max: 10 }
     },
     'Răng Linh Cẩu': {
-        description: 'Một chiếc răng chắc khỏe, có khả năng nghiền nát xương.',
+        description: 'item_rang_linh_cau_desc',
         tier: 2,
         category: 'Material',
         emoji: '🦷',
@@ -235,7 +236,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 3 }
     },
     'Da Rắn': {
-        description: 'Da của một con rắn đuôi chuông, có hoa văn đẹp mắt.',
+        description: 'item_da_ran_desc',
         tier: 2,
         category: 'Material',
         emoji: '🐍',
@@ -243,7 +244,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Trứng Rắn': {
-        description: 'Một quả trứng rắn có vỏ dai.',
+        description: 'item_trung_ran_desc',
         tier: 2,
         category: 'Food',
         emoji: '🥚',
@@ -251,7 +252,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 2, max: 4 }
     },
     'Đuôi Bọ Cạp': {
-        description: 'Chiếc đuôi của một con bọ cạp khổng lồ, ngòi độc đã bị loại bỏ.',
+        description: 'item_duoi_bo_cap_desc',
         tier: 3,
         category: 'Material',
         emoji: '🦂',
@@ -259,7 +260,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Lông Kền Kền': {
-        description: 'Một chiếc lông vũ đen và bẩn thỉu.',
+        description: 'item_long_ken_ken_desc',
         tier: 2,
         category: 'Material',
         emoji: '🪶',
@@ -267,7 +268,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 2, max: 5 }
     },
     'Cát Ma Thuật': {
-        description: 'Những hạt cát lấp lánh năng lượng ma thuật, tàn dư của một linh hồn cát.',
+        description: 'item_cat_ma_thuat_desc',
         tier: 4,
         category: 'Magic',
         emoji: '✨',
@@ -275,7 +276,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Chất nhờn của Đỉa': {
-        description: 'Một chất lỏng nhớt và có khả năng chống đông máu.',
+        description: 'item_chat_nhon_cua_dia_desc',
         tier: 2,
         category: 'Material',
         emoji: '💧',
@@ -283,7 +284,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Tinh chất Ma trơi': {
-        description: 'Một quả cầu ánh sáng yếu ớt, ấm áp khi chạm vào.',
+        description: 'item_tinh_chat_ma_troi_desc',
         tier: 4,
         category: 'Magic',
         emoji: '💡',
@@ -291,7 +292,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Da Cá Sấu': {
-        description: 'Một tấm da cực kỳ cứng và bền, gần như không thể xuyên thủng.',
+        description: 'item_da_ca_sau_desc',
         tier: 4,
         category: 'Material',
         emoji: '🐊',
@@ -299,7 +300,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Răng Cá Sấu': {
-        description: 'Một chiếc răng hình nón, sắc như dao găm.',
+        description: 'item_rang_ca_sau_desc',
         tier: 3,
         category: 'Material',
         emoji: '🦷',
@@ -307,7 +308,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 4 }
     },
     'Cánh Muỗi': {
-        description: 'Cánh của một con muỗi khổng lồ, trong suốt và mỏng manh.',
+        description: 'item_canh_muoi_desc',
         tier: 1,
         category: 'Material',
         emoji: '🦟',
@@ -315,7 +316,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 2, max: 6 }
     },
     'Sừng Dê Núi': {
-        description: 'Một cặp sừng xoắn và cứng, có thể dùng làm vũ khí hoặc trang trí.',
+        description: 'item_sung_de_nui_desc',
         tier: 3,
         category: 'Material',
         emoji: '🐐',
@@ -323,7 +324,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Thịt Dê Núi': {
-        description: 'Thịt dê hơi dai nhưng rất bổ dưỡng.',
+        description: 'item_thit_de_nui_desc',
         tier: 2,
         category: 'Food',
         emoji: '🍖',
@@ -331,7 +332,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Lõi Người Đá': {
-        description: 'Một hòn đá phát ra năng lượng sống yếu ớt, trái tim của một Stone Golem.',
+        description: 'item_loi_nguoi_da_desc',
         tier: 5,
         category: 'Energy Source',
         emoji: '💖',
@@ -339,7 +340,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Lông Harpie': {
-        description: 'Một chiếc lông vũ dài và sắc, dính máu.',
+        description: 'item_long_harpie_desc',
         tier: 3,
         category: 'Material',
         emoji: '🪶',
@@ -347,7 +348,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 3, max: 6 }
     },
     'Da Báo Tuyết': {
-        description: 'Một tấm da báo có hoa văn tuyệt đẹp, giữ ấm cực tốt.',
+        description: 'item_da_bao_tuyet_desc',
         tier: 4,
         category: 'Material',
         emoji: '🐆',
@@ -355,7 +356,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Thịt Báo Tuyết': {
-        description: 'Thịt của một kẻ săn mồi đỉnh cao, chứa đầy năng lượng.',
+        description: 'item_thit_bao_tuyet_desc',
         tier: 3,
         category: 'Food',
         emoji: '🍖',
@@ -363,7 +364,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Cánh Dơi': {
-        description: 'Một chiếc cánh dơi bằng da, dùng để chế tạo các vật phẩm bay lượn.',
+        description: 'item_canh_doi_desc',
         tier: 2,
         category: 'Material',
         emoji: '🦇',
@@ -371,7 +372,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Nọc Độc Nhện Hang': {
-        description: 'Một túi nọc độc đặc quánh, có khả năng làm tê liệt con mồi.',
+        description: 'item_noc_doc_nhen_hang_desc',
         tier: 3,
         category: 'Material',
         emoji: '☠️',
@@ -379,7 +380,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Chất nhờn Slime': {
-        description: 'Một khối chất nhờn co giãn, có tính axit nhẹ.',
+        description: 'item_chat_nhon_slime_desc',
         tier: 2,
         category: 'Material',
         emoji: '💧',
@@ -387,7 +388,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 3 }
     },
     'Răng Sâu Bò': {
-        description: 'Một chiếc răng khổng lồ, cứng như kim cương.',
+        description: 'item_rang_sau_bo_desc',
         tier: 5,
         category: 'Material',
         emoji: '🦷',
@@ -397,7 +398,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
 
     // --- TÀI NGUYÊN BIOME - RỪNG ---
     'Quả Mọng Ăn Được': {
-        description: 'Một loại quả mọng đỏ, có vẻ ngon miệng và an toàn, giúp phục hồi chút thể lực.',
+        description: 'item_qua_mong_an_duoc_desc',
         tier: 1,
         category: 'Food',
         emoji: '🍓',
@@ -409,7 +410,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         }
     },
     'Nấm Độc': {
-        description: 'Một loại nấm có màu sắc sặc sỡ, tốt nhất không nên ăn.',
+        description: 'item_nam_doc_desc',
         tier: 2,
         category: 'Material',
         emoji: '🍄',
@@ -421,7 +422,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         }
     },
     'Thảo Dược Chữa Lành': {
-        description: 'Một loại lá cây có mùi thơm dễ chịu, có khả năng chữa lành vết thương nhỏ.',
+        description: 'item_thao_duoc_chua_lanh_desc',
         tier: 2,
         category: 'Support',
         emoji: '🌿',
@@ -433,7 +434,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         }
     },
     'Cành Cây Chắc Chắn': {
-        description: 'Một cành cây thẳng và cứng, có thể dùng làm vũ khí tạm thời.',
+        description: 'item_canh_cay_chac_chan_desc',
         tier: 1,
         category: 'Material',
         emoji: '🪵',
@@ -441,7 +442,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Mũi Tên Cũ': {
-        description: 'Một mũi tên có vẻ đã được sử dụng, cắm trên một thân cây.',
+        description: 'item_mui_ten_cu_desc',
         tier: 1,
         category: 'Material',
         emoji: '🏹',
@@ -449,7 +450,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Hoa Tinh Linh': {
-        description: 'Một bông hoa phát ra ánh sáng xanh lam yếu ớt, tỏa ra năng lượng phép thuật.',
+        description: 'item_hoa_tinh_linh_desc',
         tier: 4,
         category: 'Magic',
         emoji: '🌸',
@@ -461,7 +462,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         }
     },
      'Rễ Cây Hiếm': {
-        description: 'Một loại rễ cây chỉ mọc ở vùng nước độc, có giá trị cao trong giả kim thuật.',
+        description: 'item_re_cay_hiem_desc',
         tier: 3,
         category: 'Material',
         emoji: '🌱',
@@ -469,7 +470,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Vỏ Cây Cổ Thụ': {
-        description: 'Một miếng vỏ cây cứng như đá từ một cây cổ thụ, có đặc tính phòng thủ.',
+        description: 'item_vo_cay_co_thu_desc',
         tier: 3,
         category: 'Material',
         emoji: '🌳',
@@ -477,7 +478,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Nhựa Cây Dính': {
-        description: 'Một cục nhựa cây dính, có thể dùng để bẫy hoặc chế tạo.',
+        description: 'item_nhua_cay_dinh_desc',
         tier: 2,
         category: 'Material',
         emoji: '💧',
@@ -485,7 +486,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Mật Ong Hoang': {
-        description: 'Mật ong vàng óng từ một tổ ong hoang, vừa ngọt ngào vừa bổ dưỡng.',
+        description: 'item_mat_ong_hoang_desc',
         tier: 2,
         category: 'Food',
         emoji: '🍯',
@@ -493,7 +494,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Rêu Xanh': {
-        description: 'Một mảng rêu mềm mại mọc trên đá, dùng để ngụy trang hoặc làm thuốc.',
+        description: 'item_reu_xanh_desc',
         tier: 1,
         category: 'Material',
         emoji: ' moss ',
@@ -501,7 +502,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 3 }
     },
     'Cỏ Ba Lá': {
-        description: 'Một cây cỏ ba lá. Người ta nói nó mang lại may mắn, nhưng có lẽ chỉ là lời đồn.',
+        description: 'item_co_ba_la_desc',
         tier: 2,
         category: 'Material',
         emoji: '🍀',
@@ -509,7 +510,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Tổ Chim Rỗng': {
-        description: 'Một chiếc tổ chim được đan khéo léo nhưng đã bị bỏ trống.',
+        description: 'item_to_chim_rong_desc',
         tier: 1,
         category: 'Material',
         emoji: ' nests ',
@@ -520,7 +521,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
 
     // --- TÀI NGUYÊN BIOME - ĐỒNG CỎ ---
     'Hoa Dại': {
-        description: 'Một bông hoa đẹp, có thể có giá trị với một nhà thảo dược học.',
+        description: 'item_hoa_dai_desc',
         tier: 1,
         category: 'Material',
         emoji: '🌻',
@@ -528,7 +529,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 3, max: 8 }
     },
     'Lúa Mì': {
-        description: 'Một bó lúa mì chín vàng, có thể dùng làm thức ăn.',
+        description: 'item_lua_mi_desc',
         tier: 1,
         category: 'Food',
         emoji: '🌾',
@@ -536,7 +537,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 2, max: 5 }
     },
     'Lông Chim Ưng': {
-        description: 'Một chiếc lông vũ sắc bén từ một loài chim săn mồi.',
+        description: 'item_long_chim_ung_desc',
         tier: 2,
         category: 'Material',
         emoji: '🪶',
@@ -544,7 +545,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Đá Lửa': {
-        description: 'Hai hòn đá lửa, có thể dùng để nhóm lửa.',
+        description: 'item_da_lua_desc',
         tier: 1,
         category: 'Tool',
         emoji: '🔥',
@@ -552,7 +553,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Trứng Chim Hoang': {
-        description: 'Một quả trứng chim hoang, giàu dinh dưỡng.',
+        description: 'item_trung_chim_hoang_desc',
         tier: 1,
         category: 'Food',
         emoji: '🥚',
@@ -560,7 +561,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 2, max: 4 }
     },
     'Rễ Củ Ăn Được': {
-        description: 'Một loại củ có nhiều tinh bột, có thể ăn để phục hồi năng lượng.',
+        description: 'item_re_cu_an_duoc_desc',
         tier: 1,
         category: 'Food',
         emoji: '🥔',
@@ -568,7 +569,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 3 }
     },
     'Hạt Giống Hoa Dại': {
-        description: 'Những hạt giống nhỏ li ti, có thể gieo trồng để mọc ra những bông hoa đẹp.',
+        description: 'item_hat_giong_hoa_dai_desc',
         tier: 1,
         category: 'Material',
         emoji: '🌱',
@@ -576,7 +577,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 5, max: 10 }
     },
     'Nấm Mỡ': {
-        description: 'Một cây nấm phổ biến, ăn được và giúp phục hồi chút thể lực.',
+        description: 'item_nam_mo_desc',
         tier: 1,
         category: 'Food',
         emoji: '🍄',
@@ -584,7 +585,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 2, max: 5 }
     },
     'Cỏ Khô': {
-        description: 'Cỏ đã được phơi khô, là thức ăn ưa thích của các loài ăn cỏ.',
+        description: 'item_co_kho_desc',
         tier: 1,
         category: 'Material',
         emoji: '🌿',
@@ -594,7 +595,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
 
     // --- TÀI NGUYÊN BIOME - SA MẠC ---
     'Bình Nước Cũ': {
-        description: 'Một bình nước quý giá, gần như còn đầy.',
+        description: 'item_binh_nuoc_cu_desc',
         tier: 1,
         category: 'Support',
         emoji: '💧',
@@ -602,7 +603,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Mảnh Gốm Cổ': {
-        description: 'Một mảnh gốm vỡ có hoa văn kỳ lạ, có thể là của một nền văn minh đã mất.',
+        description: 'item_manh_gom_co_desc',
         tier: 2,
         category: 'Data',
         emoji: '🏺',
@@ -610,7 +611,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Hoa Xương Rồng': {
-        description: 'Một bông hoa hiếm hoi nở trên sa mạc, chứa đầy nước giúp phục hồi thể lực.',
+        description: 'item_hoa_xuong_rong_desc',
         tier: 1,
         category: 'Food',
         emoji: '🌵',
@@ -618,7 +619,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Xương Động Vật': {
-        description: 'Một bộ xương lớn bị tẩy trắng bởi ánh mặt trời.',
+        description: 'item_xuong_dong_vat_desc',
         tier: 1,
         category: 'Material',
         emoji: '💀',
@@ -626,7 +627,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Đá Sa Thạch': {
-        description: 'Một phiến đá sa thạch mềm, có thể được khắc hoặc dùng làm công cụ mài.',
+        description: 'item_da_sa_thach_desc',
         tier: 1,
         category: 'Material',
         emoji: '🏜️',
@@ -634,7 +635,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Nọc Bọ Cạp': {
-        description: 'Một chiếc ngòi chứa đầy nọc độc chết người. Cực kỳ nguy hiểm.',
+        description: 'item_noc_bo_cap_desc',
         tier: 4,
         category: 'Material',
         emoji: '☠️',
@@ -642,7 +643,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Cây Xương Rồng Nhỏ': {
-        description: 'Một cây xương rồng nhỏ, có thể ép lấy nước.',
+        description: 'item_cay_xuong_rong_nho_desc',
         tier: 1,
         category: 'Food',
         emoji: '🌵',
@@ -654,7 +655,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         }
     },
     'Thủy tinh sa mạc': {
-        description: 'Một mảnh thủy tinh tự nhiên được tạo ra khi sét đánh vào cát.',
+        description: 'item_thuy_tinh_sa_mac_desc',
         tier: 3,
         category: 'Material',
         emoji: '🔍',
@@ -664,7 +665,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
 
     // --- TÀI NGUYÊN BIOME - ĐẦM LẦY ---
     'Rêu Phát Sáng': {
-        description: 'Một loại rêu có thể dùng để đánh dấu đường đi hoặc làm thuốc.',
+        description: 'item_reu_phat_sang_desc',
         tier: 2,
         category: 'Material',
         emoji: '✨',
@@ -676,7 +677,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         }
     },
     'Trứng Bò Sát': {
-        description: 'Một ổ trứng lạ, có lớp vỏ dai và dày.',
+        description: 'item_trung_bo_sat_desc',
         tier: 2,
         category: 'Material',
         emoji: '🥚',
@@ -684,7 +685,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 2, max: 5 }
     },
     'Nấm Đầm Lầy': {
-        description: 'Một loại nấm ăn được nhưng có vị hơi tanh.',
+        description: 'item_nam_dam_lay_desc',
         tier: 1,
         category: 'Food',
         emoji: '🍄',
@@ -692,7 +693,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 2, max: 4 }
     },
     'Cây Sậy': {
-        description: 'Thân cây sậy dài và rỗng, có thể dùng làm ống thổi hoặc chế tạo.',
+        description: 'item_cay_say_desc',
         tier: 1,
         category: 'Material',
         emoji: '🌿',
@@ -700,7 +701,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 3, max: 7 }
     },
     'Hoa Độc': {
-        description: 'Một bông hoa có màu sắc quyến rũ nhưng lại chứa độc tố.',
+        description: 'item_hoa_doc_desc',
         tier: 2,
         category: 'Material',
         emoji: '🌺',
@@ -708,7 +709,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Nước Bùn': {
-        description: 'Một chai nước bùn đặc quánh, có thể chứa các vi sinh vật lạ.',
+        description: 'item_nuoc_bun_desc',
         tier: 1,
         category: 'Material',
         emoji: '💧',
@@ -718,7 +719,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
 
     // --- TÀI NGUYÊN BIOME - NÚI ---
     'Quặng Sắt': {
-        description: 'Một mỏm đá chứa quặng sắt có thể rèn thành vũ khí.',
+        description: 'item_quang_sat_desc',
         tier: 2,
         category: 'Material',
         emoji: '⛏️',
@@ -726,7 +727,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 3 }
     },
     'Lông Đại Bàng': {
-        description: 'Một chiếc lông vũ lớn và đẹp, rơi ra từ một sinh vật bay lượn trên đỉnh núi.',
+        description: 'item_long_dai_bang_desc',
         tier: 3,
         category: 'Material',
         emoji: '🪶',
@@ -734,7 +735,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Pha Lê Núi': {
-        description: 'Một tinh thể trong suốt, lạnh toát khi chạm vào.',
+        description: 'item_pha_le_nui_desc',
         tier: 4,
         category: 'Magic',
         emoji: '💎',
@@ -742,7 +743,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Cây Thuốc Núi': {
-        description: 'Một loại thảo dược quý hiếm chỉ mọc ở nơi cao, có tác dụng chữa bệnh.',
+        description: 'item_cay_thuoc_nui_desc',
         tier: 3,
         category: 'Support',
         emoji: '🌿',
@@ -750,7 +751,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Trứng Griffon': {
-        description: 'Một quả trứng lớn, có vỏ cứng như đá. Vô cùng quý hiếm.',
+        description: 'item_trung_griffon_desc',
         tier: 6,
         category: 'Data',
         emoji: '🥚',
@@ -758,7 +759,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Đá Vỏ Chai': {
-        description: 'Một mảnh đá vỏ chai sắc như dao cạo, được hình thành từ dung nham nguội lạnh.',
+        description: 'item_da_vo_chai_desc',
         tier: 3,
         category: 'Material',
         emoji: '🪨',
@@ -766,7 +767,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Đá Granit': {
-        description: 'Một khối đá granit cứng, vật liệu xây dựng tuyệt vời.',
+        description: 'item_da_granit_desc',
         tier: 2,
         category: 'Material',
         emoji: '🪨',
@@ -774,7 +775,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Cây Địa Y': {
-        description: 'Một loại địa y bám trên đá, có thể dùng làm thuốc nhuộm hoặc thuốc chữa bệnh.',
+        description: 'item_cay_dia_y_desc',
         tier: 2,
         category: 'Material',
         emoji: '🌿',
@@ -782,7 +783,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 2, max: 4 }
     },
     'Trứng Đại Bàng': {
-        description: 'Một quả trứng lớn từ tổ của đại bàng núi.',
+        description: 'item_trung_dai_bang_desc',
         tier: 3,
         category: 'Food',
         emoji: '🥚',
@@ -790,7 +791,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Tuyết': {
-        description: 'Một nắm tuyết sạch, có thể làm tan ra để lấy nước.',
+        description: 'item_tuyet_desc',
         tier: 1,
         category: 'Support',
         emoji: '❄️',
@@ -800,7 +801,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
 
     // --- TÀI NGUYÊN BIOME - HANG ĐỘNG ---
      'Mảnh Tinh Thể': {
-        description: 'Một mảnh tinh thể phát ra ánh sáng yếu ớt, có thể soi đường.',
+        description: 'item_manh_tinh_the_desc',
         tier: 2,
         category: 'Magic',
         emoji: '💎',
@@ -808,7 +809,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 2, max: 7 }
     },
     'Bản Đồ Cổ': {
-        description: 'Một tấm bản đồ da cũ kỹ, có vẻ chỉ đường đến một nơi bí mật trong hang.',
+        description: 'item_ban_do_co_desc',
         tier: 3,
         category: 'Data',
         emoji: '🗺️',
@@ -816,7 +817,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Xương Cổ': {
-        description: 'Một bộ xương của một sinh vật lạ chưa từng thấy.',
+        description: 'item_xuong_co_desc',
         tier: 2,
         category: 'Material',
         emoji: '💀',
@@ -824,7 +825,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Mỏ Vàng': {
-        description: 'Những vệt vàng lấp lánh trên vách đá.',
+        description: 'item_mo_vang_desc',
         tier: 5,
         category: 'Material',
         emoji: '💰',
@@ -832,7 +833,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Nấm Phát Quang': {
-        description: 'Một loại nấm phát ra ánh sáng dịu nhẹ, có thể ăn để tăng cường thị lực trong bóng tối.',
+        description: 'item_nam_phat_quang_desc',
         tier: 3,
         category: 'Material',
         emoji: '🍄',
@@ -844,7 +845,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         }
     },
     'Túi Trứng Nhện': {
-        description: 'Một bọc trứng nhện tơ, cảm giác có gì đó đang ngọ nguậy bên trong.',
+        description: 'item_tui_trung_nhen_desc',
         tier: 3,
         category: 'Material',
         emoji: '🥚',
@@ -852,7 +853,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Nước Ngầm': {
-        description: 'Nước trong vắt và mát lạnh chảy từ một kẽ đá.',
+        description: 'item_nuoc_ngam_desc',
         tier: 1,
         category: 'Support',
         emoji: '💧',
@@ -860,7 +861,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Đá Vôi': {
-        description: 'Một loại đá trầm tích mềm hơn granit, dễ dàng chế tác.',
+        description: 'item_da_voi_desc',
         tier: 2,
         category: 'Material',
         emoji: '🪨',
@@ -868,7 +869,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 3 }
     },
     'Guano (Phân dơi)': {
-        description: 'Một đống phân dơi giàu nitrat, là một loại phân bón tuyệt vời.',
+        description: 'item_guano_desc',
         tier: 1,
         category: 'Material',
         emoji: '💩',
@@ -878,7 +879,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
 
     // --- TÀI NGUYÊN BIOME - RỪNG RẬM (JUNGLE) ---
     'Dây leo Titan': {
-        description: 'Một sợi dây leo to và chắc như cáp thép, gần như không thể bị cắt đứt.',
+        description: 'item_day_leo_titan_desc',
         tier: 3,
         category: 'Material',
         emoji: '🌿',
@@ -886,7 +887,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 }
     },
     'Hoa ăn thịt': {
-        description: 'Một bông hoa có màu sắc rực rỡ và mùi hương quyến rũ, nhưng những chiếc lá của nó có gai sắc nhọn.',
+        description: 'item_hoa_an_thit_desc',
         tier: 3,
         category: 'Material',
         emoji: '🌺',
@@ -894,7 +895,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Nọc Ếch độc': {
-        description: 'Một loại độc tố cực mạnh được chiết xuất từ da của loài ếch cây sặc sỡ.',
+        description: 'item_noc_ech_doc_desc',
         tier: 4,
         category: 'Material',
         emoji: '🐸',
@@ -902,7 +903,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Lông Vẹt Sặc Sỡ': {
-        description: 'Một chiếc lông vũ có màu sắc cầu vồng, được các bộ lạc trong rừng rậm dùng làm vật trang trí.',
+        description: 'item_long_vet_sac_so_desc',
         tier: 2,
         category: 'Material',
         emoji: '🦜',
@@ -910,7 +911,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 2, max: 5 }
     },
     'Quả Lạ': {
-        description: 'Một loại quả có vỏ cứng và hình thù kỳ dị, không rõ có ăn được không.',
+        description: 'item_qua_la_desc',
         tier: 2,
         category: 'Food',
         emoji: '🥥',
@@ -920,7 +921,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
 
     // --- TÀI NGUYÊN BIOME - NÚI LỬA (VOLCANIC) ---
     'Đá Obsidian': {
-        description: 'Một mảnh đá thủy tinh núi lửa đen bóng, có cạnh sắc như dao cạo.',
+        description: 'item_da_obsidian_desc',
         tier: 3,
         category: 'Material',
         emoji: '🪨',
@@ -928,7 +929,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 2, max: 4 }
     },
     'Lưu huỳnh': {
-        description: 'Một cục bột màu vàng có mùi trứng thối đặc trưng, là thành phần quan trọng trong chế tạo thuốc súng.',
+        description: 'item_luu_huynh_desc',
         tier: 2,
         category: 'Material',
         emoji: '✨',
@@ -936,7 +937,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 3 }
     },
     'Trái tim Magma': {
-        description: 'Một hòn đá vẫn còn nóng hổi và phát ra ánh sáng le lói, chứa đựng năng lượng của dung nham.',
+        description: 'item_trai_tim_magma_desc',
         tier: 5,
         category: 'Energy Source',
         emoji: '❤️‍🔥',
@@ -944,7 +945,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Tro núi lửa': {
-        description: 'Một lớp bụi mịn màu xám, rất giàu khoáng chất và có thể dùng làm phân bón.',
+        description: 'item_tro_nui_lua_desc',
         tier: 1,
         category: 'Material',
         emoji: '🌋',

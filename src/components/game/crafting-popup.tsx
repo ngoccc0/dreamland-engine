@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
 import type { PlayerItem, Recipe, RecipeIngredient, RecipeAlternative } from "@/lib/game/types";
+import type { TranslationKey } from "@/lib/i18n";
 import { calculateCraftingOutcome } from "@/lib/game/engine";
 import { Hammer } from "lucide-react";
 
@@ -35,10 +36,10 @@ export function CraftingPopup({ open, onOpenChange, playerItems, recipes, onCraf
   const { t } = useLanguage();
 
   const getTooltipContent = (ingredient: RecipeIngredient): string => {
-    let content = `Cần: ${ingredient.name}`;
+    let content = `${t('buildNeed')}: ${t(ingredient.name as TranslationKey)}`;
     if (ingredient.alternatives && ingredient.alternatives.length > 0) {
-        const altStrings = ingredient.alternatives.map(alt => `${alt.name} (Bậc ${alt.tier})`);
-        content += ` (hoặc: ${altStrings.join(', ')})`;
+        const altStrings = ingredient.alternatives.map(alt => `${t(alt.name as TranslationKey)} (${t('tierLabel')} ${alt.tier})`);
+        content += ` (${t('orLabel')}: ${altStrings.join(', ')})`;
     }
     return content;
   };
@@ -62,9 +63,9 @@ export function CraftingPopup({ open, onOpenChange, playerItems, recipes, onCraf
                   <div className="flex-grow">
                     <h4 className="font-bold text-lg text-foreground flex items-center gap-2">
                       <span className="text-2xl">{recipe.result.emoji}</span>
-                      {recipe.result.name}
+                      {t(recipe.result.name as TranslationKey)}
                     </h4>
-                    <p className="text-sm text-muted-foreground italic mb-2">{recipe.description}</p>
+                    <p className="text-sm text-muted-foreground italic mb-2">{t(recipe.description as TranslationKey)}</p>
                     <div className="text-sm">
                       <span className="font-semibold">{t('ingredients')}:</span>
                       <ul className="list-disc list-inside ml-4">
@@ -77,7 +78,7 @@ export function CraftingPopup({ open, onOpenChange, playerItems, recipes, onCraf
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <li className={hasEnough ? 'text-green-400' : 'text-red-400'}>
-                                    {ing.name} ({playerQty}/{ing.quantity})
+                                    {t(ing.name as TranslationKey)} ({playerQty}/{ing.quantity})
                                   </li>
                                 </TooltipTrigger>
                                 <TooltipContent>

@@ -1,9 +1,7 @@
-import type { Terrain } from "./types";
+import type { Language, Terrain } from "./types";
 import { structureDefinitions } from "./structures";
 
-
-// --- CONTENT TEMPLATES & ENTITY CATALOG ---
-export const templates: Record<Terrain, any> = {
+const templates_vi: Record<Terrain, any> = {
     forest: {
         descriptionTemplates: [
             'Bạn đang ở trong một khu rừng [adjective]. Những cây [feature] cao vút che khuất ánh mặt trời, và không khí phảng phất mùi [smell].',
@@ -286,4 +284,206 @@ export const templates: Record<Terrain, any> = {
             { data: { type: 'Rồng lửa con', emoji: '🐉', hp: 150, damage: 30, behavior: 'aggressive', size: 'large', diet: ['Golem dung nham'], satiation: 0, maxSatiation: 1, loot: [{ name: 'Vảy Rồng', chance: 0.2, quantity: { min: 3, max: 6 } }, { name: 'Răng Rồng', chance: 0.1, quantity: { min: 1, max: 2 } }] }, conditions: { predatorPresence: { min: 10 }, dangerLevel: { min: 10 }, chance: 0.1 } }
         ]
     },
+};
+
+const templates_en: Record<Terrain, any> = {
+    forest: {
+        descriptionTemplates: [
+            'You are in a [adjective] forest. Tall [feature] trees block out the sun, and the air smells of [smell].',
+            'An [adjective] forest surrounds you. Leaves rustle underfoot as you move between the [feature] trees. You hear the sound of [sound].',
+        ],
+        adjectives: ['dense', 'gloomy', 'ancient', 'quiet', 'eerie', 'damp', 'sun-dappled'],
+        features: ['oak', 'pine', 'fern', 'glowing mushrooms', 'tangled vines', 'rotting logs', 'a small stream'],
+        smells: ['damp earth', 'decaying leaves', 'pine resin', 'wildflowers'],
+        sounds: ['birds singing', 'wind whistling', 'a snapping twig', 'an unnerving silence'],
+        NPCs: [
+            { data: 'Mysterious Hunter', conditions: { humanPresence: { min: 2 }, chance: 0.1 } },
+            { data: 'Tree Spirit', conditions: { magicAffinity: { min: 6 }, chance: 0.05 } },
+            { data: 'Hermit', conditions: { humanPresence: { min: 1, max: 3 }, chance: 0.05 } },
+        ],
+        items: templates_vi.forest.items, // Items are keyed and don't need translation here
+        structures: templates_vi.forest.structures,
+        enemies: [
+            { data: { type: 'Wolf', emoji: '🐺', hp: 30, damage: 10, behavior: 'aggressive', size: 'medium', diet: ['Wild Boar', 'Rabbit'], satiation: 0, maxSatiation: 2, loot: [{name: 'Thịt Sói Sống', chance: 0.7, quantity: {min: 1, max: 1}}, {name: 'Nanh Sói', chance: 0.15, quantity: {min: 1, max: 2}}] }, conditions: { predatorPresence: { min: 5 }, chance: 0.4 } },
+            { data: { type: 'Giant Spider', emoji: '🕷️', hp: 40, damage: 15, behavior: 'territorial', size: 'medium', diet: ['Wild Boar', 'Forest Goblin'], satiation: 0, maxSatiation: 2, loot: [{name: 'Tơ Nhện Khổng lồ', chance: 0.6, quantity: {min: 1, max: 3}}, {name: 'Mắt Nhện', chance: 0.1, quantity: {min: 2, max: 8}}] }, conditions: { vegetationDensity: { min: 8 }, dangerLevel: { min: 6 }, chance: 0.3 } },
+            { data: { type: 'Wild Boar', emoji: '🐗', hp: 50, damage: 8, behavior: 'defensive', size: 'medium', diet: ['Quả Mọng Ăn Được', 'Rễ Cây Hiếm'], satiation: 0, maxSatiation: 3, loot: [{name: 'Thịt Heo Rừng', chance: 0.8, quantity: {min: 1, max: 2}}, {name: 'Da Heo Rừng', chance: 0.2, quantity: {min: 1, max: 1}}] }, conditions: { predatorPresence: { min: 4 }, chance: 0.3 } },
+            { data: { type: 'Forest Goblin', emoji: '👺', hp: 25, damage: 8, behavior: 'aggressive', size: 'small', diet: ['Rabbit', 'Nấm Độc'], satiation: 0, maxSatiation: 3, loot: [{name: 'Tai Yêu Tinh', chance: 0.5, quantity: {min: 1, max: 1}}, {name: 'Mũi Tên Cũ', chance: 0.05, quantity: {min: 1, max: 1}}, {name: 'Sỏi', chance: 0.2, quantity: {min: 1, max: 3}}] }, conditions: { dangerLevel: { min: 5 }, humanPresence: { min: 1 }, chance: 0.25 } },
+            { data: { type: 'Bear', emoji: '🐻', hp: 80, damage: 20, behavior: 'territorial', size: 'large', diet: ['Wild Boar', 'Alligator'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Gấu', chance: 0.5, quantity: {min: 1, max: 1}}, {name: 'Móng Vuốt Gấu', chance: 0.3, quantity: {min: 2, max: 4}}] }, conditions: { predatorPresence: { min: 8 }, dangerLevel: { min: 7 }, chance: 0.1 } },
+        ],
+    },
+    grassland: {
+        descriptionTemplates: [
+            'An [adjective] grassland stretches to the horizon. [feature] hills roll gently under the [sky] sky.',
+            'You are standing in the middle of an [adjective] prairie. The wind rustles through the [feature] grass like waves.',
+        ],
+        adjectives: ['lush', 'vast', 'arid', 'windy', 'peaceful'],
+        features: ['wildflowers', 'tall grass', 'boulders', 'worn paths', 'herds of animals'],
+        sky: ['clear blue', 'cloudy', 'overcast', 'sunset'],
+        NPCs: [
+            { data: 'Nomad', conditions: { humanPresence: { min: 4 }, chance: 0.15 } },
+            { data: 'Farmer', conditions: { humanPresence: { min: 5 }, soilType: ['loamy'], chance: 0.2 } },
+            { data: 'Wild Herd', conditions: { predatorPresence: { max: 4 }, vegetationDensity: { min: 3 }, chance: 0.1 } },
+        ],
+        items: templates_vi.grassland.items,
+        structures: templates_vi.grassland.structures,
+        enemies: [
+            { data: { type: 'Aggressive Rabbit', emoji: '🐇', hp: 20, damage: 5, behavior: 'defensive', size: 'small', diet: ['Hoa Dại', 'Lúa Mì'], satiation: 0, maxSatiation: 4, loot: [{name: 'Thịt Thỏ', chance: 0.6, quantity: {min: 1, max: 2}}, {name: 'Da Thú Nhỏ', chance: 0.2, quantity: {min: 1, max: 1}}] }, conditions: { dangerLevel: { min: 2, max: 5 }, chance: 0.3 } },
+            { data: { type: 'Cunning Fox', emoji: '🦊', hp: 25, damage: 8, behavior: 'territorial', size: 'small', diet: ['Aggressive Rabbit'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Cáo', chance: 0.4, quantity: {min: 1, max: 1}}, {name: 'Mảnh Xương', chance: 0.1, quantity: {min: 1, max: 2}}] }, conditions: { predatorPresence: { min: 3 }, chance: 0.25 } },
+            { data: { type: 'Locust Swarm', emoji: '🦗', hp: 35, damage: 5, behavior: 'aggressive', size: 'small', diet: ['Lúa Mì', 'Hoa Dại'], satiation: 0, maxSatiation: 5, loot: [{name: 'Cánh Châu Chấu', chance: 0.7, quantity: {min: 5, max: 10}}] }, conditions: { temperature: { min: 7 }, moisture: { max: 3 }, chance: 0.15 } },
+            { data: { type: 'Hyena', emoji: '🐕', hp: 40, damage: 12, behavior: 'aggressive', size: 'medium', diet: ['Aggressive Rabbit', 'Xương Động Vật'], satiation: 0, maxSatiation: 2, loot: [{name: 'Răng Linh Cẩu', chance: 0.3, quantity: {min: 1, max: 3}}, {name: 'Mảnh Xương', chance: 0.15, quantity: {min: 2, max: 4}}] }, conditions: { predatorPresence: { min: 5 }, chance: 0.2 } },
+        ],
+    },
+    desert: {
+        descriptionTemplates: [
+            'Sand, sand, and more sand. A vast [adjective] desert. The only break in the monotony are the [feature].',
+            'The heat of the [adjective] desert is oppressive. You see a [feature] in the distance, perhaps a mirage.',
+        ],
+        adjectives: ['scorching', 'arid', 'endless', 'silent', 'windswept'],
+        features: ['dunes', 'an oasis', 'giant cacti', 'old skeletons', 'stone ruins'],
+        NPCs: [
+            { data: 'Camel Merchant', conditions: { humanPresence: { min: 3 }, chance: 0.1 } },
+            { data: 'Lost Explorer', conditions: { humanPresence: { min: 1, max: 2 }, dangerLevel: { min: 6 }, chance: 0.05 } },
+        ],
+        items: templates_vi.desert.items,
+        structures: [],
+        enemies: [
+            { data: { type: 'Rattlesnake', emoji: '🐍', hp: 30, damage: 15, behavior: 'defensive', size: 'small', diet: ['Aggressive Rabbit'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Rắn', chance: 0.4, quantity: {min: 1, max: 1}}, {name: 'Trứng Rắn', chance: 0.05, quantity: {min: 2, max: 4}}] }, conditions: { temperature: { min: 8 }, chance: 0.4 } },
+            { data: { type: 'Giant Scorpion', emoji: '🦂', hp: 50, damage: 10, behavior: 'territorial', size: 'medium', diet: ['Rattlesnake'], satiation: 0, maxSatiation: 2, loot: [{name: 'Đuôi Bọ Cạp', chance: 0.25, quantity: {min: 1, max: 1}}, {name: 'Nọc Bọ Cạp', chance: 0.08, quantity: {min: 1, max: 1}}] }, conditions: { dangerLevel: { min: 7 }, chance: 0.35 } },
+            { data: { type: 'Vulture', emoji: '🦅', hp: 25, damage: 8, behavior: 'passive', size: 'medium', diet: ['Xương Động Vật'], satiation: 0, maxSatiation: 1, loot: [{name: 'Lông Kền Kền', chance: 0.6, quantity: {min: 2, max: 5}}, {name: 'Xương Động Vật', chance: 0.15, quantity: {min: 1, max: 1}}] }, conditions: { predatorPresence: { min: 6 }, chance: 0.3 } },
+            { data: { type: 'Sand Spirit', emoji: '👻', hp: 60, damage: 12, behavior: 'territorial', size: 'medium', diet: ['Pha Lê Núi'], satiation: 0, maxSatiation: 1, loot: [{name: 'Cát Ma Thuật', chance: 0.15, quantity: {min: 1, max: 2}}] }, conditions: { magicAffinity: { min: 5 }, chance: 0.1 } },
+        ],
+    },
+    swamp: {
+        descriptionTemplates: [
+            'You are wading through a [adjective] swamp. The [feature] water is knee-deep.',
+            'The air is thick with the smell of decay. [feature] trees rise from the stagnant water.',
+        ],
+        adjectives: ['stinking', 'gloomy', 'deadly', 'foggy', 'waterlogged'],
+        features: ['mangrove', 'vines', 'toxic gas', 'mud bubbles', 'insects'],
+        NPCs: [
+            { data: 'Hermit', conditions: { humanPresence: { min: 1, max: 2 }, magicAffinity: { min: 5 }, chance: 0.05 } },
+            { data: 'Alligator Hunter', conditions: { humanPresence: { min: 2 }, predatorPresence: { min: 8 }, chance: 0.1 } },
+        ],
+        items: templates_vi.swamp.items,
+        structures: [],
+        enemies: [
+            { data: { type: 'Giant Leech', emoji: '🩸', hp: 40, damage: 5, behavior: 'aggressive', size: 'small', diet: ['Trứng Bò Sát'], satiation: 0, maxSatiation: 3, loot: [{name: 'Chất nhờn của Đỉa', chance: 0.5, quantity: {min: 1, max: 2}}] }, conditions: { moisture: { min: 9 }, chance: 0.4 } },
+            { data: { type: 'Will-o-Wisp', emoji: '💡', hp: 25, damage: 20, behavior: 'territorial', size: 'small', diet: ['Hoa Tinh Linh'], satiation: 0, maxSatiation: 1, loot: [{name: 'Tinh chất Ma trơi', chance: 0.2, quantity: {min: 1, max: 1}}] }, conditions: { magicAffinity: { min: 7 }, lightLevel: { max: -5 }, chance: 0.2 } },
+            { data: { type: 'Alligator', emoji: '🐊', hp: 70, damage: 25, behavior: 'territorial', size: 'large', diet: ['Wild Boar', 'Aggressive Mountain Goat'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Cá Sấu', chance: 0.4, quantity: {min: 1, max: 1}}, {name: 'Răng Cá Sấu', chance: 0.3, quantity: {min: 1, max: 4}}] }, conditions: { predatorPresence: { min: 8 }, moisture: { min: 8 }, chance: 0.25 } },
+            { data: { type: 'Giant Mosquito', emoji: '🦟', hp: 15, damage: 5, behavior: 'aggressive', size: 'small', diet: [], satiation: 0, maxSatiation: 1, loot: [{name: 'Cánh Muỗi', chance: 0.7, quantity: {min: 2, max: 6}}] }, conditions: { chance: 0.5 } },
+        ],
+    },
+    mountain: {
+        descriptionTemplates: [
+            'You are climbing a [adjective] mountainside. The [feature] wind is strong and chilling.',
+            'A treacherous [feature] path leads up the peak. The air thins and the visibility is [visibility].',
+        ],
+        adjectives: ['treacherous', 'windswept', 'majestic', 'snow-capped', 'barren'],
+        features: ['cliffs', 'snowdrifts', 'caves', 'glaciers', 'outcrops'],
+        visibility: ['excellent', 'clouded', 'limited'],
+        NPCs: [
+            { data: 'Old Miner', conditions: { humanPresence: { min: 3 }, elevation: { min: 7 }, chance: 0.15 } },
+            { data: 'Griffon Rider', conditions: { magicAffinity: { min: 6 }, elevation: { min: 9 }, chance: 0.05 } },
+            { data: 'Ascetic Monk', conditions: { elevation: { min: 8 }, chance: 0.05 } },
+        ],
+        items: templates_vi.mountain.items,
+        structures: [
+            { 
+                data: structureDefinitions['Cửa hầm mỏ bỏ hoang'], 
+                loot: [
+                    { name: 'Quặng Sắt', chance: 0.3, quantity: { min: 1, max: 2 } }, 
+                    { name: 'Chìa Khóa Rỉ Sét', chance: 0.1, quantity: { min: 1, max: 1 } }
+                ],
+                conditions: { elevation: { min: 5 }, dangerLevel: { min: 6 }, chance: 0.1 } 
+            },
+        ],
+        enemies: [
+            { data: { type: 'Aggressive Mountain Goat', emoji: '🐐', hp: 50, damage: 15, behavior: 'defensive', size: 'medium', diet: ['Cây Thuốc Núi', 'Hoa Dại'], satiation: 0, maxSatiation: 3, loot: [{name: 'Sừng Dê Núi', chance: 0.4, quantity: {min: 1, max: 2}}, {name: 'Thịt Dê Núi', chance: 0.7, quantity: {min: 1, max: 2}}] }, conditions: { elevation: { min: 7 }, chance: 0.4 } },
+            { data: { type: 'Stone Golem', emoji: '🗿', hp: 80, damage: 10, behavior: 'defensive', size: 'large', diet: ['Quặng Sắt', 'Pha Lê Núi'], satiation: 0, maxSatiation: 1, loot: [{name: 'Lõi Người Đá', chance: 0.1, quantity: {min: 1, max: 1}}, {name: 'Đá Cuội', chance: 0.25, quantity: {min: 2, max: 3}}] }, conditions: { magicAffinity: { min: 6 }, elevation: { min: 8 }, chance: 0.2 } },
+            { data: { type: 'Harpy', emoji: '🦅', hp: 45, damage: 18, behavior: 'aggressive', size: 'medium', diet: ['Aggressive Mountain Goat', 'Aggressive Rabbit'], satiation: 0, maxSatiation: 2, loot: [{name: 'Lông Harpie', chance: 0.5, quantity: {min: 3, max: 6}}] }, conditions: { elevation: { min: 9 }, windLevel: { min: 7 }, chance: 0.25 } },
+            { data: { type: 'Snow Leopard', emoji: '🐆', hp: 60, damage: 20, behavior: 'aggressive', size: 'large', diet: ['Aggressive Mountain Goat'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Báo Tuyết', chance: 0.3, quantity: {min: 1, max: 1}}, {name: 'Thịt Báo Tuyết', chance: 0.6, quantity: {min: 1, max: 2}}] }, conditions: { predatorPresence: { min: 7 }, temperature: { max: 3 }, chance: 0.15 } },
+        ],
+    },
+    cave: {
+        descriptionTemplates: [
+            'Inside the [adjective] and damp cave. The sound of your footsteps echoes among the [feature].',
+            'Massive [feature] glitter in the faint light filtering from outside. The air smells of [smell].',
+        ],
+        adjectives: ['deep', 'cold', 'mysterious', 'labyrinthine', 'dark'],
+        features: ['stalactites', 'crystals', 'an underground river', 'ancient paintings', 'cobwebs'],
+        smells: ['damp earth', 'stagnant water', 'minerals', 'sulfur'],
+        NPCs: [
+            { data: 'Lost Adventurer', conditions: { humanPresence: { min: 2, max: 3 }, chance: 0.1 } },
+            { data: 'Goblin Tribe', conditions: { humanPresence: { min: 4 }, dangerLevel: { min: 8 }, chance: 0.2 } },
+            { data: 'Shadow Creature', conditions: { lightLevel: { max: -8 }, magicAffinity: { min: 7 }, chance: 0.05 } },
+        ],
+        items: templates_vi.cave.items,
+        structures: [
+            { 
+                data: structureDefinitions['Cửa hầm mỏ bỏ hoang'], 
+                loot: [
+                    { name: 'Quặng Sắt', chance: 0.2, quantity: { min: 2, max: 4 } }, 
+                    { name: 'Mỏ Vàng', chance: 0.02, quantity: { min: 1, max: 1 } },
+                    { name: 'Bản Đồ Cổ', chance: 0.05, quantity: { min: 1, max: 1 } }
+                ],
+                conditions: { dangerLevel: { min: 8 }, chance: 0.15 } 
+            },
+        ],
+        enemies: [
+            { data: { type: 'Giant Bat', emoji: '🦇', hp: 25, damage: 10, behavior: 'passive', size: 'small', diet: ['Cave Spider'], satiation: 0, maxSatiation: 2, loot: [{name: 'Cánh Dơi', chance: 0.6, quantity: {min: 1, max: 2}}, {name: 'Guano (Phân dơi)', chance: 0.2, quantity: {min: 1, max: 2}}] }, conditions: { lightLevel: { max: -2 }, chance: 0.5 } },
+            { data: { type: 'Cave Spider', emoji: '🕷️', hp: 45, damage: 15, behavior: 'territorial', size: 'medium', diet: ['Giant Bat'], satiation: 0, maxSatiation: 2, loot: [{name: 'Nọc Độc Nhện Hang', chance: 0.3, quantity: {min: 1, max: 1}}, {name: 'Túi Trứng Nhện', chance: 0.08, quantity: {min: 1, max: 1}}] }, conditions: { dangerLevel: { min: 8 }, chance: 0.4 } },
+            { data: { type: 'Slime', emoji: '💧', hp: 30, damage: 8, behavior: 'passive', size: 'small', diet: ['Mảnh Tinh Thể', 'Rêu Phát Sáng'], satiation: 0, maxSatiation: 3, loot: [{name: 'Chất nhờn Slime', chance: 0.7, quantity: {min: 1, max: 3}}] }, conditions: { moisture: { min: 8 }, chance: 0.3 } },
+            { data: { type: 'Giant Crawler', emoji: '🐛', hp: 100, damage: 20, behavior: 'defensive', size: 'large', diet: ['Stone Golem'], satiation: 0, maxSatiation: 1, loot: [{name: 'Răng Sâu Bò', chance: 0.15, quantity: {min: 1, max: 1}}] }, conditions: { dangerLevel: { min: 9 }, chance: 0.15 } },
+        ],
+    },
+    jungle: {
+        descriptionTemplates: [
+            'You are in the middle of a [adjective] jungle. The [feature] canopy is so thick that sunlight barely penetrates. The sound of [sound] echoes everywhere.',
+            'The air is [adjective] and humid. Trees and [feature] vines grow in a tangled, green maze. The smell of [smell] is strong in the air.'
+        ],
+        adjectives: ['primeval', 'tropical', 'suffocating', 'mysterious', 'vibrant'],
+        features: ['giant', 'vines', 'strange flowers', 'hidden waterfalls', 'ancient ruins'],
+        smells: ['rotting flowers', 'damp earth', 'animal musk'],
+        sounds: ['parrots squawking', 'monkeys howling', 'insects chirping', 'running water'],
+        NPCs: [
+            { data: 'Tribal Shaman', conditions: { humanPresence: { min: 3 }, magicAffinity: { min: 5 }, chance: 0.1 } },
+            { data: 'Botanist', conditions: { humanPresence: { min: 1, max: 3 }, vegetationDensity: { min: 9 }, chance: 0.15 } }
+        ],
+        items: templates_vi.jungle.items,
+        structures: [],
+        enemies: [
+            { data: { type: 'Giant Python', emoji: '🐍', hp: 90, damage: 18, behavior: 'territorial', size: 'large', diet: ['Gorilla'], satiation: 0, maxSatiation: 1, loot: [{ name: 'Da Rắn', chance: 0.8, quantity: { min: 2, max: 3 } }] }, conditions: { predatorPresence: { min: 8 }, moisture: { min: 7 }, chance: 0.2 } },
+            { data: { type: 'Jaguar', emoji: '🐆', hp: 70, damage: 22, behavior: 'aggressive', size: 'large', diet: ['Gorilla'], satiation: 0, maxSatiation: 2, loot: [{ name: 'Da Báo Tuyết', chance: 0.5, quantity: { min: 1, max: 1 } }, { name: 'Nanh Sói', chance: 0.3, quantity: { min: 2, max: 4 } }] }, conditions: { predatorPresence: { min: 9 }, chance: 0.25 } },
+            { data: { type: 'Gorilla', emoji: '🦍', hp: 80, damage: 20, behavior: 'defensive', size: 'large', diet: ['Quả Lạ', 'Hoa ăn thịt'], satiation: 0, maxSatiation: 3, loot: [{ name: 'Da Gấu', chance: 0.3, quantity: { min: 1, max: 1 } }] }, conditions: { vegetationDensity: { min: 8 }, chance: 0.3 } }
+        ]
+    },
+    volcanic: {
+        descriptionTemplates: [
+            'The ground is [adjective] and cracked beneath your feet. The air is thick with the smell of [smell]. In the distance, a [feature] spews columns of black smoke.',
+            'The landscape here is [adjective]. Cooled [feature] flows form bizarre shapes. Occasionally, you feel the ground tremble slightly.'
+        ],
+        adjectives: ['desolate', 'scorching', 'fearsome', 'ash-covered'],
+        features: ['lava flows', 'fissures', 'basalt columns', 'acid pools'],
+        smells: ['sulfur', 'burning rock', 'molten metal'],
+        NPCs: [
+            { data: 'Lava Blacksmith', conditions: { humanPresence: { min: 1 }, temperature: { min: 9 }, chance: 0.1 } },
+            { data: 'Trapped Fire Elemental', conditions: { magicAffinity: { min: 8 }, chance: 0.05 } }
+        ],
+        items: templates_vi.volcanic.items,
+        structures: [
+            { data: structureDefinitions['Mạch nước phun'], conditions: { temperature: { min: 7 }, chance: 0.15 } },
+        ],
+        enemies: [
+            { data: { type: 'Fire Salamander', emoji: '🦎', hp: 50, damage: 15, behavior: 'territorial', size: 'medium', diet: ['Lưu huỳnh'], satiation: 0, maxSatiation: 3, loot: [{ name: 'Da Rắn', chance: 0.5, quantity: { min: 1, max: 2 } }] }, conditions: { temperature: { min: 8 }, chance: 0.4 } },
+            { data: { type: 'Lava Golem', emoji: '🔥', hp: 120, damage: 25, behavior: 'defensive', size: 'large', diet: ['Quặng Sắt'], satiation: 0, maxSatiation: 1, loot: [{ name: 'Trái tim Magma', chance: 0.1, quantity: { min: 1, max: 1 } }, { name: 'Đá Obsidian', chance: 0.3, quantity: { min: 2, max: 5 } }] }, conditions: { dangerLevel: { min: 9 }, chance: 0.25 } },
+            { data: { type: 'Young Fire Dragon', emoji: '🐉', hp: 150, damage: 30, behavior: 'aggressive', size: 'large', diet: ['Lava Golem'], satiation: 0, maxSatiation: 1, loot: [{ name: 'Vảy Rồng', chance: 0.2, quantity: { min: 3, max: 6 } }, { name: 'Răng Rồng', chance: 0.1, quantity: { min: 1, max: 2 } }] }, conditions: { predatorPresence: { min: 10 }, dangerLevel: { min: 10 }, chance: 0.1 } }
+        ]
+    },
+};
+
+export const getTemplates = (lang: Language): Record<Terrain, any> => {
+  if (lang === 'vi') {
+    return templates_vi;
+  }
+  return templates_en;
 };

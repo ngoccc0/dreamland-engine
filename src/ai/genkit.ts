@@ -1,26 +1,42 @@
 import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 import {openAI} from 'genkitx-openai';
+import {deepseek} from 'genkitx-deepseek';
 
-// NOTE: .env file is automatically loaded by Next.js.
+// Helper function to find all API keys for a given service from environment variables.
+const getApiKeys = (prefix: string): string[] => {
+  return Object.keys(process.env)
+    .filter(key => key.startsWith(prefix) && process.env[key])
+    .map(key => process.env[key]!)
+    .sort(); // Sort to ensure consistent order
+};
 
-// Find all GEMINI_API_KEYs provided in environment variables.
-// This allows for using multiple keys for rate-limiting or failover.
-const geminiApiKeys = Object.keys(process.env)
-  .filter(key => key.startsWith('GEMINI_API_KEY'))
-  .map(key => process.env[key])
-  .filter((key): key is string => !!key);
+// Find all provided API keys.
+const geminiApiKeys = getApiKeys('GEMINI_API_KEY');
+const openAIApiKeys = getApiKeys('OPENAI_API_KEY');
+
+const plugins = [];
+
+// Initialize Google AI if keys are found.
+if (geminiApiKeys.length > 0) {
+  plugins.push(googleAI({apiKey: geminiApiKeys}));
+  console.log(`Initialized Google AI with ${geminiApiKeys.length} key(s).`);
+}
+
+// Initialize OpenAI if keys are found.
+if (openAIApiKeys.length > 0) {
+  plugins.push(openAI({apiKey: openAIApiKeys}));
+  console.log(`Initialized OpenAI with ${openAIApiKeys.length} key(s).`);
+}
+
+// Initialize other providers. They will automatically look for their respective environment variables.
+// DEEPSEEK_API_KEY
+plugins.push(deepseek());
 
 export const ai = genkit({
-  plugins: [
-    // Initialize Google AI. If keys are found, use them. Otherwise, let the plugin handle it.
-    googleAI({
-      apiKey: geminiApiKeys.length > 0 ? geminiApiKeys : undefined,
-    }),
-    
-    // Initialize OpenAI. It automatically looks for OPENAI_API_KEY.
-    openAI(),
-  ],
-  // Set Gemini as the default model. Specific flows can override this.
+  plugins,
+  // Set Gemini as the default model. Flows can override this.
   model: 'googleai/gemini-2.0-flash',
+  // Enable logging for easier debugging.
+  logLevel: 'debug',
 });

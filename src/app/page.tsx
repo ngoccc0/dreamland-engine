@@ -47,6 +47,10 @@ export default function Home() {
         if (!gameState.playerStats.unlockProgress) {
           gameState.playerStats.unlockProgress = { kills: 0, damageSpells: 0, moves: 0 };
         }
+        if (!gameState.playerStats.skills) {
+          gameState.playerStats.skills = [];
+        }
+
 
         setSavedGameState(gameState);
         setLoadState('prompt');

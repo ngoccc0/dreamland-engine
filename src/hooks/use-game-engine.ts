@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/context/language-context";
 import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/generate-narrative-flow";
-import { generateNewRecipe, type Recipe as AiRecipe } from "@/ai/flows/generate-new-recipe";
+import { generateNewRecipe } from "@/ai/flows/generate-new-recipe";
 import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, checkConditions, calculateCraftingOutcome } from '@/lib/game/engine';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import { recipes as staticRecipes } from '@/lib/game/recipes';
@@ -1099,7 +1099,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         }
         
         handleGameTick();
-    }, [playerStats, isOnline, customItemCatalog, staticItemDefinitions, recipes, language, addNarrativeEntry, toast, t, handleGameTick, customItemDefinitions]);
+    }, [playerStats, isOnline, customItemCatalog, recipes, language, addNarrativeEntry, toast, t, handleGameTick, customItemDefinitions]);
 
     const handleItemUsed = useCallback((itemName: string, target: 'player' | string) => {
         const actionText = target === 'player'
@@ -1209,7 +1209,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         }
         
         handleGameTick();
-    }, [playerStats, world, playerPosition, isOnline, customItemDefinitions, staticItemDefinitions, addNarrativeEntry, handleGameTick, handleOnlineNarrative]);
+    }, [playerStats, world, playerPosition, isOnline, customItemDefinitions, addNarrativeEntry, handleGameTick, handleOnlineNarrative]);
 
     const handleUseSkill = useCallback((skillName: string) => {
         const actionText = `use skill ${skillName}`;

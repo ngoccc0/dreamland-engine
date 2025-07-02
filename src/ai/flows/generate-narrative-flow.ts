@@ -73,7 +73,7 @@ const narrativePrompt = ai.definePrompt({
     output: { schema: AINarrativeResponseSchema },
     tools: [playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool, completeQuestTool],
     prompt: `You are the Game Master for a text-based adventure game called '{{worldName}}'.
-Your role is to be a dynamic and creative storyteller. You will receive the player's action, the result of a d20 dice roll, and the game state. Your primary job is to call the correct tool to execute the action (if necessary), and then use the tool's result AND the dice roll outcome to write a compelling narrative.
+Your role is to be a dynamic and creative storyteller. You will receive the player's action, a d20 dice roll, and its categorized 'successLevel'. Your primary job is to call the correct tool to execute the action (if necessary), and then use the tool's result AND the pre-determined success level to write a compelling narrative.
 
 **Dice Rolls & Success Levels:**
 All player actions are accompanied by a d20 roll, categorized into a success level. Your narrative MUST strictly follow this outcome.

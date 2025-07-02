@@ -101,6 +101,7 @@ export interface Structure {
     buildable?: boolean;
     buildCost?: { name: string; quantity: number }[];
     restEffect?: { hp: number; stamina: number };
+    heatValue?: number;
 }
 
 
@@ -156,6 +157,7 @@ export interface PlayerStatus {
     hp: number;
     mana: number;
     stamina: number;
+    bodyTemperature: number;
     items: PlayerItem[];
     quests: string[];
     skills: Skill[];

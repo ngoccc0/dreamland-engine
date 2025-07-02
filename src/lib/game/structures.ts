@@ -1,6 +1,6 @@
 import type { Structure } from "./types";
 
-export const structureDefinitions: Record<string, Omit<Structure, 'buildCost' | 'buildable'>> = {
+export const structureDefinitions: Record<string, Omit<Structure, 'buildCost' | 'buildable' | 'restEffect' | 'heatValue'>> = {
     // --- Natural Structures ---
     'Tàn tích tháp canh': {
         name: 'Tàn tích tháp canh',
@@ -31,7 +31,7 @@ export const structureDefinitions: Record<string, Omit<Structure, 'buildCost' | 
 export const buildableStructures: Record<string, Structure> = {
     'Lửa trại': {
         name: 'Lửa trại',
-        description: 'Một đống lửa nhỏ, được kiểm soát, cung cấp sự ấm áp và ánh sáng.',
+        description: 'Một đống lửa nhỏ, được kiểm soát, cung cấp sự ấm áp, ánh sáng và tăng nhiệt độ khu vực xung quanh.',
         emoji: '🔥',
         providesShelter: false,
         buildable: true,
@@ -40,6 +40,7 @@ export const buildableStructures: Record<string, Structure> = {
             { name: 'Cành Cây Chắc Chắn', quantity: 2 },
             { name: 'Đá Lửa', quantity: 1}
         ],
+        heatValue: 3,
     },
     'Lều trú ẩn': {
         name: 'Lều trú ẩn',
@@ -53,6 +54,7 @@ export const buildableStructures: Record<string, Structure> = {
             { name: 'Lá cây lớn', quantity: 10 }
         ],
         restEffect: { hp: 20, stamina: 40 },
+        heatValue: 1,
     },
     'Nhà trú ẩn kiên cố': {
         name: 'Nhà trú ẩn kiên cố',
@@ -66,6 +68,7 @@ export const buildableStructures: Record<string, Structure> = {
             { name: 'Dây Gai', quantity: 4 }
         ],
         restEffect: { hp: 40, stamina: 80 },
+        heatValue: 2,
     },
 };
 

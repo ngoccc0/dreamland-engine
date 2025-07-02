@@ -82,6 +82,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             hp: 100,
             mana: 50,
             stamina: 100,
+            bodyTemperature: 50,
             items: worldSetup?.playerInventory || [],
             quests: worldSetup?.initialQuests || [],
             skills: worldSetup?.startingSkill ? [worldSetup.startingSkill] : [], // Start with only the chosen skill for new games. Fallback to empty for old saves.
@@ -185,7 +186,14 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         const weather = weatherZone.currentWeather;
         const effectiveChunk: Chunk = JSON.parse(JSON.stringify(baseChunk)); // Deep copy
 
-        effectiveChunk.temperature = clamp((baseChunk.temperature ?? 5) + weather.temperature_delta, 0, 10);
+        let structureHeat = 0;
+        if (effectiveChunk.structures) {
+            for (const structure of effectiveChunk.structures) {
+                structureHeat += structure.heatValue || 0;
+            }
+        }
+
+        effectiveChunk.temperature = clamp((baseChunk.temperature ?? 5) + weather.temperature_delta + structureHeat, 0, 10);
         effectiveChunk.moisture = clamp(baseChunk.moisture + weather.moisture_delta, 0, 10);
         effectiveChunk.windLevel = clamp((baseChunk.windLevel ?? 3) + weather.wind_delta, 0, 10);
         effectiveChunk.lightLevel = clamp(baseChunk.lightLevel + weather.light_delta, -10, 10);
@@ -295,32 +303,11 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
 
     const handleGameTick = useCallback(() => {
         const nextTick = gameTicks + 1;
-        setGameTicks(nextTick);
-
-        // --- DYNAMIC AI EVENTS ---
-        const RECIPE_GENERATION_INTERVAL = 15;
-        if (isOnline && nextTick > 0 && nextTick % RECIPE_GENERATION_INTERVAL === 0) {
-            generateNewRecipe({
-                customItemCatalog,
-                existingRecipes: Object.keys(recipes),
-                language,
-            }).then(newRecipe => {
-                // Ensure the AI didn't generate a duplicate
-                if (!recipes[newRecipe.result.name]) {
-                    setRecipes(prev => ({...prev, [newRecipe.result.name]: newRecipe as Recipe}));
-                    addNarrativeEntry(t('newRecipeIdea'), 'system');
-                    toast({ title: t('newRecipeIdea'), description: `Bạn đã nghĩ ra cách chế tạo: ${newRecipe.result.name}` });
-                }
-            }).catch(error => {
-                console.error("Failed to generate new recipe:", error);
-            });
-        }
     
         // --- WORLD SIMULATION ---
         let newWorldState = { ...world };
         let worldWasModified = false;
         const changes = {
-            playerHpChange: 0,
             narrativeEntries: [] as { text: string; type: NarrativeEntry['type'] }[],
         };
     
@@ -443,7 +430,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     
                         if (newPos.x === playerPosition.x && newPos.y === playerPosition.y) {
                             changes.narrativeEntries.push({ text: `Một ${enemyData.type} hung hãn đã di chuyển vào và tấn công bạn!`, type: 'system' });
-                            changes.playerHpChange -= enemyData.damage;
+                            // This direct player damage is now handled in the player stat simulation part
                         }
                         
                         worldWasModified = true;
@@ -504,24 +491,48 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             }
         }
     
+        // --- PLAYER STATS SIMULATION ---
+        let nextPlayerStats = {...playerStats};
+        const playerChunkKey = `${playerPosition.x},${playerPosition.y}`;
+        const currentPlayerChunk = newWorldState[playerChunkKey];
+
+        if (currentPlayerChunk) {
+            const effectiveChunk = getEffectiveChunk(currentPlayerChunk);
+            const envTempOn100 = (effectiveChunk.temperature || 5) * 10;
+            const currentBodyTemp = nextPlayerStats.bodyTemperature;
+
+            const regulationForce = (50 - currentBodyTemp) * 0.15; 
+            const environmentForce = (envTempOn100 - currentBodyTemp) * 0.1; 
+            const bodyTempDelta = regulationForce + environmentForce;
+            nextPlayerStats.bodyTemperature = clamp(currentBodyTemp + bodyTempDelta, 0, 100);
+
+            if (nextPlayerStats.bodyTemperature < 20 && nextPlayerStats.hp > 0) {
+                nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - 1);
+                changes.narrativeEntries.push({ text: t('bodyTempTooLow'), type: 'system' });
+            } else if (nextPlayerStats.bodyTemperature > 80 && nextPlayerStats.stamina > 0) {
+                nextPlayerStats.stamina = Math.max(0, nextPlayerStats.stamina - 2);
+                changes.narrativeEntries.push({ text: t('bodyTempTooHigh'), type: 'system' });
+            }
+
+            if (currentPlayerChunk.enemy && currentPlayerChunk.enemy.behavior === 'aggressive') {
+                 changes.narrativeEntries.push({ text: `The ${currentPlayerChunk.enemy.type} attacks you!`, type: 'system' });
+                 nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - currentPlayerChunk.enemy.damage);
+            }
+        }
+        
+        // --- APPLY ALL STATE CHANGES AT THE END OF THE TICK ---
         if (worldWasModified) {
             setWorld(newWorldState);
         }
-    
-        if (changes.playerHpChange !== 0) {
-            setPlayerStats(prev => {
-                const newHp = prev.hp + changes.playerHpChange;
-                if (newHp <= 0 && prev.hp > 0) {
-                    changes.narrativeEntries.push({ text: t('youFell'), type: 'system' });
-                }
-                return { ...prev, hp: Math.max(0, newHp) };
-            });
-        }
-    
+        setPlayerStats(nextPlayerStats);
+        setGameTicks(nextTick);
+
         if (changes.narrativeEntries.length > 0) {
-            changes.narrativeEntries.forEach(entry => addNarrativeEntry(entry.text, entry.type));
+            const uniqueNarratives = [...new Map(changes.narrativeEntries.map(item => [item.text, item])).values()];
+            uniqueNarratives.forEach(entry => addNarrativeEntry(entry.text, entry.type));
         }
-    }, [world, gameTicks, weatherZones, currentSeason, customItemDefinitions, getEffectiveChunk, addNarrativeEntry, t, playerPosition, isOnline, customItemCatalog, recipes, language, toast]);
+
+    }, [world, gameTicks, playerPosition, playerStats, weatherZones, currentSeason, customItemDefinitions, getEffectiveChunk, addNarrativeEntry, t, isOnline, customItemCatalog, recipes, language, toast]);
     
 
     const handleOnlineNarrative = async (action: string, worldCtx: World, playerPosCtx: {x: number, y: number}, playerStatsCtx: PlayerStatus) => {
@@ -1269,10 +1280,20 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     }, [playerStats, addNarrativeEntry, isOnline, handleOnlineNarrative, world, playerPosition, t, handleGameTick]);
 
     const handleBuild = useCallback((structureName: string) => {
+        const buildStaminaCost = 15;
         const structureToBuild = staticBuildableStructures[structureName];
 
         if (!structureToBuild || !structureToBuild.buildable) {
             toast({ title: t('error'), description: `Không thể xây dựng ${structureName}.`, variant: "destructive" });
+            return;
+        }
+
+        if (playerStats.stamina < buildStaminaCost) {
+            toast({
+                title: t('notEnoughStamina'),
+                description: t('notEnoughStaminaDesc', { cost: buildStaminaCost, current: playerStats.stamina.toFixed(0) }),
+                variant: "destructive",
+            });
             return;
         }
 
@@ -1298,7 +1319,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             return;
         }
 
-        // Consume items from inventory
+        // Consume items and stamina
         let updatedItems = [...playerStats.items];
         for (const cost of buildCost) {
             const itemIndex = updatedItems.findIndex(i => i.name === cost.name);
@@ -1307,7 +1328,11 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             }
         }
         const finalInventory = updatedItems.filter(item => item.quantity > 0);
-        setPlayerStats(prev => ({...prev, items: finalInventory}));
+        setPlayerStats(prev => ({
+            ...prev, 
+            items: finalInventory,
+            stamina: prev.stamina - buildStaminaCost,
+        }));
 
         // Add the structure to the current chunk
         const key = `${playerPosition.x},${playerPosition.y}`;
@@ -1320,6 +1345,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 emoji: structureToBuild.emoji,
                 providesShelter: structureToBuild.providesShelter,
                 restEffect: structureToBuild.restEffect,
+                heatValue: structureToBuild.heatValue,
             };
             chunkToUpdate.structures = [...(chunkToUpdate.structures || []), newStructure];
             newWorld[key] = chunkToUpdate;
@@ -1328,7 +1354,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
 
         addNarrativeEntry(t('builtStructure', { structureName }), 'system');
         handleGameTick();
-    }, [playerStats.items, playerPosition, addNarrativeEntry, handleGameTick, toast, t]);
+    }, [playerStats.items, playerStats.stamina, playerPosition, addNarrativeEntry, handleGameTick, toast, t]);
 
     const handleRest = useCallback(() => {
         const key = `${playerPosition.x},${playerPosition.y}`;

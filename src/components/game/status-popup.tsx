@@ -45,8 +45,17 @@ export function StatusPopup({ open, onOpenChange, stats }: StatusPopupProps) {
               <Progress id="mana" value={(stats.mana / 50) * 100} className="h-4" indicatorClassName="bg-gradient-to-r from-blue-500 to-purple-600" />
             </div>
             <div className="space-y-2">
-              <label htmlFor="stamina" className="text-sm font-medium">{t('stamina', { stamina: stats.stamina })}</label>
+              <label htmlFor="stamina" className="text-sm font-medium">{t('stamina', { stamina: stats.stamina.toFixed(0) })}</label>
               <Progress id="stamina" value={stats.stamina} className="h-4" indicatorClassName="bg-gradient-to-r from-yellow-400 to-orange-500" />
+            </div>
+             <div className="space-y-2">
+              <label htmlFor="bodyTemp" className="text-sm font-medium">{t('bodyTemperature', { temp: stats.bodyTemperature.toFixed(0) })}</label>
+              <div className="relative h-4 w-full overflow-hidden rounded-full bg-gradient-to-r from-blue-400 via-green-400 to-red-600">
+                  <div 
+                      className="absolute top-0 h-full w-1 bg-white/80 border-x border-black/50" 
+                      style={{ left: `${stats.bodyTemperature}%` }}
+                  />
+              </div>
             </div>
           </div>
           <Separator />

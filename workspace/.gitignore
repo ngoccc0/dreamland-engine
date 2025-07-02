@@ -8,7 +8,7 @@
 # Testing
 /coverage
 
-# Next.js build output
+# Next.js build
 /.next/
 /out/
 
@@ -23,16 +23,15 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
 
-# Local .env file
-# This file should not be committed to version control.
-# It is used for local development and contains sensitive information.
+# Local .env files
 .env
-.env.local
+.env*.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# TypeScript cache
-*.tsbuildinfo
+# IDE files
+.idea/
+.vscode/
+*.swp

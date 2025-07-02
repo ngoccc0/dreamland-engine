@@ -13,6 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/context/language-context";
 import type { PlayerStatus } from "@/lib/game/types";
+import { cn } from "@/lib/utils";
 import { Heart } from "lucide-react";
 
 interface StatusPopupProps {
@@ -20,6 +21,16 @@ interface StatusPopupProps {
   onOpenChange: (open: boolean) => void;
   stats: PlayerStatus;
 }
+
+const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
+
+// Normalizes the temperature (e.g., 20-50°C range) to a 0-100% value for the UI bar.
+const normalizeTemp = (temp: number) => {
+    const minTemp = 20; // The coldest value visible on the bar
+    const maxTemp = 50; // The hottest value visible on the bar
+    return clamp(((temp - minTemp) / (maxTemp - minTemp)) * 100, 0, 100);
+}
+
 
 export function StatusPopup({ open, onOpenChange, stats }: StatusPopupProps) {
   const { t } = useLanguage();
@@ -36,7 +47,7 @@ export function StatusPopup({ open, onOpenChange, stats }: StatusPopupProps) {
           </DialogDescription>
         </DialogHeader>
         <Separator />
-        <p className="text-xs text-muted-foreground px-1 py-2">{t('bodyTempDesc')}</p>
+        
         <ScrollArea className="max-h-[70vh] pr-6">
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
@@ -52,11 +63,19 @@ export function StatusPopup({ open, onOpenChange, stats }: StatusPopupProps) {
               <Progress id="stamina" value={stats.stamina} className="h-4" indicatorClassName="bg-gradient-to-r from-yellow-400 to-orange-500" />
             </div>
              <div className="space-y-2">
-              <label htmlFor="bodyTemp" className="text-sm font-medium">{t('bodyTemperature', { temp: stats.bodyTemperature.toFixed(0) })}</label>
-              <div className="relative h-4 w-full overflow-hidden rounded-full bg-gradient-to-r from-blue-400 via-green-400 to-red-600">
+              <label htmlFor="bodyTemp" className="text-sm font-medium">{t('bodyTemperature', { temp: stats.bodyTemperature.toFixed(1) })}</label>
+              <p className="text-xs text-muted-foreground px-1">{t('bodyTempDesc')}</p>
+              <div className="relative h-4 w-full overflow-hidden rounded-full bg-gradient-to-r from-blue-400 via-green-400 to-red-600 mt-2">
                   <div 
                       className="absolute top-0 h-full w-1 bg-white/80 border-x border-black/50" 
-                      style={{ left: `${stats.bodyTemperature}%` }}
+                      style={{ left: `${normalizeTemp(stats.bodyTemperature)}%` }}
+                      title={`Current: ${stats.bodyTemperature.toFixed(1)}°C`}
+                  />
+                  {/* Ideal temperature marker */}
+                  <div 
+                      className="absolute top-0 h-full w-0.5 bg-white/50" 
+                      style={{ left: `${normalizeTemp(37)}%` }}
+                       title="Ideal: 37°C"
                   />
               </div>
             </div>

@@ -82,7 +82,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             hp: 100,
             mana: 50,
             stamina: 100,
-            bodyTemperature: 50,
+            bodyTemperature: 37,
             items: worldSetup?.playerInventory || [],
             quests: worldSetup?.initialQuests || [],
             skills: worldSetup?.startingSkill ? [worldSetup.startingSkill] : [], // Start with only the chosen skill for new games. Fallback to empty for old saves.
@@ -192,8 +192,12 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 structureHeat += structure.heatValue || 0;
             }
         }
+        
+        // This calculates the final Celsius temperature
+        const baseCelsius = (baseChunk.temperature ?? 5) * 4; // Maps 0-10 base to 0-40 C
+        const weatherCelsiusMod = weather.temperature_delta * 2;
+        effectiveChunk.temperature = baseCelsius + weatherCelsiusMod + structureHeat;
 
-        effectiveChunk.temperature = clamp((baseChunk.temperature ?? 5) + weather.temperature_delta + structureHeat, 0, 10);
         effectiveChunk.moisture = clamp(baseChunk.moisture + weather.moisture_delta, 0, 10);
         effectiveChunk.windLevel = clamp((baseChunk.windLevel ?? 3) + weather.wind_delta, 0, 10);
         effectiveChunk.lightLevel = clamp(baseChunk.lightLevel + weather.light_delta, -10, 10);
@@ -250,6 +254,8 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             setWorld(newWorld);
             setRegions(newRegions);
             setRegionCounter(newRegionCounter);
+            // Ensure new game starts with ideal body temperature
+            setPlayerStats(prev => ({ ...prev, bodyTemperature: 37 }));
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [worldSetup, initialGameState]);
@@ -498,21 +504,32 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
 
         if (currentPlayerChunk) {
             const effectiveChunk = getEffectiveChunk(currentPlayerChunk);
-            const envTempOn100 = (effectiveChunk.temperature || 5) * 10;
+            const environmentCelsius = effectiveChunk.temperature || 15;
             const currentBodyTemp = nextPlayerStats.bodyTemperature;
+            
+            // Body temperature regulation logic
+            const setpoint = 37;
+            const environmentPull = (environmentCelsius - currentBodyTemp) * 0.1;
+            const selfRegulation = (setpoint - currentBodyTemp) * 0.15;
+            const bodyTempDelta = environmentPull + selfRegulation;
+            nextPlayerStats.bodyTemperature += bodyTempDelta;
 
-            const regulationForce = (50 - currentBodyTemp) * 0.15; 
-            const environmentForce = (envTempOn100 - currentBodyTemp) * 0.1; 
-            const bodyTempDelta = regulationForce + environmentForce;
-            nextPlayerStats.bodyTemperature = clamp(currentBodyTemp + bodyTempDelta, 0, 100);
+            const temp = nextPlayerStats.bodyTemperature;
 
-            if (nextPlayerStats.bodyTemperature < 20 && nextPlayerStats.hp > 0) {
+            if (temp < 30) {
                 nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - 1);
-                changes.narrativeEntries.push({ text: t('bodyTempTooLow'), type: 'system' });
-            } else if (nextPlayerStats.bodyTemperature > 80 && nextPlayerStats.stamina > 0) {
-                nextPlayerStats.stamina = Math.max(0, nextPlayerStats.stamina - 2);
-                changes.narrativeEntries.push({ text: t('bodyTempTooHigh'), type: 'system' });
+                changes.narrativeEntries.push({ text: t('tempDangerFreezing'), type: 'system' });
+            } else if (temp < 35) {
+                nextPlayerStats.stamina = Math.max(0, nextPlayerStats.stamina - 0.5);
+                changes.narrativeEntries.push({ text: t('tempWarningCold'), type: 'system' });
+            } else if (temp > 42) {
+                 nextPlayerStats.stamina = Math.max(0, nextPlayerStats.stamina - 2);
+                 changes.narrativeEntries.push({ text: t('tempDangerHot'), type: 'system' });
+            } else if (temp > 40) {
+                 nextPlayerStats.stamina = Math.max(0, nextPlayerStats.stamina - 1);
+                 changes.narrativeEntries.push({ text: t('tempWarningHot'), type: 'system' });
             }
+
 
             if (currentPlayerChunk.enemy && currentPlayerChunk.enemy.behavior === 'aggressive') {
                  changes.narrativeEntries.push({ text: `The ${currentPlayerChunk.enemy.type} attacks you!`, type: 'system' });
@@ -1382,7 +1399,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         const newHp = Math.min(100, oldHp + hpRestore);
         const newStamina = Math.min(100, oldStamina + staminaRestore);
         
-        setPlayerStats(prev => ({ ...prev, hp: newHp, stamina: newStamina }));
+        setPlayerStats(prev => ({ ...prev, hp: newHp, stamina: newStamina, bodyTemperature: 37 }));
 
         const restoredParts = [];
         if (newHp > oldHp) restoredParts.push(`${newHp - oldHp} máu`);
@@ -1390,6 +1407,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
 
         if (restoredParts.length > 0) {
             addNarrativeEntry(t('restSuccess', { restoration: restoredParts.join(' và ') }), 'system');
+            addNarrativeEntry(t('restSuccessTemp'), 'system');
         }
 
         handleGameTick();

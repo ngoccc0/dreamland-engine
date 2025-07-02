@@ -33,6 +33,7 @@ export async function generateNewRecipe(input: GenerateNewRecipeInput): Promise<
 // --- The Genkit Prompt and Flow ---
 const generateRecipePrompt = ai.definePrompt({
     name: 'generateNewRecipePrompt',
+    model: 'openai/gpt-4-turbo',
     input: { schema: GenerateNewRecipeInputSchema },
     output: { schema: RecipeSchema },
     prompt: `You are a master artisan and game designer. Your task is to invent a new, logical, and thematically appropriate crafting recipe for a text-based adventure game.

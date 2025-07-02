@@ -71,6 +71,7 @@ export async function generateWorldSetup(input: GenerateWorldSetupInput): Promis
 // -- Prompt for Task A: Items & Names --
 const itemsAndNamesPrompt = ai.definePrompt({
     name: 'generateItemsAndNamesPrompt',
+    model: 'openai/gpt-4-turbo',
     input: { schema: GenerateWorldSetupInputSchema },
     output: { schema: ItemsAndNamesOutputSchema },
     prompt: `You are a creative world-building assistant. Based on the user's idea, your task is to generate TWO things:

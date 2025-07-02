@@ -15,7 +15,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema } from '@/ai/schemas';
+import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema } from '@/ai/schemas';
 import { playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool, completeQuestTool, startQuestTool } from '@/ai/tools/game-actions';
 import { generateNewQuest } from './generate-new-quest';
 
@@ -31,6 +31,7 @@ const GenerateNarrativeInputSchema = z.object({
   language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
   diceRoll: z.number().describe("The result of a d20 dice roll (1-20)."),
   successLevel: SuccessLevelSchema.describe("The categorized outcome of the dice roll."),
+  customItemDefinitions: z.record(ItemDefinitionSchema).optional().describe("A map of AI-generated item definitions for the current game session."),
 });
 export type GenerateNarrativeInput = z.infer<typeof GenerateNarrativeInputSchema>;
 

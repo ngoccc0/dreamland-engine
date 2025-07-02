@@ -121,7 +121,7 @@ const generateWorldSetupFlow = ai.defineFlow(
     
     // Task A: Generate the item catalog. This is complex, so we use a fallback chain of powerful models.
     const itemCatalogTask = (async () => {
-        const modelsToTry = ['openai/gpt-4-turbo', 'googleai/gemini-1.5-pro', 'deepseek/deepseek-chat'];
+        const modelsToTry = ['openai/gpt-4-turbo', 'googleai/gemini-1.5-pro', 'deepseek/deepseek-chat', 'googleai/gemini-2.0-flash'];
         for (const modelName of modelsToTry) {
             try {
                 console.log(`Attempting item catalog generation with model: ${modelName}`);

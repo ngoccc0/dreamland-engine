@@ -60,6 +60,7 @@ const generateRecipePrompt = ai.definePrompt({
     name: 'generateNewRecipePrompt',
     input: { schema: GenerateNewRecipeInputSchema },
     output: { schema: RecipeSchema },
+    model: 'openai/gpt-4o-mini', // Use OpenAI for its creative and structured data capabilities
     prompt: `You are a master artisan and game designer. Your task is to invent a new, logical, and thematically appropriate crafting recipe for a text-based adventure game.
 
 **Rules:**

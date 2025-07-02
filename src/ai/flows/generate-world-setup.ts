@@ -110,7 +110,7 @@ const generateWorldSetupFlow = ai.defineFlow(
     // Task A: Generate Items and World Names with a fallback mechanism.
     // Tries the most powerful model first (OpenAI), then falls back to a strong alternative (Gemini Pro).
     const itemsAndNamesTask = (async () => {
-        const modelsToTry = ['openai/gpt-4-turbo', 'googleai/gemini-1.5-pro'];
+        const modelsToTry = ['openai/gpt-4-turbo', 'googleai/gemini-1.5-pro', 'googleai/gemini-2.0-flash'];
         for (const modelName of modelsToTry) {
             try {
                 console.log(`Attempting item/name generation with model: ${modelName}`);

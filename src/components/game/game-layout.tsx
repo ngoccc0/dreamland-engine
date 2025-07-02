@@ -11,7 +11,7 @@ import { BuildingPopup } from "@/components/game/building-popup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Backpack, Shield, Cpu, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Hammer, WandSparkles, Home } from "lucide-react";
+import { Backpack, Shield, Cpu, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Hammer, WandSparkles, Home, BedDouble } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
 import { SwordIcon } from "@/components/game/icons";
@@ -49,6 +49,7 @@ export default function GameLayout(props: GameLayoutProps) {
         handleBuild,
         handleItemUsed,
         handleUseSkill,
+        handleRest,
     } = useGameEngine(props);
 
     const [isStatusOpen, setStatusOpen] = useState(false);
@@ -108,6 +109,7 @@ export default function GameLayout(props: GameLayoutProps) {
     }, [world, playerPosition.x, playerPosition.y]);
     
     const currentChunk = world[`${playerPosition.x},${playerPosition.y}`];
+    const restingPlace = currentChunk?.structures.find(s => s.restEffect);
 
     if (!finalWorldSetup) {
         return (
@@ -334,7 +336,25 @@ export default function GameLayout(props: GameLayoutProps) {
                                 ))}
                              </div>
                         </div>
-
+                        
+                        {restingPlace && (
+                            <>
+                                <Separator />
+                                <div className="space-y-2">
+                                    <h2 className="font-headline text-lg font-semibold text-center text-foreground/80 flex-shrink-0">{t('structureActions')}</h2>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button variant="secondary" className="w-full justify-center" onClick={handleRest} disabled={isLoading}>
+                                                <BedDouble className="mr-2 h-4 w-4" />
+                                                {t('rest')}
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>{t('restTooltip', { shelterName: restingPlace.name, hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent>
+                                    </Tooltip>
+                                </div>
+                            </>
+                        )}
+                        
                         <Separator/>
                         
                         <h2 className="font-headline text-lg font-semibold text-center text-foreground/80 flex-shrink-0">{t('availableActions')}</h2>

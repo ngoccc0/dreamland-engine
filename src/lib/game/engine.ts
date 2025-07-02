@@ -77,7 +77,7 @@ export const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 
  * @param maxCount - The maximum number of entity types to select.
  * @returns An array of selected entity names.
  */
-const selectEntities = <T extends {name: string, conditions: SpawnConditions} | {data: any, conditions: SpawnConditions}>(
+const selectEntities = <T extends {name: string, conditions: SpawnConditions} | {data: any, conditions: SpawnConditions, loot?: any}>(
     possibleEntities: T[],
     chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored' | 'structures'>,
     allItemDefinitions: Record<string, ItemDefinition>, // Pass in all definitions
@@ -108,7 +108,7 @@ const selectEntities = <T extends {name: string, conditions: SpawnConditions} | 
         }
 
         if (Math.random() < spawnChance) {
-            selected.push(entityData);
+            selected.push(entity);
         }
     }
     return selected;
@@ -282,12 +282,40 @@ function generateChunkContent(
     }
     
     // NPCs, Enemies, and Structures
-    const spawnedNPCs = selectEntities(template.NPCs, chunkData, allItemDefinitions, 1);
+    const spawnedNPCs = selectEntities(template.NPCs, chunkData, allItemDefinitions, 1).map(ref => ref.data);
     const spawnedEnemies = selectEntities(template.enemies, chunkData, allItemDefinitions, 1);
-    const spawnedStructures = selectEntities(template.structures, chunkData, allItemDefinitions, 1);
+    const spawnedStructureRefs = selectEntities(template.structures, chunkData, allItemDefinitions, 1);
     
-    const enemyData = spawnedEnemies.length > 0 ? spawnedEnemies[0] : null;
+    const spawnedStructures = spawnedStructureRefs.map(ref => ref.data);
+    const enemyData = spawnedEnemies.length > 0 ? spawnedEnemies[0].data : null;
     const spawnedEnemy = enemyData ? { ...enemyData, satiation: 0, emoji: enemyData.emoji } : null;
+
+    // Add loot from structures to the chunk's items
+    for (const structureRef of spawnedStructureRefs) {
+        if (structureRef.loot) {
+            for (const lootItem of structureRef.loot) {
+                if (Math.random() < lootItem.chance) {
+                    const definition = allItemDefinitions[lootItem.name];
+                    if (definition) {
+                        const quantity = getRandomInRange(lootItem.quantity);
+                        const existingItem = spawnedItems.find(i => i.name === lootItem.name);
+                        if (existingItem) {
+                            existingItem.quantity += quantity;
+                        } else {
+                            spawnedItems.push({
+                                name: lootItem.name,
+                                description: definition.description,
+                                tier: definition.tier,
+                                quantity: quantity,
+                                emoji: definition.emoji,
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 
     // More description based on calculated values and spawned entities
     if (chunkData.moisture > 8) finalDescription += " Không khí đặc quánh hơi ẩm.";

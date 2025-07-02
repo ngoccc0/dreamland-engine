@@ -1319,6 +1319,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 description: structureToBuild.description,
                 emoji: structureToBuild.emoji,
                 providesShelter: structureToBuild.providesShelter,
+                restEffect: structureToBuild.restEffect,
             };
             chunkToUpdate.structures = [...(chunkToUpdate.structures || []), newStructure];
             newWorld[key] = chunkToUpdate;
@@ -1328,6 +1329,45 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         addNarrativeEntry(t('builtStructure', { structureName }), 'system');
         handleGameTick();
     }, [playerStats.items, playerPosition, addNarrativeEntry, handleGameTick, toast, t]);
+
+    const handleRest = useCallback(() => {
+        const key = `${playerPosition.x},${playerPosition.y}`;
+        const chunk = world[key];
+        const shelter = chunk?.structures.find(s => s.restEffect);
+
+        if (!shelter || !shelter.restEffect) {
+            toast({ title: "Không thể nghỉ ngơi", description: "Bạn cần ở trong một nơi trú ẩn phù hợp." });
+            return;
+        }
+
+        addNarrativeEntry(t('restInShelter', { shelterName: shelter.name }), 'action');
+
+        if (playerStats.hp >= 100 && playerStats.stamina >= 100) {
+            addNarrativeEntry(t('restNoEffect'), 'narrative');
+            handleGameTick();
+            return;
+        }
+
+        const { hp: hpRestore, stamina: staminaRestore } = shelter.restEffect;
+
+        const oldHp = playerStats.hp;
+        const oldStamina = playerStats.stamina;
+
+        const newHp = Math.min(100, oldHp + hpRestore);
+        const newStamina = Math.min(100, oldStamina + staminaRestore);
+        
+        setPlayerStats(prev => ({ ...prev, hp: newHp, stamina: newStamina }));
+
+        const restoredParts = [];
+        if (newHp > oldHp) restoredParts.push(`${newHp - oldHp} máu`);
+        if (newStamina > oldStamina) restoredParts.push(`${newStamina - oldStamina} thể lực`);
+
+        if (restoredParts.length > 0) {
+            addNarrativeEntry(t('restSuccess', { restoration: restoredParts.join(' và ') }), 'system');
+        }
+
+        handleGameTick();
+    }, [world, playerPosition, playerStats, addNarrativeEntry, handleGameTick, t, toast]);
 
     return {
         // State
@@ -1350,5 +1390,6 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         handleBuild,
         handleItemUsed,
         handleUseSkill,
+        handleRest,
     }
 }

@@ -1,4 +1,3 @@
-
 export const translations = {
   en: {
     gameTitle: "Dreamland Engine",
@@ -88,6 +87,12 @@ export const translations = {
     aiStorytellerDesc: "Enable to have an AI generate dynamic narratives. Disable for a classic, rule-based experience (works offline).",
     skills: "Skills",
     manaCost: "Mana Cost",
+    structureActions: "Structure Actions",
+    rest: "Rest",
+    restTooltip: "Rest at {shelterName} to recover {hp} HP and {stamina} Stamina.",
+    restInShelter: "You rest in the {shelterName}...",
+    restSuccess: "You recovered {restoration}.",
+    restNoEffect: "You are already fully recovered.",
 
 
     // Controls
@@ -269,6 +274,12 @@ export const translations = {
     aiStorytellerDesc: "Bật để AI tạo ra các câu chuyện động. Tắt để trải nghiệm kiểu cổ điển, dựa trên quy tắc (hoạt động ngoại tuyến).",
     skills: "Kỹ năng",
     manaCost: "Tiêu tốn Mana",
+    structureActions: "Hành động Công trình",
+    rest: "Nghỉ ngơi",
+    restTooltip: "Nghỉ ngơi tại {shelterName} để hồi {hp} máu và {stamina} thể lực.",
+    restInShelter: "Bạn nghỉ ngơi trong {shelterName}...",
+    restSuccess: "Bạn đã phục hồi {restoration}.",
+    restNoEffect: "Bạn đã hoàn toàn khỏe mạnh. Nghỉ ngơi thêm cũng không có tác dụng.",
 
     // Controls
     moveAndAttack: "Di chuyển & Tấn công",

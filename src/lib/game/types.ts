@@ -100,6 +100,7 @@ export interface Structure {
     providesShelter?: boolean;
     buildable?: boolean;
     buildCost?: { name: string; quantity: number }[];
+    restEffect?: { hp: number; stamina: number };
 }
 
 

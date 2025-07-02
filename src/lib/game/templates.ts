@@ -34,7 +34,11 @@ export const templates: Record<Terrain, any> = {
             { name: 'Lá cây lớn', conditions: { vegetationDensity: { min: 6 }, chance: 0.3 } },
         ],
         structures: [
-            { data: structureDefinitions['Bàn thờ bị bỏ hoang'], conditions: { magicAffinity: { min: 6 }, chance: 0.05 } },
+             { 
+                data: structureDefinitions['Bàn thờ bị bỏ hoang'], 
+                loot: [{ name: 'Mảnh Tinh Thể', chance: 0.1, quantity: { min: 1, max: 1 } }],
+                conditions: { magicAffinity: { min: 6 }, chance: 0.05 } 
+            },
         ],
         enemies: [
             { data: { type: 'Sói', emoji: '🐺', hp: 30, damage: 10, behavior: 'aggressive', size: 'medium', diet: ['Thịt Heo Rừng', 'Thịt Thỏ'], satiation: 0, maxSatiation: 2, loot: [{name: 'Thịt Sói Sống', chance: 0.7, quantity: {min: 1, max: 1}}, {name: 'Nanh Sói', chance: 0.15, quantity: {min: 1, max: 2}}] }, conditions: { predatorPresence: { min: 5 }, chance: 0.4 } },
@@ -70,7 +74,11 @@ export const templates: Record<Terrain, any> = {
             { name: 'Mảnh Vải Rách', conditions: { humanPresence: { min: 3 }, chance: 0.1 } },
         ],
         structures: [
-            { data: structureDefinitions['Tàn tích tháp canh'], conditions: { humanPresence: { min: 2 }, elevation: { min: 2 }, chance: 0.1 } },
+            { 
+                data: structureDefinitions['Tàn tích tháp canh'], 
+                loot: [{ name: 'Mũi Tên Cũ', chance: 0.2, quantity: { min: 1, max: 3 } }, {name: 'Chìa Khóa Rỉ Sét', chance: 0.05, quantity: {min: 1, max: 1}}],
+                conditions: { humanPresence: { min: 2 }, elevation: { min: 2 }, chance: 0.1 } 
+            },
         ],
         enemies: [
             { data: { type: 'Thỏ hoang hung dữ', emoji: '🐇', hp: 20, damage: 5, behavior: 'defensive', size: 'small', diet: ['Hoa Dại', 'Lúa Mì'], satiation: 0, maxSatiation: 4, loot: [{name: 'Thịt Thỏ', chance: 0.6, quantity: {min: 1, max: 2}}, {name: 'Da Thú Nhỏ', chance: 0.2, quantity: {min: 1, max: 1}}] }, conditions: { dangerLevel: { min: 2, max: 5 }, chance: 0.3 } },

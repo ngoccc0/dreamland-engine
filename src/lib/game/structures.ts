@@ -6,7 +6,7 @@ export const structureDefinitions: Record<string, Omit<Structure, 'buildCost' | 
         name: 'Tàn tích tháp canh',
         description: 'Phế tích của một tháp canh bằng đá đứng im lặng, cung cấp một cái nhìn bao quát về xung quanh.',
         emoji: '🏰',
-        providesShelter: false,
+        providesShelter: true, // It provides some shelter, but not as good as a tent
     },
     'Bàn thờ bị bỏ hoang': {
         name: 'Bàn thờ bị bỏ hoang',
@@ -34,6 +34,7 @@ export const buildableStructures: Record<string, Structure> = {
             { name: 'Dây Gai', quantity: 3 },
             { name: 'Lá cây lớn', quantity: 10 }
         ],
+        restEffect: { hp: 20, stamina: 40 },
     },
     'Lửa trại': {
         name: 'Lửa trại',

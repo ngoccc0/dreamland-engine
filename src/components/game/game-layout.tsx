@@ -8,10 +8,11 @@ import { InventoryPopup } from "@/components/game/inventory-popup";
 import { FullMapPopup } from "@/components/game/full-map-popup";
 import { CraftingPopup } from "@/components/game/crafting-popup";
 import { BuildingPopup } from "@/components/game/building-popup";
+import { TutorialPopup } from "@/components/game/tutorial-popup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Backpack, Shield, Cpu, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Hammer, WandSparkles, Home, BedDouble, Thermometer } from "lucide-react";
+import { Backpack, Shield, Cpu, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
 import { SwordIcon } from "@/components/game/icons";
@@ -57,6 +58,7 @@ export default function GameLayout(props: GameLayoutProps) {
     const [isCraftingOpen, setCraftingOpen] = useState(false);
     const [isBuildingOpen, setBuildingOpen] = useState(false);
     const [isFullMapOpen, setIsFullMapOpen] = useState(false);
+    const [isTutorialOpen, setTutorialOpen] = useState(false);
     const [inputValue, setInputValue] = useState("");
     
     const pageEndRef = useRef<HTMLDivElement>(null);
@@ -129,8 +131,18 @@ export default function GameLayout(props: GameLayoutProps) {
             <div className="flex flex-col md:flex-row min-h-dvh bg-background text-foreground font-body">
                 {/* Left Panel: Narrative */}
                 <div className="w-full md:w-[70%] flex flex-col">
-                    <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10">
+                    <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10 flex justify-between items-center">
                         <h1 className="text-2xl font-bold font-headline">{finalWorldSetup.worldName}</h1>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={() => setTutorialOpen(true)}>
+                                    <LifeBuoy />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>{t('tutorialTitle')}</p>
+                            </TooltipContent>
+                        </Tooltip>
                     </header>
 
                     <main className="flex-grow p-4 md:p-6 overflow-y-auto">
@@ -419,6 +431,7 @@ export default function GameLayout(props: GameLayoutProps) {
                 <CraftingPopup open={isCraftingOpen} onOpenChange={setCraftingOpen} playerItems={playerStats.items} recipes={recipes} onCraft={handleCraft} />
                 <BuildingPopup open={isBuildingOpen} onOpenChange={setBuildingOpen} playerItems={playerStats.items} buildableStructures={buildableStructures} onBuild={handleBuild} />
                 <FullMapPopup open={isFullMapOpen} onOpenChange={setIsFullMapOpen} world={world} playerPosition={playerPosition} />
+                <TutorialPopup open={isTutorialOpen} onOpenChange={setTutorialOpen} />
             </div>
         </TooltipProvider>
     );

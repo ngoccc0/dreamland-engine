@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -42,13 +43,14 @@ const keywordSuggestionPrompt = ai.definePrompt({
   output: {
     schema: SuggestKeywordsOutputSchema,
   },
-  prompt: `You are a creative brainstorming assistant helping a user design a game world.
+  prompt: `You are a creative brainstorming assistant helping a user design a game world. All keywords you generate MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical requirement.
+
 Based on the user's input below, suggest 5-7 related keywords or short, evocative phrases to help them expand their world concept.
 The suggestions should be creative, interesting, and varied.
 
 User's Idea: {{{userInput}}}
 
-Return the keywords in the required JSON format. The keywords must be in the language corresponding to this code: {{language}}.`,
+Return the keywords in the required JSON format.`,
 });
 
 

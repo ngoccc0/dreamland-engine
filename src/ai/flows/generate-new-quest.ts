@@ -31,7 +31,7 @@ const generateQuestPrompt = ai.definePrompt({
     input: { schema: GenerateNewQuestInputSchema },
     output: { schema: GenerateNewQuestOutputSchema },
     prompt: `You are a creative quest designer for the text-based RPG '{{worldName}}'.
-Your task is to create a single, new quest for the player based on their current situation and playstyle.
+Your task is to create a single, new quest for the player based on their current situation and playstyle. The entire response (quest text) MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
 
 **Rules:**
 1.  The quest must be **new**. It cannot be one of these: {{json existingQuests}}.
@@ -50,9 +50,6 @@ Your task is to create a single, new quest for the player based on their current
   - **explorer:** An exploration or discovery quest (e.g., "Find the source of the river," "Map the ancient ruins to the east").
   - **artisan:** A gathering or crafting quest (e.g., "Gather 10 Iron Ore," "Craft a Reinforced Shield").
   - **none:** A general-purpose quest suitable for any player, like finding an NPC or a specific location.
-
-**Language:**
-The entire response (quest text) MUST be in the language corresponding to this code: {{language}}.
 
 **Task:**
 Generate one (1) new quest in the required JSON format that fits the player's persona and current situation.

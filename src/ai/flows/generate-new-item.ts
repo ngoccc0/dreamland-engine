@@ -35,7 +35,7 @@ const generateItemPrompt = ai.definePrompt({
     input: { schema: GenerateNewItemInputSchema },
     output: { schema: GeneratedItemSchema },
     prompt: `You are a creative game designer for the text-based RPG '{{worldName}}'.
-Your task is to invent one (1) single new item for the player.
+Your task is to invent one (1) single new item for the player. The entire response (item name, description, etc.) MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
 
 **Rules:**
 1.  The item must be **new**. Its name cannot be one of these: {{json existingItemNames}}.
@@ -46,9 +46,6 @@ Your task is to invent one (1) single new item for the player.
     - **artisan:** A rare new material, a unique energy source, or a special tool for crafting.
     - **none:** A general-purpose item that could be useful for any player.
 4.  You MUST define all required fields for the item: name, description, emoji, category, tier, effects, baseQuantity, and spawnBiomes.
-
-**Language:**
-The entire response (item name, description, etc.) MUST be in the language corresponding to this code: {{language}}.
 
 **Task:**
 Generate one (1) new item in the required JSON format.

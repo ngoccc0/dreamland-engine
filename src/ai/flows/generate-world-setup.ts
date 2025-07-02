@@ -81,7 +81,9 @@ export async function generateWorldSetup(input: GenerateWorldSetupInput): Promis
 // == PROMPT TEMPLATES (TASK DEFINITIONS) ==
 
 // -- Template for Task A: Item Catalog Generation --
-const itemCatalogPromptTemplate = `You are a creative world-building assistant specializing in game item design. Based on the user's idea, your task is to generate **a small, initial catalog of 5 to 10 unique, thematically appropriate items** that could be found in this world.
+const itemCatalogPromptTemplate = `You are a creative world-building assistant specializing in game item design. ALL TEXT in your response MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
+
+Based on the user's idea, your task is to generate **a small, initial catalog of 5 to 10 unique, thematically appropriate items** that could be found in this world.
 
 **User's Idea:** {{{userInput}}}
 
@@ -89,11 +91,12 @@ const itemCatalogPromptTemplate = `You are a creative world-building assistant s
 1.  The "customItemCatalog" array in your JSON output MUST contain between 5 and 10 items.
 2.  For each item, you MUST define all required fields: name, description, emoji, category, tier, effects, baseQuantity, and spawnBiomes. You may optionally define growthConditions.
 3.  For the 'category' field, use one of these exact values: 'Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion'.
-4.  The theme of the items should strongly reflect the user's input.
-5.  ALL TEXT in the response MUST be in the language corresponding to this code: {{language}}.`;
+4.  The theme of the items should strongly reflect the user's input.`;
 
 // -- Template for Task B: Narrative Concepts & World Names --
-const conceptsAndNamesPromptTemplate = `You are a creative Game Master. Based on the user's idea, you need to generate TWO things:
+const conceptsAndNamesPromptTemplate = `You are a creative Game Master. ALL TEXT in your response (world names, initial narrative, etc.) MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a non-negotiable, strict requirement.
+
+Based on the user's idea, you need to generate TWO things:
 1.  **Three (3) distinct and creative world names.**
 2.  **Three (3) distinct starting concepts for a game.**
 
@@ -106,7 +109,6 @@ For EACH of the three concepts, create the specific narrative details:
 
 **Critical Rules:**
 - **DO NOT** create player items, an item catalog, or starting skills. These will be handled by other processes.
-- **Language:** ALL TEXT in the response (world names, initial narrative, etc.) MUST be in the language corresponding to this code: {{language}}. This is a strict requirement.
 
 Provide the response as a single JSON object containing both the 'worldNames' array and the 'narrativeConcepts' array.`;
 

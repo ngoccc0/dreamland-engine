@@ -35,7 +35,7 @@ const generateRecipePrompt = ai.definePrompt({
     name: 'generateNewRecipePrompt',
     input: { schema: GenerateNewRecipeInputSchema },
     output: { schema: RecipeSchema },
-    prompt: `You are a master artisan and game designer. Your task is to invent a new, logical, and thematically appropriate crafting recipe for a text-based adventure game.
+    prompt: `You are a master artisan and game designer. Your task is to invent a new, logical, and thematically appropriate crafting recipe for a text-based adventure game. The entire response (names, descriptions) MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
 
 **Rules:**
 1.  The recipe must be **new**. It cannot be one of these existing recipes: {{json existingRecipes}}.
@@ -46,9 +46,6 @@ const generateRecipePrompt = ai.definePrompt({
 
 **Available Item Catalog (Your Palette):**
 {{json customItemCatalog}}
-
-**Language:**
-The entire response (names, descriptions) MUST be in the language corresponding to this code: {{language}}.
 
 **Task:**
 Generate one (1) new crafting recipe in the required JSON format.

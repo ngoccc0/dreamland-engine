@@ -22,6 +22,13 @@ export default function Home() {
   const [loadState, setLoadState] = useState<'loading' | 'select_language' | 'prompt' | 'new_game' | 'continue_game'>('loading');
   const [savedGameState, setSavedGameState] = useState<GameState | null>(null);
   const [newGameData, setNewGameData] = useState<NewGameData | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    // This ensures that we only render the text on the client, after the language has been determined.
+    // This prevents a hydration mismatch error and language flicker.
+    setIsClient(true);
+  }, []);
 
   const parseAndSetSavedGame = useCallback(() => {
     try {
@@ -118,10 +125,12 @@ export default function Home() {
       <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
         <div className="flex flex-col items-center gap-4 text-center p-4 animate-in fade-in duration-1000">
           <BrainCircuit className="h-20 w-20 text-primary" />
-          <h1 className="text-5xl font-bold font-headline tracking-tighter">{t('gameTitle')}</h1>
+          <h1 className="text-5xl font-bold font-headline tracking-tighter h-[60px]">
+            {isClient ? t('gameTitle') : <>&nbsp;</>}
+          </h1>
           <div className="flex items-center gap-2 mt-4 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
-            <p>{t('loadingAdventure')}</p>
+            <p>{isClient ? t('loadingAdventure') : <>&nbsp;</>}</p>
           </div>
         </div>
       </div>
@@ -137,15 +146,15 @@ export default function Home() {
       <div className="flex items-center justify-center min-h-dvh bg-background text-foreground p-4">
         <Card className="w-full max-w-sm animate-in fade-in duration-500">
           <CardHeader>
-            <CardTitle className="text-center text-2xl font-headline">Welcome Back!</CardTitle>
-            <CardDescription className="text-center">You have a game in progress.</CardDescription>
+            <CardTitle className="text-center text-2xl font-headline">{t('welcomeBack')}</CardTitle>
+            <CardDescription className="text-center">{t('gameInProgress')}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <Button onClick={handleContinue} size="lg">
-              Continue Journey
+              {t('continueJourney')}
             </Button>
             <Button onClick={handleNewGame} size="lg" variant="outline">
-              Start New Adventure
+              {t('startNewAdventure')}
             </Button>
           </CardContent>
         </Card>

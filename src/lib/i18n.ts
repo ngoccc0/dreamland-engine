@@ -228,6 +228,12 @@ export const translations = {
     customActionsContent: `The heart of this game is the AI. You are not limited to the buttons.
     - **Be Creative:** Type anything into the custom action box. For example: "look for shelter", "try to fish in the river", "give the wolf some meat".
     - **AI Interpretation:** The AI will interpret your action and decide what happens next, using the game's rules and tools to guide the outcome. Experiment and see what's possible!`,
+
+    // New Continue Game Screen
+    welcomeBack: "Welcome Back!",
+    gameInProgress: "You have a game in progress.",
+    continueJourney: "Continue Journey",
+    startNewAdventure: "Start New Adventure",
   },
   vi: {
     gameTitle: "Ký Sự Lãng Du",
@@ -456,6 +462,12 @@ export const translations = {
     customActionsContent: `Trái tim của trò chơi này là AI. Bạn không bị giới hạn bởi các nút bấm.
     - **Hãy sáng tạo:** Nhập bất cứ thứ gì vào ô hành động tùy chỉnh. Ví dụ: "tìm nơi trú ẩn", "thử câu cá trong sông", "dùng thịt dụ sói".
     - **AI diễn giải:** AI sẽ diễn giải hành động của bạn và quyết định điều gì sẽ xảy ra tiếp theo, sử dụng các quy tắc và công cụ của trò chơi để định hướng kết quả. Hãy thử nghiệm và xem những gì có thể!`,
+
+    // New Continue Game Screen
+    welcomeBack: "Chào mừng trở lại!",
+    gameInProgress: "Bạn có một trò chơi đang dang dở.",
+    continueJourney: "Tiếp tục Hành trình",
+    startNewAdventure: "Bắt đầu Cuộc phiêu lưu Mới",
   }
 };
 

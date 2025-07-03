@@ -15,7 +15,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema, GeneratedItemSchema } from '@/ai/schemas';
+import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema, GeneratedItemSchema, NpcSchema } from '@/ai/schemas';
 import { playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool, completeQuestTool, startQuestTool } from '@/ai/tools/game-actions';
 import { generateNewQuest } from './generate-new-quest';
 import { generateNewItem } from './generate-new-item';
@@ -30,7 +30,7 @@ const GenerateNarrativeInputSchema = z.object({
   worldName: z.string().describe("The name of the game world."),
   playerAction: z.string().describe("The action the player just performed. E.g., 'move north', 'attack wolf', 'explore area', 'pick up Healing Herb', 'use Heal', 'give wolf fang to hunter'."),
   playerStatus: PlayerStatusSchema.describe("The player's current status (HP, items, skills, etc.)."),
-  currentChunk: ChunkSchema.describe("The detailed attributes of the map tile the player is currently on. This includes dynamic weather effects."),
+  currentChunk: ChunkSchema.describe("The detailed attributes of the map tile the player is currently on. This includes dynamic weather effects and rich NPC data."),
   recentNarrative: z.array(z.string()).describe("The last few entries from the narrative log to provide conversational context."),
   language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
   diceRoll: z.number().describe("The result of the dice roll."),
@@ -51,7 +51,7 @@ const GenerateNarrativeOutputSchema = z.object({
   updatedChunk: z.object({
     description: z.string().optional(),
     items: z.array(ChunkItemSchema).optional(),
-    NPCs: z.array(z.string()).optional(),
+    NPCs: z.array(NpcSchema).optional(),
     enemy: EnemySchema.nullable().optional(),
     structures: z.array(z.any()).optional(),
   }).optional().describe("Optional: Changes to the current game chunk based on the action's outcome."),
@@ -92,7 +92,7 @@ const narrativePromptTemplate = `You are the Game Master for a text-based advent
 
 **Critical Rules:**
 - **Success Level is Law:** The 'successLevel' ('{{successLevel}}') dictates the outcome. A 'Failure' MUST be narrated as a failure, a 'CriticalSuccess' as a legendary event.
-- **NPC Dialogue:** If the player talks to an NPC, generate a short, in-character response. The NPC might offer hints, lore, or a new quest.
+- **NPC Dialogue:** If the player talks to an NPC, you MUST use their 'name', 'description', and especially their 'dialogueSeed' from the context below to craft a unique and in-character response. The NPC might offer hints, lore, or a new quest.
 - **Incorporate Persona:** Weave the player's persona ('{{playerStatus.persona}}') into the story for flavor.
 - **Creature Behavior:** Respect the creature's behavior. If the 'playerAttack' tool returns 'fled: true', your narrative MUST describe the creature running away.
 - **Building Actions:** Guide players to use the dedicated 'Build' button for building actions. Do not use a tool for this. For example: 'To build something, it's best to use the dedicated Build menu.'

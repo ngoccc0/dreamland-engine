@@ -1,4 +1,4 @@
-import type { Language, Terrain } from "./types";
+import type { Language, Npc, Terrain } from "./types";
 import { structureDefinitions } from "./structures";
 
 const templates_vi: Record<Terrain, any> = {
@@ -12,9 +12,18 @@ const templates_vi: Record<Terrain, any> = {
         smells: ['đất ẩm', 'lá cây mục', 'nhựa thông', 'hoa dại'],
         sounds: ['chim hót', 'gió rít', 'cành cây gãy', 'sự im lặng đáng sợ'],
         NPCs: [
-            { data: 'thợ săn bí ẩn', conditions: { humanPresence: { min: 2 }, chance: 0.1 } },
-            { data: 'linh hồn cây', conditions: { magicAffinity: { min: 6 }, chance: 0.05 } },
-            { data: 'ẩn sĩ', conditions: { humanPresence: { min: 1, max: 3 }, chance: 0.05 } },
+            { 
+                data: { name: 'Thợ săn bí ẩn', description: 'Một người đàn ông với ánh mắt sắc lẹm và bộ quần áo bằng da cũ kỹ, luôn mang theo cây cung dài.', dialogueSeed: 'Một thợ săn dày dạn kinh nghiệm, mệt mỏi nhưng cảnh giác, nói năng cộc lốc.' },
+                conditions: { humanPresence: { min: 2 }, chance: 0.1 } 
+            },
+            { 
+                data: { name: 'Linh hồn cây', description: 'Một thực thể được tạo thành từ cành và lá cây, đôi mắt phát ra ánh sáng xanh dịu.', dialogueSeed: 'Một linh hồn cổ xưa, nói chuyện chậm rãi và uyên thâm, quan tâm đến sự cân bằng của khu rừng.' },
+                conditions: { magicAffinity: { min: 6 }, chance: 0.05 } 
+            },
+            { 
+                data: { name: 'Ẩn sĩ', description: 'Một ông lão có bộ râu dài, sống một mình trong rừng.', dialogueSeed: 'Một người sống ẩn dật, nói chuyện có vẻ điên rồ nhưng đôi khi lại chứa đựng những sự thật sâu sắc.' },
+                conditions: { humanPresence: { min: 1, max: 3 }, chance: 0.05 } 
+            },
         ],
         items: [
             { name: 'Quả Mọng Ăn Được', conditions: { dangerLevel: { max: 4 }, chance: 0.3 } },
@@ -55,9 +64,14 @@ const templates_vi: Record<Terrain, any> = {
         features: ['hoa dại', 'cỏ cao', 'đá tảng', 'lối mòn', 'đàn gia súc'],
         sky: ['trong xanh', 'đầy mây', 'u ám', 'hoàng hôn'],
         NPCs: [
-            { data: 'người du mục', conditions: { humanPresence: { min: 4 }, chance: 0.15 } },
-            { data: 'nông dân', conditions: { humanPresence: { min: 5 }, soilType: ['loamy'], chance: 0.2 } },
-            { data: 'đàn ngựa hoang', conditions: { predatorPresence: { max: 4 }, vegetationDensity: { min: 3 }, chance: 0.1 } },
+            { 
+                data: { name: 'Người du mục', description: 'Một người phụ nữ với làn da rám nắng, mặc trang phục làm từ nhiều mảnh da khác nhau.', dialogueSeed: 'Một người từng trải, nói về những vùng đất xa xôi và những cơn gió.' },
+                conditions: { humanPresence: { min: 4 }, chance: 0.15 } 
+            },
+            { 
+                data: { name: 'Nông dân', description: 'Một người đàn ông có đôi tay chai sạn, đang lo lắng nhìn về phía cánh đồng của mình.', dialogueSeed: 'Một nông dân hiền lành, luôn lo lắng về thời tiết và mùa màng.' },
+                conditions: { humanPresence: { min: 5 }, soilType: ['loamy'], chance: 0.2 } 
+            },
         ],
         items: [
             { name: 'Hoa Dại', conditions: { vegetationDensity: { min: 3 }, chance: 0.4 } },
@@ -93,8 +107,14 @@ const templates_vi: Record<Terrain, any> = {
         adjectives: ['nóng bỏng', 'khô cằn', 'vô tận', 'lặng im', 'gió cát'],
         features: ['cồn cát', 'ốc đảo', 'xương rồng khổng lồ', 'bộ xương cũ', 'tàn tích đá'],
         NPCs: [
-            { data: 'thương nhân lạc đà', conditions: { humanPresence: { min: 3 }, chance: 0.1 } },
-            { data: 'nhà thám hiểm lạc lối', conditions: { humanPresence: { min: 1, max: 2 }, dangerLevel: { min: 6 }, chance: 0.05 } },
+            { 
+                data: { name: 'Thương nhân lạc đà', description: 'Một người đàn ông trùm kín mặt, dẫn theo một con lạc đà chở đầy hàng hóa.', dialogueSeed: 'Một thương nhân lọc lõi, chỉ quan tâm đến việc mua bán và những món hời.' },
+                conditions: { humanPresence: { min: 3 }, chance: 0.1 } 
+            },
+            { 
+                data: { name: 'Nhà thám hiểm lạc lối', description: 'Một người trông kiệt sức, quần áo rách nát, đang tìm kiếm nước uống.', dialogueSeed: 'Một người đang tuyệt vọng, sẽ làm bất cứ điều gì để có nước và tìm đường ra.' },
+                conditions: { humanPresence: { min: 1, max: 2 }, dangerLevel: { min: 6 }, chance: 0.05 } 
+            },
         ],
         items: [
             { name: 'Bình Nước Cũ', conditions: { humanPresence: { min: 1 }, chance: 0.15 } },
@@ -122,8 +142,14 @@ const templates_vi: Record<Terrain, any> = {
         adjectives: ['hôi thối', 'âm u', 'chết chóc', 'sương giăng', 'ngập nước'],
         features: ['đước', 'dây leo', 'khí độc', 'bong bóng bùn', 'côn trùng'],
         NPCs: [
-            { data: 'ẩn sĩ', conditions: { humanPresence: { min: 1, max: 2 }, magicAffinity: { min: 5 }, chance: 0.05 } },
-            { data: 'thợ săn cá sấu', conditions: { humanPresence: { min: 2 }, predatorPresence: { min: 8 }, chance: 0.1 } },
+            { 
+                data: { name: 'Phù thủy đầm lầy', description: 'Một bà lão với nụ cười bí hiểm, sống trong một túp lều tạm bợ.', dialogueSeed: 'Một phù thủy lập dị, nói chuyện bằng những câu đố và có thể giúp đỡ nếu được trả công xứng đáng.' },
+                conditions: { humanPresence: { min: 1, max: 2 }, magicAffinity: { min: 5 }, chance: 0.05 } 
+            },
+            { 
+                data: { name: 'Thợ săn cá sấu', description: 'Một người đàn ông lực lưỡng, trên người có nhiều vết sẹo, mang theo một cây lao lớn.', dialogueSeed: 'Một người thợ săn dũng cảm, chỉ nói về con mồi lớn nhất mà ông ta đang theo đuổi.' },
+                conditions: { humanPresence: { min: 2 }, predatorPresence: { min: 8 }, chance: 0.1 } 
+            },
         ],
         items: [
             { name: 'Rêu Phát Sáng', conditions: { lightLevel: { max: -4 }, chance: 0.3 } },
@@ -152,9 +178,14 @@ const templates_vi: Record<Terrain, any> = {
         features: ['vách đá', 'tuyết', 'hang động', 'dòng sông băng', 'mỏm đá'],
         visibility: ['cực tốt', 'bị mây che phủ', 'hạn chế'],
         NPCs: [
-            { data: 'thợ mỏ già', conditions: { humanPresence: { min: 3 }, elevation: { min: 7 }, chance: 0.15 } },
-            { data: 'người cưỡi griffon', conditions: { magicAffinity: { min: 6 }, elevation: { min: 9 }, chance: 0.05 } },
-            { data: 'nhà sư khổ hạnh', conditions: { elevation: { min: 8 }, chance: 0.05 } },
+            { 
+                data: { name: 'Thợ mỏ già', description: 'Một người lùn gân guốc với bộ râu được tết gọn gàng, tay cầm chiếc cuốc chim.', dialogueSeed: 'Một người thợ mỏ càu nhàu, phàn nàn về việc các mạch khoáng sản ngày càng khó tìm.' },
+                conditions: { humanPresence: { min: 3 }, elevation: { min: 7 }, chance: 0.15 } 
+            },
+            { 
+                data: { name: 'Người cưỡi griffon', description: 'Một chiến binh mặc áo giáp sáng bóng, đứng cạnh một sinh vật griffon uy nghi.', dialogueSeed: 'Một hiệp sĩ cao ngạo, chỉ nói chuyện với những người mà họ cho là xứng đáng.' },
+                conditions: { magicAffinity: { min: 6 }, elevation: { min: 9 }, chance: 0.05 } 
+            },
         ],
         items: [
             { name: 'Quặng Sắt', conditions: { soilType: ['rocky'], chance: 0.25 } },
@@ -194,9 +225,14 @@ const templates_vi: Record<Terrain, any> = {
         features: ['thạch nhũ', 'tinh thể', 'dòng sông ngầm', 'tranh vẽ cổ', 'mạng nhện'],
         smells: ['đất ẩm', 'nước tù', 'khoáng chất', 'lưu huỳnh'],
         NPCs: [
-            { data: 'nhà thám hiểm bị lạc', conditions: { humanPresence: { min: 2, max: 3 }, chance: 0.1 } },
-            { data: 'bộ lạc goblin', conditions: { humanPresence: { min: 4 }, dangerLevel: { min: 8 }, chance: 0.2 } },
-            { data: 'sinh vật bóng tối', conditions: { lightLevel: { max: -8 }, magicAffinity: { min: 7 }, chance: 0.05 } },
+            { 
+                data: { name: 'Nhà thám hiểm bị lạc', description: 'Một người với trang bị cũ kỹ, đang tuyệt vọng vẽ bản đồ lên tường.', dialogueSeed: 'Một người thông minh nhưng đang hoảng loạn, nói nhanh và liên tục hỏi về đường ra.' },
+                conditions: { humanPresence: { min: 2, max: 3 }, chance: 0.1 } 
+            },
+            { 
+                data: { name: 'Thủ lĩnh Goblin', description: 'Một con goblin to lớn hơn đồng loại, ngồi trên một chiếc ngai bằng xương.', dialogueSeed: 'Một thủ lĩnh goblin xảo quyệt và hung hăng, nói bằng một ngôn ngữ kỳ lạ nhưng có thể hiểu được qua cử chỉ.' },
+                conditions: { humanPresence: { min: 4 }, dangerLevel: { min: 8 }, chance: 0.2 } 
+            },
         ],
         items: [
             { name: 'Mảnh Tinh Thể', conditions: { magicAffinity: { min: 6 }, chance: 0.3 } },
@@ -238,8 +274,14 @@ const templates_vi: Record<Terrain, any> = {
         smells: ['hoa thối', 'đất ẩm', 'mùi xạ hương của động vật'],
         sounds: ['vẹt kêu', 'khỉ hú', 'tiếng côn trùng rả rích', 'tiếng nước chảy'],
         NPCs: [
-            { data: 'thầy mo của bộ lạc', conditions: { humanPresence: { min: 3 }, magicAffinity: { min: 5 }, chance: 0.1 } },
-            { data: 'nhà thực vật học', conditions: { humanPresence: { min: 1, max: 3 }, vegetationDensity: { min: 9 }, chance: 0.15 } }
+            { 
+                data: { name: 'Thầy mo của bộ lạc', description: 'Một người đàn ông lớn tuổi với khuôn mặt được sơn vẽ kỳ dị, đeo nhiều loại bùa hộ mệnh.', dialogueSeed: 'Một người thông thái và bí ẩn, nói về các linh hồn và những lời tiên tri cổ xưa.' },
+                conditions: { humanPresence: { min: 3 }, magicAffinity: { min: 5 }, chance: 0.1 } 
+            },
+            { 
+                data: { name: 'Nhà thực vật học', description: 'Một nhà khoa học với cặp kính dày, đang cẩn thận ghi chép vào một cuốn sổ tay.', dialogueSeed: 'Một người đam mê, hào hứng nói về các loài thực vật quý hiếm và đặc tính của chúng.' },
+                conditions: { humanPresence: { min: 1, max: 3 }, vegetationDensity: { min: 9 }, chance: 0.15 } 
+            }
         ],
         items: [
             { name: 'Dây leo Titan', conditions: { vegetationDensity: { min: 9 }, chance: 0.2 } },
@@ -265,8 +307,14 @@ const templates_vi: Record<Terrain, any> = {
         features: ['dung nham', 'khe nứt', 'cột đá bazan', 'hồ axit'],
         smells: ['lưu huỳnh', 'đá cháy', 'kim loại nóng chảy'],
         NPCs: [
-            { data: 'thợ rèn dung nham', conditions: { humanPresence: { min: 1 }, temperature: { min: 9 }, chance: 0.1 } },
-            { data: 'hỏa tinh bị mắc kẹt', conditions: { magicAffinity: { min: 8 }, chance: 0.05 } }
+            { 
+                data: { name: 'Thợ rèn dung nham', description: 'Một người lùn với làn da đỏ như đồng, đang dùng một chiếc búa lớn để rèn trên một tảng đá nóng chảy.', dialogueSeed: 'Một thợ rèn bậc thầy, ít nói, chỉ quan tâm đến việc tạo ra những vũ khí huyền thoại từ vật liệu núi lửa.' },
+                conditions: { humanPresence: { min: 1 }, temperature: { min: 9 }, chance: 0.1 } 
+            },
+            { 
+                data: { name: 'Hỏa tinh bị mắc kẹt', description: 'Một thực thể bằng lửa bị mắc kẹt trong một tảng obsidian.', dialogueSeed: 'Một sinh vật nguyên tố mạnh mẽ nhưng đang yếu dần, hứa hẹn sức mạnh nếu được giải thoát.' },
+                conditions: { magicAffinity: { min: 8 }, chance: 0.05 } 
+            }
         ],
         items: [
             { name: 'Đá Obsidian', conditions: { chance: 0.4 } },
@@ -297,9 +345,18 @@ const templates_en: Record<Terrain, any> = {
         smells: ['damp earth', 'decaying leaves', 'pine resin', 'wildflowers'],
         sounds: ['birds singing', 'wind whistling', 'a snapping twig', 'an unnerving silence'],
         NPCs: [
-            { data: 'Mysterious Hunter', conditions: { humanPresence: { min: 2 }, chance: 0.1 } },
-            { data: 'Tree Spirit', conditions: { magicAffinity: { min: 6 }, chance: 0.05 } },
-            { data: 'Hermit', conditions: { humanPresence: { min: 1, max: 3 }, chance: 0.05 } },
+            { 
+                data: { name: 'Mysterious Hunter', description: 'A man with sharp eyes and worn leather clothes, always carrying a longbow.', dialogueSeed: 'A seasoned hunter, weary but vigilant, speaks in short, clipped sentences.' },
+                conditions: { humanPresence: { min: 2 }, chance: 0.1 } 
+            },
+            { 
+                data: { name: 'Tree Spirit', description: 'An entity made of branches and leaves, with eyes that emit a soft green light.', dialogueSeed: 'An ancient spirit, speaks slowly and wisely, concerned with the balance of the forest.' },
+                conditions: { magicAffinity: { min: 6 }, chance: 0.05 } 
+            },
+            { 
+                data: { name: 'Hermit', description: 'An old man with a long beard, living alone in the woods.', dialogueSeed: 'A recluse who speaks in what seems like nonsense but sometimes contains profound truths.' },
+                conditions: { humanPresence: { min: 1, max: 3 }, chance: 0.05 } 
+            },
         ],
         items: templates_vi.forest.items, // Items are keyed and don't need translation here
         structures: templates_vi.forest.structures,
@@ -320,9 +377,14 @@ const templates_en: Record<Terrain, any> = {
         features: ['wildflowers', 'tall grass', 'boulders', 'worn paths', 'herds of animals'],
         sky: ['clear blue', 'cloudy', 'overcast', 'sunset'],
         NPCs: [
-            { data: 'Nomad', conditions: { humanPresence: { min: 4 }, chance: 0.15 } },
-            { data: 'Farmer', conditions: { humanPresence: { min: 5 }, soilType: ['loamy'], chance: 0.2 } },
-            { data: 'Wild Herd', conditions: { predatorPresence: { max: 4 }, vegetationDensity: { min: 3 }, chance: 0.1 } },
+            { 
+                data: { name: 'Nomad', description: 'A woman with sun-tanned skin, dressed in clothes made from various pieces of leather.', dialogueSeed: 'An experienced traveler who speaks of distant lands and the winds.' },
+                conditions: { humanPresence: { min: 4 }, chance: 0.15 } 
+            },
+            { 
+                data: { name: 'Farmer', description: 'A man with calloused hands, looking worriedly at his fields.', dialogueSeed: 'A gentle farmer, always worried about the weather and his crops.' },
+                conditions: { humanPresence: { min: 5 }, soilType: ['loamy'], chance: 0.2 } 
+            },
         ],
         items: templates_vi.grassland.items,
         structures: templates_vi.grassland.structures,
@@ -341,8 +403,14 @@ const templates_en: Record<Terrain, any> = {
         adjectives: ['scorching', 'arid', 'endless', 'silent', 'windswept'],
         features: ['dunes', 'an oasis', 'giant cacti', 'old skeletons', 'stone ruins'],
         NPCs: [
-            { data: 'Camel Merchant', conditions: { humanPresence: { min: 3 }, chance: 0.1 } },
-            { data: 'Lost Explorer', conditions: { humanPresence: { min: 1, max: 2 }, dangerLevel: { min: 6 }, chance: 0.05 } },
+            { 
+                data: { name: 'Camel Merchant', description: 'A man with his face covered, leading a camel laden with goods.', dialogueSeed: 'A shrewd merchant, only interested in buying, selling, and good deals.' },
+                conditions: { humanPresence: { min: 3 }, chance: 0.1 } 
+            },
+            { 
+                data: { name: 'Lost Explorer', description: 'An exhausted-looking person in tattered clothes, searching for water.', dialogueSeed: 'A desperate person who will do anything for water and a way out.' },
+                conditions: { humanPresence: { min: 1, max: 2 }, dangerLevel: { min: 6 }, chance: 0.05 } 
+            },
         ],
         items: templates_vi.desert.items,
         structures: [],
@@ -361,8 +429,14 @@ const templates_en: Record<Terrain, any> = {
         adjectives: ['stinking', 'gloomy', 'deadly', 'foggy', 'waterlogged'],
         features: ['mangrove', 'vines', 'toxic gas', 'mud bubbles', 'insects'],
         NPCs: [
-            { data: 'Hermit', conditions: { humanPresence: { min: 1, max: 2 }, magicAffinity: { min: 5 }, chance: 0.05 } },
-            { data: 'Alligator Hunter', conditions: { humanPresence: { min: 2 }, predatorPresence: { min: 8 }, chance: 0.1 } },
+            { 
+                data: { name: 'Swamp Witch', description: 'An old woman with a mysterious smile, living in a makeshift hut.', dialogueSeed: 'An eccentric witch who speaks in riddles and might help for the right price.' },
+                conditions: { humanPresence: { min: 1, max: 2 }, magicAffinity: { min: 5 }, chance: 0.05 } 
+            },
+            { 
+                data: { name: 'Alligator Hunter', description: 'A sturdy man covered in scars, carrying a large harpoon.', dialogueSeed: 'A brave hunter who only talks about the biggest prey he is tracking.' },
+                conditions: { humanPresence: { min: 2 }, predatorPresence: { min: 8 }, chance: 0.1 } 
+            },
         ],
         items: templates_vi.swamp.items,
         structures: [],
@@ -382,9 +456,14 @@ const templates_en: Record<Terrain, any> = {
         features: ['cliffs', 'snowdrifts', 'caves', 'glaciers', 'outcrops'],
         visibility: ['excellent', 'clouded', 'limited'],
         NPCs: [
-            { data: 'Old Miner', conditions: { humanPresence: { min: 3 }, elevation: { min: 7 }, chance: 0.15 } },
-            { data: 'Griffon Rider', conditions: { magicAffinity: { min: 6 }, elevation: { min: 9 }, chance: 0.05 } },
-            { data: 'Ascetic Monk', conditions: { elevation: { min: 8 }, chance: 0.05 } },
+            { 
+                data: { name: 'Old Miner', description: 'A sturdy dwarf with a neatly braided beard, holding a pickaxe.', dialogueSeed: 'A grumpy miner who complains that ore veins are getting harder to find.' },
+                conditions: { humanPresence: { min: 3 }, elevation: { min: 7 }, chance: 0.15 } 
+            },
+            { 
+                data: { name: 'Griffon Rider', description: 'A warrior in shining armor, standing next to a majestic griffon creature.', dialogueSeed: 'An arrogant knight who only speaks to those they deem worthy.' },
+                conditions: { magicAffinity: { min: 6 }, elevation: { min: 9 }, chance: 0.05 } 
+            },
         ],
         items: templates_vi.mountain.items,
         structures: [
@@ -413,9 +492,14 @@ const templates_en: Record<Terrain, any> = {
         features: ['stalactites', 'crystals', 'an underground river', 'ancient paintings', 'cobwebs'],
         smells: ['damp earth', 'stagnant water', 'minerals', 'sulfur'],
         NPCs: [
-            { data: 'Lost Adventurer', conditions: { humanPresence: { min: 2, max: 3 }, chance: 0.1 } },
-            { data: 'Goblin Tribe', conditions: { humanPresence: { min: 4 }, dangerLevel: { min: 8 }, chance: 0.2 } },
-            { data: 'Shadow Creature', conditions: { lightLevel: { max: -8 }, magicAffinity: { min: 7 }, chance: 0.05 } },
+            { 
+                data: { name: 'Lost Adventurer', description: 'A person in old gear, desperately drawing a map on the wall.', dialogueSeed: 'A smart but panicked person who talks fast and constantly asks for a way out.' },
+                conditions: { humanPresence: { min: 2, max: 3 }, chance: 0.1 } 
+            },
+            { 
+                data: { name: 'Goblin Chieftain', description: 'A goblin larger than its kin, sitting on a throne of bones.', dialogueSeed: 'A cunning and aggressive goblin leader, speaks in a strange language but can be understood through gestures.' },
+                conditions: { humanPresence: { min: 4 }, dangerLevel: { min: 8 }, chance: 0.2 } 
+            },
         ],
         items: templates_vi.cave.items,
         structures: [
@@ -446,8 +530,14 @@ const templates_en: Record<Terrain, any> = {
         smells: ['rotting flowers', 'damp earth', 'animal musk'],
         sounds: ['parrots squawking', 'monkeys howling', 'insects chirping', 'running water'],
         NPCs: [
-            { data: 'Tribal Shaman', conditions: { humanPresence: { min: 3 }, magicAffinity: { min: 5 }, chance: 0.1 } },
-            { data: 'Botanist', conditions: { humanPresence: { min: 1, max: 3 }, vegetationDensity: { min: 9 }, chance: 0.15 } }
+            { 
+                data: { name: 'Tribal Shaman', description: 'An elderly man with a strangely painted face, wearing many amulets.', dialogueSeed: 'A wise and mysterious person who speaks of spirits and ancient prophecies.' },
+                conditions: { humanPresence: { min: 3 }, magicAffinity: { min: 5 }, chance: 0.1 } 
+            },
+            { 
+                data: { name: 'Botanist', description: 'A scientist with thick glasses, carefully taking notes in a notebook.', dialogueSeed: 'An enthusiast who excitedly talks about rare plant species and their properties.' },
+                conditions: { humanPresence: { min: 1, max: 3 }, vegetationDensity: { min: 9 }, chance: 0.15 } 
+            }
         ],
         items: templates_vi.jungle.items,
         structures: [],
@@ -466,8 +556,14 @@ const templates_en: Record<Terrain, any> = {
         features: ['lava flows', 'fissures', 'basalt columns', 'acid pools'],
         smells: ['sulfur', 'burning rock', 'molten metal'],
         NPCs: [
-            { data: 'Lava Blacksmith', conditions: { humanPresence: { min: 1 }, temperature: { min: 9 }, chance: 0.1 } },
-            { data: 'Trapped Fire Elemental', conditions: { magicAffinity: { min: 8 }, chance: 0.05 } }
+            { 
+                data: { name: 'Lava Blacksmith', description: 'A dwarf with skin as red as copper, using a large hammer to forge on a molten rock anvil.', dialogueSeed: 'A master blacksmith, a man of few words, only interested in creating legendary weapons from volcanic materials.' },
+                conditions: { humanPresence: { min: 1 }, temperature: { min: 9 }, chance: 0.1 } 
+            },
+            { 
+                data: { name: 'Trapped Fire Elemental', description: 'A fiery entity trapped within an obsidian rock.', dialogueSeed: 'A powerful but weakening elemental being, promising power if released.' },
+                conditions: { magicAffinity: { min: 8 }, chance: 0.05 } 
+            }
         ],
         items: templates_vi.volcanic.items,
         structures: [

@@ -72,7 +72,7 @@ const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
                  <div>
                     <h5 className="font-semibold">NPCs:</h5>
                     <ul className="list-disc list-inside text-xs">
-                        {chunk.NPCs.map(npc => <li key={npc}>{npc}</li>)}
+                        {chunk.NPCs.map(npc => <li key={npc.name}>{npc.name}</li>)}
                     </ul>
                 </div>
             )}

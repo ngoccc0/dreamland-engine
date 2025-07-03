@@ -137,12 +137,20 @@ export const StructureSchema = z.object({
 });
 export type Structure = z.infer<typeof StructureSchema>;
 
+export const NpcSchema = z.object({
+    name: z.string().describe("The full name of the NPC."),
+    description: z.string().describe("A brief physical and personality description of the NPC."),
+    dialogueSeed: z.string().describe("A sentence that captures their personality and current mood, to be used by the AI as a basis for generating dialogue. E.g., 'A grizzled hunter, tired but watchful, who speaks in short, clipped sentences.'"),
+});
+export type Npc = z.infer<typeof NpcSchema>;
+
+
 export const ChunkSchema = z.object({
     x: z.number(),
     y: z.number(),
     terrain: z.enum(allTerrains),
     description: z.string(),
-    NPCs: z.array(z.string()),
+    NPCs: z.array(NpcSchema),
     items: z.array(ChunkItemSchema).describe("Items present in the chunk, with quantities and tiers."),
     structures: z.array(StructureSchema).optional().describe("Structures present in the chunk."),
     explored: z.boolean(),

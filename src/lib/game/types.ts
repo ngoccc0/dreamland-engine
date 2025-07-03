@@ -90,6 +90,12 @@ export interface Pet {
     level: number;
 }
 
+export interface Npc {
+    name: string;
+    description: string;
+    dialogueSeed: string;
+}
+
 // Represents a skill the player can use.
 export interface Skill {
     name: string;
@@ -127,7 +133,7 @@ export interface Chunk {
     y: number;
     terrain: Terrain;
     description: string;
-    NPCs: string[];
+    NPCs: Npc[];
     items: ChunkItem[];
     structures: Structure[];
     explored: boolean;

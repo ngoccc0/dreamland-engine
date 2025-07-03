@@ -1,4 +1,4 @@
-import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient, Structure, Language } from "./types";
+import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient, Structure, Language, Npc } from "./types";
 import { seasonConfig, worldConfig } from "./world-config";
 import { getTemplates } from "./templates";
 import { itemDefinitions as staticItemDefinitions } from "./items";
@@ -284,7 +284,7 @@ function generateChunkContent(
     }
     
     // NPCs, Enemies, and Structures
-    const spawnedNPCs = selectEntities(template.NPCs, chunkData, allItemDefinitions, 1).map(ref => ref.data);
+    const spawnedNPCs: Npc[] = selectEntities(template.NPCs, chunkData, allItemDefinitions, 1).map(ref => ref.data);
     const spawnedEnemies = selectEntities(template.enemies, chunkData, allItemDefinitions, 1);
     const spawnedStructureRefs = selectEntities(template.structures, chunkData, allItemDefinitions, 1);
     
@@ -333,7 +333,7 @@ function generateChunkContent(
     if (spawnedEnemy) {
         actions.push({ id: 1, text: `${language === 'vi' ? 'Quan sát' : 'Observe'} ${spawnedEnemy.type}` });
     } else if (spawnedNPCs.length > 0) {
-        actions.push({ id: 1, text: `${language === 'vi' ? 'Nói chuyện với' : 'Talk to'} ${spawnedNPCs[0]}` });
+        actions.push({ id: 1, text: `${language === 'vi' ? 'Nói chuyện với' : 'Talk to'} ${spawnedNPCs[0].name}` });
     }
     actions.push({ id: 2, text: language === 'vi' ? 'Khám phá khu vực' : 'Explore the area' });
     if (spawnedItems.length > 0) {

@@ -141,6 +141,7 @@ const generateWorldSetupFlow = ai.defineFlow(
     
     // Task A: Generate the item catalog. This is complex, so we use a fallback chain of powerful models.
     const itemCatalogTask = (async () => {
+        // Extended fallback chain. If paid models fail, it will use the free-tier Gemini Flash as a last resort.
         const modelsToTry = ['openai/gpt-4-turbo', 'googleai/gemini-1.5-pro', 'deepseek/deepseek-chat', 'googleai/gemini-2.0-flash'];
         const errorLogs: string[] = [];
 
@@ -174,13 +175,32 @@ const generateWorldSetupFlow = ai.defineFlow(
         output: { schema: WorldNamesOutputSchema },
     });
 
-    // Task C: Generate narrative concepts. Use a different fast model for variety.
-    const narrativeConceptsTask = ai.generate({
-        model: 'deepseek/deepseek-chat',
-        prompt: narrativeConceptsPromptTemplate,
-        input: input,
-        output: { schema: NarrativeConceptsOutputSchema },
-    });
+    // Task C: Generate narrative concepts. Use a different fast model for variety, with a fallback.
+    const narrativeConceptsTask = (async () => {
+        const modelsToTry = ['deepseek/deepseek-chat', 'googleai/gemini-2.0-flash'];
+        const errorLogs: string[] = [];
+        
+        for (const modelName of modelsToTry) {
+            try {
+                console.log(`Attempting narrative concepts generation with model: ${modelName}`);
+                const result = await ai.generate({
+                    model: modelName,
+                    prompt: narrativeConceptsPromptTemplate,
+                    input: input,
+                    output: { schema: NarrativeConceptsOutputSchema },
+                });
+                console.log(`Successfully generated narrative concepts with ${modelName}.`);
+                return result;
+            } catch (error: any) {
+                 const errorMessage = `Model ${modelName} failed for narrative concepts. Reason: ${error.message || error}`;
+                console.warn(errorMessage);
+                errorLogs.push(errorMessage);
+            }
+        }
+        
+        const detailedError = `All AI models failed for narrative concepts generation. \n\nIndividual model errors:\n- ${errorLogs.join('\n- ')}`;
+        throw new Error(detailedError);
+    })();
     
     // --- Step 2: Run all tasks in parallel and wait for them to complete ---
     const [itemCatalogResult, worldNamesResult, narrativeConceptsResult] = await Promise.all([

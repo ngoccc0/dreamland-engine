@@ -211,7 +211,7 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
                   }
               });
 
-              const completedQuestText = (toolCall.input as any).questText;
+              const completedQuestText = (toolCall.input as z.infer<typeof completeQuestTool.inputSchema>).questText;
               currentQuests = currentQuests.filter(q => q !== completedQuestText);
               const updatedItemsArray = Array.from(newItemsMap.values());
 

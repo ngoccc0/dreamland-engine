@@ -94,7 +94,7 @@ Based on the user's idea, your task is to generate **a small, initial catalog of
 **User's Idea:** {{{userInput}}}
 
 **Rules:**
-1.  The "customItemCatalog" array in your JSON output MUST contain between 5 and 10 items. This is a strict rule.
+1.  The "customItemCatalog" array in your JSON output MUST contain between 5 and 10 items.
 2.  For each item, you MUST define all required fields: name, description, emoji, category, tier, effects, baseQuantity, and spawnBiomes. You may optionally define growthConditions.
 3.  For the 'category' field, use one of these exact values: 'Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion'.
 4. For 'Food' category items, please also provide a 'subCategory' field, such as 'Meat', 'Fruit', or 'Vegetable'.

@@ -138,7 +138,7 @@ export type Structure = z.infer<typeof StructureSchema>;
 export const ChunkSchema = z.object({
     x: z.number(),
     y: z.number(),
-    terrain: z.enum(["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic"]),
+    terrain: z.enum(allTerrains),
     description: z.string(),
     NPCs: z.array(z.string()),
     items: z.array(ChunkItemSchema).describe("Items present in the chunk, with quantities and tiers."),
@@ -194,7 +194,7 @@ export const RecipeIngredientSchema = z.object({
   quantity: z.number().int().min(1).describe("The required quantity of this ingredient."),
   alternatives: z.array(z.object({
     name: z.string(),
-    tier: z.enum(['1', '2', '3']).describe("The effectiveness tier of the alternative (1=best, 3=worst).")
+    tier: z.number().int().min(1).max(3).describe("The effectiveness tier of the alternative (1=best, 3=worst).")
   })).optional().describe("An optional list of substitute ingredients and their effectiveness tier."),
 });
 

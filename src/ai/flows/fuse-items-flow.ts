@@ -16,7 +16,6 @@ import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { FuseItemsInputSchema, FuseItemsOutputSchema, GeneratedItemSchema } from '@/ai/schemas';
 import { clamp } from '@/lib/utils';
-import { useLanguage } from '@/context/language-context';
 
 export type FuseItemsInput = z.infer<typeof FuseItemsInputSchema>;
 export type FuseItemsOutput = z.infer<typeof FuseItemsOutputSchema>;

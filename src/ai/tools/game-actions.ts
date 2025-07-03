@@ -10,7 +10,6 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { PlayerStatusSchema, EnemySchema, PlayerItemSchema, ChunkItemSchema, ItemDefinitionSchema, PetSchema, SkillSchema } from '@/ai/schemas';
 import type { PlayerItem, PlayerStatus, Pet, ChunkItem, Skill, Structure } from '@/lib/game/types';
-import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import { getTemplates } from '@/lib/game/templates';
 import { buildableStructures } from '@/lib/game/structures';
 
@@ -25,7 +24,7 @@ export const playerAttackTool = ai.defineTool({
         playerStatus: PlayerStatusSchema,
         enemy: EnemySchema,
         terrain: z.enum(["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic"]).describe("The terrain of the chunk where the combat takes place."),
-        customItemDefinitions: z.record(ItemDefinitionSchema).optional().describe("A map of AI-generated item definitions for the current game session."),
+        customItemDefinitions: z.record(ItemDefinitionSchema).describe("A map of ALL item definitions (static and custom) for the current game session."),
         lightLevel: z.number().optional().describe("The current light level (-10 to 10). Low light (e.g., < -3) can reduce accuracy."),
         moisture: z.number().optional().describe("The current moisture level (0-10). High moisture (e.g., > 8) can impede physical attacks."),
     }),
@@ -69,7 +68,7 @@ export const playerAttackTool = ai.defineTool({
         const templates = getTemplates('en'); // Use english templates for loot definition lookup
         const enemyTemplate = templates[terrain]?.enemies.find(e => e.data.type === enemy.type);
         if (enemyTemplate && enemyTemplate.data.loot) {
-            const allItemDefinitions = { ...staticItemDefinitions, ...customItemDefinitions };
+            const allItemDefinitions = customItemDefinitions; // This now holds all definitions
             const drops: ChunkItem[] = [];
 
             for (const lootItem of enemyTemplate.data.loot) {
@@ -180,7 +179,7 @@ export const useItemTool = ai.defineTool({
     inputSchema: z.object({
         itemName: z.string().describe("The name of the item to use from the inventory."),
         playerStatus: PlayerStatusSchema,
-        customItemDefinitions: z.record(ItemDefinitionSchema).optional().describe("A map of AI-generated item definitions for the current game session."),
+        customItemDefinitions: z.record(ItemDefinitionSchema).describe("A map of ALL item definitions (static and custom) for the current game session."),
     }),
     outputSchema: z.object({
         updatedPlayerStatus: PlayerStatusSchema,
@@ -195,10 +194,8 @@ export const useItemTool = ai.defineTool({
         return { updatedPlayerStatus: playerStatus, wasUsed: false, effectDescription: 'Item not found.' };
     }
 
-    const customDef = customItemDefinitions?.[newStatus.items[itemIndex].name];
-    const staticDef = staticItemDefinitions[newStatus.items[itemIndex].name];
-    const itemDef = customDef || staticDef;
-
+    const itemDef = customItemDefinitions[newStatus.items[itemIndex].name];
+    
     if (!itemDef) {
          return { updatedPlayerStatus: playerStatus, wasUsed: false, effectDescription: 'Item has no defined effect.' };
     }

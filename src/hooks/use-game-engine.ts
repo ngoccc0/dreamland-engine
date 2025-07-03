@@ -1074,7 +1074,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         if (roll < chance) {
             const newInventory = [...updatedItems];
             const resultItemIndex = newInventory.findIndex(i => i.name === recipe.result.name);
-            const itemDef = customItemDefinitions[recipe.result.name] || staticItemDefinitions[recipe.result.name];
+            const itemDef = customItemDefinitions[recipe.result.name];
             
             if (resultItemIndex > -1) {
                 newInventory[resultItemIndex].quantity += recipe.result.quantity;
@@ -1156,7 +1156,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
 
         // Logic for using item on self
         if (target === 'player') {
-            const itemDef = customItemDefinitions[itemName] || staticItemDefinitions[itemName];
+            const itemDef = customItemDefinitions[itemName];
             if (!itemDef || itemDef.effects.length === 0) {
                 addNarrativeEntry(t('itemNoEffect', { item: t(itemName as TranslationKey)}), 'narrative');
                 handleGameTick();

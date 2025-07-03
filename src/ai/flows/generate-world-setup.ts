@@ -142,6 +142,8 @@ const generateWorldSetupFlow = ai.defineFlow(
     // Task A: Generate the item catalog. This is complex, so we use a fallback chain of powerful models.
     const itemCatalogTask = (async () => {
         const modelsToTry = ['openai/gpt-4-turbo', 'googleai/gemini-1.5-pro', 'deepseek/deepseek-chat', 'googleai/gemini-2.0-flash'];
+        const errorLogs: string[] = [];
+
         for (const modelName of modelsToTry) {
             try {
                 console.log(`Attempting item catalog generation with model: ${modelName}`);
@@ -153,11 +155,15 @@ const generateWorldSetupFlow = ai.defineFlow(
                 });
                 console.log(`Successfully generated item catalog with ${modelName}.`);
                 return result;
-            } catch (error) {
-                console.warn(`Model ${modelName} failed for item catalog generation. Error:`, error);
+            } catch (error: any) {
+                const errorMessage = `Model ${modelName} failed. Reason: ${error.message || error}`;
+                console.warn(errorMessage);
+                errorLogs.push(errorMessage);
             }
         }
-        throw new Error('All AI models failed. This could be due to an invalid API key, insufficient balance on a paid account (like OpenAI or Deepseek), or network problems. Please check your .env file and billing settings for your AI providers.');
+        
+        const detailedError = `All AI models failed for item catalog generation. \n\nThis is often due to an invalid API key, insufficient balance on a paid account (like OpenAI or Deepseek), or network problems. Please check your .env file and billing settings for your AI providers. \n\nIndividual model errors:\n- ${errorLogs.join('\n- ')}`;
+        throw new Error(detailedError);
     })();
     
     // Task B: Generate world names. Use a fast, cost-effective model.

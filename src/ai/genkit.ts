@@ -12,7 +12,7 @@ import {deepseek} from 'genkitx-deepseek';
  * This makes the system more robust and prevents crashes if a key is missing.
  *
  * Make sure to set these in your .env file at the project root:
- * - GEMINI_API_KEY
+ * - GEMINI_API_KEY_PRIMARY (and/or GEMINI_API_KEY_SECONDARY)
  * - OPENAI_API_KEY
  * - DEEPSEEK_API_KEY
  */
@@ -22,12 +22,18 @@ const plugins: GenkitPlugin[] = [];
 // This explicit check helps in debugging by confirming if the keys are loaded.
 // The logs will appear in the terminal where you run your Next.js app.
 
-if (process.env.GEMINI_API_KEY) {
-  console.log('Found GEMINI_API_KEY. Initializing Google AI plugin.');
-  plugins.push(googleAI({apiKey: process.env.GEMINI_API_KEY}));
+// Collect all provided Gemini API keys from environment variables.
+const geminiApiKeys = [
+  process.env.GEMINI_API_KEY_PRIMARY,
+  process.env.GEMINI_API_KEY_SECONDARY,
+].filter((key): key is string => !!key); // Filters out any undefined/empty keys
+
+if (geminiApiKeys.length > 0) {
+  console.log(`Found ${geminiApiKeys.length} Gemini API key(s). Initializing Google AI plugin.`);
+  plugins.push(googleAI({apiKey: geminiApiKeys}));
 } else {
   console.warn(
-    'GEMINI_API_KEY not found. Google AI plugin will not be available.'
+    'GEMINI_API_KEY_PRIMARY or GEMINI_API_KEY_SECONDARY not found. Google AI plugin will not be available.'
   );
 }
 

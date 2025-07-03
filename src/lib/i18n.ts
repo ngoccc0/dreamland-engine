@@ -500,6 +500,9 @@ export const translations = {
     restSuccess: "You recovered {restoration}.",
     restSuccessTemp: "Your body temperature returns to a comfortable level.",
     restNoEffect: "You are already fully recovered.",
+    fusion: "Fusion",
+    fusionTooltip: "Experimentally combine items.",
+    fusionError: "The fusion attempt failed catastrophically. Try again under different conditions.",
 
 
     // Controls
@@ -556,6 +559,16 @@ export const translations = {
     ingredients: "Ingredients",
     craft: "Craft",
     successChance: "Success chance: {chance}%",
+    
+    // Fusion Popup
+    fusionAltar: "Fusion Altar",
+    fusionDesc: "Experiment by combining 2 or 3 items. The environment can affect the outcome. Results are not guaranteed!",
+    yourInventory: "Your Inventory",
+    fusionSlots: "Fusion Slots",
+    emptySlot: "Empty Slot...",
+    fuseItems: "Fuse Items",
+    fusing: "Fusing...",
+
 
     // Building Popup
     buildingDesc: "Use materials to build structures.",
@@ -890,6 +903,9 @@ export const translations = {
     restSuccess: "Bạn đã phục hồi {restoration}.",
     restSuccessTemp: "Thân nhiệt của bạn trở lại mức dễ chịu.",
     restNoEffect: "Bạn đã hoàn toàn khỏe mạnh. Nghỉ ngơi thêm cũng không có tác dụng.",
+    fusion: "Hợp nhất",
+    fusionTooltip: "Thử nghiệm kết hợp các vật phẩm.",
+    fusionError: "Nỗ lực hợp nhất đã thất bại thảm hại. Hãy thử lại trong điều kiện khác.",
 
     // Controls
     moveAndAttack: "Di chuyển & Tấn công",
@@ -945,6 +961,16 @@ export const translations = {
     ingredients: "Nguyên liệu",
     craft: "Chế tạo",
     successChance: "Tỷ lệ thành công: {chance}%",
+    
+    // Fusion Popup
+    fusionAltar: "Bàn thờ Hợp nhất",
+    fusionDesc: "Thử nghiệm bằng cách kết hợp 2 hoặc 3 vật phẩm. Môi trường có thể ảnh hưởng đến kết quả. Kết quả không được đảm bảo!",
+    yourInventory: "Túi đồ của bạn",
+    fusionSlots: "Ô hợp nhất",
+    emptySlot: "Ô trống...",
+    fuseItems: "Hợp nhất",
+    fusing: "Đang hợp nhất...",
+
 
     // Building Popup
     buildingDesc: "Sử dụng vật liệu để xây dựng các công trình.",
@@ -990,7 +1016,7 @@ export const translations = {
     Equipment: "Trang bị",
     Support: "Vật phẩm hỗ trợ",
     Magic: "Phép thuật",
-    Fusion: "Fusion",
+    Fusion: "Hợp nhất",
     loadingAdventure: "Đang tải cuộc phiêu lưu của bạn...",
 
     // Tutorial

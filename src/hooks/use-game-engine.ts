@@ -7,6 +7,7 @@ import { useLanguage } from "@/context/language-context";
 import { useSettings } from "@/context/settings-context";
 import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/generate-narrative-flow";
 import { generateNewRecipe } from "@/ai/flows/generate-new-recipe";
+import { fuseItems } from "@/ai/flows/fuse-items-flow";
 import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, checkConditions, calculateCraftingOutcome } from '@/lib/game/engine';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import { recipes as staticRecipes } from '@/lib/game/recipes';
@@ -14,7 +15,7 @@ import { buildableStructures as staticBuildableStructures } from '@/lib/game/str
 import { skillDefinitions } from '@/lib/game/skills';
 import { getTemplates } from '@/lib/game/templates';
 import { worldConfig } from '@/lib/game/world-config';
-import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, PlayerPersona, Structure, Pet, DiceType } from "@/lib/game/types";
+import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, PlayerPersona, Structure, Pet, DiceType, ItemEffect } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 
 
@@ -651,7 +652,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                             tier: newItem.tier,
                             category: newItem.category,
                             emoji: newItem.emoji,
-                            effects: newItem.effects,
+                            effects: newItem.effects as ItemEffect[],
                             baseQuantity: newItem.baseQuantity,
                             growthConditions: newItem.growthConditions as any,
                         };
@@ -1476,6 +1477,114 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
 
         handleGameTick();
     }, [world, playerPosition, playerStats, addNarrativeEntry, handleGameTick, t, toast]);
+    
+    const handleFuseItems = useCallback(async (itemsToFuse: PlayerItem[]) => {
+        setIsLoading(true);
+
+        const key = `${playerPosition.x},${playerPosition.y}`;
+        const baseChunk = world[key];
+        if (!baseChunk) {
+            setIsLoading(false);
+            return;
+        }
+
+        // 1. Calculate environmental modifiers
+        const effectiveChunk = getEffectiveChunk(baseChunk);
+        const weather = weatherZones[effectiveChunk.regionId]?.currentWeather;
+        let successChanceBonus = 0;
+        let elementalAffinity: 'none' | 'fire' | 'water' | 'earth' | 'air' | 'electric' | 'ice' | 'nature' | 'dark' | 'light' = 'none';
+        let chaosFactor = effectiveChunk.magicAffinity; // Base chaos on magic
+
+        if(weather.exclusive_tags.includes('storm')) {
+            successChanceBonus += 5;
+            elementalAffinity = 'electric';
+        }
+        if(weather.exclusive_tags.includes('heat')) {
+            elementalAffinity = 'fire';
+        }
+        if(effectiveChunk.dangerLevel > 8) {
+            successChanceBonus -= 5;
+            chaosFactor += 2;
+        }
+        if(playerStats.persona === 'artisan') {
+            successChanceBonus += 10;
+        }
+
+        try {
+            const result = await fuseItems({
+                itemsToFuse,
+                playerPersona: playerStats.persona,
+                currentChunk: effectiveChunk,
+                environmentalContext: { biome: effectiveChunk.terrain, weather: weather.name },
+                environmentalModifiers: { successChanceBonus, elementalAffinity, chaosFactor: clamp(chaosFactor, 0, 10) },
+                language,
+            });
+
+            addNarrativeEntry(result.narrative, 'narrative');
+            
+            // 2. Consume ingredients
+            let newItems = [...playerStats.items];
+            itemsToFuse.forEach(itemToConsume => {
+                const index = newItems.findIndex(i => i.name === itemToConsume.name);
+                if (index !== -1) {
+                    newItems[index].quantity -= 1;
+                }
+            });
+            newItems = newItems.filter(i => i.quantity > 0);
+            
+            // 3. Update state based on result
+            if (result.success && result.resultItem) {
+                const newItem = result.resultItem;
+                // Add to player inventory
+                const existingIndex = newItems.findIndex(i => i.name === newItem.name);
+                if (existingIndex !== -1) {
+                    newItems[existingIndex].quantity += newItem.baseQuantity.min;
+                } else {
+                    newItems.push({
+                        name: newItem.name,
+                        quantity: newItem.baseQuantity.min,
+                        tier: newItem.tier,
+                        emoji: newItem.emoji
+                    });
+                }
+                
+                // Add to world definitions
+                if(!customItemDefinitions[newItem.name]) {
+                    setCustomItemCatalog(prev => [...prev, newItem]);
+                    setCustomItemDefinitions(prev => ({
+                        ...prev,
+                        [newItem.name]: {
+                            description: newItem.description,
+                            tier: newItem.tier,
+                            category: newItem.category,
+                            emoji: newItem.emoji,
+                            effects: newItem.effects as ItemEffect[],
+                            baseQuantity: newItem.baseQuantity,
+                            growthConditions: newItem.growthConditions,
+                        }
+                    }));
+                }
+                setPlayerStats(prev => ({...prev, items: newItems}));
+
+            } else {
+                // Handle various failure types
+                 setPlayerStats(prev => ({...prev, items: newItems}));
+                 if (result.failureType === 'backfire' && result.backfireDamage) {
+                    setPlayerStats(prev => ({...prev, hp: Math.max(0, prev.hp - result.backfireDamage)}));
+                 }
+                 if(result.failureType === 'randomItem' && result.randomFailureItem) {
+                     // Handle adding the random item similar to success case
+                 }
+            }
+
+        } catch(e) {
+            console.error("AI Fusion failed:", e);
+            toast({ title: t('error'), description: t('fusionError'), variant: "destructive" });
+        } finally {
+            setIsLoading(false);
+            handleGameTick();
+        }
+    }, [world, playerPosition, playerStats, weatherZones, isOnline, language, customItemDefinitions, customItemCatalog, getEffectiveChunk, addNarrativeEntry, handleGameTick, t, toast]);
 
     return {
         // State
@@ -1499,5 +1608,6 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         handleItemUsed,
         handleUseSkill,
         handleRest,
+        handleFuseItems,
     }
 }

@@ -9,10 +9,11 @@ import { FullMapPopup } from "@/components/game/full-map-popup";
 import { CraftingPopup } from "@/components/game/crafting-popup";
 import { BuildingPopup } from "@/components/game/building-popup";
 import { TutorialPopup } from "@/components/game/tutorial-popup";
+import { FusionPopup } from "@/components/game/fusion-popup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Backpack, Shield, Cpu, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy } from "lucide-react";
+import { Backpack, Shield, Cpu, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
 import { SwordIcon } from "@/components/game/icons";
@@ -51,12 +52,14 @@ export default function GameLayout(props: GameLayoutProps) {
         handleItemUsed,
         handleUseSkill,
         handleRest,
+        handleFuseItems,
     } = useGameEngine(props);
 
     const [isStatusOpen, setStatusOpen] = useState(false);
     const [isInventoryOpen, setInventoryOpen] = useState(false);
     const [isCraftingOpen, setCraftingOpen] = useState(false);
     const [isBuildingOpen, setBuildingOpen] = useState(false);
+    const [isFusionOpen, setFusionOpen] = useState(false);
     const [isFullMapOpen, setIsFullMapOpen] = useState(false);
     const [isTutorialOpen, setTutorialOpen] = useState(false);
     const [inputValue, setInputValue] = useState("");
@@ -207,6 +210,9 @@ export default function GameLayout(props: GameLayoutProps) {
                                  <Button variant="outline" onClick={() => setBuildingOpen(true)} className="w-full justify-start text-xs px-2 h-10">
                                     <Home className="mr-2 h-4 w-4 shrink-0"/> <span>{t('building')}</span>
                                 </Button>
+                                <Button variant="outline" onClick={() => setFusionOpen(true)} className="w-full justify-start text-xs px-2 h-10">
+                                    <FlaskConical className="mr-2 h-4 w-4 shrink-0"/> <span>{t('fusion')}</span>
+                                </Button>
                             </div>
                             <div className="grid grid-cols-3 grid-rows-3 gap-1 place-items-center h-full">
                                 <div className="col-start-2 row-start-1">
@@ -339,6 +345,17 @@ export default function GameLayout(props: GameLayoutProps) {
                             </div>
                         </div>
                     </div>
+
+                    <div className="hidden md:flex justify-center">
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="outline" onClick={() => setFusionOpen(true)}>
+                                    <FlaskConical className="mr-2 h-4 w-4"/> {t('fusion')}
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>{t('fusionTooltip')}</p></TooltipContent>
+                        </Tooltip>
+                    </div>
                     
                     <Separator className="flex-shrink-0" />
                     
@@ -380,7 +397,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                                 {t('rest')}
                                             </Button>
                                         </TooltipTrigger>
-                                        <TooltipContent><p>{t('restTooltip', { shelterName: restingPlace.name, hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent>
+                                        <TooltipContent><p>{t('restTooltip', { shelterName: t(restingPlace.name as TranslationKey), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent>
                                     </Tooltip>
                                 </div>
                             </>
@@ -430,6 +447,14 @@ export default function GameLayout(props: GameLayoutProps) {
                 />
                 <CraftingPopup open={isCraftingOpen} onOpenChange={setCraftingOpen} playerItems={playerStats.items} recipes={recipes} onCraft={handleCraft} />
                 <BuildingPopup open={isBuildingOpen} onOpenChange={setBuildingOpen} playerItems={playerStats.items} buildableStructures={buildableStructures} onBuild={handleBuild} />
+                <FusionPopup 
+                    open={isFusionOpen} 
+                    onOpenChange={setFusionOpen} 
+                    playerItems={playerStats.items} 
+                    itemDefinitions={customItemDefinitions}
+                    onFuse={handleFuseItems}
+                    isLoading={isLoading}
+                />
                 <FullMapPopup open={isFullMapOpen} onOpenChange={setIsFullMapOpen} world={world} playerPosition={playerPosition} />
                 <TutorialPopup open={isTutorialOpen} onOpenChange={setTutorialOpen} />
             </div>

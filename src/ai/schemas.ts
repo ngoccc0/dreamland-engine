@@ -214,7 +214,7 @@ export type Recipe = z.infer<typeof RecipeSchema>;
 export const GenerateNewQuestInputSchema = z.object({
     worldName: z.string().describe("The name of the game world for thematic consistency."),
     playerStatus: PlayerStatusSchema.describe("The player's current status (HP, items, skills, etc.)."),
-    currentChunk: ChunkSchema.describe("The detailed attributes of the map tile the player is currently on."),
+    currentChunk: ChunkSchema.describe("The detailed attributes of the map tile the player is on."),
     existingQuests: z.array(z.string()).describe("A list of quests the player already has, to avoid duplicates."),
     language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
 });
@@ -239,4 +239,34 @@ export const ProvideQuestHintInputSchema = z.object({
 
 export const ProvideQuestHintOutputSchema = z.object({
     hint: z.string().describe("A single, short, helpful (but not spoiler-heavy) hint for the quest."),
+});
+
+// --- Schemas for Item Fusion ---
+
+const EnvironmentalModifiersSchema = z.object({
+  successChanceBonus: z.number().describe("A pre-calculated percentage bonus (e.g., 5 for +5%) to the success chance based on environmental factors like weather or magic affinity."),
+  elementalAffinity: z.enum(['none', 'fire', 'water', 'earth', 'air', 'electric', 'ice', 'nature', 'dark', 'light']).describe("A dominant elemental theme suggested by the environment (e.g., 'electric' during a storm)."),
+  chaosFactor: z.number().min(0).max(10).describe("A pre-calculated score (0-10) indicating how chaotic or unpredictable the environment is. High values increase the chance of strange outcomes."),
+});
+
+export const FuseItemsInputSchema = z.object({
+  itemsToFuse: z.array(PlayerItemSchema).min(2).max(3).describe("An array of 2 to 3 items the player wants to fuse."),
+  playerPersona: z.enum(['none', 'explorer', 'warrior', 'artisan']).describe("The player's current playstyle, which might influence the outcome."),
+  currentChunk: ChunkSchema.describe("The detailed attributes of the map tile the player is on for narrative context."),
+  environmentalContext: z.object({
+      biome: z.string(),
+      weather: z.string(),
+  }).describe("Simple environmental context for narrative flavor."),
+  environmentalModifiers: EnvironmentalModifiersSchema.describe("Pre-calculated modifiers that should guide the fusion's outcome."),
+  language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
+});
+
+
+export const FuseItemsOutputSchema = z.object({
+  success: z.boolean().describe("Whether the fusion attempt was successful."),
+  narrative: z.string().describe("A narrative description of the fusion process and its outcome. This should be flavorful and reflect the input items and environment."),
+  resultItem: GeneratedItemSchema.optional().describe("The new item created if the fusion was successful. This item should be a logical combination of the inputs."),
+  failureType: z.enum(['totalLoss', 'randomItem', 'backfire']).optional().describe("The type of failure. 'totalLoss' means ingredients are lost. 'randomItem' means an unexpected item was created. 'backfire' means it harmed the player."),
+  randomFailureItem: GeneratedItemSchema.optional().describe("An unexpected, often unrelated, item created on a 'randomItem' failure."),
+  backfireDamage: z.number().optional().describe("Amount of damage dealt to the player on a 'backfire' failure."),
 });

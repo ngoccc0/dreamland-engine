@@ -4,8 +4,9 @@
  * @fileOverview An AI agent for dynamically fusing items based on player experimentation.
  *
  * This flow acts as a master alchemist or forge. The core logic (rules for success,
- * failure, degradation) is handled in TypeScript. The AI's role is purely creative:
- * to narrate the outcome determined by the code and invent the resulting item.
+ * failure, degradation, and the resulting item's tier/category) is handled in TypeScript.
+ * The AI's role is purely creative: to narrate the outcome and invent the name,
+ * description, and emoji for the resulting item.
  *
  * - fuseItems - The main function called by the game engine.
  * - FuseItemsInput - The Zod schema for the input data.
@@ -20,7 +21,6 @@ import { clamp } from '@/lib/utils';
 export type FuseItemsInput = z.infer<typeof FuseItemsInputSchema>;
 export type FuseItemsOutput = z.infer<typeof FuseItemsOutputSchema>;
 
-
 // --- The Exported Function ---
 export async function fuseItems(input: FuseItemsInput): Promise<FuseItemsOutput> {
   return fuseItemsFlow(input);
@@ -30,7 +30,23 @@ export async function fuseItems(input: FuseItemsInput): Promise<FuseItemsOutput>
 // --- New schema for the prompt's specific input needs ---
 const FuseItemsPromptInputSchema = FuseItemsInputSchema.extend({
     determinedOutcome: z.enum(['success', 'degraded', 'totalLoss']),
-    degradedItemTier: z.number().optional(), // The exact tier for the new degraded item
+});
+
+
+// --- New schema for the AI's creative output ---
+// The AI only needs to generate the creative parts of an item.
+const AIPartialItemSchema = GeneratedItemSchema.pick({
+    name: true,
+    description: true,
+    emoji: true,
+    effects: true,
+});
+
+// The AI's full response schema.
+const AIPromptOutputSchema = z.object({
+  outcome: z.enum(['success', 'degraded', 'totalLoss']),
+  narrative: z.string(),
+  resultItem: AIPartialItemSchema.optional(),
 });
 
 
@@ -38,10 +54,10 @@ const FuseItemsPromptInputSchema = FuseItemsInputSchema.extend({
 const fuseItemsPrompt = ai.definePrompt({
     name: 'fuseItemsPrompt',
     input: { schema: FuseItemsPromptInputSchema },
-    output: { schema: FuseItemsOutputSchema },
+    output: { schema: AIPromptOutputSchema },
     prompt: `You are the Spirit of the Forge, an ancient entity that governs the laws of alchemy and creation in this world. A player is attempting to fuse items. Your entire response MUST be in the language specified by '{{language}}'. This is a critical instruction.
 
-The outcome has already been decided by the laws of the world. Your task is to narrate this outcome creatively and, if necessary, invent the resulting item.
+The outcome has already been decided by the laws of the world. Your task is to narrate this outcome creatively and, if necessary, invent the resulting item's creative properties.
 
 **Player's Attempt:**
 - Items: {{json itemsToFuse}}
@@ -54,11 +70,11 @@ The outcome has already been decided by the laws of the world. Your task is to n
 
 **Your Task:**
 1.  **Narrate:** Write an engaging narrative that describes the fusion process and reflects the 'determinedOutcome'.
-2.  **Generate Item (if needed):**
-    - If 'determinedOutcome' is 'success': Create a **new, interesting item**. Its tier should be slightly higher than the average tier of the ingredients. Its category MUST be 'Fusion'.
-    - If 'determinedOutcome' is 'degraded': Create a **new, lesser item**. It MUST have a tier of **{{degradedItemTier}}**. It should be a broken, warped, or simplified version of one of the ingredients (e.g., 'Sharp Rock' and 'Sturdy Branch' might degrade into 'Small Pebbles').
-    - If 'determinedOutcome' is 'totalLoss': **Do not** create a new item. Your narrative should describe the items being destroyed.
-3.  **Respond:** Provide the response in the required JSON format. Ensure the 'outcome' field matches the provided 'determinedOutcome'.
+2.  **Invent an Item (if needed):**
+    - If the 'determinedOutcome' is 'success': Invent a **new, interesting item** that could result from this fusion. Provide its name, description, emoji, and any special effects. The game will handle its power level (tier).
+    - If the 'determinedOutcome' is 'degraded': Invent a **new, lesser item**. It should be a broken, warped, or simplified version of one of the ingredients (e.g., 'Sharp Rock' and 'Sturdy Branch' might degrade into 'Small Pebbles'). Provide its name, description, emoji, and any (likely negative) effects.
+    - If the 'determinedOutcome' is 'totalLoss': **Do not** invent a new item. Your narrative should describe the items being destroyed completely.
+3.  **Respond:** Provide your response in the required JSON format. Ensure the 'outcome' field matches the provided 'determinedOutcome'.
 `,
 });
 
@@ -71,7 +87,7 @@ const fuseItemsFlow = ai.defineFlow(
     async (input) => {
         // --- LOGIC MOVED FROM PROMPT TO CODE ---
 
-        // 1. Check for a 'Tool' item.
+        // 1. Check for a 'Tool' item. This is a hard rule.
         const hasTool = input.itemsToFuse.some(item => {
             const def = input.customItemDefinitions[item.name];
             return def?.category === 'Tool';
@@ -94,12 +110,14 @@ const fuseItemsFlow = ai.defineFlow(
         const roll = Math.random() * 100;
         const isSuccess = roll < finalChance;
         
-        // 3. Determine the final outcome.
+        // 3. Determine the final outcome and the resulting item tier.
         let determinedOutcome: 'success' | 'degraded' | 'totalLoss';
-        let degradedItemTier: number | undefined = undefined;
+        let finalTier: number | undefined = undefined;
 
         if (isSuccess) {
             determinedOutcome = 'success';
+            const avgTier = input.itemsToFuse.reduce((sum, item) => sum + item.tier, 0) / input.itemsToFuse.length;
+            finalTier = clamp(Math.ceil(avgTier) + 1, 1, 6); // New item is one tier higher than average, capped at 6.
         } else {
             const lowestTier = Math.min(...input.itemsToFuse.map(i => i.tier));
             if (lowestTier <= 1) {
@@ -108,22 +126,39 @@ const fuseItemsFlow = ai.defineFlow(
             } else {
                 // Otherwise, it degrades.
                 determinedOutcome = 'degraded';
-                degradedItemTier = lowestTier - 1;
+                finalTier = lowestTier - 1; // Degraded item is one tier lower.
             }
         }
         
-        // 4. Call the AI with the determined outcome for creative narration.
+        // 4. Call the AI with the determined outcome for creative narration and item invention.
         const promptInput = {
             ...input,
             determinedOutcome,
-            degradedItemTier,
         };
         
-        const { output } = await fuseItemsPrompt(promptInput);
+        const { output: aiOutput } = await fuseItemsPrompt(promptInput);
 
-        if (!output) {
+        if (!aiOutput) {
             throw new Error("AI failed to determine fusion outcome.");
         }
-        return output;
+
+        // 5. Construct the final, structured output, combining AI creativity with code-driven logic.
+        const finalOutput: FuseItemsOutput = {
+            outcome: aiOutput.outcome,
+            narrative: aiOutput.narrative,
+        };
+
+        if (aiOutput.resultItem && finalTier) {
+            finalOutput.resultItem = {
+                ...aiOutput.resultItem,
+                // --- LOGIC HANDLED BY CODE, NOT AI ---
+                category: 'Fusion', // All fused items belong to the 'Fusion' category.
+                tier: finalTier,
+                spawnBiomes: [], // Fusion items don't spawn naturally.
+                baseQuantity: { min: 1, max: 1 }, // Fusion always produces 1 item.
+            };
+        }
+
+        return finalOutput;
     }
 );

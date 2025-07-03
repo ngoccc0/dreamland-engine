@@ -20,6 +20,7 @@ import { playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillToo
 import { generateNewQuest } from './generate-new-quest';
 import { generateNewItem } from './generate-new-item';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
+import type { AiModel, NarrativeLength } from '@/lib/game/types';
 
 
 // == STEP 1: DEFINE THE INPUT SCHEMA ==
@@ -37,6 +38,8 @@ const GenerateNarrativeInputSchema = z.object({
   diceRange: z.string().describe("The possible range of the dice roll (e.g., '1-20', '2-12')."),
   successLevel: SuccessLevelSchema.describe("The categorized outcome of the dice roll."),
   customItemDefinitions: z.record(ItemDefinitionSchema).optional().describe("A map of AI-generated item definitions for the current game session."),
+  aiModel: z.enum(['balanced', 'creative', 'fast', 'quality']).describe("The AI model preference for generation."),
+  narrativeLength: z.enum(['short', 'medium', 'long']).describe("The desired length for the narrative response."),
 });
 export type GenerateNarrativeInput = z.infer<typeof GenerateNarrativeInputSchema>;
 
@@ -70,16 +73,11 @@ export type GenerateNarrativeOutput = z.infer<typeof GenerateNarrativeOutputSche
 // This is a simpler output schema for what we expect from the AI's text generation.
 // The state changes will come from the tools.
 const AINarrativeResponseSchema = z.object({
-    narrative: z.string().describe("The main narrative description of what happens next. This should be engaging and based on the player's action and the tool's result. It should be 2-4 sentences long."),
+    narrative: z.string().describe("The main narrative description of what happens next. This should be engaging and based on the player's action, the tool's result, and the requested narrativeLength ('short': 1-2 sentences, 'medium': 2-4, 'long': 5+)."),
     systemMessage: z.string().optional().describe("An optional, short system message for important events (e.g., 'Item added to inventory', 'Quest updated', 'Quest Completed!')."),
 });
 
-const narrativePrompt = ai.definePrompt({
-    name: 'narrativePrompt',
-    input: { schema: GenerateNarrativeInputSchema },
-    output: { schema: AINarrativeResponseSchema },
-    tools: [playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool, completeQuestTool, startQuestTool],
-    prompt: `You are the Game Master for a text-based adventure game called '{{worldName}}'. Your role is to be a dynamic and creative storyteller. Your entire response MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
+const narrativePromptTemplate = `You are the Game Master for a text-based adventure game called '{{worldName}}'. Your role is to be a dynamic and creative storyteller. Your entire response MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
 
 **Core Task:**
 1.  **Analyze Player Action:** Determine the player's intent based on '{{{playerAction}}}'.
@@ -87,7 +85,10 @@ const narrativePrompt = ai.definePrompt({
     - If the action completes a quest (e.g., 'give wolf fang to hunter' for quest 'Get wolf fang for hunter'), you MUST use \`completeQuestTool\`.
     - If the action involves an NPC giving a new quest, you MUST use \`startQuestTool\`.
 3.  **Use Other Tools:** If no quest action is relevant, use the most appropriate tool (attack, take, use, tame, etc.).
-4.  **Narrate the Outcome:** Craft an engaging 2-4 sentence narrative based on the tool's result AND the pre-determined 'successLevel'.
+4.  **Narrate the Outcome:** Craft an engaging narrative based on the tool's result AND the pre-determined 'successLevel'. The length of your narrative MUST adhere to the '{{narrativeLength}}' parameter:
+    - 'short': 1-2 sentences.
+    - 'medium': 2-4 sentences.
+    - 'long': 5+ sentences.
 
 **Critical Rules:**
 - **Success Level is Law:** The 'successLevel' ('{{successLevel}}') dictates the outcome. A 'Failure' MUST be narrated as a failure, a 'CriticalSuccess' as a legendary event.
@@ -104,8 +105,15 @@ const narrativePrompt = ai.definePrompt({
 - Recent Events: {{json recentNarrative}}
 
 **Your Response:** Based on the context and rules, generate the narrative and an optional system message in the required JSON format.
-`,
-});
+`;
+
+const modelMap: Record<AiModel, string> = {
+    balanced: 'googleai/gemini-2.0-flash',
+    creative: 'openai/gpt-4-turbo',
+    fast: 'deepseek/deepseek-chat',
+    quality: 'googleai/gemini-1.5-pro',
+};
+
 
 // == STEP 4: DEFINE THE MAIN ORCHESTRATION FUNCTION ==
 /**
@@ -115,7 +123,15 @@ const narrativePrompt = ai.definePrompt({
  * @returns A promise that resolves to the AI-generated narrative and state changes.
  */
 export async function generateNarrative(input: GenerateNarrativeInput): Promise<GenerateNarrativeOutput> {
-  const llmResponse = await narrativePrompt(input);
+  const model = modelMap[input.aiModel] || modelMap.balanced;
+  
+  const llmResponse = await ai.generate({
+      model: model,
+      prompt: narrativePromptTemplate,
+      input: input,
+      output: { schema: AINarrativeResponseSchema },
+      tools: [playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool, completeQuestTool, startQuestTool],
+  });
   
   const toolCalls = llmResponse.usage?.toolCalls;
 

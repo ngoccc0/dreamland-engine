@@ -15,7 +15,7 @@ import { buildableStructures as staticBuildableStructures } from '@/lib/game/str
 import { skillDefinitions } from '@/lib/game/skills';
 import { getTemplates } from '@/lib/game/templates';
 import { worldConfig } from '@/lib/game/world-config';
-import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, PlayerPersona, Structure, Pet, DiceType, ItemEffect } from "@/lib/game/types";
+import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, PlayerPersona, Structure, Pet, DiceType, ItemEffect, AiModel, NarrativeLength } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 import { clamp } from "@/lib/utils";
 
@@ -611,6 +611,8 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 diceType: settings.diceType,
                 diceRange: range,
                 successLevel,
+                aiModel: settings.aiModel,
+                narrativeLength: settings.narrativeLength,
             };
 
             const result = await generateNarrative(input);

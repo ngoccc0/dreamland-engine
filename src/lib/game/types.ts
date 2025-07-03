@@ -11,6 +11,9 @@ export type ItemCategory = 'Weapon' | 'Material' | 'Energy Source' | 'Food' | 'D
 export type PlayerPersona = 'none' | 'explorer' | 'warrior' | 'artisan';
 export type GameMode = 'ai' | 'offline';
 export type DiceType = 'd20' | 'd12' | '2d6';
+export type AiModel = 'balanced' | 'creative' | 'fast' | 'quality';
+export type NarrativeLength = 'short' | 'medium' | 'long';
+
 
 // --- NEW WEATHER SYSTEM TYPES ---
 
@@ -57,6 +60,13 @@ export interface SeasonModifiers {
     sunExposureMod: number;
     windMod: number;
     eventChance: number; // Base chance for seasonal events
+}
+
+export interface GameSettings {
+  gameMode: GameMode;
+  diceType: DiceType;
+  aiModel: AiModel;
+  narrativeLength: NarrativeLength;
 }
 
 export interface ChunkItem {

@@ -689,6 +689,17 @@ export const translations = {
     aiStorytellerDesc: "Enable to have an AI generate dynamic narratives. Disable for a classic, rule-based experience (works offline).",
     diceType: "Dice Type",
     diceTypeDesc: "Choose the dice used for action resolution. This affects randomness and outcomes.",
+    aiModel: "AI Model Preference",
+    aiModelDesc: "Choose the AI that will act as your Game Master. Each has a different style.",
+    modelBalanced: "Balanced (Gemini Flash)",
+    modelCreative: "Creative (GPT-4 Turbo)",
+    modelFast: "Fast (Deepseek)",
+    modelQuality: "Quality (Gemini 1.5 Pro)",
+    narrativeLength: "Narrative Length",
+    narrativeLengthDesc: "Adjust how detailed the AI's descriptions are.",
+    lengthShort: "Short",
+    lengthMedium: "Medium",
+    lengthLong: "Long",
 
   },
   vi: {
@@ -1093,6 +1104,17 @@ export const translations = {
     aiStorytellerDesc: "Bật để AI tạo ra các câu chuyện động. Tắt để trải nghiệm kiểu cổ điển, dựa trên quy tắc (hoạt động ngoại tuyến).",
     diceType: "Loại xúc xắc",
     diceTypeDesc: "Chọn loại xúc xắc dùng để phân giải hành động. Điều này ảnh hưởng đến sự ngẫu nhiên và kết quả.",
+    aiModel: "Tùy chọn Mô hình AI",
+    aiModelDesc: "Chọn AI sẽ đóng vai trò người quản trò của bạn. Mỗi loại có một phong cách khác nhau.",
+    modelBalanced: "Cân bằng (Gemini Flash)",
+    modelCreative: "Sáng tạo (GPT-4 Turbo)",
+    modelFast: "Nhanh (Deepseek)",
+    modelQuality: "Chất lượng (Gemini 1.5 Pro)",
+    narrativeLength: "Độ dài Tường thuật",
+    narrativeLengthDesc: "Điều chỉnh độ chi tiết của các mô tả của AI.",
+    lengthShort: "Ngắn",
+    lengthMedium: "Vừa",
+    lengthLong: "Dài",
   }
 };
 

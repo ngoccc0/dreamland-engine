@@ -8,8 +8,8 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { useSettings } from "@/context/settings-context";
 import { useLanguage } from "@/context/language-context";
-import { Settings, BrainCircuit, Dice6 } from "lucide-react";
-import type { DiceType, GameMode } from "@/lib/game/types";
+import { Settings, BrainCircuit, Dice6, Bot, Feather } from "lucide-react";
+import type { DiceType, GameMode, AiModel, NarrativeLength } from "@/lib/game/types";
 
 interface SettingsPopupProps {
   open: boolean;
@@ -28,6 +28,14 @@ export function SettingsPopup({ open, onOpenChange }: SettingsPopupProps) {
     setSettings({ diceType: value as DiceType });
   };
 
+  const handleAiModelChange = (value: string) => {
+    setSettings({ aiModel: value as AiModel });
+  };
+
+  const handleNarrativeLengthChange = (value: string) => {
+    setSettings({ narrativeLength: value as NarrativeLength });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -38,7 +46,7 @@ export function SettingsPopup({ open, onOpenChange }: SettingsPopupProps) {
           <DialogDescription>{t('gameSettingsDesc')}</DialogDescription>
         </DialogHeader>
         <Separator />
-        <div className="space-y-6 py-4">
+        <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto pr-4">
           <div className="flex items-center justify-between space-x-4">
             <Label htmlFor="game-mode" className="flex flex-col space-y-1">
               <span className="font-semibold flex items-center gap-2"><BrainCircuit /> {t('aiStoryteller')}</span>
@@ -63,33 +71,52 @@ export function SettingsPopup({ open, onOpenChange }: SettingsPopupProps) {
               onValueChange={handleDiceTypeChange}
               className="grid grid-cols-3 gap-4"
             >
-              <div>
-                <RadioGroupItem value="d20" id="d20" className="peer sr-only" />
-                <Label
-                  htmlFor="d20"
-                  className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-                >
-                  D20
-                </Label>
-              </div>
-              <div>
-                <RadioGroupItem value="d12" id="d12" className="peer sr-only" />
-                <Label
-                  htmlFor="d12"
-                  className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-                >
-                  D12
-                </Label>
-              </div>
-              <div>
-                <RadioGroupItem value="2d6" id="2d6" className="peer sr-only" />
-                <Label
-                  htmlFor="2d6"
-                  className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-                >
-                  2D6
-                </Label>
-              </div>
+              <RadioGroupItem value="d20" id="d20" className="sr-only peer" />
+              <Label htmlFor="d20" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">D20</Label>
+              <RadioGroupItem value="d12" id="d12" className="sr-only peer" />
+              <Label htmlFor="d12" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">D12</Label>
+              <RadioGroupItem value="2d6" id="2d6" className="sr-only peer" />
+              <Label htmlFor="2d6" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">2D6</Label>
+            </RadioGroup>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-3">
+            <Label className="font-semibold flex items-center gap-2"><Bot /> {t('aiModel')}</Label>
+            <p className="text-sm leading-snug text-muted-foreground">{t('aiModelDesc')}</p>
+            <RadioGroup
+              value={settings.aiModel}
+              onValueChange={handleAiModelChange}
+              className="space-y-2"
+            >
+              <RadioGroupItem value="balanced" id="balanced" className="sr-only peer" />
+              <Label htmlFor="balanced" className="flex items-center justify-between rounded-md border-2 border-muted bg-popover p-3 peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">{t('modelBalanced')}</Label>
+              <RadioGroupItem value="quality" id="quality" className="sr-only peer" />
+              <Label htmlFor="quality" className="flex items-center justify-between rounded-md border-2 border-muted bg-popover p-3 peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">{t('modelQuality')}</Label>
+              <RadioGroupItem value="creative" id="creative" className="sr-only peer" />
+              <Label htmlFor="creative" className="flex items-center justify-between rounded-md border-2 border-muted bg-popover p-3 peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">{t('modelCreative')}</Label>
+              <RadioGroupItem value="fast" id="fast" className="sr-only peer" />
+              <Label htmlFor="fast" className="flex items-center justify-between rounded-md border-2 border-muted bg-popover p-3 peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">{t('modelFast')}</Label>
+            </RadioGroup>
+          </div>
+
+          <Separator />
+
+           <div className="space-y-3">
+            <Label className="font-semibold flex items-center gap-2"><Feather /> {t('narrativeLength')}</Label>
+            <p className="text-sm leading-snug text-muted-foreground">{t('narrativeLengthDesc')}</p>
+            <RadioGroup
+              value={settings.narrativeLength}
+              onValueChange={handleNarrativeLengthChange}
+              className="grid grid-cols-3 gap-4"
+            >
+              <RadioGroupItem value="short" id="short" className="sr-only peer" />
+              <Label htmlFor="short" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">{t('lengthShort')}</Label>
+              <RadioGroupItem value="medium" id="medium" className="sr-only peer" />
+              <Label htmlFor="medium" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">{t('lengthMedium')}</Label>
+              <RadioGroupItem value="long" id="long" className="sr-only peer" />
+              <Label htmlFor="long" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">{t('lengthLong')}</Label>
             </RadioGroup>
           </div>
         </div>

@@ -2,11 +2,13 @@
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
-import type { GameMode, DiceType } from '@/lib/game/types';
+import type { GameMode, DiceType, AiModel, NarrativeLength } from '@/lib/game/types';
 
 interface GameSettings {
   gameMode: GameMode;
   diceType: DiceType;
+  aiModel: AiModel;
+  narrativeLength: NarrativeLength;
 }
 
 interface SettingsContextType {
@@ -19,6 +21,8 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 const defaultSettings: GameSettings = {
   gameMode: 'ai',
   diceType: 'd20',
+  aiModel: 'balanced',
+  narrativeLength: 'medium',
 };
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {

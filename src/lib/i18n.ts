@@ -1,3 +1,4 @@
+
 import { itemDefinitions } from "./game/items";
 import { recipes } from "./game/recipes";
 import { buildableStructures, structureDefinitions } from "./game/structures";
@@ -584,16 +585,18 @@ export const translations = {
     fullMapDescription: "Hover over a cell to see details. The map shows all explored areas.",
 
     // Example Prompts
-    example1: "A post-apocalyptic city overrun by sentient plants.",
-    example2: "A high-fantasy kingdom floating on clouds.",
-    example3: "A cyberpunk noir detective story on Mars.",
-    example4: "A peaceful village of talking animals with a dark secret.",
-    example5: "An underwater research facility that has lost contact with the surface.",
-    example6: "A Wild West town where dinosaurs are used instead of horses.",
-    example7: "A magical library where books come to life and can be dangerous.",
-    example8: "A generation ship traveling through space, where society has forgotten its original mission.",
-    example9: "A steampunk world powered by captured lightning elementals.",
-    example10: "A journey into the dream world to save someone from a magical coma.",
+    example1: "A lone survivor in a frozen, post-apocalyptic wasteland.",
+    example2: "An academy for mages on a floating island.",
+    example3: "A gritty detective story in a city run by androids.",
+    example4: "A prehistoric tribe discovering magic for the first time.",
+    example5: "An underwater kingdom facing a mysterious plague.",
+    example6: "A space western on a desert planet with giant sandworms.",
+    example7: "A world where everyone has a personal dragon companion.",
+    example8: "A generation ship where the AI has gone rogue.",
+    example9: "A haunted Victorian mansion with shifting rooms.",
+    example10: "A journey into a vast, ancient forest to find a mythical creature.",
+    example11: "A secret society of monster hunters in the 1920s.",
+    example12: "A comedic adventure about a goblin trying to become a knight.",
 
     // Dice Rolls
     diceRollMessage: "You roll a {diceType}... It's a {roll}! ({level})",
@@ -986,16 +989,18 @@ export const translations = {
     fullMapDescription: "Di chuột qua một ô để xem chi tiết. Bản đồ hiển thị tất cả các khu vực đã được khám phá.",
 
     // Example Prompts
-    example1: "Một thành phố hậu tận thế bị cây cối có tri giác xâm chiếm.",
-    example2: "Một vương quốc giả tưởng cao trên mây.",
-    example3: "Một câu chuyện trinh thám cyberpunk noir trên Sao Hỏa.",
-    example4: "Một ngôi làng yên bình của các loài động vật biết nói với một bí mật đen tối.",
-    example5: "Một cơ sở nghiên cứu dưới nước đã mất liên lạc với bề mặt.",
-    example6: "Một thị trấn miền Tây hoang dã nơi khủng long được dùng thay cho ngựa.",
-    example7: "Một thư viện phép thuật nơi những cuốn sách trở nên sống động và có thể gây nguy hiểm.",
-    example8: "Một con tàu thế hệ du hành trong không gian, nơi xã hội đã quên mất sứ mệnh ban đầu.",
-    example9: "Một thế giới steampunk được cung cấp năng lượng bởi các nguyên tố sét bị bắt giữ.",
-    example10: "Hành trình vào thế giới giấc mơ để cứu ai đó khỏi cơn hôn mê phép thuật.",
+    example1: "Người sống sót đơn độc trong một vùng đất hoang tàn, băng giá sau tận thế.",
+    example2: "Một học viện dành cho pháp sư trên một hòn đảo bay.",
+    example3: "Một câu chuyện trinh thám gai góc trong một thành phố do android điều hành.",
+    example4: "Một bộ lạc thời tiền sử lần đầu tiên khám phá ra phép thuật.",
+    example5: "Một vương quốc dưới nước đối mặt với một bệnh dịch bí ẩn.",
+    example6: "Một câu chuyện viễn tây không gian trên một hành tinh sa mạc với những con giun cát khổng lồ.",
+    example7: "Một thế giới nơi mọi người đều có một con rồng đồng hành.",
+    example8: "Một con tàu thế hệ nơi AI đã nổi loạn.",
+    example9: "Một dinh thự thời Victoria bị ma ám với những căn phòng có thể thay đổi vị trí.",
+    example10: "Hành trình vào một khu rừng cổ đại, rộng lớn để tìm một sinh vật thần thoại.",
+    example11: "Một hội kín của những người săn quái vật vào những năm 1920.",
+    example12: "Một cuộc phiêu lưu hài hước về một con goblin cố gắng trở thành hiệp sĩ.",
     
     // Dice Rolls
     diceRollMessage: "Bạn gieo xúc xắc {diceType}... Kết quả là {roll}! ({level})",

@@ -57,15 +57,16 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
 
     const { toast } = useToast();
 
-    // Randomly select 4 example prompts to display
+    // Randomly select 6 example prompts to display
     useEffect(() => {
         const allExampleKeys: TranslationKey[] = [
             'example1', 'example2', 'example3', 'example4', 'example5', 
-            'example6', 'example7', 'example8', 'example9', 'example10'
+            'example6', 'example7', 'example8', 'example9', 'example10',
+            'example11', 'example12'
         ];
 
         const shuffled = [...allExampleKeys].sort(() => 0.5 - Math.random());
-        const selectedPrompts = shuffled.slice(0, 4).map(key => t(key));
+        const selectedPrompts = shuffled.slice(0, 6).map(key => t(key));
         
         setExamplePrompts(selectedPrompts);
     }, [t]);

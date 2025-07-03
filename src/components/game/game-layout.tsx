@@ -10,13 +10,13 @@ import { CraftingPopup } from "@/components/game/crafting-popup";
 import { BuildingPopup } from "@/components/game/building-popup";
 import { TutorialPopup } from "@/components/game/tutorial-popup";
 import { FusionPopup } from "@/components/game/fusion-popup";
+import { Controls } from "@/components/game/controls";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Backpack, Shield, Cpu, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical } from "lucide-react";
+import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
-import { SwordIcon } from "@/components/game/icons";
 import { useGameEngine } from "@/hooks/use-game-engine";
 import type { MapCell, ItemDefinition, GeneratedItem, WorldConcept, PlayerItem } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
@@ -65,7 +65,6 @@ export default function GameLayout(props: GameLayoutProps) {
     const [inputValue, setInputValue] = useState("");
     
     const pageEndRef = useRef<HTMLDivElement>(null);
-    const desktopButtonSize = "h-[60px] w-[60px]";
     
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -191,170 +190,14 @@ export default function GameLayout(props: GameLayoutProps) {
                         <Minimap grid={generateMapGrid()} playerPosition={playerPosition} />
                     </div>
                     
-                    {/* UNIFIED CONTROLS SECTION */}
-                    <div className="flex flex-col items-center gap-4 w-full">
-                        <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('moveAndAttack')}</h3>
-                        
-                        {/* Mobile Layout */}
-                        <div className="md:hidden w-full grid grid-cols-2 justify-center items-start gap-4">
-                            <div className="flex flex-col gap-2 justify-center">
-                                <Button variant="outline" onClick={() => setStatusOpen(true)} className="w-full justify-start text-xs px-2 h-10">
-                                    <Shield className="mr-2 h-4 w-4 shrink-0"/> <span>{t('status')}</span>
-                                </Button>
-                                <Button variant="outline" onClick={() => setInventoryOpen(true)} className="w-full justify-start text-xs px-2 h-10">
-                                    <Backpack className="mr-2 h-4 w-4 shrink-0"/> <span>{t('inventory')}</span>
-                                </Button>
-                                <Button variant="outline" onClick={() => setCraftingOpen(true)} className="w-full justify-start text-xs px-2 h-10">
-                                    <Hammer className="mr-2 h-4 w-4 shrink-0"/> <span>{t('crafting')}</span>
-                                </Button>
-                                 <Button variant="outline" onClick={() => setBuildingOpen(true)} className="w-full justify-start text-xs px-2 h-10">
-                                    <Home className="mr-2 h-4 w-4 shrink-0"/> <span>{t('building')}</span>
-                                </Button>
-                                <Button variant="outline" onClick={() => setFusionOpen(true)} className="w-full justify-start text-xs px-2 h-10">
-                                    <FlaskConical className="mr-2 h-4 w-4 shrink-0"/> <span>{t('fusion')}</span>
-                                </Button>
-                            </div>
-                            <div className="grid grid-cols-3 grid-rows-3 gap-1 place-items-center h-full">
-                                <div className="col-start-2 row-start-1">
-                                    <Button variant="accent" className="h-10 w-10 p-0" onClick={() => handleMove("north")} aria-label={t('moveNorthTooltip')}>
-                                        <ArrowUp />
-                                    </Button>
-                                </div>
-                                <div className="col-start-1 row-start-2">
-                                    <Button variant="accent" className="h-10 w-10 p-0" onClick={() => handleMove("west")} aria-label={t('moveWestTooltip')}>
-                                        <ArrowLeft />
-                                    </Button>
-                                </div>
-                                <div className="col-start-2 row-start-2">
-                                    <Button variant="destructive" className="h-10 w-10 p-0" onClick={handleAttack} aria-label={t('attackTooltip')}>
-                                        <SwordIcon />
-                                    </Button>
-                                </div>
-                                <div className="col-start-3 row-start-2">
-                                    <Button variant="accent" className="h-10 w-10 p-0" onClick={() => handleMove("east")} aria-label={t('moveEastTooltip')}>
-                                        <ArrowRight />
-                                    </Button>
-                                </div>
-                                <div className="col-start-2 row-start-3">
-                                    <Button variant="accent" className="h-10 w-10 p-0" onClick={() => handleMove("south")} aria-label={t('moveSouthTooltip')}>
-                                        <ArrowDown />
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
+                    <Controls onMove={handleMove} onAttack={handleAttack} />
 
-                        {/* Desktop Layout (with Tooltips) */}
-                        <div className="hidden md:grid grid-cols-3 grid-rows-3 gap-2 w-fit">
-                            <div className="col-start-1 row-start-1 flex justify-center items-center">
-                                <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="outline" className={desktopButtonSize} onClick={() => setStatusOpen(true)} aria-label="Player Status">
-                                    <Shield />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>{t('statusTooltip')}</p></TooltipContent>
-                                </Tooltip>
-                            </div>
-
-                            <div className="col-start-2 row-start-1 flex justify-center items-center">
-                                <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="accent" className={desktopButtonSize} onClick={() => handleMove("north")} aria-label="Move North">
-                                    <ArrowUp />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>{t('moveNorthTooltip')}</p></TooltipContent>
-                                </Tooltip>
-                            </div>
-
-                            <div className="col-start-3 row-start-1 flex justify-center items-center">
-                                <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="outline" className={desktopButtonSize} onClick={() => setInventoryOpen(true)} aria-label="Inventory">
-                                    <Backpack />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent>
-                                </Tooltip>
-                            </div>
-
-                            <div className="col-start-1 row-start-2 flex justify-center items-center">
-                                <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="accent" className={desktopButtonSize} onClick={() => handleMove("west")} aria-label="Move West">
-                                    <ArrowLeft />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>{t('moveWestTooltip')}</p></TooltipContent>
-                                </Tooltip>
-                            </div>
-                            
-                            <div className="col-start-2 row-start-2 flex justify-center items-center">
-                                <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="destructive" className={desktopButtonSize} onClick={handleAttack} aria-label="Attack">
-                                    <SwordIcon />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>{t('attackTooltip')}</p></TooltipContent>
-                                </Tooltip>
-                            </div>
-
-                            <div className="col-start-3 row-start-2 flex justify-center items-center">
-                                <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="accent" className={desktopButtonSize} onClick={() => handleMove("east")} aria-label="Move East">
-                                    <ArrowRight />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>{t('moveEastTooltip')}</p></TooltipContent>
-                                </Tooltip>
-                            </div>
-
-                             <div className="col-start-1 row-start-3 flex justify-center items-center">
-                                <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="outline" className={desktopButtonSize} onClick={() => setCraftingOpen(true)} aria-label="Crafting">
-                                    <Hammer />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>{t('craftingTooltip')}</p></TooltipContent>
-                                </Tooltip>
-                            </div>
-
-                            <div className="col-start-2 row-start-3 flex justify-center items-center">
-                                <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="accent" className={desktopButtonSize} onClick={() => handleMove("south")} aria-label="Move South">
-                                    <ArrowDown />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>{t('moveSouthTooltip')}</p></TooltipContent>
-                                </Tooltip>
-                            </div>
-
-                            <div className="col-start-3 row-start-3 flex justify-center items-center">
-                                <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="outline" className={desktopButtonSize} onClick={() => setBuildingOpen(true)} aria-label="Building">
-                                    <Home />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>{t('buildingTooltip')}</p></TooltipContent>
-                                </Tooltip>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="hidden md:flex justify-center">
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="outline" onClick={() => setFusionOpen(true)}>
-                                    <FlaskConical className="mr-2 h-4 w-4"/> {t('fusion')}
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>{t('fusionTooltip')}</p></TooltipContent>
-                        </Tooltip>
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                        <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setStatusOpen(true)}><Shield /></Button></TooltipTrigger><TooltipContent><p>{t('statusTooltip')}</p></TooltipContent></Tooltip>
+                        <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setInventoryOpen(true)}><Backpack /></Button></TooltipTrigger><TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent></Tooltip>
+                        <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setCraftingOpen(true)}><Hammer /></Button></TooltipTrigger><TooltipContent><p>{t('craftingTooltip')}</p></TooltipContent></Tooltip>
+                        <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setBuildingOpen(true)}><Home /></Button></TooltipTrigger><TooltipContent><p>{t('buildingTooltip')}</p></TooltipContent></Tooltip>
+                        <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setFusionOpen(true)}><FlaskConical /></Button></TooltipTrigger><TooltipContent><p>{t('fusionTooltip')}</p></TooltipContent></Tooltip>
                     </div>
                     
                     <Separator className="flex-shrink-0" />

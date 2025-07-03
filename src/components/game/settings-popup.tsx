@@ -1,7 +1,6 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -9,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { useSettings } from "@/context/settings-context";
 import { useLanguage } from "@/context/language-context";
+import { usePwaInstall } from "@/context/pwa-install-context";
 import { Settings, BrainCircuit, Dice6, Bot, Feather, Languages, Download } from "lucide-react";
 import type { DiceType, GameMode, AiModel, NarrativeLength } from "@/lib/game/types";
 import type { Language } from "@/lib/i18n";
@@ -22,20 +22,7 @@ interface SettingsPopupProps {
 export function SettingsPopup({ open, onOpenChange }: SettingsPopupProps) {
   const { t, language, setLanguage } = useLanguage();
   const { settings, setSettings } = useSettings();
-  const [installPrompt, setInstallPrompt] = useState<any>(null);
-
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (event: Event) => {
-      event.preventDefault();
-      setInstallPrompt(event);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, []);
+  const { installPrompt, setInstallPrompt } = usePwaInstall();
 
   const handleInstallClick = () => {
     if (!installPrompt) return;

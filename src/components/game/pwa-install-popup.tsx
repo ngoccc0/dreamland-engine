@@ -1,11 +1,11 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Download, X } from 'lucide-react';
 import { useLanguage } from '@/context/language-context';
+import { usePwaInstall } from '@/context/pwa-install-context';
 
 interface PwaInstallPopupProps {
   open: boolean;
@@ -14,20 +14,7 @@ interface PwaInstallPopupProps {
 
 export function PwaInstallPopup({ open, onOpenChange }: PwaInstallPopupProps) {
   const { t } = useLanguage();
-  const [installPrompt, setInstallPrompt] = useState<any>(null);
-
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (event: Event) => {
-      event.preventDefault();
-      setInstallPrompt(event);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, []);
+  const { installPrompt, setInstallPrompt } = usePwaInstall();
 
   const handleInstallClick = () => {
     if (!installPrompt) return;

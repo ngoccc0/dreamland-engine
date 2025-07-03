@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -8,9 +9,10 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { useSettings } from "@/context/settings-context";
 import { useLanguage } from "@/context/language-context";
-import { Settings, BrainCircuit, Dice6, Bot, Feather, Languages } from "lucide-react";
+import { Settings, BrainCircuit, Dice6, Bot, Feather, Languages, Download } from "lucide-react";
 import type { DiceType, GameMode, AiModel, NarrativeLength } from "@/lib/game/types";
 import type { Language } from "@/lib/i18n";
+import { Button } from "../ui/button";
 
 interface SettingsPopupProps {
   open: boolean;
@@ -20,6 +22,33 @@ interface SettingsPopupProps {
 export function SettingsPopup({ open, onOpenChange }: SettingsPopupProps) {
   const { t, language, setLanguage } = useLanguage();
   const { settings, setSettings } = useSettings();
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    installPrompt.userChoice.then((choiceResult: any) => {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('User accepted the PWA installation');
+      } else {
+        console.log('User dismissed the PWA installation');
+      }
+      setInstallPrompt(null);
+    });
+  };
 
   const handleLanguageChange = (value: string) => {
     setLanguage(value as Language);
@@ -165,6 +194,21 @@ export function SettingsPopup({ open, onOpenChange }: SettingsPopupProps) {
               </div>
             </RadioGroup>
           </div>
+
+          {installPrompt && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <Label className="font-semibold flex items-center gap-2"><Download /> {t('installAppTitle')}</Label>
+                <p className="text-sm leading-snug text-muted-foreground">{t('installAppSettingDesc')}</p>
+                <Button onClick={handleInstallClick} className="w-full">
+                  <Download className="mr-2 h-4 w-4" />
+                  {t('install')}
+                </Button>
+              </div>
+            </>
+          )}
+
         </div>
       </DialogContent>
     </Dialog>

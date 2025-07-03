@@ -157,7 +157,7 @@ const generateWorldSetupFlow = ai.defineFlow(
                 console.warn(`Model ${modelName} failed for item catalog generation. Error:`, error);
             }
         }
-        throw new Error('All models failed for item catalog generation. Please check your API keys and model availability in your environment.');
+        throw new Error('All AI models failed. This could be due to an invalid API key, insufficient balance on a paid account (like OpenAI or Deepseek), or network problems. Please check your .env file and billing settings for your AI providers.');
     })();
     
     // Task B: Generate world names. Use a fast, cost-effective model.

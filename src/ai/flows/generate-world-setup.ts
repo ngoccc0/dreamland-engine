@@ -99,9 +99,7 @@ Based on the user's idea, your task is to generate **a small, initial catalog of
 **Rules:**
 1.  The "customItemCatalog" array in your JSON output MUST contain between 5 and 10 items.
 2.  For each item, you MUST define all required fields: name, description, category, tier, effects, baseQuantity, and spawnBiomes.
-3.  **DO NOT** generate an emoji. This will be handled by game logic.
-4.  For 'Food' category items, please also provide a 'subCategory' field, such as 'Meat', 'Fruit', or 'Vegetable'.
-5.  The theme of the items should strongly reflect the user's input.`;
+3.  The theme of the items should strongly reflect the user's input.`;
 
 // -- Template for Task B: World Name Generation --
 const worldNamesPromptTemplate = `You are a creative brainstorming assistant. ALL TEXT in your response MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a strict requirement.
@@ -126,7 +124,7 @@ For EACH of the three concepts, create the specific narrative details:
 3.  **initialQuests:** One or two simple starting quests.
 
 **Critical Rules:**
-- **DO NOT** create world names, player items, an item catalog, or starting skills. These will be handled by other processes.
+- **DO NOT** create world names, player items, an item catalog, or starting skills.
 
 Provide the response as a single JSON object containing the 'narrativeConcepts' array.`;
 
@@ -145,7 +143,7 @@ const generateWorldSetupFlow = ai.defineFlow(
     // Task A: Generate the item catalog. This is complex, so we use a fallback chain of powerful models.
     const itemCatalogTask = (async () => {
         // Extended fallback chain. If paid models fail, it will use the free-tier Gemini Flash as a last resort.
-        const modelsToTry = ['openai/gpt-4-turbo', 'googleai/gemini-1.5-pro', 'deepseek/deepseek-chat', 'googleai/gemini-2.0-flash'];
+        const modelsToTry = ['openai/gpt-3.5-turbo', 'googleai/gemini-1.0-pro', 'deepseek/deepseek-chat', 'googleai/gemini-2.0-flash'];
         const errorLogs: string[] = [];
 
         for (const modelName of modelsToTry) {

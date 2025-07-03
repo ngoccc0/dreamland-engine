@@ -52,7 +52,7 @@ const generateRecipePrompt = ai.definePrompt({
 2.  The recipe must be **logical**. The ingredients should plausibly create the resulting item. (e.g., 'Wood' + 'Stone' -> 'Axe', not 'Wood' + 'Flower' -> 'Sword').
 3.  Use **only the items provided** in the catalog below as ingredients or results.
 4.  The recipe should have between 2 and 4 ingredients.
-5.  If the result is a new item not in the catalog, invent a plausible name and description for it. **Do NOT** invent an emoji for the result item.
+5.  If the result is a new item not in the catalog, invent a plausible name and description for it.
 
 **Available Item Catalog (Your Palette):**
 {{json customItemCatalog}}

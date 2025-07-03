@@ -73,7 +73,7 @@ The outcome has already been decided by the laws of the world. Your task is to n
     - If the 'determinedOutcome' is 'success': Invent a **new, interesting item** that could result from this fusion. Provide its name, description, and any special effects. The game will handle its power level (tier).
     - If the 'determinedOutcome' is 'degraded': Invent a **new, lesser item**. It should be a broken, warped, or simplified version of one of the ingredients (e.g., 'Sharp Rock' and 'Sturdy Branch' might degrade into 'Small Pebbles'). Provide its name, description, and any (likely negative) effects.
     - If the 'determinedOutcome' is 'totalLoss': **Do not** invent a new item. Your narrative should describe the items being destroyed completely.
-3.  **Respond:** Provide your response in the required JSON format. Ensure the 'outcome' field matches the provided 'determinedOutcome'. Do NOT invent an emoji.
+3.  **Respond:** Provide your response in the required JSON format. Ensure the 'outcome' field matches the provided 'determinedOutcome'.
 `,
 });
 
@@ -103,7 +103,7 @@ const fuseItemsFlow = ai.defineFlow(
             };
         }
 
-        // 2. Calculate success chance.
+        // 2. Calculate success chance and determine outcome.
         const baseChance = 50; // 50% base success chance
         const finalChance = clamp(baseChance + input.environmentalModifiers.successChanceBonus, 5, 95);
         const roll = Math.random() * 100;
@@ -116,7 +116,8 @@ const fuseItemsFlow = ai.defineFlow(
         if (isSuccess) {
             determinedOutcome = 'success';
             const avgTier = input.itemsToFuse.reduce((sum, item) => sum + item.tier, 0) / input.itemsToFuse.length;
-            finalTier = clamp(Math.ceil(avgTier) + 1, 1, 6); // New item is one tier higher than average, capped at 6.
+            const randomMultiplier = Math.random() * (1.5 - 0.75) + 0.75; // Random between 75% and 150%
+            finalTier = clamp(Math.round(avgTier * randomMultiplier), 1, 6); // New item tier based on rounded average * random multiplier
         } else {
             const lowestTier = Math.min(...input.itemsToFuse.map(i => i.tier));
             if (lowestTier <= 1) {
@@ -138,7 +139,7 @@ const fuseItemsFlow = ai.defineFlow(
         const { output: aiOutput } = await fuseItemsPrompt(promptInput);
 
         if (!aiOutput) {
-            throw new Error("AI failed to determine fusion outcome.");
+            throw new Error("The ethereal currents of possibility did not align, leaving the outcome shrouded in mystery.");
         }
 
         // 5. Construct the final, structured output, combining AI creativity with code-driven logic.

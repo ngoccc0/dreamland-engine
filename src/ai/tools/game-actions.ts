@@ -27,6 +27,7 @@ export const playerAttackTool = ai.defineTool({
         customItemDefinitions: z.record(ItemDefinitionSchema).describe("A map of ALL item definitions (static and custom) for the current game session."),
         lightLevel: z.number().optional().describe("The current light level (-10 to 10). Low light (e.g., < -3) can reduce accuracy."),
         moisture: z.number().optional().describe("The current moisture level (0-10). High moisture (e.g., > 8) can impede physical attacks."),
+        successLevel: z.enum(['CriticalFailure', 'Failure', 'Success', 'GreatSuccess', 'CriticalSuccess']).describe("The categorized result of a d20 dice roll, which dictates the attack's outcome."),
     }),
     outputSchema: z.object({
         playerDamageDealt: z.number().describe("Damage dealt by the player."),
@@ -35,40 +36,68 @@ export const playerAttackTool = ai.defineTool({
         finalEnemyHp: z.number().describe("Enemy's HP after being attacked."),
         enemyDefeated: z.boolean().describe("True if the enemy's HP is 0 or less."),
         fled: z.boolean().describe("True if the enemy fled instead of fighting back."),
-        combatLog: z.string().optional().describe("A brief, factual log of what happened, e.g., 'The creature fought back fiercely.' or 'The small creature fled in terror!'"),
+        combatLog: z.string().optional().describe("A brief, factual log of what happened, e.g., 'Player dealt 15 damage. The creature fought back fiercely.' or 'The small creature fled in terror!'"),
         lootDrops: z.array(ChunkItemSchema).optional().describe("A list of items dropped by the defeated enemy. The narrative should mention these items."),
     })
-}, async ({ playerStatus, enemy, terrain, customItemDefinitions, lightLevel, moisture }) => {
-    let playerDamageModifier = 1.0;
+}, async ({ playerStatus, enemy, terrain, customItemDefinitions, lightLevel, moisture, successLevel }) => {
+    let playerDamage = 0;
     const combatLogParts: string[] = [];
 
-    // Environmental effects on player's attack
-    if (lightLevel !== undefined && lightLevel < -3) {
-        playerDamageModifier *= 0.8; // 20% penalty in fog/darkness
-        combatLogParts.push("Poor visibility in the fog/darkness reduces the player's accuracy.");
+    // Damage Calculation based on Success Level
+    let damageMultiplier = 1.0;
+    switch (successLevel) {
+        case 'CriticalFailure':
+            damageMultiplier = 0;
+            combatLogParts.push("Player attack was a critical failure.");
+            break;
+        case 'Failure':
+            damageMultiplier = 0;
+            combatLogParts.push("Player attack failed.");
+            break;
+        case 'GreatSuccess':
+            damageMultiplier = 1.5;
+            break;
+        case 'CriticalSuccess':
+            damageMultiplier = 2.0;
+            break;
+        case 'Success':
+        default:
+            damageMultiplier = 1.0;
+            break;
     }
-    if (moisture !== undefined && moisture > 8) {
-        playerDamageModifier *= 0.9; // 10% penalty in heavy rain
-        combatLogParts.push("Heavy rain impedes the player's attack.");
-    }
+    
+    if (damageMultiplier > 0) {
+        let playerDamageModifier = 1.0;
+        if (lightLevel !== undefined && lightLevel < -3) {
+            playerDamageModifier *= 0.8;
+        }
+        if (moisture !== undefined && moisture > 8) {
+            playerDamageModifier *= 0.9;
+        }
 
-    let playerBaseDamage = playerStatus.attributes.physicalAttack;
-    if (playerStatus.persona === 'warrior') {
-        playerBaseDamage += 2; // Warrior persona bonus
-        combatLogParts.push("Battle-honed skills make your attack a little stronger.");
-    }
+        let playerBaseDamage = playerStatus.attributes.physicalAttack;
+        if (playerStatus.persona === 'warrior') {
+            playerBaseDamage += 2; 
+        }
 
-    const playerDamage = Math.round(playerBaseDamage * playerDamageModifier);
+        playerDamage = Math.round(playerBaseDamage * damageMultiplier * playerDamageModifier);
+    }
+    
     const finalEnemyHp = Math.max(0, enemy.hp - playerDamage);
     const enemyDefeated = finalEnemyHp <= 0;
     let lootDrops: ChunkItem[] | undefined = undefined;
+
+    if (playerDamage > 0) {
+        combatLogParts.push(`Player dealt ${playerDamage} damage.`);
+        if (successLevel === 'CriticalSuccess') combatLogParts.push('Critical Hit!');
+    }
     
-    // If enemy is defeated, it can't flee or retaliate.
+    // Enemy Response Logic
     if (enemyDefeated) {
-        const templates = getTemplates('en'); // Use english templates for loot definition lookup
+        const templates = getTemplates('en');
         const enemyTemplate = templates[terrain]?.enemies.find(e => e.data.type === enemy.type);
         if (enemyTemplate && enemyTemplate.data.loot) {
-            const allItemDefinitions = customItemDefinitions; // This now holds all definitions
+            const allItemDefinitions = customItemDefinitions;
             const drops: ChunkItem[] = [];
 
             for (const lootItem of enemyTemplate.data.loot) {
@@ -94,34 +123,36 @@ export const playerAttackTool = ai.defineTool({
         return {
             playerDamageDealt: playerDamage,
             enemyDamageDealt: 0,
-            finalPlayerHp: playerStatus.hp, // No retaliation if defeated
+            finalPlayerHp: playerStatus.hp,
             finalEnemyHp,
             enemyDefeated: true,
             fled: false,
-            combatLog: combatLogParts.length > 0 ? combatLogParts.join(' ') : undefined,
+            combatLog: combatLogParts.join(' '),
             lootDrops,
         };
     }
     
-    // If not defeated, decide if creature flees or fights back.
     let fled = false;
     let enemyDamage = 0;
+    
+    const shouldFlee = enemy.behavior === 'passive' || (successLevel === 'CriticalSuccess' && enemy.size === 'small');
 
-    if (enemy.behavior === 'passive') {
+    if (shouldFlee) {
         fled = true;
-        combatLogParts.push('The passive creature fled in terror!');
+        combatLogParts.push('The creature fled in terror!');
     } else {
-        // Aggressive, Defensive, and Territorial creatures fight back.
         fled = false;
         let enemyDamageModifier = 1.0;
-        if (lightLevel !== undefined && lightLevel < -3) {
+        if (successLevel !== 'CriticalFailure' && lightLevel !== undefined && lightLevel < -3) {
             enemyDamageModifier *= 0.8;
-            combatLogParts.push("The enemy is also affected by the poor visibility.");
         }
-        if (moisture !== undefined && moisture > 8) {
+        if (successLevel !== 'CriticalFailure' && moisture !== undefined && moisture > 8) {
             enemyDamageModifier *= 0.9;
         }
         enemyDamage = Math.round(enemy.damage * enemyDamageModifier);
+        if (enemyDamage > 0) {
+             combatLogParts.push(`Enemy retaliated for ${enemyDamage} damage.`);
+        }
     }
     
     const finalPlayerHp = Math.max(0, playerStatus.hp - enemyDamage);
@@ -133,8 +164,8 @@ export const playerAttackTool = ai.defineTool({
         finalEnemyHp,
         enemyDefeated: false,
         fled,
-        combatLog: combatLogParts.length > 0 ? combatLogParts.join(' ') : undefined,
-        lootDrops: undefined, // No loot if not defeated
+        combatLog: combatLogParts.join(' '),
+        lootDrops: undefined,
     };
 });
 

@@ -8,12 +8,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/hooks/use-toast";
 import { generateWorldSetup, type GenerateWorldSetupOutput } from "@/ai/flows/generate-world-setup";
 import { suggestKeywords } from "@/ai/flows/suggest-keywords";
-import { Sparkles, Wand2, ArrowRight, BrainCircuit, Loader2 } from "lucide-react";
+import { Sparkles, Wand2, ArrowRight, BrainCircuit, Loader2, Settings } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 import { Separator } from "../ui/separator";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { useLanguage } from "@/context/language-context";
 import type { WorldConcept, Skill, TranslationKey } from "@/lib/game/types";
+import { SettingsPopup } from "./settings-popup";
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 
 interface WorldSetupProps {
     onWorldCreated: (worldSetup: WorldConcept) => void;
@@ -54,6 +56,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
     const [apiInventory, setApiInventory] = useState<CarouselApi>();
     const [apiQuests, setApiQuests] = useState<CarouselApi>();
     const [apiSkill, setApiSkill] = useState<CarouselApi>();
+    const [isSettingsOpen, setSettingsOpen] = useState(false);
 
     const { toast } = useToast();
 
@@ -415,10 +418,25 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
     )
 
     return (
-        <div className="flex items-center justify-center min-h-dvh bg-background text-foreground p-4 md:p-8 font-body">
-            <Card className="w-full max-w-5xl shadow-2xl animate-in fade-in duration-500">
-                {step === 0 ? renderStep0() : renderStep1()}
-            </Card>
-        </div>
+        <TooltipProvider>
+            <div className="flex items-center justify-center min-h-dvh bg-background text-foreground p-4 md:p-8 font-body">
+                <Card className="w-full max-w-5xl shadow-2xl animate-in fade-in duration-500 relative">
+                     <div className="absolute top-4 right-4 z-10">
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button onClick={() => setSettingsOpen(true)} variant="ghost" size="icon">
+                                    <Settings className="h-5 w-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>{t('gameSettings')}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </div>
+                    {step === 0 ? renderStep0() : renderStep1()}
+                </Card>
+                <SettingsPopup open={isSettingsOpen} onOpenChange={setSettingsOpen} />
+            </div>
+        </TooltipProvider>
     );
 }

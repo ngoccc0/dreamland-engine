@@ -10,6 +10,7 @@ import { CraftingPopup } from "@/components/game/crafting-popup";
 import { BuildingPopup } from "@/components/game/building-popup";
 import { TutorialPopup } from "@/components/game/tutorial-popup";
 import { FusionPopup } from "@/components/game/fusion-popup";
+import { PwaInstallPopup } from "@/components/game/pwa-install-popup";
 import { Controls } from "@/components/game/controls";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,6 +63,7 @@ export default function GameLayout(props: GameLayoutProps) {
     const [isFusionOpen, setFusionOpen] = useState(false);
     const [isFullMapOpen, setIsFullMapOpen] = useState(false);
     const [isTutorialOpen, setTutorialOpen] = useState(false);
+    const [showInstallPopup, setShowInstallPopup] = useState(false);
     const [inputValue, setInputValue] = useState("");
     
     const pageEndRef = useRef<HTMLDivElement>(null);
@@ -72,6 +74,14 @@ export default function GameLayout(props: GameLayoutProps) {
         }, 100);
         return () => clearTimeout(timer);
     }, [narrativeLog]);
+
+    useEffect(() => {
+        const promptShown = localStorage.getItem('pwaInstallPromptShown');
+        if (!promptShown && props.worldSetup) {
+            setShowInstallPopup(true);
+            localStorage.setItem('pwaInstallPromptShown', 'true');
+        }
+    }, [props.worldSetup]);
 
     const generateMapGrid = useCallback((): MapCell[][] => {
         const radius = 2; // 5x5 grid
@@ -300,6 +310,7 @@ export default function GameLayout(props: GameLayoutProps) {
                 />
                 <FullMapPopup open={isFullMapOpen} onOpenChange={setIsFullMapOpen} world={world} playerPosition={playerPosition} />
                 <TutorialPopup open={isTutorialOpen} onOpenChange={setTutorialOpen} />
+                <PwaInstallPopup open={showInstallPopup} onOpenChange={setShowInstallPopup} />
             </div>
         </TooltipProvider>
     );

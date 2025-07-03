@@ -703,6 +703,12 @@ export const translations = {
     lengthMedium: "Medium",
     lengthLong: "Long",
 
+    // PWA Install
+    installAppTitle: "Install Dreamland Engine",
+    installAppDesc: "Add this game to your home screen for a full-screen, app-like experience.",
+    dismiss: "Dismiss",
+    install: "Install",
+
   },
   vi: {
     ...Object.fromEntries(Object.keys(itemDefinitions).map(key => [key, key])),
@@ -1119,6 +1125,12 @@ export const translations = {
     lengthShort: "Ngắn",
     lengthMedium: "Vừa",
     lengthLong: "Dài",
+
+    // PWA Install
+    installAppTitle: "Cài đặt Ký Sự Lãng Du",
+    installAppDesc: "Thêm trò chơi này vào màn hình chính của bạn để có trải nghiệm toàn màn hình, giống như ứng dụng.",
+    dismiss: "Bỏ qua",
+    install: "Cài đặt",
   }
 };
 

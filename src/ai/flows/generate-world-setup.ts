@@ -24,7 +24,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 import type { Terrain, Skill } from '@/lib/game/types';
 import { GeneratedItemSchema, SkillSchema, NarrativeConceptArraySchema } from '@/ai/schemas';
 import { skillDefinitions } from '@/lib/game/skills';
@@ -140,10 +140,10 @@ const generateWorldSetupFlow = ai.defineFlow(
                 console.log(`Successfully generated item catalog with ${modelName}.`);
                 return result;
             } catch (error) {
-                console.warn(`Model ${modelName} failed for item catalog generation. Trying next model.`, error);
+                console.warn(`Model ${modelName} failed for item catalog generation. Error:`, error);
             }
         }
-        throw new Error('All models failed for item catalog generation.');
+        throw new Error('All models failed for item catalog generation. Please check your API keys and model availability in your environment.');
     })();
     
     // Task B: Generate narrative concepts and world names. Use a fast, cost-effective model.

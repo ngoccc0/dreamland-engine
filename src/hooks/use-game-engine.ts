@@ -17,9 +17,9 @@ import { getTemplates } from '@/lib/game/templates';
 import { worldConfig } from '@/lib/game/world-config';
 import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, Terrain, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, PlayerPersona, Structure, Pet, DiceType, ItemEffect } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
+import { clamp } from "@/lib/utils";
 
 
-const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
 
 // --- DICE ROLL HELPERS ---
@@ -1529,6 +1529,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 environmentalContext: { biome: effectiveChunk.terrain, weather: weather.name },
                 environmentalModifiers: { successChanceBonus, elementalAffinity, chaosFactor: clamp(chaosFactor, 0, 10) },
                 language,
+                customItemDefinitions,
             });
 
             addNarrativeEntry(result.narrative, 'narrative');

@@ -91,7 +91,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                                             <span className="text-foreground">{t(item.name as TranslationKey)}</span>
                                             <div className="flex items-center gap-2">
                                               <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary/10 text-primary-foreground font-semibold">{t('tier', { tier: item.tier })}</span>
-                                              {definition && definition.category && <span className="text-xs px-1.5 py-0.5 rounded-full bg-accent/80 text-accent-foreground flex items-center gap-1">{categoryEmoji} {t(definition.category as TranslationKey)}</span>}
+                                              {definition && definition.category && <span title={t(definition.category as TranslationKey)} className="text-xs px-1.5 py-0.5 rounded-full bg-accent/80 text-accent-foreground flex items-center gap-1">{categoryEmoji}</span>}
                                             </div>
                                         </div>
                                     </div>

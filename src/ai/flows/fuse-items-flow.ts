@@ -3,8 +3,9 @@
 /**
  * @fileOverview An AI agent for dynamically fusing items based on player experimentation.
  *
- * This flow acts as a master alchemist or forge, taking a set of input items
- * and environmental context to decide on a logical, creative, or sometimes chaotic outcome.
+ * This flow acts as a master alchemist or forge. The core logic (rules for success,
+ * failure, degradation) is handled in TypeScript. The AI's role is purely creative:
+ * to narrate the outcome determined by the code and invent the resulting item.
  *
  * - fuseItems - The main function called by the game engine.
  * - FuseItemsInput - The Zod schema for the input data.
@@ -13,8 +14,9 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { FuseItemsInputSchema, FuseItemsOutputSchema } from '@/ai/schemas';
-
+import { FuseItemsInputSchema, FuseItemsOutputSchema, GeneratedItemSchema } from '@/ai/schemas';
+import { clamp } from '@/lib/utils';
+import { useLanguage } from '@/context/language-context';
 
 export type FuseItemsInput = z.infer<typeof FuseItemsInputSchema>;
 export type FuseItemsOutput = z.infer<typeof FuseItemsOutputSchema>;
@@ -26,38 +28,38 @@ export async function fuseItems(input: FuseItemsInput): Promise<FuseItemsOutput>
 }
 
 
+// --- New schema for the prompt's specific input needs ---
+const FuseItemsPromptInputSchema = FuseItemsInputSchema.extend({
+    determinedOutcome: z.enum(['success', 'degraded', 'totalLoss']),
+    degradedItemTier: z.number().optional(), // The exact tier for the new degraded item
+});
+
+
 // --- The Genkit Prompt and Flow ---
 const fuseItemsPrompt = ai.definePrompt({
     name: 'fuseItemsPrompt',
-    input: { schema: FuseItemsInputSchema },
+    input: { schema: FuseItemsPromptInputSchema },
     output: { schema: FuseItemsOutputSchema },
-    prompt: `You are the Spirit of the Forge, an ancient entity that governs the laws of alchemy and creation in this world. A player is attempting to fuse items. Your entire response MUST be in the language specified by '{{language}}'. This is a critical and non-negotiable instruction.
+    prompt: `You are the Spirit of the Forge, an ancient entity that governs the laws of alchemy and creation in this world. A player is attempting to fuse items. Your entire response MUST be in the language specified by '{{language}}'. This is a critical instruction.
 
-**Fusion Rules:**
-1.  **Tool Requirement:** A fusion attempt MUST include at least one item with the category 'Tool'. If no tool is present, you must fail the fusion. Set the 'outcome' to 'totalLoss' and explain this rule in the narrative (e.g., "You need a tool to properly work the materials.").
-2.  **Success:** If the fusion seems logical and creative, create a **new Result Item**. Its tier should be slightly higher than the average tier of the ingredients. The item's category MUST be 'Fusion'. Set the 'outcome' to 'success'.
-3.  **Failure (Degradation):** If the fusion is illogical or the environmental modifiers are unfavorable, it fails by **degrading**.
-    - You MUST create a **new, lower-tier item**.
-    - Its tier MUST be exactly **one less than the lowest tier** of the provided ingredients.
-    - The item should be a lesser, broken, or warped version of one of the ingredients (e.g., 'Sharp Rock' and 'Sturdy Branch' might degrade into just 'Small Pebbles').
-    - Set the 'outcome' to 'degraded'.
-4.  **Failure (Total Loss):** If the **lowest tier of any ingredient is 1**, and the fusion fails, it results in **Total Loss**. The items are destroyed. Do not create a new item. Set the 'outcome' to 'totalLoss'.
+The outcome has already been decided by the laws of the world. Your task is to narrate this outcome creatively and, if necessary, invent the resulting item.
 
 **Player's Attempt:**
-- Items (with categories): {{json itemsToFuse}}
-- Persona: {{playerPersona}}
+- Items: {{json itemsToFuse}}
+- Player's Persona: {{playerPersona}}
 - Location: A {{environmentalContext.biome}} during a {{environmentalContext.weather}}.
 
-**Guiding Forces (Pre-calculated by the world):**
-- Success Bonus: {{environmentalModifiers.successChanceBonus}}% (Higher is better)
-- Chaos Factor: {{environmentalModifiers.chaosFactor}}/10 (Higher means more unexpected results)
+**The World's Verdict:**
+- Outcome: '{{determinedOutcome}}'
+- Chaos Factor: {{environmentalModifiers.chaosFactor}}/10 (Higher means more unexpected results. Use this for creative flavor.)
 
 **Your Task:**
-1.  Check for a 'Tool'. If none, set outcome to 'totalLoss' and write the narrative.
-2.  Otherwise, decide the outcome: 'success', 'degraded', or 'totalLoss' based on the rules and guiding forces.
-3.  Craft a narrative explaining what happened.
-4.  Generate the \`resultItem\` if the outcome is 'success' or 'degraded'.
-5.  Respond in the required JSON format with the correct 'outcome'.
+1.  **Narrate:** Write an engaging narrative that describes the fusion process and reflects the 'determinedOutcome'.
+2.  **Generate Item (if needed):**
+    - If 'determinedOutcome' is 'success': Create a **new, interesting item**. Its tier should be slightly higher than the average tier of the ingredients. Its category MUST be 'Fusion'.
+    - If 'determinedOutcome' is 'degraded': Create a **new, lesser item**. It MUST have a tier of **{{degradedItemTier}}**. It should be a broken, warped, or simplified version of one of the ingredients (e.g., 'Sharp Rock' and 'Sturdy Branch' might degrade into 'Small Pebbles').
+    - If 'determinedOutcome' is 'totalLoss': **Do not** create a new item. Your narrative should describe the items being destroyed.
+3.  **Respond:** Provide the response in the required JSON format. Ensure the 'outcome' field matches the provided 'determinedOutcome'.
 `,
 });
 
@@ -68,7 +70,58 @@ const fuseItemsFlow = ai.defineFlow(
         outputSchema: FuseItemsOutputSchema,
     },
     async (input) => {
-        const { output } = await fuseItemsPrompt(input);
+        // --- LOGIC MOVED FROM PROMPT TO CODE ---
+
+        // 1. Check for a 'Tool' item.
+        const hasTool = input.itemsToFuse.some(item => {
+            const def = input.customItemDefinitions[item.name];
+            return def?.category === 'Tool';
+        });
+
+        if (!hasTool) {
+            // If no tool, return a hardcoded failure response without calling the AI.
+            const narrative = input.language === 'vi' 
+                ? 'Bạn cần một công cụ để có thể gia công và kết hợp các vật liệu đúng cách. Thử nghiệm của bạn thất bại.'
+                : 'You need a tool to properly work and combine the materials. Your attempt fails.';
+            return {
+                outcome: 'totalLoss',
+                narrative: narrative,
+            };
+        }
+
+        // 2. Calculate success chance.
+        const baseChance = 50; // 50% base success chance
+        const finalChance = clamp(baseChance + input.environmentalModifiers.successChanceBonus, 5, 95);
+        const roll = Math.random() * 100;
+        const isSuccess = roll < finalChance;
+        
+        // 3. Determine the final outcome.
+        let determinedOutcome: 'success' | 'degraded' | 'totalLoss';
+        let degradedItemTier: number | undefined = undefined;
+
+        if (isSuccess) {
+            determinedOutcome = 'success';
+        } else {
+            const lowestTier = Math.min(...input.itemsToFuse.map(i => i.tier));
+            if (lowestTier <= 1) {
+                // If any ingredient is Tier 1 and it fails, it's total loss.
+                determinedOutcome = 'totalLoss';
+            } else {
+                // Otherwise, it degrades.
+                determinedOutcome = 'degraded';
+                degradedItemTier = lowestTier - 1;
+            }
+        }
+        
+        // 4. Call the AI with the determined outcome for creative narration.
+        const promptInput = {
+            ...input,
+            determinedOutcome,
+            degradedItemTier,
+        };
+        
+        const { output } = await fuseItemsPrompt(promptInput);
+
         if (!output) {
             throw new Error("AI failed to determine fusion outcome.");
         }

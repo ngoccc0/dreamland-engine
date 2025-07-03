@@ -261,6 +261,7 @@ export const FuseItemsInputSchema = z.object({
   }).describe("Simple environmental context for narrative flavor."),
   environmentalModifiers: EnvironmentalModifiersSchema.describe("Pre-calculated modifiers that should guide the fusion's outcome."),
   language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
+  customItemDefinitions: z.record(ItemDefinitionSchema).describe("A map of all item definitions available in the world, for looking up categories."),
 });
 
 

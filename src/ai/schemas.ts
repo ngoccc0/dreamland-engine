@@ -106,6 +106,8 @@ export const PlayerStatusSchema = z.object({
         damageSpells: z.number(),
         moves: z.number(),
     }).optional().describe("Tracks player actions to unlock new skills."),
+    journal: z.record(z.string()).optional().describe("A record of daily journal entries written by the AI, indexed by day number."),
+    dailyActionLog: z.array(z.string()).optional().describe("A log of player actions taken during the current day, used for journaling."),
 });
 
 export const EnemySchema = z.object({
@@ -269,4 +271,16 @@ export const FuseItemsOutputSchema = z.object({
   outcome: z.enum(['success', 'degraded', 'totalLoss']).describe("The outcome of the fusion: 'success' creates a better item, 'degraded' creates a lower-tier item from the ingredients, 'totalLoss' destroys the items when ingredients are tier 1."),
   narrative: z.string().describe("A narrative description of the fusion process and its outcome."),
   resultItem: GeneratedItemSchema.optional().describe("The new item created, either on 'success' or 'degraded' outcome."),
+});
+
+// --- Schemas for Journaling ---
+export const GenerateJournalEntryInputSchema = z.object({
+  dailyActionLog: z.array(z.string()).describe("A list of actions the player took today."),
+  playerPersona: PlayerStatusSchema.shape.persona,
+  worldName: z.string().describe("The name of the world for thematic context."),
+  language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
+});
+
+export const GenerateJournalEntryOutputSchema = z.object({
+  journalEntry: z.string().describe("A reflective, first-person journal entry summarizing the day's events."),
 });

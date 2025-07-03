@@ -35,7 +35,7 @@ export interface WeatherZone {
   id: string; // Typically the regionId
   terrain: Terrain;
   currentWeather: WeatherState;
-  nextChangeTime: number; // The game tick when the weather will change
+  nextChangeTime: number; // The game time when the weather will change
 }
 
 
@@ -191,6 +191,8 @@ export interface PlayerStatus {
         damageSpells: number;
         moves: number;
     };
+    journal?: Record<number, string>;
+    dailyActionLog?: string[];
 }
 
 export interface PlayerBehaviorProfile {
@@ -304,9 +306,10 @@ export interface GameState {
     worldSetup: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[], startingSkill: Skill };
     customItemDefinitions: Record<string, ItemDefinition>;
     customItemCatalog: GeneratedItem[];
-    // New properties for weather system
+    // New properties for weather/time system
     weatherZones: { [zoneId: string]: WeatherZone };
-    gameTicks: number;
+    gameTime: number; // In-game minutes from 0 to 1439
+    day: number;
 }
 
 // --- NEW DATA-DRIVEN ITEM SYSTEM ---

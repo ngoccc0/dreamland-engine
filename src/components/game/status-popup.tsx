@@ -18,7 +18,7 @@ import { provideQuestHint } from "@/ai/flows/provide-quest-hint";
 import type { PlayerStatus } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { Heart, Loader2 } from "lucide-react";
+import { Heart, Loader2, Book } from "lucide-react";
 
 interface StatusPopupProps {
   open: boolean;
@@ -177,6 +177,28 @@ export function StatusPopup({ open, onOpenChange, stats }: StatusPopupProps) {
               </Accordion>
             ) : (
               <p className="text-center text-muted-foreground">{t('noQuests')}</p>
+            )}
+          </div>
+          <Separator />
+          <div className="py-4">
+            <h3 className="mb-2 font-headline font-semibold flex items-center gap-2">
+              <Book className="h-4 w-4" /> {t('journal')}
+            </h3>
+            {stats.journal && Object.keys(stats.journal).length > 0 ? (
+              <Accordion type="single" collapsible className="w-full space-y-2">
+                {Object.entries(stats.journal).reverse().map(([day, entry]) => (
+                  <AccordionItem value={`day-${day}`} key={day} className="p-2 bg-muted rounded-md border-none">
+                    <AccordionTrigger className="py-0 text-left hover:no-underline text-muted-foreground">
+                      {t('dayX', { day })}
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-2 text-accent-foreground/90 italic whitespace-pre-line">
+                      {entry}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            ) : (
+              <p className="text-center text-muted-foreground">{t('noJournalEntries')}</p>
             )}
           </div>
         </ScrollArea>

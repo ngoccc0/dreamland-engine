@@ -541,6 +541,11 @@ export const translations = {
     critChance: "Critical Chance",
     attackSpeed: "Attack Speed",
     cooldownReduction: "Cooldown Reduction",
+    journal: "Journal",
+    dayX: "Day {day}",
+    noJournalEntries: "No entries yet.",
+    newDay: "A new day has begun.",
+    journalUpdated: "Your journal has been updated.",
 
     // Inventory Popup
     inventoryPopupTitle: "Inventory",
@@ -964,6 +969,11 @@ export const translations = {
     critChance: "Tỷ lệ chí mạng",
     attackSpeed: "Tốc độ đánh",
     cooldownReduction: "Giảm hồi chiêu",
+    journal: "Nhật ký",
+    dayX: "Ngày {day}",
+    noJournalEntries: "Chưa có ghi chép nào.",
+    newDay: "Một ngày mới đã bắt đầu.",
+    journalUpdated: "Nhật ký của bạn đã được cập nhật.",
 
     // Inventory Popup
     inventoryPopupTitle: "Túi đồ",

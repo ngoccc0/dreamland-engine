@@ -8,3 +8,4 @@ import '@/ai/flows/generate-new-quest.ts';
 import '@/ai/flows/provide-quest-hint.ts';
 import '@/ai/flows/generate-new-item.ts';
 import '@/ai/flows/fuse-items-flow.ts';
+import '@/ai/flows/generate-journal-entry.ts';

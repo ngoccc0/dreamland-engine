@@ -42,6 +42,13 @@ Mọi hành động quan trọng đều được quyết định bằng một l�
 
 Trò chơi sẽ âm thầm phân tích hành động của bạn. Nếu bạn chiến đấu nhiều, bạn sẽ dần trở thành **Chiến binh (Warrior)** và nhận thưởng về sát thương. Khám phá nhiều sẽ biến bạn thành **Nhà thám hiểm (Explorer)**, di chuyển hiệu quả hơn. Chế tạo nhiều sẽ giúp bạn thành một **Nghệ nhân (Artisan)** với các lợi thế riêng.
 
+### 7. Thế Giới Sống (Living World)
+
+Thế giới của Dreamland Engine không tĩnh tại. Nó sống và thở thông qua các hệ thống mô phỏng phức tạp chạy ngầm, tạo ra một trải nghiệm luôn luôn biến đổi.
+- **Thời tiết động:** Mỗi vùng có hệ thống thời tiết riêng, ảnh hưởng đến nhiệt độ, tầm nhìn, và cả gameplay.
+- **Hệ sinh thái tài nguyên:** Tài nguyên như cây cỏ có thể tự sinh sôi trong điều kiện thuận lợi hoặc lụi tàn nếu môi trường trở nên khắc nghiệt.
+- **Vòng đời sinh vật:** Các sinh vật sẽ tự di chuyển để tìm thức ăn theo chế độ ăn của chúng, và thậm chí có thể sinh sản nếu được ăn no, tạo ra một hệ sinh thái luôn biến động.
+
 ---
 
 ## 📖 Nội Dung Trò Chơi

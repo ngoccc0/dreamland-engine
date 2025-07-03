@@ -41,7 +41,7 @@ export function FusionPopup({ open, onOpenChange, playerItems, itemDefinitions, 
   };
   
   const handleFuseClick = () => {
-    if (selectedItems.length < 2) return;
+    if (!canFuse()) return;
     onFuse(selectedItems);
     setSelectedItems([]);
     onOpenChange(false);
@@ -57,6 +57,15 @@ export function FusionPopup({ open, onOpenChange, playerItems, itemDefinitions, 
       });
       return Array.from(availableMap.values());
   }
+
+  const canFuse = (): boolean => {
+    if (selectedItems.length < 2 || selectedItems.length > 3) return false;
+    const hasTool = selectedItems.some(item => {
+        const def = itemDefinitions[item.name];
+        return def?.category === 'Tool';
+    });
+    return hasTool;
+  };
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if(!isOpen) setSelectedItems([]); onOpenChange(isOpen); }}>
@@ -121,7 +130,7 @@ export function FusionPopup({ open, onOpenChange, playerItems, itemDefinitions, 
                             </div>
                         ))}
                     </div>
-                    <Button onClick={handleFuseClick} disabled={selectedItems.length < 2 || isLoading}>
+                    <Button onClick={handleFuseClick} disabled={!canFuse() || isLoading}>
                         {isLoading ? t('fusing') : t('fuseItems')}
                     </Button>
                  </div>

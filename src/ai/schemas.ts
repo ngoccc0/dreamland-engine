@@ -41,6 +41,7 @@ export const ItemDefinitionSchema = z.object({
     description: z.string(),
     tier: z.number(),
     category: ItemCategorySchema,
+    subCategory: z.string().optional().describe("A more specific category like 'Meat', 'Fruit', 'Potion'."),
     emoji: z.string().describe("A single emoji that represents the item."),
     effects: z.array(ItemEffectSchema),
     baseQuantity: z.object({ min: z.number(), max: z.number() }),
@@ -164,6 +165,7 @@ export const GeneratedItemSchema = z.object({
     description: z.string().describe("A flavorful, one-sentence description of the item."),
     emoji: z.string().describe("A single emoji that represents the item."),
     category: ItemCategorySchema,
+    subCategory: z.string().optional().describe("A more specific category like 'Meat', 'Fruit', 'Potion'."),
     tier: z.number().int().min(1).max(6).describe("The tier of the item, from 1 (common) to 6 (legendary)."),
     effects: z.array(ItemEffectSchema).describe("An array of effects the item provides. Can be empty for non-consumable items."),
     baseQuantity: z.object({
@@ -263,10 +265,7 @@ export const FuseItemsInputSchema = z.object({
 
 
 export const FuseItemsOutputSchema = z.object({
-  success: z.boolean().describe("Whether the fusion attempt was successful."),
-  narrative: z.string().describe("A narrative description of the fusion process and its outcome. This should be flavorful and reflect the input items and environment."),
-  resultItem: GeneratedItemSchema.optional().describe("The new item created if the fusion was successful. This item should be a logical combination of the inputs."),
-  failureType: z.enum(['totalLoss', 'randomItem', 'backfire']).optional().describe("The type of failure. 'totalLoss' means ingredients are lost. 'randomItem' means an unexpected item was created. 'backfire' means it harmed the player."),
-  randomFailureItem: GeneratedItemSchema.optional().describe("An unexpected, often unrelated, item created on a 'randomItem' failure."),
-  backfireDamage: z.number().optional().describe("Amount of damage dealt to the player on a 'backfire' failure."),
+  outcome: z.enum(['success', 'degraded', 'totalLoss']).describe("The outcome of the fusion: 'success' creates a better item, 'degraded' creates a lower-tier item from the ingredients, 'totalLoss' destroys the items when ingredients are tier 1."),
+  narrative: z.string().describe("A narrative description of the fusion process and its outcome."),
+  resultItem: GeneratedItemSchema.optional().describe("The new item created, either on 'success' or 'degraded' outcome."),
 });

@@ -44,7 +44,7 @@ export type GenerateWorldSetupInput = z.infer<typeof GenerateWorldSetupInputSche
 
 // -- Task A Output: The most complex part, just the items. --
 const ItemCatalogOutputSchema = z.object({
-    customItemCatalog: z.array(GeneratedItemSchema).describe("A shared catalog of 5-10 unique, thematic items invented for this specific game world theme."),
+    customItemCatalog: z.array(GeneratedItemSchema).min(5).max(10).describe("A shared catalog of 5-10 unique, thematic items invented for this specific game world theme."),
 });
 
 // -- Task B Output: Names and narrative concepts combined. --
@@ -83,15 +83,16 @@ export async function generateWorldSetup(input: GenerateWorldSetupInput): Promis
 // -- Template for Task A: Item Catalog Generation --
 const itemCatalogPromptTemplate = `You are a creative world-building assistant specializing in game item design. ALL TEXT in your response MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
 
-Based on the user's idea, your task is to generate **a small, initial catalog of 5 to 10 unique, thematically appropriate items** that could be found in this world.
+Based on the user's idea, your task is to generate **a small, initial catalog of EXACTLY 5 to 10 unique, thematically appropriate items** that could be found in this world.
 
 **User's Idea:** {{{userInput}}}
 
 **Rules:**
-1.  The "customItemCatalog" array in your JSON output MUST contain between 5 and 10 items.
+1.  The "customItemCatalog" array in your JSON output MUST contain between 5 and 10 items. This is a strict rule.
 2.  For each item, you MUST define all required fields: name, description, emoji, category, tier, effects, baseQuantity, and spawnBiomes. You may optionally define growthConditions.
 3.  For the 'category' field, use one of these exact values: 'Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion'.
-4.  The theme of the items should strongly reflect the user's input.`;
+4. For 'Food' category items, please also provide a 'subCategory' field, such as 'Meat', 'Fruit', or 'Vegetable'.
+5.  The theme of the items should strongly reflect the user's input.`;
 
 // -- Template for Task B: Narrative Concepts & World Names --
 const conceptsAndNamesPromptTemplate = `You are a creative Game Master. ALL TEXT in your response (world names, initial narrative, etc.) MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a non-negotiable, strict requirement.
@@ -142,7 +143,7 @@ const generateWorldSetupFlow = ai.defineFlow(
                 console.warn(`Model ${modelName} failed for item catalog generation. Trying next model.`, error);
             }
         }
-        throw new Error('All primary models failed for item catalog generation.');
+        throw new Error('All models failed for item catalog generation.');
     })();
     
     // Task B: Generate narrative concepts and world names. Use a fast, cost-effective model.

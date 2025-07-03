@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/context/language-context";
-import type { PlayerItem, ItemDefinition, Chunk } from "@/lib/game/types";
+import type { PlayerItem, ItemDefinition, Chunk, ItemCategory } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +24,23 @@ interface InventoryPopupProps {
   enemy: Chunk['enemy'];
   onUseItem: (itemName: string, target: 'player' | string) => void;
 }
+
+const categoryEmojis: Record<string, string> = {
+  Weapon: '⚔️',
+  Tool: '🛠️',
+  Material: '🧱',
+  Food: '🍴',
+  Support: '❤️‍🩹',
+  Magic: '✨',
+  Equipment: '🛡️',
+  'Energy Source': '⚡',
+  Data: '📜',
+  Fusion: '🌀',
+  Meat: '🥩',
+  Fruit: '🍎',
+  Vegetable: '🥬',
+  Potion: '🧪',
+};
 
 export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, enemy, onUseItem }: InventoryPopupProps) {
   const { t } = useLanguage();
@@ -53,6 +70,10 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                     const isUsableOnEnemy = enemy && definition && t(enemy.type as TranslationKey) && enemy.diet.includes(item.name);
                     const isInteractable = isUsableOnSelf || isUsableOnEnemy;
 
+                    const itemCategory = definition?.category;
+                    const itemSubCategory = definition?.subCategory;
+                    const categoryEmoji = itemSubCategory ? categoryEmojis[itemSubCategory] : (itemCategory ? categoryEmojis[itemCategory] : '❓');
+
                     return (
                       <li key={index}>
                         <DropdownMenu>
@@ -70,7 +91,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                                             <span className="text-foreground">{t(item.name as TranslationKey)}</span>
                                             <div className="flex items-center gap-2">
                                               <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary/10 text-primary-foreground font-semibold">{t('tier', { tier: item.tier })}</span>
-                                              {definition && definition.category && <span className="text-xs px-1.5 py-0.5 rounded-full bg-accent/80 text-accent-foreground">{t(definition.category as TranslationKey)}</span>}
+                                              {definition && definition.category && <span className="text-xs px-1.5 py-0.5 rounded-full bg-accent/80 text-accent-foreground flex items-center gap-1">{categoryEmoji} {t(definition.category as TranslationKey)}</span>}
                                             </div>
                                         </div>
                                     </div>

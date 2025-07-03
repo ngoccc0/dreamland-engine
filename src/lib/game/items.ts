@@ -117,6 +117,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_thuoc_mau_yeu_desc',
         tier: 1,
         category: 'Support',
+        subCategory: 'Potion',
         emoji: '🧪',
         effects: [{ type: 'HEAL', amount: 35 }],
         baseQuantity: { min: 1, max: 1 }
@@ -143,6 +144,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_thit_soi_song_desc',
         tier: 1,
         category: 'Food',
+        subCategory: 'Meat',
         emoji: '🥩',
         effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
         baseQuantity: { min: 1, max: 1 }
@@ -175,6 +177,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_thit_heo_rung_desc',
         tier: 2,
         category: 'Food',
+        subCategory: 'Meat',
         emoji: '🍖',
         effects: [{ type: 'RESTORE_STAMINA', amount: 20 }],
         baseQuantity: { min: 1, max: 2 }
@@ -207,6 +210,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_thit_tho_desc',
         tier: 1,
         category: 'Food',
+        subCategory: 'Meat',
         emoji: '🐰',
         effects: [{ type: 'RESTORE_STAMINA', amount: 10 }],
         baseQuantity: { min: 1, max: 2 }
@@ -247,6 +251,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_trung_ran_desc',
         tier: 2,
         category: 'Food',
+        subCategory: 'Misc',
         emoji: '🥚',
         effects: [],
         baseQuantity: { min: 2, max: 4 }
@@ -327,6 +332,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_thit_de_nui_desc',
         tier: 2,
         category: 'Food',
+        subCategory: 'Meat',
         emoji: '🍖',
         effects: [{ type: 'RESTORE_STAMINA', amount: 25 }],
         baseQuantity: { min: 1, max: 2 }
@@ -359,6 +365,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_thit_bao_tuyet_desc',
         tier: 3,
         category: 'Food',
+        subCategory: 'Meat',
         emoji: '🍖',
         effects: [{ type: 'RESTORE_STAMINA', amount: 40 }],
         baseQuantity: { min: 1, max: 2 }
@@ -401,6 +408,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_qua_mong_an_duoc_desc',
         tier: 1,
         category: 'Food',
+        subCategory: 'Fruit',
         emoji: '🍓',
         effects: [{ type: 'RESTORE_STAMINA', amount: 15 }],
         baseQuantity: { min: 2, max: 6 },
@@ -413,6 +421,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_nam_doc_desc',
         tier: 2,
         category: 'Material',
+        subCategory: 'Vegetable',
         emoji: '🍄',
         effects: [], // No positive effects
         baseQuantity: { min: 1, max: 3 },
@@ -425,6 +434,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_thao_duoc_chua_lanh_desc',
         tier: 2,
         category: 'Support',
+        subCategory: 'Potion',
         emoji: '🌿',
         effects: [{ type: 'HEAL', amount: 20 }],
         baseQuantity: { min: 1, max: 2 },
@@ -489,6 +499,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_mat_ong_hoang_desc',
         tier: 2,
         category: 'Food',
+        subCategory: 'Misc',
         emoji: '🍯',
         effects: [{ type: 'HEAL', amount: 10 }, { type: 'RESTORE_STAMINA', amount: 15 }],
         baseQuantity: { min: 1, max: 1 }
@@ -532,6 +543,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_lua_mi_desc',
         tier: 1,
         category: 'Food',
+        subCategory: 'Vegetable',
         emoji: '🌾',
         effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
         baseQuantity: { min: 2, max: 5 }
@@ -556,6 +568,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_trung_chim_hoang_desc',
         tier: 1,
         category: 'Food',
+        subCategory: 'Misc',
         emoji: '🥚',
         effects: [{ type: 'RESTORE_STAMINA', amount: 20 }],
         baseQuantity: { min: 2, max: 4 }
@@ -564,6 +577,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_re_cu_an_duoc_desc',
         tier: 1,
         category: 'Food',
+        subCategory: 'Vegetable',
         emoji: '🥔',
         effects: [{ type: 'RESTORE_STAMINA', amount: 25 }],
         baseQuantity: { min: 1, max: 3 }
@@ -580,6 +594,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_nam_mo_desc',
         tier: 1,
         category: 'Food',
+        subCategory: 'Vegetable',
         emoji: '🍄',
         effects: [{ type: 'RESTORE_STAMINA', amount: 10 }],
         baseQuantity: { min: 2, max: 5 }
@@ -598,6 +613,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_binh_nuoc_cu_desc',
         tier: 1,
         category: 'Support',
+        subCategory: 'Potion',
         emoji: '💧',
         effects: [{ type: 'RESTORE_STAMINA', amount: 25 }],
         baseQuantity: { min: 1, max: 1 }
@@ -614,6 +630,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_hoa_xuong_rong_desc',
         tier: 1,
         category: 'Food',
+        subCategory: 'Fruit',
         emoji: '🌵',
         effects: [{ type: 'RESTORE_STAMINA', amount: 20 }],
         baseQuantity: { min: 1, max: 2 }
@@ -646,6 +663,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_cay_xuong_rong_nho_desc',
         tier: 1,
         category: 'Food',
+        subCategory: 'Vegetable',
         emoji: '🌵',
         effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
         baseQuantity: { min: 1, max: 3 },
@@ -680,6 +698,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_trung_bo_sat_desc',
         tier: 2,
         category: 'Material',
+        subCategory: 'Misc',
         emoji: '🥚',
         effects: [],
         baseQuantity: { min: 2, max: 5 }
@@ -688,6 +707,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_nam_dam_lay_desc',
         tier: 1,
         category: 'Food',
+        subCategory: 'Vegetable',
         emoji: '🍄',
         effects: [{ type: 'RESTORE_STAMINA', amount: 10 }],
         baseQuantity: { min: 2, max: 4 }
@@ -746,6 +766,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_cay_thuoc_nui_desc',
         tier: 3,
         category: 'Support',
+        subCategory: 'Potion',
         emoji: '🌿',
         effects: [{ type: 'HEAL', amount: 50 }],
         baseQuantity: { min: 1, max: 1 }
@@ -754,6 +775,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_trung_griffon_desc',
         tier: 6,
         category: 'Data',
+        subCategory: 'Misc',
         emoji: '🥚',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
@@ -786,6 +808,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_trung_dai_bang_desc',
         tier: 3,
         category: 'Food',
+        subCategory: 'Misc',
         emoji: '🥚',
         effects: [{ type: 'RESTORE_STAMINA', amount: 50 }],
         baseQuantity: { min: 1, max: 2 }
@@ -836,6 +859,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_nam_phat_quang_desc',
         tier: 3,
         category: 'Material',
+        subCategory: 'Vegetable',
         emoji: '🍄',
         effects: [], // Special effect would require new logic, so no effect for now.
         baseQuantity: { min: 2, max: 5 },
@@ -848,6 +872,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_tui_trung_nhen_desc',
         tier: 3,
         category: 'Material',
+        subCategory: 'Misc',
         emoji: '🥚',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
@@ -914,6 +939,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         description: 'item_qua_la_desc',
         tier: 2,
         category: 'Food',
+        subCategory: 'Fruit',
         emoji: '🥥',
         effects: [{ type: 'RESTORE_STAMINA', amount: 15 }],
         baseQuantity: { min: 1, max: 3 }

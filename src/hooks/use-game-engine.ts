@@ -1510,6 +1510,17 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             successChanceBonus += 10;
         }
 
+        // 2. Consume ingredients from player state first
+        let newItems = [...playerStats.items];
+        itemsToFuse.forEach(itemToConsume => {
+            const index = newItems.findIndex(i => i.name === itemToConsume.name);
+            if (index !== -1) {
+                newItems[index].quantity -= 1;
+            }
+        });
+        newItems = newItems.filter(i => i.quantity > 0);
+        setPlayerStats(prev => ({...prev, items: newItems}));
+
         try {
             const result = await fuseItems({
                 itemsToFuse,
@@ -1522,60 +1533,46 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
 
             addNarrativeEntry(result.narrative, 'narrative');
             
-            // 2. Consume ingredients
-            let newItems = [...playerStats.items];
-            itemsToFuse.forEach(itemToConsume => {
-                const index = newItems.findIndex(i => i.name === itemToConsume.name);
-                if (index !== -1) {
-                    newItems[index].quantity -= 1;
-                }
-            });
-            newItems = newItems.filter(i => i.quantity > 0);
-            
             // 3. Update state based on result
-            if (result.success && result.resultItem) {
-                const newItem = result.resultItem;
-                // Add to player inventory
-                const existingIndex = newItems.findIndex(i => i.name === newItem.name);
-                if (existingIndex !== -1) {
-                    newItems[existingIndex].quantity += newItem.baseQuantity.min;
-                } else {
-                    newItems.push({
-                        name: newItem.name,
-                        quantity: newItem.baseQuantity.min,
-                        tier: newItem.tier,
-                        emoji: newItem.emoji
-                    });
-                }
-                
-                // Add to world definitions
-                if(!customItemDefinitions[newItem.name]) {
-                    setCustomItemCatalog(prev => [...prev, newItem]);
-                    setCustomItemDefinitions(prev => ({
-                        ...prev,
-                        [newItem.name]: {
-                            description: newItem.description,
-                            tier: newItem.tier,
-                            category: newItem.category,
-                            emoji: newItem.emoji,
-                            effects: newItem.effects as ItemEffect[],
-                            baseQuantity: newItem.baseQuantity,
-                            growthConditions: newItem.growthConditions,
+            if (result.outcome === 'success' || result.outcome === 'degraded') {
+                if (result.resultItem) {
+                    const newItem = result.resultItem;
+                    // Add to player inventory
+                     setPlayerStats(prev => {
+                        const updatedInventory = [...prev.items];
+                        const existingIndex = updatedInventory.findIndex(i => i.name === newItem.name);
+                        if (existingIndex !== -1) {
+                            updatedInventory[existingIndex].quantity += newItem.baseQuantity.min;
+                        } else {
+                            updatedInventory.push({
+                                name: newItem.name,
+                                quantity: newItem.baseQuantity.min,
+                                tier: newItem.tier,
+                                emoji: newItem.emoji
+                            });
                         }
-                    }));
+                        return {...prev, items: updatedInventory};
+                    });
+                    
+                    // Add to world definitions
+                    if(!customItemDefinitions[newItem.name]) {
+                        setCustomItemCatalog(prev => [...prev, newItem]);
+                        setCustomItemDefinitions(prev => ({
+                            ...prev,
+                            [newItem.name]: {
+                                description: newItem.description,
+                                tier: newItem.tier,
+                                category: newItem.category,
+                                emoji: newItem.emoji,
+                                effects: newItem.effects as ItemEffect[],
+                                baseQuantity: newItem.baseQuantity,
+                                growthConditions: newItem.growthConditions,
+                            }
+                        }));
+                    }
                 }
-                setPlayerStats(prev => ({...prev, items: newItems}));
-
-            } else {
-                // Handle various failure types
-                 setPlayerStats(prev => ({...prev, items: newItems}));
-                 if (result.failureType === 'backfire' && result.backfireDamage) {
-                    setPlayerStats(prev => ({...prev, hp: Math.max(0, prev.hp - result.backfireDamage)}));
-                 }
-                 if(result.failureType === 'randomItem' && result.randomFailureItem) {
-                     // Handle adding the random item similar to success case
-                 }
             }
+            // For 'totalLoss', items are already consumed. Nothing more to do.
 
         } catch(e) {
             console.error("AI Fusion failed:", e);

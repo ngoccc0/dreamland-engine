@@ -503,7 +503,7 @@ export const translations = {
     fusion: "Fusion",
     fusionTooltip: "Experimentally combine items.",
     fusionError: "The fusion attempt failed catastrophically. Try again under different conditions.",
-
+    fusionDesc: "Experiment by combining 2 or 3 items. Requires at least one 'Tool' item. The environment can affect the outcome. Results are not guaranteed!",
 
     // Controls
     moveAndAttack: "Move & Attack",
@@ -562,7 +562,6 @@ export const translations = {
     
     // Fusion Popup
     fusionAltar: "Fusion Altar",
-    fusionDesc: "Experiment by combining 2 or 3 items. The environment can affect the outcome. Results are not guaranteed!",
     yourInventory: "Your Inventory",
     fusionSlots: "Fusion Slots",
     emptySlot: "Empty Slot...",
@@ -752,7 +751,7 @@ export const translations = {
     'thợ rèn dung nham': 'Thợ rèn dung nham',
     'hỏa tinh bị mắc kẹt': 'Hỏa tinh bị mắc kẹt',
 
-    gameTitle: "Dreamland Engine",
+    gameTitle: "Ký Sự Lãng Du",
     // Language Selector
     selectLanguage: "Chọn Ngôn Ngữ",
 
@@ -906,6 +905,7 @@ export const translations = {
     fusion: "Hợp nhất",
     fusionTooltip: "Thử nghiệm kết hợp các vật phẩm.",
     fusionError: "Nỗ lực hợp nhất đã thất bại thảm hại. Hãy thử lại trong điều kiện khác.",
+    fusionDesc: "Thử nghiệm bằng cách kết hợp 2 hoặc 3 vật phẩm. Yêu cầu ít nhất một vật phẩm loại 'Công cụ'. Môi trường có thể ảnh hưởng đến kết quả. Kết quả không được đảm bảo!",
 
     // Controls
     moveAndAttack: "Di chuyển & Tấn công",
@@ -964,7 +964,6 @@ export const translations = {
     
     // Fusion Popup
     fusionAltar: "Bàn thờ Hợp nhất",
-    fusionDesc: "Thử nghiệm bằng cách kết hợp 2 hoặc 3 vật phẩm. Môi trường có thể ảnh hưởng đến kết quả. Kết quả không được đảm bảo!",
     yourInventory: "Túi đồ của bạn",
     fusionSlots: "Ô hợp nhất",
     emptySlot: "Ô trống...",

@@ -46,6 +46,7 @@ Your task is to invent one (1) single new item for the player. The entire respon
     - **artisan:** A rare new material, a unique energy source, or a special tool for crafting.
     - **none:** A general-purpose item that could be useful for any player.
 4.  You MUST define all required fields for the item: name, description, emoji, category, tier, effects, baseQuantity, and spawnBiomes.
+5.  For 'Food' category items, please also provide a 'subCategory' field, such as 'Meat', 'Fruit', or 'Vegetable'.
 
 **Task:**
 Generate one (1) new item in the required JSON format.

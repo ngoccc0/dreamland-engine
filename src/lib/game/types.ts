@@ -309,6 +309,7 @@ export interface ItemDefinition {
   description: string;
   tier: number;
   category: ItemCategory;
+  subCategory?: string;
   emoji: string;
   effects: ItemEffect[];
   baseQuantity: { min: number, max: number };
@@ -324,6 +325,7 @@ export interface GeneratedItem {
     description: string;
     tier: number;
     category: ItemCategory;
+    subCategory?: string;
     emoji: string;
     effects: ItemEffect[];
     baseQuantity: { min: number; max: number; };

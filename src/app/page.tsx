@@ -4,7 +4,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import GameLayout from '@/components/game/game-layout';
 import { WorldSetup } from '@/components/game/world-setup';
-import { LanguageSelector } from '@/components/game/language-selector';
 import { SettingsPopup } from '@/components/game/settings-popup';
 import type { GameState, PlayerItem, ItemDefinition, GeneratedItem, WorldConcept, Skill } from '@/lib/game/types';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,7 @@ type NewGameData = {
 
 export default function Home() {
   const { t } = useLanguage();
-  const [loadState, setLoadState] = useState<'loading' | 'select_language' | 'prompt' | 'new_game' | 'continue_game'>('loading');
+  const [loadState, setLoadState] = useState<'loading' | 'prompt' | 'new_game' | 'continue_game'>('loading');
   const [savedGameState, setSavedGameState] = useState<GameState | null>(null);
   const [newGameData, setNewGameData] = useState<NewGameData | null>(null);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
@@ -62,12 +61,9 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const savedLanguage = localStorage.getItem('gameLanguage');
-    if (!savedLanguage) {
-      setLoadState('select_language');
-    } else {
-      parseAndSetSavedGame();
-    }
+    // The LanguageProvider will handle loading the language from localStorage.
+    // We can directly proceed to check for a saved game.
+    parseAndSetSavedGame();
   }, [parseAndSetSavedGame]);
 
   const handleContinue = () => setLoadState('continue_game');
@@ -77,11 +73,6 @@ export default function Home() {
     setSavedGameState(null);
     setNewGameData(null);
     setLoadState('new_game');
-  };
-
-  const handleLanguageSelected = () => {
-    // After language is selected, determine where to go next.
-    parseAndSetSavedGame();
   };
 
   const onWorldCreated = (world: WorldConcept) => {
@@ -162,10 +153,6 @@ export default function Home() {
         </div>
       </div>
     );
-  }
-
-  if (loadState === 'select_language') {
-    return <LanguageSelector onLanguageSelected={handleLanguageSelected} />;
   }
   
   if (loadState === 'prompt') {

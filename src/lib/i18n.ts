@@ -685,6 +685,8 @@ export const translations = {
     // Settings
     gameSettings: "Game Settings",
     gameSettingsDesc: "Adjust your game experience.",
+    language: "Language",
+    languageDesc: "Choose the display language for the game interface and narrative.",
     aiStoryteller: "AI Storyteller",
     aiStorytellerDesc: "Enable to have an AI generate dynamic narratives. Disable for a classic, rule-based experience (works offline).",
     diceType: "Dice Type",
@@ -1100,6 +1102,8 @@ export const translations = {
     // Settings
     gameSettings: "Cài đặt Game",
     gameSettingsDesc: "Điều chỉnh trải nghiệm trò chơi của bạn.",
+    language: "Ngôn ngữ",
+    languageDesc: "Chọn ngôn ngữ hiển thị cho giao diện và câu chuyện trong game.",
     aiStoryteller: "AI Kể Chuyện",
     aiStorytellerDesc: "Bật để AI tạo ra các câu chuyện động. Tắt để trải nghiệm kiểu cổ điển, dựa trên quy tắc (hoạt động ngoại tuyến).",
     diceType: "Loại xúc xắc",

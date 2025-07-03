@@ -8,9 +8,8 @@
  * It splits the generation process into three distinct, concurrent tasks to leverage the strengths
  * of different AI models, increase speed, and improve reliability with a fallback mechanism.
  *
- * 1.  **Task A (Item Catalog Generation):** The most complex creative task. It uses a fallback chain of the
- *     most powerful available models (OpenAI GPT-4, Gemini 1.5 Pro, Deepseek) to generate a rich,
- *     thematic catalog of in-game items. This ensures the highest quality output for the most critical data.
+ * 1.  **Task A (Item Catalog Generation):** Uses powerful models to generate a rich, thematic
+ *     catalog of in-game items (name, description, category). Code then assigns a logical emoji.
  *
  * 2.  **Task B (World Name Generation):** Runs in parallel. Uses a fast model (Gemini Flash) to quickly brainstorm creative world names.
  *
@@ -30,6 +29,7 @@ import {z} from 'zod';
 import type { Terrain, Skill } from '@/lib/game/types';
 import { GeneratedItemSchema, SkillSchema, NarrativeConceptArraySchema } from '@/ai/schemas';
 import { skillDefinitions } from '@/lib/game/skills';
+import { getEmojiForItem } from '@/lib/utils';
 
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
 
@@ -44,9 +44,12 @@ export type GenerateWorldSetupInput = z.infer<typeof GenerateWorldSetupInputSche
 
 // == INTERMEDIATE & FINAL OUTPUT SCHEMAS ==
 
+// -- Schema for AI-generated items (without emoji) --
+const AIGeneratedItemSchema = GeneratedItemSchema.omit({ emoji: true });
+
 // -- Task A Output: The most complex part, just the items. --
 const ItemCatalogOutputSchema = z.object({
-    customItemCatalog: z.array(GeneratedItemSchema).min(5).max(10).describe("A shared catalog of 5-10 unique, thematic items invented for this specific game world theme."),
+    customItemCatalog: z.array(AIGeneratedItemSchema).min(5).max(10).describe("A shared catalog of 5-10 unique, thematic items invented for this specific game world theme."),
 });
 
 // -- Task B Output: World Names --
@@ -95,9 +98,9 @@ Based on the user's idea, your task is to generate **a small, initial catalog of
 
 **Rules:**
 1.  The "customItemCatalog" array in your JSON output MUST contain between 5 and 10 items.
-2.  For each item, you MUST define all required fields: name, description, emoji, category, tier, effects, baseQuantity, and spawnBiomes. You may optionally define growthConditions.
-3.  For the 'category' field, use one of these exact values: 'Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion'.
-4. For 'Food' category items, please also provide a 'subCategory' field, such as 'Meat', 'Fruit', or 'Vegetable'.
+2.  For each item, you MUST define all required fields: name, description, category, tier, effects, baseQuantity, and spawnBiomes.
+3.  **DO NOT** generate an emoji. This will be handled by game logic.
+4.  For 'Food' category items, please also provide a 'subCategory' field, such as 'Meat', 'Fruit', or 'Vegetable'.
 5.  The theme of the items should strongly reflect the user's input.`;
 
 // -- Template for Task B: World Name Generation --
@@ -209,10 +212,16 @@ const generateWorldSetupFlow = ai.defineFlow(
         narrativeConceptsTask,
     ]);
     
-    const customItemCatalog = itemCatalogResult.output?.customItemCatalog;
-    if (!customItemCatalog || customItemCatalog.length === 0) {
+    const itemsWithoutEmoji = itemCatalogResult.output?.customItemCatalog;
+    if (!itemsWithoutEmoji || itemsWithoutEmoji.length === 0) {
         throw new Error("Failed to generate a valid item catalog from the AI.");
     }
+
+    // Add emojis using code logic
+    const customItemCatalog = itemsWithoutEmoji.map(item => ({
+      ...item,
+      emoji: getEmojiForItem(item.name, item.category),
+    }));
     
     const worldNames = worldNamesResult.output?.worldNames;
     if (!worldNames || worldNames.length !== 3) {

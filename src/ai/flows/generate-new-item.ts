@@ -4,7 +4,8 @@
  * @fileOverview An AI agent for dynamically generating a new item after a quest is completed.
  *
  * This flow is called by the narrative flow to inject new content into the world,
- * keeping the item pool fresh and surprising.
+ * keeping the item pool fresh and surprising. The AI is responsible for the creative
+ * aspects (name, description, category), while code handles assigning an emoji.
  *
  * - generateNewItem - The main function called by other flows.
  * - GenerateNewItemInput - The Zod schema for the input data.
@@ -14,6 +15,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { GeneratedItemSchema, GenerateNewItemInputSchema } from '@/ai/schemas';
+import { getEmojiForItem } from '@/lib/utils';
 
 // --- INPUT/OUTPUT SCHEMAS ---
 
@@ -30,10 +32,15 @@ export async function generateNewItem(input: GenerateNewItemInput): Promise<Gene
 
 
 // --- The Genkit Prompt and Flow ---
+
+// This schema defines what the AI needs to generate. It omits the emoji.
+const AI_GeneratedItemSchema = GeneratedItemSchema.omit({ emoji: true });
+
+
 const generateItemPrompt = ai.definePrompt({
     name: 'generateNewItemPrompt',
     input: { schema: GenerateNewItemInputSchema },
-    output: { schema: GeneratedItemSchema },
+    output: { schema: AI_GeneratedItemSchema },
     prompt: `You are a creative game designer for the text-based RPG '{{worldName}}'.
 Your task is to invent one (1) single new item for the player. The entire response (item name, description, etc.) MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
 
@@ -45,8 +52,9 @@ Your task is to invent one (1) single new item for the player. The entire respon
     - **explorer:** A new tool, a piece of survival gear, or a unique food item.
     - **artisan:** A rare new material, a unique energy source, or a special tool for crafting.
     - **none:** A general-purpose item that could be useful for any player.
-4.  You MUST define all required fields for the item: name, description, emoji, category, tier, effects, baseQuantity, and spawnBiomes.
+4.  You MUST define all required fields for the item: name, description, category, tier, effects, baseQuantity, and spawnBiomes.
 5.  For 'Food' category items, please also provide a 'subCategory' field, such as 'Meat', 'Fruit', or 'Vegetable'.
+6.  **DO NOT** generate an emoji. This will be handled by game logic.
 
 **Task:**
 Generate one (1) new item in the required JSON format.
@@ -60,10 +68,18 @@ const generateNewItemFlow = ai.defineFlow(
         outputSchema: GeneratedItemSchema,
     },
     async (input) => {
-        const { output } = await generateItemPrompt(input);
-        if (!output) {
+        const { output: itemWithoutEmoji } = await generateItemPrompt(input);
+        
+        if (!itemWithoutEmoji) {
             throw new Error("AI failed to generate a new item.");
         }
-        return output;
+        
+        // Add the emoji using code logic
+        const emoji = getEmojiForItem(itemWithoutEmoji.name, itemWithoutEmoji.category);
+
+        return {
+            ...itemWithoutEmoji,
+            emoji,
+        };
     }
 );

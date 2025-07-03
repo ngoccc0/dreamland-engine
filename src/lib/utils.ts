@@ -6,3 +6,65 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
+
+/**
+ * Determines an appropriate emoji for a game item based on its name and category.
+ * It uses a mapping of keywords to emojis for specific matches and falls back to
+ * a category-based map for more general cases.
+ *
+ * @param name The name of the item.
+ * @param category The category of the item (e.g., 'Weapon', 'Food').
+ * @returns A string containing a single emoji.
+ */
+export function getEmojiForItem(name: string, category: string): string {
+    const lowerName = name.toLowerCase();
+    const lowerCategory = category.toLowerCase();
+
+    // Specific keywords in the name take precedence for more accurate emojis.
+    const keywordMap: Record<string, string> = {
+        'axe': '🪓', 'pickaxe': '⛏️', 'hammer': '🔨', 'sword': '⚔️', 'blade': '🔪', 'knife': '🔪',
+        'dagger': '🔪', 'bow': '🏹', 'arrow': '🏹', 'shield': '🛡️',
+        'potion': '🧪', 'elixir': '🧪', 'vial': '🧪', 'flask': '🧪',
+        'herb': '🌿', 'leaf': '🍃', 'flower': '🌸', 'root': '🌱', 'moss': '🌿',
+        'wood': '🪵', 'log': '🪵', 'branch': '🌿', 'plank': '🪵',
+        'stone': '🪨', 'rock': '🪨', 'pebble': '🪨', 'ore': '⛏️', 'ingot': '🔩',
+        'gem': '💎', 'crystal': '💎', 'ruby': '💎', 'sapphire': '💎',
+        'meat': '🍖', 'fruit': '🍎', 'berry': '🍓', 'fish': '🐟', 'bread': '🍞', 'egg': '🥚',
+        'hide': '🩹', 'pelt': '🩹', 'leather': '👜', 'scale': '🐉',
+        'scroll': '📜', 'book': '📖', 'tome': '📖', 'map': '🗺️', 'key': '🗝️',
+        'fire': '🔥', 'flame': '🔥', 'torch': '🔥', 'lava': '🌋', 'magma': '🌋',
+        'water': '💧', 'ice': '❄️', 'snow': '❄️', 'frost': '❄️',
+        'lightning': '⚡', 'storm': '⛈️', 'wind': '💨',
+        'heart': '❤️', 'soul': '👻', 'spirit': '👻',
+        'bone': '🦴', 'skull': '💀', 'fang': '🦷', 'tooth': '🦷', 'claw': '🐾',
+        'cloth': '🧣', 'silk': '🕸️', 'thread': '🧵', 'string': '🧵', 'rope': '🪢',
+        'seed': '🌱',
+    };
+
+    for (const keyword in keywordMap) {
+        if (lowerName.includes(keyword)) {
+            return keywordMap[keyword];
+        }
+    }
+
+    // If no keyword matches, fall back to a more general category-based emoji.
+    const categoryMap: Record<string, string> = {
+        'weapon': '⚔️',
+        'material': '🧱',
+        'energy source': '⚡',
+        'food': '🍴',
+        'data': '📜',
+        'tool': '🛠️',
+        'equipment': '🛡️',
+        'support': '❤️‍🩹',
+        'magic': '✨',
+        'fusion': '🌀',
+    };
+
+    if (lowerCategory in categoryMap) {
+        return categoryMap[lowerCategory];
+    }
+    
+    // Return a default emoji if no specific or category match is found.
+    return '❓';
+}

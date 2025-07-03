@@ -6,7 +6,7 @@
  * This flow acts as a master alchemist or forge. The core logic (rules for success,
  * failure, degradation, and the resulting item's tier/category) is handled in TypeScript.
  * The AI's role is purely creative: to narrate the outcome and invent the name,
- * description, and emoji for the resulting item.
+ * and description for the resulting item.
  *
  * - fuseItems - The main function called by the game engine.
  * - FuseItemsInput - The Zod schema for the input data.
@@ -16,7 +16,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { FuseItemsInputSchema, FuseItemsOutputSchema, GeneratedItemSchema } from '@/ai/schemas';
-import { clamp } from '@/lib/utils';
+import { clamp, getEmojiForItem } from '@/lib/utils';
 
 export type FuseItemsInput = z.infer<typeof FuseItemsInputSchema>;
 export type FuseItemsOutput = z.infer<typeof FuseItemsOutputSchema>;
@@ -38,7 +38,6 @@ const FuseItemsPromptInputSchema = FuseItemsInputSchema.extend({
 const AIPartialItemSchema = GeneratedItemSchema.pick({
     name: true,
     description: true,
-    emoji: true,
     effects: true,
 });
 
@@ -71,10 +70,10 @@ The outcome has already been decided by the laws of the world. Your task is to n
 **Your Task:**
 1.  **Narrate:** Write an engaging narrative that describes the fusion process and reflects the 'determinedOutcome'.
 2.  **Invent an Item (if needed):**
-    - If the 'determinedOutcome' is 'success': Invent a **new, interesting item** that could result from this fusion. Provide its name, description, emoji, and any special effects. The game will handle its power level (tier).
-    - If the 'determinedOutcome' is 'degraded': Invent a **new, lesser item**. It should be a broken, warped, or simplified version of one of the ingredients (e.g., 'Sharp Rock' and 'Sturdy Branch' might degrade into 'Small Pebbles'). Provide its name, description, emoji, and any (likely negative) effects.
+    - If the 'determinedOutcome' is 'success': Invent a **new, interesting item** that could result from this fusion. Provide its name, description, and any special effects. The game will handle its power level (tier).
+    - If the 'determinedOutcome' is 'degraded': Invent a **new, lesser item**. It should be a broken, warped, or simplified version of one of the ingredients (e.g., 'Sharp Rock' and 'Sturdy Branch' might degrade into 'Small Pebbles'). Provide its name, description, and any (likely negative) effects.
     - If the 'determinedOutcome' is 'totalLoss': **Do not** invent a new item. Your narrative should describe the items being destroyed completely.
-3.  **Respond:** Provide your response in the required JSON format. Ensure the 'outcome' field matches the provided 'determinedOutcome'.
+3.  **Respond:** Provide your response in the required JSON format. Ensure the 'outcome' field matches the provided 'determinedOutcome'. Do NOT invent an emoji.
 `,
 });
 
@@ -154,6 +153,7 @@ const fuseItemsFlow = ai.defineFlow(
                 // --- LOGIC HANDLED BY CODE, NOT AI ---
                 category: 'Fusion', // All fused items belong to the 'Fusion' category.
                 tier: finalTier,
+                emoji: getEmojiForItem(aiOutput.resultItem.name, 'Fusion'),
                 spawnBiomes: [], // Fusion items don't spawn naturally.
                 baseQuantity: { min: 1, max: 1 }, // Fusion always produces 1 item.
             };

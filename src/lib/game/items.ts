@@ -149,7 +149,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
         baseQuantity: { min: 1, max: 1 }
     },
-    'Tơ Nhện Khổng Lồ': {
+    'Tơ Nhện Khổng lồ': {
         description: 'item_to_nhen_khong_lo_desc',
         tier: 2,
         category: 'Material',

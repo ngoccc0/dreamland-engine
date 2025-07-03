@@ -1,3 +1,4 @@
+
 import type { Language, Npc, Terrain } from "./types";
 import { structureDefinitions } from "./structures";
 
@@ -358,7 +359,7 @@ const templates_en: Record<Terrain, any> = {
                 conditions: { humanPresence: { min: 1, max: 3 }, chance: 0.05 } 
             },
         ],
-        items: templates_vi.forest.items, // Items are keyed and don't need translation here
+        items: templates_vi.forest.items,
         structures: templates_vi.forest.structures,
         enemies: [
             { data: { type: 'Wolf', emoji: '🐺', hp: 30, damage: 10, behavior: 'aggressive', size: 'medium', diet: ['Wild Boar', 'Rabbit'], satiation: 0, maxSatiation: 2, loot: [{name: 'Thịt Sói Sống', chance: 0.7, quantity: {min: 1, max: 1}}, {name: 'Nanh Sói', chance: 0.15, quantity: {min: 1, max: 2}}] }, conditions: { predatorPresence: { min: 5 }, chance: 0.4 } },
@@ -485,19 +486,19 @@ const templates_en: Record<Terrain, any> = {
     },
     cave: {
         descriptionTemplates: [
-            'Inside the [adjective] and damp cave. The sound of your footsteps echoes among the [feature].',
-            'Massive [feature] glitter in the faint light filtering from outside. The air smells of [smell].',
+            'Bên trong hang động tối [adjective] và ẩm ướt. Tiếng bước chân của bạn vang vọng giữa những [feature].',
+            'Những khối [feature] lấp lánh dưới ánh sáng yếu ớt lọt vào từ bên ngoài. Không khí có mùi [smell].',
         ],
-        adjectives: ['deep', 'cold', 'mysterious', 'labyrinthine', 'dark'],
-        features: ['stalactites', 'crystals', 'an underground river', 'ancient paintings', 'cobwebs'],
-        smells: ['damp earth', 'stagnant water', 'minerals', 'sulfur'],
+        adjectives: ['sâu thẳm', 'lạnh lẽo', 'bí ẩn', 'chằng chịt', 'tối đen'],
+        features: ['thạch nhũ', 'tinh thể', 'dòng sông ngầm', 'tranh vẽ cổ', 'mạng nhện'],
+        smells: ['đất ẩm', 'nước tù', 'khoáng chất', 'lưu huỳnh'],
         NPCs: [
             { 
-                data: { name: 'Lost Adventurer', description: 'A person in old gear, desperately drawing a map on the wall.', dialogueSeed: 'A smart but panicked person who talks fast and constantly asks for a way out.' },
+                data: { name: 'Nhà thám hiểm bị lạc', description: 'Một người với trang bị cũ kỹ, đang tuyệt vọng vẽ bản đồ lên tường.', dialogueSeed: 'Một người thông minh nhưng đang hoảng loạn, nói nhanh và liên tục hỏi về đường ra.' },
                 conditions: { humanPresence: { min: 2, max: 3 }, chance: 0.1 } 
             },
             { 
-                data: { name: 'Goblin Chieftain', description: 'A goblin larger than its kin, sitting on a throne of bones.', dialogueSeed: 'A cunning and aggressive goblin leader, speaks in a strange language but can be understood through gestures.' },
+                data: { name: 'Thủ lĩnh Goblin', description: 'Một con goblin to lớn hơn đồng loại, ngồi trên một chiếc ngai bằng xương.', dialogueSeed: 'Một thủ lĩnh goblin xảo quyệt và hung hăng, nói bằng một ngôn ngữ kỳ lạ nhưng có thể hiểu được qua cử chỉ.' },
                 conditions: { humanPresence: { min: 4 }, dangerLevel: { min: 8 }, chance: 0.2 } 
             },
         ],
@@ -522,8 +523,8 @@ const templates_en: Record<Terrain, any> = {
     },
     jungle: {
         descriptionTemplates: [
-            'You are in the middle of a [adjective] jungle. The [feature] canopy is so thick that sunlight barely penetrates. The sound of [sound] echoes everywhere.',
-            'The air is [adjective] and humid. Trees and [feature] vines grow in a tangled, green maze. The smell of [smell] is strong in the air.'
+            'Bạn đang ở giữa một khu rừng rậm [adjective]. Những tán lá [feature] dày đặc đến nỗi ánh sáng mặt trời khó có thể lọt qua. Tiếng [sound] vang vọng khắp nơi.',
+            'Không khí [adjective] và ẩm ướt. Cây cối và dây leo [feature] mọc um tùm, tạo thành một mê cung xanh. Mùi [smell] nồng nặc trong không khí.'
         ],
         adjectives: ['primeval', 'tropical', 'suffocating', 'mysterious', 'vibrant'],
         features: ['giant', 'vines', 'strange flowers', 'hidden waterfalls', 'ancient ruins'],
@@ -549,19 +550,19 @@ const templates_en: Record<Terrain, any> = {
     },
     volcanic: {
         descriptionTemplates: [
-            'The ground is [adjective] and cracked beneath your feet. The air is thick with the smell of [smell]. In the distance, a [feature] spews columns of black smoke.',
-            'The landscape here is [adjective]. Cooled [feature] flows form bizarre shapes. Occasionally, you feel the ground tremble slightly.'
+            'Mặt đất [adjective] và nứt nẻ dưới chân bạn. Không khí nồng nặc mùi [smell]. Xa xa, một [feature] phun trào những cột khói đen.',
+            'Cảnh quan ở đây thật [adjective]. Những dòng [feature] đã nguội lạnh tạo thành những hình thù kỳ quái. Thỉnh thoảng, bạn cảm nhận được mặt đất rung chuyển nhẹ.'
         ],
         adjectives: ['desolate', 'scorching', 'fearsome', 'ash-covered'],
         features: ['lava flows', 'fissures', 'basalt columns', 'acid pools'],
         smells: ['sulfur', 'burning rock', 'molten metal'],
         NPCs: [
             { 
-                data: { name: 'Lava Blacksmith', description: 'A dwarf with skin as red as copper, using a large hammer to forge on a molten rock anvil.', dialogueSeed: 'A master blacksmith, a man of few words, only interested in creating legendary weapons from volcanic materials.' },
+                data: { name: 'Lava Blacksmith', description: 'Một người lùn với làn da đỏ như đồng, đang dùng một chiếc búa lớn để rèn trên một tảng đá nóng chảy.', dialogueSeed: 'Một thợ rèn bậc thầy, ít nói, chỉ quan tâm đến việc tạo ra những vũ khí huyền thoại từ vật liệu núi lửa.' },
                 conditions: { humanPresence: { min: 1 }, temperature: { min: 9 }, chance: 0.1 } 
             },
             { 
-                data: { name: 'Trapped Fire Elemental', description: 'A fiery entity trapped within an obsidian rock.', dialogueSeed: 'A powerful but weakening elemental being, promising power if released.' },
+                data: { name: 'Trapped Fire Elemental', description: 'Một thực thể bằng lửa bị mắc kẹt trong một tảng obsidian.', dialogueSeed: 'Một sinh vật nguyên tố mạnh mẽ nhưng đang yếu dần, hứa hẹn sức mạnh nếu được giải thoát.' },
                 conditions: { magicAffinity: { min: 8 }, chance: 0.05 } 
             }
         ],

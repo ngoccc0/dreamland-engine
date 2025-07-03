@@ -19,9 +19,9 @@ import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermomet
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
 import { useGameEngine } from "@/hooks/use-game-engine";
-import type { MapCell, ItemDefinition, GeneratedItem, WorldConcept, PlayerItem } from "@/lib/game/types";
+import type { MapCell, ItemDefinition, GeneratedItem, WorldConcept, PlayerItem, GameState } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
-import type { GameState, TranslationKey } from "@/lib/game/types";
+import type { TranslationKey } from "@/lib/i18n";
 
 
 interface GameLayoutProps {

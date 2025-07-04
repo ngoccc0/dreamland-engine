@@ -14,7 +14,7 @@
  * 2.  **Task B (World Name Generation):** Runs in parallel. Uses a fast model (Gemini Flash) to quickly brainstorm creative world names.
  *
  * 3.  **Task C (Narrative Concept Generation):** Runs in parallel. Uses another distinct model (Deepseek) to generate
- *     the starting points for the story (descriptions, biomes, quests), adding stylistic variety.
+ *     the starting points for the story (descriptions, quests), adding stylistic variety.
  *
  * The results from all three tasks are then combined, and player inventory/skills are added programmatically to
  * create the final, ready-to-play world concepts.
@@ -66,7 +66,7 @@ const WorldNamesOutputSchema = z.object({
 
 // -- Task C Output: Narrative Concepts --
 const NarrativeConceptsOutputSchema = z.object({
-    narrativeConcepts: NarrativeConceptArraySchema.describe("An array of three distinct narrative starting points, including descriptions, biomes, and quests."),
+    narrativeConcepts: NarrativeConceptArraySchema.describe("An array of three distinct narrative starting points, including descriptions and quests."),
 });
 
 
@@ -129,11 +129,10 @@ Based on the user's idea, you need to generate **three (3) distinct starting con
 
 For EACH of the three concepts, create the specific narrative details:
 1.  **initialNarrative:** A rich, descriptive opening paragraph.
-2.  **startingBiome:** The biome where the player begins (forest, grassland, desert, swamp, mountain, or cave).
-3.  **initialQuests:** One or two simple starting quests.
+2.  **initialQuests:** One or two simple starting quests.
 
 **Critical Rules:**
-- **DO NOT** create world names, player items, an item catalog, or starting skills.
+- **DO NOT** create world names, player items, a starting biome, an item catalog, or starting skills.
 
 Provide the response as a single JSON object containing the 'narrativeConcepts' array.`;
 
@@ -147,6 +146,10 @@ const generateWorldSetupFlow = ai.defineFlow(
   },
   async (input) => {
     
+    console.log('--- STARTING WORLD GENERATION ---');
+    console.log('User Input:', input.userInput);
+    console.log('Language:', input.language);
+    
     // --- Step 1: Define three independent AI tasks to run in parallel ---
     
     // Task A: Generate the item catalog.
@@ -158,13 +161,13 @@ const generateWorldSetupFlow = ai.defineFlow(
 
         for (const modelName of modelsToTry) {
             try {
-                console.log(`Attempting item catalog generation with model: ${modelName}`);
+                console.log(`[Task A] Attempting item catalog generation with model: ${modelName}`);
                 const result = await ai.generate({
                     model: modelName,
                     prompt: renderedPrompt,
                     output: { schema: ItemCatalogCreativeOutputSchema },
                 });
-                console.log(`Successfully generated item catalog with ${modelName}.`);
+                console.log(`[Task A] SUCCESS with ${modelName}. Raw AI Output:`, result.output);
                 return result;
             } catch (error: any) {
                 const errorMessage = `Model ${modelName} failed. Reason: ${error.message || error}`;
@@ -179,13 +182,17 @@ const generateWorldSetupFlow = ai.defineFlow(
     
     // Task B: Generate world names.
     const worldNamesTask = (async () => {
+        const modelName = 'googleai/gemini-2.0-flash';
+        console.log(`[Task B] Attempting world name generation with model: ${modelName}`);
         const template = Handlebars.compile(worldNamesPromptTemplate);
         const renderedPrompt = template(input);
-        return ai.generate({
-            model: 'googleai/gemini-2.0-flash',
+        const result = await ai.generate({
+            model: modelName,
             prompt: renderedPrompt,
             output: { schema: WorldNamesOutputSchema },
         });
+        console.log(`[Task B] SUCCESS with ${modelName}. Raw AI Output:`, result.output);
+        return result;
     })();
 
     // Task C: Generate narrative concepts.
@@ -197,13 +204,13 @@ const generateWorldSetupFlow = ai.defineFlow(
         
         for (const modelName of modelsToTry) {
             try {
-                console.log(`Attempting narrative concepts generation with model: ${modelName}`);
+                console.log(`[Task C] Attempting narrative concepts generation with model: ${modelName}`);
                 const result = await ai.generate({
                     model: modelName,
                     prompt: renderedPrompt,
                     output: { schema: NarrativeConceptsOutputSchema },
                 });
-                console.log(`Successfully generated narrative concepts with ${modelName}.`);
+                console.log(`[Task C] SUCCESS with ${modelName}. Raw AI Output:`, result.output);
                 return result;
             } catch (error: any) {
                  const errorMessage = `Model ${modelName} failed for narrative concepts. Reason: ${error.message || error}`;
@@ -222,6 +229,8 @@ const generateWorldSetupFlow = ai.defineFlow(
         worldNamesTask,
         narrativeConceptsTask,
     ]);
+
+    console.log('--- AI TASKS COMPLETE. PROCESSING AND COMBINING RESULTS... ---');
     
     // --- Step 3: Process the AI results and combine them ---
     const creativeItems = itemCatalogResult.output?.customItemCatalog;
@@ -262,6 +271,7 @@ const generateWorldSetupFlow = ai.defineFlow(
     // --- Step 4: Combine the results and programmatically create inventory & skills ---
     const tier1Skills = skillDefinitions.filter(s => s.tier === 1);
     const tier2Skills = skillDefinitions.filter(s => s.tier === 2);
+    const availableBiomes: Terrain[] = ['forest', 'grassland', 'desert', 'swamp', 'mountain']; // Basic biomes for starting
     
     const finalConcepts = worldNames.map((name, index) => {
         const concept = narrativeConcepts[index];
@@ -286,11 +296,14 @@ const generateWorldSetupFlow = ai.defineFlow(
             // 30% chance for Tier 2
             selectedSkill = tier2Skills[Math.floor(Math.random() * tier2Skills.length)];
         }
+        
+        // Programmatically select a starting biome
+        const selectedBiome = availableBiomes[Math.floor(Math.random() * availableBiomes.length)];
 
         return {
             worldName: name,
             initialNarrative: concept.initialNarrative,
-            startingBiome: concept.startingBiome,
+            startingBiome: selectedBiome,
             playerInventory: playerInventory,
             initialQuests: concept.initialQuests,
             startingSkill: selectedSkill,
@@ -301,6 +314,8 @@ const generateWorldSetupFlow = ai.defineFlow(
         customItemCatalog,
         concepts: finalConcepts as any, // Cast to bypass strict type check for biome
     };
+    
+    console.log('--- FINAL WORLD SETUP DATA ---', finalOutput);
 
     return finalOutput;
   }

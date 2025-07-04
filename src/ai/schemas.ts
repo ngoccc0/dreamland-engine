@@ -193,7 +193,6 @@ export const GeneratedItemSchema = z.object({
 // Schema for Narrative Concepts (part of world generation)
 export const NarrativeConceptSchema = z.object({
   initialNarrative: z.string().describe('A detailed, engaging opening narrative to start the game. This should set the scene for the player.'),
-  startingBiome: z.enum(allTerrains).describe('The primary biome for the starting area.'),
   initialQuests: z.array(z.string()).describe('A list of 1-2 starting quests for the player to begin their adventure.'),
 });
 export const NarrativeConceptArraySchema = z.array(NarrativeConceptSchema).length(3);

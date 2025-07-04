@@ -108,6 +108,7 @@ export const PlayerStatusSchema = z.object({
     }).optional().describe("Tracks player actions to unlock new skills."),
     journal: z.record(z.string()).optional().describe("A record of daily journal entries written by the AI, indexed by day number."),
     dailyActionLog: z.array(z.string()).optional().describe("A log of player actions taken during the current day, used for journaling."),
+    questHints: z.record(z.string()).optional().describe("A map of quest texts to their AI-generated hints."),
 });
 
 export const EnemySchema = z.object({
@@ -292,3 +293,5 @@ export const GenerateJournalEntryInputSchema = z.object({
 export const GenerateJournalEntryOutputSchema = z.object({
   journalEntry: z.string().describe("A reflective, first-person journal entry summarizing the day's events."),
 });
+
+    

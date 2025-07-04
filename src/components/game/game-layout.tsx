@@ -54,6 +54,7 @@ export default function GameLayout(props: GameLayoutProps) {
         handleUseSkill,
         handleRest,
         handleFuseItems,
+        handleRequestQuestHint,
     } = useGameEngine(props);
 
     const [isStatusOpen, setStatusOpen] = useState(false);
@@ -289,7 +290,12 @@ export default function GameLayout(props: GameLayoutProps) {
                     </div>
                 </aside>
                 
-                <StatusPopup open={isStatusOpen} onOpenChange={setStatusOpen} stats={playerStats} />
+                <StatusPopup 
+                    open={isStatusOpen} 
+                    onOpenChange={setStatusOpen} 
+                    stats={playerStats} 
+                    onRequestHint={handleRequestQuestHint}
+                />
                 <InventoryPopup 
                     open={isInventoryOpen} 
                     onOpenChange={setInventoryOpen} 
@@ -315,3 +321,5 @@ export default function GameLayout(props: GameLayoutProps) {
         </TooltipProvider>
     );
 }
+
+    

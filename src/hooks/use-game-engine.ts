@@ -9,6 +9,7 @@ import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/gener
 import { generateNewRecipe } from "@/ai/flows/generate-new-recipe";
 import { generateJournalEntry } from "@/ai/flows/generate-journal-entry";
 import { fuseItems } from "@/ai/flows/fuse-items-flow";
+import { provideQuestHint } from "@/ai/flows/provide-quest-hint";
 import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, checkConditions, calculateCraftingOutcome } from '@/lib/game/engine';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import { recipes as staticRecipes } from '@/lib/game/recipes';
@@ -133,6 +134,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             },
             journal: {},
             dailyActionLog: [],
+            questHints: {},
         }
     );
     const [customItemDefinitions, setCustomItemDefinitions] = useState<Record<string, ItemDefinition>>(initialGameState?.customItemDefinitions || initialCustomDefs || staticItemDefinitions);
@@ -954,8 +956,32 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         }
     }, [world, playerPosition, playerStats, weatherZones, gameTime, language, customItemDefinitions, customItemCatalog, getEffectiveChunk, addNarrativeEntry, advanceGameTime, t, toast]);
 
+    const handleRequestQuestHint = useCallback(async (questText: string) => {
+        if (playerStats.questHints?.[questText] || !isOnline) {
+            return;
+        }
+
+        try {
+            const result = await provideQuestHint({ questText, language });
+            setPlayerStats(prev => ({
+                ...prev,
+                questHints: {
+                    ...prev.questHints,
+                    [questText]: result.hint,
+                }
+            }));
+        } catch (error) {
+            console.error("Failed to get quest hint:", error);
+            toast({ title: t('error'), description: t('suggestionError'), variant: "destructive" });
+            // Optionally, store the error state to show in the UI
+        }
+    }, [playerStats.questHints, isOnline, language, t, toast]);
+
     return {
         world, recipes, buildableStructures, playerStats, playerPosition, narrativeLog, isLoading, finalWorldSetup, customItemDefinitions,
         handleMove, handleAttack, handleAction, handleCustomAction, handleCraft, handleBuild, handleItemUsed, handleUseSkill, handleRest, handleFuseItems,
+        handleRequestQuestHint,
     }
 }
+
+    

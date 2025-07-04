@@ -1,17 +1,18 @@
 {
-  "name": "Dreamland Engine",
-  "short_name": "Dreamland",
-  "description": "An AI-driven text-based adventure game.",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#1a110f",
-  "theme_color": "#1a110f",
-  "icons": [
-    {
-      "src": "/assets/logo.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
+    "theme_color": "#1a110f",
+    "background_color": "#1a110f",
+    "display": "standalone",
+    "scope": "/",
+    "start_url": "/",
+    "name": "Dreamland Engine",
+    "short_name": "Dreamland",
+    "description": "An AI-driven text-based adventure game that evolves with your choices.",
+    "icons": [
+        {
+            "src": "/assets/logo.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ]
 }

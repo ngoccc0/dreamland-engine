@@ -333,6 +333,11 @@ const templates_vi: Record<Terrain, any> = {
             { data: { type: 'Rồng lửa con', emoji: '🐉', hp: 150, damage: 30, behavior: 'aggressive', size: 'large', diet: ['Golem dung nham'], satiation: 0, maxSatiation: 1, loot: [{ name: 'Vảy Rồng', chance: 0.2, quantity: { min: 3, max: 6 } }, { name: 'Răng Rồng', chance: 0.1, quantity: { min: 1, max: 2 } }] }, conditions: { predatorPresence: { min: 10 }, dangerLevel: { min: 10 }, chance: 0.1 } }
         ]
     },
+    wall: {
+        descriptionTemplates: ['Một bức tường đá không thể vượt qua chặn đường.'],
+        adjectives: [], features: [], smells: [], sounds: [],
+        NPCs: [], items: [], structures: [], enemies: []
+    },
 };
 
 const templates_en: Record<Terrain, any> = {
@@ -575,6 +580,11 @@ const templates_en: Record<Terrain, any> = {
             { data: { type: 'Lava Golem', emoji: '🔥', hp: 120, damage: 25, behavior: 'defensive', size: 'large', diet: ['Quặng Sắt'], satiation: 0, maxSatiation: 1, loot: [{ name: 'Trái tim Magma', chance: 0.1, quantity: { min: 1, max: 1 } }, { name: 'Đá Obsidian', chance: 0.3, quantity: { min: 2, max: 5 } }] }, conditions: { dangerLevel: { min: 9 }, chance: 0.25 } },
             { data: { type: 'Young Fire Dragon', emoji: '🐉', hp: 150, damage: 30, behavior: 'aggressive', size: 'large', diet: ['Lava Golem'], satiation: 0, maxSatiation: 1, loot: [{ name: 'Vảy Rồng', chance: 0.2, quantity: { min: 3, max: 6 } }, { name: 'Răng Rồng', chance: 0.1, quantity: { min: 1, max: 2 } }] }, conditions: { predatorPresence: { min: 10 }, dangerLevel: { min: 10 }, chance: 0.1 } }
         ]
+    },
+    wall: {
+        descriptionTemplates: ['A sheer, impassable rock wall blocks your way.'],
+        adjectives: [], features: [], smells: [], sounds: [],
+        NPCs: [], items: [], structures: [], enemies: []
     },
 };
 

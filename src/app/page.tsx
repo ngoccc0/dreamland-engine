@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -119,7 +118,7 @@ export default function Home() {
         <div className="flex flex-col items-center text-center p-4 animate-in fade-in duration-1000">
           <img src="/assets/logo.svg" alt="Dreamland Engine Logo" className="h-[384px] w-[384px]" />
           <div className="flex items-center justify-center">
-            <h1 className="text-5xl font-bold font-headline tracking-tighter -mt-4">
+            <h1 className="text-5xl font-bold font-headline tracking-tighter -mt-24">
               Dreamland Engine
             </h1>
           </div>

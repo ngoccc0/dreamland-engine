@@ -57,4 +57,7 @@ if (process.env.DEEPSEEK_API_KEY) {
 
 export const ai = genkit({
   plugins,
+  // Set a default model to be used by flows that don't specify one.
+  // This resolves the error where `generate()` is called without a model.
+  model: 'googleai/gemini-2.0-flash',
 });

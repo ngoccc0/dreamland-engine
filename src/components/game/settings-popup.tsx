@@ -13,6 +13,8 @@ import { Settings, BrainCircuit, Dice6, Bot, Feather, Languages, Download } from
 import type { DiceType, GameMode, AiModel, NarrativeLength } from "@/lib/game/types";
 import { Language, TranslationKey } from "@/lib/i18n";
 import { Button } from "../ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 
 interface SettingsPopupProps {
   open: boolean;
@@ -194,20 +196,29 @@ export function SettingsPopup({ open, onOpenChange }: SettingsPopupProps) {
             </RadioGroup>
           </div>
 
-          {installPrompt && (
-            <>
-              <Separator />
-              <div className="space-y-3">
-                <Label className="font-semibold flex items-center gap-2"><Download /> {t('installAppTitle')}</Label>
-                <p className="text-sm leading-snug text-muted-foreground">{t('installAppSettingDesc')}</p>
-                <Button onClick={handleInstallClick} className="w-full">
-                  <Download className="mr-2 h-4 w-4" />
-                  {t('install')}
-                </Button>
-              </div>
-            </>
-          )}
-
+          <Separator />
+          <div className="space-y-3">
+            <Label className="font-semibold flex items-center gap-2"><Download /> {t('installAppTitle')}</Label>
+            <p className="text-sm leading-snug text-muted-foreground">{t('installAppSettingDesc')}</p>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        {/* Span wrapper is needed for tooltip on disabled button */}
+                        <span className="inline-block w-full"> 
+                            <Button onClick={handleInstallClick} className="w-full" disabled={!installPrompt}>
+                              <Download className="mr-2 h-4 w-4" />
+                              {t('install')}
+                            </Button>
+                        </span>
+                    </TooltipTrigger>
+                    {!installPrompt && (
+                        <TooltipContent>
+                            <p>{t('installNotAvailableTooltip')}</p>
+                        </TooltipContent>
+                    )}
+                </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

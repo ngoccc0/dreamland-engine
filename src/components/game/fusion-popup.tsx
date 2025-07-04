@@ -11,7 +11,7 @@ import { useLanguage } from "@/context/language-context";
 import type { PlayerItem, ItemDefinition } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { FlaskConical, X } from "lucide-react";
+import { FlaskConical, X } from "./icons";
 
 interface FusionPopupProps {
   open: boolean;

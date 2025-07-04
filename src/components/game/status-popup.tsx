@@ -19,7 +19,7 @@ import type { PlayerStatus, Skill } from "@/lib/game/types";
 import { skillDefinitions } from "@/lib/game/skills";
 import type { TranslationKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { Heart, Loader2, Book, Star } from "lucide-react";
+import { Heart, Loader2, Book, Star } from "./icons";
 
 interface StatusPopupProps {
   open: boolean;

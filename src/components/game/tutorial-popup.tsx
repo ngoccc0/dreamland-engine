@@ -5,8 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLanguage } from "@/context/language-context";
-import { LifeBuoy } from "lucide-react";
 import type { TranslationKey } from "@/lib/i18n";
+import { LifeBuoy } from "./icons";
 
 interface TutorialPopupProps {
   open: boolean;

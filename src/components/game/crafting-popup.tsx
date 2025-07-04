@@ -10,7 +10,7 @@ import { useLanguage } from "@/context/language-context";
 import type { PlayerItem, Recipe, RecipeIngredient, RecipeAlternative } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 import { calculateCraftingOutcome } from "@/lib/game/engine";
-import { Hammer } from "lucide-react";
+import { Hammer } from "./icons";
 
 interface CraftingPopupProps {
   open: boolean;

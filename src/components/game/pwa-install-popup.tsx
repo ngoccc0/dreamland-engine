@@ -3,9 +3,9 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Download, X } from 'lucide-react';
 import { useLanguage } from '@/context/language-context';
 import { usePwaInstall } from '@/context/pwa-install-context';
+import { Download, X } from './icons';
 
 interface PwaInstallPopupProps {
   open: boolean;

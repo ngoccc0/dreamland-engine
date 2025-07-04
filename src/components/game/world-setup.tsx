@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/hooks/use-toast";
 import { generateWorldSetup, type GenerateWorldSetupOutput } from "@/ai/flows/generate-world-setup";
 import { suggestKeywords } from "@/ai/flows/suggest-keywords";
-import { Sparkles, Wand2, ArrowRight, BrainCircuit, Loader2, Settings } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 import { Separator } from "../ui/separator";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
@@ -17,6 +16,7 @@ import type { WorldConcept, Skill } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 import { SettingsPopup } from "./settings-popup";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
+import { Sparkles, Wand2, ArrowRight, BrainCircuit, Loader2, Settings } from "./icons";
 
 interface WorldSetupProps {
     onWorldCreated: (worldSetup: WorldConcept) => void;

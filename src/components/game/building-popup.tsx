@@ -9,7 +9,7 @@ import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/comp
 import { useLanguage } from "@/context/language-context";
 import type { PlayerItem, Structure } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
-import { Home } from "lucide-react";
+import { Home } from "./icons";
 
 interface BuildingPopupProps {
   open: boolean;

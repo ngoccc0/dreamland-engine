@@ -11,11 +11,11 @@ import { useSettings } from "@/context/settings-context";
 import { useLanguage } from "@/context/language-context";
 import { usePwaInstall } from "@/context/pwa-install-context";
 import { useAuth } from "@/context/auth-context";
-import { Settings, BrainCircuit, Dice6, Bot, Feather, Languages, Download, LogIn, LogOut, UserCircle2 } from "lucide-react";
 import type { DiceType, GameMode, AiModel, NarrativeLength } from "@/lib/game/types";
 import { Language, TranslationKey } from "@/lib/i18n";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Settings, BrainCircuit, Dice6, Bot, Feather, Languages, Download, LogIn, LogOut, UserCircle2 } from "./icons";
 
 
 interface SettingsPopupProps {

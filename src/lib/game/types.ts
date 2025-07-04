@@ -192,7 +192,7 @@ export interface PlayerStatus {
         cooldownReduction: number;
     };
     pets?: Pet[];
-    unlockProgress?: {
+    unlockProgress: {
         kills: number;
         damageSpells: number;
         moves: number;
@@ -355,5 +355,3 @@ export interface GeneratedItem {
       subOptimal: SpawnConditions;
     }
 }
-
-    

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -132,6 +133,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 attackSpeed: 1.0,
                 cooldownReduction: 0,
             },
+            unlockProgress: { kills: 0, damageSpells: 0, moves: 0 },
             journal: {},
             dailyActionLog: [],
             questHints: {},
@@ -157,6 +159,41 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             return [...prev, newEntry].slice(-50);
         });
     }, []);
+
+    const checkSkillUnlocks = useCallback((currentPlayerStats: PlayerStatus) => {
+        const newlyUnlockedSkills: Skill[] = [];
+        const currentSkillNames = new Set(currentPlayerStats.skills.map(s => s.name));
+
+        for (const skillDef of skillDefinitions) {
+            if (!currentSkillNames.has(skillDef.name) && skillDef.unlockCondition) {
+                const progress = currentPlayerStats.unlockProgress[skillDef.unlockCondition.type];
+                if (progress >= skillDef.unlockCondition.count) {
+                    newlyUnlockedSkills.push(skillDef);
+                }
+            }
+        }
+
+        if (newlyUnlockedSkills.length > 0) {
+            setPlayerStats(prev => ({
+                ...prev,
+                skills: [...prev.skills, ...newlyUnlockedSkills]
+            }));
+            
+            newlyUnlockedSkills.forEach(skill => {
+                const skillName = t(skill.name as TranslationKey);
+                addNarrativeEntry(t('skillUnlocked', { skillName }), 'system');
+                toast({
+                    title: t('skillUnlockedTitle'),
+                    description: t('skillUnlockedDesc', { skillName })
+                });
+            });
+        }
+    }, [addNarrativeEntry, t, toast]);
+    
+    // Effect to check for skill unlocks whenever progress changes
+    useEffect(() => {
+        checkSkillUnlocks(playerStats);
+    }, [playerStats.unlockProgress, checkSkillUnlocks]);
 
     // Effect for calculating player persona
     useEffect(() => {
@@ -533,9 +570,21 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 return updatedWorld;
             });
 
-            if (result.updatedPlayerStatus) {
-                setPlayerStats(prev => ({ ...prev, ...result.updatedPlayerStatus }));
-            }
+            setPlayerStats(prev => {
+                let newStats = { ...prev };
+                if (result.updatedPlayerStatus) {
+                    newStats = { ...newStats, ...result.updatedPlayerStatus };
+                }
+        
+                // Check for a kill by comparing world state before and after AI call
+                const chunkBeforeUpdate = worldCtx[`${playerPosCtx.x},${playerPosCtx.y}`];
+                if (chunkBeforeUpdate?.enemy && result.updatedChunk?.enemy === null) {
+                    const currentProgress = newStats.unlockProgress;
+                    newStats.unlockProgress = { ...currentProgress, kills: currentProgress.kills + 1 };
+                }
+        
+                return newStats;
+            });
             
             if (result.newlyGeneratedItem) {
                 const newItem = result.newlyGeneratedItem;
@@ -602,7 +651,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         return { 
             worldWithChunk: result.newWorld, 
             chunk: result.newWorld[newPosKey],
-            regions: result.newRegions,
+            regions: result.regions,
             regionCounter: result.newRegionCounter
         };
     }, [worldProfile, currentSeason, customItemDefinitions, customItemCatalog, language]);
@@ -649,7 +698,11 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         const newPlayerStats = {
              ...playerStats,
              stamina: playerStats.stamina - travelCost,
-             dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]
+             dailyActionLog: [...(playerStats.dailyActionLog || []), actionText],
+             unlockProgress: {
+                ...playerStats.unlockProgress,
+                moves: playerStats.unlockProgress.moves + 1,
+            }
         };
         
         const visionRadius = 1;
@@ -803,7 +856,19 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         const actionText = `${t('useSkillAction')} ${t(skillName as TranslationKey)}`;
         addNarrativeEntry(actionText, 'action');
 
-        const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
+        let newPlayerStats = { 
+            ...playerStats, 
+            dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]
+        };
+
+        const skillDef = skillDefinitions.find(s => s.name === skillName);
+        if (skillDef?.effect.type === 'DAMAGE') {
+            newPlayerStats.unlockProgress = {
+                ...playerStats.unlockProgress,
+                damageSpells: playerStats.unlockProgress.damageSpells + 1,
+            };
+        }
+        
         setPlayerStats(newPlayerStats);
 
         if (isOnline) {
@@ -812,7 +877,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             advanceGameTime();
         }
 
-    }, [playerStats, addNarrativeEntry, isOnline, handleOnlineNarrative, world, playerPosition, t, advanceGameTime, settings.diceType]);
+    }, [playerStats, addNarrativeEntry, isOnline, handleOnlineNarrative, world, playerPosition, t, advanceGameTime]);
 
     const handleBuild = useCallback((structureName: string) => {
         const buildStaminaCost = 15;
@@ -983,5 +1048,3 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         handleRequestQuestHint,
     }
 }
-
-    

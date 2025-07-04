@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from "react";
@@ -14,10 +15,11 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/context/language-context";
-import type { PlayerStatus } from "@/lib/game/types";
+import type { PlayerStatus, Skill } from "@/lib/game/types";
+import { skillDefinitions } from "@/lib/game/skills";
 import type { TranslationKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { Heart, Loader2, Book } from "lucide-react";
+import { Heart, Loader2, Book, Star } from "lucide-react";
 
 interface StatusPopupProps {
   open: boolean;
@@ -37,6 +39,14 @@ type HintFetchStatus = {
   isLoading: boolean;
   error?: string;
 }
+
+const getNextUnlockableSkills = (currentSkills: Skill[]): Skill[] => {
+    const currentSkillNames = new Set(currentSkills.map(s => s.name));
+    return skillDefinitions.filter(
+        skillDef => !currentSkillNames.has(skillDef.name) && skillDef.unlockCondition
+    );
+};
+
 
 export function StatusPopup({ open, onOpenChange, stats, onRequestHint }: StatusPopupProps) {
   const { t, language } = useLanguage();
@@ -61,6 +71,8 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint }: Status
         setHintFetchStatus(prev => ({ ...prev, [questText]: { isLoading: false, error: t('suggestionError') } }));
     }
   };
+
+  const nextUnlockableSkills = getNextUnlockableSkills(stats.skills);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -122,6 +134,35 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint }: Status
 
               <span>{t('cooldownReduction')}:</span>
               <span className="font-medium text-right text-foreground">{stats.attributes.cooldownReduction}%</span>
+            </div>
+          </div>
+          <Separator />
+          <div className="py-4">
+            <h3 className="mb-2 font-headline font-semibold flex items-center gap-2">
+              <Star className="h-4 w-4" /> {t('skillUnlockProgressTitle')}
+            </h3>
+             <div className="p-2 bg-muted rounded-md text-sm">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                    <span className="text-muted-foreground">{t('moves')}:</span>
+                    <span className="font-medium text-right text-foreground">{stats.unlockProgress.moves}</span>
+                    <span className="text-muted-foreground">{t('kills')}:</span>
+                    <span className="font-medium text-right text-foreground">{stats.unlockProgress.kills}</span>
+                    <span className="text-muted-foreground">{t('damageSpells')}:</span>
+                    <span className="font-medium text-right text-foreground">{stats.unlockProgress.damageSpells}</span>
+                </div>
+                {nextUnlockableSkills.length > 0 && (
+                    <>
+                        <Separator className="my-2" />
+                        <div className="space-y-1">
+                            {nextUnlockableSkills.map(skill => (
+                                <div key={skill.name}>
+                                    <p className="text-xs text-accent-foreground font-semibold">{t(skill.name as TranslationKey)}</p>
+                                    <p className="text-xs text-muted-foreground">({t('unlockCondition')}: {skill.unlockCondition!.count} {t(skill.unlockCondition!.type as TranslationKey)})</p>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                )}
             </div>
           </div>
           <Separator />
@@ -196,5 +237,3 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint }: Status
     </Dialog>
   );
 }
-
-    

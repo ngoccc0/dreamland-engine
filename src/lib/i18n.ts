@@ -1,4 +1,5 @@
 
+
 import { itemDefinitions } from "./game/items";
 import { recipes } from "./game/recipes";
 import { buildableStructures, structureDefinitions } from "./game/structures";
@@ -651,6 +652,14 @@ export const translations = {
     customActionsContent: `The heart of this game is the AI. You are not limited to the buttons.
     - **Be Creative:** Type anything into the custom action box. For example: "look for shelter", "try to fish in the river", "give the wolf some meat".
     - **AI Interpretation:** The AI will interpret your action and decide what happens next, using the game's rules and tools to guide the outcome. Experiment and see what's possible!`,
+    skillUnlocked: "Through your actions, you have awakened a new power: {skillName}.",
+    skillUnlockedTitle: "New Skill Unlocked!",
+    skillUnlockedDesc: "You have learned: {skillName}",
+    skillUnlockProgressTitle: "Skill Unlock Progress",
+    unlockCondition: "Unlock Condition",
+    kills: "Kills",
+    damageSpells: "Damage Spells Cast",
+    moves: "Moves",
   },
   vi: {
     ...Object.fromEntries(Object.keys(itemDefinitions).map(key => [key, key])),
@@ -1003,8 +1012,16 @@ export const translations = {
     customActionsContent: `Trái tim của trò chơi này là AI. Bạn không bị giới hạn bởi các nút.
 - **Sáng tạo:** Nhập bất cứ điều gì vào ô hành động tùy chỉnh. Ví dụ: "tìm nơi trú ẩn", "thử câu cá ở sông", "cho sói một ít thịt".
 - **Diễn giải của AI:** AI sẽ diễn giải hành động của bạn và quyết định điều gì sẽ xảy ra tiếp theo, sử dụng các quy tắc và công cụ của trò chơi để hướng dẫn kết quả. Hãy thử nghiệm và xem những gì có thể!`,
+    skillUnlocked: "Qua hành động của mình, bạn đã thức tỉnh một sức mạnh mới: {skillName}.",
+    skillUnlockedTitle: "Mở khóa Kỹ năng Mới!",
+    skillUnlockedDesc: "Bạn đã học được: {skillName}",
+    skillUnlockProgressTitle: "Tiến trình Mở khóa Kỹ năng",
+    unlockCondition: "Điều kiện Mở khóa",
+    kills: "Hạ gục",
+    damageSpells: "Thi triển Phép gây ST",
+    moves: "Di chuyển",
   }
 };
 
 export type Language = keyof typeof translations;
-export type TranslationKey = keyof (typeof translations)['en'] | keyof (typeof translations)['vi'];
+export type TranslationKey = keyof (typeof translations)['en'] & keyof (typeof translations)['vi'];

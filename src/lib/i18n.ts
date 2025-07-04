@@ -3,6 +3,7 @@
 
 
 
+
 const itemTranslations = {
   en: {
     item_la_cay_lon_desc: 'Large leaves, suitable for roofing.',
@@ -615,7 +616,7 @@ export const translations = {
     suggesting: "Suggesting...",
     tryTheseIdeas: "Or try one of these ideas:",
     generateWorlds: "Generate World Versions",
-    worldSetupStep2: "Step 2: The AI has created 3 versions. Use the < > buttons to view and select the elements you like best!",
+    worldSetupStep2: "Step 2: The AI has created 3 versions. Use the &lt; &gt; buttons to view and select the elements you like best!",
     mixAndMatchTitle: "Select and Mix",
     generatingUniverses: "Forging universes... Please wait!",
     worldName: "World Name",
@@ -628,8 +629,8 @@ export const translations = {
     questFromChoice: "Quest from Choice {index}",
     yourWorld: "Your World:",
     yourWorldDescription: "This is the world created from your choices.",
-    backAndEdit: "← Back & Edit",
-    startAdventure: "Start Adventure →",
+    backAndEdit: "&larr; Back &amp; Edit",
+    startAdventure: "Start Adventure &rarr;",
     error: "Error",
     suggestionError: "Could not generate suggestions at this time.",
     noIdeaError: "No idea yet!",
@@ -726,7 +727,7 @@ export const translations = {
     fusionTooltip: "Experimentally combine items.",
     fusionError: "The fusion attempt failed catastrophically. Try again under different conditions.",
     fusionDesc: "Experiment by combining 2 or 3 items. Requires at least one 'Tool' item. The environment can affect the outcome. Results are not guaranteed!",
-    moveAndAttack: "Move & Attack",
+    moveAndAttack: "Move &amp; Attack",
     moveUp: "Up",
     moveLeft: "Left",
     moveRight: "Right",
@@ -871,32 +872,32 @@ export const translations = {
     installNotAvailableTooltip: "Installation is not available on your browser, or the app is already installed.",
     tutorialTitle: "Welcome to Dreamland Engine",
     tutorialDesc: "A guide to the core mechanics of your adventure.",
-    gettingStartedTitle: "🚀 The Adventure Begins",
+    gettingStartedTitle: "&darr; The Adventure Begins",
     gettingStartedContent: `Welcome! Your goal is to explore, survive, and shape the world.
 - **Exploration:** Use the arrow keys to move. New areas are procedurally generated as you go.
 - **Interaction:** Talk to characters (NPCs) to get quests. Use action buttons or type anything into the custom action box.
 - **The AI Storyteller:** The game is narrated by an AI, making every playthrough unique. Try to be creative!`,
-    uiTitle: "🖥️ Understanding the Interface",
+    uiTitle: "&DoubleRightArrow; Understanding the Interface",
     uiContent: `- **Left Panel:** Your story log. All narratives and system messages appear here.
 - **Right Panel:** Your control hub.
     - **Minimap:** Shows your surroundings. Click it to open a larger map.
     - **Status:** Open to check your stats, skills, active quests, and read your journal.
     - **Inventory:** Manage your items.
     - **Craft/Build/Fuse:** Buttons to open windows for creating items and structures.`,
-    combatTitle: "⚔️ Combat, Skills & Companions",
+    combatTitle: "&CrossedSwords; Combat, Skills & Companions",
     combatContent: `- **Attacking:** Use the Sword button to attack an enemy.
 - **Dice Rolls:** All major actions involve a dice roll. The result determines the outcome.
 - **Skills:** Use skills from the right panel to gain an advantage. They cost Mana. You'll unlock new skills by performing actions like fighting and exploring.
 - **Taming:** Some creatures can be tamed! Try giving them their favorite food from your inventory.`,
-    craftingBuildTitle: "🛠️ Creation & Fusion",
+    craftingBuildTitle: "&Spade; Creation & Fusion",
     craftingBuildContent: `- **Crafting & Building:** Collect materials to create new items and build structures like shelters and campfires.
-- **Fusion:** Use the Fusion Altar (the flask icon) to experiment. Combine 2-3 items to discover potentially powerful—or useless—new creations. The results are unpredictable!`,
-    survivalTitle: "❤️‍🩹 Survival & Story",
+- **Fusion:** Use the Fusion Altar (the flask icon) to experiment. Combine 2-3 items to discover potentially powerful&mdash;or useless&mdash;new creations. The results are unpredictable!`,
+    survivalTitle: "&Hearts; Survival &amp; Story",
     survivalContent: `- **Stats:** Manage your Health (HP), Mana (for skills), and Stamina (for physical actions).
 - **Body Temperature:** The environment affects your temperature. Build fires or shelters to stay warm or cool down.
 - **Journal:** Each day, the AI will write a journal entry summarizing your activities. Check it in the Status window.
 - **Quest Hints:** Stuck on a quest? Click it in the Status window to ask the AI for a hint.`,
-    customActionsTitle: "💬 Your Imagination is the Limit",
+    customActionsTitle: "&Clubs; Your Imagination is the Limit",
     customActionsContent: `This game's heart is the AI. You are not limited to the buttons.
 - **Be Creative:** Type anything into the custom action box. Try to "search the ruins for treasure," "build a trap," or "try to intimidate the goblin."
 - **AI Interpretation:** The AI will interpret your action and decide what happens next, using the game's rules as a guide. Experiment to see what's possible!`,
@@ -917,6 +918,7 @@ export const translations = {
     loginWithGoogle: 'Login with Google',
     logout: 'Logout',
     wallBlock: "You can't move there. An impassable wall blocks your way.",
+    mainActions: "Main Actions",
   },
   vi: {
     ...gameEntityNames.vi,
@@ -986,7 +988,7 @@ export const translations = {
     suggesting: "Đang gợi ý...",
     tryTheseIdeas: "Hoặc thử một trong những ý tưởng này:",
     generateWorlds: "Tạo các Phiên bản Thế giới",
-    worldSetupStep2: "Bước 2: AI đã tạo ra 3 phiên bản. Dùng nút < > để xem và chọn các yếu tố bạn thích nhất!",
+    worldSetupStep2: "Bước 2: AI đã tạo ra 3 phiên bản. Dùng nút &lt; &gt; để xem và chọn các yếu tố bạn thích nhất!",
     mixAndMatchTitle: "Lựa chọn và Kết hợp",
     generatingUniverses: "Đang kiến tạo vũ trụ... Xin chờ!",
     worldName: "Tên Thế giới",
@@ -999,8 +1001,8 @@ export const translations = {
     questFromChoice: "Nhiệm vụ từ Lựa chọn {index}",
     yourWorld: "Thế giới của bạn:",
     yourWorldDescription: "Đây là thế giới được tạo ra từ những lựa chọn của bạn.",
-    backAndEdit: "← Quay lại & Chỉnh sửa",
-    startAdventure: "Bắt đầu Phiêu lưu →",
+    backAndEdit: "&larr; Quay lại &amp; Chỉnh sửa",
+    startAdventure: "Bắt đầu Phiêu lưu &rarr;",
     error: "Lỗi",
     suggestionError: "Không thể tạo gợi ý vào lúc này.",
     noIdeaError: "Chưa có ý tưởng!",
@@ -1097,7 +1099,7 @@ export const translations = {
     fusionTooltip: "Thử nghiệm kết hợp các vật phẩm.",
     fusionError: "Nỗ lực hợp nhất đã thất bại thảm hại. Hãy thử lại trong điều kiện khác.",
     fusionDesc: "Thử nghiệm bằng cách kết hợp 2 hoặc 3 vật phẩm. Yêu cầu ít nhất một vật phẩm 'Công cụ'. Môi trường có thể ảnh hưởng đến kết quả. Kết quả không được đảm bảo!",
-    moveAndAttack: "Di chuyển & Tấn công",
+    moveAndAttack: "Di chuyển &amp; Tấn công",
     moveUp: "Lên",
     moveLeft: "Trái",
     moveRight: "Phải",
@@ -1242,32 +1244,32 @@ export const translations = {
     installNotAvailableTooltip: "Không thể cài đặt trên trình duyệt của bạn, hoặc ứng dụng đã được cài đặt.",
     tutorialTitle: "Chào mừng đến với Dreamland Engine",
     tutorialDesc: "Hướng dẫn về các cơ chế cốt lõi trong cuộc phiêu lưu của bạn.",
-    gettingStartedTitle: "🚀 Cuộc phiêu lưu Bắt đầu",
+    gettingStartedTitle: "&darr; Cuộc phiêu lưu Bắt đầu",
     gettingStartedContent: `Chào mừng! Mục tiêu của bạn là khám phá, sinh tồn và định hình thế giới.
 - **Khám phá:** Sử dụng các phím mũi tên để di chuyển. Các khu vực mới sẽ được tạo ra khi bạn đi.
 - **Tương tác:** Nói chuyện với các nhân vật (NPC) để nhận nhiệm vụ. Sử dụng các nút hành động hoặc nhập bất cứ điều gì vào ô hành động tùy chỉnh.
 - **AI Kể chuyện:** Trò chơi được tường thuật bởi một AI, làm cho mỗi lần chơi đều độc đáo. Hãy sáng tạo!`,
-    uiTitle: "🖥️ Tìm hiểu Giao diện",
+    uiTitle: "&DoubleRightArrow; Tìm hiểu Giao diện",
     uiContent: `- **Bảng điều khiển Trái:** Nhật ký câu chuyện của bạn. Mọi tường thuật và thông báo hệ thống đều xuất hiện ở đây.
 - **Bảng điều khiển Phải:** Trung tâm điều khiển của bạn.
     - **Bản đồ nhỏ:** Hiển thị môi trường xung quanh. Nhấp vào để mở bản đồ lớn hơn.
     - **Trạng thái:** Mở để kiểm tra chỉ số, kỹ năng, nhiệm vụ và đọc nhật ký của bạn.
     - **Hành trang:** Quản lý các vật phẩm của bạn.
     - **Chế tạo/Xây dựng/Hợp nhất:** Các nút để mở cửa sổ tạo vật phẩm và công trình.`,
-    combatTitle: "⚔️ Chiến đấu, Kỹ năng & Đồng hành",
+    combatTitle: "&CrossedSwords; Chiến đấu, Kỹ năng & Đồng hành",
     combatContent: `- **Tấn công:** Sử dụng nút Kiếm để tấn công kẻ thù.
 - **Gieo xúc xắc:** Mọi hành động chính đều liên quan đến việc gieo xúc xắc. Kết quả sẽ quyết định kết quả.
 - **Kỹ năng:** Sử dụng các kỹ năng từ bảng điều khiển bên phải để có lợi thế. Chúng tốn Mana. Bạn sẽ mở khóa các kỹ năng mới bằng cách thực hiện các hành động như chiến đấu và khám phá.
 - **Thuần hóa:** Một số sinh vật có thể được thuần hóa! Hãy thử cho chúng ăn thức ăn yêu thích từ hành trang của bạn.`,
-    craftingBuildTitle: "🛠️ Sáng tạo & Hợp nhất",
+    craftingBuildTitle: "&Spade; Sáng tạo & Hợp nhất",
     craftingBuildContent: `- **Chế tạo & Xây dựng:** Thu thập vật liệu để tạo vật phẩm mới và xây dựng các công trình như nơi trú ẩn và lửa trại.
-- **Hợp nhất:** Sử dụng Bàn thờ Hợp nhất (biểu tượng bình thí nghiệm) để thử nghiệm. Kết hợp 2-3 vật phẩm để khám phá những sáng tạo mới có thể mạnh mẽ—hoặc vô dụng. Kết quả là không thể đoán trước!`,
-    survivalTitle: "❤️‍🩹 Sinh tồn & Câu chuyện",
+- **Hợp nhất:** Sử dụng Bàn thờ Hợp nhất (biểu tượng bình thí nghiệm) để thử nghiệm. Kết hợp 2-3 vật phẩm để khám phá những sáng tạo mới có thể mạnh mẽ&mdash;hoặc vô dụng&mdash;Kết quả là không thể đoán trước!`,
+    survivalTitle: "&Hearts; Sinh tồn &amp; Câu chuyện",
     survivalContent: `- **Chỉ số:** Quản lý Máu (HP), Năng lượng (cho kỹ năng) và Thể lực (cho các hành động thể chất).
 - **Nhiệt độ Cơ thể:** Môi trường ảnh hưởng đến nhiệt độ của bạn. Xây dựng lửa hoặc nơi trú ẩn để giữ ấm hoặc hạ nhiệt.
 - **Nhật ký:** Mỗi ngày, AI sẽ viết một mục nhật ký tóm tắt các hoạt động của bạn. Kiểm tra trong cửa sổ Trạng thái.
 - **Gợi ý Nhiệm vụ:** Bị kẹt ở một nhiệm vụ? Nhấp vào nó trong cửa sổ Trạng thái để yêu cầu AI gợi ý.`,
-    customActionsTitle: "💬 Trí tưởng tượng của bạn là Giới hạn",
+    customActionsTitle: "&Clubs; Trí tưởng tượng của bạn là Giới hạn",
     customActionsContent: `Trái tim của trò chơi này là AI. Bạn không bị giới hạn bởi các nút.
 - **Sáng tạo:** Gõ bất cứ điều gì vào ô hành động tùy chỉnh. Thử "tìm kiếm kho báu trong tàn tích," "xây một cái bẫy," hoặc "cố gắng đe dọa con goblin."
 - **Diễn giải của AI:** AI sẽ diễn giải hành động của bạn và quyết định điều gì sẽ xảy ra tiếp theo, sử dụng các quy tắc của trò chơi làm hướng dẫn. Hãy thử nghiệm để xem những gì có thể!`,
@@ -1288,6 +1290,7 @@ export const translations = {
     loginWithGoogle: 'Đăng nhập với Google',
     logout: 'Đăng xuất',
     wallBlock: 'Bạn không thể đi đến đó. Một bức tường không thể xuyên qua chặn đường bạn.',
+    mainActions: 'Hành động chính',
   }
 };
 

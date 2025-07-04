@@ -331,7 +331,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         return { 
             worldWithChunk: result.newWorld, 
             chunk: result.newWorld[newPosKey],
-            regions: result.regions,
+            regions: result.newRegions,
             regionCounter: result.newRegionCounter
         };
     }, [worldProfile, currentSeason, customItemDefinitions, customItemCatalog, customStructures, language]);
@@ -406,17 +406,15 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                             const result = ensureChunkExists(revealPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
                             worldSnapshot = result.worldWithChunk;
                             regionsSnapshot = result.regions;
-                            regionCounterSnapshot = result.regionCounter;
+                            regionCounterSnapshot = result.newRegionCounter;
                         }
                     }
                 }
                 for (let dy = -visionRadius; dy <= visionRadius; dy++) {
-                    for (let dx = -visionRadius; dx <= visionRadius; dx++) {
-                         const revealPos = { x: startPos.x + dx, y: startPos.y + dy };
-                         if (worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
-                             worldSnapshot[`${revealPos.x},${revealPos.y}`].explored = true;
-                         }
-                    }
+                     const revealPos = { x: startPos.x + dx, y: startPos.y + dy };
+                     if (worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
+                         worldSnapshot[`${revealPos.x},${revealPos.y}`].explored = true;
+                     }
                 }
                 newWorld = worldSnapshot;
                 newRegions = regionsSnapshot;
@@ -1213,14 +1211,16 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         else if (direction === 'east') { newPos.x++; dirKey = 'directionEast'; }
         else if (direction === 'west') { newPos.x--; dirKey = 'directionWest'; }
 
+        // Step 1: Get initial snapshots
         let worldSnapshot = { ...world };
         let regionsSnapshot = { ...regions };
         let regionCounterSnapshot = regionCounter;
         
+        // Step 2: Ensure destination chunk exists
         const destResult = ensureChunkExists(newPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
         worldSnapshot = destResult.worldWithChunk;
         regionsSnapshot = destResult.regions;
-        regionCounterSnapshot = destResult.regionCounter;
+        regionCounterSnapshot = destResult.newRegionCounter;
         const destinationChunk = destResult.chunk;
         
         if (!destinationChunk) {
@@ -1247,29 +1247,52 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         const actionText = t('wentDirection', { direction: t(dirKey) });
         addNarrativeEntry(actionText, 'action');
         
+        // Step 3: Reveal surrounding chunks (vision radius)
+        const visionRadius = 1;
+        for (let dy = -visionRadius; dy <= visionRadius; dy++) {
+            for (let dx = -visionRadius; dx <= visionRadius; dx++) {
+                const revealPos = { x: newPos.x + dx, y: newPos.y + dy };
+                if (!worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
+                    const result = ensureChunkExists(revealPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
+                    worldSnapshot = result.worldWithChunk;
+                    regionsSnapshot = result.regions;
+                    regionCounterSnapshot = result.newRegionCounter;
+                }
+                if (worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
+                    worldSnapshot[`${revealPos.x},${revealPos.y}`].explored = true;
+                }
+            }
+        }
+
         const wasNewRegionCreated = regionCounterSnapshot > regionCounter;
 
+        // Step 4: Set all world/region state updates
         setWorld(worldSnapshot);
         setRegions(regionsSnapshot);
         setRegionCounter(regionCounterSnapshot);
         setPlayerPosition(newPos);
 
-        // This must be after the other state setters to get the right dependencies for the weather update
+        // Step 5: Update weather zones if new regions were created
         if (wasNewRegionCreated) {
             const newWeatherZones = {...weatherZones};
-            const newRegionIds = Object.keys(regionsSnapshot).filter(id => !weatherZones[id]);
+            // Use a safeguard in case regionsSnapshot is unexpectedly null/undefined
+            const currentRegionsSnapshot = regionsSnapshot || {};
+            const newRegionIds = Object.keys(currentRegionsSnapshot).filter(id => !weatherZones[id]);
             newRegionIds.forEach(regionId => {
-                const region = regionsSnapshot[Number(regionId)];
-                const initialWeather = generateWeatherForZone(region.terrain, currentSeason);
-                const nextChangeTime = gameTime + getRandomInRange({min: initialWeather.duration_range[0], max: initialWeather.duration_range[1]}) * 5;
-                newWeatherZones[regionId] = {
-                    id: regionId, terrain: region.terrain,
-                    currentWeather: initialWeather, nextChangeTime: nextChangeTime
-                };
+                const region = currentRegionsSnapshot[Number(regionId)];
+                if (region) { // Ensure region exists before using it
+                    const initialWeather = generateWeatherForZone(region.terrain, currentSeason);
+                    const nextChangeTime = gameTime + getRandomInRange({min: initialWeather.duration_range[0], max: initialWeather.duration_range[1]}) * 5;
+                    newWeatherZones[regionId] = {
+                        id: regionId, terrain: region.terrain,
+                        currentWeather: initialWeather, nextChangeTime: nextChangeTime
+                    };
+                }
             });
             setWeatherZones(newWeatherZones);
         }
 
+        // Step 6: Update player stats
         const newPlayerStats = {
              ...playerStats,
              stamina: playerStats.stamina - travelCost,
@@ -1279,23 +1302,9 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 moves: playerStats.unlockProgress.moves + 1,
             }
         };
-        
-        const visionRadius = 1;
-        for (let dy = -visionRadius; dy <= visionRadius; dy++) {
-            for (let dx = -visionRadius; dx <= visionRadius; dx++) {
-                const revealPos = { x: newPos.x + dx, y: newPos.y + dy };
-                if (!worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
-                    const result = ensureChunkExists(revealPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
-                    worldSnapshot = result.worldWithChunk;
-                    regionsSnapshot = result.regions;
-                    regionCounterSnapshot = result.regionCounter;
-                }
-                worldSnapshot[`${revealPos.x},${revealPos.y}`].explored = true;
-            }
-        }
-        
         setPlayerStats(newPlayerStats);
 
+        // Step 7: Handle narrative
         if (isOnline) {
             handleOnlineNarrative(`move ${direction}`, worldSnapshot, newPos, newPlayerStats);
         } else {

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <style>
+    .gear-logo { animation: spin-gear 10s linear infinite; transform-origin: 60px 60px; }
+    @keyframes spin-gear {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  </style>
+  <path d="M60,20 A40,40 0 0,1 60,100 A40,40 0 0,1 60,20 Z" fill="#E0E0E0" stroke="#B0BEC5" stroke-width="2"/>
+  <path d="M60,10 L60,110 M40,16.7 L80,103.3 M20,40 L100,80 M20,80 L100,40 M40,103.3 L80,16.7" stroke="#B0BEC5" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="60" cy="60" r="15" fill="#CFD8DC"/>
+  <circle cx="60" cy="60" r="5" fill="#455A64"/>
+  <g class="gear-logo">
+    <path d="M60,30 L60,90 M42.7,35 L77.3,85 M35,42.7 L85,77.3 M35,77.3 L85,42.7 M42.7,85 L77.3,35" stroke="#455A64" stroke-width="4" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -30,7 +30,7 @@
 import Handlebars from 'handlebars';
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
-import type { Terrain, Skill, Structure } from '@/lib/game/types';
+import type { Terrain, Skill, Structure, GeneratedItem } from '@/lib/game/types';
 import { GeneratedItemSchema, SkillSchema, NarrativeConceptArraySchema, ItemCategorySchema, StructureSchema } from '@/ai/schemas';
 import { skillDefinitions } from '@/lib/game/skills';
 import { getEmojiForItem } from '@/lib/utils';
@@ -174,6 +174,106 @@ const generateWorldSetupFlow = ai.defineFlow(
   },
   async (input) => {
     
+    // --- SPECIAL DEBUG WORLD ---
+    if (input.userInput.toLowerCase().trim() === 'floptropica') {
+        console.log('--- DETECTED "FLOPTROPICA" DEBUG WORLD ---');
+        
+        const floptropicaItems: GeneratedItem[] = [
+            {
+                name: "Jiafei's Pan",
+                description: "A legendary pan, perfect for cooking up some products... or for self-defense. It makes a satisfying 'CLANG!' sound.",
+                emoji: '🍳',
+                category: 'Weapon',
+                tier: 2,
+                effects: [],
+                baseQuantity: { min: 1, max: 1 },
+                spawnBiomes: ['jungle'],
+            },
+            {
+                name: "Stan Twitter Thread",
+                description: "A long, winding scroll of indecipherable arguments and memes. Might contain valuable information... or just drama.",
+                emoji: '📜',
+                category: 'Data',
+                tier: 1,
+                effects: [],
+                baseQuantity: { min: 1, max: 1 },
+                spawnBiomes: ['jungle'],
+            },
+            {
+                name: "CupcakKe's Remix",
+                description: "A powerful audio artifact. Playing it restores your energy to keep slaying.",
+                emoji: '🎶',
+                category: 'Support',
+                tier: 3,
+                effects: [{ type: 'RESTORE_STAMINA', amount: 50 }],
+                baseQuantity: { min: 1, max: 1 },
+                spawnBiomes: [],
+            },
+            {
+                name: "Yass Pill",
+                description: "A mysterious pill that makes you say 'Yass' uncontrollably. Restores a bit of health.",
+                emoji: '💊',
+                category: 'Support',
+                tier: 2,
+                effects: [{ type: 'HEAL', amount: 30 }],
+                baseQuantity: { min: 2, max: 2 },
+                spawnBiomes: ['jungle'],
+            }
+        ];
+
+        const floptropicaStructures: Structure[] = [
+            {
+                name: "Deborah's C.V.N.T. University",
+                description: "A prestigious institution where one learns to serve and slay.",
+                emoji: '🎓',
+                providesShelter: true,
+                buildable: false,
+                buildCost: [],
+                restEffect: { hp: 30, stamina: 30 },
+                heatValue: 1,
+            },
+            {
+                name: "Nicki's Barbz Hospital",
+                description: "A place for when you've slayed too close to the sun.",
+                emoji: '🏥',
+                providesShelter: true,
+                buildable: false,
+                buildCost: [],
+                restEffect: { hp: 100, stamina: 50 },
+                heatValue: 0,
+            }
+        ];
+
+        const startingSkill = skillDefinitions.find(s => s.name === 'skillFireballName');
+        if (!startingSkill) {
+            throw new Error("Could not find default skill for Floptropica world.");
+        }
+
+        const concept = {
+            worldName: "Floptropica",
+            initialNarrative: "You wake up on a vibrant, slightly chaotic island. The air smells like Jiafei's products and faint screams of 'ATE!'. A strange pop music is playing from the jungle. You feel a strange urge to 'serve cvnt'.",
+            startingBiome: 'jungle' as Terrain,
+            playerInventory: [
+                { name: "Jiafei's Pan", quantity: 1 },
+                { name: "Stan Twitter Thread", quantity: 1 },
+            ],
+            initialQuests: [
+                "Find the source of the mysterious pop music.",
+                "Serve your first cvnt.",
+            ],
+            startingSkill: startingSkill,
+            customStructures: floptropicaStructures,
+        };
+
+        const hardcodedWorld: GenerateWorldSetupOutput = {
+            customItemCatalog: floptropicaItems,
+            customStructures: floptropicaStructures,
+            concepts: [concept, concept, concept],
+        };
+
+        return hardcodedWorld;
+    }
+
     console.log('--- STARTING WORLD GENERATION ---');
     console.log('User Input:', input.userInput);
     console.log('Language:', input.language);

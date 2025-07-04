@@ -75,7 +75,7 @@ export default function GameLayout(props: GameLayoutProps) {
     
     useEffect(() => {
         const timer = setTimeout(() => {
-            pageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+            pageEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
         }, 100);
         return () => clearTimeout(timer);
     }, [narrativeLog]);

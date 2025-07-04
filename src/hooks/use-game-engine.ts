@@ -408,21 +408,19 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 const visionRadius = 1;
                 for (let dy = -visionRadius; dy <= visionRadius; dy++) {
                     for (let dx = -visionRadius; dx <= visionRadius; dx++) {
-                        if (dx === 0 && dy === 0) continue;
                         const revealPos = { x: startPos.x + dx, y: startPos.y + dy };
+                        // Ensure chunk exists if it doesn't
                         if (!worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
                             const result = ensureChunkExists(revealPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
                             worldSnapshot = result.worldWithChunk;
                             regionsSnapshot = result.regions;
                             regionCounterSnapshot = result.newRegionCounter;
                         }
+                        // Now mark the (now existing) chunk as explored
+                        if (worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
+                            worldSnapshot[`${revealPos.x},${revealPos.y}`].explored = true;
+                        }
                     }
-                }
-                for (let dy = -visionRadius; dy <= visionRadius; dy++) {
-                     const revealPos = { x: startPos.x + dx, y: startPos.y + dy };
-                     if (worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
-                         worldSnapshot[`${revealPos.x},${revealPos.y}`].explored = true;
-                     }
                 }
                 newWorld = worldSnapshot;
                 newRegions = regionsSnapshot;
@@ -990,15 +988,15 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     };
 
     const handleOfflineSkillUse = (skillName: string) => {
-        let newPlayerStatus: PlayerStatus = JSON.parse(JSON.stringify(playerStats));
-        const skillToUse = newPlayerStatus.skills.find(s => s.name === skillName);
+        let newPlayerStats: PlayerStatus = JSON.parse(JSON.stringify(playerStats));
+        const skillToUse = newPlayerStats.skills.find(s => s.name === skillName);
     
         if (!skillToUse) {
             addNarrativeEntry(t('skillNotFound', { skillName: t(skillName as TranslationKey) }), 'system');
             return;
         }
         
-        if (newPlayerStatus.mana < skillToUse.manaCost) {
+        if (newPlayerStats.mana < skillToUse.manaCost) {
             addNarrativeEntry(t('notEnoughMana', { skillName: t(skillName as TranslationKey) }), 'system');
             return;
         }
@@ -1008,7 +1006,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         const successLevelKey = successLevelToTranslationKey[successLevel];
         addNarrativeEntry(t('diceRollMessage', { roll, level: t(successLevelKey) }), 'system');
     
-        newPlayerStatus.mana -= skillToUse.manaCost;
+        newPlayerStats.mana -= skillToUse.manaCost;
     
         let narrative = "";
         let effectMultiplier = 1.0;
@@ -1021,22 +1019,22 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             case 'CriticalFailure':
                 if (skillToUse.effect.type === 'HEAL') {
                     const backfireDamage = Math.round(skillToUse.effect.amount * 0.5);
-                    newPlayerStatus.hp = Math.max(0, newPlayerStatus.hp - backfireDamage);
+                    newPlayerStats.hp = Math.max(0, newPlayerStats.hp - backfireDamage);
                     narrative = t('skillHealCritFail', { damage: backfireDamage });
                 } else if (skillToUse.effect.type === 'DAMAGE') {
                      const backfireDamage = Math.round(skillToUse.effect.amount * 0.5);
-                    newPlayerStatus.hp = Math.max(0, newPlayerStatus.hp - backfireDamage);
+                    newPlayerStats.hp = Math.max(0, newPlayerStats.hp - backfireDamage);
                     narrative = t('skillDamageCritFail', { damage: backfireDamage });
                 }
                 addNarrativeEntry(narrative, 'narrative');
-                setPlayerStats(newPlayerStatus);
+                setPlayerStats(newPlayerStats);
                 advanceGameTime();
                 return;
     
             case 'Failure':
                 narrative = t('skillFail', { skillName: t(skillName as TranslationKey) });
                 addNarrativeEntry(narrative, 'narrative');
-                setPlayerStats(newPlayerStatus);
+                setPlayerStats(newPlayerStats);
                 advanceGameTime();
                 return;
     
@@ -1049,9 +1047,9 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             case 'HEAL':
                 if (skillToUse.effect.target === 'SELF') {
                     const healAmount = Math.round(skillToUse.effect.amount * effectMultiplier);
-                    const oldHp = newPlayerStatus.hp;
-                    newPlayerStatus.hp = Math.min(100, newPlayerStatus.hp + healAmount);
-                    const healedFor = newPlayerStatus.hp - oldHp;
+                    const oldHp = newPlayerStats.hp;
+                    newPlayerStats.hp = Math.min(100, newPlayerStats.hp + healAmount);
+                    const healedFor = newPlayerStats.hp - oldHp;
                     narrative = t('skillHealSuccess', { skillName: t(skillName as TranslationKey), amount: healedFor });
                     if (successLevel === 'GreatSuccess') narrative += ` ${t('skillGreatSuccessBonus')}`;
                     if (successLevel === 'CriticalSuccess') narrative += ` ${t('skillCritSuccessBonus')}`;
@@ -1075,26 +1073,26 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     
                         if (skillToUse.effect.healRatio) {
                             const healedAmount = Math.round(finalDamage * skillToUse.effect.healRatio);
-                            const oldHp = newPlayerStatus.hp;
-                            newPlayerStatus.hp = Math.min(100, newPlayerStatus.hp + healedAmount);
-                            if (newPlayerStatus.hp > oldHp) {
-                                narrative += ` ${t('siphonHealth', { amount: newPlayerStatus.hp - oldHp })}`;
+                            const oldHp = newPlayerStats.hp;
+                            newPlayerStats.hp = Math.min(100, newPlayerStats.hp + healedAmount);
+                            if (newPlayerStats.hp > oldHp) {
+                                narrative += ` ${t('siphonHealth', { amount: newPlayerStats.hp - oldHp })}`;
                             }
                         }
     
                         if (newEnemy.hp <= 0) {
                             narrative += ` ${t('enemyVanquished', { enemyType: t(newEnemy.type as TranslationKey) })}`;
                             newEnemy = null;
-                            newPlayerStatus.unlockProgress.kills += 1;
+                            newPlayerStats.unlockProgress.kills += 1;
                         }
                     }
-                    newPlayerStatus.unlockProgress.damageSpells += 1;
+                    newPlayerStats.unlockProgress.damageSpells += 1;
                 }
                 break;
         }
     
         addNarrativeEntry(narrative, 'narrative');
-        setPlayerStats(newPlayerStatus);
+        setPlayerStats(newPlayerStats);
         if(newEnemy !== currentChunk?.enemy) {
             setWorld(prev => ({...prev, [key]: {...prev[key]!, enemy: newEnemy}}));
         }
@@ -1210,7 +1208,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     // --- MAIN ACTION HANDLERS ---
 
     const handleMove = (direction: "north" | "south" | "east" | "west") => {
-        if (isGameOver) return;
+        if (isLoading || isGameOver) return;
         setPlayerBehaviorProfile(p => ({ ...p, moves: p.moves + 1 }));
 
         let newPos = { ...playerPosition };
@@ -1229,7 +1227,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         const destResult = ensureChunkExists(newPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
         worldSnapshot = destResult.worldWithChunk;
         regionsSnapshot = destResult.regions;
-        regionCounterSnapshot = destResult.newRegionCounter;
+        regionCounterSnapshot = destResult.regionCounter;
         const destinationChunk = destResult.chunk;
         
         if (!destinationChunk) {
@@ -1323,7 +1321,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     };
 
     const handleAction = useCallback((actionId: number) => {
-        if (isGameOver) return;
+        if (isLoading || isGameOver) return;
         const chunk = world[`${playerPosition.x},${playerPosition.y}`];
         if (!chunk) return;
     
@@ -1337,10 +1335,10 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         } else {
             handleOfflineAction(actionText);
         }
-    }, [world, playerPosition, isOnline, addNarrativeEntry, playerStats, handleOnlineNarrative, handleOfflineAction, isGameOver]);
+    }, [world, playerPosition, isOnline, addNarrativeEntry, playerStats, handleOnlineNarrative, handleOfflineAction, isLoading, isGameOver]);
 
     const handleAttack = () => {
-        if (isGameOver) return;
+        if (isLoading || isGameOver) return;
         setPlayerBehaviorProfile(p => ({ ...p, attacks: p.attacks + 1 }));
         
         const key = `${playerPosition.x},${playerPosition.y}`;
@@ -1362,7 +1360,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     };
     
     const handleCustomAction = useCallback((text: string) => {
-        if (!text.trim() || isGameOver) return;
+        if (!text.trim() || isLoading || isGameOver) return;
         setPlayerBehaviorProfile(p => ({ ...p, customActions: p.customActions + 1 }));
         
         if (isOnline) {
@@ -1373,10 +1371,10 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         } else {
             handleOfflineAction(text);
         }
-    }, [isOnline, playerStats, addNarrativeEntry, handleOnlineNarrative, world, playerPosition, handleOfflineAction, isGameOver]);
+    }, [isOnline, playerStats, addNarrativeEntry, handleOnlineNarrative, world, playerPosition, handleOfflineAction, isLoading, isGameOver]);
 
     const handleCraft = useCallback(async (recipe: Recipe) => {
-        if (isGameOver) return;
+        if (isLoading || isGameOver) return;
         setPlayerBehaviorProfile(p => ({ ...p, crafts: p.crafts + 1 }));
         const { canCraft, chance, ingredientsToConsume } = calculateCraftingOutcome(playerStats.items, recipe);
 
@@ -1423,10 +1421,10 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         }
         
         advanceGameTime();
-    }, [playerStats, customItemDefinitions, addNarrativeEntry, toast, t, advanceGameTime, isGameOver]);
+    }, [playerStats, customItemDefinitions, addNarrativeEntry, toast, t, advanceGameTime, isLoading, isGameOver]);
 
     const handleItemUsed = useCallback((itemName: string, target: 'player' | string) => {
-        if (isGameOver) return;
+        if (isLoading || isGameOver) return;
         const actionText = target === 'player'
             ? `${t('useAction')} ${t(itemName as TranslationKey)}`
             : `${t('useOnAction', {item: t(itemName as TranslationKey), target: t(target as TranslationKey)})}`;
@@ -1440,10 +1438,10 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         } else {
             handleOfflineItemUse(itemName, target);
         }
-    }, [playerStats, world, playerPosition, isOnline, handleOnlineNarrative, t, handleOfflineItemUse, isGameOver]);
+    }, [playerStats, world, playerPosition, isOnline, handleOnlineNarrative, t, handleOfflineItemUse, isLoading, isGameOver]);
 
     const handleUseSkill = useCallback((skillName: string) => {
-        if (isGameOver) return;
+        if (isLoading || isGameOver) return;
         const actionText = `${t('useSkillAction')} ${t(skillName as TranslationKey)}`;
         addNarrativeEntry(actionText, 'action');
 
@@ -1459,10 +1457,10 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             handleOfflineSkillUse(skillName);
         }
 
-    }, [playerStats, world, playerPosition, isOnline, addNarrativeEntry, t, handleOnlineNarrative, handleOfflineSkillUse, isGameOver]);
+    }, [playerStats, world, playerPosition, isOnline, addNarrativeEntry, t, handleOnlineNarrative, handleOfflineSkillUse, isLoading, isGameOver]);
 
     const handleBuild = useCallback((structureName: string) => {
-        if (isGameOver) return;
+        if (isLoading || isGameOver) return;
         const buildStaminaCost = 15;
         const structureToBuild = staticBuildableStructures[structureName];
 
@@ -1516,10 +1514,10 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
 
         addNarrativeEntry(t('builtStructure', { structureName: t(structureName as TranslationKey) }), 'system');
         advanceGameTime();
-    }, [playerStats.items, playerStats.stamina, playerPosition, addNarrativeEntry, advanceGameTime, toast, t, isGameOver]);
+    }, [playerStats.items, playerStats.stamina, playerPosition, addNarrativeEntry, advanceGameTime, toast, t, isLoading, isGameOver]);
 
     const handleRest = useCallback(() => {
-        if (isGameOver) return;
+        if (isLoading || isGameOver) return;
         const key = `${playerPosition.x},${playerPosition.y}`;
         const chunk = world[key];
         const shelter = chunk?.structures.find(s => s.restEffect);
@@ -1545,10 +1543,10 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         }));
         
         advanceGameTime();
-    }, [world, playerPosition, playerStats, addNarrativeEntry, advanceGameTime, t, toast, isGameOver]);
+    }, [world, playerPosition, playerStats, addNarrativeEntry, advanceGameTime, t, toast, isLoading, isGameOver]);
     
     const handleFuseItems = useCallback(async (itemsToFuse: PlayerItem[]) => {
-        if (isGameOver) return;
+        if (isLoading || isGameOver) return;
         setIsLoading(true);
 
         const key = `${playerPosition.x},${playerPosition.y}`;
@@ -1604,7 +1602,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             setIsLoading(false);
             advanceGameTime();
         }
-    }, [world, playerPosition, playerStats, weatherZones, gameTime, language, customItemDefinitions, customItemCatalog, getEffectiveChunk, addNarrativeEntry, advanceGameTime, t, toast, isGameOver]);
+    }, [world, playerPosition, playerStats, weatherZones, gameTime, language, customItemDefinitions, customItemCatalog, getEffectiveChunk, addNarrativeEntry, advanceGameTime, t, toast, isLoading, isGameOver]);
 
     const handleRequestQuestHint = useCallback(async (questText: string) => {
         if (playerStats.questHints?.[questText] || !isOnline) {

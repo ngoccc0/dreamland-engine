@@ -5,7 +5,7 @@
  * @fileOverview An AI agent for generating game world concepts by distributing tasks across multiple AI models.
  *
  * This file defines a sophisticated, parallelized AI workflow for world creation.
- * It splits the generation process into three distinct, concurrent tasks to leverage the strengths
+ * It splits the generation process into four distinct, concurrent tasks to leverage the strengths
  * of different AI models, increase speed, and improve reliability with a fallback mechanism.
  *
  * 1.  **Task A (Item Catalog Generation):** Uses powerful models to generate a rich, thematic
@@ -13,10 +13,13 @@
  *
  * 2.  **Task B (World Name Generation):** Runs in parallel. Uses a fast model (Gemini Flash) to quickly brainstorm creative world names.
  *
- * 3.  **Task C (Narrative Concept Generation):** Runs in parallel. Uses another distinct model (Deepseek) to generate
+ * 3.  **Task C (Narrative Concept Generation):** Runs in parallel. Uses another distinct model to generate
  *     the starting points for the story (descriptions, quests), adding stylistic variety.
+ * 
+ * 4.  **Task D (Structure Catalog Generation):** Runs in parallel. Uses an AI model to invent
+ *     unique, thematic structures and landmarks for the world.
  *
- * The results from all three tasks are then combined, and player inventory/skills are added programmatically to
+ * The results from all four tasks are then combined, and player inventory/skills are added programmatically to
  * create the final, ready-to-play world concepts.
  *
  * - generateWorldSetup - The main function for the application to use.
@@ -27,8 +30,8 @@
 import Handlebars from 'handlebars';
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
-import type { Terrain, Skill } from '@/lib/game/types';
-import { GeneratedItemSchema, SkillSchema, NarrativeConceptArraySchema, ItemCategorySchema } from '@/ai/schemas';
+import type { Terrain, Skill, Structure } from '@/lib/game/types';
+import { GeneratedItemSchema, SkillSchema, NarrativeConceptArraySchema, ItemCategorySchema, StructureSchema } from '@/ai/schemas';
 import { skillDefinitions } from '@/lib/game/skills';
 import { getEmojiForItem } from '@/lib/utils';
 
@@ -69,6 +72,16 @@ const NarrativeConceptsOutputSchema = z.object({
     narrativeConcepts: NarrativeConceptArraySchema.describe("An array of three distinct narrative starting points, including descriptions and quests."),
 });
 
+// -- New schema for AI's creative output for structures --
+const AIGeneratedStructureCreativeSchema = z.object({
+    name: z.string().describe("A unique and thematic name for the structure."),
+    description: z.string().describe("A flavorful, one-sentence description of the structure."),
+    emoji: z.string().describe("A single emoji that represents the structure."),
+});
+const StructureCatalogCreativeOutputSchema = z.object({
+    customStructures: z.array(AIGeneratedStructureCreativeSchema).min(2).max(4).describe("A catalog of 2-4 unique structures or landmarks invented for this world."),
+});
+
 
 // -- Final Combined Output Schema (for the frontend) --
 const WorldConceptSchema = z.object({
@@ -78,9 +91,12 @@ const WorldConceptSchema = z.object({
   playerInventory: z.array(z.object({ name: z.string(), quantity: z.number().int().min(1) })),
   initialQuests: z.array(z.string()),
   startingSkill: SkillSchema,
+  customStructures: z.array(StructureSchema), // Pass the generated structures with each concept
 });
+
 const GenerateWorldSetupOutputSchema = z.object({
     customItemCatalog: z.array(GeneratedItemSchema),
+    customStructures: z.array(StructureSchema),
     concepts: z.array(WorldConceptSchema).length(3),
 });
 export type GenerateWorldSetupOutput = z.infer<typeof GenerateWorldSetupOutputSchema>;
@@ -132,9 +148,21 @@ For EACH of the three concepts, create the specific narrative details:
 2.  **initialQuests:** One or two simple starting quests.
 
 **Critical Rules:**
-- **DO NOT** create world names, player items, a starting biome, an item catalog, or starting skills.
+- **DO NOT** create world names, player items, a starting biome, an item catalog, custom structures, or starting skills.
 
 Provide the response as a single JSON object containing the 'narrativeConcepts' array.`;
+
+// -- New Template for Task D: Structure Catalog Generation --
+const structureCatalogPromptTemplate = `You are a creative world-building assistant specializing in architectural and landmark design. ALL TEXT in your response MUST be in the language specified by the code '{{language}}'.
+
+Based on the user's idea, generate **a small catalog of 2 to 4 unique, thematically appropriate structures or landmarks** that could be found in this world.
+
+**User's Idea:** {{{userInput}}}
+
+**Rules:**
+1.  The "customStructures" array in your JSON output MUST contain between 2 and 4 structures.
+2.  For each structure, you MUST define only 'name', 'description', and 'emoji'.
+3.  DO NOT include fields like 'buildable', 'providesShelter', 'buildCost', etc. These will be handled by the game logic.`;
 
 
 // == THE GENKIT FLOW (Orchestration with Parallel Tasks and Fallback Logic) ==
@@ -150,7 +178,7 @@ const generateWorldSetupFlow = ai.defineFlow(
     console.log('User Input:', input.userInput);
     console.log('Language:', input.language);
     
-    // --- Step 1: Define three independent AI tasks to run in parallel ---
+    // --- Step 1: Define four independent AI tasks to run in parallel ---
     
     // Task A: Generate the item catalog.
     const itemCatalogTask = (async () => {
@@ -223,11 +251,34 @@ const generateWorldSetupFlow = ai.defineFlow(
         throw new Error(detailedError);
     })();
     
+    // Task D: Generate custom structures.
+    const structureCatalogTask = (async () => {
+        const modelName = 'openai/gpt-4-turbo'; // Use a powerful model for creative structures
+        console.log(`[Task D] Attempting structure catalog generation with model: ${modelName}`);
+        const template = Handlebars.compile(structureCatalogPromptTemplate);
+        const renderedPrompt = template(input);
+        try {
+            const result = await ai.generate({
+                model: modelName,
+                prompt: renderedPrompt,
+                output: { schema: StructureCatalogCreativeOutputSchema },
+            });
+            console.log(`[Task D] SUCCESS with ${modelName}. Raw AI Output:`, result.output);
+            return result;
+        } catch (error: any) {
+            console.warn(`Model ${modelName} failed for structures. Reason: ${error.message || error}. Proceeding without custom structures.`);
+            // Return a valid empty structure to prevent crashes
+            return { output: { customStructures: [] } };
+        }
+    })();
+
+
     // --- Step 2: Run all tasks in parallel and wait for them to complete ---
-    const [itemCatalogResult, worldNamesResult, narrativeConceptsResult] = await Promise.all([
+    const [itemCatalogResult, worldNamesResult, narrativeConceptsResult, structureCatalogResult] = await Promise.all([
         itemCatalogTask,
         worldNamesTask,
         narrativeConceptsTask,
+        structureCatalogTask,
     ]);
 
     console.log('--- AI TASKS COMPLETE. PROCESSING AND COMBINING RESULTS... ---');
@@ -268,6 +319,16 @@ const generateWorldSetupFlow = ai.defineFlow(
         throw new Error("Failed to generate valid narrative concepts from the AI.");
     }
     
+    const creativeStructures = structureCatalogResult.output?.customStructures || [];
+    const customStructures: Structure[] = creativeStructures.map(struct => ({
+        ...struct,
+        providesShelter: Math.random() > 0.6, // 40% chance of providing shelter
+        buildable: false, // AI-generated structures aren't buildable by default
+        buildCost: [],
+        restEffect: undefined,
+        heatValue: 0,
+    }));
+
     // --- Step 4: Combine the results and programmatically create inventory & skills ---
     const tier1Skills = skillDefinitions.filter(s => s.tier === 1);
     const tier2Skills = skillDefinitions.filter(s => s.tier === 2);
@@ -307,11 +368,13 @@ const generateWorldSetupFlow = ai.defineFlow(
             playerInventory: playerInventory,
             initialQuests: concept.initialQuests,
             startingSkill: selectedSkill,
+            customStructures: customStructures,
         };
     });
 
     const finalOutput: GenerateWorldSetupOutput = {
         customItemCatalog,
+        customStructures,
         concepts: finalConcepts as any, // Cast to bypass strict type check for biome
     };
     

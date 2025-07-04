@@ -167,8 +167,8 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
             playerInventory: concepts[selection.playerInventory].playerInventory,
             initialQuests: concepts[selection.initialQuests].initialQuests,
             startingSkill: concepts[selection.startingSkill].startingSkill,
-            // Important: Use the single, shared item catalog
             customItemCatalog: generatedData.customItemCatalog,
+            customStructures: generatedData.customStructures || [], // Ensure it's always an array
         };
         onWorldCreated(finalWorld);
     }

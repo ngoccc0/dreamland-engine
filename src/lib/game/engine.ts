@@ -291,7 +291,7 @@ function generateChunkContent(
     
     // Structures - Mix of AI-generated and template
     let spawnedStructures: Structure[] = [];
-    if (Math.random() < 0.25 && customStructures.length > 0) { // 25% chance to spawn a unique AI structure
+    if (Math.random() < 0.25 && customStructures && customStructures.length > 0) { // 25% chance to spawn a unique AI structure
         const uniqueStructure = customStructures[Math.floor(Math.random() * customStructures.length)];
         spawnedStructures.push(uniqueStructure);
     } else {

@@ -12,11 +12,12 @@ import { BuildingPopup } from "@/components/game/building-popup";
 import { TutorialPopup } from "@/components/game/tutorial-popup";
 import { FusionPopup } from "@/components/game/fusion-popup";
 import { PwaInstallPopup } from "@/components/game/pwa-install-popup";
+import { SettingsPopup } from "@/components/game/settings-popup";
 import { Controls } from "@/components/game/controls";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical } from "lucide-react";
+import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
 import { useGameEngine } from "@/hooks/use-game-engine";
@@ -66,6 +67,7 @@ export default function GameLayout(props: GameLayoutProps) {
     const [isFusionOpen, setFusionOpen] = useState(false);
     const [isFullMapOpen, setIsFullMapOpen] = useState(false);
     const [isTutorialOpen, setTutorialOpen] = useState(false);
+    const [isSettingsOpen, setSettingsOpen] = useState(false);
     const [showInstallPopup, setShowInstallPopup] = useState(false);
     const [inputValue, setInputValue] = useState("");
     
@@ -148,16 +150,28 @@ export default function GameLayout(props: GameLayoutProps) {
                 <div className="w-full md:w-[70%] flex flex-col">
                     <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10 flex justify-between items-center">
                         <h1 className="text-2xl font-bold font-headline">{finalWorldSetup.worldName}</h1>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => setTutorialOpen(true)}>
-                                    <LifeBuoy />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>{t('tutorialTitle')}</p>
-                            </TooltipContent>
-                        </Tooltip>
+                        <div className="flex items-center gap-2">
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" onClick={() => setTutorialOpen(true)}>
+                                        <LifeBuoy />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{t('tutorialTitle')}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                             <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" onClick={() => setSettingsOpen(true)}>
+                                        <Settings />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{t('gameSettings')}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </div>
                     </header>
 
                     <main className="flex-grow p-4 md:p-6 overflow-y-auto">
@@ -318,6 +332,7 @@ export default function GameLayout(props: GameLayoutProps) {
                 />
                 <FullMapPopup open={isFullMapOpen} onOpenChange={setIsFullMapOpen} world={world} playerPosition={playerPosition} />
                 <TutorialPopup open={isTutorialOpen} onOpenChange={setTutorialOpen} />
+                <SettingsPopup open={isSettingsOpen} onOpenChange={setSettingsOpen} />
                 <PwaInstallPopup open={showInstallPopup} onOpenChange={setShowInstallPopup} />
             </div>
         </TooltipProvider>

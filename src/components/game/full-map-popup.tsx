@@ -104,7 +104,7 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
                                         <div className="flex-grow flex items-center justify-center">
                                           {biomeIcons[chunk.terrain as keyof typeof biomeIcons]}
                                         </div>
-                                        <div className="h-5 flex items-end justify-center gap-1">
+                                        <div className="h-5 flex items-center justify-center gap-1">
                                           {isPlayerHere && <PlayerIcon />}
                                           {chunk.enemy && <EnemyIcon emoji={chunk.enemy.emoji} />}
                                           {chunk.NPCs.length > 0 && <NpcIcon />}

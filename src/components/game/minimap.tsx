@@ -114,7 +114,7 @@ export function Minimap({ grid, playerPosition }: MinimapProps) {
                             </div>
                             
                             {/* Bottom part: Entity Icons */}
-                            <div className="h-5 flex items-end justify-center gap-1">
+                            <div className="h-5 flex items-center justify-center gap-1">
                                 {isPlayerHere && <PlayerIcon />}
                                 {cell.enemy && <EnemyIcon emoji={cell.enemy.emoji} />}
                                 {cell.NPCs.length > 0 && <NpcIcon />}

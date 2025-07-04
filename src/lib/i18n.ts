@@ -660,6 +660,10 @@ export const translations = {
     kills: "Kills",
     damageSpells: "Damage Spells Cast",
     moves: "Moves",
+    personaUnlockedTitle: 'Playstyle Identified!',
+    personaExplorer: 'Your constant travels have made you more resilient on the road.',
+    personaWarrior: 'Your combat experience has sharpened your attacks.',
+    personaArtisan: 'Your hands move with newfound confidence in your craft.',
   },
   vi: {
     ...Object.fromEntries(Object.keys(itemDefinitions).map(key => [key, key])),
@@ -1020,6 +1024,10 @@ export const translations = {
     kills: "Hạ gục",
     damageSpells: "Thi triển Phép gây ST",
     moves: "Di chuyển",
+    personaUnlockedTitle: 'Đã xác định Phong cách chơi!',
+    personaExplorer: 'Những chuyến đi liên tục đã giúp bạn dẻo dai hơn trên đường.',
+    personaWarrior: 'Kinh nghiệm chiến đấu đã mài sắc các đòn tấn công của bạn.',
+    personaArtisan: 'Đôi tay của bạn di chuyển với sự tự tin mới trong nghề thủ công.',
   }
 };
 

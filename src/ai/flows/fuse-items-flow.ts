@@ -105,7 +105,11 @@ const fuseItemsFlow = ai.defineFlow(
 
         // 2. Calculate success chance and determine outcome.
         const baseChance = 50; // 50% base success chance
-        const finalChance = clamp(baseChance + input.environmentalModifiers.successChanceBonus, 5, 95);
+        let bonus = input.environmentalModifiers.successChanceBonus;
+        if (input.playerPersona === 'artisan') {
+            bonus += 10; // Artisan gets a 10% bonus
+        }
+        const finalChance = clamp(baseChance + bonus, 5, 95);
         const roll = Math.random() * 100;
         const isSuccess = roll < finalChance;
         

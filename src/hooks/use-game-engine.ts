@@ -197,7 +197,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
 
     // Effect for calculating player persona
     useEffect(() => {
-        const totalActions = playerBehaviorProfile.moves + playerBehaviorProfile.attacks + playerBehaviorProfile.crafts + playerBehaviorProfile.customActions;
+        const totalActions = playerBehaviorProfile.moves + playerBehaviorProfile.attacks + playerBehaviorProfile.crafts;
         
         // Only start classifying after a certain number of actions
         if (totalActions < 20) return;
@@ -218,11 +218,18 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
 
         if (newPersona !== playerStats.persona && newPersona !== 'none') {
             setPlayerStats(prev => ({ ...prev, persona: newPersona }));
-            let message = '';
-            if (newPersona === 'explorer') message = 'Những chuyến đi liên tục đã giúp bạn dẻo dai hơn trên đường.';
-            if (newPersona === 'warrior') message = 'Kinh nghiệm chiến đấu đã mài sắc các đòn tấn công của bạn.';
-            if (newPersona === 'artisan') message = 'Đôi tay của bạn di chuyển với sự tự tin mới trong nghề thủ công.';
-            addNarrativeEntry(message, 'system');
+            let messageKey: TranslationKey | null = null;
+            if (newPersona === 'explorer') messageKey = 'personaExplorer';
+            if (newPersona === 'warrior') messageKey = 'personaWarrior';
+            if (newPersona === 'artisan') messageKey = 'personaArtisan';
+            
+            if (messageKey) {
+                 addNarrativeEntry(t(messageKey), 'system');
+                 toast({
+                    title: t('personaUnlockedTitle'),
+                    description: t(messageKey)
+                });
+            }
         }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps

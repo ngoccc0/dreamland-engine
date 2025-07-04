@@ -935,7 +935,14 @@ export const translations = {
     questCompletedTitle: "Quest Completed!",
     pickedUpItem: "You picked up {quantity} {itemName}.",
     exploreFoundItem: "Your search yields {quantity} {itemName}.",
-    exploreFoundNothing: "You search the area but find nothing of interest."
+    exploreFoundNothing: "You search the area but find nothing of interest.",
+    descMoistureHigh: 'The air is thick with moisture.',
+    descWindHigh: 'A strong wind whistles past your ears.',
+    descTempCold: 'A bone-chilling cold sets in.',
+    descDangerHigh: 'You feel a sense of unease in this place.',
+    descHumanPresence: 'There seem to be traces of others here.',
+    descEnemySensed: 'You sense the presence of a dangerous {enemyType} nearby.',
+    descStructureSighted: 'In the distance, you see',
   },
   vi: {
     ...gameEntityNames.vi,
@@ -1329,7 +1336,14 @@ export const translations = {
     questCompletedTitle: "Nhiệm vụ Hoàn thành!",
     pickedUpItem: "Bạn đã nhặt được {quantity} {itemName}.",
     exploreFoundItem: "Bạn tìm kiếm và phát hiện ra {quantity} {itemName}.",
-    exploreFoundNothing: "Bạn tìm kiếm khu vực nhưng không thấy gì thú vị."
+    exploreFoundNothing: "Bạn tìm kiếm khu vực nhưng không thấy gì thú vị.",
+    descMoistureHigh: 'Không khí đặc quánh hơi ẩm.',
+    descWindHigh: 'Một cơn gió mạnh rít qua bên tai bạn.',
+    descTempCold: 'Một cái lạnh buốt thấu xương.',
+    descDangerHigh: 'Bạn có cảm giác bất an ở nơi này.',
+    descHumanPresence: 'Dường như có dấu vết của người khác ở đây.',
+    descEnemySensed: 'Bạn cảm thấy sự hiện diện của một {enemyType} nguy hiểm gần đây.',
+    descStructureSighted: 'Ở phía xa, bạn thấy',
   }
 };
 

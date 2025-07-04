@@ -3,6 +3,8 @@ import { seasonConfig, worldConfig } from "./world-config";
 import { getTemplates } from "./templates";
 import { itemDefinitions as staticItemDefinitions } from "./items";
 import { weatherPresets } from "./weatherPresets";
+import { translations } from "../i18n";
+import type { TranslationKey } from "../i18n";
 
 // --- HELPER FUNCTIONS ---
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
@@ -245,6 +247,16 @@ function generateChunkContent(
     customStructures: Structure[],
     language: Language
 ) {
+    const t = (key: TranslationKey, replacements?: { [key: string]: string | number }): string => {
+        let text = (translations[language] as any)[key] || (translations.en as any)[key] || key;
+        if (replacements && typeof text === 'string') {
+            for (const [replaceKey, value] of Object.entries(replacements)) {
+                text = text.replace(`{${replaceKey}}`, String(value));
+            }
+        }
+        return text;
+    };
+
     const templates = getTemplates(language);
     const template = templates[chunkData.terrain];
 
@@ -252,7 +264,14 @@ function generateChunkContent(
     const baseDescriptionTemplate = template.descriptionTemplates[Math.floor(Math.random() * template.descriptionTemplates.length)];
     const adjective = template.adjectives[Math.floor(Math.random() * template.adjectives.length)];
     const feature = template.features[Math.floor(Math.random() * template.features.length)];
-    let finalDescription = baseDescriptionTemplate.replace('[adjective]', adjective).replace('[feature]', feature);
+    const smell = template.smells[Math.floor(Math.random() * template.smells.length)];
+    const sound = template.sounds[Math.floor(Math.random() * template.sounds.length)];
+
+    let finalDescription = baseDescriptionTemplate
+        .replace('[adjective]', adjective)
+        .replace('[feature]', feature)
+        .replace('[smell]', smell)
+        .replace('[sound]', sound);
     
     // --- Create a combined list of all possible items for this biome ---
     const staticSpawnCandidates = template.items;
@@ -328,24 +347,28 @@ function generateChunkContent(
     const spawnedEnemy = enemyData ? { ...enemyData, satiation: 0, emoji: enemyData.emoji } : null;
 
     // More description based on calculated values and spawned entities
-    if (chunkData.moisture > 8) finalDescription += ` ${language === 'vi' ? 'Không khí đặc quánh hơi ẩm.' : 'The air is thick with moisture.'}`;
-    if (chunkData.windLevel && chunkData.windLevel > 8) finalDescription += ` ${language === 'vi' ? 'Một cơn gió mạnh rít qua bên tai bạn.' : 'A strong wind whistles past your ears.'}`;
-    if (chunkData.temperature && chunkData.temperature < 3) finalDescription += ` ${language === 'vi' ? 'Một cái lạnh buốt thấu xương.' : 'A bone-chilling cold sets in.'}`;
-    if (chunkData.dangerLevel > 8) finalDescription += ` ${language === 'vi' ? 'Bạn có cảm giác bất an ở nơi này.' : 'You feel a sense of unease in this place.'}`;
-    if (chunkData.humanPresence > 5) finalDescription += ` ${language === 'vi' ? 'Dường như có dấu vết của người khác ở đây.' : 'There seem to be traces of others here.'}`;
-    if (spawnedEnemy) finalDescription += ` ${language === 'vi' ? `Bạn cảm thấy sự hiện diện của một ${spawnedEnemy.type} nguy hiểm gần đây.` : `You sense the presence of a dangerous ${spawnedEnemy.type} nearby.`}`;
-    if (spawnedStructures.length > 0) finalDescription += ` ${language === 'vi' ? `Ở phía xa, bạn thấy ${spawnedStructures[0].description.toLowerCase()}` : `In the distance, you see ${spawnedStructures[0].description.toLowerCase()}`}`;
+    if (chunkData.moisture > 8) finalDescription += ` ${t('descMoistureHigh')}`;
+    if (chunkData.windLevel && chunkData.windLevel > 8) finalDescription += ` ${t('descWindHigh')}`;
+    if (chunkData.temperature && chunkData.temperature < 3) finalDescription += ` ${t('descTempCold')}`;
+    if (chunkData.dangerLevel > 8) finalDescription += ` ${t('descDangerHigh')}`;
+    if (chunkData.humanPresence > 5) finalDescription += ` ${t('descHumanPresence')}`;
+    if (spawnedEnemy) {
+        finalDescription += ` ${t('descEnemySensed', { enemyType: t(spawnedEnemy.type as TranslationKey) })}`;
+    }
+    if (spawnedStructures.length > 0) {
+        finalDescription += ` ${t('descStructureSighted')} ${t(spawnedStructures[0].description as TranslationKey).toLowerCase()}`;
+    }
 
     // Actions
     const actions = [];
     if (spawnedEnemy) {
         actions.push({ id: 1, text: `${language === 'vi' ? 'Quan sát' : 'Observe'} ${spawnedEnemy.type}` });
     } else if (spawnedNPCs.length > 0) {
-        actions.push({ id: 1, text: `${language === 'vi' ? 'Nói chuyện với' : 'Talk to'} ${spawnedNPCs[0].name}` });
+        actions.push({ id: 1, text: `${language === 'vi' ? 'Nói chuyện với' : 'Talk to'} ${t(spawnedNPCs[0].name as TranslationKey)}` });
     }
     actions.push({ id: 2, text: language === 'vi' ? 'Khám phá khu vực' : 'Explore the area' });
     if (spawnedItems.length > 0) {
-         actions.push({ id: 3, text: `${language === 'vi' ? 'Nhặt' : 'Pick up'} ${spawnedItems[0].name}` });
+         actions.push({ id: 3, text: `${language === 'vi' ? 'Nhặt' : 'Pick up'} ${t(spawnedItems[0].name as TranslationKey)}` });
     }
 
     return {

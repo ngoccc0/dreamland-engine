@@ -71,6 +71,8 @@ const templates_vi: Record<Terrain, any> = {
         adjectives: ['xanh mướt', 'bạt ngàn', 'khô cằn', 'lộng gió', 'yên bình'],
         features: ['hoa dại', 'cỏ cao', 'đá tảng', 'lối mòn', 'đàn gia súc'],
         sky: ['trong xanh', 'đầy mây', 'u ám', 'hoàng hôn'],
+        sounds: ['gió thổi', 'côn trùng kêu', 'tiếng vó ngựa xa', 'sự tĩnh lặng'],
+        smells: ['cỏ tươi', 'hoa dại', 'đất khô', 'phân động vật'],
         NPCs: [
             { 
                 data: { name: 'Người du mục', description: 'Một người phụ nữ với làn da rám nắng, mặc trang phục làm từ nhiều mảnh da khác nhau.', dialogueSeed: 'Một người từng trải, nói về những vùng đất xa xôi và những cơn gió.' },
@@ -114,6 +116,8 @@ const templates_vi: Record<Terrain, any> = {
         ],
         adjectives: ['nóng bỏng', 'khô cằn', 'vô tận', 'lặng im', 'gió cát'],
         features: ['cồn cát', 'ốc đảo', 'xương rồng khổng lồ', 'bộ xương cũ', 'tàn tích đá'],
+        sounds: ['gió rít', 'sự im lặng tuyệt đối', 'tiếng rắn trườn', 'tiếng cát chảy'],
+        smells: ['cát nóng', 'không có gì', 'mùi ozon', 'xác khô'],
         NPCs: [
             { 
                 data: { name: 'Thương nhân lạc đà', description: 'Một người đàn ông trùm kín mặt, dẫn theo một con lạc đà chở đầy hàng hóa.', dialogueSeed: 'Một thương nhân lọc lõi, chỉ quan tâm đến việc mua bán và những món hời.' },
@@ -149,6 +153,8 @@ const templates_vi: Record<Terrain, any> = {
         ],
         adjectives: ['hôi thối', 'âm u', 'chết chóc', 'sương giăng', 'ngập nước'],
         features: ['đước', 'dây leo', 'khí độc', 'bong bóng bùn', 'côn trùng'],
+        sounds: ['ếch kêu', 'nước sủi bọt', 'muỗi vo ve', 'tiếng lội bì bõm'],
+        smells: ['cây cỏ mục', 'bùn lầy', 'khí metan', 'hoa thối'],
         NPCs: [
             { 
                 data: { name: 'Phù thủy đầm lầy', description: 'Một bà lão với nụ cười bí hiểm, sống trong một túp lều tạm bợ.', dialogueSeed: 'Một phù thủy lập dị, nói chuyện bằng những câu đố và có thể giúp đỡ nếu được trả công xứng đáng.' },
@@ -185,6 +191,8 @@ const templates_vi: Record<Terrain, any> = {
         adjectives: ['hiểm trở', 'lộng gió', 'hùng vĩ', 'tuyết phủ', 'trơ trọi'],
         features: ['vách đá', 'tuyết', 'hang động', 'dòng sông băng', 'mỏm đá'],
         visibility: ['cực tốt', 'bị mây che phủ', 'hạn chế'],
+        sounds: ['gió rít', 'đá lở', 'tiếng đại bàng kêu', 'sự tĩnh lặng'],
+        smells: ['không khí lạnh', 'đá ẩm', 'mùi tuyết', 'khoáng chất'],
         NPCs: [
             { 
                 data: { name: 'Thợ mỏ già', description: 'Một người lùn gân guốc với bộ râu được tết gọn gàng, tay cầm chiếc cuốc chim.', dialogueSeed: 'Một người thợ mỏ càu nhàu, phàn nàn về việc các mạch khoáng sản ngày càng khó tìm.' },
@@ -232,6 +240,7 @@ const templates_vi: Record<Terrain, any> = {
         adjectives: ['sâu thẳm', 'lạnh lẽo', 'bí ẩn', 'chằng chịt', 'tối đen'],
         features: ['thạch nhũ', 'tinh thể', 'dòng sông ngầm', 'tranh vẽ cổ', 'mạng nhện'],
         smells: ['đất ẩm', 'nước tù', 'khoáng chất', 'lưu huỳnh'],
+        sounds: ['tiếng nước nhỏ giọt', 'tiếng vang', 'tiếng dơi kêu', 'sự im lặng nặng nề'],
         NPCs: [
             { 
                 data: { name: 'Nhà thám hiểm bị lạc', description: 'Một người với trang bị cũ kỹ, đang tuyệt vọng vẽ bản đồ lên tường.', dialogueSeed: 'Một người thông minh nhưng đang hoảng loạn, nói nhanh và liên tục hỏi về đường ra.' },
@@ -279,7 +288,7 @@ const templates_vi: Record<Terrain, any> = {
         ],
         adjectives: ['nguyên sinh', 'nhiệt đới', 'ngột ngạt', 'bí hiểm', 'sống động'],
         features: ['khổng lồ', 'dây leo', 'hoa lạ', 'thác nước ẩn', 'tàn tích cổ'],
-        smells: ['hoa thối', 'đất ẩm', 'mùi xạ hương của động vật'],
+        smells: ['hoa thối', 'đất ẩm', 'mùi xạ hương của động vật', 'mùi trái cây chín'],
         sounds: ['vẹt kêu', 'khỉ hú', 'tiếng côn trùng rả rích', 'tiếng nước chảy'],
         NPCs: [
             { 
@@ -313,7 +322,8 @@ const templates_vi: Record<Terrain, any> = {
         ],
         adjectives: ['hoang tàn', 'nóng bỏng', 'đáng sợ', 'đầy tro bụi'],
         features: ['dung nham', 'khe nứt', 'cột đá bazan', 'hồ axit'],
-        smells: ['lưu huỳnh', 'đá cháy', 'kim loại nóng chảy'],
+        smells: ['lưu huỳnh', 'đá cháy', 'kim loại nóng chảy', 'khí độc'],
+        sounds: ['tiếng dung nham sôi', 'tiếng đá nứt', 'tiếng gầm của núi lửa', 'sự im lặng chết chóc'],
         NPCs: [
             { 
                 data: { name: 'Thợ rèn dung nham', description: 'Một người lùn với làn da đỏ như đồng, đang dùng một chiếc búa lớn để rèn trên một tảng đá nóng chảy.', dialogueSeed: 'Một thợ rèn bậc thầy, ít nói, chỉ quan tâm đến việc tạo ra những vũ khí huyền thoại từ vật liệu núi lửa.' },
@@ -396,6 +406,8 @@ const templates_en: Record<Terrain, any> = {
         adjectives: ['lush', 'vast', 'arid', 'windy', 'peaceful'],
         features: ['wildflowers', 'tall grass', 'boulders', 'worn paths', 'herds of animals'],
         sky: ['clear blue', 'cloudy', 'overcast', 'sunset'],
+        sounds: ['wind blowing', 'insects chirping', 'distant hooves', 'silence'],
+        smells: ['fresh grass', 'wildflowers', 'dry earth', 'animal dung'],
         NPCs: [
             { 
                 data: { name: 'Nomad', description: 'A woman with sun-tanned skin, dressed in clothes made from various pieces of leather.', dialogueSeed: 'An experienced traveler who speaks of distant lands and the winds.' },
@@ -422,6 +434,8 @@ const templates_en: Record<Terrain, any> = {
         ],
         adjectives: ['scorching', 'arid', 'endless', 'silent', 'windswept'],
         features: ['dunes', 'an oasis', 'giant cacti', 'old skeletons', 'stone ruins'],
+        sounds: ['wind howling', 'absolute silence', 'a snake hissing', 'sand shifting'],
+        smells: ['hot sand', 'nothing', 'ozone', 'dry carcass'],
         NPCs: [
             { 
                 data: { name: 'Camel Merchant', description: 'A man with his face covered, leading a camel laden with goods.', dialogueSeed: 'A shrewd merchant, only interested in buying, selling, and good deals.' },
@@ -448,6 +462,8 @@ const templates_en: Record<Terrain, any> = {
         ],
         adjectives: ['stinking', 'gloomy', 'deadly', 'foggy', 'waterlogged'],
         features: ['mangrove', 'vines', 'toxic gas', 'mud bubbles', 'insects'],
+        sounds: ['frogs croaking', 'water bubbling', 'mosquitoes buzzing', 'squelching sounds'],
+        smells: ['decaying plants', 'mud', 'methane gas', 'rotting flowers'],
         NPCs: [
             { 
                 data: { name: 'Swamp Witch', description: 'An old woman with a mysterious smile, living in a makeshift hut.', dialogueSeed: 'An eccentric witch who speaks in riddles and might help for the right price.' },
@@ -475,6 +491,8 @@ const templates_en: Record<Terrain, any> = {
         adjectives: ['treacherous', 'windswept', 'majestic', 'snow-capped', 'barren'],
         features: ['cliffs', 'snowdrifts', 'caves', 'glaciers', 'outcrops'],
         visibility: ['excellent', 'clouded', 'limited'],
+        sounds: ['wind howling', 'rockslides', 'eagle cries', 'silence'],
+        smells: ['cold air', 'damp rock', 'snow', 'minerals'],
         NPCs: [
             { 
                 data: { name: 'Old Miner', description: 'A sturdy dwarf with a neatly braided beard, holding a pickaxe.', dialogueSeed: 'A grumpy miner who complains that ore veins are getting harder to find.' },
@@ -505,19 +523,20 @@ const templates_en: Record<Terrain, any> = {
     },
     cave: {
         descriptionTemplates: [
-            'Bên trong hang động tối [adjective] và ẩm ướt. Tiếng bước chân của bạn vang vọng giữa những [feature].',
-            'Những khối [feature] lấp lánh dưới ánh sáng yếu ớt lọt vào từ bên ngoài. Không khí có mùi [smell].',
+            'Inside the [adjective] and damp cave. The sound of your footsteps echoes among the [feature].',
+            'The [feature] formations glitter in the faint light filtering from outside. The air smells of [smell].',
         ],
-        adjectives: ['sâu thẳm', 'lạnh lẽo', 'bí ẩn', 'chằng chịt', 'tối đen'],
-        features: ['thạch nhũ', 'tinh thể', 'dòng sông ngầm', 'tranh vẽ cổ', 'mạng nhện'],
-        smells: ['đất ẩm', 'nước tù', 'khoáng chất', 'lưu huỳnh'],
+        adjectives: ['deep', 'cold', 'mysterious', 'labyrinthine', 'pitch-black'],
+        features: ['stalactites', 'crystals', 'an underground river', 'ancient drawings', 'cobwebs'],
+        smells: ['damp earth', 'stagnant water', 'minerals', 'sulfur'],
+        sounds: ['dripping water', 'echoes', 'bat squeaks', 'heavy silence'],
         NPCs: [
             { 
-                data: { name: 'Nhà thám hiểm bị lạc', description: 'Một người với trang bị cũ kỹ, đang tuyệt vọng vẽ bản đồ lên tường.', dialogueSeed: 'Một người thông minh nhưng đang hoảng loạn, nói nhanh và liên tục hỏi về đường ra.' },
+                data: { name: 'Lost Adventurer', description: 'A person with old gear, desperately drawing a map on the wall.', dialogueSeed: 'A smart but panicked person, speaks quickly and constantly asks for a way out.' },
                 conditions: { humanPresence: { min: 2, max: 3 }, chance: 0.1 } 
             },
             { 
-                data: { name: 'Thủ lĩnh Goblin', description: 'Một con goblin to lớn hơn đồng loại, ngồi trên một chiếc ngai bằng xương.', dialogueSeed: 'Một thủ lĩnh goblin xảo quyệt và hung hăng, nói bằng một ngôn ngữ kỳ lạ nhưng có thể hiểu được qua cử chỉ.' },
+                data: { name: 'Goblin Chief', description: 'A goblin larger than its kin, sitting on a throne of bones.', dialogueSeed: 'A cunning and aggressive goblin chief, speaks a strange language but can be understood through gestures.' },
                 conditions: { humanPresence: { min: 4 }, dangerLevel: { min: 8 }, chance: 0.2 } 
             },
         ],
@@ -542,46 +561,47 @@ const templates_en: Record<Terrain, any> = {
     },
     jungle: {
         descriptionTemplates: [
-            'Bạn đang ở giữa một khu rừng rậm [adjective]. Những tán lá [feature] dày đặc đến nỗi ánh sáng mặt trời khó có thể lọt qua. Tiếng [sound] vang vọng khắp nơi.',
-            'Không khí [adjective] và ẩm ướt. Cây cối và dây leo [feature] mọc um tùm, tạo thành một mê cung xanh. Mùi [smell] nồng nặc trong không khí.'
+            'You are in the middle of a [adjective] jungle. The [feature] canopy is so dense that sunlight can barely penetrate. The sound of [sound] echoes everywhere.',
+            'The air is [adjective] and humid. Trees and [feature] vines grow profusely, forming a green maze. The smell of [smell] is strong in the air.'
         ],
         adjectives: ['primeval', 'tropical', 'suffocating', 'mysterious', 'vibrant'],
-        features: ['giant', 'vines', 'strange flowers', 'hidden waterfalls', 'ancient ruins'],
-        smells: ['rotting flowers', 'damp earth', 'animal musk'],
+        features: ['giant trees', 'vines', 'strange flowers', 'hidden waterfalls', 'ancient ruins'],
+        smells: ['rotting flowers', 'damp earth', 'animal musk', 'ripe fruit'],
         sounds: ['parrots squawking', 'monkeys howling', 'insects chirping', 'running water'],
         NPCs: [
             { 
-                data: { name: 'Thầy mo của bộ lạc', description: 'Một người đàn ông lớn tuổi với khuôn mặt được sơn vẽ kỳ dị, đeo nhiều loại bùa hộ mệnh.', dialogueSeed: 'Một người thông thái và bí ẩn, nói về các linh hồn và những lời tiên tri cổ xưa.' },
+                data: { name: 'Tribal Shaman', description: 'An old man with a strangely painted face, wearing many amulets.', dialogueSeed: 'A wise and mysterious person who speaks of spirits and ancient prophecies.' },
                 conditions: { humanPresence: { min: 3 }, magicAffinity: { min: 5 }, chance: 0.1 } 
             },
             { 
-                data: { name: 'Nhà thực vật học', description: 'Một nhà khoa học với cặp kính dày, đang cẩn thận ghi chép vào một cuốn sổ tay.', dialogueSeed: 'Một người đam mê, hào hứng nói về các loài thực vật quý hiếm và đặc tính của chúng.' },
+                data: { name: 'Botanist', description: 'A scientist with thick glasses, carefully taking notes in a notebook.', dialogueSeed: 'An enthusiast who excitedly talks about rare plants and their properties.' },
                 conditions: { humanPresence: { min: 1, max: 3 }, vegetationDensity: { min: 9 }, chance: 0.15 } 
             }
         ],
         items: templates_vi.jungle.items,
         structures: [],
         enemies: [
-            { data: { type: 'Trăn khổng lồ', emoji: '🐍', hp: 90, damage: 18, behavior: 'territorial', size: 'large', diet: ['Khỉ đột'], satiation: 0, maxSatiation: 1, loot: [{ name: 'Da Rắn', chance: 0.8, quantity: { min: 2, max: 3 } }] }, conditions: { predatorPresence: { min: 8 }, moisture: { min: 7 }, chance: 0.2 } },
-            { data: { type: 'Báo đốm', emoji: '🐆', hp: 70, damage: 22, behavior: 'aggressive', size: 'large', diet: ['Khỉ đột'], satiation: 0, maxSatiation: 2, loot: [{ name: 'Da Báo Tuyết', chance: 0.5, quantity: { min: 1, max: 1 } }, { name: 'Nanh Sói', chance: 0.3, quantity: { min: 2, max: 4 } }] }, conditions: { predatorPresence: { min: 9 }, chance: 0.25 } },
-            { data: { type: 'Khỉ đột', emoji: '🦍', hp: 80, damage: 20, behavior: 'defensive', size: 'large', diet: ['Quả Lạ', 'Hoa ăn thịt'], satiation: 0, maxSatiation: 3, loot: [{ name: 'Da Gấu', chance: 0.3, quantity: { min: 1, max: 1 } }] }, conditions: { vegetationDensity: { min: 8 }, chance: 0.3 } }
+            { data: { type: 'Giant Python', emoji: '🐍', hp: 90, damage: 18, behavior: 'territorial', size: 'large', diet: ['Gorilla'], satiation: 0, maxSatiation: 1, loot: [{ name: 'Da Rắn', chance: 0.8, quantity: { min: 2, max: 3 } }] }, conditions: { predatorPresence: { min: 8 }, moisture: { min: 7 }, chance: 0.2 } },
+            { data: { type: 'Jaguar', emoji: '🐆', hp: 70, damage: 22, behavior: 'aggressive', size: 'large', diet: ['Gorilla'], satiation: 0, maxSatiation: 2, loot: [{ name: 'Da Báo Tuyết', chance: 0.5, quantity: { min: 1, max: 1 } }, { name: 'Nanh Sói', chance: 0.3, quantity: { min: 2, max: 4 } }] }, conditions: { predatorPresence: { min: 9 }, chance: 0.25 } },
+            { data: { type: 'Gorilla', emoji: '🦍', hp: 80, damage: 20, behavior: 'defensive', size: 'large', diet: ['Quả Lạ', 'Hoa ăn thịt'], satiation: 0, maxSatiation: 3, loot: [{ name: 'Da Gấu', chance: 0.3, quantity: { min: 1, max: 1 } }] }, conditions: { vegetationDensity: { min: 8 }, chance: 0.3 } }
         ]
     },
     volcanic: {
         descriptionTemplates: [
-            'Mặt đất [adjective] và nứt nẻ dưới chân bạn. Không khí nồng nặc mùi [smell]. Xa xa, một [feature] phun trào những cột khói đen.',
-            'Cảnh quan ở đây thật [adjective]. Những dòng [feature] đã nguội lạnh tạo thành những hình thù kỳ quái. Thỉnh thoảng, bạn cảm nhận được mặt đất rung chuyển nhẹ.'
+            'The ground is [adjective] and cracked under your feet. The air is thick with the smell of [smell]. In the distance, a [feature] erupts with columns of black smoke.',
+            'The landscape here is [adjective]. Cooled [feature] flows form bizarre shapes. Occasionally, you feel the ground tremble slightly.'
         ],
         adjectives: ['desolate', 'scorching', 'fearsome', 'ash-covered'],
         features: ['lava flows', 'fissures', 'basalt columns', 'acid pools'],
-        smells: ['sulfur', 'burning rock', 'molten metal'],
+        smells: ['sulfur', 'burning rock', 'molten metal', 'toxic fumes'],
+        sounds: ['bubbling lava', 'cracking rock', 'the roar of the volcano', 'deathly silence'],
         NPCs: [
             { 
-                data: { name: 'Thợ rèn dung nham', description: 'Một người lùn với làn da đỏ như đồng, đang dùng một chiếc búa lớn để rèn trên một tảng đá nóng chảy.', dialogueSeed: 'Một thợ rèn bậc thầy, ít nói, chỉ quan tâm đến việc tạo ra những vũ khí huyền thoại từ vật liệu núi lửa.' },
+                data: { name: 'Lava Blacksmith', description: 'A dwarf with skin as red as copper, using a large hammer to forge on a molten rock.', dialogueSeed: 'A master blacksmith, taciturn, only interested in creating legendary weapons from volcanic materials.' },
                 conditions: { humanPresence: { min: 1 }, temperature: { min: 9 }, chance: 0.1 } 
             },
             { 
-                data: { name: 'Hỏa tinh bị mắc kẹt', description: 'Một thực thể bằng lửa bị mắc kẹt trong một tảng obsidian.', dialogueSeed: 'Một sinh vật nguyên tố mạnh mẽ nhưng đang yếu dần, hứa hẹn sức mạnh nếu được giải thoát.' },
+                data: { name: 'Trapped Fire Elemental', description: 'A fire entity trapped in a block of obsidian.', dialogueSeed: 'A powerful but weakening elemental being, promising power if freed.' },
                 conditions: { magicAffinity: { min: 8 }, chance: 0.05 } 
             }
         ],
@@ -590,13 +610,13 @@ const templates_en: Record<Terrain, any> = {
             { data: structureDefinitions['Mạch nước phun'], conditions: { temperature: { min: 7 }, chance: 0.15 } },
         ],
         enemies: [
-            { data: { type: 'Salamander lửa', emoji: '🦎', hp: 50, damage: 15, behavior: 'territorial', size: 'medium', diet: ['Lưu huỳnh'], satiation: 0, maxSatiation: 3, loot: [{ name: 'Da Rắn', chance: 0.5, quantity: { min: 1, max: 2 } }] }, conditions: { temperature: { min: 8 }, chance: 0.4 } },
-            { data: { type: 'Golem dung nham', emoji: '🔥', hp: 120, damage: 25, behavior: 'defensive', size: 'large', diet: ['Quặng Sắt'], satiation: 0, maxSatiation: 1, loot: [{ name: 'Trái tim Magma', chance: 0.1, quantity: { min: 1, max: 1 } }, { name: 'Đá Obsidian', chance: 0.3, quantity: { min: 2, max: 5 } }] }, conditions: { dangerLevel: { min: 9 }, chance: 0.25 } },
-            { data: { type: 'Rồng lửa con', emoji: '🐉', hp: 150, damage: 30, behavior: 'aggressive', size: 'large', diet: ['Golem dung nham'], satiation: 0, maxSatiation: 1, loot: [{ name: 'Vảy Rồng', chance: 0.2, quantity: { min: 3, max: 6 } }, { name: 'Răng Rồng', chance: 0.1, quantity: { min: 1, max: 2 } }] }, conditions: { predatorPresence: { min: 10 }, dangerLevel: { min: 10 }, chance: 0.1 } }
+            { data: { type: 'Fire Salamander', emoji: '🦎', hp: 50, damage: 15, behavior: 'territorial', size: 'medium', diet: ['Lưu huỳnh'], satiation: 0, maxSatiation: 3, loot: [{ name: 'Da Rắn', chance: 0.5, quantity: { min: 1, max: 2 } }] }, conditions: { temperature: { min: 8 }, chance: 0.4 } },
+            { data: { type: 'Lava Golem', emoji: '🔥', hp: 120, damage: 25, behavior: 'defensive', size: 'large', diet: ['Quặng Sắt'], satiation: 0, maxSatiation: 1, loot: [{ name: 'Trái tim Magma', chance: 0.1, quantity: { min: 1, max: 1 } }, { name: 'Đá Obsidian', chance: 0.3, quantity: { min: 2, max: 5 } }] }, conditions: { dangerLevel: { min: 9 }, chance: 0.25 } },
+            { data: { type: 'Young Fire Dragon', emoji: '🐉', hp: 150, damage: 30, behavior: 'aggressive', size: 'large', diet: ['Lava Golem'], satiation: 0, maxSatiation: 1, loot: [{ name: 'Vảy Rồng', chance: 0.2, quantity: { min: 3, max: 6 } }, { name: 'Răng Rồng', chance: 0.1, quantity: { min: 1, max: 2 } }] }, conditions: { predatorPresence: { min: 10 }, dangerLevel: { min: 10 }, chance: 0.1 } }
         ]
     },
     wall: {
-        descriptionTemplates: ['Một bức tường đá không thể vượt qua chặn đường.'],
+        descriptionTemplates: ['An impassable rock wall blocks the way.'],
         adjectives: [], features: [], smells: [], sounds: [],
         NPCs: [], items: [], structures: [], enemies: []
     },

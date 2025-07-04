@@ -16,7 +16,7 @@ import type { WorldConcept, Skill } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 import { SettingsPopup } from "./settings-popup";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
-import { Sparkles, Wand2, ArrowRight, BrainCircuit, Loader2, Settings } from "./icons";
+import { Sparkles, Wand2, ArrowRight, BrainCircuit, Loader2, Settings, ArrowLeft } from "./icons";
 
 interface WorldSetupProps {
     onWorldCreated: (worldSetup: WorldConcept) => void;
@@ -409,10 +409,10 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
             </CardContent>
             <CardFooter className="flex flex-col-reverse sm:flex-row sm:justify-between gap-2">
                 <Button variant="ghost" onClick={() => { setStep(0); setGeneratedData(null); }}>
-                    {t('backAndEdit')}
+                    <ArrowLeft className="mr-2"/> {t('backAndEdit')}
                 </Button>
                 <Button onClick={handleStartGame} disabled={isLoading || !generatedData}>
-                    {t('startAdventure')}
+                    {t('startAdventure')} <ArrowRight className="ml-2"/>
                 </Button>
             </CardFooter>
         </>

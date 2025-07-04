@@ -111,26 +111,25 @@ const fuseItemsFlow = ai.defineFlow(
         }
         const finalChance = clamp(baseChance + bonus, 5, 95);
         const roll = Math.random() * 100;
-        const isSuccess = roll < finalChance;
         
         // 3. Determine the final outcome and the resulting item tier.
         let determinedOutcome: 'success' | 'degraded' | 'totalLoss';
         let finalTier: number | undefined = undefined;
 
-        if (isSuccess) {
+        if (roll < finalChance) { // SUCCESS
             determinedOutcome = 'success';
             const avgTier = input.itemsToFuse.reduce((sum, item) => sum + item.tier, 0) / input.itemsToFuse.length;
             const randomMultiplier = Math.random() * (1.5 - 0.75) + 0.75; // Random between 75% and 150%
-            finalTier = clamp(Math.round(avgTier * randomMultiplier), 1, 6); // New item tier based on rounded average * random multiplier
-        } else {
+            finalTier = clamp(Math.round(avgTier * randomMultiplier), 1, 6);
+        } else { // FAILURE
             const lowestTier = Math.min(...input.itemsToFuse.map(i => i.tier));
-            if (lowestTier <= 1) {
-                // If any ingredient is Tier 1 and it fails, it's total loss.
+            if (roll > 95 || lowestTier <= 1) {
+                // Critical failure (roll > 95) or failing with junk items (Tier 1) results in total loss.
                 determinedOutcome = 'totalLoss';
             } else {
                 // Otherwise, it degrades.
                 determinedOutcome = 'degraded';
-                finalTier = lowestTier - 1; // Degraded item is one tier lower.
+                finalTier = clamp(lowestTier - 1, 1, 6); // Degraded item is one tier lower, but not less than 1.
             }
         }
         

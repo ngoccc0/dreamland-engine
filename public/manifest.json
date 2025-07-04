@@ -1,41 +1,17 @@
 {
-  "name": "Dreamland Engine - Ký Sự Lãng Du",
+  "name": "Dreamland Engine",
   "short_name": "Dreamland",
   "description": "An AI-driven text-based adventure game.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1a110f",
   "theme_color": "#1a110f",
-  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "/assets/logo.svg",
       "sizes": "any",
-      "type": "image/svg+xml"
-    },
-    {
-      "src": "/icons/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-maskable-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/icons/icon-maskable-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ]
 }

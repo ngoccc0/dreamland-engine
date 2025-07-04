@@ -1,8 +1,4 @@
 
-
-
-
-
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -715,6 +711,371 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         }
     };
     
+    // --- OFFLINE (RULE-BASED) ACTION HANDLERS ---
+
+    const handleOfflineAttack = () => {
+        const key = `${playerPosition.x},${playerPosition.y}`;
+        const baseChunk = world[key];
+        if (!baseChunk || !baseChunk.enemy) {
+            addNarrativeEntry(t('noTarget'), 'system');
+            return;
+        }
+        const currentChunk = getEffectiveChunk(baseChunk, gameTime);
+    
+        const actionText = `${t('attackAction')} ${t(currentChunk.enemy!.type as TranslationKey)}`;
+        addNarrativeEntry(actionText, 'action');
+    
+        const { roll, range } = rollDice(settings.diceType);
+        const successLevel = getSuccessLevel(roll, settings.diceType);
+        const successLevelKey = successLevelToTranslationKey[successLevel];
+        addNarrativeEntry(t('diceRollMessage', { roll, level: t(successLevelKey) }), 'system');
+    
+        let playerDamage = 0;
+        const combatLogParts: string[] = [];
+    
+        let damageMultiplier = 1.0;
+        switch (successLevel) {
+            case 'CriticalFailure':
+                damageMultiplier = 0;
+                combatLogParts.push(t('attackCritFail'));
+                break;
+            case 'Failure':
+                damageMultiplier = 0;
+                combatLogParts.push(t('attackFail'));
+                break;
+            case 'GreatSuccess':
+                damageMultiplier = 1.5;
+                break;
+            case 'CriticalSuccess':
+                damageMultiplier = 2.0;
+                break;
+            case 'Success':
+            default:
+                damageMultiplier = 1.0;
+                break;
+        }
+        
+        if (damageMultiplier > 0) {
+            let playerDamageModifier = 1.0;
+            if (currentChunk.lightLevel !== undefined && currentChunk.lightLevel < -3) {
+                playerDamageModifier *= 0.8;
+                combatLogParts.push(t('attackEnvFog'));
+            }
+            if (currentChunk.moisture !== undefined && currentChunk.moisture > 8) {
+                playerDamageModifier *= 0.9;
+                combatLogParts.push(t('attackEnvRain'));
+            }
+    
+            let playerBaseDamage = playerStats.attributes.physicalAttack;
+            if (playerStats.persona === 'warrior') {
+                playerBaseDamage += 2; 
+            }
+    
+            playerDamage = Math.round(playerBaseDamage * damageMultiplier * playerDamageModifier);
+        }
+    
+        const finalEnemyHp = Math.max(0, currentChunk.enemy.hp - playerDamage);
+        const enemyDefeated = finalEnemyHp <= 0;
+        let lootDrops: ChunkItem[] = [];
+    
+        if (playerDamage > 0) {
+            if (successLevel === 'CriticalSuccess') {
+                 combatLogParts.push(t('attackCritSuccess', { enemyType: t(currentChunk.enemy.type as TranslationKey), playerDamage }));
+            } else if (successLevel === 'GreatSuccess') {
+                combatLogParts.push(t('attackGreatSuccess', { enemyType: t(currentChunk.enemy.type as TranslationKey), playerDamage }));
+            } else {
+                combatLogParts.push(t('attackSuccess', { enemyType: t(currentChunk.enemy.type as TranslationKey), playerDamage }));
+            }
+        }
+    
+        let enemyDamage = 0;
+        let fled = false;
+    
+        if (enemyDefeated) {
+            const templates = getTemplates(language);
+            const enemyTemplate = templates[currentChunk.terrain]?.enemies.find((e: any) => e.data.type === currentChunk.enemy!.type);
+            if (enemyTemplate && enemyTemplate.data.loot) {
+                for (const lootItem of enemyTemplate.data.loot) {
+                    if (Math.random() < lootItem.chance) {
+                        const definition = customItemDefinitions[lootItem.name];
+                        if (definition) {
+                            const quantity = getRandomInRange(lootItem.quantity);
+                            lootDrops.push({
+                                name: lootItem.name,
+                                description: definition.description,
+                                tier: definition.tier,
+                                quantity: quantity,
+                                emoji: definition.emoji,
+                            });
+                        }
+                    }
+                }
+            }
+        } else {
+            const shouldFlee = currentChunk.enemy.behavior === 'passive' || (successLevel === 'CriticalSuccess' && currentChunk.enemy.size === 'small');
+            if (shouldFlee) {
+                fled = true;
+            } else {
+                enemyDamage = Math.round(currentChunk.enemy.damage);
+            }
+        }
+    
+        const finalPlayerHp = Math.max(0, playerStats.hp - enemyDamage);
+    
+        let narrative = combatLogParts.join(' ');
+        if (enemyDefeated) {
+            narrative += ` ${t('enemyDefeated', { enemyType: t(currentChunk.enemy.type as TranslationKey) })}`;
+            if (lootDrops.length > 0) {
+                narrative += ` ${t('enemyDropped', { items: lootDrops.map(i => `${i.quantity}x ${t(i.name as TranslationKey)}`).join(', ') })}`;
+            }
+        } else if (fled) {
+            narrative += ` ${t('enemyFled', { enemyType: t(currentChunk.enemy.type as TranslationKey) })}`;
+        } else if (enemyDamage > 0) {
+            narrative += ` ${t('enemyRetaliated', { enemyType: t(currentChunk.enemy.type as TranslationKey), damage: enemyDamage })}`;
+        } else {
+            narrative += ` ${t('enemyPrepares', { enemyType: t(currentChunk.enemy.type as TranslationKey) })}`;
+        }
+        addNarrativeEntry(narrative, 'narrative');
+    
+        setPlayerStats(prev => {
+            const currentProgress = prev.unlockProgress;
+            return {
+                ...prev,
+                hp: finalPlayerHp,
+                unlockProgress: enemyDefeated ? { ...currentProgress, kills: currentProgress.kills + 1 } : currentProgress
+            };
+        });
+    
+        setWorld(prevWorld => {
+            const newWorld = { ...prevWorld };
+            const chunkToUpdate = { ...newWorld[key]! };
+            
+            if (enemyDefeated || fled) {
+                chunkToUpdate.enemy = null;
+            } else {
+                chunkToUpdate.enemy = { ...chunkToUpdate.enemy!, hp: finalEnemyHp };
+            }
+    
+            if (lootDrops.length > 0) {
+                const newItemsMap = new Map<string, ChunkItem>();
+                (chunkToUpdate.items || []).forEach(item => newItemsMap.set(item.name, { ...item }));
+                lootDrops.forEach(droppedItem => {
+                    const existingItem = newItemsMap.get(droppedItem.name);
+                    if (existingItem) {
+                        existingItem.quantity += droppedItem.quantity;
+                    } else {
+                        newItemsMap.set(droppedItem.name, droppedItem);
+                    }
+                });
+                chunkToUpdate.items = Array.from(newItemsMap.values());
+            }
+    
+            newWorld[key] = chunkToUpdate;
+            return newWorld;
+        });
+    
+        advanceGameTime();
+    };
+
+    const handleOfflineItemUse = (itemName: string, target: 'player' | string) => {
+        const actionText = target === 'player'
+            ? `${t('useAction')} ${t(itemName as TranslationKey)}`
+            : `${t('useOnAction', {item: t(itemName as TranslationKey), target: t(target as TranslationKey)})}`;
+        addNarrativeEntry(actionText, 'action');
+
+        let newPlayerStats = { ...playerStats };
+        const itemIndex = newPlayerStats.items.findIndex(i => i.name === itemName);
+
+        if (itemIndex === -1) {
+            addNarrativeEntry(t('itemNotFound'), 'system');
+            return;
+        }
+
+        if (target === 'player') {
+            const itemDef = customItemDefinitions[itemName];
+            if (!itemDef || itemDef.effects.length === 0) {
+                addNarrativeEntry(t('itemNoEffect', { item: t(itemName as TranslationKey) }), 'system');
+                return;
+            }
+
+            const effectDescriptions: string[] = [];
+            itemDef.effects.forEach(effect => {
+                switch (effect.type) {
+                    case 'HEAL':
+                        const oldHp = newPlayerStats.hp;
+                        newPlayerStats.hp = Math.min(100, newPlayerStats.hp + effect.amount);
+                        if (newPlayerStats.hp > oldHp) {
+                            effectDescriptions.push(t('itemHealEffect', { amount: newPlayerStats.hp - oldHp }));
+                        }
+                        break;
+                    case 'RESTORE_STAMINA':
+                        const oldStamina = newPlayerStats.stamina;
+                        newPlayerStats.stamina = Math.min(100, newPlayerStats.stamina + effect.amount);
+                        if (newPlayerStats.stamina > oldStamina) {
+                            effectDescriptions.push(t('itemStaminaEffect', { amount: (newPlayerStats.stamina - oldStamina).toFixed(0) }));
+                        }
+                        break;
+                }
+            });
+            
+            if (effectDescriptions.length === 0) {
+                addNarrativeEntry(t('itemDidNothing', { item: t(itemName as TranslationKey) }), 'system');
+            } else {
+                newPlayerStats.items[itemIndex].quantity -= 1;
+                addNarrativeEntry(t('itemUsedSuccess', { item: t(itemName as TranslationKey), effect: effectDescriptions.join(', ') }), 'system');
+            }
+        } else {
+            const key = `${playerPosition.x},${playerPosition.y}`;
+            const currentChunk = world[key];
+            if (!currentChunk || !currentChunk.enemy || currentChunk.enemy.type !== target) {
+                addNarrativeEntry(t('noTargetForITEM', {target: t(target as TranslationKey)}), 'system');
+                return;
+            }
+
+            if (!currentChunk.enemy.diet.includes(itemName)) {
+                addNarrativeEntry(t('targetNotInterested', { target: t(target as TranslationKey) }), 'system');
+                return;
+            }
+
+            newPlayerStats.items[itemIndex].quantity -= 1;
+            
+            const newEnemyState = { ...currentChunk.enemy };
+            newEnemyState.satiation = Math.min(newEnemyState.satiation + 1, newEnemyState.maxSatiation);
+
+            const baseTameChance = 0.1;
+            const satiationBonus = (newEnemyState.satiation / newEnemyState.maxSatiation) * 0.4;
+            const healthPenalty = (newEnemyState.hp / 100) * 0.2;
+            const tamingChance = baseTameChance + satiationBonus - healthPenalty;
+
+            if (Math.random() < tamingChance) {
+                const newPet: Pet = { type: currentChunk.enemy.type, level: 1 };
+                if (!newPlayerStats.pets) newPlayerStats.pets = [];
+                newPlayerStats.pets.push(newPet);
+                setWorld(prev => ({...prev, [key]: {...prev[key], enemy: null}}));
+                addNarrativeEntry(t('tameSuccess', { target: t(target as TranslationKey) }), 'system');
+            } else {
+                setWorld(prev => ({...prev, [key]: {...prev[key], enemy: newEnemyState}}));
+                addNarrativeEntry(t('tameFail', { target: t(target as TranslationKey), item: t(itemName as TranslationKey)}), 'system');
+            }
+        }
+
+        setPlayerStats(prev => ({...prev, ...newPlayerStats, items: newPlayerStats.items.filter(i => i.quantity > 0)}));
+        advanceGameTime();
+    };
+
+    const handleOfflineSkillUse = (skillName: string) => {
+        let newPlayerStatus: PlayerStatus = JSON.parse(JSON.stringify(playerStats));
+        const skillToUse = newPlayerStatus.skills.find(s => s.name === skillName);
+    
+        if (!skillToUse) {
+            addNarrativeEntry(t('skillNotFound', { skillName: t(skillName as TranslationKey) }), 'system');
+            return;
+        }
+        
+        if (newPlayerStatus.mana < skillToUse.manaCost) {
+            addNarrativeEntry(t('notEnoughMana', { skillName: t(skillName as TranslationKey) }), 'system');
+            return;
+        }
+    
+        const { roll, range } = rollDice(settings.diceType);
+        const successLevel = getSuccessLevel(roll, settings.diceType);
+        const successLevelKey = successLevelToTranslationKey[successLevel];
+        addNarrativeEntry(t('diceRollMessage', { roll, level: t(successLevelKey) }), 'system');
+    
+        newPlayerStatus.mana -= skillToUse.manaCost;
+    
+        let narrative = "";
+        let effectMultiplier = 1.0;
+    
+        const key = `${playerPosition.x},${playerPosition.y}`;
+        const currentChunk = world[key];
+        let newEnemy: Chunk['enemy'] = currentChunk?.enemy ? { ...currentChunk.enemy } : null;
+    
+        switch (successLevel) {
+            case 'CriticalFailure':
+                if (skillToUse.effect.type === 'HEAL') {
+                    const backfireDamage = Math.round(skillToUse.effect.amount * 0.5);
+                    newPlayerStatus.hp = Math.max(0, newPlayerStatus.hp - backfireDamage);
+                    narrative = t('skillHealCritFail', { damage: backfireDamage });
+                } else if (skillToUse.effect.type === 'DAMAGE') {
+                     const backfireDamage = Math.round(skillToUse.effect.amount * 0.5);
+                    newPlayerStatus.hp = Math.max(0, newPlayerStatus.hp - backfireDamage);
+                    narrative = t('skillDamageCritFail', { damage: backfireDamage });
+                }
+                addNarrativeEntry(narrative, 'narrative');
+                setPlayerStats(newPlayerStatus);
+                advanceGameTime();
+                return;
+    
+            case 'Failure':
+                narrative = t('skillFail', { skillName: t(skillName as TranslationKey) });
+                addNarrativeEntry(narrative, 'narrative');
+                setPlayerStats(newPlayerStatus);
+                advanceGameTime();
+                return;
+    
+            case 'GreatSuccess': effectMultiplier = 1.5; break;
+            case 'CriticalSuccess': effectMultiplier = 2.0; break;
+            case 'Success': default: effectMultiplier = 1.0; break;
+        }
+    
+        switch (skillToUse.effect.type) {
+            case 'HEAL':
+                if (skillToUse.effect.target === 'SELF') {
+                    const healAmount = Math.round(skillToUse.effect.amount * effectMultiplier);
+                    const oldHp = newPlayerStatus.hp;
+                    newPlayerStatus.hp = Math.min(100, newPlayerStatus.hp + healAmount);
+                    const healedFor = newPlayerStatus.hp - oldHp;
+                    narrative = t('skillHealSuccess', { skillName: t(skillName as TranslationKey), amount: healedFor });
+                    if (successLevel === 'GreatSuccess') narrative += ` ${t('skillGreatSuccessBonus')}`;
+                    if (successLevel === 'CriticalSuccess') narrative += ` ${t('skillCritSuccessBonus')}`;
+                }
+                break;
+            case 'DAMAGE':
+                if (skillToUse.effect.target === 'ENEMY') {
+                    if (!newEnemy) {
+                        narrative = t('skillNoTarget', { skillName: t(skillName as TranslationKey) });
+                    } else {
+                        const baseDamage = skillToUse.effect.amount + Math.round(newPlayerStatus.attributes.magicalAttack * 0.5);
+                        const finalDamage = Math.round(baseDamage * effectMultiplier);
+                        newEnemy.hp = Math.max(0, newEnemy.hp - finalDamage);
+                        
+                        if (successLevel === 'CriticalSuccess') {
+                            narrative = t('skillDamageCritSuccess', { skillName: t(skillName as TranslationKey), enemy: t(newEnemy.type as TranslationKey), damage: finalDamage });
+                        } else {
+                            narrative = t('skillDamageSuccess', { skillName: t(skillName as TranslationKey), enemy: t(newEnemy.type as TranslationKey), damage: finalDamage });
+                            if (successLevel === 'GreatSuccess') narrative += ` ${t('skillDamageGreatSuccessBonus')}`;
+                        }
+    
+                        if (skillToUse.effect.healRatio) {
+                            const healedAmount = Math.round(finalDamage * skillToUse.effect.healRatio);
+                            const oldHp = newPlayerStatus.hp;
+                            newPlayerStatus.hp = Math.min(100, newPlayerStatus.hp + healedAmount);
+                            if (newPlayerStatus.hp > oldHp) {
+                                narrative += ` ${t('siphonHealth', { amount: newPlayerStatus.hp - oldHp })}`;
+                            }
+                        }
+    
+                        if (newEnemy.hp <= 0) {
+                            narrative += ` ${t('enemyVanquished', { enemyType: t(newEnemy.type as TranslationKey) })}`;
+                            newEnemy = null;
+                            newPlayerStatus.unlockProgress.kills += 1;
+                        }
+                    }
+                    newPlayerStatus.unlockProgress.damageSpells += 1;
+                }
+                break;
+        }
+    
+        addNarrativeEntry(narrative, 'narrative');
+        setPlayerStats(newPlayerStatus);
+        if(newEnemy !== currentChunk?.enemy) {
+            setWorld(prev => ({...prev, [key]: {...prev[key]!, enemy: newEnemy}}));
+        }
+        advanceGameTime();
+    };
+
+    // --- MAIN ACTION HANDLERS ---
 
     const handleMove = (direction: "north" | "south" | "east" | "west") => {
         setPlayerBehaviorProfile(p => ({ ...p, moves: p.moves + 1 }));
@@ -746,7 +1107,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             return;
         }
 
-        const travelCost = playerStats.persona === 'explorer' ? Math.max(1, destinationChunk.travelCost - 1) : destinationChunk.travelCost;
+        const travelCost = playerStats.persona === 'explorer' ? Math.max(1, (worldConfig[destinationChunk.terrain]?.travelCost || 3) - 1) : (worldConfig[destinationChunk.terrain]?.travelCost || 3);
         
         if (playerStats.stamina < travelCost) {
             toast({
@@ -817,23 +1178,22 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
 
     const handleAttack = () => {
         setPlayerBehaviorProfile(p => ({ ...p, attacks: p.attacks + 1 }));
+        
         const key = `${playerPosition.x},${playerPosition.y}`;
         const baseChunk = world[key];
         if (!baseChunk || !baseChunk.enemy) {
             addNarrativeEntry(t('noTarget'), 'system');
             return;
         }
-    
+        
         const actionText = `${t('attackAction')} ${t(baseChunk.enemy.type as TranslationKey)}`;
-        addNarrativeEntry(actionText, 'action');
-    
         const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
         setPlayerStats(newPlayerStats);
-
+    
         if (isOnline) {
             handleOnlineNarrative(actionText, world, playerPosition, newPlayerStats);
         } else {
-            advanceGameTime();
+            handleOfflineAttack();
         }
     };
     
@@ -848,6 +1208,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         if(isOnline) {
             handleOnlineNarrative(text, world, playerPosition, newPlayerStats);
         } else {
+            addNarrativeEntry(t('customActionFail'), 'system');
             advanceGameTime();
         }
     }
@@ -861,7 +1222,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             return;
         }
         
-        const actionText = `Crafted ${recipe.result.name}`;
+        const actionText = t('craftAction', {itemName: t(recipe.result.name as TranslationKey)});
         let updatedItems = [...playerStats.items];
         ingredientsToConsume.forEach(itemToConsume => {
             const itemIndex = updatedItems.findIndex(i => i.name === itemToConsume.name);
@@ -891,29 +1252,29 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 });
             }
             setPlayerStats(prev => ({ ...prev, items: newInventory }));
-            addNarrativeEntry(t('craftSuccess', { itemName: recipe.result.name }), 'system');
-            toast({ title: t('craftSuccessTitle'), description: t('craftSuccess', { itemName: recipe.result.name }) });
+            addNarrativeEntry(t('craftSuccess', { itemName: t(recipe.result.name as TranslationKey) }), 'system');
+            toast({ title: t('craftSuccessTitle'), description: t('craftSuccess', { itemName: t(recipe.result.name as TranslationKey) }) });
         } else {
-            addNarrativeEntry(t('craftFail', { itemName: recipe.result.name }), 'system');
-            toast({ title: t('craftFailTitle'), description: t('craftFail', { itemName: recipe.result.name }), variant: 'destructive' });
+            addNarrativeEntry(t('craftFail', { itemName: t(recipe.result.name as TranslationKey) }), 'system');
+            toast({ title: t('craftFailTitle'), description: t('craftFail', { itemName: t(recipe.result.name as TranslationKey) }), variant: 'destructive' });
         }
         
         advanceGameTime();
-    }, [playerStats, isOnline, customItemCatalog, recipes, language, addNarrativeEntry, toast, t, advanceGameTime, customItemDefinitions]);
+    }, [playerStats, customItemCatalog, recipes, language, addNarrativeEntry, toast, t, advanceGameTime, customItemDefinitions]);
 
     const handleItemUsed = useCallback((itemName: string, target: 'player' | string) => {
         const actionText = target === 'player'
-            ? `${t('useAction')} ${itemName}`
-            : `${t('useOnAction', {item: itemName, target: t(target as TranslationKey)})}`;
-        addNarrativeEntry(actionText, 'action');
-
-        const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText] };
+            ? `${t('useAction')} ${t(itemName as TranslationKey)}`
+            : `${t('useOnAction', {item: t(itemName as TranslationKey), target: t(target as TranslationKey)})}`;
+        
+        const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
+        // Set player stats immediately to update daily log
         setPlayerStats(newPlayerStats);
 
         if (isOnline) {
             handleOnlineNarrative(actionText, world, playerPosition, newPlayerStats);
         } else {
-            advanceGameTime();
+            handleOfflineItemUse(itemName, target);
         }
     }, [playerStats, world, playerPosition, isOnline, addNarrativeEntry, advanceGameTime, handleOnlineNarrative, t]);
 
@@ -925,24 +1286,15 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             ...playerStats, 
             dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]
         };
-
-        const skillDef = skillDefinitions.find(s => s.name === skillName);
-        if (skillDef?.effect.type === 'DAMAGE') {
-            newPlayerStats.unlockProgress = {
-                ...playerStats.unlockProgress,
-                damageSpells: playerStats.unlockProgress.damageSpells + 1,
-            };
-        }
-        
         setPlayerStats(newPlayerStats);
 
         if (isOnline) {
             handleOnlineNarrative(actionText, world, playerPosition, newPlayerStats);
         } else {
-            advanceGameTime();
+            handleOfflineSkillUse(skillName);
         }
 
-    }, [playerStats, addNarrativeEntry, isOnline, handleOnlineNarrative, world, playerPosition, t, advanceGameTime]);
+    }, [playerStats, world, playerPosition, isOnline, addNarrativeEntry, t, advanceGameTime, handleOnlineNarrative]);
 
     const handleBuild = useCallback((structureName: string) => {
         const buildStaminaCost = 15;
@@ -966,7 +1318,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             return;
         }
         
-        const actionText = `Built ${structureName}`;
+        const actionText = t('buildConfirm', {structureName: t(structureName as TranslationKey)});
         let updatedItems = [...playerStats.items];
         for (const cost of buildCost) {
             updatedItems.find(i => i.name === cost.name)!.quantity -= cost.quantity;
@@ -1010,8 +1362,8 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             return;
         }
 
-        const actionText = `Rested in ${shelter.name}`;
-        addNarrativeEntry(t('restInShelter', { shelterName: t(shelter.name as TranslationKey) }), 'action');
+        const actionText = t('restInShelter', { shelterName: t(shelter.name as TranslationKey) });
+        addNarrativeEntry(actionText, 'action');
 
         const { hp: hpRestore, stamina: staminaRestore } = shelter.restEffect;
         const newHp = Math.min(100, playerStats.hp + hpRestore);
@@ -1048,7 +1400,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         if(weather.exclusive_tags.includes('heat')) elementalAffinity = 'fire';
         if(effectiveChunk.dangerLevel > 8) { successChanceBonus -= 5; chaosFactor += 2; }
         
-        const actionText = `Fused ${itemsToFuse.map(i => i.name).join(', ')}`;
+        const actionText = t('fuseAction', { items: itemsToFuse.map(i => t(i.name as TranslationKey)).join(', ') });
         let newItems = [...playerStats.items];
         itemsToFuse.forEach(item => { newItems.find(i => i.name === item.name)!.quantity -= 1; });
         setPlayerStats(prev => ({ ...prev, items: newItems.filter(i => i.quantity > 0), dailyActionLog: [...(prev.dailyActionLog || []), actionText] }));

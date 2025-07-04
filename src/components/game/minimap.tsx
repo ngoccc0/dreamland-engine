@@ -84,6 +84,8 @@ const biomeIcons: Record<Exclude<Terrain, 'empty'>, React.ReactNode> = {
 
 export function Minimap({ grid, playerPosition }: MinimapProps) {
   const { t } = useLanguage();
+  const responsiveCellSize = "w-14 h-14 md:w-16 md:h-16 lg:w-20 lg:h-20";
+
   return (
     <div className="flex flex-col items-center gap-2">
         <div className="grid grid-cols-5 border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-hidden">
@@ -92,7 +94,7 @@ export function Minimap({ grid, playerPosition }: MinimapProps) {
               const key = `${rowIndex}-${colIndex}`;
               
               if (!cell) {
-                return <div key={key} className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 bg-map-empty border-r border-b border-dashed border-border/50" />;
+                return <div key={key} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />;
               }
               
               const isPlayerHere = playerPosition.x === cell.x && playerPosition.y === cell.y;
@@ -102,7 +104,8 @@ export function Minimap({ grid, playerPosition }: MinimapProps) {
                     <PopoverTrigger asChild>
                         <div
                             className={cn(
-                                "w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 relative transition-all duration-300 flex items-center justify-center p-1 cursor-pointer hover:ring-2 hover:ring-white border-r border-b border-dashed border-border/50",
+                                responsiveCellSize,
+                                "relative transition-all duration-300 flex items-center justify-center p-1 cursor-pointer hover:ring-2 hover:ring-white border-r border-b border-dashed border-border/50",
                                 biomeColors[cell.terrain],
                                 isPlayerHere && "ring-2 ring-white shadow-lg z-10"
                             )}
@@ -120,28 +123,28 @@ export function Minimap({ grid, playerPosition }: MinimapProps) {
                             
                             {/* Structure Icon in top-left */}
                             {cell.structures?.length > 0 && (
-                                <div className="absolute top-1 left-1">
+                                <div className="absolute top-px left-px">
                                     <StructureIcon emoji={cell.structures[0].emoji} />
                                 </div>
                             )}
 
                             {/* NPC Icon in top-right */}
                             {cell.NPCs.length > 0 && (
-                                <div className="absolute top-1 right-1">
+                                <div className="absolute top-px right-px">
                                     <NpcIcon />
                                 </div>
                             )}
                             
                             {/* Enemy Icon in bottom-left */}
                             {cell.enemy && (
-                                <div className="absolute bottom-1 left-1">
+                                <div className="absolute bottom-px left-px">
                                     <EnemyIcon emoji={cell.enemy.emoji} />
                                 </div>
                             )}
 
                             {/* Item Icon in bottom-right */}
                             {cell.items.length > 0 && (
-                                <div className="absolute bottom-1 right-1">
+                                <div className="absolute bottom-px right-px">
                                     <ItemIcon emoji={cell.items[0].emoji} />
                                 </div>
                             )}

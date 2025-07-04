@@ -47,6 +47,7 @@ const biomeIcons: Record<Exclude<Terrain, 'empty'>, React.ReactNode> = {
 export function FullMapPopup({ open, onOpenChange, world, playerPosition }: FullMapPopupProps) {
   const { t } = useLanguage();
   const mapRadius = 7;
+  const responsiveCellSize = "w-14 h-14 md:w-16 md:h-16 lg:w-20 lg:h-20";
 
   const mapBounds = React.useMemo(() => {
     const minX = playerPosition.x - mapRadius;
@@ -85,7 +86,7 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
                         const chunk = world[chunkKey];
 
                         if (!chunk || !chunk.explored) {
-                            return <div key={chunkKey} className="w-12 h-12 bg-map-empty border-r border-b border-dashed border-border/50" />;
+                            return <div key={chunkKey} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />;
                         }
 
                         const isPlayerHere = playerPosition.x === worldX && playerPosition.y === worldY;
@@ -95,7 +96,8 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
                                 <PopoverTrigger asChild>
                                     <div
                                         className={cn(
-                                            "w-12 h-12 relative transition-all duration-300 flex items-center justify-center p-1 cursor-pointer hover:ring-2 hover:ring-white border-r border-b border-dashed border-border/50",
+                                            responsiveCellSize,
+                                            "relative transition-all duration-300 flex items-center justify-center p-1 cursor-pointer hover:ring-2 hover:ring-white border-r border-b border-dashed border-border/50",
                                             biomeColors[chunk.terrain as keyof typeof biomeColors],
                                             isPlayerHere && "ring-2 ring-white shadow-lg z-10"
                                         )}
@@ -113,28 +115,28 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
                                         
                                         {/* Structure Icon in top-left */}
                                         {chunk.structures?.length > 0 && (
-                                            <div className="absolute top-1 left-1">
+                                            <div className="absolute top-px left-px">
                                                 <StructureIcon emoji={chunk.structures[0].emoji} />
                                             </div>
                                         )}
             
                                         {/* NPC Icon in top-right */}
                                         {chunk.NPCs.length > 0 && (
-                                            <div className="absolute top-1 right-1">
+                                            <div className="absolute top-px right-px">
                                                 <NpcIcon />
                                             </div>
                                         )}
                                         
                                         {/* Enemy Icon in bottom-left */}
                                         {chunk.enemy && (
-                                            <div className="absolute bottom-1 left-1">
+                                            <div className="absolute bottom-px left-px">
                                                 <EnemyIcon emoji={chunk.enemy.emoji} />
                                             </div>
                                         )}
             
                                         {/* Item Icon in bottom-right */}
                                         {chunk.items.length > 0 && (
-                                            <div className="absolute bottom-1 right-1">
+                                            <div className="absolute bottom-px right-px">
                                                 <ItemIcon emoji={chunk.items[0].emoji} />
                                             </div>
                                         )}

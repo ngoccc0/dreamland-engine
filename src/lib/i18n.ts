@@ -1,6 +1,7 @@
 
 
 
+
 const itemTranslations = {
   en: {
     item_la_cay_lon_desc: 'Large leaves, suitable for roofing.',
@@ -912,6 +913,7 @@ export const translations = {
     accountSyncDesc: 'Log in with your Google account to save your progress and sync across devices.',
     loginWithGoogle: 'Login with Google',
     logout: 'Logout',
+    wallBlock: "You can't move there. An impassable wall blocks your way.",
   },
   vi: {
     ...gameEntityNames.vi,
@@ -1280,6 +1282,7 @@ export const translations = {
     accountSyncDesc: 'Đăng nhập bằng tài khoản Google để lưu tiến trình và đồng bộ trên các thiết bị.',
     loginWithGoogle: 'Đăng nhập với Google',
     logout: 'Đăng xuất',
+    wallBlock: 'Bạn không thể đi đến đó. Một bức tường không thể xuyên qua chặn đường bạn.',
   }
 };
 

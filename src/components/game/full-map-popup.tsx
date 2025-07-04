@@ -27,6 +27,7 @@ const biomeColors: Record<Terrain | 'empty', string> = {
   cave: "bg-map-cave",
   jungle: "bg-map-jungle",
   volcanic: "bg-map-volcanic",
+  wall: "bg-map-wall",
   empty: "bg-black/20", // Use a different color for unexplored but within bounds
 };
 
@@ -39,12 +40,14 @@ const biomeIcons: Record<Exclude<Terrain, 'empty'>, React.ReactNode> = {
     cave: <span className="text-2xl opacity-80" role="img" aria-label="cave">🪨</span>,
     jungle: <span className="text-2xl opacity-80" role="img" aria-label="jungle">🦜</span>,
     volcanic: <span className="text-2xl opacity-80" role="img" aria-label="volcanic">🌋</span>,
+    wall: <span className="text-2xl opacity-80" role="img" aria-label="wall">🧱</span>,
 };
 
 const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
+    const { t } = useLanguage();
     return (
         <div className="p-2 text-sm space-y-2">
-            <h4 className="font-bold capitalize">{chunk.terrain} ({chunk.x}, {chunk.y})</h4>
+            <h4 className="font-bold capitalize">{chunk.terrain === 'wall' ? t('wall') : chunk.terrain} ({chunk.x}, {chunk.y})</h4>
             <p className="text-xs text-muted-foreground italic line-clamp-3">{chunk.description}</p>
             {chunk.structures && chunk.structures.length > 0 && (
                 <div>

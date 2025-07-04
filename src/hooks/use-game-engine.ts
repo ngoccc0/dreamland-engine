@@ -1,6 +1,7 @@
 
 
 
+
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -80,13 +81,14 @@ const successLevelToTranslationKey: Record<SuccessLevel, TranslationKey> = {
 }
 
 interface GameEngineProps {
-    worldSetup?: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[] };
+    worldSetup?: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog' | 'customStructures'> & { playerInventory: PlayerItem[] };
     initialGameState?: GameState;
     customItemDefinitions?: Record<string, ItemDefinition>;
     customItemCatalog?: GeneratedItem[];
+    customStructures?: Structure[];
 }
 
-export function useGameEngine({ worldSetup, initialGameState, customItemDefinitions: initialCustomDefs, customItemCatalog: initialCustomCatalog }: GameEngineProps) {
+export function useGameEngine({ worldSetup, initialGameState, customItemDefinitions: initialCustomDefs, customItemCatalog: initialCustomCatalog, customStructures: initialCustomStructures }: GameEngineProps) {
     const { t, language } = useLanguage();
     const { settings } = useSettings();
     const { user } = useAuth();
@@ -146,6 +148,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     );
     const [customItemDefinitions, setCustomItemDefinitions] = useState<Record<string, ItemDefinition>>(initialGameState?.customItemDefinitions || initialCustomDefs || staticItemDefinitions);
     const [customItemCatalog, setCustomItemCatalog] = useState<GeneratedItem[]>(initialGameState?.customItemCatalog || initialCustomCatalog || []);
+    const [customStructures, setCustomStructures] = useState<Structure[]>(initialGameState?.customStructures || initialCustomStructures || []);
 
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -309,6 +312,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                     setPlayerStats(cloudState.playerStats);
                     setCustomItemDefinitions(cloudState.customItemDefinitions);
                     setCustomItemCatalog(cloudState.customItemCatalog);
+                    setCustomStructures(cloudState.customStructures);
                     setNarrativeLog(cloudState.narrativeLog);
                     if (cloudState.narrativeLog.length > 0) {
                         narrativeIdCounter.current = Math.max(...cloudState.narrativeLog.map(e => e.id)) + 1;
@@ -334,7 +338,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 let { newWorld, newRegions, newRegionCounter } = generateRegion(
                     startPos, startingTerrain, {}, {}, 0,
                     worldProfile, currentSeason, customItemDefinitions,
-                    customItemCatalog, language
+                    customItemCatalog, customStructures, language
                 );
                 
                 const startKey = `${startPos.x},${startPos.y}`;
@@ -374,7 +378,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             worldProfile, currentSeason, world, recipes, buildableStructures,
             regions, regionCounter, playerPosition, playerBehaviorProfile,
             playerStats, narrativeLog, worldSetup: finalWorldSetup,
-            customItemDefinitions, customItemCatalog, weatherZones, gameTime, day,
+            customItemDefinitions, customItemCatalog, customStructures, weatherZones, gameTime, day,
         };
 
         const save = async () => {
@@ -403,7 +407,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     }, [
         worldProfile, currentSeason, world, recipes, buildableStructures, regions, regionCounter,
         playerPosition, playerBehaviorProfile, playerStats, narrativeLog, finalWorldSetup,
-        customItemDefinitions, customItemCatalog, weatherZones, gameTime, day, user, isSaving, toast
+        customItemDefinitions, customItemCatalog, customStructures, weatherZones, gameTime, day, user, isSaving, toast
     ]);
 
     const advanceGameTime = useCallback(async () => {
@@ -677,6 +681,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             currentSeason,
             customItemDefinitions,
             customItemCatalog,
+            customStructures,
             language
         );
         
@@ -686,7 +691,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             regions: result.regions,
             regionCounter: result.newRegionCounter
         };
-    }, [worldProfile, currentSeason, customItemDefinitions, customItemCatalog, language]);
+    }, [worldProfile, currentSeason, customItemDefinitions, customItemCatalog, customStructures, language]);
 
     const handleMove = (direction: "north" | "south" | "east" | "west") => {
         setPlayerBehaviorProfile(p => ({ ...p, moves: p.moves + 1 }));
@@ -710,6 +715,11 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         
         if (!destinationChunk) {
             console.error("Error: Could not find or generate destination chunk.");
+            return;
+        }
+
+        if (destinationChunk.terrain === 'wall') {
+            addNarrativeEntry(t('wallBlock'), 'system');
             return;
         }
 

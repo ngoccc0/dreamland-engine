@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -19,16 +20,17 @@ import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermomet
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
 import { useGameEngine } from "@/hooks/use-game-engine";
-import type { MapCell, ItemDefinition, GeneratedItem, WorldConcept, PlayerItem, GameState } from "@/lib/game/types";
+import type { MapCell, ItemDefinition, GeneratedItem, WorldConcept, PlayerItem, GameState, Structure } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
 
 
 interface GameLayoutProps {
-    worldSetup?: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[] };
+    worldSetup?: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog' | 'customStructures'> & { playerInventory: PlayerItem[] };
     initialGameState?: GameState;
     customItemDefinitions?: Record<string, ItemDefinition>;
     customItemCatalog?: GeneratedItem[];
+    customStructures?: Structure[];
 }
 
 export default function GameLayout(props: GameLayoutProps) {

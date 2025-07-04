@@ -2,7 +2,7 @@
 
 // --- Data Types and Interfaces for the Game Engine ---
 
-export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave" | "jungle" | "volcanic";
+export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave" | "jungle" | "volcanic" | "wall";
 export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky';
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
 export type ItemCategory = 'Weapon' | 'Material' | 'Energy Source' | 'Food' | 'Data' | 'Tool' | 'Equipment' | 'Support' | 'Magic' | 'Fusion';
@@ -271,6 +271,7 @@ export interface WorldConcept {
   initialNarrative: string;
   startingBiome: Terrain;
   customItemCatalog: GeneratedItem[];
+  customStructures: Structure[];
   playerInventory: { name: string; quantity: number }[];
   initialQuests: string[];
   startingSkill: Skill;
@@ -308,9 +309,10 @@ export interface GameState {
     playerBehaviorProfile: PlayerBehaviorProfile;
     playerStats: PlayerStatus;
     narrativeLog: NarrativeEntry[];
-    worldSetup: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[], startingSkill: Skill };
+    worldSetup: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog' | 'customStructures'> & { playerInventory: PlayerItem[], startingSkill: Skill, customStructures: Structure[] };
     customItemDefinitions: Record<string, ItemDefinition>;
     customItemCatalog: GeneratedItem[];
+    customStructures: Structure[];
     // New properties for weather/time system
     weatherZones: { [zoneId: string]: WeatherZone };
     gameTime: number; // In-game minutes from 0 to 1439

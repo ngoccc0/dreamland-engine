@@ -1,11 +1,12 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
 import GameLayout from '@/components/game/game-layout';
 import { WorldSetup } from '@/components/game/world-setup';
 import { SettingsPopup } from '@/components/game/settings-popup';
-import type { GameState, PlayerItem, ItemDefinition, GeneratedItem, WorldConcept, Skill } from '@/lib/game/types';
+import type { GameState, PlayerItem, ItemDefinition, GeneratedItem, WorldConcept, Skill, Structure } from '@/lib/game/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
@@ -16,9 +17,10 @@ import { Loader2, Settings, Download } from 'lucide-react';
 import type { TranslationKey } from '@/lib/i18n';
 
 type NewGameData = {
-  worldSetup: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[], startingSkill: Skill };
+  worldSetup: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog' | 'customStructures'> & { playerInventory: PlayerItem[], startingSkill: Skill };
   customItemDefinitions: Record<string, ItemDefinition>;
   customItemCatalog: GeneratedItem[];
+  customStructures: Structure[];
 }
 
 export default function Home() {
@@ -103,12 +105,14 @@ export default function Home() {
         initialQuests: world.initialQuests,
         playerInventory: initialPlayerItems,
         startingSkill: world.startingSkill,
+        customStructures: world.customStructures,
     };
     
     setNewGameData({
         worldSetup: worldSetupForLayout,
         customItemDefinitions: allItemDefinitions,
         customItemCatalog: world.customItemCatalog,
+        customStructures: world.customStructures,
     });
   };
   
@@ -131,7 +135,7 @@ export default function Home() {
         <div className="flex flex-col items-center text-center p-4 animate-in fade-in duration-1000">
           <img src="/assets/logo.svg" alt="Dreamland Engine Logo" className="h-[384px] w-[384px]" />
           <div className="flex items-center justify-center">
-            <h1 className="text-5xl font-bold font-headline tracking-tighter -mt-44">
+            <h1 className="text-5xl font-bold font-headline tracking-tighter -mt-36">
               Dreamland Engine
             </h1>
           </div>
@@ -201,6 +205,7 @@ export default function Home() {
               worldSetup={newGameData.worldSetup} 
               customItemDefinitions={newGameData.customItemDefinitions}
               customItemCatalog={newGameData.customItemCatalog}
+              customStructures={newGameData.customStructures}
             />;
   }
 

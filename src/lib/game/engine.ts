@@ -15,7 +15,7 @@ export const generateWeatherForZone = (terrain: Terrain, season: Season, previou
            w.season_affinity.includes(season)
     );
 
-    // "Cooldown" logic to prevent back-to-back extreme weather
+    // Cooldown logic to prevent back-to-back extreme weather
     if (previousWeather) {
         const extremeTags = ['storm', 'heat', 'cold'];
         const previousIsExtreme = previousWeather.exclusive_tags.some(tag => extremeTags.includes(tag));
@@ -146,6 +146,7 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
 
     const validTerrains = new Set<Terrain>();
     for (const terrain of Object.keys(worldConfig) as Terrain[]) {
+        if (terrain === 'wall') continue; // Walls should not be generated randomly as biomes
         const config = worldConfig[terrain];
         // Check if this new terrain can be a neighbor to all existing adjacent terrains
         let canBeNeighborToAll = true;
@@ -174,7 +175,7 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
     }
     
     const validTerrainsArray = Array.from(validTerrains);
-    return validTerrainsArray.length > 0 ? validTerrainsArray : Object.keys(worldConfig) as Terrain[];
+    return validTerrainsArray.length > 0 ? validTerrainsArray : Object.keys(worldConfig).filter(t => t !== 'wall') as Terrain[];
 };
 
 /**
@@ -241,6 +242,7 @@ function generateChunkContent(
     worldProfile: WorldProfile,
     allItemDefinitions: Record<string, ItemDefinition>,
     customItemCatalog: GeneratedItem[],
+    customStructures: Structure[],
     language: Language
 ) {
     const templates = getTemplates(language);
@@ -283,41 +285,47 @@ function generateChunkContent(
         }
     }
     
-    // NPCs, Enemies, and Structures
+    // NPCs and Enemies
     const spawnedNPCs: Npc[] = selectEntities(template.NPCs, chunkData, allItemDefinitions, 1).map(ref => ref.data);
     const spawnedEnemies = selectEntities(template.enemies, chunkData, allItemDefinitions, 1);
-    const spawnedStructureRefs = selectEntities(template.structures, chunkData, allItemDefinitions, 1);
     
-    const spawnedStructures = spawnedStructureRefs.map(ref => ref.data);
-    const enemyData = spawnedEnemies.length > 0 ? spawnedEnemies[0].data : null;
-    const spawnedEnemy = enemyData ? { ...enemyData, satiation: 0, emoji: enemyData.emoji } : null;
-
-    // Add loot from structures to the chunk's items
-    for (const structureRef of spawnedStructureRefs) {
-        if (structureRef.loot) {
-            for (const lootItem of structureRef.loot) {
-                if (Math.random() < lootItem.chance) {
-                    const definition = allItemDefinitions[lootItem.name];
-                    if (definition) {
-                        const quantity = getRandomInRange(lootItem.quantity);
-                        const existingItem = spawnedItems.find(i => i.name === lootItem.name);
-                        if (existingItem) {
-                            existingItem.quantity += quantity;
-                        } else {
-                            spawnedItems.push({
-                                name: lootItem.name,
-                                description: definition.description,
-                                tier: definition.tier,
-                                quantity: quantity,
-                                emoji: definition.emoji,
-                            });
+    // Structures - Mix of AI-generated and template
+    let spawnedStructures: Structure[] = [];
+    if (Math.random() < 0.25 && customStructures.length > 0) { // 25% chance to spawn a unique AI structure
+        const uniqueStructure = customStructures[Math.floor(Math.random() * customStructures.length)];
+        spawnedStructures.push(uniqueStructure);
+    } else {
+        const spawnedStructureRefs = selectEntities(template.structures, chunkData, allItemDefinitions, 1);
+        spawnedStructures = spawnedStructureRefs.map(ref => ref.data);
+         // Add loot from template structures
+        for (const structureRef of spawnedStructureRefs) {
+            if (structureRef.loot) {
+                for (const lootItem of structureRef.loot) {
+                    if (Math.random() < lootItem.chance) {
+                        const definition = allItemDefinitions[lootItem.name];
+                        if (definition) {
+                            const quantity = getRandomInRange(lootItem.quantity);
+                            const existingItem = spawnedItems.find(i => i.name === lootItem.name);
+                            if (existingItem) {
+                                existingItem.quantity += quantity;
+                            } else {
+                                spawnedItems.push({
+                                    name: lootItem.name,
+                                    description: definition.description,
+                                    tier: definition.tier,
+                                    quantity: quantity,
+                                    emoji: definition.emoji,
+                                });
+                            }
                         }
                     }
                 }
             }
         }
     }
-
+   
+    const enemyData = spawnedEnemies.length > 0 ? spawnedEnemies[0].data : null;
+    const spawnedEnemy = enemyData ? { ...enemyData, satiation: 0, emoji: enemyData.emoji } : null;
 
     // More description based on calculated values and spawned entities
     if (chunkData.moisture > 8) finalDescription += ` ${language === 'vi' ? 'Không khí đặc quánh hơi ẩm.' : 'The air is thick with moisture.'}`;
@@ -351,6 +359,35 @@ function generateChunkContent(
 }
 
 
+function createWallChunk(pos: { x: number; y: number }): Chunk {
+    const biomeDef = worldConfig['wall'];
+    return {
+        x: pos.x,
+        y: pos.y,
+        terrain: 'wall',
+        description: "An impassable rock wall blocks the way.",
+        NPCs: [],
+        items: [],
+        structures: [],
+        explored: true, // Walls are always visible
+        enemy: null,
+        actions: [],
+        regionId: -1, // Walls don't belong to a region
+        travelCost: biomeDef.travelCost,
+        vegetationDensity: 0,
+        moisture: 0,
+        elevation: 5,
+        lightLevel: 0,
+        dangerLevel: 0,
+        magicAffinity: 0,
+        humanPresence: 0,
+        explorability: 0,
+        soilType: 'rocky',
+        predatorPresence: 0,
+        temperature: 5,
+    };
+}
+
 // This is the core "factory" function for building a new region of the world.
 export const generateRegion = (
     startPos: { x: number; y: number }, 
@@ -362,6 +399,7 @@ export const generateRegion = (
     currentSeason: Season,
     allItemDefinitions: Record<string, ItemDefinition>, // Pass in all definitions
     customItemCatalog: GeneratedItem[],                   // Pass in custom catalog for spawning
+    customStructures: Structure[],
     language: Language
 ) => {
     const newWorld = { ...currentWorld };
@@ -431,7 +469,7 @@ export const generateRegion = (
         };
 
         // Step 4: Generate content based on the final chunk data
-        const content = generateChunkContent(tempChunkData, worldProfile, allItemDefinitions, customItemCatalog, language);
+        const content = generateChunkContent(tempChunkData, worldProfile, allItemDefinitions, customItemCatalog, customStructures, language);
         
         newWorld[posKey] = {
             x: pos.x, 
@@ -443,6 +481,29 @@ export const generateRegion = (
             ...content,
         };
     }
+
+    // --- Add walls around certain biomes ---
+    const BORDER_WALL_CHANCE = 0.3; 
+    if (['cave', 'mountain', 'volcanic'].includes(terrain) && Math.random() < BORDER_WALL_CHANCE) {
+        const borderCells = new Set<string>();
+        for (const cell of regionCells) {
+            for (const dir of directions) {
+                const neighborPos = { x: cell.x + dir.x, y: cell.y + dir.y };
+                const neighborKey = `${neighborPos.x},${neighborPos.y}`;
+                if (!visited.has(neighborKey)) {
+                    borderCells.add(neighborKey);
+                }
+            }
+        }
+        for (const key of borderCells) {
+            if (!newWorld[key]) {
+                const [x, y] = key.split(',').map(Number);
+                newWorld[key] = createWallChunk({ x, y });
+            }
+        }
+    }
+
+
     return { newWorld, newRegions, newRegionCounter };
 };
 

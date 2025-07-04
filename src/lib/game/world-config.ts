@@ -10,7 +10,7 @@ export const seasonConfig: Record<Season, SeasonModifiers> = {
 export const worldConfig: Record<Terrain, BiomeDefinition> = {
     forest: {
         minSize: 5, maxSize: 10, travelCost: 4, spreadWeight: 0.6,
-        allowedNeighbors: ['grassland', 'mountain', 'swamp', 'jungle'],
+        allowedNeighbors: ['grassland', 'mountain', 'swamp', 'jungle', 'wall'],
         defaultValueRanges: {
             vegetationDensity: { min: 7, max: 10 }, moisture: { min: 5, max: 8 }, elevation: { min: 1, max: 4 },
             dangerLevel: { min: 4, max: 7 }, magicAffinity: { min: 3, max: 6 }, humanPresence: { min: 0, max: 3 },
@@ -20,7 +20,7 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
     },
     grassland: {
         minSize: 8, maxSize: 15, travelCost: 1, spreadWeight: 0.8,
-        allowedNeighbors: ['forest', 'desert', 'swamp', 'jungle'],
+        allowedNeighbors: ['forest', 'desert', 'swamp', 'jungle', 'wall'],
         defaultValueRanges: {
             vegetationDensity: { min: 2, max: 5 }, moisture: { min: 2, max: 5 }, elevation: { min: 0, max: 2 },
             dangerLevel: { min: 1, max: 4 }, magicAffinity: { min: 0, max: 2 }, humanPresence: { min: 2, max: 6 },
@@ -30,7 +30,7 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
     },
     desert: {
         minSize: 6, maxSize: 12, travelCost: 3, spreadWeight: 0.4,
-        allowedNeighbors: ['grassland', 'mountain', 'volcanic'],
+        allowedNeighbors: ['grassland', 'mountain', 'volcanic', 'wall'],
         defaultValueRanges: {
             vegetationDensity: { min: 0, max: 1 }, moisture: { min: 0, max: 1 }, elevation: { min: 0, max: 3 },
             dangerLevel: { min: 5, max: 8 }, magicAffinity: { min: 1, max: 4 }, humanPresence: { min: 0, max: 2 },
@@ -40,7 +40,7 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
     },
     swamp: {
         minSize: 4, maxSize: 8, travelCost: 5, spreadWeight: 0.2,
-        allowedNeighbors: ['forest', 'grassland', 'jungle'],
+        allowedNeighbors: ['forest', 'grassland', 'jungle', 'wall'],
         defaultValueRanges: {
             vegetationDensity: { min: 5, max: 8 }, moisture: { min: 8, max: 10 }, elevation: { min: -1, max: 1 },
             dangerLevel: { min: 7, max: 10 }, magicAffinity: { min: 4, max: 7 }, humanPresence: { min: 0, max: 1 },
@@ -50,7 +50,7 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
     },
     mountain: {
         minSize: 3, maxSize: 7, travelCost: 6, spreadWeight: 0.1,
-        allowedNeighbors: ['forest', 'desert', 'volcanic'],
+        allowedNeighbors: ['forest', 'desert', 'volcanic', 'wall', 'cave'],
         defaultValueRanges: {
             vegetationDensity: { min: 1, max: 4 }, moisture: { min: 2, max: 5 }, elevation: { min: 5, max: 10 },
             dangerLevel: { min: 6, max: 9 }, magicAffinity: { min: 2, max: 5 }, humanPresence: { min: 1, max: 4 },
@@ -60,7 +60,7 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
     },
     cave: {
         minSize: 10, maxSize: 20, travelCost: 7, spreadWeight: 0.05,
-        allowedNeighbors: ['mountain'],
+        allowedNeighbors: ['mountain', 'wall'],
         defaultValueRanges: {
             vegetationDensity: { min: 0, max: 2 }, moisture: { min: 6, max: 9 }, elevation: { min: -10, max: -1 },
             dangerLevel: { min: 8, max: 10 }, magicAffinity: { min: 5, max: 8 }, humanPresence: { min: 0, max: 3 },
@@ -70,7 +70,7 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
     },
     jungle: {
         minSize: 6, maxSize: 12, travelCost: 5, spreadWeight: 0.5,
-        allowedNeighbors: ['forest', 'swamp', 'grassland'],
+        allowedNeighbors: ['forest', 'swamp', 'grassland', 'wall'],
         defaultValueRanges: {
             vegetationDensity: { min: 9, max: 10 }, moisture: { min: 8, max: 10 }, elevation: { min: 1, max: 3 },
             dangerLevel: { min: 6, max: 9 }, magicAffinity: { min: 4, max: 8 }, humanPresence: { min: 0, max: 4 },
@@ -80,11 +80,21 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
     },
     volcanic: {
         minSize: 3, maxSize: 6, travelCost: 8, spreadWeight: 0.1,
-        allowedNeighbors: ['mountain', 'desert'],
+        allowedNeighbors: ['mountain', 'desert', 'wall'],
         defaultValueRanges: {
             vegetationDensity: { min: 0, max: 1 }, moisture: { min: 0, max: 1 }, elevation: { min: 4, max: 8 },
             dangerLevel: { min: 9, max: 10 }, magicAffinity: { min: 6, max: 10 }, humanPresence: { min: 0, max: 1 },
             predatorPresence: { min: 9, max: 10 }, temperature: { min: 9, max: 10 },
+        },
+        soilType: ['rocky'],
+    },
+    wall: {
+        minSize: 1, maxSize: 1, travelCost: 999, spreadWeight: 0,
+        allowedNeighbors: ['forest', 'grassland', 'desert', 'swamp', 'mountain', 'cave', 'jungle', 'volcanic', 'wall'],
+        defaultValueRanges: {
+            vegetationDensity: { min: 0, max: 0 }, moisture: { min: 0, max: 0 }, elevation: { min: 5, max: 5 },
+            dangerLevel: { min: 0, max: 0 }, magicAffinity: { min: 0, max: 0 }, humanPresence: { min: 0, max: 0 },
+            predatorPresence: { min: 0, max: 0 }, temperature: { min: 5, max: 5 },
         },
         soilType: ['rocky'],
     }

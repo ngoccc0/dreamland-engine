@@ -24,6 +24,7 @@
  * - GenerateWorldSetupOutput - The type definition for the final structured output.
  */
 
+import Handlebars from 'handlebars';
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 import type { Terrain, Skill } from '@/lib/game/types';
@@ -148,9 +149,10 @@ const generateWorldSetupFlow = ai.defineFlow(
     
     // --- Step 1: Define three independent AI tasks to run in parallel ---
     
-    // Task A: Generate the item catalog. This is complex, so we use a fallback chain of powerful models.
+    // Task A: Generate the item catalog.
     const itemCatalogTask = (async () => {
-        // Updated model names to reflect modern, working versions
+        const template = Handlebars.compile(itemCatalogPromptTemplate);
+        const renderedPrompt = template(input);
         const modelsToTry = ['openai/gpt-4-turbo', 'googleai/gemini-1.5-pro', 'deepseek/deepseek-chat', 'googleai/gemini-2.0-flash'];
         const errorLogs: string[] = [];
 
@@ -159,8 +161,7 @@ const generateWorldSetupFlow = ai.defineFlow(
                 console.log(`Attempting item catalog generation with model: ${modelName}`);
                 const result = await ai.generate({
                     model: modelName,
-                    prompt: itemCatalogPromptTemplate,
-                    input: input,
+                    prompt: renderedPrompt,
                     output: { schema: ItemCatalogCreativeOutputSchema },
                 });
                 console.log(`Successfully generated item catalog with ${modelName}.`);
@@ -176,16 +177,21 @@ const generateWorldSetupFlow = ai.defineFlow(
         throw new Error(detailedError);
     })();
     
-    // Task B: Generate world names. Use a fast, cost-effective model.
-    const worldNamesTask = ai.generate({
-        model: 'googleai/gemini-2.0-flash',
-        prompt: worldNamesPromptTemplate,
-        input: input,
-        output: { schema: WorldNamesOutputSchema },
-    });
+    // Task B: Generate world names.
+    const worldNamesTask = (async () => {
+        const template = Handlebars.compile(worldNamesPromptTemplate);
+        const renderedPrompt = template(input);
+        return ai.generate({
+            model: 'googleai/gemini-2.0-flash',
+            prompt: renderedPrompt,
+            output: { schema: WorldNamesOutputSchema },
+        });
+    })();
 
-    // Task C: Generate narrative concepts. Use a different fast model for variety, with a fallback.
+    // Task C: Generate narrative concepts.
     const narrativeConceptsTask = (async () => {
+        const template = Handlebars.compile(narrativeConceptsPromptTemplate);
+        const renderedPrompt = template(input);
         const modelsToTry = ['deepseek/deepseek-chat', 'googleai/gemini-2.0-flash'];
         const errorLogs: string[] = [];
         
@@ -194,8 +200,7 @@ const generateWorldSetupFlow = ai.defineFlow(
                 console.log(`Attempting narrative concepts generation with model: ${modelName}`);
                 const result = await ai.generate({
                     model: modelName,
-                    prompt: narrativeConceptsPromptTemplate,
-                    input: input,
+                    prompt: renderedPrompt,
                     output: { schema: NarrativeConceptsOutputSchema },
                 });
                 console.log(`Successfully generated narrative concepts with ${modelName}.`);

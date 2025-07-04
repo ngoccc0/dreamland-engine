@@ -202,9 +202,9 @@ export default function GameLayout(props: GameLayoutProps) {
                     </div>
                     
                     {/* Combined Controls and Skills for larger screens */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-6 gap-y-4 items-start">
+                    <div className="flex flex-col md:flex-row md:justify-around md:items-start md:gap-x-6 gap-y-4">
                         <Controls onMove={handleMove} onAttack={handleAttack} />
-                        <div className="flex flex-col space-y-2">
+                        <div className="flex flex-col space-y-2 w-full md:max-w-xs">
                             <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('skills')}</h3>
                             <div className="grid grid-cols-2 gap-2">
                                 {playerStats.skills?.map((skill) => (

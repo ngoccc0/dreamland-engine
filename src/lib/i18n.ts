@@ -543,7 +543,7 @@ const gameEntityNames = {
     'Lều trú ẩn': 'Lều trú ẩn',
     'Nhà trú ẩn kiên cố': 'Nhà trú ẩn kiên cố',
   }
-}
+};
 
 export const translations = {
   en: {
@@ -727,7 +727,7 @@ export const translations = {
     fusionTooltip: "Experimentally combine items.",
     fusionError: "The fusion attempt failed catastrophically. Try again under different conditions.",
     fusionDesc: "Experiment by combining 2 or 3 items. Requires at least one 'Tool' item. The environment can affect the outcome. Results are not guaranteed!",
-    moveAndAttack: "Move &amp; Attack",
+    moveAndAttack: "Move & Attack",
     moveUp: "Up",
     moveLeft: "Left",
     moveRight: "Right",
@@ -1099,7 +1099,7 @@ export const translations = {
     fusionTooltip: "Thử nghiệm kết hợp các vật phẩm.",
     fusionError: "Nỗ lực hợp nhất đã thất bại thảm hại. Hãy thử lại trong điều kiện khác.",
     fusionDesc: "Thử nghiệm bằng cách kết hợp 2 hoặc 3 vật phẩm. Yêu cầu ít nhất một vật phẩm 'Công cụ'. Môi trường có thể ảnh hưởng đến kết quả. Kết quả không được đảm bảo!",
-    moveAndAttack: "Di chuyển &amp; Tấn công",
+    moveAndAttack: "Di chuyển & Tấn công",
     moveUp: "Lên",
     moveLeft: "Trái",
     moveRight: "Phải",
@@ -1271,7 +1271,7 @@ export const translations = {
 - **Gợi ý Nhiệm vụ:** Bị kẹt ở một nhiệm vụ? Nhấp vào nó trong cửa sổ Trạng thái để yêu cầu AI gợi ý.`,
     customActionsTitle: "&Clubs; Trí tưởng tượng của bạn là Giới hạn",
     customActionsContent: `Trái tim của trò chơi này là AI. Bạn không bị giới hạn bởi các nút.
-- **Sáng tạo:** Gõ bất cứ điều gì vào ô hành động tùy chỉnh. Thử "tìm kiếm kho báu trong tàn tích," "xây một cái bẫy," hoặc "cố gắng đe dọa con goblin."
+- **Be Creative:** Gõ bất cứ điều gì vào ô hành động tùy chỉnh. Thử "tìm kiếm kho báu trong tàn tích," "xây một cái bẫy," hoặc "cố gắng đe dọa con goblin."
 - **Diễn giải của AI:** AI sẽ diễn giải hành động của bạn và quyết định điều gì sẽ xảy ra tiếp theo, sử dụng các quy tắc của trò chơi làm hướng dẫn. Hãy thử nghiệm để xem những gì có thể!`,
     skillUnlocked: "Qua hành động của mình, bạn đã thức tỉnh một sức mạnh mới: {skillName}.",
     skillUnlockedTitle: "Mở khóa Kỹ năng Mới!",

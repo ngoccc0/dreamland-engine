@@ -1,9 +1,11 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { LanguageProvider } from '@/context/language-context';
 import { SettingsProvider } from '@/context/settings-context';
 import { PwaInstallProvider } from '@/context/pwa-install-context';
+import { AuthProvider } from '@/context/auth-context';
 
 export const metadata: Metadata = {
   title: 'Dreamland Engine',
@@ -28,9 +30,11 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <LanguageProvider>
           <SettingsProvider>
-            <PwaInstallProvider>
-              {children}
-            </PwaInstallProvider>
+            <AuthProvider>
+              <PwaInstallProvider>
+                {children}
+              </PwaInstallProvider>
+            </AuthProvider>
           </SettingsProvider>
         </LanguageProvider>
         <Toaster />

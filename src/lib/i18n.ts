@@ -1,5 +1,6 @@
 
 
+
 const itemTranslations = {
   en: {
     item_la_cay_lon_desc: 'Large leaves, suitable for roofing.',
@@ -907,6 +908,10 @@ export const translations = {
     personaExplorer: 'Your constant travels have made you more resilient on the road.',
     personaWarrior: 'Your combat experience has sharpened your attacks.',
     personaArtisan: 'Your hands move with newfound confidence in your craft.',
+    accountSync: 'Account Sync',
+    accountSyncDesc: 'Log in with your Google account to save your progress and sync across devices.',
+    loginWithGoogle: 'Login with Google',
+    logout: 'Logout',
   },
   vi: {
     ...gameEntityNames.vi,
@@ -1271,6 +1276,10 @@ export const translations = {
     personaExplorer: 'Những chuyến đi liên tục đã giúp bạn dẻo dai hơn trên đường.',
     personaWarrior: 'Kinh nghiệm chiến đấu đã mài sắc các đòn tấn công của bạn.',
     personaArtisan: 'Đôi tay của bạn di chuyển với sự tự tin mới trong nghề thủ công.',
+    accountSync: 'Đồng bộ Tài khoản',
+    accountSyncDesc: 'Đăng nhập bằng tài khoản Google để lưu tiến trình và đồng bộ trên các thiết bị.',
+    loginWithGoogle: 'Đăng nhập với Google',
+    logout: 'Đăng xuất',
   }
 };
 

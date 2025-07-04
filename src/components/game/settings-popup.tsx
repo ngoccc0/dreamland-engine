@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -9,7 +10,8 @@ import { Separator } from "@/components/ui/separator";
 import { useSettings } from "@/context/settings-context";
 import { useLanguage } from "@/context/language-context";
 import { usePwaInstall } from "@/context/pwa-install-context";
-import { Settings, BrainCircuit, Dice6, Bot, Feather, Languages, Download } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
+import { Settings, BrainCircuit, Dice6, Bot, Feather, Languages, Download, LogIn, LogOut, UserCircle2 } from "lucide-react";
 import type { DiceType, GameMode, AiModel, NarrativeLength } from "@/lib/game/types";
 import { Language, TranslationKey } from "@/lib/i18n";
 import { Button } from "../ui/button";
@@ -25,6 +27,7 @@ export function SettingsPopup({ open, onOpenChange }: SettingsPopupProps) {
   const { t, language, setLanguage } = useLanguage();
   const { settings, setSettings } = useSettings();
   const { installPrompt, setInstallPrompt } = usePwaInstall();
+  const { user, login, logout } = useAuth();
 
   const handleInstallClick = () => {
     if (!installPrompt) return;
@@ -70,6 +73,28 @@ export function SettingsPopup({ open, onOpenChange }: SettingsPopupProps) {
         </DialogHeader>
         <Separator />
         <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto pr-4">
+          
+          <div className="space-y-3">
+            <Label className="font-semibold flex items-center gap-2"><UserCircle2 /> {t('accountSync')}</Label>
+            <p className="text-sm leading-snug text-muted-foreground">{t('accountSyncDesc')}</p>
+            {user ? (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-foreground truncate">{user.displayName || user.email}</span>
+                <Button variant="ghost" onClick={logout}>
+                  <LogOut className="mr-2" />
+                  {t('logout')}
+                </Button>
+              </div>
+            ) : (
+              <Button onClick={login} className="w-full">
+                <LogIn className="mr-2" />
+                {t('loginWithGoogle')}
+              </Button>
+            )}
+          </div>
+          
+          <Separator />
+          
           <div className="space-y-3">
             <Label className="font-semibold flex items-center gap-2"><Languages /> {t('language')}</Label>
             <p className="text-sm leading-snug text-muted-foreground">{t('languageDesc')}</p>

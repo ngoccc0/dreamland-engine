@@ -1,11 +1,15 @@
 
 
+
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/context/language-context";
 import { useSettings } from "@/context/settings-context";
+import { useAuth } from "@/context/auth-context";
+import { db } from "@/lib/firebase-config";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/generate-narrative-flow";
 import { generateNewRecipe } from "@/ai/flows/generate-new-recipe";
 import { generateJournalEntry } from "@/ai/flows/generate-journal-entry";
@@ -85,6 +89,7 @@ interface GameEngineProps {
 export function useGameEngine({ worldSetup, initialGameState, customItemDefinitions: initialCustomDefs, customItemCatalog: initialCustomCatalog }: GameEngineProps) {
     const { t, language } = useLanguage();
     const { settings } = useSettings();
+    const { user } = useAuth();
     const { toast } = useToast();
     
     // --- State for Global World Settings ---
@@ -143,6 +148,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     const [customItemCatalog, setCustomItemCatalog] = useState<GeneratedItem[]>(initialGameState?.customItemCatalog || initialCustomCatalog || []);
 
     const [isLoading, setIsLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>(initialGameState?.narrativeLog || []);
     const narrativeIdCounter = useRef(1);
     
@@ -276,109 +282,128 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         return effectiveChunk;
     }, [weatherZones]);
 
-    // Initial setup effect
+    // Game state loading/initialization effect
     useEffect(() => {
-        if (initialGameState) {
-            if (narrativeLog.length > 0) {
-                narrativeIdCounter.current = Math.max(...narrativeLog.map(e => e.id)) + 1;
+        // This effect runs when the component mounts or when the user logs in/out.
+        const loadGame = async () => {
+            if (user) {
+                // User is logged in, try loading from Firestore
+                const gameDocRef = doc(db, "games", user.uid);
+                const gameDocSnap = await getDoc(gameDocRef);
+
+                if (gameDocSnap.exists()) {
+                    const cloudState = gameDocSnap.data() as GameState;
+                    // TODO: Implement a merge strategy if local data is newer
+                    setWorldProfile(cloudState.worldProfile);
+                    setCurrentSeason(cloudState.currentSeason);
+                    setGameTime(cloudState.gameTime);
+                    setDay(cloudState.day);
+                    setWeatherZones(cloudState.weatherZones);
+                    setWorld(cloudState.world);
+                    setRecipes(cloudState.recipes);
+                    setBuildableStructures(cloudState.buildableStructures);
+                    setRegions(cloudState.regions);
+                    setRegionCounter(cloudState.regionCounter);
+                    setPlayerPosition(cloudState.playerPosition);
+                    setPlayerBehaviorProfile(cloudState.playerBehaviorProfile);
+                    setPlayerStats(cloudState.playerStats);
+                    setCustomItemDefinitions(cloudState.customItemDefinitions);
+                    setCustomItemCatalog(cloudState.customItemCatalog);
+                    setNarrativeLog(cloudState.narrativeLog);
+                    if (cloudState.narrativeLog.length > 0) {
+                        narrativeIdCounter.current = Math.max(...cloudState.narrativeLog.map(e => e.id)) + 1;
+                    }
+                    toast({ title: "Game Synced", description: "Your progress has been loaded from the cloud." });
+                    return;
+                }
             }
-            return;
+
+            // Fallback for new users, logged-out users, or if there's no cloud save.
+            if (initialGameState) {
+                 if (narrativeLog.length > 0) {
+                    narrativeIdCounter.current = Math.max(...narrativeLog.map(e => e.id)) + 1;
+                }
+                return; // Already loaded from props
+            }
+
+            if (worldSetup) {
+                addNarrativeEntry(worldSetup.initialNarrative, 'narrative');
+                const startPos = { x: 0, y: 0 };
+                const startingTerrain = worldSetup.startingBiome as Terrain;
+                
+                let { newWorld, newRegions, newRegionCounter } = generateRegion(
+                    startPos, startingTerrain, {}, {}, 0,
+                    worldProfile, currentSeason, customItemDefinitions,
+                    customItemCatalog, language
+                );
+                
+                const startKey = `${startPos.x},${startPos.y}`;
+                if (newWorld[startKey]) {
+                    newWorld[startKey].explored = true;
+                    addNarrativeEntry(newWorld[startKey].description, 'narrative');
+                }
+
+                const initialWeatherZones: { [zoneId: string]: WeatherZone } = {};
+                
+                Object.entries(newRegions).forEach(([regionId, region]) => {
+                    const initialWeather = generateWeatherForZone(region.terrain, currentSeason);
+                    const nextChangeTime = gameTime + getRandomInRange({min: initialWeather.duration_range[0], max: initialWeather.duration_range[1]}) * 5;
+                    initialWeatherZones[regionId] = {
+                        id: regionId, terrain: region.terrain,
+                        currentWeather: initialWeather, nextChangeTime: nextChangeTime
+                    };
+                });
+                
+                setWeatherZones(initialWeatherZones);
+                setWorld(newWorld);
+                setRegions(newRegions);
+                setRegionCounter(newRegionCounter);
+                setPlayerStats(prev => ({ ...prev, bodyTemperature: 37 }));
+            }
         };
 
-        if (worldSetup) {
-            addNarrativeEntry(worldSetup.initialNarrative, 'narrative');
-            const startPos = { x: 0, y: 0 };
-            const startingTerrain = worldSetup.startingBiome as Terrain;
-            
-            let { newWorld, newRegions, newRegionCounter } = generateRegion(
-                startPos, 
-                startingTerrain, 
-                {}, 
-                {}, 
-                0,
-                worldProfile,
-                currentSeason,
-                customItemDefinitions,
-                customItemCatalog,
-                language
-            );
-            
-            const startKey = `${startPos.x},${startPos.y}`;
-            if (newWorld[startKey]) {
-                newWorld[startKey].explored = true;
-                addNarrativeEntry(newWorld[startKey].description, 'narrative');
-            }
-
-            const initialWeatherZones: { [zoneId: string]: WeatherZone } = {};
-            
-            Object.entries(newRegions).forEach(([regionId, region]) => {
-                const initialWeather = generateWeatherForZone(region.terrain, currentSeason);
-                const nextChangeTime = gameTime + getRandomInRange({min: initialWeather.duration_range[0], max: initialWeather.duration_range[1]}) * 5;
-                initialWeatherZones[regionId] = {
-                    id: regionId,
-                    terrain: region.terrain,
-                    currentWeather: initialWeather,
-                    nextChangeTime: nextChangeTime
-                };
-            });
-            
-            setWeatherZones(initialWeatherZones);
-            setWorld(newWorld);
-            setRegions(newRegions);
-            setRegionCounter(newRegionCounter);
-            // Ensure new game starts with ideal body temperature
-            setPlayerStats(prev => ({ ...prev, bodyTemperature: 37 }));
-        }
+        loadGame();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [worldSetup, initialGameState]);
+    }, [user]);
 
     // Game state saving effect
     useEffect(() => {
-        if (Object.keys(world).length === 0 || !finalWorldSetup) return;
+        if (Object.keys(world).length === 0 || !finalWorldSetup || isSaving) return;
 
         const gameState: GameState = {
-            worldProfile,
-            currentSeason,
-            world,
-            recipes,
-            buildableStructures,
-            regions,
-            regionCounter,
-            playerPosition,
-            playerBehaviorProfile,
-            playerStats,
-            narrativeLog,
-            worldSetup: finalWorldSetup,
-            customItemDefinitions,
-            customItemCatalog,
-            weatherZones,
-            gameTime,
-            day,
+            worldProfile, currentSeason, world, recipes, buildableStructures,
+            regions, regionCounter, playerPosition, playerBehaviorProfile,
+            playerStats, narrativeLog, worldSetup: finalWorldSetup,
+            customItemDefinitions, customItemCatalog, weatherZones, gameTime, day,
         };
 
-        try {
-            localStorage.setItem('gameState', JSON.stringify(gameState));
-        } catch (error) {
-            console.error("Failed to save game state:", error);
-        }
+        const save = async () => {
+            setIsSaving(true);
+            try {
+                if (user) {
+                    // Logged in: save to Firestore
+                    const gameDocRef = doc(db, "games", user.uid);
+                    await setDoc(gameDocRef, gameState, { merge: true });
+                } else {
+                    // Not logged in: save to localStorage
+                    localStorage.setItem('gameState', JSON.stringify(gameState));
+                }
+            } catch (error) {
+                console.error("Failed to save game state:", error);
+                toast({ title: "Save Error", description: "Could not save your progress.", variant: "destructive"});
+            } finally {
+                setIsSaving(false);
+            }
+        };
+        
+        // Debounce saving to avoid excessive writes
+        const timerId = setTimeout(save, 1500); 
+        return () => clearTimeout(timerId);
+
     }, [
-        worldProfile,
-        currentSeason,
-        world,
-        recipes,
-        buildableStructures,
-        regions,
-        regionCounter,
-        playerPosition,
-        playerBehaviorProfile,
-        playerStats,
-        narrativeLog,
-        finalWorldSetup,
-        customItemDefinitions,
-        customItemCatalog,
-        weatherZones,
-        gameTime,
-        day,
+        worldProfile, currentSeason, world, recipes, buildableStructures, regions, regionCounter,
+        playerPosition, playerBehaviorProfile, playerStats, narrativeLog, finalWorldSetup,
+        customItemDefinitions, customItemCatalog, weatherZones, gameTime, day, user, isSaving, toast
     ]);
 
     const advanceGameTime = useCallback(async () => {

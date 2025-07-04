@@ -14,7 +14,14 @@ const templates_vi: Record<Terrain, any> = {
         sounds: ['chim hót', 'gió rít', 'cành cây gãy', 'sự im lặng đáng sợ'],
         NPCs: [
             { 
-                data: { name: 'Thợ săn bí ẩn', description: 'Một người đàn ông với ánh mắt sắc lẹm và bộ quần áo bằng da cũ kỹ, luôn mang theo cây cung dài.', dialogueSeed: 'Một thợ săn dày dạn kinh nghiệm, mệt mỏi nhưng cảnh giác, nói năng cộc lốc.' },
+                data: { 
+                    name: 'Thợ săn bí ẩn', 
+                    description: 'Một người đàn ông với ánh mắt sắc lẹm và bộ quần áo bằng da cũ kỹ, luôn mang theo cây cung dài.', 
+                    dialogueSeed: 'Một thợ săn dày dạn kinh nghiệm, mệt mỏi nhưng cảnh giác, nói năng cộc lốc.',
+                    quest: 'Mang cho tôi 5 Nanh Sói để chứng tỏ bản lĩnh của ngươi.',
+                    questItem: { name: 'Nanh Sói', quantity: 5 },
+                    rewardItems: [{ name: 'Da Gấu', quantity: 1, tier: 4, emoji: '🐻' }]
+                },
                 conditions: { humanPresence: { min: 2 }, chance: 0.1 } 
             },
             { 
@@ -352,7 +359,14 @@ const templates_en: Record<Terrain, any> = {
         sounds: ['birds singing', 'wind whistling', 'a snapping twig', 'an unnerving silence'],
         NPCs: [
             { 
-                data: { name: 'Mysterious Hunter', description: 'A man with sharp eyes and worn leather clothes, always carrying a longbow.', dialogueSeed: 'A seasoned hunter, weary but vigilant, speaks in short, clipped sentences.' },
+                data: { 
+                    name: 'Mysterious Hunter', 
+                    description: 'A man with sharp eyes and worn leather clothes, always carrying a longbow.', 
+                    dialogueSeed: 'A seasoned hunter, weary but vigilant, speaks in short, clipped sentences.',
+                    quest: 'Bring me 5 Wolf Fangs to prove your worth.',
+                    questItem: { name: 'Nanh Sói', quantity: 5 },
+                    rewardItems: [{ name: 'Da Gấu', quantity: 1, tier: 4, emoji: '🐻' }]
+                },
                 conditions: { humanPresence: { min: 2 }, chance: 0.1 } 
             },
             { 
@@ -537,20 +551,20 @@ const templates_en: Record<Terrain, any> = {
         sounds: ['parrots squawking', 'monkeys howling', 'insects chirping', 'running water'],
         NPCs: [
             { 
-                data: { name: 'Tribal Shaman', description: 'An elderly man with a strangely painted face, wearing many amulets.', dialogueSeed: 'A wise and mysterious person who speaks of spirits and ancient prophecies.' },
+                data: { name: 'Thầy mo của bộ lạc', description: 'Một người đàn ông lớn tuổi với khuôn mặt được sơn vẽ kỳ dị, đeo nhiều loại bùa hộ mệnh.', dialogueSeed: 'Một người thông thái và bí ẩn, nói về các linh hồn và những lời tiên tri cổ xưa.' },
                 conditions: { humanPresence: { min: 3 }, magicAffinity: { min: 5 }, chance: 0.1 } 
             },
             { 
-                data: { name: 'Botanist', description: 'A scientist with thick glasses, carefully taking notes in a notebook.', dialogueSeed: 'An enthusiast who excitedly talks about rare plant species and their properties.' },
+                data: { name: 'Nhà thực vật học', description: 'Một nhà khoa học với cặp kính dày, đang cẩn thận ghi chép vào một cuốn sổ tay.', dialogueSeed: 'Một người đam mê, hào hứng nói về các loài thực vật quý hiếm và đặc tính của chúng.' },
                 conditions: { humanPresence: { min: 1, max: 3 }, vegetationDensity: { min: 9 }, chance: 0.15 } 
             }
         ],
         items: templates_vi.jungle.items,
         structures: [],
         enemies: [
-            { data: { type: 'Giant Python', emoji: '🐍', hp: 90, damage: 18, behavior: 'territorial', size: 'large', diet: ['Gorilla'], satiation: 0, maxSatiation: 1, loot: [{ name: 'Da Rắn', chance: 0.8, quantity: { min: 2, max: 3 } }] }, conditions: { predatorPresence: { min: 8 }, moisture: { min: 7 }, chance: 0.2 } },
-            { data: { type: 'Jaguar', emoji: '🐆', hp: 70, damage: 22, behavior: 'aggressive', size: 'large', diet: ['Gorilla'], satiation: 0, maxSatiation: 2, loot: [{ name: 'Da Báo Tuyết', chance: 0.5, quantity: { min: 1, max: 1 } }, { name: 'Nanh Sói', chance: 0.3, quantity: { min: 2, max: 4 } }] }, conditions: { predatorPresence: { min: 9 }, chance: 0.25 } },
-            { data: { type: 'Gorilla', emoji: '🦍', hp: 80, damage: 20, behavior: 'defensive', size: 'large', diet: ['Quả Lạ', 'Hoa ăn thịt'], satiation: 0, maxSatiation: 3, loot: [{ name: 'Da Gấu', chance: 0.3, quantity: { min: 1, max: 1 } }] }, conditions: { vegetationDensity: { min: 8 }, chance: 0.3 } }
+            { data: { type: 'Trăn khổng lồ', emoji: '🐍', hp: 90, damage: 18, behavior: 'territorial', size: 'large', diet: ['Khỉ đột'], satiation: 0, maxSatiation: 1, loot: [{ name: 'Da Rắn', chance: 0.8, quantity: { min: 2, max: 3 } }] }, conditions: { predatorPresence: { min: 8 }, moisture: { min: 7 }, chance: 0.2 } },
+            { data: { type: 'Báo đốm', emoji: '🐆', hp: 70, damage: 22, behavior: 'aggressive', size: 'large', diet: ['Khỉ đột'], satiation: 0, maxSatiation: 2, loot: [{ name: 'Da Báo Tuyết', chance: 0.5, quantity: { min: 1, max: 1 } }, { name: 'Nanh Sói', chance: 0.3, quantity: { min: 2, max: 4 } }] }, conditions: { predatorPresence: { min: 9 }, chance: 0.25 } },
+            { data: { type: 'Khỉ đột', emoji: '🦍', hp: 80, damage: 20, behavior: 'defensive', size: 'large', diet: ['Quả Lạ', 'Hoa ăn thịt'], satiation: 0, maxSatiation: 3, loot: [{ name: 'Da Gấu', chance: 0.3, quantity: { min: 1, max: 1 } }] }, conditions: { vegetationDensity: { min: 8 }, chance: 0.3 } }
         ]
     },
     volcanic: {
@@ -563,11 +577,11 @@ const templates_en: Record<Terrain, any> = {
         smells: ['sulfur', 'burning rock', 'molten metal'],
         NPCs: [
             { 
-                data: { name: 'Lava Blacksmith', description: 'Một người lùn với làn da đỏ như đồng, đang dùng một chiếc búa lớn để rèn trên một tảng đá nóng chảy.', dialogueSeed: 'Một thợ rèn bậc thầy, ít nói, chỉ quan tâm đến việc tạo ra những vũ khí huyền thoại từ vật liệu núi lửa.' },
+                data: { name: 'Thợ rèn dung nham', description: 'Một người lùn với làn da đỏ như đồng, đang dùng một chiếc búa lớn để rèn trên một tảng đá nóng chảy.', dialogueSeed: 'Một thợ rèn bậc thầy, ít nói, chỉ quan tâm đến việc tạo ra những vũ khí huyền thoại từ vật liệu núi lửa.' },
                 conditions: { humanPresence: { min: 1 }, temperature: { min: 9 }, chance: 0.1 } 
             },
             { 
-                data: { name: 'Trapped Fire Elemental', description: 'Một thực thể bằng lửa bị mắc kẹt trong một tảng obsidian.', dialogueSeed: 'Một sinh vật nguyên tố mạnh mẽ nhưng đang yếu dần, hứa hẹn sức mạnh nếu được giải thoát.' },
+                data: { name: 'Hỏa tinh bị mắc kẹt', description: 'Một thực thể bằng lửa bị mắc kẹt trong một tảng obsidian.', dialogueSeed: 'Một sinh vật nguyên tố mạnh mẽ nhưng đang yếu dần, hứa hẹn sức mạnh nếu được giải thoát.' },
                 conditions: { magicAffinity: { min: 8 }, chance: 0.05 } 
             }
         ],
@@ -576,13 +590,13 @@ const templates_en: Record<Terrain, any> = {
             { data: structureDefinitions['Mạch nước phun'], conditions: { temperature: { min: 7 }, chance: 0.15 } },
         ],
         enemies: [
-            { data: { type: 'Fire Salamander', emoji: '🦎', hp: 50, damage: 15, behavior: 'territorial', size: 'medium', diet: ['Lưu huỳnh'], satiation: 0, maxSatiation: 3, loot: [{ name: 'Da Rắn', chance: 0.5, quantity: { min: 1, max: 2 } }] }, conditions: { temperature: { min: 8 }, chance: 0.4 } },
-            { data: { type: 'Lava Golem', emoji: '🔥', hp: 120, damage: 25, behavior: 'defensive', size: 'large', diet: ['Quặng Sắt'], satiation: 0, maxSatiation: 1, loot: [{ name: 'Trái tim Magma', chance: 0.1, quantity: { min: 1, max: 1 } }, { name: 'Đá Obsidian', chance: 0.3, quantity: { min: 2, max: 5 } }] }, conditions: { dangerLevel: { min: 9 }, chance: 0.25 } },
-            { data: { type: 'Young Fire Dragon', emoji: '🐉', hp: 150, damage: 30, behavior: 'aggressive', size: 'large', diet: ['Lava Golem'], satiation: 0, maxSatiation: 1, loot: [{ name: 'Vảy Rồng', chance: 0.2, quantity: { min: 3, max: 6 } }, { name: 'Răng Rồng', chance: 0.1, quantity: { min: 1, max: 2 } }] }, conditions: { predatorPresence: { min: 10 }, dangerLevel: { min: 10 }, chance: 0.1 } }
+            { data: { type: 'Salamander lửa', emoji: '🦎', hp: 50, damage: 15, behavior: 'territorial', size: 'medium', diet: ['Lưu huỳnh'], satiation: 0, maxSatiation: 3, loot: [{ name: 'Da Rắn', chance: 0.5, quantity: { min: 1, max: 2 } }] }, conditions: { temperature: { min: 8 }, chance: 0.4 } },
+            { data: { type: 'Golem dung nham', emoji: '🔥', hp: 120, damage: 25, behavior: 'defensive', size: 'large', diet: ['Quặng Sắt'], satiation: 0, maxSatiation: 1, loot: [{ name: 'Trái tim Magma', chance: 0.1, quantity: { min: 1, max: 1 } }, { name: 'Đá Obsidian', chance: 0.3, quantity: { min: 2, max: 5 } }] }, conditions: { dangerLevel: { min: 9 }, chance: 0.25 } },
+            { data: { type: 'Rồng lửa con', emoji: '🐉', hp: 150, damage: 30, behavior: 'aggressive', size: 'large', diet: ['Golem dung nham'], satiation: 0, maxSatiation: 1, loot: [{ name: 'Vảy Rồng', chance: 0.2, quantity: { min: 3, max: 6 } }, { name: 'Răng Rồng', chance: 0.1, quantity: { min: 1, max: 2 } }] }, conditions: { predatorPresence: { min: 10 }, dangerLevel: { min: 10 }, chance: 0.1 } }
         ]
     },
     wall: {
-        descriptionTemplates: ['A sheer, impassable rock wall blocks your way.'],
+        descriptionTemplates: ['Một bức tường đá không thể vượt qua chặn đường.'],
         adjectives: [], features: [], smells: [], sounds: [],
         NPCs: [], items: [], structures: [], enemies: []
     },

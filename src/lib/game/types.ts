@@ -92,6 +92,9 @@ export interface Npc {
     name: string;
     description: string;
     dialogueSeed: string;
+    quest?: string;
+    questItem?: { name: string; quantity: number };
+    rewardItems?: PlayerItem[];
 }
 
 // Represents a skill the player can use.

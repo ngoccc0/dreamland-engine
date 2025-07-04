@@ -924,6 +924,18 @@ export const translations = {
     directionSouth: "south",
     directionEast: "east",
     directionWest: "west",
+    talkToAction: "talk to",
+    pickUpAction: "pick up",
+    exploreAction: "explore the area",
+    npcNoQuest: "{npcName} nods at you but has nothing to say.",
+    npcQuestGive: "{npcName} looks at you and says: '{questText}'",
+    npcQuestCompleted: "{npcName} seems pleased. 'You have done well. Please, take this as a reward.'",
+    npcQuestNotEnoughItems: "{npcName} sees you don't have enough. 'You still need {needed} more {itemName}.'",
+    gaveItemToNpc: "You gave {quantity} {itemName} to {npcName}.",
+    questCompletedTitle: "Quest Completed!",
+    pickedUpItem: "You picked up {quantity} {itemName}.",
+    exploreFoundItem: "Your search yields {quantity} {itemName}.",
+    exploreFoundNothing: "You search the area but find nothing of interest."
   },
   vi: {
     ...gameEntityNames.vi,
@@ -1306,6 +1318,18 @@ export const translations = {
     directionSouth: "nam",
     directionEast: "đông",
     directionWest: "tây",
+    talkToAction: "nói chuyện với",
+    pickUpAction: "nhặt",
+    exploreAction: "khám phá khu vực",
+    npcNoQuest: "{npcName} gật đầu với bạn nhưng không có gì để nói.",
+    npcQuestGive: "{npcName} nhìn bạn và nói: '{questText}'",
+    npcQuestCompleted: "{npcName} có vẻ hài lòng. 'Ngươi đã làm rất tốt. Hãy nhận lấy phần thưởng này.'",
+    npcQuestNotEnoughItems: "{npcName} thấy bạn chưa có đủ. 'Ngươi vẫn cần thêm {needed} {itemName}.'",
+    gaveItemToNpc: "Bạn đã đưa {quantity} {itemName} cho {npcName}.",
+    questCompletedTitle: "Nhiệm vụ Hoàn thành!",
+    pickedUpItem: "Bạn đã nhặt được {quantity} {itemName}.",
+    exploreFoundItem: "Bạn tìm kiếm và phát hiện ra {quantity} {itemName}.",
+    exploreFoundNothing: "Bạn tìm kiếm khu vực nhưng không thấy gì thú vị."
   }
 };
 

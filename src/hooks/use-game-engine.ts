@@ -242,7 +242,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [playerBehaviorProfile]);
     
-    const getEffectiveChunk = useCallback((baseChunk: Chunk, currentTime: number): Chunk => {
+    const getEffectiveChunk = useCallback((baseChunk: Chunk): Chunk => {
         if (!baseChunk) return baseChunk;
 
         const effectiveChunk: Chunk = JSON.parse(JSON.stringify(baseChunk));
@@ -254,7 +254,6 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             }
         }
 
-        // If no weather applies (e.g., new region), just apply structure heat to the base Celsius temp
         if (!weatherZones[effectiveChunk.regionId]) {
             effectiveChunk.temperature = (baseChunk.temperature ?? 15) + structureHeat;
             return effectiveChunk;
@@ -263,22 +262,18 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         const weatherZone = weatherZones[baseChunk.regionId];
         const weather = weatherZone.currentWeather;
         
-        // This calculates the final Celsius temperature
-        const baseCelsius = (baseChunk.temperature ?? 5) * 4; // Maps 0-10 base to 0-40 C
+        const baseCelsius = (baseChunk.temperature ?? 5) * 4;
         const weatherCelsiusMod = weather.temperature_delta * 2;
         effectiveChunk.temperature = baseCelsius + weatherCelsiusMod + structureHeat;
 
         effectiveChunk.moisture = clamp(baseChunk.moisture + weather.moisture_delta, 0, 10);
         effectiveChunk.windLevel = clamp((baseChunk.windLevel ?? 3) + weather.wind_delta, 0, 10);
         
-        // Calculate light level based on time of day and weather
         let timeLightMod = 0;
-        // Night (10pm to 5am)
-        if (currentTime >= 1320 || currentTime < 300) {
+        if (gameTime >= 1320 || gameTime < 300) {
             timeLightMod = -8;
         } 
-        // Dawn/Dusk (5am-7am, 6pm-8pm)
-        else if ((currentTime >= 300 && currentTime < 420) || (currentTime >= 1080 && currentTime < 1200)) {
+        else if ((gameTime >= 300 && gameTime < 420) || (gameTime >= 1080 && gameTime < 1200)) {
             timeLightMod = -3;
         }
         
@@ -286,13 +281,13 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
 
 
         return effectiveChunk;
-    }, [weatherZones]);
+    }, [weatherZones, gameTime]);
 
     // Effect to update currentChunk whenever world or position changes
     useEffect(() => {
         const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
         if (baseChunk) {
-            const effective = getEffectiveChunk(baseChunk, gameTime);
+            const effective = getEffectiveChunk(baseChunk);
             setCurrentChunk(effective);
         } else {
             setCurrentChunk(null);
@@ -398,13 +393,14 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 );
                 
                 // Reveal the initial 3x3 area around the player
-                const visionRadius = 1;
                 let worldSnapshot = { ...newWorld };
                 let regionsSnapshot = { ...newRegions };
                 let regionCounterSnapshot = newRegionCounter;
 
+                const visionRadius = 1;
                 for (let dy = -visionRadius; dy <= visionRadius; dy++) {
                     for (let dx = -visionRadius; dx <= visionRadius; dx++) {
+                        if (dx === 0 && dy === 0) continue;
                         const revealPos = { x: startPos.x + dx, y: startPos.y + dy };
                         if (!worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
                             const result = ensureChunkExists(revealPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
@@ -412,7 +408,14 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                             regionsSnapshot = result.regions;
                             regionCounterSnapshot = result.regionCounter;
                         }
-                        worldSnapshot[`${revealPos.x},${revealPos.y}`].explored = true;
+                    }
+                }
+                for (let dy = -visionRadius; dy <= visionRadius; dy++) {
+                    for (let dx = -visionRadius; dx <= visionRadius; dx++) {
+                         const revealPos = { x: startPos.x + dx, y: startPos.y + dy };
+                         if (worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
+                             worldSnapshot[`${revealPos.x},${revealPos.y}`].explored = true;
+                         }
                     }
                 }
                 newWorld = worldSnapshot;
@@ -558,7 +561,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             const chunk = newWorldState[key];
             if (!chunk.items || chunk.items.length === 0) continue;
             
-            const effectiveChunk = getEffectiveChunk(chunk, newGameTime);
+            const effectiveChunk = getEffectiveChunk(chunk);
             // Ecology simulation... (omitted for brevity, remains unchanged)
         }
     
@@ -568,7 +571,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         const currentPlayerBaseChunk = newWorldState[playerChunkKey];
 
         if (currentPlayerBaseChunk) {
-            const effectiveChunk = getEffectiveChunk(currentPlayerBaseChunk, newGameTime);
+            const effectiveChunk = getEffectiveChunk(currentPlayerBaseChunk);
             const environmentCelsius = effectiveChunk.temperature || 15;
             
             const IDEAL_BODY_TEMP = 37.0;
@@ -622,7 +625,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         const successLevelKey = successLevelToTranslationKey[successLevel];
         addNarrativeEntry(t('diceRollMessage', { roll, level: t(successLevelKey) }), 'system');
 
-        const currentChunk = getEffectiveChunk(baseChunk, gameTime);
+        const currentChunk = getEffectiveChunk(baseChunk);
 
         try {
             const input: GenerateNarrativeInput = {
@@ -737,7 +740,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             addNarrativeEntry(t('noTarget'), 'system');
             return;
         }
-        const currentChunk = getEffectiveChunk(baseChunk, gameTime);
+        const currentChunk = getEffectiveChunk(baseChunk);
     
         const actionText = `${t('attackAction')} ${t(currentChunk.enemy!.type as TranslationKey)}`;
         addNarrativeEntry(actionText, 'action');
@@ -968,10 +971,10 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 const newPet: Pet = { type: currentChunk.enemy.type, level: 1 };
                 if (!newPlayerStats.pets) newPlayerStats.pets = [];
                 newPlayerStats.pets.push(newPet);
-                setWorld(prev => ({...prev, [key]: {...prev[key], enemy: null}}));
+                setWorld(prev => ({...prev, [key]: {...prev[key]!, enemy: null}}));
                 addNarrativeEntry(t('tameSuccess', { target: t(target as TranslationKey) }), 'system');
             } else {
-                setWorld(prev => ({...prev, [key]: {...prev[key], enemy: newEnemyState}}));
+                setWorld(prev => ({...prev, [key]: {...prev[key]!, enemy: newEnemyState}}));
                 addNarrativeEntry(t('tameFail', { target: t(target as TranslationKey), item: t(itemName as TranslationKey)}), 'system');
             }
         }
@@ -1091,7 +1094,113 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         }
         advanceGameTime();
     };
+    
+    const handleOfflineAction = useCallback((actionText: string) => {
+        addNarrativeEntry(actionText, 'action');
+        let newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText] };
 
+        const lowerAction = actionText.toLowerCase();
+        const talkToAction = t('talkToAction', {}).toLowerCase();
+        const pickUpAction = t('pickUpAction', {}).toLowerCase();
+        const exploreActionText = t('exploreAction', {}).toLowerCase();
+
+        const currentChunk = world[ `${playerPosition.x},${playerPosition.y}`];
+        if (!currentChunk) return;
+
+        // 1. Handle "Talk to NPC" / "Observe"
+        if (lowerAction.startsWith(talkToAction)) {
+            const npcName = actionText.substring(talkToAction.length).trim();
+            const npc = currentChunk.NPCs.find(n => t(n.name as TranslationKey).toLowerCase() === npcName.toLowerCase());
+
+            if (npc) {
+                const templates = getTemplates(language);
+                let npcDef: any = null;
+                for (const terrain of Object.keys(templates)) {
+                    const found = templates[terrain as Terrain].NPCs.find((n: any) => n.data.name === npc.name);
+                    if (found) { npcDef = found.data; break; }
+                }
+                
+                if (npcDef && npcDef.quest && npcDef.questItem) {
+                    const questAlreadyActive = newPlayerStats.quests.includes(npcDef.quest);
+                    if (questAlreadyActive) {
+                        const itemInInventory = newPlayerStats.items.find(i => i.name === npcDef.questItem.name);
+                        const hasEnough = itemInInventory && itemInInventory.quantity >= npcDef.questItem.quantity;
+                        if (hasEnough) {
+                            addNarrativeEntry(t('gaveItemToNpc', { quantity: npcDef.questItem.quantity, itemName: t(npcDef.questItem.name as TranslationKey), npcName: t(npc.name as TranslationKey)}), 'system');
+                            
+                            itemInInventory.quantity -= npcDef.questItem.quantity;
+                            if (itemInInventory.quantity <= 0) {
+                                newPlayerStats.items = newPlayerStats.items.filter(i => i.name !== npcDef.questItem.name);
+                            }
+
+                            (npcDef.rewardItems || []).forEach((reward: PlayerItem) => {
+                                const existingItem = newPlayerStats.items.find(i => i.name === reward.name);
+                                if (existingItem) {
+                                    existingItem.quantity += reward.quantity;
+                                } else {
+                                    newPlayerStats.items.push({...reward});
+                                }
+                            });
+                            
+                            newPlayerStats.quests = newPlayerStats.quests.filter(q => q !== npcDef.quest);
+
+                            addNarrativeEntry(t('npcQuestCompleted', { npcName: t(npc.name as TranslationKey) }), 'narrative');
+                            toast({ title: t('questCompletedTitle'), description: npcDef.quest });
+                        } else {
+                            const needed = npcDef.questItem.quantity - (itemInInventory?.quantity || 0);
+                            addNarrativeEntry(t('npcQuestNotEnoughItems', { npcName: t(npc.name as TranslationKey), needed, itemName: t(npcDef.questItem.name as TranslationKey) }), 'narrative');
+                        }
+                    } else {
+                        newPlayerStats.quests.push(npcDef.quest);
+                        addNarrativeEntry(t('npcQuestGive', { npcName: t(npc.name as TranslationKey), questText: npcDef.quest }), 'narrative');
+                    }
+                } else {
+                    addNarrativeEntry(t('npcNoQuest', { npcName: t(npc.name as TranslationKey) }), 'narrative');
+                }
+            }
+        } 
+        // 2. Handle "Pick up Item"
+        else if (lowerAction.startsWith(pickUpAction)) {
+            const itemName = actionText.substring(pickUpAction.length).trim();
+            const chunkKey = `${playerPosition.x},${playerPosition.y}`;
+            const itemInChunk = currentChunk.items.find(i => t(i.name as TranslationKey).toLowerCase() === itemName.toLowerCase());
+            
+            if (itemInChunk) {
+                const newChunkItems = currentChunk.items.filter(i => i.name !== itemInChunk.name);
+                setWorld(prev => ({ ...prev, [chunkKey]: { ...prev[chunkKey]!, items: newChunkItems }}));
+
+                const itemInInventory = newPlayerStats.items.find(i => i.name === itemInChunk.name);
+                if (itemInInventory) {
+                    itemInInventory.quantity += itemInChunk.quantity;
+                } else {
+                    newPlayerStats.items.push({...itemInChunk});
+                }
+                addNarrativeEntry(t('pickedUpItem', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name as TranslationKey) }), 'narrative');
+            }
+        } 
+        // 3. Handle "Explore Area"
+        else if (lowerAction === exploreActionText) {
+            const { roll } = rollDice('d20');
+            if (roll > 15 && currentChunk.terrain !== 'desert' && currentChunk.terrain !== 'cave') { 
+                const itemDef = staticItemDefinitions['Sỏi'];
+                const quantity = getRandomInRange({ min: 1, max: 3 });
+
+                const itemInInventory = newPlayerStats.items.find(i => i.name === 'Sỏi');
+                if (itemInInventory) {
+                    itemInInventory.quantity += quantity;
+                } else {
+                    newPlayerStats.items.push({ name: 'Sỏi', quantity, tier: itemDef.tier, emoji: itemDef.emoji });
+                }
+                addNarrativeEntry(t('exploreFoundItem', { quantity, itemName: t('Sỏi' as TranslationKey) }), 'narrative');
+            } else {
+                addNarrativeEntry(t('exploreFoundNothing'), 'narrative');
+            }
+        }
+
+        setPlayerStats(newPlayerStats);
+        advanceGameTime();
+    }, [addNarrativeEntry, playerStats, t, world, playerPosition, language, toast, advanceGameTime]);
+    
     // --- MAIN ACTION HANDLERS ---
 
     const handleMove = (direction: "north" | "south" | "east" | "west") => {
@@ -1195,22 +1304,21 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         }
     };
 
-    const handleAction = (actionId: number) => {
+    const handleAction = useCallback((actionId: number) => {
         const chunk = world[`${playerPosition.x},${playerPosition.y}`];
         if (!chunk) return;
     
         const actionText = chunk.actions.find(a => a.id === actionId)?.text || "unknown action";
-        addNarrativeEntry(actionText, 'action');
-
-        const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
-        setPlayerStats(newPlayerStats);
-
+        
         if (isOnline) {
+            addNarrativeEntry(actionText, 'action');
+            const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
+            setPlayerStats(newPlayerStats);
             handleOnlineNarrative(actionText, world, playerPosition, newPlayerStats);
         } else {
-            advanceGameTime();
+            handleOfflineAction(actionText);
         }
-    }
+    }, [world, playerPosition, isOnline, addNarrativeEntry, playerStats, handleOnlineNarrative, handleOfflineAction]);
 
     const handleAttack = () => {
         setPlayerBehaviorProfile(p => ({ ...p, attacks: p.attacks + 1 }));
@@ -1233,21 +1341,19 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         }
     };
     
-    const handleCustomAction = (text: string) => {
+    const handleCustomAction = useCallback((text: string) => {
         if (!text.trim()) return;
         setPlayerBehaviorProfile(p => ({ ...p, customActions: p.customActions + 1 }));
-        addNarrativeEntry(text, 'action');
-    
-        const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), text]};
-        setPlayerStats(newPlayerStats);
-
-        if(isOnline) {
+        
+        if (isOnline) {
+            addNarrativeEntry(text, 'action');
+            const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), text]};
+            setPlayerStats(newPlayerStats);
             handleOnlineNarrative(text, world, playerPosition, newPlayerStats);
         } else {
-            addNarrativeEntry(t('customActionFail'), 'system');
-            advanceGameTime();
+            handleOfflineAction(text);
         }
-    }
+    }, [isOnline, playerStats, addNarrativeEntry, handleOnlineNarrative, world, playerPosition, handleOfflineAction]);
 
     const handleCraft = useCallback(async (recipe: Recipe) => {
         setPlayerBehaviorProfile(p => ({ ...p, crafts: p.crafts + 1 }));
@@ -1296,7 +1402,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         }
         
         advanceGameTime();
-    }, [playerStats, customItemCatalog, recipes, language, addNarrativeEntry, toast, t, advanceGameTime, customItemDefinitions]);
+    }, [playerStats, customItemDefinitions, addNarrativeEntry, toast, t, advanceGameTime]);
 
     const handleItemUsed = useCallback((itemName: string, target: 'player' | string) => {
         const actionText = target === 'player'
@@ -1312,7 +1418,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         } else {
             handleOfflineItemUse(itemName, target);
         }
-    }, [playerStats, world, playerPosition, isOnline, handleOnlineNarrative, t, handleOfflineItemUse, advanceGameTime]);
+    }, [playerStats, world, playerPosition, isOnline, handleOnlineNarrative, t, handleOfflineItemUse]);
 
     const handleUseSkill = useCallback((skillName: string) => {
         const actionText = `${t('useSkillAction')} ${t(skillName as TranslationKey)}`;
@@ -1330,7 +1436,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             handleOfflineSkillUse(skillName);
         }
 
-    }, [playerStats, world, playerPosition, isOnline, addNarrativeEntry, t, advanceGameTime, handleOnlineNarrative, handleOfflineSkillUse]);
+    }, [playerStats, world, playerPosition, isOnline, addNarrativeEntry, t, handleOnlineNarrative, handleOfflineSkillUse]);
 
     const handleBuild = useCallback((structureName: string) => {
         const buildStaminaCost = 15;
@@ -1426,7 +1532,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             return;
         }
 
-        const effectiveChunk = getEffectiveChunk(baseChunk, gameTime);
+        const effectiveChunk = getEffectiveChunk(baseChunk);
         const weather = weatherZones[effectiveChunk.regionId]?.currentWeather;
         let successChanceBonus = playerStats.persona === 'artisan' ? 10 : 0;
         let elementalAffinity: any = 'none';

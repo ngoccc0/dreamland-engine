@@ -300,7 +300,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                             <CarouselItem key={index}>
                                                 <div className="p-1">
                                                     <Card className="flex items-center justify-center p-4 h-20 shadow-inner bg-muted/30">
-                                                        <p className="font-semibold text-center text-lg capitalize">{concept.startingBiome}</p>
+                                                        <p className="font-semibold text-center text-lg capitalize">{t(concept.startingBiome as TranslationKey)}</p>
                                                     </Card>
                                                 </div>
                                             </CarouselItem>
@@ -339,7 +339,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                 </Carousel>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 {/* Inventory */}
                                 <div className="space-y-2">
                                     <h3 className="text-lg font-semibold font-headline text-center">{t('startingEquipment')}</h3>
@@ -354,7 +354,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                                             </CardHeader>
                                                             <CardContent className="p-4 pt-0">
                                                                 <ul className="list-disc list-inside text-sm text-muted-foreground">
-                                                                    {concept.playerInventory.map(item => <li key={item.name}>{item.name} (x{item.quantity})</li>)}
+                                                                    {concept.playerInventory.map(item => <li key={item.name}>{t(item.name as TranslationKey)} (x{item.quantity})</li>)}
                                                                 </ul>
                                                             </CardContent>
                                                         </Card>

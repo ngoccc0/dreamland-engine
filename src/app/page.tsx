@@ -42,6 +42,7 @@ export default function Home() {
             name: itemName.replace(/ \(.*/, ''),
             quantity: 1,
             tier: 1,
+            emoji: '❓',
           }));
         }
         if (!gameState.playerStats.skills) {
@@ -83,6 +84,7 @@ export default function Home() {
             description: item.description,
             tier: item.tier,
             category: item.category,
+            emoji: item.emoji,
             effects: item.effects,
             baseQuantity: item.baseQuantity,
             growthConditions: item.growthConditions as any,
@@ -95,7 +97,8 @@ export default function Home() {
     const initialPlayerItems: PlayerItem[] = world.playerInventory.map(item => ({
         name: item.name,
         quantity: item.quantity,
-        tier: allItemDefinitions[item.name]?.tier || 1
+        tier: allItemDefinitions[item.name]?.tier || 1,
+        emoji: allItemDefinitions[item.name]?.emoji || '❓'
     }));
 
     const worldSetupForLayout = {

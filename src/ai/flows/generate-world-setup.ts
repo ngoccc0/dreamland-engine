@@ -244,10 +244,18 @@ const generateWorldSetupFlow = ai.defineFlow(
             }
         ];
 
-        const startingSkill = skillDefinitions.find(s => s.name === 'skillFireballName');
-        if (!startingSkill) {
-            throw new Error("Could not find default skill for Floptropica world.");
-        }
+        // Hardcode the skill to avoid lookup issues.
+        const startingSkill: Skill = {
+            name: 'skillFireballName',
+            description: 'skillFireballDesc',
+            tier: 1,
+            manaCost: 15,
+            effect: {
+                type: 'DAMAGE',
+                amount: 15,
+                target: 'ENEMY',
+            }
+        };
 
         const concept = {
             worldName: "Floptropica",

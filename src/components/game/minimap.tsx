@@ -102,19 +102,17 @@ export function Minimap({ grid, playerPosition }: MinimapProps) {
                     <PopoverTrigger asChild>
                         <div
                             className={cn(
-                                "w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 relative transition-all duration-300 flex flex-col items-center justify-between p-1 cursor-pointer hover:ring-2 hover:ring-white border-r border-b border-dashed border-border/50",
+                                "w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 relative transition-all duration-300 flex items-center justify-center p-1 cursor-pointer hover:ring-2 hover:ring-white border-r border-b border-dashed border-border/50",
                                 biomeColors[cell.terrain],
                                 isPlayerHere && "ring-2 ring-white shadow-lg z-10"
                             )}
                             aria-label={`Map cell at ${cell.x}, ${cell.y}. Biome: ${cell.terrain}`}
                         >
-                            {/* Top part: Biome Icon */}
-                            <div className="flex-grow flex items-center justify-center">
-                                {cell.terrain !== 'empty' && biomeIcons[cell.terrain as Exclude<Terrain, 'empty'>]}
-                            </div>
+                            {/* Biome Icon */}
+                            {cell.terrain !== 'empty' && biomeIcons[cell.terrain as Exclude<Terrain, 'empty'>]}
                             
-                            {/* Bottom part: Entity Icons */}
-                            <div className="h-4 w-full flex items-center justify-start gap-px">
+                            {/* Entity Icons */}
+                            <div className="absolute bottom-1 left-1 flex items-end gap-px">
                                 {isPlayerHere && <PlayerIcon />}
                                 {cell.enemy && <EnemyIcon emoji={cell.enemy.emoji} />}
                                 {cell.NPCs.length > 0 && <NpcIcon />}

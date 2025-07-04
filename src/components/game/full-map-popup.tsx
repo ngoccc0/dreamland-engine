@@ -95,16 +95,17 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
                                 <PopoverTrigger asChild>
                                     <div
                                         className={cn(
-                                            "w-12 h-12 relative transition-all duration-300 flex flex-col items-center justify-between p-1 cursor-pointer hover:ring-2 hover:ring-white border-r border-b border-dashed border-border/50",
+                                            "w-12 h-12 relative transition-all duration-300 flex items-center justify-center p-1 cursor-pointer hover:ring-2 hover:ring-white border-r border-b border-dashed border-border/50",
                                             biomeColors[chunk.terrain as keyof typeof biomeColors],
                                             isPlayerHere && "ring-2 ring-white shadow-lg z-10"
                                         )}
                                         aria-label={`Map cell at ${chunk.x}, ${chunk.y}. Biome: ${chunk.terrain}`}
                                     >
-                                        <div className="flex-grow flex items-center justify-center">
-                                          {biomeIcons[chunk.terrain as keyof typeof biomeIcons]}
-                                        </div>
-                                        <div className="h-4 w-full flex items-center justify-start gap-px">
+                                        {/* Biome Icon */}
+                                        {biomeIcons[chunk.terrain as keyof typeof biomeIcons]}
+                                        
+                                        {/* Entity Icons */}
+                                        <div className="absolute bottom-1 left-1 flex items-end gap-px">
                                           {isPlayerHere && <PlayerIcon />}
                                           {chunk.enemy && <EnemyIcon emoji={chunk.enemy.emoji} />}
                                           {chunk.NPCs.length > 0 && <NpcIcon />}

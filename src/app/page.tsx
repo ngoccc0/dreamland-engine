@@ -12,6 +12,7 @@ import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import { useLanguage } from '@/context/language-context';
 import { Loader2, Settings } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { TranslationKey } from '@/lib/i18n';
 
 type NewGameData = {
   worldSetup: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[], startingSkill: Skill };
@@ -135,30 +136,30 @@ export default function Home() {
             />
           
             <path 
-              d="M 25 101 C 40 97, 85 97, 100 101 A 15 15 0 0 0 100 101 Z"
+              d="M 15 103 C 30 98, 95 98, 110 103 A 15 15 0 0 0 110 103 Z"
               fill="#A1887F"
             />
             <path 
-              d="M 30 96 C 40 86, 85 86, 95 96 Z"
+              d="M 20 98 C 30 82, 95 82, 105 98 Z"
               fill="#689F38"
             />
             <path 
-              d="M 35 91 C 45 84, 80 84, 90 91 A 10 10 0 0 0 90 91 Z"
+              d="M 25 93 C 40 78, 90 78, 100 93 A 10 10 0 0 0 100 93 Z"
               fill="#4CAF50"
             />
           
             <g>
-              <rect x="52" y="65" width="6" height="14" rx="2" fill="#F5EFE6"/>
-              <path d="M 50 65 C 50 54, 66 54, 66 65 Z" fill="#EF5350"/>
-              <circle cx="53" cy="60" r="1.2" fill="white"/>
-              <circle cx="58" cy="58" r="1.4" fill="white"/>
-              <circle cx="63" cy="61" r="1.2" fill="white"/>
+              <rect x="52" y="59" width="6" height="14" rx="2" fill="#F5EFE6"/>
+              <path d="M 50 59 C 50 48, 66 48, 66 59 Z" fill="#EF5350"/>
+              <circle cx="53" cy="54" r="1.2" fill="white"/>
+              <circle cx="58" cy="52" r="1.4" fill="white"/>
+              <circle cx="63" cy="55" r="1.2" fill="white"/>
             </g>
             <g>
-              <rect x="75" y="70" width="5" height="10" rx="2" fill="#F5EFE6"/>
-              <path d="M 73 70 C 73 62, 83 62, 83 70 Z" fill="#E53935"/>
-              <circle cx="76" cy="67" r="1" fill="white"/>
-              <circle cx="80" cy="65" r="1.2" fill="white"/>
+              <rect x="75" y="64" width="5" height="10" rx="2" fill="#F5EFE6"/>
+              <path d="M 73 64 C 73 56, 83 56, 83 64 Z" fill="#E53935"/>
+              <circle cx="76" cy="61" r="1" fill="white"/>
+              <circle cx="80" cy="59" r="1.2" fill="white"/>
             </g>
             
             <g className="gear-logo">

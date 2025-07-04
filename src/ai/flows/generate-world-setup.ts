@@ -150,8 +150,8 @@ const generateWorldSetupFlow = ai.defineFlow(
     
     // Task A: Generate the item catalog. This is complex, so we use a fallback chain of powerful models.
     const itemCatalogTask = (async () => {
-        // Extended fallback chain. If paid models fail, it will use the free-tier Gemini Flash as a last resort.
-        const modelsToTry = ['openai/gpt-3.5-turbo', 'googleai/gemini-1.0-pro', 'deepseek/deepseek-chat', 'googleai/gemini-2.0-flash'];
+        // Updated model names to reflect modern, working versions
+        const modelsToTry = ['openai/gpt-4-turbo', 'googleai/gemini-1.5-pro', 'deepseek/deepseek-chat', 'googleai/gemini-2.0-flash'];
         const errorLogs: string[] = [];
 
         for (const modelName of modelsToTry) {

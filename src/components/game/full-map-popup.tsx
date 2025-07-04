@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from 'react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -104,7 +104,7 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
                                         <div className="flex-grow flex items-center justify-center">
                                           {biomeIcons[chunk.terrain as keyof typeof biomeIcons]}
                                         </div>
-                                        <div className="h-5 flex items-center justify-center gap-1">
+                                        <div className="h-4 w-full flex items-end justify-start gap-px">
                                           {isPlayerHere && <PlayerIcon />}
                                           {chunk.enemy && <EnemyIcon emoji={chunk.enemy.emoji} />}
                                           {chunk.NPCs.length > 0 && <NpcIcon />}

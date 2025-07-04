@@ -2,6 +2,7 @@
 
 
 
+
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -284,6 +285,48 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
 
         return effectiveChunk;
     }, [weatherZones]);
+    
+    const ensureChunkExists = useCallback((
+        pos: {x: number, y: number}, 
+        currentWorld: World,
+        currentRegions: { [id: number]: Region },
+        currentRegionCounter: number
+    ) => {
+        const newPosKey = `${pos.x},${pos.y}`;
+        if (currentWorld[newPosKey]) {
+            return { 
+                worldWithChunk: currentWorld, 
+                chunk: currentWorld[newPosKey],
+                regions: currentRegions,
+                regionCounter: currentRegionCounter,
+            };
+        }
+    
+        const validTerrains = getValidAdjacentTerrains(pos, currentWorld);
+        const terrainProbs = validTerrains.map(t => [t, worldConfig[t].spreadWeight] as [Terrain, number]);
+        const newTerrain = weightedRandom(terrainProbs);
+        
+        const result = generateRegion(
+            pos, 
+            newTerrain, 
+            currentWorld, 
+            currentRegions, 
+            currentRegionCounter,
+            worldProfile,
+            currentSeason,
+            customItemDefinitions,
+            customItemCatalog,
+            customStructures,
+            language
+        );
+        
+        return { 
+            worldWithChunk: result.newWorld, 
+            chunk: result.newWorld[newPosKey],
+            regions: result.regions,
+            regionCounter: result.newRegionCounter
+        };
+    }, [worldProfile, currentSeason, customItemDefinitions, customItemCatalog, customStructures, language]);
 
     // Game state loading/initialization effect
     useEffect(() => {
@@ -341,9 +384,30 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                     customItemCatalog, customStructures, language
                 );
                 
+                // Reveal the initial 3x3 area around the player
+                const visionRadius = 1;
+                let worldSnapshot = { ...newWorld };
+                let regionsSnapshot = { ...newRegions };
+                let regionCounterSnapshot = newRegionCounter;
+
+                for (let dy = -visionRadius; dy <= visionRadius; dy++) {
+                    for (let dx = -visionRadius; dx <= visionRadius; dx++) {
+                        const revealPos = { x: startPos.x + dx, y: startPos.y + dy };
+                        if (!worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
+                            const result = ensureChunkExists(revealPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
+                            worldSnapshot = result.worldWithChunk;
+                            regionsSnapshot = result.regions;
+                            regionCounterSnapshot = result.regionCounter;
+                        }
+                        worldSnapshot[`${revealPos.x},${revealPos.y}`].explored = true;
+                    }
+                }
+                newWorld = worldSnapshot;
+                newRegions = regionsSnapshot;
+                newRegionCounter = regionCounterSnapshot;
+
                 const startKey = `${startPos.x},${startPos.y}`;
                 if (newWorld[startKey]) {
-                    newWorld[startKey].explored = true;
                     addNarrativeEntry(newWorld[startKey].description, 'narrative');
                 }
 
@@ -651,47 +715,6 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         }
     };
     
-    const ensureChunkExists = useCallback((
-        pos: {x: number, y: number}, 
-        currentWorld: World,
-        currentRegions: { [id: number]: Region },
-        currentRegionCounter: number
-    ) => {
-        const newPosKey = `${pos.x},${pos.y}`;
-        if (currentWorld[newPosKey]) {
-            return { 
-                worldWithChunk: currentWorld, 
-                chunk: currentWorld[newPosKey],
-                regions: currentRegions,
-                regionCounter: currentRegionCounter,
-            };
-        }
-    
-        const validTerrains = getValidAdjacentTerrains(pos, currentWorld);
-        const terrainProbs = validTerrains.map(t => [t, worldConfig[t].spreadWeight] as [Terrain, number]);
-        const newTerrain = weightedRandom(terrainProbs);
-        
-        const result = generateRegion(
-            pos, 
-            newTerrain, 
-            currentWorld, 
-            currentRegions, 
-            currentRegionCounter,
-            worldProfile,
-            currentSeason,
-            customItemDefinitions,
-            customItemCatalog,
-            customStructures,
-            language
-        );
-        
-        return { 
-            worldWithChunk: result.newWorld, 
-            chunk: result.newWorld[newPosKey],
-            regions: result.regions,
-            regionCounter: result.newRegionCounter
-        };
-    }, [worldProfile, currentSeason, customItemDefinitions, customItemCatalog, customStructures, language]);
 
     const handleMove = (direction: "north" | "south" | "east" | "west") => {
         setPlayerBehaviorProfile(p => ({ ...p, moves: p.moves + 1 }));

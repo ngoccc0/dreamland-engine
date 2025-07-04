@@ -118,30 +118,62 @@ export default function Home() {
         <div className="flex flex-col items-center gap-4 text-center p-4 animate-in fade-in duration-1000">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-20 w-20"
-            viewBox="0 0 24 24"
+            className="h-32 w-32"
+            viewBox="0 0 120 120"
           >
-            <style>
-              {`
-                .gear-group {
-                  transform-origin: 12px 12px;
-                }
-              `}
-            </style>
-            <path
-              d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10Z"
-              fill="#fce7f3"
-              stroke="#fbcfe8"
+            <defs>
+              <style>
+                {`.gear-logo { animation: spin 10s linear infinite; transform-origin: 28px 88px; } @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}
+              </style>
+            </defs>
+            
+            <path 
+              d="M 20 110 C 5 110, 5 90, 25 90 C 25 75, 55 75, 55 90 C 75 85, 95 85, 105 95 C 120 95, 120 110, 100 110 Z"
+              fill="#f0f4f8"
+              stroke="#cfd8dc"
               strokeWidth="0.5"
             />
-            <g className="gear-group animate-spin-gear" transform="translate(4.5, 17) scale(0.025)">
+          
+            <path 
+              d="M 30 96 C 40 92, 80 92, 90 96 A 15 15 0 0 0 90 96 Z"
+              fill="#A1887F"
+            />
+            <path 
+              d="M 35 91 C 40 81, 80 81, 85 91 Z"
+              fill="#689F38"
+            />
+            <path 
+              d="M 40 86 C 45 79, 75 79, 80 86 A 10 10 0 0 0 80 86 Z"
+              fill="#4CAF50"
+            />
+          
+            <g>
+              <rect x="50" y="70" width="5" height="12" rx="2" fill="#F5EFE6"/>
+              <path d="M 48 70 C 48 60, 62 60, 62 70 Z" fill="#EF5350"/>
+              <circle cx="51" cy="65" r="1" fill="white"/>
+              <circle cx="55" cy="63" r="1.2" fill="white"/>
+              <circle cx="59" cy="66" r="1" fill="white"/>
+            </g>
+            <g>
+              <rect x="65" y="75" width="4" height="9" rx="2" fill="#F5EFE6"/>
+              <path d="M 63 75 C 63 68, 73 68, 73 75 Z" fill="#E53935"/>
+              <circle cx="66" cy="72" r="0.8" fill="white"/>
+              <circle cx="69" cy="70" r="1" fill="white"/>
+            </g>
+            
+            <g className="gear-logo">
               <path 
-                fill="#C5B4C8"
-                d="M12 8c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4zm-9.33 4.41c0-1.07.62-1.99 1.5-2.41 1.07-.5 2.29-.8 3.5-.8s2.43.3 3.5.8c.88.42 1.5 1.34 1.5 2.41V16H2.67v-1.59zM12 1c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 18v-2c0-2.66-5.33-4-8-4s-8 1.34-8 4v2h16zm-2 0H4v-.59c0-1.07.62-1.99 1.5-2.41 1.07-.5 2.29-.8 3.5-.8s2.43.3 3.5.8c.88.42 1.5 1.34 1.5 2.41V18z"
+                d="M28,78 a10,10 0 1,0 0,20 a10,10 0 1,0 0,-20" 
+                stroke="#B0BEC5" strokeWidth="3" fill="#E0E0E0"
               />
+              <path 
+                d="M28 73 L28 103 M18 88 L38 88 M21 76 L35 100 M35 76 L21 100" 
+                stroke="#B0BEC5" strokeWidth="2.5"
+              />
+              <circle cx="28" cy="88" r="3" fill="#CFD8DC"/>
             </g>
           </svg>
-          <div className="h-[60px] flex items-center justify-center">
+          <div className="flex items-center justify-center">
             <h1 className="text-5xl font-bold font-headline tracking-tighter">
               Dreamland Engine
             </h1>

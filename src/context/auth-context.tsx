@@ -43,17 +43,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error("Error during sign-out:", error);
     }
   };
-  
-  if (loading) {
-     return (
-      <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <p>Authenticating...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout }}>

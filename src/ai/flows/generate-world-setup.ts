@@ -207,7 +207,7 @@ const generateWorldSetupFlow = ai.defineFlow(
                 tier: 3,
                 effects: [{ type: 'RESTORE_STAMINA', amount: 50 }],
                 baseQuantity: { min: 1, max: 1 },
-                spawnBiomes: [],
+                spawnBiomes: ['jungle'],
             },
             {
                 name: "Yass Pill",

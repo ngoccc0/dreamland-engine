@@ -11,7 +11,7 @@ import { useLanguage } from "@/context/language-context";
 import { usePwaInstall } from "@/context/pwa-install-context";
 import { Settings, BrainCircuit, Dice6, Bot, Feather, Languages, Download } from "lucide-react";
 import type { DiceType, GameMode, AiModel, NarrativeLength } from "@/lib/game/types";
-import type { Language } from "@/lib/i18n";
+import { Language, TranslationKey } from "@/lib/i18n";
 import { Button } from "../ui/button";
 
 interface SettingsPopupProps {
@@ -130,29 +130,41 @@ export function SettingsPopup({ open, onOpenChange }: SettingsPopupProps) {
 
           <Separator />
 
-          <div className="space-y-3">
-            <Label className="font-semibold flex items-center gap-2"><Bot /> {t('aiModel')}</Label>
-            <p className="text-sm leading-snug text-muted-foreground">{t('aiModelDesc')}</p>
-            <RadioGroup
+           <div className="space-y-3">
+            <Label className="font-semibold flex items-center gap-2"><Bot /> {t('aiModelPreference')}</Label>
+            <p className="text-sm leading-snug text-muted-foreground">{t('aiModelPreferenceDesc')}</p>
+             <RadioGroup
               value={settings.aiModel}
               onValueChange={handleAiModelChange}
-              className="space-y-2"
+              className="grid grid-cols-2 gap-4"
             >
               <div>
                 <RadioGroupItem value="balanced" id="balanced" className="sr-only peer" />
-                <Label htmlFor="balanced" className="flex items-center justify-between rounded-md border-2 border-muted bg-popover p-3 peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">{t('modelBalanced')}</Label>
+                <Label htmlFor="balanced" className="flex h-full cursor-pointer flex-col items-start justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                  <span className="font-semibold">{t('modelChronicler')}</span>
+                  <span className="mt-2 text-xs text-muted-foreground">{t('modelChroniclerDesc')}</span>
+                </Label>
               </div>
               <div>
                 <RadioGroupItem value="quality" id="quality" className="sr-only peer" />
-                <Label htmlFor="quality" className="flex items-center justify-between rounded-md border-2 border-muted bg-popover p-3 peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">{t('modelQuality')}</Label>
+                <Label htmlFor="quality" className="flex h-full cursor-pointer flex-col items-start justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                   <span className="font-semibold">{t('modelOracle')}</span>
+                   <span className="mt-2 text-xs text-muted-foreground">{t('modelOracleDesc')}</span>
+                </Label>
               </div>
               <div>
                 <RadioGroupItem value="creative" id="creative" className="sr-only peer" />
-                <Label htmlFor="creative" className="flex items-center justify-between rounded-md border-2 border-muted bg-popover p-3 peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">{t('modelCreative')}</Label>
+                <Label htmlFor="creative" className="flex h-full cursor-pointer flex-col items-start justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                   <span className="font-semibold">{t('modelDreamer')}</span>
+                   <span className="mt-2 text-xs text-muted-foreground">{t('modelDreamerDesc')}</span>
+                </Label>
               </div>
               <div>
                 <RadioGroupItem value="fast" id="fast" className="sr-only peer" />
-                <Label htmlFor="fast" className="flex items-center justify-between rounded-md border-2 border-muted bg-popover p-3 peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">{t('modelFast')}</Label>
+                <Label htmlFor="fast" className="flex h-full cursor-pointer flex-col items-start justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                   <span className="font-semibold">{t('modelImp')}</span>
+                   <span className="mt-2 text-xs text-muted-foreground">{t('modelImpDesc')}</span>
+                </Label>
               </div>
             </RadioGroup>
           </div>

@@ -943,6 +943,13 @@ export const translations = {
     descHumanPresence: 'There seem to be traces of others here.',
     descEnemySensed: 'You sense the presence of a dangerous {enemyType} nearby.',
     descStructureSighted: 'In the distance, you see',
+    hudHealth: "Health",
+    hudMana: "Mana",
+    hudStamina: "Stamina",
+    hudBodyTemp: "Body: {temp}°C",
+    gameOverTitle: "You Have Fallen",
+    gameOverDesc: "Your adventure has come to an end, but your story will be remembered.",
+    gameOverMessage: "Darkness claims you. Your journey ends here."
   },
   vi: {
     ...gameEntityNames.vi,
@@ -1344,6 +1351,13 @@ export const translations = {
     descHumanPresence: 'Dường như có dấu vết của người khác ở đây.',
     descEnemySensed: 'Bạn cảm thấy sự hiện diện của một {enemyType} nguy hiểm gần đây.',
     descStructureSighted: 'Ở phía xa, bạn thấy',
+    hudHealth: "Máu",
+    hudMana: "Mana",
+    hudStamina: "Thể lực",
+    hudBodyTemp: "Cơ thể: {temp}°C",
+    gameOverTitle: "Bạn Đã Gục Ngã",
+    gameOverDesc: "Cuộc phiêu lưu của bạn đã kết thúc, nhưng câu chuyện của bạn sẽ được ghi nhớ.",
+    gameOverMessage: "Bóng tối bao trùm lấy bạn. Hành trình của bạn kết thúc tại đây."
   }
 };
 

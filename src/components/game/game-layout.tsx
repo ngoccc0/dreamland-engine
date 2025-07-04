@@ -17,12 +17,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Progress } from "@/components/ui/progress";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/context/language-context";
 import { useGameEngine } from "@/hooks/use-game-engine";
 import type { ItemDefinition, GeneratedItem, WorldConcept, PlayerItem, GameState, Structure, Chunk } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
-import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings } from "./icons";
+import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Heart, Zap, Footprints } from "./icons";
 
 
 interface GameLayoutProps {
@@ -44,6 +46,7 @@ export default function GameLayout(props: GameLayoutProps) {
         playerPosition,
         narrativeLog,
         isLoading,
+        isGameOver,
         finalWorldSetup,
         customItemDefinitions,
         currentChunk,
@@ -178,6 +181,29 @@ export default function GameLayout(props: GameLayoutProps) {
 
                 {/* Right Panel: Controls & Actions */}
                 <aside className="w-full md:w-[420px] md:flex-shrink-0 bg-card border-l p-4 md:p-6 flex flex-col gap-6">
+                    {/* HUD - Always visible stats */}
+                    <div className="space-y-3">
+                        <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
+                            <div className="space-y-1">
+                                <label className="flex items-center gap-1.5 text-muted-foreground"><Heart /> {t('hudHealth')}</label>
+                                <Progress value={playerStats.hp} className="h-2" indicatorClassName="bg-destructive" />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="flex items-center gap-1.5 text-muted-foreground"><Zap /> {t('hudMana')}</label>
+                                <Progress value={(playerStats.mana / 50) * 100} className="h-2" indicatorClassName="bg-blue-500" />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="flex items-center gap-1.5 text-muted-foreground"><Footprints /> {t('hudStamina')}</label>
+                                <Progress value={playerStats.stamina} className="h-2" indicatorClassName="bg-yellow-500" />
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>{playerStats.hp} / 100</span>
+                            <span>{playerStats.mana} / 50</span>
+                            <span>{playerStats.stamina.toFixed(0)} / 100</span>
+                        </div>
+                    </div>
+
                     <div className="flex-shrink-0">
                          <div className="flex justify-center items-center gap-4 mb-4">
                             <h3 
@@ -195,6 +221,17 @@ export default function GameLayout(props: GameLayoutProps) {
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     <p>{t('environmentTempTooltip')}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                             <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className="flex items-center gap-1 text-sm text-muted-foreground cursor-default">
+                                        <Thermometer className="h-4 w-4 text-rose-500" />
+                                        <span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span>
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{t('bodyTempDesc')}</p>
                                 </TooltipContent>
                             </Tooltip>
                         </div>
@@ -321,9 +358,26 @@ export default function GameLayout(props: GameLayoutProps) {
                 <TutorialPopup open={isTutorialOpen} onOpenChange={setTutorialOpen} />
                 <SettingsPopup open={isSettingsOpen} onOpenChange={setSettingsOpen} />
                 <PwaInstallPopup open={showInstallPopup} onOpenChange={setShowInstallPopup} />
+                
+                <AlertDialog open={isGameOver}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                        <AlertDialogTitle>{t('gameOverTitle')}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {t('gameOverDesc')}
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogAction onClick={() => {
+                                localStorage.removeItem('gameState');
+                                window.location.reload();
+                            }}>
+                                {t('startNewAdventure')}
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         </TooltipProvider>
     );
 }
-
-    

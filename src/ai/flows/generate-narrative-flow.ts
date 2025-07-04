@@ -85,13 +85,11 @@ const narrativePromptTemplate = `You are the Game Master for a text-based advent
     - If the action completes a quest (e.g., 'give wolf fang to hunter' for quest 'Get wolf fang for hunter'), you MUST use \`completeQuestTool\`.
     - If the action involves an NPC giving a new quest, you MUST use \`startQuestTool\`.
 3.  **Use Other Tools:** If no quest action is relevant, use the most appropriate tool (attack, take, use, tame, etc.).
-4.  **Narrate the Outcome:** Craft an engaging narrative based on the tool's result AND the pre-determined 'successLevel'. The length of your narrative MUST adhere to the '{{narrativeLength}}' parameter:
-    - 'short': 1-2 sentences.
-    - 'medium': 2-4 sentences.
-    - 'long': 5+ sentences.
+4.  **Narrate the Outcome:** Craft an engaging narrative based on the tool's result AND the pre-determined 'successLevel'. The length of your narrative MUST adhere to the '{{narrativeLength}}' parameter.
 
 **Critical Rules:**
 - **Success Level is Law:** The 'successLevel' ('{{successLevel}}') dictates the outcome. A 'Failure' MUST be narrated as a failure, a 'CriticalSuccess' as a legendary event.
+- **Narrate Tool Results:** You MUST incorporate the factual results from any tool used into your narrative. For example, if a tool's output includes "combatLog: Player dealt 15 damage. Enemy retaliated for 8 damage.", you must weave this information into your story.
 - **NPC Dialogue:** If the player talks to an NPC, you MUST use their 'name', 'description', and especially their 'dialogueSeed' from the context below to craft a unique and in-character response. The NPC might offer hints, lore, or a new quest.
 - **Incorporate Persona:** Weave the player's persona ('{{playerStatus.persona}}') into the story for flavor.
 - **Creature Behavior:** Respect the creature's behavior. If the 'playerAttack' tool returns 'fled: true', your narrative MUST describe the creature running away.

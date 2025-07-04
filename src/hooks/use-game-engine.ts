@@ -148,6 +148,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     const [customStructures, setCustomStructures] = useState<Structure[]>(initialGameState?.customStructures || initialCustomStructures || []);
 
     const [isLoading, setIsLoading] = useState(false);
+    const [isGameOver, setIsGameOver] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>(initialGameState?.narrativeLog || []);
     const narrativeIdCounter = useRef(1);
@@ -166,6 +167,13 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             return [...prev, newEntry].slice(-50);
         });
     }, []);
+
+    useEffect(() => {
+        if (playerStats.hp <= 0 && !isGameOver) {
+            addNarrativeEntry(t('gameOverMessage'), 'system');
+            setIsGameOver(true);
+        }
+    }, [playerStats.hp, isGameOver, addNarrativeEntry, t]);
 
     const checkSkillUnlocks = useCallback((currentPlayerStats: PlayerStatus) => {
         const newlyUnlockedSkills: Skill[] = [];
@@ -332,7 +340,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             worldWithChunk: result.newWorld, 
             chunk: result.newWorld[newPosKey],
             regions: result.newRegions,
-            regionCounter: result.newRegionCounter
+            regionCounter: result.newRegionCounter,
         };
     }, [worldProfile, currentSeason, customItemDefinitions, customItemCatalog, customStructures, language]);
 
@@ -450,7 +458,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
 
     // Game state saving effect
     useEffect(() => {
-        if (Object.keys(world).length === 0 || !finalWorldSetup || isSaving) return;
+        if (Object.keys(world).length === 0 || !finalWorldSetup || isSaving || isGameOver) return;
 
         const gameState: GameState = {
             worldProfile, currentSeason, world, recipes, buildableStructures,
@@ -485,7 +493,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     }, [
         worldProfile, currentSeason, world, recipes, buildableStructures, regions, regionCounter,
         playerPosition, playerBehaviorProfile, playerStats, narrativeLog, finalWorldSetup,
-        customItemDefinitions, customItemCatalog, customStructures, weatherZones, gameTime, day, user, isSaving, toast
+        customItemDefinitions, customItemCatalog, customStructures, weatherZones, gameTime, day, user, isSaving, toast, isGameOver
     ]);
 
     const advanceGameTime = useCallback(async () => {
@@ -1202,6 +1210,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     // --- MAIN ACTION HANDLERS ---
 
     const handleMove = (direction: "north" | "south" | "east" | "west") => {
+        if (isGameOver) return;
         setPlayerBehaviorProfile(p => ({ ...p, moves: p.moves + 1 }));
 
         let newPos = { ...playerPosition };
@@ -1314,6 +1323,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     };
 
     const handleAction = useCallback((actionId: number) => {
+        if (isGameOver) return;
         const chunk = world[`${playerPosition.x},${playerPosition.y}`];
         if (!chunk) return;
     
@@ -1327,9 +1337,10 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         } else {
             handleOfflineAction(actionText);
         }
-    }, [world, playerPosition, isOnline, addNarrativeEntry, playerStats, handleOnlineNarrative, handleOfflineAction]);
+    }, [world, playerPosition, isOnline, addNarrativeEntry, playerStats, handleOnlineNarrative, handleOfflineAction, isGameOver]);
 
     const handleAttack = () => {
+        if (isGameOver) return;
         setPlayerBehaviorProfile(p => ({ ...p, attacks: p.attacks + 1 }));
         
         const key = `${playerPosition.x},${playerPosition.y}`;
@@ -1351,7 +1362,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     };
     
     const handleCustomAction = useCallback((text: string) => {
-        if (!text.trim()) return;
+        if (!text.trim() || isGameOver) return;
         setPlayerBehaviorProfile(p => ({ ...p, customActions: p.customActions + 1 }));
         
         if (isOnline) {
@@ -1362,9 +1373,10 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         } else {
             handleOfflineAction(text);
         }
-    }, [isOnline, playerStats, addNarrativeEntry, handleOnlineNarrative, world, playerPosition, handleOfflineAction]);
+    }, [isOnline, playerStats, addNarrativeEntry, handleOnlineNarrative, world, playerPosition, handleOfflineAction, isGameOver]);
 
     const handleCraft = useCallback(async (recipe: Recipe) => {
+        if (isGameOver) return;
         setPlayerBehaviorProfile(p => ({ ...p, crafts: p.crafts + 1 }));
         const { canCraft, chance, ingredientsToConsume } = calculateCraftingOutcome(playerStats.items, recipe);
 
@@ -1411,9 +1423,10 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         }
         
         advanceGameTime();
-    }, [playerStats, customItemDefinitions, addNarrativeEntry, toast, t, advanceGameTime]);
+    }, [playerStats, customItemDefinitions, addNarrativeEntry, toast, t, advanceGameTime, isGameOver]);
 
     const handleItemUsed = useCallback((itemName: string, target: 'player' | string) => {
+        if (isGameOver) return;
         const actionText = target === 'player'
             ? `${t('useAction')} ${t(itemName as TranslationKey)}`
             : `${t('useOnAction', {item: t(itemName as TranslationKey), target: t(target as TranslationKey)})}`;
@@ -1427,9 +1440,10 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         } else {
             handleOfflineItemUse(itemName, target);
         }
-    }, [playerStats, world, playerPosition, isOnline, handleOnlineNarrative, t, handleOfflineItemUse]);
+    }, [playerStats, world, playerPosition, isOnline, handleOnlineNarrative, t, handleOfflineItemUse, isGameOver]);
 
     const handleUseSkill = useCallback((skillName: string) => {
+        if (isGameOver) return;
         const actionText = `${t('useSkillAction')} ${t(skillName as TranslationKey)}`;
         addNarrativeEntry(actionText, 'action');
 
@@ -1445,9 +1459,10 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             handleOfflineSkillUse(skillName);
         }
 
-    }, [playerStats, world, playerPosition, isOnline, addNarrativeEntry, t, handleOnlineNarrative, handleOfflineSkillUse]);
+    }, [playerStats, world, playerPosition, isOnline, addNarrativeEntry, t, handleOnlineNarrative, handleOfflineSkillUse, isGameOver]);
 
     const handleBuild = useCallback((structureName: string) => {
+        if (isGameOver) return;
         const buildStaminaCost = 15;
         const structureToBuild = staticBuildableStructures[structureName];
 
@@ -1501,9 +1516,10 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
 
         addNarrativeEntry(t('builtStructure', { structureName: t(structureName as TranslationKey) }), 'system');
         advanceGameTime();
-    }, [playerStats.items, playerStats.stamina, playerPosition, addNarrativeEntry, advanceGameTime, toast, t]);
+    }, [playerStats.items, playerStats.stamina, playerPosition, addNarrativeEntry, advanceGameTime, toast, t, isGameOver]);
 
     const handleRest = useCallback(() => {
+        if (isGameOver) return;
         const key = `${playerPosition.x},${playerPosition.y}`;
         const chunk = world[key];
         const shelter = chunk?.structures.find(s => s.restEffect);
@@ -1529,9 +1545,10 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         }));
         
         advanceGameTime();
-    }, [world, playerPosition, playerStats, addNarrativeEntry, advanceGameTime, t, toast]);
+    }, [world, playerPosition, playerStats, addNarrativeEntry, advanceGameTime, t, toast, isGameOver]);
     
     const handleFuseItems = useCallback(async (itemsToFuse: PlayerItem[]) => {
+        if (isGameOver) return;
         setIsLoading(true);
 
         const key = `${playerPosition.x},${playerPosition.y}`;
@@ -1587,7 +1604,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             setIsLoading(false);
             advanceGameTime();
         }
-    }, [world, playerPosition, playerStats, weatherZones, gameTime, language, customItemDefinitions, customItemCatalog, getEffectiveChunk, addNarrativeEntry, advanceGameTime, t, toast]);
+    }, [world, playerPosition, playerStats, weatherZones, gameTime, language, customItemDefinitions, customItemCatalog, getEffectiveChunk, addNarrativeEntry, advanceGameTime, t, toast, isGameOver]);
 
     const handleRequestQuestHint = useCallback(async (questText: string) => {
         if (playerStats.questHints?.[questText] || !isOnline) {
@@ -1611,7 +1628,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     }, [playerStats.questHints, isOnline, language, t, toast]);
 
     return {
-        world, recipes, buildableStructures, playerStats, playerPosition, narrativeLog, isLoading, finalWorldSetup, customItemDefinitions,
+        world, recipes, buildableStructures, playerStats, playerPosition, narrativeLog, isLoading, isGameOver, finalWorldSetup, customItemDefinitions,
         currentChunk,
         handleMove, handleAttack, handleAction, handleCustomAction, handleCraft, handleBuild, handleItemUsed, handleUseSkill, handleRest, handleFuseItems,
         handleRequestQuestHint,

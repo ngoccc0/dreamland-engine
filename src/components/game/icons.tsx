@@ -31,7 +31,9 @@ export {
   ArrowRight,
   ArrowUp,
   ArrowDown,
-  ArrowLeft
+  ArrowLeft,
+  Zap,
+  Footprints,
 } from 'lucide-react';
 
 

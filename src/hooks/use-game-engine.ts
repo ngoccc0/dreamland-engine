@@ -151,6 +151,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     const [isSaving, setIsSaving] = useState(false);
     const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>(initialGameState?.narrativeLog || []);
     const narrativeIdCounter = useRef(1);
+    const [currentChunk, setCurrentChunk] = useState<Chunk | null>(null);
     
     // --- State for AI vs. Rule-based mode ---
     const isOnline = settings.gameMode === 'ai';
@@ -242,20 +243,25 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
     }, [playerBehaviorProfile]);
     
     const getEffectiveChunk = useCallback((baseChunk: Chunk, currentTime: number): Chunk => {
-        if (!baseChunk?.regionId || !weatherZones[baseChunk.regionId]) {
-             return baseChunk;
-        }
+        if (!baseChunk) return baseChunk;
 
-        const weatherZone = weatherZones[baseChunk.regionId];
-        const weather = weatherZone.currentWeather;
-        const effectiveChunk: Chunk = JSON.parse(JSON.stringify(baseChunk)); // Deep copy
-
+        const effectiveChunk: Chunk = JSON.parse(JSON.stringify(baseChunk));
+        
         let structureHeat = 0;
         if (effectiveChunk.structures) {
             for (const structure of effectiveChunk.structures) {
                 structureHeat += structure.heatValue || 0;
             }
         }
+
+        // If no weather applies (e.g., new region), just apply structure heat to the base Celsius temp
+        if (!weatherZones[effectiveChunk.regionId]) {
+            effectiveChunk.temperature = (baseChunk.temperature ?? 15) + structureHeat;
+            return effectiveChunk;
+        }
+
+        const weatherZone = weatherZones[baseChunk.regionId];
+        const weather = weatherZone.currentWeather;
         
         // This calculates the final Celsius temperature
         const baseCelsius = (baseChunk.temperature ?? 5) * 4; // Maps 0-10 base to 0-40 C
@@ -281,6 +287,17 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
 
         return effectiveChunk;
     }, [weatherZones]);
+
+    // Effect to update currentChunk whenever world or position changes
+    useEffect(() => {
+        const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
+        if (baseChunk) {
+            const effective = getEffectiveChunk(baseChunk, gameTime);
+            setCurrentChunk(effective);
+        } else {
+            setCurrentChunk(null);
+        }
+    }, [world, playerPosition, gameTime, getEffectiveChunk, weatherZones]);
     
     const ensureChunkExists = useCallback((
         pos: {x: number, y: number}, 
@@ -548,10 +565,10 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         // --- PLAYER STATS SIMULATION ---
         let nextPlayerStats = {...playerStats};
         const playerChunkKey = `${playerPosition.x},${playerPosition.y}`;
-        const currentPlayerChunk = newWorldState[playerChunkKey];
+        const currentPlayerBaseChunk = newWorldState[playerChunkKey];
 
-        if (currentPlayerChunk) {
-            const effectiveChunk = getEffectiveChunk(currentPlayerChunk, newGameTime);
+        if (currentPlayerBaseChunk) {
+            const effectiveChunk = getEffectiveChunk(currentPlayerBaseChunk, newGameTime);
             const environmentCelsius = effectiveChunk.temperature || 15;
             
             const IDEAL_BODY_TEMP = 37.0;
@@ -576,9 +593,9 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
                 changes.narrativeEntries.push({ text: t('tempWarningHot'), type: 'system' });
             }
 
-            if (currentPlayerChunk.enemy && currentPlayerChunk.enemy.behavior === 'aggressive') {
-                changes.narrativeEntries.push({ text: t('enemyAttacks', { enemy: t(currentPlayerChunk.enemy.type as TranslationKey) }), type: 'system' });
-                nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - currentPlayerChunk.enemy.damage);
+            if (currentPlayerBaseChunk.enemy && currentPlayerBaseChunk.enemy.behavior === 'aggressive') {
+                changes.narrativeEntries.push({ text: t('enemyAttacks', { enemy: t(currentPlayerBaseChunk.enemy.type as TranslationKey) }), type: 'system' });
+                nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - currentPlayerBaseChunk.enemy.damage);
             }
         }
         
@@ -1120,6 +1137,29 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         
         const actionText = t('wentDirection', { direction: t(dirKey) });
         addNarrativeEntry(actionText, 'action');
+        
+        const wasNewRegionCreated = regionCounterSnapshot > regionCounter;
+
+        setWorld(worldSnapshot);
+        setRegions(regionsSnapshot);
+        setRegionCounter(regionCounterSnapshot);
+        setPlayerPosition(newPos);
+
+        // This must be after the other state setters to get the right dependencies for the weather update
+        if (wasNewRegionCreated) {
+            const newWeatherZones = {...weatherZones};
+            const newRegionIds = Object.keys(regionsSnapshot).filter(id => !weatherZones[id]);
+            newRegionIds.forEach(regionId => {
+                const region = regionsSnapshot[Number(regionId)];
+                const initialWeather = generateWeatherForZone(region.terrain, currentSeason);
+                const nextChangeTime = gameTime + getRandomInRange({min: initialWeather.duration_range[0], max: initialWeather.duration_range[1]}) * 5;
+                newWeatherZones[regionId] = {
+                    id: regionId, terrain: region.terrain,
+                    currentWeather: initialWeather, nextChangeTime: nextChangeTime
+                };
+            });
+            setWeatherZones(newWeatherZones);
+        }
 
         const newPlayerStats = {
              ...playerStats,
@@ -1145,10 +1185,6 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             }
         }
         
-        setWorld(worldSnapshot);
-        setRegions(regionsSnapshot);
-        setRegionCounter(regionCounterSnapshot);
-        setPlayerPosition(newPos);
         setPlayerStats(newPlayerStats);
 
         if (isOnline) {
@@ -1276,7 +1312,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
         } else {
             handleOfflineItemUse(itemName, target);
         }
-    }, [playerStats, world, playerPosition, isOnline, addNarrativeEntry, advanceGameTime, handleOnlineNarrative, t]);
+    }, [playerStats, world, playerPosition, isOnline, handleOnlineNarrative, t, handleOfflineItemUse, advanceGameTime]);
 
     const handleUseSkill = useCallback((skillName: string) => {
         const actionText = `${t('useSkillAction')} ${t(skillName as TranslationKey)}`;
@@ -1294,7 +1330,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
             handleOfflineSkillUse(skillName);
         }
 
-    }, [playerStats, world, playerPosition, isOnline, addNarrativeEntry, t, advanceGameTime, handleOnlineNarrative]);
+    }, [playerStats, world, playerPosition, isOnline, addNarrativeEntry, t, advanceGameTime, handleOnlineNarrative, handleOfflineSkillUse]);
 
     const handleBuild = useCallback((structureName: string) => {
         const buildStaminaCost = 15;
@@ -1461,6 +1497,7 @@ export function useGameEngine({ worldSetup, initialGameState, customItemDefiniti
 
     return {
         world, recipes, buildableStructures, playerStats, playerPosition, narrativeLog, isLoading, finalWorldSetup, customItemDefinitions,
+        currentChunk,
         handleMove, handleAttack, handleAction, handleCustomAction, handleCraft, handleBuild, handleItemUsed, handleUseSkill, handleRest, handleFuseItems,
         handleRequestQuestHint,
     }

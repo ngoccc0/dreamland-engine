@@ -46,6 +46,7 @@ export default function GameLayout(props: GameLayoutProps) {
         isLoading,
         finalWorldSetup,
         customItemDefinitions,
+        currentChunk,
         handleMove,
         handleAttack,
         handleAction,
@@ -111,10 +112,9 @@ export default function GameLayout(props: GameLayoutProps) {
         return grid;
     }, [world, playerPosition.x, playerPosition.y]);
     
-    const currentChunk = world[`${playerPosition.x},${playerPosition.y}`];
     const restingPlace = currentChunk?.structures?.find(s => s.restEffect);
 
-    if (!finalWorldSetup) {
+    if (!finalWorldSetup || !currentChunk) {
         return (
             <div className="flex items-center justify-center min-h-dvh bg-background">
                 <p className="text-foreground text-destructive">Error: Game data is missing or corrupted.</p>

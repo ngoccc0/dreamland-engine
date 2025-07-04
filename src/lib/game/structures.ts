@@ -71,15 +71,3 @@ export const buildableStructures: Record<string, Structure> = {
         heatValue: 2,
     },
 };
-
-// Add a new item needed for building
-export const newBuildItems = {
-    'Lá cây lớn': {
-        description: 'item_la_cay_lon_desc',
-        tier: 1,
-        category: 'Material',
-        emoji: '🍃',
-        effects: [],
-        baseQuantity: { min: 5, max: 15 }
-    }
-}

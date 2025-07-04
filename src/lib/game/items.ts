@@ -1,11 +1,17 @@
 import type { ItemDefinition } from "./types";
-import { newBuildItems } from './structures';
 
 
 // --- CENTRAL ITEM CATALOG ---
 // The description field now holds a key for the i18n system.
 export const itemDefinitions: Record<string, ItemDefinition> = {
-    ...newBuildItems,
+    'Lá cây lớn': {
+        description: 'item_la_cay_lon_desc',
+        tier: 1,
+        category: 'Material',
+        emoji: '🍃',
+        effects: [],
+        baseQuantity: { min: 5, max: 15 }
+    },
     // --- VẬT PHẨM CHẾ TẠO CƠ BẢN ---
     'Sỏi': {
         description: 'item_soi_desc',

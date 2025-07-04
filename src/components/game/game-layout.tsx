@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -147,7 +145,7 @@ export default function GameLayout(props: GameLayoutProps) {
         <TooltipProvider>
             <div className="flex flex-col md:flex-row min-h-dvh bg-background text-foreground font-body">
                 {/* Left Panel: Narrative */}
-                <div className="w-full md:w-[70%] flex flex-col">
+                <div className="w-full md:flex-1 flex flex-col">
                     <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10 flex justify-between items-center">
                         <h1 className="text-2xl font-bold font-headline">{finalWorldSetup.worldName}</h1>
                         <div className="flex items-center gap-2">
@@ -193,7 +191,7 @@ export default function GameLayout(props: GameLayoutProps) {
                 </div>
 
                 {/* Right Panel: Controls & Actions */}
-                <aside className="w-full md:w-[30%] bg-card border-l p-4 md:p-6 flex flex-col gap-6">
+                <aside className="w-full md:w-[420px] md:flex-shrink-0 bg-card border-l p-4 md:p-6 flex flex-col gap-6">
                     <div className="flex-shrink-0">
                          <div className="flex justify-center items-center gap-4 mb-4">
                             <h3 

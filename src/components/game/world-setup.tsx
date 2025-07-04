@@ -260,8 +260,8 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                             </CarouselItem>
                                         ))}
                                     </CarouselContent>
-                                    <CarouselPrevious />
-                                    <CarouselNext />
+                                    <CarouselPrevious className="left-1 sm:-left-8" />
+                                    <CarouselNext className="right-1 sm:-right-8" />
                                 </Carousel>
                             </div>
 
@@ -284,8 +284,8 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                             </CarouselItem>
                                         ))}
                                     </CarouselContent>
-                                    <CarouselPrevious />
-                                    <CarouselNext />
+                                    <CarouselPrevious className="left-1 sm:-left-8" />
+                                    <CarouselNext className="right-1 sm:-right-8" />
                                 </Carousel>
                             </div>
                             
@@ -306,8 +306,8 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                             </CarouselItem>
                                         ))}
                                     </CarouselContent>
-                                    <CarouselPrevious />
-                                    <CarouselNext />
+                                    <CarouselPrevious className="left-1 sm:-left-8" />
+                                    <CarouselNext className="right-1 sm:-right-8" />
                                 </Carousel>
                             </div>
 
@@ -334,8 +334,8 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                             </CarouselItem>
                                         ))}
                                     </CarouselContent>
-                                    <CarouselPrevious />
-                                    <CarouselNext />
+                                    <CarouselPrevious className="left-1 sm:-left-8" />
+                                    <CarouselNext className="right-1 sm:-right-8" />
                                 </Carousel>
                             </div>
 
@@ -343,12 +343,12 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                 {/* Inventory */}
                                 <div className="space-y-2">
                                     <h3 className="text-lg font-semibold font-headline text-center">{t('startingEquipment')}</h3>
-                                    <Carousel setApi={setApiInventory} opts={{ align: "start", loop: true }} className="w-full max-w-md mx-auto">
+                                    <Carousel setApi={setApiInventory} opts={{ align: "start", loop: true }} className="w-full max-w-sm mx-auto">
                                         <CarouselContent>
                                             {generatedData.concepts.map((concept, index) => (
                                                 <CarouselItem key={index}>
                                                     <div className="p-1">
-                                                        <Card className="h-40 shadow-inner bg-muted/30">
+                                                        <Card className="h-36 shadow-inner bg-muted/30">
                                                             <CardHeader className="p-4">
                                                                 <CardDescription>{t('itemsFromChoice', {index: index + 1})}</CardDescription>
                                                             </CardHeader>
@@ -362,20 +362,20 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                                 </CarouselItem>
                                             ))}
                                         </CarouselContent>
-                                        <CarouselPrevious />
-                                        <CarouselNext />
+                                        <CarouselPrevious className="left-1 sm:-left-8" />
+                                        <CarouselNext className="right-1 sm:-right-8" />
                                     </Carousel>
                                 </div>
 
                                 {/* Quests */}
                                 <div className="space-y-2">
                                     <h3 className="text-lg font-semibold font-headline text-center">{t('firstQuest')}</h3>
-                                    <Carousel setApi={setApiQuests} opts={{ align: "start", loop: true }} className="w-full max-w-md mx-auto">
+                                    <Carousel setApi={setApiQuests} opts={{ align: "start", loop: true }} className="w-full max-w-sm mx-auto">
                                         <CarouselContent>
                                             {generatedData.concepts.map((concept, index) => (
                                                 <CarouselItem key={index}>
                                                     <div className="p-1">
-                                                        <Card className="h-40 shadow-inner bg-muted/30">
+                                                        <Card className="h-36 shadow-inner bg-muted/30">
                                                             <CardHeader className="p-4">
                                                                 <CardDescription>{t('questFromChoice', {index: index + 1})}</CardDescription>
                                                             </CardHeader>
@@ -389,8 +389,8 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                                 </CarouselItem>
                                             ))}
                                         </CarouselContent>
-                                        <CarouselPrevious />
-                                        <CarouselNext />
+                                        <CarouselPrevious className="left-1 sm:-left-8" />
+                                        <CarouselNext className="right-1 sm:-right-8" />
                                     </Carousel>
                                 </div>
                             </div>

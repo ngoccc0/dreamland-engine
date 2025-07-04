@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -62,15 +62,15 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
   }, [playerPosition.x, playerPosition.y]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-none w-[95vw] h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="font-headline">{t('minimap')}</DialogTitle>
-          <DialogDescription>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-full sm:max-w-3xl">
+        <SheetHeader>
+          <SheetTitle className="font-headline">{t('minimap')}</SheetTitle>
+          <SheetDescription>
             {t('fullMapDescription')}
-          </DialogDescription>
-        </DialogHeader>
-        <ScrollArea className="flex-grow bg-background rounded-md border">
+          </SheetDescription>
+        </SheetHeader>
+        <ScrollArea className="h-[calc(100vh-8rem)] mt-4 bg-background rounded-md border">
             <div 
                 className="p-4 inline-grid border-l border-t border-dashed border-border/50"
                 style={{
@@ -122,7 +122,7 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
                 )}
             </div>
         </ScrollArea>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

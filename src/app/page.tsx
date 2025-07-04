@@ -117,7 +117,7 @@ export default function Home() {
     return (
       <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
         <div className="flex flex-col items-center gap-4 text-center p-4 animate-in fade-in duration-1000">
-          <img src="/assets/logo.svg" alt="Dreamland Engine Logo" className="h-48 w-48" />
+          <img src="/assets/logo.svg" alt="Dreamland Engine Logo" className="h-[384px] w-[384px]" />
           <div className="flex items-center justify-center">
             <h1 className="text-5xl font-bold font-headline tracking-tighter">
               Dreamland Engine

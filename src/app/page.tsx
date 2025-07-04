@@ -124,42 +124,42 @@ export default function Home() {
           >
             <defs>
               <style>
-                {`.gear-logo { animation: spin 10s linear infinite; transform-origin: 22px 92px; } @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}
+                {`.gear-logo { animation: spin-gear 10s linear infinite; transform-origin: 22px 92px; }`}
               </style>
             </defs>
             
             <path 
-              d="M 15 115 C 0 115, 0 90, 20 90 C 20 70, 60 70, 60 90 C 80 85, 100 85, 110 95 C 125 95, 125 115, 105 115 Z"
+              d="M 10 115 C -15 115, -5 80, 25 85 C 25 65, 75 65, 75 85 C 105 80, 125 90, 115 115 Z"
               fill="#f0f4f8"
               stroke="#cfd8dc"
               strokeWidth="0.5"
             />
           
             <path 
-              d="M 15 103 C 30 98, 95 98, 110 103 A 15 15 0 0 0 110 103 Z"
+              d="M 12 103 C 30 95, 90 95, 108 103 A 20 20 0 0 0 108 103 Z"
               fill="#A1887F"
             />
             <path 
-              d="M 20 98 C 30 82, 95 82, 105 98 Z"
+              d="M 18 98 C 30 78, 90 78, 102 98 Z"
               fill="#689F38"
             />
             <path 
-              d="M 25 93 C 40 78, 90 78, 100 93 A 10 10 0 0 0 100 93 Z"
+              d="M 22 93 C 40 73, 80 73, 98 93 A 15 15 0 0 0 98 93 Z"
               fill="#4CAF50"
             />
           
             <g>
-              <rect x="52" y="59" width="6" height="14" rx="2" fill="#F5EFE6"/>
-              <path d="M 50 59 C 50 48, 66 48, 66 59 Z" fill="#EF5350"/>
-              <circle cx="53" cy="54" r="1.2" fill="white"/>
-              <circle cx="58" cy="52" r="1.4" fill="white"/>
-              <circle cx="63" cy="55" r="1.2" fill="white"/>
+              <rect x="52" y="55" width="6" height="18" rx="2" fill="#F5EFE6"/>
+              <path d="M 50 55 C 50 44, 66 44, 66 55 Z" fill="#EF5350"/>
+              <circle cx="53" cy="50" r="1.2" fill="white"/>
+              <circle cx="58" cy="48" r="1.4" fill="white"/>
+              <circle cx="63" cy="51" r="1.2" fill="white"/>
             </g>
             <g>
-              <rect x="75" y="64" width="5" height="10" rx="2" fill="#F5EFE6"/>
-              <path d="M 73 64 C 73 56, 83 56, 83 64 Z" fill="#E53935"/>
-              <circle cx="76" cy="61" r="1" fill="white"/>
-              <circle cx="80" cy="59" r="1.2" fill="white"/>
+              <rect x="75" y="60" width="5" height="14" rx="2" fill="#F5EFE6"/>
+              <path d="M 73 60 C 73 52, 83 52, 83 60 Z" fill="#E53935"/>
+              <circle cx="76" cy="57" r="1" fill="white"/>
+              <circle cx="80" cy="55" r="1.2" fill="white"/>
             </g>
             
             <g className="gear-logo">

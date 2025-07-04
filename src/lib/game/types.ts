@@ -2,8 +2,6 @@
 
 // --- Data Types and Interfaces for the Game Engine ---
 
-import type { TranslationKey } from "../i18n";
-
 export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave" | "jungle" | "volcanic";
 export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky';
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';

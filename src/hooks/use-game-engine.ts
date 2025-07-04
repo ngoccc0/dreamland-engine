@@ -76,7 +76,7 @@ const successLevelToTranslationKey: Record<SuccessLevel, TranslationKey> = {
 }
 
 interface GameEngineProps {
-    worldSetup?: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[], startingSkill: Skill };
+    worldSetup?: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog'> & { playerInventory: PlayerItem[] };
     initialGameState?: GameState;
     customItemDefinitions?: Record<string, ItemDefinition>;
     customItemCatalog?: GeneratedItem[];

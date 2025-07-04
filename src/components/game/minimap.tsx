@@ -108,17 +108,43 @@ export function Minimap({ grid, playerPosition }: MinimapProps) {
                             )}
                             aria-label={`Map cell at ${cell.x}, ${cell.y}. Biome: ${cell.terrain}`}
                         >
-                            {/* Biome Icon */}
+                            {/* Biome Icon in the center */}
                             {cell.terrain !== 'empty' && biomeIcons[cell.terrain as Exclude<Terrain, 'empty'>]}
                             
-                            {/* Entity Icons */}
-                            <div className="absolute bottom-1 left-1 flex items-end gap-px">
-                                {isPlayerHere && <PlayerIcon />}
-                                {cell.enemy && <EnemyIcon emoji={cell.enemy.emoji} />}
-                                {cell.NPCs.length > 0 && <NpcIcon />}
-                                {cell.items.length > 0 && <ItemIcon emoji={cell.items[0].emoji} />}
-                                {cell.structures?.length > 0 && <StructureIcon emoji={cell.structures[0].emoji} />}
-                            </div>
+                            {/* Player Icon in the center */}
+                            {isPlayerHere && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <PlayerIcon />
+                                </div>
+                            )}
+                            
+                            {/* Structure Icon in top-left */}
+                            {cell.structures?.length > 0 && (
+                                <div className="absolute top-1 left-1">
+                                    <StructureIcon emoji={cell.structures[0].emoji} />
+                                </div>
+                            )}
+
+                            {/* NPC Icon in top-right */}
+                            {cell.NPCs.length > 0 && (
+                                <div className="absolute top-1 right-1">
+                                    <NpcIcon />
+                                </div>
+                            )}
+                            
+                            {/* Enemy Icon in bottom-left */}
+                            {cell.enemy && (
+                                <div className="absolute bottom-1 left-1">
+                                    <EnemyIcon emoji={cell.enemy.emoji} />
+                                </div>
+                            )}
+
+                            {/* Item Icon in bottom-right */}
+                            {cell.items.length > 0 && (
+                                <div className="absolute bottom-1 right-1">
+                                    <ItemIcon emoji={cell.items[0].emoji} />
+                                </div>
+                            )}
                         </div>
                     </PopoverTrigger>
                     <PopoverContent className="w-80">

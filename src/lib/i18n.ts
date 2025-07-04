@@ -2,6 +2,7 @@
 
 
 
+
 const itemTranslations = {
   en: {
     item_la_cay_lon_desc: 'Large leaves, suitable for roofing.',
@@ -868,35 +869,37 @@ export const translations = {
     install: "Install",
     installAppButton: "Install App",
     installNotAvailableTooltip: "Installation is not available on your browser, or the app is already installed.",
-    tutorialTitle: "Help / Tutorial",
-    tutorialDesc: "Expand the sections below to learn about the game's features.",
-    gettingStartedTitle: "🚀 Getting Started",
-    gettingStartedContent: `Welcome to Dreamland Engine! Your goal is to explore, survive, and shape the world around you.
-    - **Exploration:** Use the arrow keys to move. New parts of the world are generated as you explore.
-    - **Interaction:** Use the action buttons or the custom action input to interact with your environment.
-    - **The AI Storyteller:** The game is powered by an AI that narrates your journey, making every playthrough unique.`,
+    tutorialTitle: "Welcome to Dreamland Engine",
+    tutorialDesc: "A guide to the core mechanics of your adventure.",
+    gettingStartedTitle: "🚀 The Adventure Begins",
+    gettingStartedContent: `Welcome! Your goal is to explore, survive, and shape the world.
+- **Exploration:** Use the arrow keys to move. New areas are procedurally generated as you go.
+- **Interaction:** Talk to characters (NPCs) to get quests. Use action buttons or type anything into the custom action box.
+- **The AI Storyteller:** The game is narrated by an AI, making every playthrough unique. Try to be creative!`,
     uiTitle: "🖥️ Understanding the Interface",
-    uiContent: `- **Left Panel:** This is your story log. All narratives and system messages appear here.
-    - **Right Panel:** This is your control hub.
-        - **Minimap:** Shows your immediate surroundings. Click it to open a larger map.
-        - **Move & Attack:** Your primary movement and combat controls.
-        - **Status/Inventory/Crafting/Building:** Buttons to open popups for detailed information and actions.
-        - **Actions:** Context-sensitive actions based on what's in your current location.`,
-    combatTitle: "⚔️ Combat & Skills",
-    combatContent: `- **Attacking:** Use the Sword button to attack an enemy in your current location.
-    - **Dice Rolls:** All major actions (attacking, using skills) involve a dice roll. The result (from Critical Failure to Critical Success) determines the outcome. The AI will narrate the result.
-    - **Skills:** Use skills to gain an advantage. They cost Mana. You can unlock new skills by performing certain actions (e.g., attacking, moving).`,
-    craftingBuildTitle: "🛠️ Crafting & Building",
-    craftingBuildContent: `- **Crafting:** Collect materials from the world and use the Crafting window to create new items. The AI might even invent new recipes for you as you play!
-    - **Building:** Use the Building window to construct structures. Building costs materials and stamina. Structures like shelters allow you to rest and recover.`,
-    survivalTitle: "❤️‍🩹 Survival",
-    survivalContent: `- **HP, Mana, Stamina:** Manage your core stats. HP is your health, Mana is for skills, and Stamina is for physical actions like moving and building.
-    - **Body Temperature:** Your body temperature (shown in the Status popup) is affected by the environment. If it gets too low or too high, you will suffer negative effects. Build fires or shelters to manage it.
-    - **Resting:** Find or build a shelter to rest, which restores HP and Stamina.`,
-    customActionsTitle: "💬 Custom Actions & The AI",
-    customActionsContent: `The heart of this game is the AI. You are not limited to the buttons.
-    - **Be Creative:** Type anything into the custom action box. For example: "look for shelter", "try to fish in the river", "give the wolf some meat".
-    - **AI Interpretation:** The AI will interpret your action and decide what happens next, using the game's rules and tools to guide the outcome. Experiment and see what's possible!`,
+    uiContent: `- **Left Panel:** Your story log. All narratives and system messages appear here.
+- **Right Panel:** Your control hub.
+    - **Minimap:** Shows your surroundings. Click it to open a larger map.
+    - **Status:** Open to check your stats, skills, active quests, and read your journal.
+    - **Inventory:** Manage your items.
+    - **Craft/Build/Fuse:** Buttons to open windows for creating items and structures.`,
+    combatTitle: "⚔️ Combat, Skills & Companions",
+    combatContent: `- **Attacking:** Use the Sword button to attack an enemy.
+- **Dice Rolls:** All major actions involve a dice roll. The result determines the outcome.
+- **Skills:** Use skills from the right panel to gain an advantage. They cost Mana. You'll unlock new skills by performing actions like fighting and exploring.
+- **Taming:** Some creatures can be tamed! Try giving them their favorite food from your inventory.`,
+    craftingBuildTitle: "🛠️ Creation & Fusion",
+    craftingBuildContent: `- **Crafting & Building:** Collect materials to create new items and build structures like shelters and campfires.
+- **Fusion:** Use the Fusion Altar (the flask icon) to experiment. Combine 2-3 items to discover potentially powerful—or useless—new creations. The results are unpredictable!`,
+    survivalTitle: "❤️‍🩹 Survival & Story",
+    survivalContent: `- **Stats:** Manage your Health (HP), Mana (for skills), and Stamina (for physical actions).
+- **Body Temperature:** The environment affects your temperature. Build fires or shelters to stay warm or cool down.
+- **Journal:** Each day, the AI will write a journal entry summarizing your activities. Check it in the Status window.
+- **Quest Hints:** Stuck on a quest? Click it in the Status window to ask the AI for a hint.`,
+    customActionsTitle: "💬 Your Imagination is the Limit",
+    customActionsContent: `This game's heart is the AI. You are not limited to the buttons.
+- **Be Creative:** Type anything into the custom action box. Try to "search the ruins for treasure," "build a trap," or "try to intimidate the goblin."
+- **AI Interpretation:** The AI will interpret your action and decide what happens next, using the game's rules as a guide. Experiment to see what's possible!`,
     skillUnlocked: "Through your actions, you have awakened a new power: {skillName}.",
     skillUnlockedTitle: "New Skill Unlocked!",
     skillUnlockedDesc: "You have learned: {skillName}",
@@ -1237,35 +1240,37 @@ export const translations = {
     install: "Cài đặt",
     installAppButton: "Cài đặt Ứng dụng",
     installNotAvailableTooltip: "Không thể cài đặt trên trình duyệt của bạn, hoặc ứng dụng đã được cài đặt.",
-    tutorialTitle: "Trợ giúp / Hướng dẫn",
-    tutorialDesc: "Mở rộng các phần bên dưới để tìm hiểu về các tính năng của trò chơi.",
-    gettingStartedTitle: "🚀 Bắt đầu",
-    gettingStartedContent: `Chào mừng đến với Ký Sự Lãng Du! Mục tiêu của bạn là khám phá, sinh tồn và định hình thế giới xung quanh.
-    - **Khám phá:** Sử dụng các phím mũi tên để di chuyển. Các phần mới của thế giới sẽ được tạo ra khi bạn khám phá.
-    - **Tương tác:** Sử dụng các nút hành động hoặc ô nhập hành động tùy chỉnh để tương tác với môi trường của bạn.
-    - **AI Kể chuyện:** Trò chơi được cung cấp bởi một AI kể lại hành trình của bạn, làm cho mỗi lần chơi trở nên độc đáo.`,
+    tutorialTitle: "Chào mừng đến với Dreamland Engine",
+    tutorialDesc: "Hướng dẫn về các cơ chế cốt lõi trong cuộc phiêu lưu của bạn.",
+    gettingStartedTitle: "🚀 Cuộc phiêu lưu Bắt đầu",
+    gettingStartedContent: `Chào mừng! Mục tiêu của bạn là khám phá, sinh tồn và định hình thế giới.
+- **Khám phá:** Sử dụng các phím mũi tên để di chuyển. Các khu vực mới sẽ được tạo ra khi bạn đi.
+- **Tương tác:** Nói chuyện với các nhân vật (NPC) để nhận nhiệm vụ. Sử dụng các nút hành động hoặc nhập bất cứ điều gì vào ô hành động tùy chỉnh.
+- **AI Kể chuyện:** Trò chơi được tường thuật bởi một AI, làm cho mỗi lần chơi đều độc đáo. Hãy sáng tạo!`,
     uiTitle: "🖥️ Tìm hiểu Giao diện",
-    uiContent: `- **Bảng điều khiển bên trái:** Đây là nhật ký câu chuyện của bạn. Tất cả các câu chuyện và tin nhắn hệ thống đều xuất hiện ở đây.
-- **Bảng điều khiển bên phải:** Đây là trung tâm điều khiển của bạn.
-- **Bản đồ nhỏ:** Hiển thị môi trường xung quanh bạn. Nhấp vào nó để mở một bản đồ lớn hơn.
-- **Di chuyển & Tấn công:** Các điều khiển chính để di chuyển và chiến đấu của bạn.
-- **Trạng thái/Hành trang/Chế tạo/Xây dựng:** Các nút để mở các cửa sổ bật lên để xem thông tin chi tiết và hành động.
-- **Hành động:** Các hành động theo ngữ cảnh dựa trên những gì có ở vị trí hiện tại của bạn.`,
-    combatTitle: "⚔️ Chiến đấu & Kỹ năng",
-    combatContent: `- **Tấn công:** Sử dụng nút Kiếm để tấn công kẻ thù ở vị trí hiện tại của bạn.
-- **Gieo xúc xắc:** Tất cả các hành động chính (tấn công, sử dụng kỹ năng) đều liên quan đến việc gieo xúc xắc. Kết quả (từ Thất bại Thảm hại đến Thành công Xuất sắc) quyết định kết quả. AI sẽ kể lại kết quả.
-- **Kỹ năng:** Sử dụng kỹ năng để có lợi thế. Chúng tốn Năng lượng. Bạn có thể mở khóa các kỹ năng mới bằng cách thực hiện một số hành động nhất định (ví dụ: tấn công, di chuyển).`,
-    craftingBuildTitle: "🛠️ Chế tạo & Xây dựng",
-    craftingBuildContent: `- **Chế tạo:** Thu thập vật liệu từ thế giới và sử dụng cửa sổ Chế tạo để tạo ra các công thức mới. AI thậm chí có thể phát minh ra các công thức mới cho bạn khi bạn chơi!
-- **Xây dựng:** Sử dụng cửa sổ Xây dựng để xây dựng các công trình. Xây dựng tốn vật liệu và thể lực. Các công trình như nơi trú ẩn cho phép bạn nghỉ ngơi và phục hồi.`,
-    survivalTitle: "❤️‍🩹 Sinh tồn",
-    survivalContent: `- **Máu, Năng lượng, Thể lực:** Quản lý các chỉ số cốt lõi của bạn. Máu là sức khỏe của bạn, Năng lượng dành cho các kỹ năng và Thể lực dành cho các hành động thể chất như di chuyển và xây dựng.
-- **Nhiệt độ Cơ thể:** Nhiệt độ cơ thể của bạn (hiển thị trong cửa sổ Trạng thái) bị ảnh hưởng bởi môi trường. Nếu nó quá thấp hoặc quá cao, bạn sẽ bị ảnh hưởng tiêu cực. Xây dựng lửa hoặc nơi trú ẩn để quản lý nó.
-- **Nghỉ ngơi:** Tìm hoặc xây dựng một nơi trú ẩn để nghỉ ngơi, giúp phục hồi Máu và Thể lực.`,
-    customActionsTitle: "💬 Hành động Tùy chỉnh & AI",
+    uiContent: `- **Bảng điều khiển Trái:** Nhật ký câu chuyện của bạn. Mọi tường thuật và thông báo hệ thống đều xuất hiện ở đây.
+- **Bảng điều khiển Phải:** Trung tâm điều khiển của bạn.
+    - **Bản đồ nhỏ:** Hiển thị môi trường xung quanh. Nhấp vào để mở bản đồ lớn hơn.
+    - **Trạng thái:** Mở để kiểm tra chỉ số, kỹ năng, nhiệm vụ và đọc nhật ký của bạn.
+    - **Hành trang:** Quản lý các vật phẩm của bạn.
+    - **Chế tạo/Xây dựng/Hợp nhất:** Các nút để mở cửa sổ tạo vật phẩm và công trình.`,
+    combatTitle: "⚔️ Chiến đấu, Kỹ năng & Đồng hành",
+    combatContent: `- **Tấn công:** Sử dụng nút Kiếm để tấn công kẻ thù.
+- **Gieo xúc xắc:** Mọi hành động chính đều liên quan đến việc gieo xúc xắc. Kết quả sẽ quyết định kết quả.
+- **Kỹ năng:** Sử dụng các kỹ năng từ bảng điều khiển bên phải để có lợi thế. Chúng tốn Mana. Bạn sẽ mở khóa các kỹ năng mới bằng cách thực hiện các hành động như chiến đấu và khám phá.
+- **Thuần hóa:** Một số sinh vật có thể được thuần hóa! Hãy thử cho chúng ăn thức ăn yêu thích từ hành trang của bạn.`,
+    craftingBuildTitle: "🛠️ Sáng tạo & Hợp nhất",
+    craftingBuildContent: `- **Chế tạo & Xây dựng:** Thu thập vật liệu để tạo vật phẩm mới và xây dựng các công trình như nơi trú ẩn và lửa trại.
+- **Hợp nhất:** Sử dụng Bàn thờ Hợp nhất (biểu tượng bình thí nghiệm) để thử nghiệm. Kết hợp 2-3 vật phẩm để khám phá những sáng tạo mới có thể mạnh mẽ—hoặc vô dụng. Kết quả là không thể đoán trước!`,
+    survivalTitle: "❤️‍🩹 Sinh tồn & Câu chuyện",
+    survivalContent: `- **Chỉ số:** Quản lý Máu (HP), Năng lượng (cho kỹ năng) và Thể lực (cho các hành động thể chất).
+- **Nhiệt độ Cơ thể:** Môi trường ảnh hưởng đến nhiệt độ của bạn. Xây dựng lửa hoặc nơi trú ẩn để giữ ấm hoặc hạ nhiệt.
+- **Nhật ký:** Mỗi ngày, AI sẽ viết một mục nhật ký tóm tắt các hoạt động của bạn. Kiểm tra trong cửa sổ Trạng thái.
+- **Gợi ý Nhiệm vụ:** Bị kẹt ở một nhiệm vụ? Nhấp vào nó trong cửa sổ Trạng thái để yêu cầu AI gợi ý.`,
+    customActionsTitle: "💬 Trí tưởng tượng của bạn là Giới hạn",
     customActionsContent: `Trái tim của trò chơi này là AI. Bạn không bị giới hạn bởi các nút.
-- **Sáng tạo:** Nhập bất cứ điều gì vào ô hành động tùy chỉnh. Ví dụ: "tìm nơi trú ẩn", "thử câu cá ở sông", "cho sói một ít thịt".
-- **Diễn giải của AI:** AI sẽ diễn giải hành động của bạn và quyết định điều gì sẽ xảy ra tiếp theo, sử dụng các quy tắc và công cụ của trò chơi để hướng dẫn kết quả. Hãy thử nghiệm và xem những gì có thể!`,
+- **Sáng tạo:** Gõ bất cứ điều gì vào ô hành động tùy chỉnh. Thử "tìm kiếm kho báu trong tàn tích," "xây một cái bẫy," hoặc "cố gắng đe dọa con goblin."
+- **Diễn giải của AI:** AI sẽ diễn giải hành động của bạn và quyết định điều gì sẽ xảy ra tiếp theo, sử dụng các quy tắc của trò chơi làm hướng dẫn. Hãy thử nghiệm để xem những gì có thể!`,
     skillUnlocked: "Qua hành động của mình, bạn đã thức tỉnh một sức mạnh mới: {skillName}.",
     skillUnlockedTitle: "Mở khóa Kỹ năng Mới!",
     skillUnlockedDesc: "Bạn đã học được: {skillName}",

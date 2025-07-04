@@ -104,14 +104,40 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
                                         {/* Biome Icon */}
                                         {biomeIcons[chunk.terrain as keyof typeof biomeIcons]}
                                         
-                                        {/* Entity Icons */}
-                                        <div className="absolute bottom-1 left-1 flex items-end gap-px">
-                                          {isPlayerHere && <PlayerIcon />}
-                                          {chunk.enemy && <EnemyIcon emoji={chunk.enemy.emoji} />}
-                                          {chunk.NPCs.length > 0 && <NpcIcon />}
-                                          {chunk.items.length > 0 && <ItemIcon emoji={chunk.items[0].emoji} />}
-                                          {chunk.structures?.length > 0 && <StructureIcon emoji={chunk.structures[0].emoji} />}
-                                        </div>
+                                        {/* Player Icon in the center */}
+                                        {isPlayerHere && (
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <PlayerIcon />
+                                            </div>
+                                        )}
+                                        
+                                        {/* Structure Icon in top-left */}
+                                        {chunk.structures?.length > 0 && (
+                                            <div className="absolute top-1 left-1">
+                                                <StructureIcon emoji={chunk.structures[0].emoji} />
+                                            </div>
+                                        )}
+            
+                                        {/* NPC Icon in top-right */}
+                                        {chunk.NPCs.length > 0 && (
+                                            <div className="absolute top-1 right-1">
+                                                <NpcIcon />
+                                            </div>
+                                        )}
+                                        
+                                        {/* Enemy Icon in bottom-left */}
+                                        {chunk.enemy && (
+                                            <div className="absolute bottom-1 left-1">
+                                                <EnemyIcon emoji={chunk.enemy.emoji} />
+                                            </div>
+                                        )}
+            
+                                        {/* Item Icon in bottom-right */}
+                                        {chunk.items.length > 0 && (
+                                            <div className="absolute bottom-1 right-1">
+                                                <ItemIcon emoji={chunk.items[0].emoji} />
+                                            </div>
+                                        )}
                                     </div>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-80">

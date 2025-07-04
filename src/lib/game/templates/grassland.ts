@@ -1,0 +1,79 @@
+
+import { structureDefinitions } from "../structures";
+
+export const grassland_vi = {
+    descriptionTemplates: [
+        'Một đồng cỏ [adjective] trải dài đến tận chân trời. Những ngọn đồi [feature] nhấp nhô nhẹ nhàng dưới bầu trời [sky].',
+        'Bạn đang đứng giữa một thảo nguyên [adjective]. Gió thổi qua làm những ngọn cỏ [feature] lay động như sóng.',
+    ],
+    adjectives: ['xanh mướt', 'bạt ngàn', 'khô cằn', 'lộng gió', 'yên bình'],
+    features: ['hoa dại', 'cỏ cao', 'đá tảng', 'lối mòn', 'đàn gia súc'],
+    sky: ['trong xanh', 'đầy mây', 'u ám', 'hoàng hôn'],
+    sounds: ['gió thổi', 'côn trùng kêu', 'tiếng vó ngựa xa', 'sự tĩnh lặng'],
+    smells: ['cỏ tươi', 'hoa dại', 'đất khô', 'phân động vật'],
+    NPCs: [
+        { 
+            data: { name: 'Người du mục', description: 'Một người phụ nữ với làn da rám nắng, mặc trang phục làm từ nhiều mảnh da khác nhau.', dialogueSeed: 'Một người từng trải, nói về những vùng đất xa xôi và những cơn gió.' },
+            conditions: { humanPresence: { min: 4 }, chance: 0.15 } 
+        },
+        { 
+            data: { name: 'Nông dân', description: 'Một người đàn ông có đôi tay chai sạn, đang lo lắng nhìn về phía cánh đồng của mình.', dialogueSeed: 'Một nông dân hiền lành, luôn lo lắng về thời tiết và mùa màng.' },
+            conditions: { humanPresence: { min: 5 }, soilType: ['loamy'], chance: 0.2 } 
+        },
+    ],
+    items: [
+        { name: 'Hoa Dại', conditions: { vegetationDensity: { min: 3 }, chance: 0.4 } },
+        { name: 'Lúa Mì', conditions: { soilType: ['loamy'], moisture: { min: 3, max: 6 }, chance: 0.2 } },
+        { name: 'Lông Chim Ưng', conditions: { predatorPresence: { min: 3 }, chance: 0.15 } },
+        { name: 'Đá Lửa', conditions: { chance: 0.2 } },
+        { name: 'Trứng Chim Hoang', conditions: { chance: 0.25 } },
+        { name: 'Rễ Củ Ăn Được', conditions: { soilType: ['loamy'], chance: 0.15 } },
+        { name: 'Đất Sét', conditions: { moisture: { min: 4 }, chance: 0.15 } },
+        { name: 'Cỏ Khô', conditions: { moisture: { max: 3 }, chance: 0.3 } },
+        { name: 'Hạt Giống Hoa Dại', conditions: { chance: 0.2 } },
+        { name: 'Mảnh Vải Rách', conditions: { humanPresence: { min: 3 }, chance: 0.1 } },
+    ],
+    structures: [
+        { 
+            data: structureDefinitions['Tàn tích tháp canh'], 
+            loot: [{ name: 'Mũi Tên Cũ', chance: 0.2, quantity: { min: 1, max: 3 } }, {name: 'Chìa Khóa Rỉ Sét', chance: 0.05, quantity: {min: 1, max: 1}}],
+            conditions: { humanPresence: { min: 2 }, elevation: { min: 2 }, chance: 0.1 } 
+        },
+    ],
+    enemies: [
+        { data: { type: 'Thỏ hoang hung dữ', emoji: '🐇', hp: 20, damage: 5, behavior: 'defensive', size: 'small', diet: ['Hoa Dại', 'Lúa Mì'], satiation: 0, maxSatiation: 4, loot: [{name: 'Thịt Thỏ', chance: 0.6, quantity: {min: 1, max: 2}}, {name: 'Da Thú Nhỏ', chance: 0.2, quantity: {min: 1, max: 1}}] }, conditions: { dangerLevel: { min: 2, max: 5 }, chance: 0.3 } },
+        { data: { type: 'Cáo gian xảo', emoji: '🦊', hp: 25, damage: 8, behavior: 'territorial', size: 'small', diet: ['Thỏ hoang hung dữ'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Cáo', chance: 0.4, quantity: {min: 1, max: 1}}, {name: 'Mảnh Xương', chance: 0.1, quantity: {min: 1, max: 2}}] }, conditions: { predatorPresence: { min: 3 }, chance: 0.25 } },
+        { data: { type: 'Bầy châu chấu', emoji: '🦗', hp: 35, damage: 5, behavior: 'aggressive', size: 'small', diet: ['Lúa Mì', 'Hoa Dại'], satiation: 0, maxSatiation: 5, loot: [{name: 'Cánh Châu Chấu', chance: 0.7, quantity: {min: 5, max: 10}}] }, conditions: { temperature: { min: 7 }, moisture: { max: 3 }, chance: 0.15 } },
+        { data: { type: 'Linh cẩu', emoji: '🐕', hp: 40, damage: 12, behavior: 'aggressive', size: 'medium', diet: ['Thỏ hoang hung dữ', 'Xương Động Vật'], satiation: 0, maxSatiation: 2, loot: [{name: 'Răng Linh Cẩu', chance: 0.3, quantity: {min: 1, max: 3}}, {name: 'Mảnh Xương', chance: 0.15, quantity: {min: 2, max: 4}}] }, conditions: { predatorPresence: { min: 5 }, chance: 0.2 } },
+    ],
+};
+
+export const grassland_en = {
+    descriptionTemplates: [
+        'An [adjective] grassland stretches to the horizon. [feature] hills roll gently under the [sky] sky.',
+        'You are standing in the middle of an [adjective] prairie. The wind rustles through the [feature] grass like waves.',
+    ],
+    adjectives: ['lush', 'vast', 'arid', 'windy', 'peaceful'],
+    features: ['wildflowers', 'tall grass', 'boulders', 'worn paths', 'herds of animals'],
+    sky: ['clear blue', 'cloudy', 'overcast', 'sunset'],
+    sounds: ['wind blowing', 'insects chirping', 'distant hooves', 'silence'],
+    smells: ['fresh grass', 'wildflowers', 'dry earth', 'animal dung'],
+    NPCs: [
+        { 
+            data: { name: 'Nomad', description: 'A woman with sun-tanned skin, dressed in clothes made from various pieces of leather.', dialogueSeed: 'An experienced traveler who speaks of distant lands and the winds.' },
+            conditions: { humanPresence: { min: 4 }, chance: 0.15 } 
+        },
+        { 
+            data: { name: 'Farmer', description: 'A man with calloused hands, looking worriedly at his fields.', dialogueSeed: 'A gentle farmer, always worried about the weather and his crops.' },
+            conditions: { humanPresence: { min: 5 }, soilType: ['loamy'], chance: 0.2 } 
+        },
+    ],
+    items: grassland_vi.items,
+    structures: grassland_vi.structures,
+    enemies: [
+        { data: { type: 'Aggressive Rabbit', emoji: '🐇', hp: 20, damage: 5, behavior: 'defensive', size: 'small', diet: ['Hoa Dại', 'Lúa Mì'], satiation: 0, maxSatiation: 4, loot: [{name: 'Thịt Thỏ', chance: 0.6, quantity: {min: 1, max: 2}}, {name: 'Da Thú Nhỏ', chance: 0.2, quantity: {min: 1, max: 1}}] }, conditions: { dangerLevel: { min: 2, max: 5 }, chance: 0.3 } },
+        { data: { type: 'Cunning Fox', emoji: '🦊', hp: 25, damage: 8, behavior: 'territorial', size: 'small', diet: ['Aggressive Rabbit'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Cáo', chance: 0.4, quantity: {min: 1, max: 1}}, {name: 'Mảnh Xương', chance: 0.1, quantity: {min: 1, max: 2}}] }, conditions: { predatorPresence: { min: 3 }, chance: 0.25 } },
+        { data: { type: 'Locust Swarm', emoji: '🦗', hp: 35, damage: 5, behavior: 'aggressive', size: 'small', diet: ['Lúa Mì', 'Hoa Dại'], satiation: 0, maxSatiation: 5, loot: [{name: 'Cánh Châu Chấu', chance: 0.7, quantity: {min: 5, max: 10}}] }, conditions: { temperature: { min: 7 }, moisture: { max: 3 }, chance: 0.15 } },
+        { data: { type: 'Hyena', emoji: '🐕', hp: 40, damage: 12, behavior: 'aggressive', size: 'medium', diet: ['Aggressive Rabbit', 'Xương Động Vật'], satiation: 0, maxSatiation: 2, loot: [{name: 'Răng Linh Cẩu', chance: 0.3, quantity: {min: 1, max: 3}}, {name: 'Mảnh Xương', chance: 0.15, quantity: {min: 2, max: 4}}] }, conditions: { predatorPresence: { min: 5 }, chance: 0.2 } },
+    ],
+};

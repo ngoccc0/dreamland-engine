@@ -5,11 +5,54 @@ import { cn } from "@/lib/utils";
 import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon, StructureIcon } from "./icons";
 import { useLanguage } from "@/context/language-context";
 import type React from "react";
-import type { MapCell, Terrain } from "@/lib/game/types";
+import type { Chunk, Terrain } from "@/lib/game/types";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import type { TranslationKey } from "@/lib/i18n";
+
+
+export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
+    const { t } = useLanguage();
+    return (
+        <div className="p-2 text-sm space-y-2">
+            <h4 className="font-bold capitalize">{chunk.terrain === 'wall' ? t('wall') : t(chunk.terrain as TranslationKey)} ({chunk.x}, {chunk.y})</h4>
+            <p className="text-xs text-muted-foreground italic line-clamp-3">{chunk.description}</p>
+            {chunk.structures && chunk.structures.length > 0 && (
+                <div>
+                    <h5 className="font-semibold">{t('structures')}:</h5>
+                    <ul className="list-disc list-inside text-xs">
+                        {chunk.structures.map(s => <li key={s.name}>{s.emoji} {t(s.name as TranslationKey)}</li>)}
+                    </ul>
+                </div>
+            )}
+            {chunk.items.length > 0 && (
+                <div>
+                    <h5 className="font-semibold">{t('inventory')}:</h5>
+                    <ul className="list-disc list-inside text-xs">
+                        {chunk.items.map(item => <li key={item.name}>{item.emoji} {t(item.name as TranslationKey)} (x{item.quantity})</li>)}
+                    </ul>
+                </div>
+            )}
+            {chunk.enemy && (
+                <div>
+                    <h5 className="font-semibold">{t('enemy')}:</h5>
+                    <p className="text-xs">{chunk.enemy.emoji} {t(chunk.enemy.type as TranslationKey)} (HP: {chunk.enemy.hp})</p>
+                </div>
+            )}
+            {chunk.NPCs.length > 0 && (
+                 <div>
+                    <h5 className="font-semibold">{t('npcs')}:</h5>
+                    <ul className="list-disc list-inside text-xs">
+                        {chunk.NPCs.map(npc => <li key={npc.name}>{t(npc.name as TranslationKey)}</li>)}
+                    </ul>
+                </div>
+            )}
+        </div>
+    );
+};
 
 
 interface MinimapProps {
-  grid: MapCell[][];
+  grid: (Chunk | null)[][];
   playerPosition: { x: number; y: number };
 }
 
@@ -26,7 +69,6 @@ const biomeColors: Record<Terrain | 'empty', string> = {
   empty: "bg-map-empty",
 };
 
-// Map biome types to their respective emojis
 const biomeIcons: Record<Exclude<Terrain, 'empty'>, React.ReactNode> = {
     forest: <span className="text-3xl opacity-80" role="img" aria-label="forest">🌳</span>,
     grassland: <span className="text-3xl opacity-80" role="img" aria-label="grassland">🌾</span>,
@@ -46,29 +88,47 @@ export function Minimap({ grid, playerPosition }: MinimapProps) {
     <div className="flex flex-col items-center gap-2">
         <div className="grid grid-cols-5 border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-hidden">
         {grid.map((row, rowIndex) =>
-            row.map((cell, colIndex) => (
-            <div
-                key={`${rowIndex}-${colIndex}`}
-                className={cn(
-                "w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 relative transition-all duration-300 flex items-center justify-center border-r border-b border-dashed border-border/50",
-                biomeColors[cell.biome],
-                cell.hasPlayer && "ring-2 ring-white shadow-lg z-10"
-                )}
-                aria-label={`Map cell at ${rowIndex}, ${colIndex}. Biome: ${cell.biome}${cell.hasPlayer ? '. Player is here.' : ''}${cell.enemyEmoji ? '. Enemy is here.' : ''}${cell.hasNpc ? '. NPC is here.' : ''}${cell.itemEmoji ? '. Item is here.' : ''}${cell.structureEmoji ? '. Structure is here.' : ''}`}
-            >
-                {/* Render the biome icon if the cell is not empty */}
-                {cell.biome !== 'empty' && biomeIcons[cell.biome as Exclude<Terrain, 'empty'>]}
-                
-                {/* Player and Enemy icons will be rendered on top of biome */}
-                {cell.enemyEmoji && <EnemyIcon emoji={cell.enemyEmoji} />}
-                {cell.hasPlayer && <PlayerIcon key={`${playerPosition.x},${playerPosition.y}`} />}
-                
-                {/* Corner indicators for other entities, rendered on top of everything */}
-                {cell.hasNpc && <NpcIcon />}
-                {cell.itemEmoji && <ItemIcon emoji={cell.itemEmoji} />}
-                {cell.structureEmoji && <StructureIcon emoji={cell.structureEmoji} />}
-            </div>
-            ))
+            row.map((cell, colIndex) => {
+              const key = `${rowIndex}-${colIndex}`;
+              
+              if (!cell) {
+                return <div key={key} className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 bg-map-empty border-r border-b border-dashed border-border/50" />;
+              }
+              
+              const isPlayerHere = playerPosition.x === cell.x && playerPosition.y === cell.y;
+
+              return (
+                 <Popover key={key}>
+                    <PopoverTrigger asChild>
+                        <div
+                            className={cn(
+                                "w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 relative transition-all duration-300 flex flex-col items-center justify-between p-1 cursor-pointer hover:ring-2 hover:ring-white border-r border-b border-dashed border-border/50",
+                                biomeColors[cell.terrain],
+                                isPlayerHere && "ring-2 ring-white shadow-lg z-10"
+                            )}
+                            aria-label={`Map cell at ${cell.x}, ${cell.y}. Biome: ${cell.terrain}`}
+                        >
+                            {/* Top part: Biome Icon */}
+                            <div className="flex-grow flex items-center justify-center">
+                                {cell.terrain !== 'empty' && biomeIcons[cell.terrain as Exclude<Terrain, 'empty'>]}
+                            </div>
+                            
+                            {/* Bottom part: Entity Icons */}
+                            <div className="h-5 flex items-end justify-center gap-1">
+                                {isPlayerHere && <PlayerIcon />}
+                                {cell.enemy && <EnemyIcon emoji={cell.enemy.emoji} />}
+                                {cell.NPCs.length > 0 && <NpcIcon />}
+                                {cell.items.length > 0 && <ItemIcon emoji={cell.items[0].emoji} />}
+                                {cell.structures?.length > 0 && <StructureIcon emoji={cell.structures[0].emoji} />}
+                            </div>
+                        </div>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80">
+                      <MapCellDetails chunk={cell} />
+                    </PopoverContent>
+                  </Popover>
+              );
+            })
         )}
         </div>
     </div>

@@ -255,15 +255,6 @@ export type NarrativeEntry = {
     type: 'narrative' | 'action' | 'system';
 }
 
-export type MapCell = {
-  biome: Terrain | "empty";
-  hasPlayer?: boolean;
-  enemyEmoji?: string;
-  itemEmoji?: string;
-  hasNpc?: boolean;
-  structureEmoji?: string;
-};
-
 // This defines the final, assembled world concept object that the game uses.
 // It's constructed in the WorldSetup component from the AI's generated data.
 export interface WorldConcept {

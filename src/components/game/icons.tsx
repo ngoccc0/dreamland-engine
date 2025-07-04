@@ -1,16 +1,12 @@
 export function PlayerIcon() {
   return (
-    <div className="absolute inset-0 flex items-center justify-center animate-jump-in">
-      <span className="text-3xl drop-shadow-lg" role="img" aria-label="Player">🧑</span>
-    </div>
+    <span className="text-xl drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]" role="img" aria-label="Player">🧑</span>
   );
 }
 
 export function EnemyIcon({ emoji }: { emoji: string }) {
   return (
-    <div className="absolute inset-0 flex items-center justify-center">
-      <span className="text-3xl drop-shadow-lg" role="img" aria-label="Enemy">{emoji}</span>
-    </div>
+    <span className="text-lg drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]" role="img" aria-label="Enemy">{emoji}</span>
   );
 }
 
@@ -27,24 +23,18 @@ export function SwordIcon() {
 
 export function NpcIcon() {
   return (
-    <div className="absolute bottom-0 left-1 text-lg drop-shadow-lg" aria-label="NPC">
-      <span>🗣️</span>
-    </div>
+    <span className="text-base drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]" role="img" aria-label="NPC">🗣️</span>
   );
 }
 
 export function ItemIcon({ emoji }: { emoji: string }) {
   return (
-    <div className="absolute bottom-0 right-1 text-lg drop-shadow-lg" aria-label="Item">
-      <span>{emoji}</span>
-    </div>
+    <span className="text-base drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]" role="img" aria-label="Item">{emoji}</span>
   );
 }
 
 export function StructureIcon({ emoji }: { emoji: string }) {
   return (
-    <div className="absolute top-1 right-1 text-lg drop-shadow-lg" aria-label="Structure">
-      <span>{emoji}</span>
-    </div>
+    <span className="text-base drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]" role="img" aria-label="Structure">{emoji}</span>
   );
 }

@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/language-context";
 import type { World, Chunk, Terrain } from "@/lib/game/types";
 import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon, StructureIcon } from "./icons";
+import { MapCellDetails } from './minimap';
+import type { TranslationKey } from '@/lib/i18n';
 
 interface FullMapPopupProps {
   open: boolean;
@@ -17,7 +19,6 @@ interface FullMapPopupProps {
   playerPosition: { x: number; y: number };
 }
 
-// Re-using styles and icons from minimap for consistency
 const biomeColors: Record<Terrain | 'empty', string> = {
   forest: "bg-map-forest",
   grassland: "bg-map-grassland",
@@ -28,7 +29,7 @@ const biomeColors: Record<Terrain | 'empty', string> = {
   jungle: "bg-map-jungle",
   volcanic: "bg-map-volcanic",
   wall: "bg-map-wall",
-  empty: "bg-black/20", // Use a different color for unexplored but within bounds
+  empty: "bg-black/20",
 };
 
 const biomeIcons: Record<Exclude<Terrain, 'empty'>, React.ReactNode> = {
@@ -43,50 +44,9 @@ const biomeIcons: Record<Exclude<Terrain, 'empty'>, React.ReactNode> = {
     wall: <span className="text-2xl opacity-80" role="img" aria-label="wall">🧱</span>,
 };
 
-const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
-    const { t } = useLanguage();
-    return (
-        <div className="p-2 text-sm space-y-2">
-            <h4 className="font-bold capitalize">{chunk.terrain === 'wall' ? t('wall') : chunk.terrain} ({chunk.x}, {chunk.y})</h4>
-            <p className="text-xs text-muted-foreground italic line-clamp-3">{chunk.description}</p>
-            {chunk.structures && chunk.structures.length > 0 && (
-                <div>
-                    <h5 className="font-semibold">Structures:</h5>
-                    <ul className="list-disc list-inside text-xs">
-                        {chunk.structures.map(s => <li key={s.name}>{s.emoji} {s.name}</li>)}
-                    </ul>
-                </div>
-            )}
-            {chunk.items.length > 0 && (
-                <div>
-                    <h5 className="font-semibold">Items:</h5>
-                    <ul className="list-disc list-inside text-xs">
-                        {chunk.items.map(item => <li key={item.name}>{item.emoji} {item.name} (x{item.quantity})</li>)}
-                    </ul>
-                </div>
-            )}
-            {chunk.enemy && (
-                <div>
-                    <h5 className="font-semibold">Enemy:</h5>
-                    <p className="text-xs">{chunk.enemy.emoji} {chunk.enemy.type} (HP: {chunk.enemy.hp})</p>
-                </div>
-            )}
-            {chunk.NPCs.length > 0 && (
-                 <div>
-                    <h5 className="font-semibold">NPCs:</h5>
-                    <ul className="list-disc list-inside text-xs">
-                        {chunk.NPCs.map(npc => <li key={npc.name}>{npc.name}</li>)}
-                    </ul>
-                </div>
-            )}
-        </div>
-    );
-};
-
-
 export function FullMapPopup({ open, onOpenChange, world, playerPosition }: FullMapPopupProps) {
   const { t } = useLanguage();
-  const mapRadius = 7; // This creates a 15x15 grid
+  const mapRadius = 7;
 
   const mapBounds = React.useMemo(() => {
     const minX = playerPosition.x - mapRadius;
@@ -134,20 +94,23 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
                             <Popover key={chunkKey}>
                                 <PopoverTrigger asChild>
                                     <div
-                                        data-is-player={isPlayerHere}
                                         className={cn(
-                                            "w-12 h-12 relative transition-all duration-300 flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-white border-r border-b border-dashed border-border/50",
+                                            "w-12 h-12 relative transition-all duration-300 flex flex-col items-center justify-between p-1 cursor-pointer hover:ring-2 hover:ring-white border-r border-b border-dashed border-border/50",
                                             biomeColors[chunk.terrain as keyof typeof biomeColors],
                                             isPlayerHere && "ring-2 ring-white shadow-lg z-10"
                                         )}
                                         aria-label={`Map cell at ${chunk.x}, ${chunk.y}. Biome: ${chunk.terrain}`}
                                     >
-                                        {biomeIcons[chunk.terrain as keyof typeof biomeIcons]}
-                                        {chunk.enemy && <EnemyIcon emoji={chunk.enemy.emoji} />}
-                                        {isPlayerHere && <PlayerIcon />}
-                                        {chunk.NPCs.length > 0 && <NpcIcon />}
-                                        {chunk.items.length > 0 && <ItemIcon emoji={chunk.items[0].emoji} />}
-                                        {chunk.structures?.length > 0 && <StructureIcon emoji={chunk.structures[0].emoji} />}
+                                        <div className="flex-grow flex items-center justify-center">
+                                          {biomeIcons[chunk.terrain as keyof typeof biomeIcons]}
+                                        </div>
+                                        <div className="h-5 flex items-end justify-center gap-1">
+                                          {isPlayerHere && <PlayerIcon />}
+                                          {chunk.enemy && <EnemyIcon emoji={chunk.enemy.emoji} />}
+                                          {chunk.NPCs.length > 0 && <NpcIcon />}
+                                          {chunk.items.length > 0 && <ItemIcon emoji={chunk.items[0].emoji} />}
+                                          {chunk.structures?.length > 0 && <StructureIcon emoji={chunk.structures[0].emoji} />}
+                                        </div>
                                     </div>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-80">

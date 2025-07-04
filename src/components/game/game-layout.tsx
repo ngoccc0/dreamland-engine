@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -19,7 +20,7 @@ import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermomet
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
 import { useGameEngine } from "@/hooks/use-game-engine";
-import type { MapCell, ItemDefinition, GeneratedItem, WorldConcept, PlayerItem, GameState, Structure } from "@/lib/game/types";
+import type { ItemDefinition, GeneratedItem, WorldConcept, PlayerItem, GameState, Structure, Chunk } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
 
@@ -86,13 +87,13 @@ export default function GameLayout(props: GameLayoutProps) {
         }
     }, [props.worldSetup]);
 
-    const generateMapGrid = useCallback((): MapCell[][] => {
+    const generateMapGrid = useCallback((): (Chunk | null)[][] => {
         const radius = 2; // 5x5 grid
         const size = radius * 2 + 1;
-        const grid: MapCell[][] = [];
+        const grid: (Chunk | null)[][] = [];
 
         for (let gy = 0; gy < size; gy++) {
-            const row: MapCell[] = [];
+            const row: (Chunk | null)[] = [];
             for (let gx = 0; gx < size; gx++) {
                 const wx = playerPosition.x - radius + gx;
                 const wy = playerPosition.y + radius - gy;
@@ -100,28 +101,13 @@ export default function GameLayout(props: GameLayoutProps) {
                 const chunk = world[chunkKey];
     
                 if (chunk && chunk.explored) { 
-                    row.push({
-                        biome: chunk.terrain,
-                        hasNpc: chunk.NPCs.length > 0,
-                        enemyEmoji: chunk.enemy?.emoji,
-                        itemEmoji: chunk.items.length > 0 ? chunk.items[0].emoji : undefined,
-                        structureEmoji: chunk.structures?.length > 0 ? chunk.structures[0].emoji : undefined,
-                    });
+                    row.push(chunk);
                 } else {
-                    row.push({
-                        biome: 'empty',
-                        hasNpc: false,
-                    });
+                    row.push(null);
                 }
             }
             grid.push(row);
         }
-        
-        const center = radius;
-        if(grid[center]?.[center]) {
-            grid[center][center].hasPlayer = true;
-        }
-        
         return grid;
     }, [world, playerPosition.x, playerPosition.y]);
     

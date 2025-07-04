@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -9,8 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import { useLanguage } from '@/context/language-context';
-import { Loader2, Settings } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { usePwaInstall } from '@/context/pwa-install-context';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Loader2, Settings, Download } from 'lucide-react';
 import type { TranslationKey } from '@/lib/i18n';
 
 type NewGameData = {
@@ -21,6 +23,7 @@ type NewGameData = {
 
 export default function Home() {
   const { t } = useLanguage();
+  const { installPrompt, setInstallPrompt } = usePwaInstall();
   const [loadState, setLoadState] = useState<'loading' | 'prompt' | 'new_game' | 'continue_game'>('loading');
   const [savedGameState, setSavedGameState] = useState<GameState | null>(null);
   const [newGameData, setNewGameData] = useState<NewGameData | null>(null);
@@ -32,7 +35,6 @@ export default function Home() {
       if (savedData) {
         const gameState: GameState = JSON.parse(savedData);
         
-        // Data migration for old save files
         if (gameState.playerStats?.items && gameState.playerStats.items.length > 0 && typeof (gameState.playerStats.items[0] as any) === 'string') {
           gameState.playerStats.items = (gameState.playerStats.items as unknown as string[]).map((itemName): PlayerItem => ({
             name: itemName.replace(/ \(.*/, ''),
@@ -61,8 +63,6 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    // The LanguageProvider will handle loading the language from localStorage.
-    // We can directly proceed to check for a saved game.
     parseAndSetSavedGame();
   }, [parseAndSetSavedGame]);
 
@@ -111,6 +111,19 @@ export default function Home() {
         customItemCatalog: world.customItemCatalog,
     });
   };
+  
+  const handleInstallClick = () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    installPrompt.userChoice.then((choiceResult: any) => {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('User accepted the PWA installation');
+      } else {
+        console.log('User dismissed the PWA installation');
+      }
+      setInstallPrompt(null);
+    });
+  };
 
   if (loadState === 'loading') {
     return (
@@ -118,7 +131,7 @@ export default function Home() {
         <div className="flex flex-col items-center text-center p-4 animate-in fade-in duration-1000">
           <img src="/assets/logo.svg" alt="Dreamland Engine Logo" className="h-[384px] w-[384px]" />
           <div className="flex items-center justify-center">
-            <h1 className="text-5xl font-bold font-headline tracking-tighter -mt-36">
+            <h1 className="text-5xl font-bold font-headline tracking-tighter -mt-44">
               Dreamland Engine
             </h1>
           </div>
@@ -133,7 +146,7 @@ export default function Home() {
   
   if (loadState === 'prompt') {
     return (
-      <>
+      <TooltipProvider>
         <div className="flex items-center justify-center min-h-dvh bg-background text-foreground p-4">
           <Card className="w-full max-w-sm animate-in fade-in duration-500">
             <CardHeader>
@@ -148,16 +161,31 @@ export default function Home() {
                 {t('startNewAdventure')}
               </Button>
             </CardContent>
-            <CardFooter className='justify-center'>
+            <CardFooter className='justify-center gap-2'>
                  <Button onClick={() => setSettingsOpen(true)} variant="ghost">
                     <Settings className="mr-2 h-4 w-4" />
                     {t('gameSettings')}
                 </Button>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <span>
+                            <Button onClick={handleInstallClick} variant="ghost" disabled={!installPrompt}>
+                                <Download className="mr-2 h-4 w-4" />
+                                {t('installAppButton')}
+                            </Button>
+                        </span>
+                    </TooltipTrigger>
+                    {!installPrompt && (
+                        <TooltipContent>
+                            <p>{t('installNotAvailableTooltip')}</p>
+                        </TooltipContent>
+                    )}
+                </Tooltip>
             </CardFooter>
           </Card>
         </div>
         <SettingsPopup open={isSettingsOpen} onOpenChange={setSettingsOpen} />
-      </>
+      </TooltipProvider>
     );
   }
 
@@ -176,5 +204,5 @@ export default function Home() {
             />;
   }
 
-  return null; // Fallback for unexpected states
+  return null;
 }

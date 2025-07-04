@@ -71,6 +71,18 @@ export function useGameEngine(props: GameEngineProps) {
     const isOnline = settings.gameMode === 'ai';
     const narrativeIdCounter = useRef(1);
     
+    useEffect(() => {
+        // This effect runs once when the engine mounts.
+        // It initializes the narrative ID counter based on the loaded game state
+        // from localStorage, preventing key collisions.
+        if (narrativeLog.length > 0) {
+            // Find the highest existing ID in the log
+            const maxId = Math.max(...narrativeLog.map(entry => entry.id));
+            // Set the counter to be one higher than the max
+            narrativeIdCounter.current = maxId + 1;
+        }
+    }, []); // The empty dependency array is crucial. It ensures this runs only once on mount.
+
     const addNarrativeEntry = useCallback((text: string, type: NarrativeEntry['type']) => {
         setNarrativeLog(prev => {
             const newEntry = { id: narrativeIdCounter.current, text, type };
@@ -582,7 +594,7 @@ export function useGameEngine(props: GameEngineProps) {
         setPlayerStats({ ...newPlayerStats, items: newPlayerStats.items.filter(i => i.quantity > 0) });
         advanceGameTime();
     }, [addNarrativeEntry, playerStats, t, customItemDefinitions, playerPosition, world, advanceGameTime]);
-
+    
     const handleOfflineSkillUse = useCallback((skillName: string) => {
         let newPlayerStats: PlayerStatus = JSON.parse(JSON.stringify(playerStats));
         const skillToUse = newPlayerStats.skills.find(s => s.name === skillName);

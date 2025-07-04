@@ -244,39 +244,45 @@ const generateWorldSetupFlow = ai.defineFlow(
             }
         ];
 
-        // Hardcode the skill to avoid lookup issues.
-        const startingSkill: Skill = {
-            name: 'skillFireballName',
-            description: 'skillFireballDesc',
-            tier: 1,
-            manaCost: 15,
-            effect: {
-                type: 'DAMAGE',
-                amount: 15,
-                target: 'ENEMY',
+        // Define the skills we want to offer
+        const skill1: Skill = { name: 'skillFireballName', description: 'skillFireballDesc', tier: 1, manaCost: 15, effect: { type: 'DAMAGE', amount: 15, target: 'ENEMY' } };
+        const skill2: Skill = { name: 'skillHealName', description: 'skillHealDesc', tier: 1, manaCost: 20, effect: { type: 'HEAL', amount: 25, target: 'SELF' } };
+        const skill3: Skill = { name: 'skillLifeSiphonName', description: 'skillLifeSiphonDesc', tier: 2, manaCost: 30, effect: { type: 'DAMAGE', amount: 25, target: 'ENEMY', healRatio: 0.5 } };
+        
+        const concepts = [
+            {
+                worldName: "Floptropica",
+                initialNarrative: "You wake up on a vibrant, slightly chaotic island. The air smells like Jiafei's products and faint screams of 'ATE!'. A strange pop music is playing from the jungle. You feel a strange urge to 'serve cvnt'.",
+                startingBiome: 'jungle' as Terrain,
+                playerInventory: [ { name: "Jiafei's Pan", quantity: 1 }, { name: "Stan Twitter Thread", quantity: 1 } ],
+                initialQuests: [ "Find the source of the mysterious pop music.", "Serve your first cvnt." ],
+                startingSkill: skill1,
+                customStructures: floptropicaStructures,
+            },
+            {
+                worldName: "The Slaylands",
+                initialNarrative: "Washed ashore, you find yourself in a land where memes are currency and shade is the deadliest weapon. A distant palace hums with the sound of Nicki Minaj.",
+                startingBiome: 'jungle' as Terrain,
+                playerInventory: [ { name: "CupcakKe's Remix", quantity: 1 }, { name: "Yass Pill", quantity: 1 } ],
+                initialQuests: [ "Reach Nicki's Barbz Hospital.", "Craft a stan-worthy meme." ],
+                startingSkill: skill2,
+                customStructures: floptropicaStructures,
+            },
+            {
+                worldName: "Bad Bussy Badlands",
+                initialNarrative: "You've been exiled to the Bad Bussy Badlands. Here, only the most iconic can survive. The ground trembles with the bass of powerful remixes.",
+                startingBiome: 'jungle' as Terrain,
+                playerInventory: [ { name: "Jiafei's Pan", quantity: 1 }, { name: "Yass Pill", quantity: 2 } ],
+                initialQuests: [ "Survive the night.", "Find Deborah's C.V.N.T. University." ],
+                startingSkill: skill3,
+                customStructures: floptropicaStructures,
             }
-        };
-
-        const concept = {
-            worldName: "Floptropica",
-            initialNarrative: "You wake up on a vibrant, slightly chaotic island. The air smells like Jiafei's products and faint screams of 'ATE!'. A strange pop music is playing from the jungle. You feel a strange urge to 'serve cvnt'.",
-            startingBiome: 'jungle' as Terrain,
-            playerInventory: [
-                { name: "Jiafei's Pan", quantity: 1 },
-                { name: "Stan Twitter Thread", quantity: 1 },
-            ],
-            initialQuests: [
-                "Find the source of the mysterious pop music.",
-                "Serve your first cvnt.",
-            ],
-            startingSkill: startingSkill,
-            customStructures: floptropicaStructures,
-        };
+        ];
 
         const hardcodedWorld: GenerateWorldSetupOutput = {
             customItemCatalog: floptropicaItems,
             customStructures: floptropicaStructures,
-            concepts: [concept, concept, concept],
+            concepts: concepts as any,
         };
 
         return hardcodedWorld;

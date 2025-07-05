@@ -72,16 +72,20 @@ export function useGameEngine(props: GameEngineProps) {
     const narrativeIdCounter = useRef(1);
     
     useEffect(() => {
-        // This effect runs once when the engine mounts.
-        // It initializes the narrative ID counter based on the loaded game state
-        // from localStorage, preventing key collisions.
+        // This effect synchronizes the narrative ID counter with the current state of the log.
+        // It runs whenever the narrativeLog changes (e.g., loaded from save, or a new entry is added),
+        // ensuring the counter is always set to a value higher than any existing ID.
+        // This prevents React's "duplicate key" error.
         if (narrativeLog.length > 0) {
             // Find the highest existing ID in the log
             const maxId = Math.max(...narrativeLog.map(entry => entry.id));
             // Set the counter to be one higher than the max
             narrativeIdCounter.current = maxId + 1;
+        } else {
+            // If the log is empty, reset the counter.
+            narrativeIdCounter.current = 1;
         }
-    }, []); // The empty dependency array is crucial. It ensures this runs only once on mount.
+    }, [narrativeLog]);
 
     const addNarrativeEntry = useCallback((text: string, type: NarrativeEntry['type']) => {
         setNarrativeLog(prev => {

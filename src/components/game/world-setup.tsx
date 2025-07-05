@@ -226,7 +226,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                 key={prompt}
                                 type="button"
                                 onClick={() => setUserInput(prompt)}
-                                className="text-left p-2 rounded-md hover:bg-muted transition-colors text-accent text-xs"
+                                className="text-left p-2 rounded-md hover:bg-muted transition-colors text-accent text-sm"
                             >
                                 &raquo; {prompt}
                             </button>
@@ -453,5 +453,4 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         </TooltipProvider>
     );
 }
-
     

@@ -5,14 +5,20 @@ import {cn} from '@/lib/utils';
 const Textarea = React.forwardRef<HTMLTextAreaElement, React.ComponentProps<'textarea'>>(
   ({className, ...props}, ref) => {
     return (
-      <textarea
-        className={cn(
-          'flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
-          className
-        )}
-        ref={ref}
-        {...props}
-      />
+      <div className="relative group">
+        <div
+          className="absolute -inset-0.5 bg-gradient-to-r from-chart-1 via-chart-3 to-chart-5 rounded-lg blur opacity-0 group-focus-within:opacity-75 transition duration-200 animate-gradient-glow"
+          style={{ backgroundSize: '200% 200%' }}
+        />
+        <textarea
+          className={cn(
+            'relative flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
+            className
+          )}
+          ref={ref}
+          {...props}
+        />
+      </div>
     );
   }
 );

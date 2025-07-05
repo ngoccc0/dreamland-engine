@@ -7,7 +7,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, React.ComponentProps<'tex
     return (
       <div className="relative group">
         <div
-          className="absolute -inset-0.5 bg-gradient-to-r from-accent via-chart-2 to-border rounded-lg blur opacity-0 group-focus-within:opacity-75 transition-opacity duration-500"
+          className="absolute -inset-0.5 bg-gradient-to-r from-accent via-chart-4 to-border rounded-lg blur opacity-0 group-focus-within:opacity-75 transition-opacity duration-500"
         />
         <textarea
           className={cn(

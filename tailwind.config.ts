@@ -107,17 +107,12 @@ export default {
           '0%': { transform: 'rotate(0deg)' },
           '100%': { transform: 'rotate(360deg)' },
         },
-        'gradient-glow': {
-          '0%, 100%': { 'background-position': '0% 50%' },
-          '50%': { 'background-position': '100% 50%' },
-        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
-        'jump-in': 'jump-in 0.3s ease-out forwards',
+        'jump-in': 'jump-in 1s ease-out forwards',
         'spin-gear': 'spin-gear 10s linear infinite',
-        'gradient-glow': 'gradient-glow 1500s linear infinite',
       },
     },
   },

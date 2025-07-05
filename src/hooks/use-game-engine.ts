@@ -689,7 +689,7 @@ export function useGameEngine(props: GameEngineProps) {
     
         advanceGameTime();
     }, [playerPosition, world, addNarrativeEntry, settings.diceType, t, getEffectiveChunk, playerStats, language, customItemDefinitions, advanceGameTime]);
-
+    
     const handleOfflineItemUse = useCallback((itemName: string, target: 'player' | string) => {
         addNarrativeEntry(target === 'player' ? `${t('useAction')} ${t(itemName as TranslationKey)}` : `${t('useOnAction', {item: t(itemName as TranslationKey), target: t(target as TranslationKey)})}`, 'action');
         let newPlayerStats = { ...playerStats };
@@ -840,14 +840,46 @@ export function useGameEngine(props: GameEngineProps) {
                 addNarrativeEntry(t('pickedUpItem', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name as TranslationKey) }), 'narrative');
             }
         } else if (lowerAction === exploreActionText) {
-            const { roll } = rollDice('d20');
-            if (roll > 15 && currentChunk.terrain !== 'desert' && currentChunk.terrain !== 'cave') { 
-                const quantity = getRandomInRange({ min: 1, max: 3 });
-                const itemInInventory = newPlayerStats.items.find(i => i.name === 'Sỏi');
-                if (itemInInventory) itemInInventory.quantity += quantity;
-                else newPlayerStats.items.push({ name: 'Sỏi', quantity, tier: customItemDefinitions['Sỏi'].tier, emoji: customItemDefinitions['Sỏi'].emoji });
-                addNarrativeEntry(t('exploreFoundItem', { quantity, itemName: t('Sỏi' as TranslationKey) }), 'narrative');
-            } else addNarrativeEntry(t('exploreFoundNothing'), 'narrative');
+            const templates = getTemplates(language);
+            const biomeTemplate = templates[currentChunk.terrain];
+            let foundItems: ChunkItem[] = [];
+
+            if (biomeTemplate && biomeTemplate.items) {
+                for (const itemTemplate of biomeTemplate.items) {
+                    if (Math.random() < (itemTemplate.conditions.chance || 0.1)) {
+                        const itemDef = customItemDefinitions[itemTemplate.name];
+                        if (itemDef) {
+                            const quantity = getRandomInRange(itemDef.baseQuantity);
+                            foundItems.push({
+                                name: itemTemplate.name,
+                                description: itemDef.description,
+                                tier: itemDef.tier,
+                                quantity: quantity,
+                                emoji: itemDef.emoji,
+                            });
+                        }
+                    }
+                }
+            }
+
+            if (foundItems.length > 0) {
+                const itemToGive = foundItems[Math.floor(Math.random() * foundItems.length)];
+                
+                const itemInInventory = newPlayerStats.items.find(i => i.name === itemToGive.name);
+                if (itemInInventory) {
+                    itemInInventory.quantity += itemToGive.quantity;
+                } else {
+                    newPlayerStats.items.push({
+                        name: itemToGive.name,
+                        quantity: itemToGive.quantity,
+                        tier: itemToGive.tier,
+                        emoji: itemToGive.emoji
+                    });
+                }
+                addNarrativeEntry(t('exploreFoundItem', { quantity: itemToGive.quantity, itemName: t(itemToGive.name as TranslationKey) }), 'narrative');
+            } else {
+                addNarrativeEntry(t('exploreFoundNothing'), 'narrative');
+            }
         }
 
         setPlayerStats(newPlayerStats);
@@ -872,7 +904,7 @@ export function useGameEngine(props: GameEngineProps) {
         const destResult = ensureChunkExists(newPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
         worldSnapshot = destResult.worldWithChunk;
         regionsSnapshot = destResult.regions;
-        regionCounterSnapshot = destResult.regionCounter;
+        regionCounterSnapshot = destResult.newRegionCounter;
         
         if (destResult.chunk?.terrain === 'wall') { addNarrativeEntry(t('wallBlock'), 'system'); return; }
 
@@ -1048,9 +1080,33 @@ export function useGameEngine(props: GameEngineProps) {
 
         const actionText = t('restInShelter', { shelterName: t(shelter.name as TranslationKey) });
         addNarrativeEntry(actionText, 'action');
-        setPlayerStats(prev => ({ ...prev, hp: Math.min(100, prev.hp + shelter.restEffect!.hp), stamina: Math.min(100, prev.stamina + shelter.restEffect!.stamina), bodyTemperature: 37, dailyActionLog: [...(prev.dailyActionLog || []), actionText] }));
+        
+        const oldStats = {...playerStats};
+        const newHp = Math.min(100, oldStats.hp + shelter.restEffect.hp);
+        const newStamina = Math.min(100, oldStats.stamina + shelter.restEffect.stamina);
+        const newTemp = 37;
+
+        let restoredParts: string[] = [];
+        if (newHp > oldStats.hp) {
+            restoredParts.push(t('restHP', { amount: newHp - oldStats.hp }));
+        }
+        if (newStamina > oldStats.stamina) {
+            restoredParts.push(t('restStamina', { amount: (newStamina - oldStats.stamina).toFixed(0) }));
+        }
+
+        if(restoredParts.length > 0) {
+            addNarrativeEntry(t('restSuccess', { restoration: restoredParts.join(t('andConnector')) }), 'system');
+        } else {
+            addNarrativeEntry(t('restNoEffect'), 'system');
+        }
+
+        if(oldStats.bodyTemperature !== newTemp) {
+            addNarrativeEntry(t('restSuccessTemp'), 'system');
+        }
+
+        setPlayerStats(prev => ({ ...prev, hp: newHp, stamina: newStamina, bodyTemperature: newTemp, dailyActionLog: [...(prev.dailyActionLog || []), actionText] }));
         advanceGameTime();
-    }, [isLoading, isGameOver, world, playerPosition, addNarrativeEntry, advanceGameTime, t, toast, setPlayerStats]);
+    }, [isLoading, isGameOver, world, playerPosition, addNarrativeEntry, advanceGameTime, t, toast, setPlayerStats, playerStats]);
     
     const handleFuseItems = useCallback(async (itemsToFuse: PlayerItem[]) => {
         if (isLoading || isGameOver) return;

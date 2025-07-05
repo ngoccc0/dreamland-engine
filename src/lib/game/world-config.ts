@@ -40,7 +40,7 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
     },
     swamp: {
         minSize: 4, maxSize: 8, travelCost: 5, spreadWeight: 0.2,
-        allowedNeighbors: ['forest', 'grassland', 'jungle', 'wall'],
+        allowedNeighbors: ['forest', 'grassland', 'jungle', 'wall', 'floptropica'],
         defaultValueRanges: {
             vegetationDensity: { min: 5, max: 8 }, moisture: { min: 8, max: 10 }, elevation: { min: -1, max: 1 },
             dangerLevel: { min: 7, max: 10 }, magicAffinity: { min: 4, max: 7 }, humanPresence: { min: 0, max: 1 },
@@ -70,7 +70,7 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
     },
     jungle: {
         minSize: 6, maxSize: 12, travelCost: 5, spreadWeight: 0.5,
-        allowedNeighbors: ['forest', 'swamp', 'grassland', 'wall'],
+        allowedNeighbors: ['forest', 'swamp', 'grassland', 'wall', 'floptropica'],
         defaultValueRanges: {
             vegetationDensity: { min: 9, max: 10 }, moisture: { min: 8, max: 10 }, elevation: { min: 1, max: 3 },
             dangerLevel: { min: 6, max: 9 }, magicAffinity: { min: 4, max: 8 }, humanPresence: { min: 0, max: 4 },
@@ -88,9 +88,19 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
         },
         soilType: ['rocky'],
     },
+    floptropica: {
+        minSize: 5, maxSize: 10, travelCost: 2, spreadWeight: 0.01,
+        allowedNeighbors: ['jungle', 'swamp', 'wall'],
+        defaultValueRanges: {
+            vegetationDensity: { min: 8, max: 10 }, moisture: { min: 7, max: 9 }, elevation: { min: 1, max: 3 },
+            dangerLevel: { min: 5, max: 8 }, magicAffinity: { min: 8, max: 10 }, humanPresence: { min: 5, max: 10 },
+            predatorPresence: { min: 6, max: 9 }, temperature: { min: 7, max: 10 },
+        },
+        soilType: ['loamy', 'clay'],
+    },
     wall: {
         minSize: 1, maxSize: 1, travelCost: 999, spreadWeight: 0,
-        allowedNeighbors: ['forest', 'grassland', 'desert', 'swamp', 'mountain', 'cave', 'jungle', 'volcanic', 'wall'],
+        allowedNeighbors: ['forest', 'grassland', 'desert', 'swamp', 'mountain', 'cave', 'jungle', 'volcanic', 'wall', 'floptropica'],
         defaultValueRanges: {
             vegetationDensity: { min: 0, max: 0 }, moisture: { min: 0, max: 0 }, elevation: { min: 5, max: 5 },
             dangerLevel: { min: 0, max: 0 }, magicAffinity: { min: 0, max: 0 }, humanPresence: { min: 0, max: 0 },

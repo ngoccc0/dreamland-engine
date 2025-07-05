@@ -9,6 +9,7 @@ import { cave_vi, cave_en } from './templates/cave';
 import { jungle_vi, jungle_en } from './templates/jungle';
 import { volcanic_vi, volcanic_en } from './templates/volcanic';
 import { wall_vi, wall_en } from './templates/wall';
+import { floptropica_vi, floptropica_en } from './templates/floptropica';
 
 const templates_vi: Record<Terrain, any> = {
     forest: forest_vi,
@@ -20,6 +21,7 @@ const templates_vi: Record<Terrain, any> = {
     jungle: jungle_vi,
     volcanic: volcanic_vi,
     wall: wall_vi,
+    floptropica: floptropica_vi,
 };
 
 const templates_en: Record<Terrain, any> = {
@@ -32,6 +34,7 @@ const templates_en: Record<Terrain, any> = {
     jungle: jungle_en,
     volcanic: volcanic_en,
     wall: wall_en,
+    floptropica: floptropica_en,
 };
 
 export const getTemplates = (lang: Language): Record<Terrain, any> => {

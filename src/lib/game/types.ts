@@ -2,7 +2,7 @@
 
 // --- Data Types and Interfaces for the Game Engine ---
 
-export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave" | "jungle" | "volcanic" | "wall";
+export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave" | "jungle" | "volcanic" | "wall" | "floptropica";
 export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky';
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
 export type ItemCategory = 'Weapon' | 'Material' | 'Energy Source' | 'Food' | 'Data' | 'Tool' | 'Equipment' | 'Support' | 'Magic' | 'Fusion';

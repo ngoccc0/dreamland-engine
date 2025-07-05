@@ -64,6 +64,7 @@ export default {
           cave: '#4A4A4A',       // Dark Grey
           jungle: '#00532C',     // Very Dark Green
           volcanic: '#4E0A0A',   // Dark Red/Brown
+          floptropica: '#FF69B4', // Hot Pink
           wall: '#333333',       // Darker Grey for Walls
           empty: '#343434',      // Dark gray for unexplored
           player: '#DC143C',     // Crimson

@@ -115,6 +115,12 @@ const itemTranslations = {
     item_luu_huynh_desc: 'A yellow, powdery lump with a characteristic rotten egg smell, a key ingredient in gunpowder.',
     item_trai_tim_magma_desc: 'A stone that is still hot and glowing faintly, containing the energy of lava.',
     item_tro_nui_lua_desc: 'A fine gray dust, very rich in minerals and can be used as fertilizer.',
+    item_jiafei_pan_desc: "A legendary pan, perfect for cooking up some products... or for self-defense. It makes a satisfying 'CLANG!' sound.",
+    item_stan_twitter_thread_desc: "A long, winding scroll of indecipherable arguments and memes. Might contain valuable information... or just drama.",
+    item_cupcakke_remix_desc: "A powerful audio artifact. Playing it restores your energy to keep slaying.",
+    item_yass_pill_desc: "A mysterious pill that makes you say 'Yass' uncontrollably. Restores a bit of health.",
+    item_gusher_desc: "A refreshing beverage. It's giving... refreshment.",
+    item_onika_burger_coupon_desc: "A coupon for a free meal at Onika Burgers. Expires yesterday.",
   },
   vi: {
     item_la_cay_lon_desc: 'Những chiếc lá rộng bản, thích hợp để lợp mái.',
@@ -230,6 +236,12 @@ const itemTranslations = {
     item_luu_huynh_desc: 'Một cục bột màu vàng có mùi trứng thối đặc trưng, là thành phần quan trọng trong chế tạo thuốc súng.',
     item_trai_tim_magma_desc: 'Một hòn đá vẫn còn nóng hổi và phát ra ánh sáng le lói, chứa đựng năng lượng của dung nham.',
     item_tro_nui_lua_desc: 'Một lớp bụi mịn màu xám, rất giàu khoáng chất và có thể dùng làm phân bón.',
+    item_jiafei_pan_desc: "Một chiếc chảo huyền thoại, hoàn hảo để nấu một số sản phẩm... hoặc để tự vệ. Nó tạo ra âm thanh 'CLANG!' thỏa mãn.",
+    item_stan_twitter_thread_desc: "Một cuộn giấy dài, quanh co ghi những cuộc tranh cãi và meme khó hiểu. Có thể chứa thông tin có giá trị... hoặc chỉ là drama.",
+    item_cupcakke_remix_desc: "Một hiện vật âm thanh mạnh mẽ. Chơi nó sẽ phục hồi năng lượng của bạn để tiếp tục 'slay'.",
+    item_yass_pill_desc: "Một viên thuốc bí ẩn khiến bạn nói 'Yass' không kiểm soát. Phục hồi một ít máu.",
+    item_gusher_desc: "Một loại đồ uống giải khát. Nó mang lại... sự sảng khoái.",
+    item_onika_burger_coupon_desc: "Một phiếu giảm giá cho một bữa ăn miễn phí tại Onika Burgers. Hết hạn ngày hôm qua.",
   }
 }
 
@@ -255,6 +267,9 @@ const structureTranslations = {
         structure_campfire_desc: 'A small, controlled fire that provides warmth, light, and raises the surrounding temperature.',
         structure_shelter_tent_desc: 'A simple shelter made from branches and leaves, offering protection from the elements.',
         structure_sturdy_shelter_desc: 'A small house of wood and stone, providing better protection from the elements and wild animals.',
+        structure_deborah_university_desc: "A prestigious institution where one learns to serve and slay.",
+        structure_nicki_hospital_desc: "A place for when you've slayed too close to the sun.",
+        structure_onika_burgers_desc: "A fast food joint that only plays Nicki Minaj. The burgers are... questionable.",
     },
     vi: {
         structure_watchtower_ruin_desc: 'Phế tích của một tháp canh bằng đá đứng im lặng, cung cấp một cái nhìn bao quát về xung quanh.',
@@ -264,6 +279,9 @@ const structureTranslations = {
         structure_campfire_desc: 'Một đống lửa nhỏ, được kiểm soát, cung cấp sự ấm áp, ánh sáng và tăng nhiệt độ khu vực xung quanh.',
         structure_shelter_tent_desc: 'Một nơi trú ẩn đơn giản làm từ cành cây và lá, giúp che chắn khỏi các yếu tố thời tiết.',
         structure_sturdy_shelter_desc: 'Một ngôi nhà nhỏ bằng gỗ và đá, cung cấp sự bảo vệ tốt hơn khỏi các yếu tố thời tiết và thú dữ.',
+        structure_deborah_university_desc: "Một học viện danh tiếng nơi người ta học cách phục vụ và 'slay'.",
+        structure_nicki_hospital_desc: "Một nơi dành cho những khi bạn đã 'slay' quá gần mặt trời.",
+        structure_onika_burgers_desc: "Một quán ăn nhanh chỉ bật nhạc của Nicki Minaj. Bánh mì kẹp thịt thì... đáng ngờ.",
     }
 }
 
@@ -296,6 +314,12 @@ const skillTranslations = {
 
 const gameEntityNames = {
   en: {
+    'Gusher': 'Gusher',
+    'Phiếu giảm giá Onika Burger': 'Onika Burger Coupon',
+    'Chảo của Jiafei': "Jiafei's Pan",
+    'Chủ đề Stan Twitter': 'Stan Twitter Thread',
+    'Bản Remix của CupcakKe': "CupcakKe's Remix",
+    'Viên Yass': 'Yass Pill',
     'Lá cây lớn': 'Large Leaf',
     'Sỏi': 'Pebbles',
     'Đá Cuội': 'Cobblestone',
@@ -416,6 +440,9 @@ const gameEntityNames = {
     'Lửa trại': 'Campfire',
     'Lều trú ẩn': 'Shelter Tent',
     'Nhà trú ẩn kiên cố': 'Sturdy Shelter',
+    'Đại học C.V.N.T. của Deborah': "Deborah's C.V.N.T. University",
+    'Bệnh viện Barbz của Nicki': "Nicki's Barbz Hospital",
+    'Onika Burgers': "Onika Burgers",
     forest: 'Forest',
     grassland: 'Grassland',
     desert: 'Desert',
@@ -424,9 +451,16 @@ const gameEntityNames = {
     cave: 'Cave',
     jungle: 'Jungle',
     volcanic: 'Volcanic',
+    floptropica: 'Floptropica',
     wall: 'Wall',
   },
   vi: {
+    'Gusher': 'Gusher',
+    'Phiếu giảm giá Onika Burger': 'Phiếu giảm giá Onika Burger',
+    'Chảo của Jiafei': 'Chảo của Jiafei',
+    'Chủ đề Stan Twitter': 'Chủ đề Stan Twitter',
+    'Bản Remix của CupcakKe': 'Bản Remix của CupcakKe',
+    'Viên Yass': 'Viên Yass',
     'Lá cây lớn': 'Lá cây lớn',
     'Sỏi': 'Sỏi',
     'Đá Cuội': 'Đá Cuội',
@@ -547,6 +581,9 @@ const gameEntityNames = {
     'Lửa trại': 'Lửa trại',
     'Lều trú ẩn': 'Lều trú ẩn',
     'Nhà trú ẩn kiên cố': 'Nhà trú ẩn kiên cố',
+    'Đại học C.V.N.T. của Deborah': 'Đại học C.V.N.T. của Deborah',
+    'Bệnh viện Barbz của Nicki': 'Bệnh viện Barbz của Nicki',
+    'Onika Burgers': 'Onika Burgers',
     forest: 'Rừng',
     grassland: 'Đồng cỏ',
     desert: 'Sa mạc',
@@ -555,6 +592,7 @@ const gameEntityNames = {
     cave: 'Hang động',
     jungle: 'Rừng rậm',
     volcanic: 'Núi lửa',
+    floptropica: 'Floptropica',
     wall: 'Tường đá',
   }
 };
@@ -599,6 +637,7 @@ export const translations = {
     'Salamander lửa': 'Fire Salamander',
     'Golem dung nham': 'Lava Golem',
     'Rồng lửa con': 'Young Fire Dragon',
+    'Twink Hung Dữ': 'Fierce Twink',
 
     // NPC Names
     'Thợ săn bí ẩn': 'Mysterious Hunter',
@@ -620,6 +659,7 @@ export const translations = {
     'Nhà thực vật học': 'Botanist',
     'Thợ rèn dung nham': 'Lava Blacksmith',
     'Hỏa tinh bị mắc kẹt': 'Trapped Fire Elemental',
+    'Một Stan đang hoảng loạn': 'A Panicked Stan',
 
     gameTitle: "Dreamland Engine",
     selectLanguage: "Select Language",
@@ -1008,6 +1048,7 @@ export const translations = {
     'Salamander lửa': 'Salamander lửa',
     'Golem dung nham': 'Golem dung nham',
     'Rồng lửa con': 'Rồng lửa con',
+    'Twink Hung Dữ': 'Twink Hung Dữ',
 
     'Thợ săn bí ẩn': 'Thợ săn bí ẩn',
     'Linh hồn cây': 'Linh hồn cây',
@@ -1028,6 +1069,7 @@ export const translations = {
     'Nhà thực vật học': 'Nhà thực vật học',
     'Thợ rèn dung nham': 'Thợ rèn dung nham',
     'Hỏa tinh bị mắc kẹt': 'Hỏa tinh bị mắc kẹt',
+    'Một Stan đang hoảng loạn': 'Một Stan đang hoảng loạn',
 
     gameTitle: "Ký Sự Lãng Du",
     selectLanguage: "Chọn Ngôn Ngữ",

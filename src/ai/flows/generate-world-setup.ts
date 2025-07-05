@@ -179,72 +179,20 @@ const generateWorldSetupFlow = ai.defineFlow(
         console.log('--- DETECTED "FLOPTROPICA" DEBUG WORLD ---');
         
         const floptropicaItems: GeneratedItem[] = [
-            {
-                name: "Jiafei's Pan",
-                description: "A legendary pan, perfect for cooking up some products... or for self-defense. It makes a satisfying 'CLANG!' sound.",
-                emoji: '🍳',
-                category: 'Weapon',
-                tier: 2,
-                effects: [],
-                baseQuantity: { min: 1, max: 1 },
-                spawnBiomes: ['jungle'],
-            },
-            {
-                name: "Stan Twitter Thread",
-                description: "A long, winding scroll of indecipherable arguments and memes. Might contain valuable information... or just drama.",
-                emoji: '📜',
-                category: 'Data',
-                tier: 1,
-                effects: [],
-                baseQuantity: { min: 1, max: 1 },
-                spawnBiomes: ['jungle'],
-            },
-            {
-                name: "CupcakKe's Remix",
-                description: "A powerful audio artifact. Playing it restores your energy to keep slaying.",
-                emoji: '🎶',
-                category: 'Support',
-                tier: 3,
-                effects: [{ type: 'RESTORE_STAMINA', amount: 50 }],
-                baseQuantity: { min: 1, max: 1 },
-                spawnBiomes: ['jungle'],
-            },
-            {
-                name: "Yass Pill",
-                description: "A mysterious pill that makes you say 'Yass' uncontrollably. Restores a bit of health.",
-                emoji: '💊',
-                category: 'Support',
-                tier: 2,
-                effects: [{ type: 'HEAL', amount: 30 }],
-                baseQuantity: { min: 2, max: 2 },
-                spawnBiomes: ['jungle'],
-            }
+            { name: "Chảo của Jiafei", description: 'item_jiafei_pan_desc', emoji: '🍳', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['floptropica'] },
+            { name: "Chủ đề Stan Twitter", description: 'item_stan_twitter_thread_desc', emoji: '📜', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['floptropica'] },
+            { name: "Bản Remix của CupcakKe", description: 'item_cupcakke_remix_desc', emoji: '🎶', category: 'Support', tier: 3, effects: [{ type: 'RESTORE_STAMINA', amount: 50 }], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['floptropica'] },
+            { name: "Viên Yass", description: 'item_yass_pill_desc', emoji: '💊', category: 'Support', tier: 2, effects: [{ type: 'HEAL', amount: 30 }], baseQuantity: { min: 2, max: 2 }, spawnBiomes: ['floptropica'] },
+            { name: "Gusher", description: "item_gusher_desc", emoji: '🥤', category: 'Food', tier: 1, effects: [{ type: 'RESTORE_STAMINA', amount: 30 }], baseQuantity: { min: 1, max: 2 }, spawnBiomes: ['floptropica'] },
+            { name: "Phiếu giảm giá Onika Burger", description: "item_onika_burger_coupon_desc", emoji: '🎟️', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['floptropica'] },
         ];
 
         const floptropicaStructures: Structure[] = [
-            {
-                name: "Deborah's C.V.N.T. University",
-                description: "A prestigious institution where one learns to serve and slay.",
-                emoji: '🎓',
-                providesShelter: true,
-                buildable: false,
-                buildCost: [],
-                restEffect: { hp: 30, stamina: 30 },
-                heatValue: 1,
-            },
-            {
-                name: "Nicki's Barbz Hospital",
-                description: "A place for when you've slayed too close to the sun.",
-                emoji: '🏥',
-                providesShelter: true,
-                buildable: false,
-                buildCost: [],
-                restEffect: { hp: 100, stamina: 50 },
-                heatValue: 0,
-            }
+            { name: 'Đại học C.V.N.T. của Deborah', description: 'structure_deborah_university_desc', emoji: '🎓', providesShelter: true, buildable: false, buildCost: [], restEffect: { hp: 30, stamina: 30 }, heatValue: 1 },
+            { name: 'Bệnh viện Barbz của Nicki', description: 'structure_nicki_hospital_desc', emoji: '🏥', providesShelter: true, buildable: false, buildCost: [], restEffect: { hp: 100, stamina: 50 }, heatValue: 0 },
+            { name: "Onika Burgers", description: "structure_onika_burgers_desc", emoji: '🍔', providesShelter: true, buildable: false, buildCost: [], restEffect: { hp: 15, stamina: 40 }, heatValue: 1 },
         ];
 
-        // Define the skills we want to offer
         const skill1: Skill = { name: 'skillFireballName', description: 'skillFireballDesc', tier: 1, manaCost: 15, effect: { type: 'DAMAGE', amount: 15, target: 'ENEMY' } };
         const skill2: Skill = { name: 'skillHealName', description: 'skillHealDesc', tier: 1, manaCost: 20, effect: { type: 'HEAL', amount: 25, target: 'SELF' } };
         const skill3: Skill = { name: 'skillLifeSiphonName', description: 'skillLifeSiphonDesc', tier: 2, manaCost: 30, effect: { type: 'DAMAGE', amount: 25, target: 'ENEMY', healRatio: 0.5 } };
@@ -252,28 +200,28 @@ const generateWorldSetupFlow = ai.defineFlow(
         const concepts = [
             {
                 worldName: "Floptropica",
-                initialNarrative: "You wake up on a vibrant, slightly chaotic island. The air smells like Jiafei's products and faint screams of 'ATE!'. A strange pop music is playing from the jungle. You feel a strange urge to 'serve cvnt'.",
-                startingBiome: 'jungle' as Terrain,
-                playerInventory: [ { name: "Jiafei's Pan", quantity: 1 }, { name: "Stan Twitter Thread", quantity: 1 } ],
-                initialQuests: [ "Find the source of the mysterious pop music.", "Serve your first cvnt." ],
+                initialNarrative: "Bạn thức dậy trên một hòn đảo sôi động, hơi hỗn loạn. Không khí có mùi sản phẩm của Jiafei và tiếng la hét 'ATE!' yếu ớt. Một bản nhạc pop kỳ lạ đang phát ra từ khu rừng rậm. Bạn cảm thấy một sự thôi thúc kỳ lạ để 'phục vụ cvnt'.",
+                startingBiome: 'floptropica' as Terrain,
+                playerInventory: [ { name: "Chảo của Jiafei", quantity: 1 }, { name: "Chủ đề Stan Twitter", quantity: 1 } ],
+                initialQuests: [ "Tìm nguồn gốc của bản nhạc pop bí ẩn.", "Phục vụ cvnt đầu tiên của bạn." ],
                 startingSkill: skill1,
                 customStructures: floptropicaStructures,
             },
             {
-                worldName: "The Slaylands",
-                initialNarrative: "Washed ashore, you find yourself in a land where memes are currency and shade is the deadliest weapon. A distant palace hums with the sound of Nicki Minaj.",
-                startingBiome: 'jungle' as Terrain,
-                playerInventory: [ { name: "CupcakKe's Remix", quantity: 1 }, { name: "Yass Pill", quantity: 1 } ],
-                initialQuests: [ "Reach Nicki's Barbz Hospital.", "Craft a stan-worthy meme." ],
+                worldName: "Vương quốc Onika",
+                initialNarrative: "Bị dạt vào bờ, bạn thấy mình ở một vùng đất nơi các meme là tiền tệ và 'shade' là vũ khí nguy hiểm nhất. Một cung điện ở xa xa vang lên âm thanh của Nicki Minaj.",
+                startingBiome: 'floptropica' as Terrain,
+                playerInventory: [ { name: "Bản Remix của CupcakKe", quantity: 1 }, { name: "Phiếu giảm giá Onika Burger", quantity: 1 } ],
+                initialQuests: [ "Đến Bệnh viện Barbz của Nicki.", "Chế tạo một meme xứng tầm stan." ],
                 startingSkill: skill2,
                 customStructures: floptropicaStructures,
             },
             {
-                worldName: "Bad Bussy Badlands",
-                initialNarrative: "You've been exiled to the Bad Bussy Badlands. Here, only the most iconic can survive. The ground trembles with the bass of powerful remixes.",
-                startingBiome: 'jungle' as Terrain,
-                playerInventory: [ { name: "Jiafei's Pan", quantity: 1 }, { name: "Yass Pill", quantity: 2 } ],
-                initialQuests: [ "Survive the night.", "Find Deborah's C.V.N.T. University." ],
+                worldName: "Vùng đất hoang Bad Bussy",
+                initialNarrative: "Bạn đã bị đày đến Vùng đất hoang Bad Bussy. Ở đây, chỉ những người mang tính biểu tượng nhất mới có thể tồn tại. Mặt đất rung chuyển theo tiếng bass của những bản remix mạnh mẽ.",
+                startingBiome: 'floptropica' as Terrain,
+                playerInventory: [ { name: "Chảo của Jiafei", quantity: 1 }, { name: "Viên Yass", quantity: 2 } ],
+                initialQuests: [ "Sống sót qua đêm.", "Tìm Đại học C.V.N.T. của Deborah." ],
                 startingSkill: skill3,
                 customStructures: floptropicaStructures,
             }

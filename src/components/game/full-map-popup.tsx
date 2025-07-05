@@ -28,6 +28,7 @@ const biomeColors: Record<Terrain | 'empty', string> = {
   cave: "bg-map-cave",
   jungle: "bg-map-jungle",
   volcanic: "bg-map-volcanic",
+  floptropica: "bg-map-floptropica",
   wall: "bg-map-wall",
   empty: "bg-black/20",
 };
@@ -41,6 +42,7 @@ const biomeIcons: Record<Exclude<Terrain, 'empty'>, React.ReactNode> = {
     cave: <span className="text-2xl opacity-80" role="img" aria-label="cave">🪨</span>,
     jungle: <span className="text-2xl opacity-80" role="img" aria-label="jungle">🦜</span>,
     volcanic: <span className="text-2xl opacity-80" role="img" aria-label="volcanic">🌋</span>,
+    floptropica: <span className="text-2xl opacity-80" role="img" aria-label="floptropica">💅</span>,
     wall: <span className="text-2xl opacity-80" role="img" aria-label="wall">🧱</span>,
 };
 

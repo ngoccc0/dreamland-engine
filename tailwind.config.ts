@@ -117,9 +117,11 @@ export default {
         'accordion-up': 'accordion-up 0.2s ease-out',
         'jump-in': 'jump-in 0.3s ease-out forwards',
         'spin-gear': 'spin-gear 10s linear infinite',
-        'gradient-glow': 'gradient-glow 120s linear infinite',
+        'gradient-glow': 'gradient-glow 300s linear infinite',
       },
     },
   },
   plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography')],
 } satisfies Config;
+
+    

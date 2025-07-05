@@ -17,13 +17,13 @@ import { provideQuestHint } from "@/ai/flows/provide-quest-hint";
 
 import { useGameState } from "./use-game-state";
 import { rollDice, getSuccessLevel, successLevelToTranslationKey } from "@/lib/game/dice";
-import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, checkConditions, calculateCraftingOutcome } from '@/lib/game/engine';
+import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, checkConditions, calculateCraftingOutcome } from "@/lib/game/engine";
 import { skillDefinitions } from '@/lib/game/skills';
 import { getTemplates } from '@/lib/game/templates';
 import { worldConfig } from '@/lib/game/world-config';
 import { clamp } from "@/lib/utils";
 
-import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, ItemEffect } from "@/lib/game/types";
+import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, ItemEffect, Terrain } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 
 
@@ -216,9 +216,28 @@ export function useGameEngine(props: GameEngineProps) {
             };
         }
     
+        let newTerrain: Terrain;
         const validTerrains = getValidAdjacentTerrains(pos, currentWorld);
-        const terrainProbs = validTerrains.map(t => [t, worldConfig[t].spreadWeight] as [Terrain, number]);
-        const newTerrain = weightedRandom(terrainProbs);
+        const distanceFromStart = Math.abs(pos.x) + Math.abs(pos.y);
+
+        // Check for the special Floptropica case
+        if (distanceFromStart >= 100 && validTerrains.includes('floptropica') && Math.random() < 0.001) {
+            newTerrain = 'floptropica';
+        } else {
+            // Otherwise, proceed with normal generation, but exclude Floptropica
+            const standardTerrains = validTerrains.filter(t => t !== 'floptropica');
+            
+            // This fallback is important. If floptropica was the only valid option and the 0.1% roll failed,
+            // we need to generate *something*. We can default to grassland as a safe default.
+            if (standardTerrains.length > 0) {
+                 const terrainProbs = standardTerrains.map(t => [t, worldConfig[t].spreadWeight] as [Terrain, number]);
+                 newTerrain = weightedRandom(terrainProbs);
+            } else {
+                 // This case means either no valid terrains were found, or Floptropica was the only one.
+                 // Defaulting to grassland is a safe fallback.
+                 newTerrain = 'grassland';
+            }
+        }
         
         const result = generateRegion(
             pos, newTerrain, currentWorld, currentRegions, currentRegionCounter,
@@ -272,34 +291,35 @@ export function useGameEngine(props: GameEngineProps) {
                 addNarrativeEntry(props.worldSetup.initialNarrative, 'narrative');
                 const startPos = { x: 0, y: 0 };
                 
-                let { newWorld, newRegions, newRegionCounter } = generateRegion(
-                    startPos, props.worldSetup.startingBiome, {}, {}, 0,
-                    worldProfile, currentSeason, customItemDefinitions,
-                    customItemCatalog, customStructures, language
-                );
+                let worldSnapshot = {};
+                let regionsSnapshot = {};
+                let regionCounterSnapshot = 0;
                 
-                let worldSnapshot = { ...newWorld };
-                let regionsSnapshot = { ...newRegions };
-                let regionCounterSnapshot = newRegionCounter;
                 const visionRadius = 1;
-
                 for (let dy = -visionRadius; dy <= visionRadius; dy++) {
                     for (let dx = -visionRadius; dx <= visionRadius; dx++) {
                          const revealPos = { x: startPos.x + dx, y: startPos.y + dy };
                          if (!worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
-                             const result = ensureChunkExists(revealPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
-                             worldSnapshot = result.worldWithChunk;
-                             regionsSnapshot = result.regions;
+                             const terrainToGenerate = (dx === 0 && dy === 0) ? props.worldSetup.startingBiome : getValidAdjacentTerrains(revealPos, worldSnapshot)[0] || 'grassland';
+                             const result = generateRegion(
+                                revealPos, terrainToGenerate, worldSnapshot, regionsSnapshot, regionCounterSnapshot,
+                                worldProfile, currentSeason, customItemDefinitions,
+                                customItemCatalog, customStructures, language
+                            );
+                             worldSnapshot = result.newWorld;
+                             regionsSnapshot = result.newRegions;
                              regionCounterSnapshot = result.newRegionCounter;
-                         }
-                         if (worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
-                             worldSnapshot[`${revealPos.x},${revealPos.y}`].explored = true;
                          }
                     }
                 }
-                newWorld = worldSnapshot;
-                newRegions = regionsSnapshot;
-                newRegionCounter = regionCounterSnapshot;
+
+                Object.keys(worldSnapshot).forEach(key => {
+                    worldSnapshot[key].explored = true;
+                });
+                
+                const newWorld = worldSnapshot;
+                const newRegions = regionsSnapshot;
+                const newRegionCounter = regionCounterSnapshot;
 
                 const startKey = `${startPos.x},${startPos.y}`;
                 if (newWorld[startKey]) addNarrativeEntry(newWorld[startKey].description, 'narrative');

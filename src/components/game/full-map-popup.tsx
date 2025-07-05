@@ -34,9 +34,10 @@ const biomeColors: Record<Terrain | 'empty', string> = {
   beach: "bg-map-beach",
   mesa: "bg-map-mesa",
   mushroom_forest: "bg-map-mushroom_forest",
-  corrupted_lands: "bg-map-corrupted_lands",
+  ocean: "bg-map-ocean",
   floating_islands: "bg-map-floating_islands",
   empty: "bg-black/20",
+  corrupted_lands: "bg-map-corrupted_lands",
 };
 
 const biomeIcons: Record<Exclude<Terrain, 'empty'>, React.ReactNode> = {
@@ -54,8 +55,9 @@ const biomeIcons: Record<Exclude<Terrain, 'empty'>, React.ReactNode> = {
     beach: <span className="text-2xl opacity-80" role="img" aria-label="beach">🏖️</span>,
     mesa: <span className="text-2xl opacity-80" role="img" aria-label="mesa">🏞️</span>,
     mushroom_forest: <span className="text-2xl opacity-80" role="img" aria-label="mushroom forest">🍄</span>,
-    corrupted_lands: <span className="text-2xl opacity-80" role="img" aria-label="corrupted lands">☠️</span>,
+    ocean: <span className="text-2xl opacity-80" role="img" aria-label="ocean">🌊</span>,
     floating_islands: <span className="text-2xl opacity-80" role="img" aria-label="floating islands">☁️</span>,
+    corrupted_lands: <span className="text-2xl opacity-80" role="img" aria-label="corrupted lands">☠️</span>,
 };
 
 export function FullMapPopup({ open, onOpenChange, world, playerPosition }: FullMapPopupProps) {

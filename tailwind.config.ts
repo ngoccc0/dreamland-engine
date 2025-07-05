@@ -72,7 +72,7 @@ const config = {
           beach: '#FFDAB9',
           mesa: '#CD853F',
           mushroom_forest: '#9370DB',
-          corrupted_lands: '#483D8B',
+          ocean: '#4682B4',
           floating_islands: '#87CEEB',
           empty: '#343434',
           player: '#DC143C',

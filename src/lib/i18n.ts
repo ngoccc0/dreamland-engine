@@ -1,6 +1,7 @@
 
 export const translations = {
   en: {
+    ocean: 'Ocean',
     tundra: 'Tundra',
     beach: 'Beach',
     mesa: 'Mesa',
@@ -338,6 +339,8 @@ export const translations = {
     'Đỉa khổng lồ': 'Giant Leech',
     'Ma trơi': 'Will-o-Wisp',
     'Cá sấu': 'Alligator',
+    'Cá mập': 'Shark',
+    'Shark': 'Shark',
     'Muỗi khổng lồ': 'Giant Mosquito',
     'Dê núi hung hãn': 'Aggressive Mountain Goat',
     'Người đá': 'Stone Golem',
@@ -727,6 +730,7 @@ export const translations = {
     gameOverMessage: "Bóng tối bao trùm lấy bạn. Hành trình của bạn kết thúc tại đây."
   },
   vi: {
+    ocean: 'Đại dương',
     tundra: 'Lãnh nguyên',
     beach: 'Bãi biển',
     mesa: 'Hẻm núi',
@@ -1064,6 +1068,8 @@ export const translations = {
     'Đỉa khổng lồ': 'Đỉa khổng lồ',
     'Ma trơi': 'Ma trơi',
     'Cá sấu': 'Cá sấu',
+    'Cá mập': 'Cá mập',
+    'Shark': 'Cá mập',
     'Muỗi khổng lồ': 'Muỗi khổng lồ',
     'Dê núi hung hãn': 'Dê núi hung hãn',
     'Người đá': 'Người đá',

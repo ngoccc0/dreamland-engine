@@ -1,36 +1,34 @@
 
-export const corrupted_lands_vi = {
+export const ocean_vi = {
     descriptionTemplates: [
-        'Mặt đất [adjective] và nứt nẻ. Không khí nặng trĩu mùi [smell].',
-        'Một vùng đất [adjective] nơi sự sống dường như đã lụi tàn. Những [feature] méo mó vươn lên trời.',
+        'Một đại dương [adjective] bao la trải dài đến tận chân trời. Những [feature] lấp lánh dưới ánh mặt trời.',
+        'Bạn đang đứng trước một vùng biển [adjective]. Gió mang theo mùi [smell] và tiếng [sound] không ngớt.',
     ],
-    adjectives: ['hắc ám', 'chết chóc', 'bị nguyền rủa'],
-    features: ['tinh thể bóng tối', 'bộ xương cũ', 'cây cối khô héo'],
-    smells: ['lưu huỳnh', 'sự mục rữa', 'ma thuật hắc ám'],
-    sounds: ['tiếng gió rít', 'sự im lặng chết chóc', 'tiếng thì thầm ma quái'],
+    adjectives: ['sâu thẳm', 'mênh mông', 'dữ dội', 'yên ả'],
+    features: ['sóng bạc đầu', 'đàn cá heo', 'hải đăng xa xăm', 'đảo nhỏ'],
+    smells: ['muối biển', 'không khí trong lành', 'cá'],
+    sounds: ['sóng vỗ', 'hải âu kêu', 'gió biển'],
     NPCs: [],
-    items: [
-        { name: 'Mảnh Xương', conditions: { chance: 0.4 } },
-        { name: 'Cát Ma Thuật', conditions: { magicAffinity: { min: 8 }, chance: 0.1 } },
-    ],
+    items: [],
     structures: [],
-    enemies: [],
+    enemies: [
+        { data: { type: 'Cá mập', emoji: '🦈', hp: 100, damage: 25, behavior: 'aggressive', size: 'large', diet: [], satiation: 0, maxSatiation: 1, loot: [{name: 'Răng Cá Sấu', chance: 0.5, quantity: {min: 3, max: 6}}] }, conditions: { chance: 0.1 } },
+    ],
 };
 
-export const corrupted_lands_en = {
+export const ocean_en = {
     descriptionTemplates: [
-        'The ground is [adjective] and cracked. The air is heavy with the smell of [smell].',
-        'A [adjective] land where life seems to have withered. Twisted [feature] reach for the sky.',
+        'A vast, [adjective] ocean stretches to the horizon. The [feature] glisten under the sun.',
+        'You are facing an [adjective] sea. The wind carries the scent of [smell] and the incessant sound of [sound].',
     ],
-    adjectives: ['dark', 'dead', 'cursed'],
-    features: ['shadow crystals', 'old skeletons', 'withered trees'],
-    smells: ['sulfur', 'decay', 'dark magic'],
-    sounds: ['howling wind', 'deadly silence', 'eerie whispers'],
+    adjectives: ['deep', 'vast', 'rough', 'calm'],
+    features: ['white-capped waves', 'a pod of dolphins', 'a distant lighthouse', 'small islands'],
+    smells: ['sea salt', 'fresh air', 'fish'],
+    sounds: ['crashing waves', 'seagull cries', 'sea wind'],
     NPCs: [],
-    items: [
-        { name: 'Mảnh Xương', conditions: { chance: 0.4 } },
-        { name: 'Cát Ma Thuật', conditions: { magicAffinity: { min: 8 }, chance: 0.1 } },
-    ],
+    items: [],
     structures: [],
-    enemies: [],
+    enemies: [
+        { data: { type: 'Shark', emoji: '🦈', hp: 100, damage: 25, behavior: 'aggressive', size: 'large', diet: [], satiation: 0, maxSatiation: 1, loot: [{name: 'Răng Cá Sấu', chance: 0.5, quantity: {min: 3, max: 6}}] }, conditions: { chance: 0.1 } },
+    ],
 };

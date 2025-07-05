@@ -14,7 +14,7 @@ import { tundra_vi, tundra_en } from "./templates/tundra";
 import { beach_vi, beach_en } from "./templates/beach";
 import { mesa_vi, mesa_en } from "./templates/mesa";
 import { mushroom_forest_vi, mushroom_forest_en } from "./templates/mushroom";
-import { corrupted_lands_vi, corrupted_lands_en } from "./templates/corrupted";
+import { ocean_vi, ocean_en } from "./templates/corrupted";
 import { floating_islands_vi, floating_islands_en } from "./templates/floating";
 
 const templates_vi: Record<Terrain, any> = {
@@ -32,8 +32,9 @@ const templates_vi: Record<Terrain, any> = {
     beach: beach_vi,
     mesa: mesa_vi,
     mushroom_forest: mushroom_forest_vi,
-    corrupted_lands: corrupted_lands_vi,
+    ocean: ocean_vi,
     floating_islands: floating_islands_vi,
+    corrupted_lands: ocean_vi, // Fallback in case old data refers to it
 };
 
 const templates_en: Record<Terrain, any> = {
@@ -51,8 +52,9 @@ const templates_en: Record<Terrain, any> = {
     beach: beach_en,
     mesa: mesa_en,
     mushroom_forest: mushroom_forest_en,
-    corrupted_lands: corrupted_lands_en,
+    ocean: ocean_en,
     floating_islands: floating_islands_en,
+    corrupted_lands: ocean_en, // Fallback in case old data refers to it
 };
 
 export const getTemplates = (lang: Language): Record<Terrain, any> => {

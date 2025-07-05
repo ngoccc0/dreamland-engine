@@ -23,7 +23,7 @@ import { getTemplates } from '@/lib/game/templates';
 import { worldConfig } from '@/lib/game/world-config';
 import { clamp } from "@/lib/utils";
 
-import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, PlayerPersona, Structure, Pet, ItemEffect } from "@/lib/game/types";
+import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, ItemEffect } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 
 
@@ -580,7 +580,7 @@ export function useGameEngine(props: GameEngineProps) {
             const key = `${playerPosition.x},${playerPosition.y}`;
             const currentChunk = world[key];
             if (!currentChunk?.enemy || currentChunk.enemy.type !== target) { addNarrativeEntry(t('noTargetForITEM', {target: t(target as TranslationKey)}), 'system'); return; }
-            if (!currentChunk.enemy.diet.includes(itemName)) { addNarrativeEntry(t('targetNotInterested', { target: t(target as TranslationKey) }), 'system'); return; }
+            if (!currentChunk.enemy.diet.includes(itemName)) { addNarrativeEntry(t('targetNotInterested', { target: t(target as TranslationKey), item: t(itemName as TranslationKey) }), 'system'); return; }
 
             newPlayerStats.items[itemIndex].quantity -= 1;
             const newEnemyState = { ...currentChunk.enemy, satiation: Math.min(currentChunk.enemy.satiation + 1, currentChunk.enemy.maxSatiation) };

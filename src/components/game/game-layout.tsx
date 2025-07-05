@@ -190,11 +190,11 @@ export default function GameLayout(props: GameLayoutProps) {
                             </div>
                             <div className="space-y-1">
                                 <label className="flex items-center gap-1.5 text-muted-foreground"><Zap /> {t('hudMana')}</label>
-                                <Progress value={(playerStats.mana / 50) * 100} className="h-2" indicatorClassName="bg-blue-500" />
+                                <Progress value={(playerStats.mana / 50) * 100} className="h-2" indicatorClassName="bg-gradient-to-r from-blue-500 to-purple-600" />
                             </div>
                             <div className="space-y-1">
                                 <label className="flex items-center gap-1.5 text-muted-foreground"><Footprints /> {t('hudStamina')}</label>
-                                <Progress value={playerStats.stamina} className="h-2" indicatorClassName="bg-yellow-500" />
+                                <Progress value={playerStats.stamina} className="h-2" indicatorClassName="bg-gradient-to-r from-yellow-400 to-orange-500" />
                             </div>
                         </div>
                         <div className="flex items-center justify-between text-xs text-muted-foreground">

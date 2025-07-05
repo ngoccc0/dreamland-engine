@@ -10,6 +10,7 @@ import { AuthProvider } from '@/context/auth-context';
 export const metadata: Metadata = {
   title: 'Dreamland Engine',
   description: 'An AI-driven text-based adventure game.',
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
@@ -20,7 +21,6 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
-        <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#1a110f" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

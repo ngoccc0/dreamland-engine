@@ -1,6 +1,12 @@
 
 export const translations = {
   en: {
+    tundra: 'Tundra',
+    beach: 'Beach',
+    mesa: 'Mesa',
+    mushroom_forest: 'Mushroom Forest',
+    corrupted_lands: 'Corrupted Lands',
+    floating_islands: 'Floating Islands',
     'Gusher': 'Gusher',
     'Phiếu giảm giá Onika Burger': 'Onika Burger Coupon',
     'Chảo của Jiafei': "Jiafei's Pan",
@@ -721,6 +727,12 @@ export const translations = {
     gameOverMessage: "Bóng tối bao trùm lấy bạn. Hành trình của bạn kết thúc tại đây."
   },
   vi: {
+    tundra: 'Lãnh nguyên',
+    beach: 'Bãi biển',
+    mesa: 'Hẻm núi',
+    mushroom_forest: 'Rừng Nấm',
+    corrupted_lands: 'Vùng Đất Hắc Ám',
+    floating_islands: 'Đảo Nổi',
     'Gusher': 'Gusher',
     'Phiếu giảm giá Onika Burger': 'Phiếu giảm giá Onika Burger',
     'Chảo của Jiafei': 'Chảo của Jiafei',

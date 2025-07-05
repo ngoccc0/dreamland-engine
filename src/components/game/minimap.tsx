@@ -67,6 +67,12 @@ const biomeColors: Record<Terrain | 'empty', string> = {
   volcanic: "bg-map-volcanic",
   floptropica: "bg-map-floptropica",
   wall: "bg-map-wall",
+  tundra: "bg-map-tundra",
+  beach: "bg-map-beach",
+  mesa: "bg-map-mesa",
+  mushroom_forest: "bg-map-mushroom_forest",
+  corrupted_lands: "bg-map-corrupted_lands",
+  floating_islands: "bg-map-floating_islands",
   empty: "bg-map-empty",
 };
 
@@ -81,6 +87,12 @@ const biomeIcons: Record<Exclude<Terrain, 'empty'>, React.ReactNode> = {
     volcanic: <span className="text-3xl opacity-80" role="img" aria-label="volcanic">🌋</span>,
     floptropica: <span className="text-3xl opacity-80" role="img" aria-label="floptropica">💅</span>,
     wall: <span className="text-3xl opacity-80" role="img" aria-label="wall">🧱</span>,
+    tundra: <span className="text-3xl opacity-80" role="img" aria-label="tundra">❄️</span>,
+    beach: <span className="text-3xl opacity-80" role="img" aria-label="beach">🏖️</span>,
+    mesa: <span className="text-3xl opacity-80" role="img" aria-label="mesa">🏞️</span>,
+    mushroom_forest: <span className="text-3xl opacity-80" role="img" aria-label="mushroom forest">🍄</span>,
+    corrupted_lands: <span className="text-3xl opacity-80" role="img" aria-label="corrupted lands">☠️</span>,
+    floating_islands: <span className="text-3xl opacity-80" role="img" aria-label="floating islands">☁️</span>,
 };
 
 

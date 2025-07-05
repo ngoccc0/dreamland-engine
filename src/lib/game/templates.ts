@@ -10,6 +10,12 @@ import { jungle_vi, jungle_en } from './templates/jungle';
 import { volcanic_vi, volcanic_en } from './templates/volcanic';
 import { wall_vi, wall_en } from './templates/wall';
 import { floptropica_vi, floptropica_en } from './templates/floptropica';
+import { tundra_vi, tundra_en } from "./templates/tundra";
+import { beach_vi, beach_en } from "./templates/beach";
+import { mesa_vi, mesa_en } from "./templates/mesa";
+import { mushroom_forest_vi, mushroom_forest_en } from "./templates/mushroom";
+import { corrupted_lands_vi, corrupted_lands_en } from "./templates/corrupted";
+import { floating_islands_vi, floating_islands_en } from "./templates/floating";
 
 const templates_vi: Record<Terrain, any> = {
     forest: forest_vi,
@@ -22,6 +28,12 @@ const templates_vi: Record<Terrain, any> = {
     volcanic: volcanic_vi,
     wall: wall_vi,
     floptropica: floptropica_vi,
+    tundra: tundra_vi,
+    beach: beach_vi,
+    mesa: mesa_vi,
+    mushroom_forest: mushroom_forest_vi,
+    corrupted_lands: corrupted_lands_vi,
+    floating_islands: floating_islands_vi,
 };
 
 const templates_en: Record<Terrain, any> = {
@@ -35,6 +47,12 @@ const templates_en: Record<Terrain, any> = {
     volcanic: volcanic_en,
     wall: wall_en,
     floptropica: floptropica_en,
+    tundra: tundra_en,
+    beach: beach_en,
+    mesa: mesa_en,
+    mushroom_forest: mushroom_forest_en,
+    corrupted_lands: corrupted_lands_en,
+    floating_islands: floating_islands_en,
 };
 
 export const getTemplates = (lang: Language): Record<Terrain, any> => {

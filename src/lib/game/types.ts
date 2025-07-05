@@ -11,6 +11,7 @@ export type GameMode = 'ai' | 'offline';
 export type DiceType = 'd20' | 'd12' | '2d6';
 export type AiModel = 'balanced' | 'creative' | 'fast' | 'quality';
 export type NarrativeLength = 'short' | 'medium' | 'long';
+export type GameTheme = 'Magic' | 'Technology' | 'Post-Apocalypse' | 'Cyberpunk' | 'Normal';
 
 
 // --- NEW WEATHER SYSTEM TYPES ---
@@ -49,6 +50,7 @@ export interface WorldProfile {
     moistureBias: number; // -5 to +5, global moisture offset
     tempBias: number; // -5 to +5, global temperature offset
     resourceDensity: number; // 0-10, affects amount of spawned resources
+    theme: GameTheme;
 }
 
 // 2. Season: Global modifiers based on the time of year.
@@ -349,4 +351,30 @@ export interface GeneratedItem {
       optimal: SpawnConditions;
       subOptimal: SpawnConditions;
     }
+}
+
+
+// --- RANDOM EVENT SYSTEM ---
+
+export interface EventOutcome {
+  descriptionKey: import('./i18n').TranslationKey;
+  effects: {
+    hpChange?: number;
+    staminaChange?: number;
+    manaChange?: number;
+    items?: { name: string; quantity: number }[];
+    spawnEnemy?: { type: string; hp: number; damage: number };
+    unlockRecipe?: string;
+  };
+}
+
+export interface RandomEvent {
+  id: import('./i18n').TranslationKey; // The ID is also the translation key for the event name
+  theme: GameTheme;
+  difficulty: 'easy' | 'medium' | 'hard';
+  // A function to check if this event can trigger in the current context
+  canTrigger: (chunk: Chunk, playerStats: PlayerStatus, season: Season) => boolean;
+  outcomes: {
+    [key in import('./dice').SuccessLevel]?: EventOutcome;
+  };
 }

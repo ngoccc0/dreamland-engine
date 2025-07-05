@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from "react";
@@ -26,6 +27,7 @@ export function useGameState({ worldSetup, initialGameState, customItemDefinitio
             moistureBias: 0,
             tempBias: 0,
             resourceDensity: 5,
+            theme: 'Normal',
         }
     );
     const [currentSeason, setCurrentSeason] = useState<Season>(initialGameState?.currentSeason || 'spring');

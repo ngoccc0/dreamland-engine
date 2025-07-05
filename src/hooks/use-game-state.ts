@@ -50,6 +50,7 @@ export function useGameState({ worldSetup, initialGameState, customItemDefinitio
             bodyTemperature: 37,
             items: worldSetup?.playerInventory || [],
             quests: worldSetup?.initialQuests || [],
+            questsCompleted: 0,
             skills: worldSetup?.startingSkill ? [worldSetup.startingSkill] : [],
             pets: [],
             persona: 'none',

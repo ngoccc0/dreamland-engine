@@ -183,6 +183,7 @@ export interface PlayerStatus {
     bodyTemperature: number;
     items: PlayerItem[];
     quests: string[];
+    questsCompleted: number;
     skills: Skill[];
     persona: PlayerPersona;
     attributes: {

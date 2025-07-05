@@ -18,6 +18,7 @@ import {z} from 'genkit';
 import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema, GeneratedItemSchema, NpcSchema } from '@/ai/schemas';
 import { playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool, completeQuestTool, startQuestTool } from '@/ai/tools/game-actions';
 import { generateNewQuest } from './generate-new-quest';
+import { generateNewLegendaryQuest } from './generate-legendary-quest-flow';
 import { generateNewItem } from './generate-new-item';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import type { AiModel, NarrativeLength } from '@/lib/game/types';
@@ -58,6 +59,7 @@ const GenerateNarrativeOutputSchema = z.object({
   updatedPlayerStatus: z.object({
     items: z.array(PlayerItemSchema).optional(),
     quests: z.array(z.string()).optional(),
+    questsCompleted: z.number().optional(),
     hp: z.number().optional(),
     mana: z.number().optional(),
     stamina: z.number().optional(),
@@ -83,6 +85,7 @@ const narrativePromptTemplate = `You are the Game Master for a text-based advent
 1.  **Analyze Player Action:** Determine the player's intent based on '{{{playerAction}}}'.
 2.  **Prioritize Quests:**
     - If the action completes a quest (e.g., 'give wolf fang to hunter' for quest 'Get wolf fang for hunter'), you MUST use \`completeQuestTool\`.
+    - If the action completes a step of a Legendary Quest (prefixed with "[Legendary]" or "[Huyền thoại]"), you MUST use \`completeQuestTool\` for the current step, and then immediately use \`startQuestTool\` to issue the *next step* of that same legendary quest.
     - If the action involves an NPC giving a new quest, you MUST use \`startQuestTool\`.
 3.  **Use Other Tools:** If no quest action is relevant, use the most appropriate tool (attack, take, use, tame, etc.).
 4.  **Narrate the Outcome:** Craft an engaging narrative based on the tool's result AND the pre-determined 'successLevel'. The length of your narrative MUST adhere to the '{{narrativeLength}}' parameter.
@@ -139,6 +142,28 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
   };
 
   if (toolCalls && toolCalls.length > 0) {
+      // Logic for chaining multiple tool calls (e.g., completeQuest then startQuest)
+      if (toolCalls.length > 1) {
+          const completedQuestCall = toolCalls.find(call => call.tool === 'completeQuest');
+          const startQuestCall = toolCalls.find(call => call.tool === 'startQuest');
+
+          if (completedQuestCall && startQuestCall) {
+              const completedQuestText = (completedQuestCall.input as any).questText;
+              const newQuestText = (startQuestCall.input as any).questText;
+
+              let currentQuests = input.playerStatus.quests || [];
+              currentQuests = currentQuests.filter(q => q !== completedQuestText);
+              currentQuests.push(newQuestText);
+              
+              finalOutput.updatedPlayerStatus = { 
+                  ...finalOutput.updatedPlayerStatus,
+                  quests: currentQuests,
+              };
+              // Note: questsCompleted counter is handled with single quest completions below.
+          }
+      }
+
+
       const toolCall = toolCalls[0];
       const toolOutput = toolCall.output;
 
@@ -182,7 +207,7 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
           const result = toolOutput as z.infer<typeof useSkillTool.outputSchema>;
           finalOutput.updatedPlayerStatus = result.updatedPlayerStatus;
           finalOutput.updatedChunk = { enemy: result.updatedEnemy };
-      } else if (toolCall.tool === 'startQuest') {
+      } else if (toolCall.tool === 'startQuest' && toolCalls.length === 1) { // Only handle if it's not part of a chain
           const result = toolOutput as z.infer<typeof startQuestTool.outputSchema>;
           const currentQuests = finalOutput.updatedPlayerStatus?.quests || input.playerStatus.quests || [];
           if (!currentQuests.includes(result.questStarted)) {
@@ -212,35 +237,50 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
               const completedQuestText = (toolCall.input as z.infer<typeof completeQuestTool.inputSchema>).questText;
               currentQuests = currentQuests.filter(q => q !== completedQuestText);
               const updatedItemsArray = Array.from(newItemsMap.values());
+              const newQuestsCompletedCount = (input.playerStatus.questsCompleted || 0) + 1;
 
               finalOutput.updatedPlayerStatus = { 
                   ...finalOutput.updatedPlayerStatus,
                   quests: currentQuests,
                   items: updatedItemsArray,
+                  questsCompleted: newQuestsCompletedCount,
               };
               
-              try {
-                  const newQuestResult = await generateNewQuest({
-                      worldName: input.worldName,
-                      playerStatus: { 
-                          ...input.playerStatus, 
-                          quests: currentQuests, 
-                          items: updatedItemsArray 
-                      },
-                      currentChunk: input.currentChunk,
-                      existingQuests: currentQuests,
-                      language: input.language,
-                  });
+              // Only generate a new quest if we are NOT chaining from a legendary one
+              if (!toolCalls.some(call => call.tool === 'startQuest')) {
+                  try {
+                      // Decide whether to generate a legendary quest or a normal one.
+                      let newQuestResult;
+                      const isLegendaryTime = newQuestsCompletedCount > 0 && newQuestsCompletedCount % 3 === 0;
 
-                  if (newQuestResult.newQuest) {
-                      const updatedQuestsWithNew = [...currentQuests, newQuestResult.newQuest];
-                      finalOutput.updatedPlayerStatus.quests = updatedQuestsWithNew;
-                      
-                      const existingSystemMessage = finalOutput.systemMessage ? finalOutput.systemMessage + " " : "";
-                      finalOutput.systemMessage = existingSystemMessage + `New quest: ${newQuestResult.newQuest}`;
+                      if (isLegendaryTime) {
+                          newQuestResult = await generateNewLegendaryQuest({
+                              worldName: input.worldName,
+                              playerStatus: { ...input.playerStatus, quests: currentQuests, items: updatedItemsArray },
+                              currentChunk: input.currentChunk,
+                              existingQuests: currentQuests,
+                              language: input.language,
+                          });
+                      } else {
+                          newQuestResult = await generateNewQuest({
+                              worldName: input.worldName,
+                              playerStatus: { ...input.playerStatus, quests: currentQuests, items: updatedItemsArray },
+                              currentChunk: input.currentChunk,
+                              existingQuests: currentQuests,
+                              language: input.language,
+                          });
+                      }
+
+                      if (newQuestResult.newQuest) {
+                          const updatedQuestsWithNew = [...currentQuests, newQuestResult.newQuest];
+                          finalOutput.updatedPlayerStatus.quests = updatedQuestsWithNew;
+                          
+                          const existingSystemMessage = finalOutput.systemMessage ? finalOutput.systemMessage + " " : "";
+                          finalOutput.systemMessage = existingSystemMessage + `New quest: ${newQuestResult.newQuest}`;
+                      }
+                  } catch (e) {
+                      console.error("Failed to generate a new quest after completion:", e);
                   }
-              } catch (e) {
-                  console.error("Failed to generate a new quest after completion:", e);
               }
 
               // Silently generate a new item for the world

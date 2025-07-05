@@ -97,6 +97,7 @@ export const PlayerStatusSchema = z.object({
     stamina: z.number().describe("Player's stamina, used for physical actions."),
     items: z.array(PlayerItemSchema).describe("Player's inventory with item names, quantities, and tiers."),
     quests: z.array(z.string()),
+    questsCompleted: z.number().optional().default(0).describe("The total number of quests the player has completed."),
     skills: z.array(SkillSchema).describe("The skills the player knows."),
     attributes: PlayerAttributesSchema.describe("Player's combat attributes."),
     pets: z.array(PetSchema).optional().describe("A list of the player's tamed companions."),

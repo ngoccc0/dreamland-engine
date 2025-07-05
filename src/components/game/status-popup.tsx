@@ -19,7 +19,7 @@ import type { PlayerStatus, Skill } from "@/lib/game/types";
 import { skillDefinitions } from "@/lib/game/skills";
 import type { TranslationKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { Heart, Loader2, Book, Star } from "./icons";
+import { Heart, Loader2, Book, Star, Sparkles } from "./icons";
 
 interface StatusPopupProps {
   open: boolean;
@@ -188,23 +188,29 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint }: Status
             <h3 className="mb-2 font-headline font-semibold">{t('quests')}</h3>
             {quests.length > 0 ? (
               <Accordion type="single" collapsible className="w-full space-y-2">
-                {quests.map((quest, index) => (
-                  <AccordionItem value={`item-${index}`} key={index} className="p-2 bg-muted rounded-md border-none">
-                    <AccordionTrigger onClick={() => handleQuestClick(quest)} className="py-0 text-left hover:no-underline text-muted-foreground">
-                      {quest}
-                    </AccordionTrigger>
-                    <AccordionContent className="pt-2 text-accent-foreground italic">
-                      {hintFetchStatus[quest]?.isLoading && (
+                {quests.map((quest, index) => {
+                  const isLegendary = quest.startsWith('[Legendary]') || quest.startsWith('[Huyền thoại]');
+                  return (
+                    <AccordionItem value={`item-${index}`} key={index} className="p-2 bg-muted rounded-md border-none">
+                      <AccordionTrigger onClick={() => handleQuestClick(quest)} className="py-0 text-left hover:no-underline text-muted-foreground">
                         <div className="flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin"/>
-                          <span>{t('suggesting')}...</span>
+                          {isLegendary && <Sparkles className="h-4 w-4 text-yellow-400 flex-shrink-0" />}
+                          <span className={cn(isLegendary && "text-yellow-300/90")}>{quest}</span>
                         </div>
-                      )}
-                      {hintFetchStatus[quest]?.error && <p className="text-destructive">{hintFetchStatus[quest]?.error}</p>}
-                      {stats.questHints?.[quest] && <p>"{stats.questHints[quest]}"</p>}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
+                      </AccordionTrigger>
+                      <AccordionContent className="pt-2 text-accent-foreground italic">
+                        {hintFetchStatus[quest]?.isLoading && (
+                          <div className="flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin"/>
+                            <span>{t('suggesting')}...</span>
+                          </div>
+                        )}
+                        {hintFetchStatus[quest]?.error && <p className="text-destructive">{hintFetchStatus[quest]?.error}</p>}
+                        {stats.questHints?.[quest] && <p>"{stats.questHints[quest]}"</p>}
+                      </AccordionContent>
+                    </AccordionItem>
+                  );
+                })}
               </Accordion>
             ) : (
               <p className="text-center text-muted-foreground">{t('noQuests')}</p>

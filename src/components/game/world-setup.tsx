@@ -186,7 +186,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
     const renderStep0 = () => (
         <>
             <CardHeader>
-                <CardTitle className="font-headline text-3xl flex items-center gap-3"><Wand2 /> {t('worldSetupTitle')}</CardTitle>
+                <CardTitle className="font-headline text-3xl flex items-center gap-3"><MilkyWay /> {t('worldSetupTitle')}</CardTitle>
                 <CardDescription>{worldDescription}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">

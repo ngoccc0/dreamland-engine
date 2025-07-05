@@ -8,7 +8,7 @@
 import {z} from 'genkit';
 import type { Terrain } from '@/lib/game/types';
 
-const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic", "wall"];
+export const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic", "wall", "floptropica"];
 
 export const ItemCategorySchema = z.enum(['Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion']).describe("The category of the item.");
 

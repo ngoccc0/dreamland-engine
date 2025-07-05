@@ -8,7 +8,7 @@
  */
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { PlayerStatusSchema, EnemySchema, PlayerItemSchema, ChunkItemSchema, ItemDefinitionSchema, PetSchema, SkillSchema } from '@/ai/schemas';
+import { PlayerStatusSchema, EnemySchema, PlayerItemSchema, ChunkItemSchema, ItemDefinitionSchema, PetSchema, SkillSchema, allTerrains } from '@/ai/schemas';
 import type { PlayerItem, PlayerStatus, Pet, ChunkItem, Skill, Structure } from '@/lib/game/types';
 import { getTemplates } from '@/lib/game/templates';
 import { buildableStructures } from '@/lib/game/structures';
@@ -23,7 +23,7 @@ export const playerAttackTool = ai.defineTool({
     inputSchema: z.object({
         playerStatus: PlayerStatusSchema,
         enemy: EnemySchema,
-        terrain: z.enum(["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic", "wall"]),
+        terrain: z.enum(allTerrains),
         customItemDefinitions: z.record(ItemDefinitionSchema).describe("A map of ALL item definitions (static and custom) for the current game session."),
         lightLevel: z.number().optional().describe("The current light level (-10 to 10). Low light (e.g., < -3) can reduce accuracy."),
         moisture: z.number().optional().describe("The current moisture level (0-10). High moisture (e.g., > 8) can impede physical attacks."),

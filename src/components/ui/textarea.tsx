@@ -7,7 +7,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, React.ComponentProps<'tex
     return (
       <div className="relative group">
         <div
-          className="absolute -inset-0.5 bg-gradient-to-r from-chart-1 via-chart-3 to-chart-5 rounded-lg blur opacity-0 group-focus-within:opacity-75 transition duration-200 animate-gradient-glow"
+          className="absolute -inset-0.5 bg-gradient-to-r from-chart-1 via-chart-4 to-chart-5 rounded-lg blur opacity-0 group-focus-within:opacity-75 transition duration-200 animate-gradient-glow"
           style={{ backgroundSize: '200% 200%' }}
         />
         <textarea

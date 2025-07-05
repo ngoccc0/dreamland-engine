@@ -38,6 +38,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
     const [isSuggesting, setIsSuggesting] = useState(false);
     const [suggestedKeywords, setSuggestedKeywords] = useState<string[]>([]);
     const [examplePrompts, setExamplePrompts] = useState<string[]>([]);
+    const [worldDescription, setWorldDescription] = useState("");
     
     const [isLoading, setIsLoading] = useState(false);
     const [generatedData, setGeneratedData] = useState<GenerateWorldSetupOutput | null>(null);
@@ -60,7 +61,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
 
     const { toast } = useToast();
 
-    // Randomly select 6 example prompts to display
+    // Randomly select prompts and description on load
     useEffect(() => {
         const allExampleKeys: TranslationKey[] = [
             'example1', 'example2', 'example3', 'example4', 'example5', 
@@ -70,8 +71,17 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
 
         const shuffled = [...allExampleKeys].sort(() => 0.5 - Math.random());
         const selectedPrompts = shuffled.slice(0, 6).map(key => t(key));
-        
         setExamplePrompts(selectedPrompts);
+
+        const descriptionKeys: TranslationKey[] = [
+            'worldSetupDesc1',
+            'worldSetupDesc2',
+            'worldSetupDesc3',
+            'worldSetupDesc4',
+        ];
+        const randomKey = descriptionKeys[Math.floor(Math.random() * descriptionKeys.length)];
+        setWorldDescription(t(randomKey));
+
     }, [t]);
 
 
@@ -176,7 +186,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         <>
             <CardHeader>
                 <CardTitle className="font-headline text-3xl flex items-center gap-3"><Wand2 /> {t('worldSetupTitle')}</CardTitle>
-                <CardDescription>{t('worldSetupStep1')}</CardDescription>
+                <CardDescription>{worldDescription}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 <Textarea

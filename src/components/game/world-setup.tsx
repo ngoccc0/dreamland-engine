@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -188,7 +187,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                     className="text-base"
                 />
                 <div className="space-y-2">
-                    <Button onClick={handleSuggest} disabled={isSuggesting || !userInput.trim()} variant="outline">
+                    <Button onClick={handleSuggest} disabled={isSuggesting || !userInput.trim()} variant="outline" type="button">
                         {isSuggesting ? <Loader2 className="animate-spin mr-2" /> : <BrainCircuit className="mr-2"/>}
                         {isSuggesting ? t('suggesting') : t('suggestKeywords')}
                     </Button>
@@ -197,6 +196,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                             {suggestedKeywords.map((keyword, i) => (
                                 <button
                                     key={i}
+                                    type="button"
                                     onClick={() => setUserInput(prev => `${prev} ${keyword}`)}
                                     className="px-3 py-1 rounded-full bg-accent/20 text-accent-foreground text-sm hover:bg-accent/40 transition-colors"
                                 >
@@ -213,6 +213,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                         {examplePrompts.map((prompt) => (
                             <button
                                 key={prompt}
+                                type="button"
                                 onClick={() => setUserInput(prompt)}
                                 className="text-left p-2 rounded-md hover:bg-muted transition-colors text-accent text-xs"
                             >
@@ -223,7 +224,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                 </div>
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
-                <Button onClick={handleGenerate}>
+                <Button onClick={handleGenerate} type="button">
                     {t('generateWorlds')} <ArrowRight className="ml-2"/>
                 </Button>
             </CardFooter>
@@ -408,10 +409,10 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                 )}
             </CardContent>
             <CardFooter className="flex flex-col-reverse sm:flex-row sm:justify-between gap-2">
-                <Button variant="ghost" onClick={() => { setStep(0); setGeneratedData(null); }}>
+                <Button variant="ghost" onClick={() => { setStep(0); setGeneratedData(null); }} type="button">
                     <ArrowLeft className="mr-2"/> {t('backAndEdit')}
                 </Button>
-                <Button onClick={handleStartGame} disabled={isLoading || !generatedData}>
+                <Button onClick={handleStartGame} disabled={isLoading || !generatedData} type="button">
                     {t('startAdventure')} <ArrowRight className="ml-2"/>
                 </Button>
             </CardFooter>
@@ -425,7 +426,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                      <div className="absolute top-4 right-4 z-10">
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button onClick={() => setSettingsOpen(true)} variant="ghost" size="icon">
+                                <Button onClick={() => setSettingsOpen(true)} variant="ghost" size="icon" type="button">
                                     <Settings className="h-5 w-5" />
                                 </Button>
                             </TooltipTrigger>

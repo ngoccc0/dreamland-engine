@@ -16,7 +16,7 @@ import type { WorldConcept, Skill } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 import { SettingsPopup } from "./settings-popup";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
-import { MilkyWay, Wand2, ArrowRight, BrainCircuit, Loader2, Settings, ArrowLeft } from "./icons";
+import { Sparkles, Wand2, ArrowRight, BrainCircuit, Loader2, Settings, ArrowLeft } from "./icons";
 
 interface WorldSetupProps {
     onWorldCreated: (worldSetup: WorldConcept) => void;
@@ -186,7 +186,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
     const renderStep0 = () => (
         <>
             <CardHeader>
-                <CardTitle className="font-headline text-3xl flex items-center gap-3"><MilkyWay /> {t('worldSetupTitle')}</CardTitle>
+                <CardTitle className="font-headline text-3xl flex items-center gap-3"><Sparkles /> {t('worldSetupTitle')}</CardTitle>
                 <CardDescription>{worldDescription}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -245,7 +245,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
     const renderStep1 = () => (
         <>
             <CardHeader>
-                <CardTitle className="font-headline text-3xl flex items-center gap-3"><MilkyWay /> {t('mixAndMatchTitle')}</CardTitle>
+                <CardTitle className="font-headline text-3xl flex items-center gap-3"><Sparkles /> {t('mixAndMatchTitle')}</CardTitle>
                 <CardDescription>{t('worldSetupStep2')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -453,3 +453,5 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         </TooltipProvider>
     );
 }
+
+    

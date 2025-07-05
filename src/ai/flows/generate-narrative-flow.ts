@@ -18,7 +18,7 @@ import {z} from 'genkit';
 import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema, GeneratedItemSchema, NpcSchema } from '@/ai/schemas';
 import { playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool, completeQuestTool, startQuestTool } from '@/ai/tools/game-actions';
 import { generateNewQuest } from './generate-new-quest';
-import { generateNewLegendaryQuest } from './generate-legendary-quest-flow';
+import { generateLegendaryQuest } from './generate-legendary-quest-flow';
 import { generateNewItem } from './generate-new-item';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import type { AiModel, NarrativeLength } from '@/lib/game/types';
@@ -254,7 +254,7 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
                       const isLegendaryTime = newQuestsCompletedCount > 0 && newQuestsCompletedCount % 3 === 0;
 
                       if (isLegendaryTime) {
-                          newQuestResult = await generateNewLegendaryQuest({
+                          newQuestResult = await generateLegendaryQuest({
                               worldName: input.worldName,
                               playerStatus: { ...input.playerStatus, quests: currentQuests, items: updatedItemsArray },
                               currentChunk: input.currentChunk,

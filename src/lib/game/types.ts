@@ -372,6 +372,7 @@ export interface RandomEvent {
   id: import('./i18n').TranslationKey; // The ID is also the translation key for the event name
   theme: GameTheme;
   difficulty: 'easy' | 'medium' | 'hard';
+  chance?: number;
   // A function to check if this event can trigger in the current context
   canTrigger: (chunk: Chunk, playerStats: PlayerStatus, season: Season) => boolean;
   outcomes: {

@@ -128,4 +128,80 @@ export const randomEvents: RandomEvent[] = [
             },
         },
     },
+    // --- RARE EVENTS ---
+    {
+        id: 'fallenStar',
+        theme: 'Magic',
+        difficulty: 'hard',
+        chance: 0.1,
+        canTrigger: (chunk) => chunk.lightLevel !== undefined && chunk.lightLevel < -5 && chunk.terrain !== 'cave',
+        outcomes: {
+            CriticalFailure: {
+                descriptionKey: 'eventFallenStarCritFail',
+                effects: { hpChange: -20 }
+            },
+            Failure: {
+                descriptionKey: 'eventFallenStarFail',
+                effects: { items: [{ name: 'Đá Obsidian', quantity: 1 }] }
+            },
+            Success: {
+                descriptionKey: 'eventFallenStarSuccess',
+                effects: { items: [{ name: 'Trái tim Magma', quantity: 1 }] }
+            },
+            GreatSuccess: {
+                descriptionKey: 'eventFallenStarGreatSuccess',
+                effects: { items: [{ name: 'Trái tim Magma', quantity: 1 }, { name: 'Cát Ma Thuật', quantity: 1 }] }
+            },
+            CriticalSuccess: {
+                descriptionKey: 'eventFallenStarCritSuccess',
+                effects: { items: [{ name: 'Pha Lê Núi', quantity: 1 }], manaChange: 25 }
+            },
+        },
+    },
+    {
+        id: 'abandonedCaravan',
+        theme: 'Normal',
+        difficulty: 'medium',
+        chance: 0.2,
+        canTrigger: (chunk) => ['grassland', 'desert'].includes(chunk.terrain) && chunk.humanPresence > 3,
+        outcomes: {
+            Failure: {
+                descriptionKey: 'eventAbandonedCaravanFail',
+                effects: { items: [{ name: 'Mảnh Vải Rách', quantity: 2 }] }
+            },
+            Success: {
+                descriptionKey: 'eventAbandonedCaravanSuccess',
+                effects: { items: [{ name: 'Bình Nước Cũ', quantity: 1 }, { name: 'Lúa Mì', quantity: 2 }] }
+            },
+            GreatSuccess: {
+                descriptionKey: 'eventAbandonedCaravanGreatSuccess',
+                effects: { items: [{ name: 'Chìa Khóa Rỉ Sét', quantity: 1 }, { name: 'Mỏ Vàng', quantity: 1 }] }
+            },
+            CriticalSuccess: {
+                descriptionKey: 'eventAbandonedCaravanCritSuccess',
+                effects: { items: [{ name: 'Bản Đồ Cổ', quantity: 1 }] }
+            },
+        },
+    },
+    {
+        id: 'ghostlyProcession',
+        theme: 'Magic',
+        difficulty: 'easy',
+        chance: 0.15,
+        canTrigger: (chunk) => ['swamp', 'forest'].includes(chunk.terrain) && chunk.lightLevel !== undefined && chunk.lightLevel < -5 && chunk.magicAffinity > 5,
+        outcomes: {
+            Failure: {
+                descriptionKey: 'eventGhostlyProcessionFail',
+                effects: { staminaChange: -15 }
+            },
+            Success: {
+                descriptionKey: 'eventGhostlyProcessionSuccess',
+                effects: { items: [{ name: 'Tinh chất Ma trơi', quantity: 1 }] }
+            },
+            GreatSuccess: {
+                descriptionKey: 'eventGhostlyProcessionGreatSuccess',
+                effects: { items: [{ name: 'Tinh chất Ma trơi', quantity: 2 }] }
+            },
+        },
+    },
 ];

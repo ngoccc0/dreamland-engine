@@ -184,6 +184,66 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
+    'Rìu Chiến Obsidian': {
+        description: 'item_obsidian_battleaxe_desc',
+        tier: 4,
+        category: 'Weapon',
+        emoji: '🪓',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Áo Giáp Da Cá Sấu': {
+        description: 'item_alligator_armor_desc',
+        tier: 4,
+        category: 'Equipment',
+        emoji: '👕',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Thuốc Máu Mạnh': {
+        description: 'item_strong_health_potion_desc',
+        tier: 3,
+        category: 'Support',
+        subCategory: 'Potion',
+        emoji: '🧪',
+        effects: [{ type: 'HEAL', amount: 75 }],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Cung Tên Harpy': {
+        description: 'item_harpy_bow_desc',
+        tier: 4,
+        category: 'Weapon',
+        emoji: '🏹',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Trượng Lõi Đá': {
+        description: 'item_golem_staff_desc',
+        tier: 5,
+        category: 'Weapon',
+        subCategory: 'Magic',
+        emoji: '🪄',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Thuốc Thể Lực': {
+        description: 'item_stamina_potion_desc',
+        tier: 3,
+        category: 'Support',
+        subCategory: 'Potion',
+        emoji: '🥤',
+        effects: [{ type: 'RESTORE_STAMINA', amount: 70 }],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Búa Chiến Người Lùn': {
+        description: 'item_dwarven_hammer_desc',
+        tier: 5,
+        category: 'Weapon',
+        emoji: '🔨',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+
 
     // --- VẬT PHẨM TỪ SINH VẬT ---
     'Nanh Sói': {

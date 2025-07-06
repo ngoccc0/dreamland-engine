@@ -120,4 +120,66 @@ export const recipes: Record<string, Recipe> = {
         ],
         description: 'recipe_bone_spear_desc',
     },
+    'Rìu Chiến Obsidian': {
+        result: { name: 'Rìu Chiến Obsidian', quantity: 1, emoji: '🪓' },
+        ingredients: [
+            { name: 'Lõi Gỗ', quantity: 2 },
+            { name: 'Đá Obsidian', quantity: 3 },
+            { name: 'Da Gấu', quantity: 1 }
+        ],
+        description: 'recipe_obsidian_battleaxe_desc',
+    },
+    'Áo Giáp Da Cá Sấu': {
+        result: { name: 'Áo Giáp Da Cá Sấu', quantity: 1, emoji: '👕' },
+        ingredients: [
+            { name: 'Da Cá Sấu', quantity: 2 },
+            { name: 'Tơ Nhện Khổng lồ', quantity: 5 }
+        ],
+        description: 'recipe_alligator_armor_desc',
+    },
+    'Thuốc Máu Mạnh': {
+        result: { name: 'Thuốc Máu Mạnh', quantity: 1, emoji: '🧪' },
+        ingredients: [
+            { name: 'Thuốc Máu Yếu', quantity: 1 },
+            { name: 'Cây Thuốc Núi', quantity: 1 },
+            { name: 'Nước Ngầm', quantity: 1 }
+        ],
+        description: 'recipe_strong_health_potion_desc',
+    },
+    'Cung Tên Harpy': {
+        result: { name: 'Cung Tên Harpy', quantity: 1, emoji: '🏹' },
+        ingredients: [
+            { name: 'Lõi Gỗ', quantity: 3 },
+            { name: 'Lông Harpie', quantity: 5 },
+            { name: 'Tơ Nhện Khổng lồ', quantity: 3 }
+        ],
+        description: 'recipe_harpy_bow_desc',
+    },
+    'Trượng Lõi Đá': {
+        result: { name: 'Trượng Lõi Đá', quantity: 1, emoji: '🪄' },
+        ingredients: [
+            { name: 'Lõi Người Đá', quantity: 1 },
+            { name: 'Lõi Gỗ', quantity: 1 },
+            { name: 'Pha Lê Núi', quantity: 2 }
+        ],
+        description: 'recipe_golem_staff_desc',
+    },
+    'Thuốc Thể Lực': {
+        result: { name: 'Thuốc Thể Lực', quantity: 1, emoji: '🥤' },
+        ingredients: [
+            { name: 'Quả Mọng Ăn Được', quantity: 5 },
+            { name: 'Mật Ong Hoang', quantity: 1 },
+            { name: 'Nước Ngầm', quantity: 1 }
+        ],
+        description: 'recipe_stamina_potion_desc',
+    },
+    'Búa Chiến Người Lùn': {
+        result: { name: 'Búa Chiến Người Lùn', quantity: 1, emoji: '🔨' },
+        ingredients: [
+            { name: 'Quặng Sắt', quantity: 5 },
+            { name: 'Lõi Người Đá', quantity: 1 },
+            { name: 'Da Gấu', quantity: 2 }
+        ],
+        description: 'recipe_dwarven_hammer_desc',
+    },
 };

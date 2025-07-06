@@ -20,6 +20,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // If auth is a mock object because Firebase config is missing, don't try to use it.
+    if (!auth || Object.keys(auth).length === 0) {
+      setLoading(false);
+      return;
+    }
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
@@ -29,6 +34,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async () => {
+    // If auth is a mock object, do nothing.
+    if (!auth || Object.keys(auth).length === 0) {
+        console.error("Firebase is not configured. Cannot log in.");
+        return;
+    }
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
@@ -37,6 +47,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
+    // If auth is a mock object, do nothing.
+    if (!auth || Object.keys(auth).length === 0) {
+        console.error("Firebase is not configured. Cannot log out.");
+        return;
+    }
     try {
       await signOut(auth);
     } catch (error) {

@@ -30,7 +30,8 @@ const geminiApiKeys = [
 
 if (geminiApiKeys.length > 0) {
   console.log(`Found ${geminiApiKeys.length} Gemini API key(s). Initializing Google AI plugin.`);
-  plugins.push(googleAI({apiKey: geminiApiKeys[0]}));
+  // Pass all found keys to the plugin. Genkit will manage them.
+  plugins.push(googleAI({apiKey: geminiApiKeys}));
 } else {
   console.warn(
     'GEMINI_API_KEY_PRIMARY or GEMINI_API_KEY_SECONDARY not found. Google AI plugin will not be available.'
@@ -39,7 +40,8 @@ if (geminiApiKeys.length > 0) {
 
 if (process.env.OPENAI_API_KEY) {
   console.log('Found OPENAI_API_KEY. Initializing OpenAI plugin.');
-  plugins.push(openAI({apiKey: process.env.OPENAI_API_KEY}));
+  // The plugin automatically reads the key from the environment.
+  plugins.push(openAI());
 } else {
   console.warn(
     'OPENAI_API_KEY not found. OpenAI plugin will not be available.'
@@ -48,7 +50,8 @@ if (process.env.OPENAI_API_KEY) {
 
 if (process.env.DEEPSEEK_API_KEY) {
   console.log('Found DEEPSEEK_API_KEY. Initializing Deepseek plugin.');
-  plugins.push(deepseek({apiKey: process.env.DEEPSEEK_API_KEY}));
+  // The custom plugin also reads the key from the environment.
+  plugins.push(deepseek());
 } else {
   console.warn(
     'DEEPSEEK_API_KEY not found. Deepseek plugin will not be available.'

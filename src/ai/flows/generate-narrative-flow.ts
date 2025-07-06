@@ -110,7 +110,7 @@ const narrativePromptTemplate = `You are the Game Master for a text-based advent
 
 const modelMap: Record<AiModel, string> = {
     balanced: 'googleai/gemini-2.0-flash',
-    creative: 'openai/gpt-4-turbo',
+    creative: 'openai/gpt-4o',
     fast: 'deepseek/deepseek-chat',
     quality: 'googleai/gemini-1.5-pro',
 };

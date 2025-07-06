@@ -11,7 +11,7 @@ const DEEPSEEK_API_BASE_URL = 'https://api.deepseek.com/v1';
 
 // Define model references that flows can use.
 export const deepseekChat = modelRef({
-  name: 'deepseek/deepseek-chat',
+  name: 'deepseek-chat',
   info: {
     label: 'DeepSeek Chat',
     supports: {

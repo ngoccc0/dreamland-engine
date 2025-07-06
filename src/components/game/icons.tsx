@@ -26,7 +26,6 @@ export {
   Loader2,
   Book,
   Star,
-  MilkyWay,
   Sparkles,
   Wand2,
   ArrowRight,

@@ -1,4 +1,5 @@
 
+import 'dotenv/config';
 import {genkit, Plugin} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 import {openAI} from 'genkitx-openai';

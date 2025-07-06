@@ -361,15 +361,25 @@ function generateChunkContent(
 
     // Actions
     const actions = [];
+    let actionIdCounter = 1;
+
     if (spawnedEnemy) {
-        actions.push({ id: 1, text: `${language === 'vi' ? 'Quan sát' : 'Observe'} ${spawnedEnemy.type}` });
-    } else if (spawnedNPCs.length > 0) {
-        actions.push({ id: 1, text: `${language === 'vi' ? 'Nói chuyện với' : 'Talk to'} ${t(spawnedNPCs[0].name as TranslationKey)}` });
+        actions.push({ id: actionIdCounter++, text: `${t('observeAction')} ${t(spawnedEnemy.type as TranslationKey)}` });
     }
-    actions.push({ id: 2, text: language === 'vi' ? 'Khám phá khu vực' : 'Explore the area' });
+    if (spawnedNPCs.length > 0) {
+        actions.push({ id: actionIdCounter++, text: `${t('talkToAction')} ${t(spawnedNPCs[0].name as TranslationKey)}` });
+    }
+
+    actions.push({ id: actionIdCounter++, text: t('exploreAction') });
+
     if (spawnedItems.length > 0) {
-         actions.push({ id: 3, text: `${language === 'vi' ? 'Nhặt' : 'Pick up'} ${t(spawnedItems[0].name as TranslationKey)}` });
+         actions.push({ id: actionIdCounter++, text: `${t('pickUpAction')} ${t(spawnedItems[0].name as TranslationKey)}` });
     }
+    
+    // Add generic survival actions
+    actions.push({ id: actionIdCounter++, text: t('forageForFoodAction') });
+    actions.push({ id: actionIdCounter++, text: t('searchForMaterialsAction') });
+    actions.push({ id: actionIdCounter++, text: t('listenToSurroundingsAction') });
 
     return {
         description: finalDescription,
@@ -473,7 +483,7 @@ export const generateRegion = (
         // Step 2: Calculate dependent attributes using the new function
         const dependentAttributes = calculateDependentChunkAttributes(
             terrain,
-            { vegetationDensity, moisture: baseMoisture, dangerLevel, temperature: baseTemperature },
+            { vegetationDensity, moisture: baseMoisture, dangerLevel: baseTemperature },
             worldProfile,
             currentSeason
         );

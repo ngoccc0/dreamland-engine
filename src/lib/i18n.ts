@@ -2,6 +2,17 @@
 
 export const translations = {
   en: {
+    observeAction: 'Observe',
+    forageForFoodAction: "Forage for food",
+    searchForMaterialsAction: "Search for materials",
+    listenToSurroundingsAction: "Listen to surroundings",
+    forageSuccess: "After some searching, you find {quantity} {itemName}.",
+    forageFail: "You search for edible plants but find nothing.",
+    searchMaterialsSuccess: "You scour the area and gather {quantity} {itemName}.",
+    searchMaterialsFail: "You can't find any useful materials here.",
+    listenHearNothing: "You listen intently, but only hear the ambient sounds of the area.",
+    listenHearSomething: "You hear a strange {sound} coming from the {direction}.",
+    enemySoundGeneric: "rustling",
     ocean: 'Ocean',
     tundra: 'Tundra',
     beach: 'Beach',
@@ -735,6 +746,17 @@ export const translations = {
     gameOverMessage: "Bóng tối bao trùm lấy bạn. Hành trình của bạn kết thúc tại đây."
   },
   vi: {
+    observeAction: 'Quan sát',
+    forageForFoodAction: "Tìm kiếm thức ăn",
+    searchForMaterialsAction: "Tìm kiếm nguyên liệu",
+    listenToSurroundingsAction: "Lắng nghe xung quanh",
+    forageSuccess: "Sau một hồi tìm kiếm, bạn tìm thấy {quantity} {itemName}.",
+    forageFail: "Bạn tìm kiếm cây cỏ ăn được nhưng không thấy gì.",
+    searchMaterialsSuccess: "Bạn lùng sục khu vực và thu thập được {quantity} {itemName}.",
+    searchMaterialsFail: "Bạn không thể tìm thấy bất kỳ nguyên liệu hữu ích nào ở đây.",
+    listenHearNothing: "Bạn lắng nghe chăm chú, nhưng chỉ nghe thấy những âm thanh xung quanh của khu vực.",
+    listenHearSomething: "Bạn nghe thấy một tiếng {sound} lạ đến từ phía {direction}.",
+    enemySoundGeneric: "sột soạt",
     ocean: 'Đại dương',
     tundra: 'Lãnh nguyên',
     beach: 'Bãi biển',

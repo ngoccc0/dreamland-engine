@@ -654,7 +654,7 @@ export function useGameEngine(props: GameEngineProps) {
                 for (const lootItem of enemyTemplate.data.loot) {
                     if (Math.random() < lootItem.chance) {
                         const definition = customItemDefinitions[lootItem.name];
-                        if (definition) lootDrops.push({ name: lootItem.name, description: definition.description, tier: definition.tier, quantity: getRandomInRange(lootItem.quantity), emoji: definition.emoji });
+                        if (definition) { lootDrops.push({ name: lootItem.name, description: definition.description, tier: definition.tier, quantity: getRandomInRange(lootItem.quantity), emoji: definition.emoji }); }
                     }
                 }
             }
@@ -792,9 +792,14 @@ export function useGameEngine(props: GameEngineProps) {
         addNarrativeEntry(actionText, 'action');
         let newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText] };
         const lowerAction = actionText.toLowerCase();
+
+        // Define action keys
         const talkToAction = t('talkToAction', {}).toLowerCase();
         const pickUpAction = t('pickUpAction', {}).toLowerCase();
         const exploreActionText = t('exploreAction', {}).toLowerCase();
+        const forageActionText = t('forageForFoodAction', {}).toLowerCase();
+        const searchMaterialsActionText = t('searchForMaterialsAction', {}).toLowerCase();
+        const listenActionText = t('listenToSurroundingsAction', {}).toLowerCase();
 
         const currentChunk = world[ `${playerPosition.x},${playerPosition.y}`];
         if (!currentChunk) return;
@@ -880,7 +885,73 @@ export function useGameEngine(props: GameEngineProps) {
             } else {
                 addNarrativeEntry(t('exploreFoundNothing'), 'narrative');
             }
+        } else if (lowerAction === forageActionText) {
+            const biomeTemplate = getTemplates(language)[currentChunk.terrain];
+            let foundItems: ChunkItem[] = [];
+            if (biomeTemplate?.items) {
+                const foodItems = biomeTemplate.items.filter(i => {
+                    const def = customItemDefinitions[i.name];
+                    return def && def.category === 'Food';
+                });
+                if (foodItems.length > 0 && Math.random() < 0.6) { // 60% chance to find food
+                     const itemTemplate = foodItems[Math.floor(Math.random() * foodItems.length)];
+                     const itemDef = customItemDefinitions[itemTemplate.name];
+                     if (itemDef) {
+                         foundItems.push({ name: itemTemplate.name, description: itemDef.description, tier: itemDef.tier, quantity: getRandomInRange(itemDef.baseQuantity), emoji: itemDef.emoji });
+                     }
+                }
+            }
+            if (foundItems.length > 0) {
+                const item = foundItems[0];
+                addNarrativeEntry(t('forageSuccess', { quantity: item.quantity, itemName: t(item.name as TranslationKey) }), 'narrative');
+                const itemInInventory = newPlayerStats.items.find(i => i.name === item.name);
+                if (itemInInventory) itemInInventory.quantity += item.quantity;
+                else newPlayerStats.items.push({ ...item });
+            } else {
+                addNarrativeEntry(t('forageFail'), 'narrative');
+            }
+        } else if (lowerAction === searchMaterialsActionText) {
+            const biomeTemplate = getTemplates(language)[currentChunk.terrain];
+            let foundItems: ChunkItem[] = [];
+            if (biomeTemplate?.items) {
+                const materialItems = biomeTemplate.items.filter(i => {
+                    const def = customItemDefinitions[i.name];
+                    return def && def.category === 'Material';
+                });
+                if (materialItems.length > 0 && Math.random() < 0.75) { // 75% chance
+                     const itemTemplate = materialItems[Math.floor(Math.random() * materialItems.length)];
+                     const itemDef = customItemDefinitions[itemTemplate.name];
+                     if (itemDef && itemDef.tier <= 2) { // only common materials
+                         foundItems.push({ name: itemTemplate.name, description: itemDef.description, tier: itemDef.tier, quantity: getRandomInRange(itemDef.baseQuantity), emoji: itemDef.emoji });
+                     }
+                }
+            }
+             if (foundItems.length > 0) {
+                const item = foundItems[0];
+                addNarrativeEntry(t('searchMaterialsSuccess', { quantity: item.quantity, itemName: t(item.name as TranslationKey) }), 'narrative');
+                const itemInInventory = newPlayerStats.items.find(i => i.name === item.name);
+                if (itemInInventory) itemInInventory.quantity += item.quantity;
+                else newPlayerStats.items.push({ ...item });
+            } else {
+                addNarrativeEntry(t('searchMaterialsFail'), 'narrative');
+            }
+        } else if (lowerAction === listenActionText) {
+            const directions = [{ x: 0, y: 1, dir: 'North' }, { x: 0, y: -1, dir: 'South' }, { x: 1, y: 0, dir: 'East' }, { x: -1, y: 0, dir: 'West' }];
+            let heardSomething = false;
+            for (const dir of directions) {
+                const checkPos = { x: playerPosition.x + dir.x, y: playerPosition.y + dir.y };
+                const chunkKey = `${checkPos.x},${checkPos.y}`;
+                if (world[chunkKey] && world[chunkKey].enemy) {
+                    addNarrativeEntry(t('listenHearSomething', { direction: t(`direction${dir.dir}` as TranslationKey), sound: t('enemySoundGeneric') }), 'narrative');
+                    heardSomething = true;
+                    break;
+                }
+            }
+            if (!heardSomething) {
+                addNarrativeEntry(t('listenHearNothing'), 'narrative');
+            }
         }
+
 
         setPlayerStats(newPlayerStats);
         advanceGameTime();

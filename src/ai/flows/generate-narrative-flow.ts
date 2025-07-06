@@ -124,15 +124,43 @@ const modelMap: Record<AiModel, string> = {
  * @returns A promise that resolves to the AI-generated narrative and state changes.
  */
 export async function generateNarrative(input: GenerateNarrativeInput): Promise<GenerateNarrativeOutput> {
-  const model = modelMap[input.aiModel] || modelMap.balanced;
+    const preferredModel = modelMap[input.aiModel] || modelMap.balanced;
+    
+    // Fallback chain, starting with the preferred model.
+    const modelsToTry = [
+        preferredModel,
+        'googleai/gemini-2.0-flash',
+        'deepseek/deepseek-chat',
+        'openai/gpt-4o',
+        'googleai/gemini-1.5-pro',
+    ];
+    const uniqueModelsToTry = [...new Set(modelsToTry)];
+    
+    let llmResponse;
+    let lastError: any;
+
+    for (const model of uniqueModelsToTry) {
+        try {
+            console.log(`[generateNarrative] Attempting generation with model: ${model}`);
+            llmResponse = await ai.generate({
+                model: model,
+                prompt: narrativePromptTemplate,
+                input: input,
+                output: { schema: AINarrativeResponseSchema },
+                tools: [playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool, completeQuestTool, startQuestTool],
+            });
+            console.log(`[generateNarrative] SUCCESS with ${model}.`);
+            break; // Exit loop on success
+        } catch (error) {
+            lastError = error;
+            console.warn(`[generateNarrative] Model '${model}' failed. Trying next... Error: ${error.message}`);
+        }
+    }
   
-  const llmResponse = await ai.generate({
-      model: model,
-      prompt: narrativePromptTemplate,
-      input: input,
-      output: { schema: AINarrativeResponseSchema },
-      tools: [playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool, completeQuestTool, startQuestTool],
-  });
+    if (!llmResponse) {
+      console.error("All AI models failed for narrative generation.", lastError);
+      throw lastError || new Error("All models for narrative generation failed to generate a response.");
+    }
   
   const toolCalls = llmResponse.usage?.toolCalls;
 

@@ -246,7 +246,7 @@ const generateWorldSetupFlow = ai.defineFlow(
     const itemCatalogTask = (async () => {
         const template = Handlebars.compile(itemCatalogPromptTemplate);
         const renderedPrompt = template(input);
-        const modelsToTry = ['openai/gpt-4-turbo', 'googleai/gemini-1.5-pro', 'deepseek/deepseek-chat', 'googleai/gemini-2.0-flash'];
+        const modelsToTry = ['openai/gpt-4o', 'googleai/gemini-1.5-pro', 'deepseek/deepseek-chat', 'googleai/gemini-2.0-flash'];
         const errorLogs: string[] = [];
 
         for (const modelName of modelsToTry) {
@@ -315,7 +315,7 @@ const generateWorldSetupFlow = ai.defineFlow(
     
     // Task D: Generate custom structures.
     const structureCatalogTask = (async () => {
-        const modelName = 'openai/gpt-4-turbo'; // Use a powerful model for creative structures
+        const modelName = 'openai/gpt-4o'; // Use a powerful model for creative structures
         console.log(`[Task D] Attempting structure catalog generation with model: ${modelName}`);
         const template = Handlebars.compile(structureCatalogPromptTemplate);
         const renderedPrompt = template(input);

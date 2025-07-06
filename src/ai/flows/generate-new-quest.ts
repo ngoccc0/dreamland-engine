@@ -26,11 +26,7 @@ export async function generateNewQuest(input: GenerateNewQuestInput): Promise<Ge
 }
 
 // --- The Genkit Prompt and Flow ---
-const generateQuestPrompt = ai.definePrompt({
-    name: 'generateNewQuestPrompt',
-    input: { schema: GenerateNewQuestInputSchema },
-    output: { schema: GenerateNewQuestOutputSchema },
-    prompt: `You are a creative quest designer for the text-based RPG '{{worldName}}'.
+const promptText = `You are a creative quest designer for the text-based RPG '{{worldName}}'.
 Your task is to create a single, new quest for the player based on their current situation and playstyle. The entire response (quest text) MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
 
 **Rules:**
@@ -53,8 +49,7 @@ Your task is to create a single, new quest for the player based on their current
 
 **Task:**
 Generate one (1) new quest in the required JSON format that fits the player's persona and current situation.
-`,
-});
+`;
 
 const generateNewQuestFlow = ai.defineFlow(
     {
@@ -63,10 +58,30 @@ const generateNewQuestFlow = ai.defineFlow(
         outputSchema: GenerateNewQuestOutputSchema,
     },
     async (input) => {
-        const { output } = await generateQuestPrompt(input);
-        if (!output) {
-            throw new Error("AI failed to generate a new quest.");
+        const modelsToTry = [
+            'openai/gpt-4o',
+            'googleai/gemini-1.5-pro',
+            'deepseek/deepseek-chat',
+            'googleai/gemini-2.0-flash',
+        ];
+
+        let lastError;
+        for (const model of modelsToTry) {
+            try {
+                const { output } = await ai.generate({
+                    model: model,
+                    prompt: promptText,
+                    input: input,
+                    output: { schema: GenerateNewQuestOutputSchema },
+                });
+                if (output) return output;
+            } catch (error) {
+                lastError = error;
+                console.warn(`[generateNewQuest] Model '${model}' failed. Trying next...`);
+            }
         }
-        return output;
+        
+        console.error("All AI models failed for new quest generation.", lastError);
+        throw lastError || new Error("AI failed to generate a new quest.");
     }
 );

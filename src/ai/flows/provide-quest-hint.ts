@@ -26,11 +26,7 @@ export async function provideQuestHint(input: ProvideQuestHintInput): Promise<Pr
 
 
 // --- The Genkit Prompt and Flow ---
-const provideQuestHintPrompt = ai.definePrompt({
-    name: 'provideQuestHintPrompt',
-    input: { schema: ProvideQuestHintInputSchema },
-    output: { schema: ProvideQuestHintOutputSchema },
-    prompt: `You are a helpful but mysterious game guide. The hint you provide MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
+const promptText = `You are a helpful but mysterious game guide. The hint you provide MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
 
 The player is asking for a hint for the following quest:
 "{{{questText}}}"
@@ -44,8 +40,7 @@ Your task is to provide a short, one or two-sentence hint. The hint should be he
 
 **Task:**
 Generate one (1) hint in the required JSON format.
-`,
-});
+`;
 
 const provideQuestHintFlow = ai.defineFlow(
     {
@@ -54,10 +49,30 @@ const provideQuestHintFlow = ai.defineFlow(
         outputSchema: ProvideQuestHintOutputSchema,
     },
     async (input) => {
-        const { output } = await provideQuestHintPrompt(input);
-        if (!output) {
-            throw new Error("AI failed to generate a hint.");
+        const modelsToTry = [
+            'openai/gpt-4o',
+            'googleai/gemini-1.5-pro',
+            'deepseek/deepseek-chat',
+            'googleai/gemini-2.0-flash',
+        ];
+
+        let lastError;
+        for (const model of modelsToTry) {
+            try {
+                const { output } = await ai.generate({
+                    model: model,
+                    prompt: promptText,
+                    input: input,
+                    output: { schema: ProvideQuestHintOutputSchema },
+                });
+                if (output) return output;
+            } catch (error) {
+                lastError = error;
+                console.warn(`[provideQuestHint] Model '${model}' failed. Trying next...`);
+            }
         }
-        return output;
+        
+        console.error("All AI models failed for quest hint generation.", lastError);
+        throw lastError || new Error("AI failed to generate a hint.");
     }
 );

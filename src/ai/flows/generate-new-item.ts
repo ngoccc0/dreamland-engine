@@ -37,11 +37,7 @@ export async function generateNewItem(input: GenerateNewItemInput): Promise<Gene
 const AI_GeneratedItemSchema = GeneratedItemSchema.omit({ emoji: true });
 
 
-const generateItemPrompt = ai.definePrompt({
-    name: 'generateNewItemPrompt',
-    input: { schema: GenerateNewItemInputSchema },
-    output: { schema: AI_GeneratedItemSchema },
-    prompt: `You are a creative game designer for the text-based RPG '{{worldName}}'.
+const promptText = `You are a creative game designer for the text-based RPG '{{worldName}}'.
 Your task is to invent a new item for the player. The entire response (item name, description, etc.) MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
 
 **Rules:**
@@ -55,8 +51,7 @@ Your task is to invent a new item for the player. The entire response (item name
 4.  You MUST define all required fields for the item: name, description, category, tier, effects, baseQuantity, and spawnBiomes.
 **Task:**
 Generate one (1) new item in the required JSON format.
-`,
-});
+`;
 
 const generateNewItemFlow = ai.defineFlow(
     {
@@ -65,10 +60,36 @@ const generateNewItemFlow = ai.defineFlow(
         outputSchema: GeneratedItemSchema,
     },
     async (input) => {
-        const { output: itemWithoutEmoji } = await generateItemPrompt(input);
+        const modelsToTry = [
+            'openai/gpt-4o',
+            'googleai/gemini-1.5-pro',
+            'deepseek/deepseek-chat',
+            'googleai/gemini-2.0-flash',
+        ];
+
+        let llmResponse;
+        let lastError;
+
+        for (const model of modelsToTry) {
+            try {
+                llmResponse = await ai.generate({
+                    model: model,
+                    prompt: promptText,
+                    input: input,
+                    output: { schema: AI_GeneratedItemSchema },
+                });
+                if (llmResponse.output) break;
+            } catch (error) {
+                lastError = error;
+                console.warn(`[generateNewItem] Model '${model}' failed. Trying next...`);
+            }
+        }
+
+        const itemWithoutEmoji = llmResponse?.output;
         
         if (!itemWithoutEmoji) {
-            throw new Error("AI failed to generate a new item.");
+            console.error("All AI models failed for new item generation.", lastError);
+            throw lastError || new Error("AI failed to generate a new item.");
         }
         
         // Add the emoji using code logic

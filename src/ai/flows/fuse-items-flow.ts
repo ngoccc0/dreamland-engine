@@ -50,11 +50,7 @@ const AIPromptOutputSchema = z.object({
 
 
 // --- The Genkit Prompt and Flow ---
-const fuseItemsPrompt = ai.definePrompt({
-    name: 'fuseItemsPrompt',
-    input: { schema: FuseItemsPromptInputSchema },
-    output: { schema: AIPromptOutputSchema },
-    prompt: `You are the Spirit of the Forge, an ancient entity that governs the laws of alchemy and creation in this world. A player is attempting to fuse items. Your entire response MUST be in the language specified by '{{language}}'. This is a critical instruction.
+const fuseItemsPromptText = `You are the Spirit of the Forge, an ancient entity that governs the laws of alchemy and creation in this world. A player is attempting to fuse items. Your entire response MUST be in the language specified by '{{language}}'. This is a critical instruction.
 
 The outcome has already been decided by the laws of the world. Your task is to narrate this outcome creatively and, if necessary, invent the resulting item's creative properties.
 
@@ -74,8 +70,7 @@ The outcome has already been decided by the laws of the world. Your task is to n
     - If the 'determinedOutcome' is 'degraded': Invent a **new, lesser item**. It should be a broken, warped, or simplified version of one of the ingredients (e.g., 'Sharp Rock' and 'Sturdy Branch' might degrade into 'Small Pebbles'). Provide its name, description, and any (likely negative) effects.
     - If the 'determinedOutcome' is 'totalLoss': **Do not** invent a new item. Your narrative should describe the items being destroyed completely.
 3.  **Respond:** Provide your response in the required JSON format. Ensure the 'outcome' field matches the provided 'determinedOutcome'.
-`,
-});
+`;
 
 const fuseItemsFlow = ai.defineFlow(
     {
@@ -139,7 +134,37 @@ const fuseItemsFlow = ai.defineFlow(
             determinedOutcome,
         };
         
-        const { output: aiOutput } = await fuseItemsPrompt(promptInput);
+        const modelsToTry = [
+            'openai/gpt-4o',
+            'googleai/gemini-1.5-pro',
+            'deepseek/deepseek-chat',
+            'googleai/gemini-2.0-flash',
+        ];
+        
+        let llmResponse;
+        let lastError;
+
+        for (const model of modelsToTry) {
+            try {
+                llmResponse = await ai.generate({
+                    model: model,
+                    prompt: fuseItemsPromptText,
+                    input: promptInput,
+                    output: { schema: AIPromptOutputSchema },
+                });
+                break; // Success
+            } catch (error) {
+                lastError = error;
+                console.warn(`[fuseItemsFlow] Model '${model}' failed. Trying next... Error: ${error}`);
+            }
+        }
+        
+        if (!llmResponse) {
+            console.error("All AI models failed for item fusion.", lastError);
+            throw lastError || new Error("AI failed to generate a fusion narrative.");
+        }
+
+        const aiOutput = llmResponse.output;
 
         if (!aiOutput) {
             throw new Error("The ethereal currents of possibility did not align, leaving the outcome shrouded in mystery.");

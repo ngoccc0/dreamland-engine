@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent for dynamically generating the first step of a new legendary quest.
@@ -26,11 +27,7 @@ export async function generateLegendaryQuest(input: GenerateLegendaryQuestInput)
 
 
 // --- The Genkit Prompt and Flow ---
-const generateLegendaryQuestPrompt = ai.definePrompt({
-    name: 'generateLegendaryQuestPrompt',
-    input: { schema: GenerateNewQuestInputSchema },
-    output: { schema: GenerateNewQuestOutputSchema },
-    prompt: `You are an epic storyteller and quest designer for the text-based RPG '{{worldName}}'.
+const promptText = `You are an epic storyteller and quest designer for the text-based RPG '{{worldName}}'.
 Your task is to design a new, **Legendary Quest**. This quest should be a multi-step epic, but you will only generate the **very first objective**. The entire response (quest text) MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical instruction.
 
 **Rules:**
@@ -50,8 +47,7 @@ Your task is to design a new, **Legendary Quest**. This quest should be a multi-
 
 **Task:**
 Generate the first step of one (1) new Legendary Quest in the required JSON format.
-`,
-});
+`;
 
 const generateLegendaryQuestFlow = ai.defineFlow(
     {
@@ -60,10 +56,30 @@ const generateLegendaryQuestFlow = ai.defineFlow(
         outputSchema: GenerateNewQuestOutputSchema,
     },
     async (input) => {
-        const { output } = await generateLegendaryQuestPrompt(input);
-        if (!output) {
-            throw new Error("AI failed to generate a legendary quest.");
+        const modelsToTry = [
+            'openai/gpt-4o',
+            'googleai/gemini-1.5-pro',
+            'deepseek/deepseek-chat',
+            'googleai/gemini-2.0-flash',
+        ];
+
+        let lastError;
+        for (const model of modelsToTry) {
+            try {
+                const { output } = await ai.generate({
+                    model: model,
+                    prompt: promptText,
+                    input: input,
+                    output: { schema: GenerateNewQuestOutputSchema },
+                });
+                if (output) return output;
+            } catch (error) {
+                lastError = error;
+                console.warn(`[generateLegendaryQuest] Model '${model}' failed. Trying next...`);
+            }
         }
-        return output;
+        
+        console.error("All AI models failed for legendary quest generation.", lastError);
+        throw lastError || new Error("AI failed to generate a legendary quest.");
     }
 );

@@ -41,11 +41,7 @@ const AI_RecipeSchema = RecipeSchema.extend({
 
 
 // --- The Genkit Prompt and Flow ---
-const generateRecipePrompt = ai.definePrompt({
-    name: 'generateNewRecipePrompt',
-    input: { schema: GenerateNewRecipeInputSchema },
-    output: { schema: AI_RecipeSchema },
-    prompt: `You are a master artisan and game designer. Your task is to invent a new, logical, and thematically appropriate crafting recipe for a text-based adventure game. The entire response (names, descriptions) MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
+const promptText = `You are a master artisan and game designer. Your task is to invent a new, logical, and thematically appropriate crafting recipe for a text-based adventure game. The entire response (names, descriptions) MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
 
 **Rules:**
 1.  The recipe must be **new**. It cannot be one of these existing recipes: {{json existingRecipes}}.
@@ -59,8 +55,7 @@ const generateRecipePrompt = ai.definePrompt({
 
 **Task:**
 Generate one (1) new crafting recipe in the required JSON format.
-`,
-});
+`;
 
 const generateNewRecipeFlow = ai.defineFlow(
     {
@@ -69,9 +64,36 @@ const generateNewRecipeFlow = ai.defineFlow(
         outputSchema: RecipeSchema,
     },
     async (input) => {
-        const { output: aiRecipe } = await generateRecipePrompt(input);
+        const modelsToTry = [
+            'openai/gpt-4o',
+            'googleai/gemini-1.5-pro',
+            'deepseek/deepseek-chat',
+            'googleai/gemini-2.0-flash',
+        ];
+
+        let llmResponse;
+        let lastError;
+
+        for (const model of modelsToTry) {
+            try {
+                llmResponse = await ai.generate({
+                    model: model,
+                    prompt: promptText,
+                    input: input,
+                    output: { schema: AI_RecipeSchema },
+                });
+                if (llmResponse.output) break;
+            } catch (error) {
+                lastError = error;
+                console.warn(`[generateNewRecipe] Model '${model}' failed. Trying next...`);
+            }
+        }
+
+        const aiRecipe = llmResponse?.output;
+
         if (!aiRecipe) {
-            throw new Error("AI failed to generate a new recipe.");
+            console.error("All AI models failed for recipe generation.", lastError);
+            throw lastError || new Error("AI failed to generate a new recipe.");
         }
 
         // Determine the category of the result item to help with emoji selection

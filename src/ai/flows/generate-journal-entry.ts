@@ -27,11 +27,7 @@ export async function generateJournalEntry(input: GenerateJournalEntryInput): Pr
 
 
 // --- The Genkit Prompt and Flow ---
-const generateJournalEntryPrompt = ai.definePrompt({
-    name: 'generateJournalEntryPrompt',
-    input: { schema: GenerateJournalEntryInputSchema },
-    output: { schema: GenerateJournalEntryOutputSchema },
-    prompt: `You are the player character in the text-based RPG '{{worldName}}'. Your current playstyle persona is '{{playerPersona}}'. It's the end of the day, and you are writing in your journal.
+const promptText = `You are the player character in the text-based RPG '{{worldName}}'. Your current playstyle persona is '{{playerPersona}}'. It's the end of the day, and you are writing in your journal.
 
 Your task is to write a short, reflective, first-person journal entry summarizing the day's events. The entry should be engaging and capture the feeling of the day. The entire response MUST be in the language specified by '{{language}}'. This is a critical instruction.
 
@@ -46,8 +42,7 @@ Your task is to write a short, reflective, first-person journal entry summarizin
 
 **Task:**
 Generate one (1) journal entry in the required JSON format.
-`,
-});
+`;
 
 const generateJournalEntryFlow = ai.defineFlow(
     {
@@ -56,10 +51,30 @@ const generateJournalEntryFlow = ai.defineFlow(
         outputSchema: GenerateJournalEntryOutputSchema,
     },
     async (input) => {
-        const { output } = await generateJournalEntryPrompt(input);
-        if (!output) {
-            throw new Error("AI failed to generate a journal entry.");
+        const modelsToTry = [
+            'openai/gpt-4o',
+            'googleai/gemini-1.5-pro',
+            'deepseek/deepseek-chat',
+            'googleai/gemini-2.0-flash',
+        ];
+
+        let lastError;
+        for (const model of modelsToTry) {
+            try {
+                const { output } = await ai.generate({
+                    model: model,
+                    prompt: promptText,
+                    input: input,
+                    output: { schema: GenerateJournalEntryOutputSchema },
+                });
+                if (output) return output;
+            } catch (error) {
+                lastError = error;
+                console.warn(`[generateJournalEntry] Model '${model}' failed. Trying next...`);
+            }
         }
-        return output;
+        
+        console.error("All AI models failed for journal entry generation.", lastError);
+        throw lastError || new Error("AI failed to generate a journal entry.");
     }
 );

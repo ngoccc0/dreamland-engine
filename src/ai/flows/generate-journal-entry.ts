@@ -29,7 +29,7 @@ export async function generateJournalEntry(input: GenerateJournalEntryInput): Pr
 // --- The Genkit Prompt and Flow ---
 const promptText = `You are the player character in the text-based RPG '{{worldName}}'. Your current playstyle persona is '{{playerPersona}}'. It's the end of the day, and you are writing in your journal.
 
-Your task is to write a short, reflective, first-person journal entry summarizing the day's events. The entry should be engaging and capture the feeling of the day. The entire response MUST be in the language specified by '{{language}}'. This is a critical instruction.
+Your task is to write a short, reflective, first-person journal entry summarizing the day's events. The entry should be engaging and capture the feeling of the day. Your entire response MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
 
 **Here is a log of what you did today:**
 {{json dailyActionLog}}

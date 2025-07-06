@@ -827,9 +827,9 @@ export function useGameEngine(props: GameEngineProps) {
                             });
                             newPlayerStats.quests = newPlayerStats.quests.filter(q => q !== npcDef.quest);
                             addNarrativeEntry(t('npcQuestCompleted', { npcName: t(npc.name as TranslationKey) }), 'narrative');
-                            toast({ title: t('questCompletedTitle'), description: npcDef.quest });
+                            toast({ title: t('questCompletedTitle'), description: t(npcDef.quest as TranslationKey) });
                         } else addNarrativeEntry(t('npcQuestNotEnoughItems', { npcName: t(npc.name as TranslationKey), needed: npcDef.questItem.quantity - (itemInInventory?.quantity || 0), itemName: t(npcDef.questItem.name as TranslationKey) }), 'narrative');
-                    } else { newPlayerStats.quests.push(npcDef.quest); addNarrativeEntry(t('npcQuestGive', { npcName: t(npc.name as TranslationKey), questText: npcDef.quest }), 'narrative'); }
+                    } else { newPlayerStats.quests.push(npcDef.quest); addNarrativeEntry(t('npcQuestGive', { npcName: t(npc.name as TranslationKey), questText: t(npcDef.quest as TranslationKey) }), 'narrative'); }
                 } else addNarrativeEntry(t('npcNoQuest', { npcName: t(npc.name as TranslationKey) }), 'narrative');
             }
         } else if (lowerAction.startsWith(pickUpAction)) {

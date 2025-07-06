@@ -27,7 +27,7 @@ export async function generateNewQuest(input: GenerateNewQuestInput): Promise<Ge
 
 // --- The Genkit Prompt and Flow ---
 const promptText = `You are a creative quest designer for the text-based RPG '{{worldName}}'.
-Your task is to create a single, new quest for the player based on their current situation and playstyle. The entire response (quest text) MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
+Your task is to create a single, new quest for the player based on their current situation and playstyle. Your entire response (quest text, etc.) MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
 
 **Rules:**
 1.  The quest must be **new**. It cannot be one of these: {{json existingQuests}}.

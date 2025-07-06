@@ -38,7 +38,7 @@ const AI_GeneratedItemSchema = GeneratedItemSchema.omit({ emoji: true });
 
 
 const promptText = `You are a creative game designer for the text-based RPG '{{worldName}}'.
-Your task is to invent a new item for the player. The entire response (item name, description, etc.) MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
+Your task is to invent a new item for the player. Your entire response (item name, description, etc.) MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
 
 **Rules:**
 1.  The item must be **new**. Its name cannot be one of these: {{json existingItemNames}}.

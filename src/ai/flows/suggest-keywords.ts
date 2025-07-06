@@ -15,7 +15,7 @@ import {z} from 'zod';
 // Input: The user's current idea and the desired language.
 const SuggestKeywordsInputSchema = z.object({
   userInput: z.string().describe("The user's current idea or keywords for a game world."),
-  language: z.string().describe("The language for the generated keywords (e.g., 'en' for English, 'vi' for Vietnamese)."),
+  language: z.string().describe("The language for the generated keywords (e.g., 'en', 'vi')."),
 });
 export type SuggestKeywordsInput = z.infer<typeof SuggestKeywordsInputSchema>;
 
@@ -40,7 +40,7 @@ const keywordSuggestionPrompt = ai.definePrompt({
   name: 'keywordSuggestionPrompt',
   input: { schema: SuggestKeywordsInputSchema },
   output: { schema: SuggestKeywordsOutputSchema },
-  prompt: `You are a creative brainstorming assistant helping a user design a game world. All keywords you generate MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical requirement.
+  prompt: `You are a creative brainstorming assistant helping a user design a game world. All keywords you generate MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
 
 Based on the user's input below, suggest 5-7 related keywords or short, evocative phrases to help them expand their world concept.
 The suggestions should be creative, interesting, and varied.

@@ -26,7 +26,7 @@ export async function provideQuestHint(input: ProvideQuestHintInput): Promise<Pr
 
 
 // --- The Genkit Prompt and Flow ---
-const promptText = `You are a helpful but mysterious game guide. The hint you provide MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
+const promptText = `You are a helpful but mysterious game guide. Your entire response MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
 
 The player is asking for a hint for the following quest:
 "{{{questText}}}"

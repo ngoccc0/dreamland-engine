@@ -41,7 +41,7 @@ const AI_RecipeSchema = RecipeSchema.extend({
 
 
 // --- The Genkit Prompt and Flow ---
-const promptText = `You are a master artisan and game designer. Your task is to invent a new, logical, and thematically appropriate crafting recipe for a text-based adventure game. The entire response (names, descriptions) MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
+const promptText = `You are a master artisan and game designer. Your task is to invent a new, logical, and thematically appropriate crafting recipe for a text-based adventure game. Your entire response (item names, descriptions, etc.) MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
 
 **Rules:**
 1.  The recipe must be **new**. It cannot be one of these existing recipes: {{json existingRecipes}}.

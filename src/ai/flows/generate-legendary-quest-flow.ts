@@ -28,7 +28,7 @@ export async function generateLegendaryQuest(input: GenerateLegendaryQuestInput)
 
 // --- The Genkit Prompt and Flow ---
 const promptText = `You are an epic storyteller and quest designer for the text-based RPG '{{worldName}}'.
-Your task is to design a new, **Legendary Quest**. This quest should be a multi-step epic, but you will only generate the **very first objective**. The entire response (quest text) MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical instruction.
+Your task is to design a new, **Legendary Quest**. This quest should be a multi-step epic, but you will only generate the **very first objective**. Your entire response (quest text, etc.) MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
 
 **Rules:**
 1.  The quest must feel **grand and epic**. Examples: "Slay a dragon," "Find a lost city," "Forge a mythical weapon."

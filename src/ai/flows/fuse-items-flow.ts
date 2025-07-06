@@ -64,7 +64,10 @@ The outcome has already been decided by the laws of the world. Your task is to n
 - Chaos Factor: {{environmentalModifiers.chaosFactor}}/10 (Higher means more unexpected results. Use this for creative flavor.)
 
 **Your Task:**
-1.  **Narrate:** Write an engaging narrative that describes the fusion process and reflects the 'determinedOutcome'.
+1.  **Narrate Creatively:** Write an engaging, multi-sensory narrative. Describe the sights (flashes of light, smoke), sounds (crackling, hissing, booming), and smells (ozone, sulfur, strange aromas) of the fusion process. The narrative MUST reflect the 'determinedOutcome' and the environment.
+    - **Success:** Describe a powerful, harmonious combination.
+    - **Degraded:** Describe a sputtering, unstable process that results in something lesser.
+    - **Total Loss:** Describe a volatile or catastrophic failure where the items are utterly destroyed.
 2.  **Invent an Item (if needed):**
     - If the 'determinedOutcome' is 'success': Invent a **new, interesting item** that could result from this fusion. Provide its name, description, and any special effects. The game will handle its power level (tier).
     - If the 'determinedOutcome' is 'degraded': Invent a **new, lesser item**. It should be a broken, warped, or simplified version of one of the ingredients (e.g., 'Sharp Rock' and 'Sturdy Branch' might degrade into 'Small Pebbles'). Provide its name, description, and any (likely negative) effects.

@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useEffect, useCallback, useRef } from "react";
@@ -1093,10 +1092,14 @@ export function useGameEngine(props: GameEngineProps) {
                 else newInventory.push({ ...recipe.result, tier: customItemDefinitions[recipe.result.name]?.tier || 1 });
                 return { ...prev, items: newInventory };
             });
-            addNarrativeEntry(t('craftSuccess', { itemName: t(recipe.result.name as TranslationKey) }), 'system');
+            const successKeys: TranslationKey[] = ['craftSuccess1', 'craftSuccess2', 'craftSuccess3'];
+            const randomKey = successKeys[Math.floor(Math.random() * successKeys.length)];
+            addNarrativeEntry(t(randomKey, { itemName: t(recipe.result.name as TranslationKey) }), 'system');
             toast({ title: t('craftSuccessTitle'), description: t('craftSuccess', { itemName: t(recipe.result.name as TranslationKey) }) });
         } else {
-            addNarrativeEntry(t('craftFail', { itemName: t(recipe.result.name as TranslationKey) }), 'system');
+            const failKeys: TranslationKey[] = ['craftFail1', 'craftFail2', 'craftFail3'];
+            const randomKey = failKeys[Math.floor(Math.random() * failKeys.length)];
+            addNarrativeEntry(t(randomKey, { itemName: t(recipe.result.name as TranslationKey) }), 'system');
             toast({ title: t('craftFailTitle'), description: t('craftFail', { itemName: t(recipe.result.name as TranslationKey) }), variant: 'destructive' });
         }
         advanceGameTime();

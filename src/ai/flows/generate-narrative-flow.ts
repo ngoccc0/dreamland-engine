@@ -14,7 +14,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema, GeneratedItemSchema, NpcSchema } from '@/ai/schemas';
 import { playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool, completeQuestTool, startQuestTool } from '@/ai/tools/game-actions';
 import { generateNewQuest } from './generate-new-quest';
@@ -93,6 +93,7 @@ const narrativePromptTemplate = `You are the Game Master for a text-based advent
 **Critical Rules:**
 - **Success Level is Law:** The 'successLevel' ('{{successLevel}}') dictates the outcome. A 'Failure' MUST be narrated as a failure, a 'CriticalSuccess' as a legendary event.
 - **Narrate Tool Results:** You MUST incorporate the factual results from any tool used into your narrative. For example, if a tool's output includes "combatLog: Player dealt 15 damage. Enemy retaliated for 8 damage.", you must weave this information into your story.
+- **Movement Narration:** If the player's action is to move (e.g., 'move north'), your narrative MUST describe the journey to the new location. Mention a specific detail about the environment they are leaving, and a sensory detail (sight, sound, smell) about the new location they are entering, using the 'Current Environment' context. Do not just say "You move north."
 - **NPC Dialogue:** If the player talks to an NPC, you MUST use their 'name', 'description', and especially their 'dialogueSeed' from the context below to craft a unique and in-character response. The NPC might offer hints, lore, or a new quest.
 - **Incorporate Persona:** Weave the player's persona ('{{playerStatus.persona}}') into the story for flavor.
 - **Creature Behavior:** Respect the creature's behavior. If the 'playerAttack' tool returns 'fled: true', your narrative MUST describe the creature running away.

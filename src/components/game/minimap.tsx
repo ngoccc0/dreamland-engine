@@ -2,50 +2,60 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon, StructureIcon } from "./icons";
+import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon, StructureIcon, Backpack, UserCircle2, Home, MapPin } from "./icons";
 import { useLanguage } from "@/context/language-context";
 import type React from "react";
 import type { Chunk, Terrain } from "@/lib/game/types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { TranslationKey } from "@/lib/i18n";
+import { Separator } from "../ui/separator";
+import { SwordIcon } from "./icons";
 
 
 export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
     const { t } = useLanguage();
     return (
-        <div className="p-2 text-sm space-y-2">
-            <h4 className="font-bold capitalize">{chunk.terrain === 'wall' ? t('wall') : t(chunk.terrain as TranslationKey)} ({chunk.x}, {chunk.y})</h4>
+        <div className="p-1 space-y-2">
+            <div className="flex items-center gap-2">
+                 <MapPin className="h-4 w-4 text-muted-foreground" />
+                 <h4 className="font-bold capitalize">{chunk.terrain === 'wall' ? t('wall') : t(chunk.terrain as TranslationKey)} ({chunk.x}, {chunk.y})</h4>
+            </div>
             <p className="text-xs text-muted-foreground italic line-clamp-3">{chunk.description}</p>
-            {chunk.structures && chunk.structures.length > 0 && (
-                <div>
-                    <h5 className="font-semibold">{t('structures')}:</h5>
-                    <ul className="list-disc list-inside text-xs">
-                        {chunk.structures.map(s => <li key={s.name}>{s.emoji} {t(s.name as TranslationKey)}</li>)}
-                    </ul>
-                </div>
-            )}
-            {chunk.items.length > 0 && (
-                <div>
-                    <h5 className="font-semibold">{t('inventory')}:</h5>
-                    <ul className="list-disc list-inside text-xs">
-                        {chunk.items.map(item => <li key={item.name}>{item.emoji} {t(item.name as TranslationKey)} (x{item.quantity})</li>)}
-                    </ul>
-                </div>
-            )}
-            {chunk.enemy && (
-                <div>
-                    <h5 className="font-semibold">{t('enemy')}:</h5>
-                    <p className="text-xs">{chunk.enemy.emoji} {t(chunk.enemy.type as TranslationKey)} (HP: {chunk.enemy.hp})</p>
-                </div>
-            )}
-            {chunk.NPCs.length > 0 && (
-                 <div>
-                    <h5 className="font-semibold">{t('npcs')}:</h5>
-                    <ul className="list-disc list-inside text-xs">
-                        {chunk.NPCs.map(npc => <li key={npc.name}>{t(npc.name as TranslationKey)}</li>)}
-                    </ul>
-                </div>
-            )}
+            
+            {(chunk.structures && chunk.structures.length > 0 || chunk.items.length > 0 || chunk.enemy || chunk.NPCs.length > 0) && <Separator />}
+
+            <div className="space-y-2 mt-2">
+                {chunk.structures && chunk.structures.length > 0 && (
+                    <div>
+                        <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><Home />{t('structures')}:</h5>
+                        <ul className="space-y-1 text-xs pl-5">
+                            {chunk.structures.map(s => <li key={s.name}>{s.emoji} {t(s.name as TranslationKey)}</li>)}
+                        </ul>
+                    </div>
+                )}
+                {chunk.items.length > 0 && (
+                    <div>
+                        <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><Backpack />{t('inventory')}:</h5>
+                        <ul className="space-y-1 text-xs pl-5">
+                            {chunk.items.map(item => <li key={item.name}>{item.emoji} {t(item.name as TranslationKey)} (x{item.quantity})</li>)}
+                        </ul>
+                    </div>
+                )}
+                {chunk.enemy && (
+                    <div>
+                        <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><SwordIcon />{t('enemy')}:</h5>
+                        <p className="text-xs pl-5">{chunk.enemy.emoji} {t(chunk.enemy.type as TranslationKey)} (HP: {chunk.enemy.hp})</p>
+                    </div>
+                )}
+                {chunk.NPCs.length > 0 && (
+                     <div>
+                        <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><UserCircle2 />{t('npcs')}:</h5>
+                        <ul className="space-y-1 text-xs pl-5">
+                            {chunk.NPCs.map(npc => <li key={npc.name}>{t(npc.name as TranslationKey)}</li>)}
+                        </ul>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

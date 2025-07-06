@@ -34,6 +34,7 @@ export {
   ArrowLeft,
   Zap,
   Footprints,
+  MapPin,
 } from 'lucide-react';
 
 

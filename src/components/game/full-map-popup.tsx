@@ -11,6 +11,9 @@ import type { World, Chunk, Terrain } from "@/lib/game/types";
 import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon, StructureIcon } from "./icons";
 import { MapCellDetails } from './minimap';
 import type { TranslationKey } from '@/lib/i18n';
+import { Button } from '../ui/button';
+import { Minus, Plus } from 'lucide-react';
+
 
 interface FullMapPopupProps {
   open: boolean;
@@ -39,27 +42,45 @@ const biomeColors: Record<Terrain | 'empty', string> = {
 };
 
 const biomeIcons: Record<Exclude<Terrain, 'empty'>, React.ReactNode> = {
-    forest: <span className="text-2xl opacity-80" role="img" aria-label="forest">🌳</span>,
-    grassland: <span className="text-2xl opacity-80" role="img" aria-label="grassland">🌾</span>,
-    desert: <span className="text-2xl opacity-80" role="img" aria-label="desert">🏜️</span>,
-    swamp: <span className="text-2xl opacity-80" role="img" aria-label="swamp">🌿</span>,
-    mountain: <span className="text-2xl opacity-80" role="img" aria-label="mountain">⛰️</span>,
-    cave: <span className="text-2xl opacity-80" role="img" aria-label="cave">🪨</span>,
-    jungle: <span className="text-2xl opacity-80" role="img" aria-label="jungle">🦜</span>,
-    volcanic: <span className="text-2xl opacity-80" role="img" aria-label="volcanic">🌋</span>,
-    floptropica: <span className="text-2xl opacity-80" role="img" aria-label="floptropica">💅</span>,
-    wall: <span className="text-2xl opacity-80" role="img" aria-label="wall">🧱</span>,
-    tundra: <span className="text-2xl opacity-80" role="img" aria-label="tundra">❄️</span>,
-    beach: <span className="text-2xl opacity-80" role="img" aria-label="beach">🏖️</span>,
-    mesa: <span className="text-2xl opacity-80" role="img" aria-label="mesa">🏞️</span>,
-    mushroom_forest: <span className="text-2xl opacity-80" role="img" aria-label="mushroom forest">🍄</span>,
-    ocean: <span className="text-2xl opacity-80" role="img" aria-label="ocean">🌊</span>,
+    forest: <span role="img" aria-label="forest">🌳</span>,
+    grassland: <span role="img" aria-label="grassland">🌾</span>,
+    desert: <span role="img" aria-label="desert">🏜️</span>,
+    swamp: <span role="img" aria-label="swamp">🌿</span>,
+    mountain: <span role="img" aria-label="mountain">⛰️</span>,
+    cave: <span role="img" aria-label="cave">🪨</span>,
+    jungle: <span role="img" aria-label="jungle">🦜</span>,
+    volcanic: <span role="img" aria-label="volcanic">🌋</span>,
+    floptropica: <span role="img" aria-label="floptropica">💅</span>,
+    wall: <span role="img" aria-label="wall">🧱</span>,
+    tundra: <span role="img" aria-label="tundra">❄️</span>,
+    beach: <span role="img" aria-label="beach">🏖️</span>,
+    mesa: <span role="img" aria-label="mesa">🏞️</span>,
+    mushroom_forest: <span role="img" aria-label="mushroom forest">🍄</span>,
+    ocean: <span role="img" aria-label="ocean">🌊</span>,
 };
+
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 5;
 
 export function FullMapPopup({ open, onOpenChange, world, playerPosition }: FullMapPopupProps) {
   const { t } = useLanguage();
+  const [zoom, setZoom] = React.useState(2);
   const mapRadius = 7;
-  const responsiveCellSize = "w-14 h-14 md:w-16 md:h-16 lg:w-20 lg:h-20";
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    if (e.deltaY < 0) {
+      setZoom((prev) => Math.min(MAX_ZOOM, prev + 1));
+    } else {
+      setZoom((prev) => Math.max(MIN_ZOOM, prev - 1));
+    }
+  };
+
+  const cellSizes = ["w-8 h-8", "w-12 h-12", "w-16 h-16", "w-20 h-20", "w-24 h-24"];
+  const biomeIconSizes = ["text-base", "text-xl", "text-2xl", "text-3xl", "text-4xl"];
+  const showDetails = zoom >= 3;
+  const currentCellSize = cellSizes[zoom - 1];
+  const currentBiomeIconSize = biomeIconSizes[zoom - 1];
 
   const mapBounds = React.useMemo(() => {
     const minX = playerPosition.x - mapRadius;
@@ -76,93 +97,103 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-3xl">
-        <SheetHeader>
-          <SheetTitle className="font-headline">{t('minimap')}</SheetTitle>
-          <SheetDescription>
-            {t('fullMapDescription')}
-          </SheetDescription>
-        </SheetHeader>
-        <ScrollArea className="h-[calc(100vh-8rem)] mt-4 bg-background rounded-md border">
-            <div 
-                className="p-4 inline-grid border-l border-t border-dashed border-border/50"
-                style={{
-                    gridTemplateColumns: `repeat(${mapBounds.width}, auto)`,
-                }}
-            >
-                {Array.from({ length: mapBounds.height }).map((_, yIndex) => 
-                    Array.from({ length: mapBounds.width }).map((_, xIndex) => {
-                        const worldX = mapBounds.minX + xIndex;
-                        const worldY = mapBounds.maxY - yIndex;
-                        const chunkKey = `${worldX},${worldY}`;
-                        const chunk = world[chunkKey];
+      <SheetContent side="right" className="w-full sm:max-w-4xl lg:max-w-6xl !p-0">
+        <div className="flex flex-col h-full">
+            <SheetHeader className="p-4 border-b">
+                <SheetTitle className="font-headline">{t('minimap')}</SheetTitle>
+                <SheetDescription>
+                    {t('fullMapDescription')}
+                </SheetDescription>
+            </SheetHeader>
+            <div className="relative flex-grow">
+                <ScrollArea className="h-full w-full bg-background">
+                    <div 
+                        onWheel={handleWheel}
+                        className="p-4 inline-grid border-l border-t border-dashed border-border/50"
+                        style={{
+                            gridTemplateColumns: `repeat(${mapBounds.width}, auto)`,
+                        }}
+                    >
+                        {Array.from({ length: mapBounds.height }).map((_, yIndex) => 
+                            Array.from({ length: mapBounds.width }).map((_, xIndex) => {
+                                const worldX = mapBounds.minX + xIndex;
+                                const worldY = mapBounds.maxY - yIndex;
+                                const chunkKey = `${worldX},${worldY}`;
+                                const chunk = world[chunkKey];
 
-                        if (!chunk || !chunk.explored) {
-                            return <div key={chunkKey} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />;
-                        }
-
-                        const isPlayerHere = playerPosition.x === worldX && playerPosition.y === worldY;
-
-                        return (
-                            <Popover key={chunkKey}>
-                                <PopoverTrigger asChild>
-                                    <div
-                                        className={cn(
-                                            responsiveCellSize,
-                                            "relative transition-all duration-300 flex items-center justify-center p-1 cursor-pointer hover:ring-2 hover:ring-white border-r border-b border-dashed border-border/50",
-                                            biomeColors[chunk.terrain as keyof typeof biomeColors],
-                                            isPlayerHere && "ring-2 ring-white shadow-lg z-10"
-                                        )}
-                                        aria-label={`Map cell at ${chunk.x}, ${chunk.y}. Biome: ${chunk.terrain}`}
-                                    >
-                                        {/* Biome Icon */}
-                                        {biomeIcons[chunk.terrain as keyof typeof biomeIcons]}
-                                        
-                                        {/* Player Icon in the center */}
-                                        {isPlayerHere && (
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                <PlayerIcon />
+                                if (!chunk || !chunk.explored) {
+                                    return <div key={chunkKey} className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />;
+                                }
+                                
+                                const isPlayerHere = playerPosition.x === worldX && playerPosition.y === worldY;
+                                const biomeIcon = biomeIcons[chunk.terrain as Exclude<Terrain, 'empty'>];
+                                
+                                return (
+                                    <Popover key={chunkKey}>
+                                        <PopoverTrigger asChild>
+                                            <div
+                                                className={cn(
+                                                    currentCellSize,
+                                                    "relative transition-all duration-300 flex items-center justify-center p-1 cursor-pointer hover:ring-2 hover:ring-white border-r border-b border-dashed border-border/50",
+                                                    biomeColors[chunk.terrain as keyof typeof biomeColors],
+                                                    isPlayerHere && "ring-2 ring-white shadow-lg z-10"
+                                                )}
+                                                aria-label={`Map cell at ${chunk.x}, ${chunk.y}. Biome: ${chunk.terrain}`}
+                                            >
+                                                <div className={cn(currentBiomeIconSize, 'opacity-80')}>
+                                                    {biomeIcon}
+                                                </div>
+                                                
+                                                {showDetails && (
+                                                    <>
+                                                        {isPlayerHere && (
+                                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                                <PlayerIcon />
+                                                            </div>
+                                                        )}
+                                                        {chunk.structures?.length > 0 && (
+                                                            <div className="absolute top-px left-px">
+                                                                <StructureIcon emoji={chunk.structures[0].emoji} />
+                                                            </div>
+                                                        )}
+                                                        {chunk.NPCs.length > 0 && (
+                                                            <div className="absolute top-px right-px">
+                                                                <NpcIcon />
+                                                            </div>
+                                                        )}
+                                                        {chunk.enemy && (
+                                                            <div className="absolute bottom-px left-px">
+                                                                <EnemyIcon emoji={chunk.enemy.emoji} />
+                                                            </div>
+                                                        )}
+                                                        {chunk.items.length > 0 && (
+                                                            <div className="absolute bottom-px right-px">
+                                                                <ItemIcon emoji={chunk.items[0].emoji} />
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                )}
                                             </div>
-                                        )}
-                                        
-                                        {/* Structure Icon in top-left */}
-                                        {chunk.structures?.length > 0 && (
-                                            <div className="absolute top-px left-px">
-                                                <StructureIcon emoji={chunk.structures[0].emoji} />
-                                            </div>
-                                        )}
-            
-                                        {/* NPC Icon in top-right */}
-                                        {chunk.NPCs.length > 0 && (
-                                            <div className="absolute top-px right-px">
-                                                <NpcIcon />
-                                            </div>
-                                        )}
-                                        
-                                        {/* Enemy Icon in bottom-left */}
-                                        {chunk.enemy && (
-                                            <div className="absolute bottom-px left-px">
-                                                <EnemyIcon emoji={chunk.enemy.emoji} />
-                                            </div>
-                                        )}
-            
-                                        {/* Item Icon in bottom-right */}
-                                        {chunk.items.length > 0 && (
-                                            <div className="absolute bottom-px right-px">
-                                                <ItemIcon emoji={chunk.items[0].emoji} />
-                                            </div>
-                                        )}
-                                    </div>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-80">
-                                    <MapCellDetails chunk={chunk} />
-                                </PopoverContent>
-                            </Popover>
-                        );
-                    })
-                )}
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-80">
+                                            <MapCellDetails chunk={chunk} />
+                                        </PopoverContent>
+                                    </Popover>
+                                );
+                            })
+                        )}
+                    </div>
+                </ScrollArea>
+                <div className="absolute bottom-4 right-4 flex flex-col gap-2">
+                    <Button size="icon" onClick={() => setZoom(z => Math.min(MAX_ZOOM, z + 1))}>
+                        <Plus />
+                    </Button>
+                    <Button size="icon" onClick={() => setZoom(z => Math.max(MIN_ZOOM, z - 1))}>
+                        <Minus />
+                    </Button>
+                </div>
             </div>
-        </ScrollArea>
+        </div>
       </SheetContent>
     </Sheet>
   );

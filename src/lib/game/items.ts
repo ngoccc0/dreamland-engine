@@ -111,6 +111,46 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     },
 
     // --- VẬT PHẨM CHẾ TẠO ĐƯỢC ---
+    'Dao Găm Đá': {
+        description: 'item_stone_dagger_desc',
+        tier: 1,
+        category: 'Weapon',
+        emoji: '🗡️',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Khiên Gỗ': {
+        description: 'item_wooden_shield_desc',
+        tier: 2,
+        category: 'Equipment',
+        emoji: '🛡️',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Băng Gạc': {
+        description: 'item_bandage_desc',
+        tier: 2,
+        category: 'Support',
+        emoji: '🩹',
+        effects: [{ type: 'HEAL', amount: 15 }],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Cuốc Đá': {
+        description: 'item_stone_pickaxe_desc',
+        tier: 2,
+        category: 'Tool',
+        emoji: '⛏️',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Giáo Xương': {
+        description: 'item_bone_spear_desc',
+        tier: 2,
+        category: 'Weapon',
+        emoji: '🔱',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
     'Rìu Đá Đơn Giản': {
         description: 'item_riu_da_don_gian_desc',
         tier: 1,

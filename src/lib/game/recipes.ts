@@ -78,4 +78,46 @@ export const recipes: Record<string, Recipe> = {
         ],
         description: 'recipe_inflatable_raft_desc',
     },
+    'Dao Găm Đá': {
+        result: { name: 'Dao Găm Đá', quantity: 1, emoji: '🗡️' },
+        ingredients: [
+            { name: 'Đá Cuội', quantity: 2 },
+            { name: 'Mảnh Vải Rách', quantity: 1 }
+        ],
+        description: 'recipe_stone_dagger_desc',
+    },
+    'Khiên Gỗ': {
+        result: { name: 'Khiên Gỗ', quantity: 1, emoji: '🛡️' },
+        ingredients: [
+            { name: 'Lõi Gỗ', quantity: 4 },
+            { name: 'Da Heo Rừng', quantity: 1, alternatives: [{ name: 'Da Gấu', tier: 1 }] }
+        ],
+        description: 'recipe_wooden_shield_desc',
+    },
+    'Băng Gạc': {
+        result: { name: 'Băng Gạc', quantity: 1, emoji: '🩹' },
+        ingredients: [
+            { name: 'Mảnh Vải Rách', quantity: 2 },
+            { name: 'Thảo Dược Chữa Lành', quantity: 1 }
+        ],
+        description: 'recipe_bandage_desc',
+    },
+    'Cuốc Đá': {
+        result: { name: 'Cuốc Đá', quantity: 1, emoji: '⛏️' },
+        ingredients: [
+            { name: 'Lõi Gỗ', quantity: 2 },
+            { name: 'Đá Cuội', quantity: 3 },
+            { name: 'Dây Gai', quantity: 2 }
+        ],
+        description: 'recipe_stone_pickaxe_desc',
+    },
+    'Giáo Xương': {
+        result: { name: 'Giáo Xương', quantity: 1, emoji: '🔱' },
+        ingredients: [
+            { name: 'Lõi Gỗ', quantity: 1 },
+            { name: 'Nanh Sói', quantity: 1, alternatives: [{ name: 'Móng Vuốt Gấu', tier: 1 }, { name: 'Răng Cá Sấu', tier: 2 }] },
+            { name: 'Dây Gai', quantity: 2 }
+        ],
+        description: 'recipe_bone_spear_desc',
+    },
 };

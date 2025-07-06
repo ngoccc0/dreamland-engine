@@ -80,10 +80,8 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                             <DropdownMenuTrigger asChild>
                                 <button
                                     className={cn(
-                                        "w-full flex justify-between items-center p-2 bg-muted rounded-md text-left text-sm",
-                                        isInteractable ? "cursor-pointer hover:bg-accent/20" : "cursor-default"
+                                        "w-full flex justify-between items-center p-2 bg-muted rounded-md text-left text-sm cursor-pointer hover:bg-accent/20"
                                     )}
-                                    disabled={!isInteractable}
                                 >
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <span className="text-2xl mr-2">{item.emoji}</span>
@@ -99,13 +97,14 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                                 </button>
                             </DropdownMenuTrigger>
                             
-                            {isInteractable && (
-                                <DropdownMenuContent className="w-56">
-                                    <DropdownMenuLabel className="font-normal">
-                                        <p className="font-bold">{item.emoji} {t(item.name as TranslationKey)}</p>
-                                        <p className="text-xs text-muted-foreground whitespace-normal">{t(definition?.description as TranslationKey)}</p>
-                                    </DropdownMenuLabel>
-                                    
+                            <DropdownMenuContent className="w-56">
+                                <DropdownMenuLabel className="font-normal">
+                                    <p className="font-bold">{item.emoji} {t(item.name as TranslationKey)}</p>
+                                    <p className="text-xs text-muted-foreground whitespace-normal">{t(definition?.description as TranslationKey)}</p>
+                                </DropdownMenuLabel>
+                                
+                                {isInteractable && (
+                                  <>
                                     {definition && definition.effects.length > 0 && (
                                         <>
                                             <DropdownMenuSeparator />
@@ -124,8 +123,9 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                                     <DropdownMenuSeparator />
                                     {isUsableOnSelf && <DropdownMenuItem onClick={() => handleUseItem(item.name, 'player')}>{t('useOnSelf')}</DropdownMenuItem>}
                                     {isUsableOnEnemy && <DropdownMenuItem onClick={() => handleUseItem(item.name, enemy!.type)}>{t('useOnTarget', { target: t(enemy!.type as TranslationKey) })}</DropdownMenuItem>}
-                                </DropdownMenuContent>
-                            )}
+                                  </>
+                                )}
+                            </DropdownMenuContent>
                         </DropdownMenu>
                       </li>
                     );

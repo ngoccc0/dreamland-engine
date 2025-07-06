@@ -42,6 +42,10 @@ export const mountain_vi = {
             ],
             conditions: { elevation: { min: 5 }, dangerLevel: { min: 6 }, chance: 0.1 } 
         },
+        { 
+            data: structureDefinitions['Đảo Bay'],
+            conditions: { elevation: { min: 10 }, magicAffinity: { min: 8 }, chance: 0.02 } 
+        },
     ],
     enemies: [
         { data: { type: 'Dê núi hung hãn', emoji: '🐐', hp: 50, damage: 15, behavior: 'defensive', size: 'medium', diet: ['Cây Thuốc Núi', 'Hoa Dại'], satiation: 0, maxSatiation: 3, loot: [{name: 'Sừng Dê Núi', chance: 0.4, quantity: {min: 1, max: 2}}, {name: 'Thịt Dê Núi', chance: 0.7, quantity: {min: 1, max: 2}}] }, conditions: { elevation: { min: 7 }, chance: 0.4 } },
@@ -80,6 +84,10 @@ export const mountain_en = {
                 { name: 'Chìa Khóa Rỉ Sét', chance: 0.1, quantity: { min: 1, max: 1 } }
             ],
             conditions: { elevation: { min: 5 }, dangerLevel: { min: 6 }, chance: 0.1 } 
+        },
+        { 
+            data: structureDefinitions['Đảo Bay'],
+            conditions: { elevation: { min: 10 }, magicAffinity: { min: 8 }, chance: 0.02 } 
         },
     ],
     enemies: [

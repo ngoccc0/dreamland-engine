@@ -50,7 +50,7 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
     },
     mountain: {
         minSize: 3, maxSize: 7, travelCost: 6, spreadWeight: 0.1,
-        allowedNeighbors: ['forest', 'desert', 'volcanic', 'wall', 'cave', 'tundra', 'floating_islands'],
+        allowedNeighbors: ['forest', 'desert', 'volcanic', 'wall', 'cave', 'tundra'],
         defaultValueRanges: {
             vegetationDensity: { min: 1, max: 4 }, moisture: { min: 2, max: 5 }, elevation: { min: 5, max: 10 },
             dangerLevel: { min: 6, max: 9 }, magicAffinity: { min: 2, max: 5 }, humanPresence: { min: 1, max: 4 },
@@ -70,7 +70,7 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
     },
     jungle: {
         minSize: 6, maxSize: 12, travelCost: 5, spreadWeight: 0.5,
-        allowedNeighbors: ['forest', 'swamp', 'grassland', 'wall', 'floptropica', 'beach', 'floating_islands'],
+        allowedNeighbors: ['forest', 'swamp', 'grassland', 'wall', 'floptropica', 'beach'],
         defaultValueRanges: {
             vegetationDensity: { min: 9, max: 10 }, moisture: { min: 8, max: 10 }, elevation: { min: 1, max: 3 },
             dangerLevel: { min: 6, max: 9 }, magicAffinity: { min: 4, max: 8 }, humanPresence: { min: 0, max: 4 },
@@ -140,7 +140,7 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
     },
     ocean: {
         minSize: 10, maxSize: 20, travelCost: 99, spreadWeight: 0.2,
-        allowedNeighbors: ['beach', 'wall', 'floating_islands'],
+        allowedNeighbors: ['beach', 'wall'],
         defaultValueRanges: {
             vegetationDensity: { min: 0, max: 0 }, moisture: { min: 10, max: 10 }, elevation: { min: -5, max: -1 },
             dangerLevel: { min: 4, max: 7 }, magicAffinity: { min: 1, max: 4 }, humanPresence: { min: 0, max: 2 },
@@ -148,19 +148,9 @@ export const worldConfig: Record<Terrain, BiomeDefinition> = {
         },
         soilType: ['sandy'],
     },
-    floating_islands: {
-        minSize: 2, maxSize: 5, travelCost: 9, spreadWeight: 0.02,
-        allowedNeighbors: ['mountain', 'jungle', 'wall'],
-        defaultValueRanges: {
-            vegetationDensity: { min: 4, max: 7 }, moisture: { min: 3, max: 6 }, elevation: { min: 8, max: 10 },
-            dangerLevel: { min: 7, max: 9 }, magicAffinity: { min: 8, max: 10 }, humanPresence: { min: 0, max: 2 },
-            predatorPresence: { min: 6, max: 8 }, temperature: { min: 4, max: 7 },
-        },
-        soilType: ['loamy'],
-    },
     wall: {
         minSize: 1, maxSize: 1, travelCost: 999, spreadWeight: 0,
-        allowedNeighbors: ['forest', 'grassland', 'desert', 'swamp', 'mountain', 'cave', 'jungle', 'volcanic', 'wall', 'floptropica', 'tundra', 'beach', 'mesa', 'mushroom_forest', 'ocean', 'floating_islands'],
+        allowedNeighbors: ['forest', 'grassland', 'desert', 'swamp', 'mountain', 'cave', 'jungle', 'volcanic', 'wall', 'floptropica', 'tundra', 'beach', 'mesa', 'mushroom_forest', 'ocean'],
         defaultValueRanges: {
             vegetationDensity: { min: 0, max: 0 }, moisture: { min: 0, max: 0 }, elevation: { min: 5, max: 5 },
             dangerLevel: { min: 0, max: 0 }, magicAffinity: { min: 0, max: 0 }, humanPresence: { min: 0, max: 0 },

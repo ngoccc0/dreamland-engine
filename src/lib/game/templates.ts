@@ -15,7 +15,6 @@ import { beach_vi, beach_en } from "./templates/beach";
 import { mesa_vi, mesa_en } from "./templates/mesa";
 import { mushroom_forest_vi, mushroom_forest_en } from "./templates/mushroom";
 import { ocean_vi, ocean_en } from "./templates/ocean";
-import { floating_islands_vi, floating_islands_en } from "./templates/floating";
 
 const templates_vi: Record<Terrain, any> = {
     forest: forest_vi,
@@ -33,7 +32,6 @@ const templates_vi: Record<Terrain, any> = {
     mesa: mesa_vi,
     mushroom_forest: mushroom_forest_vi,
     ocean: ocean_vi,
-    floating_islands: floating_islands_vi,
 };
 
 const templates_en: Record<Terrain, any> = {
@@ -52,7 +50,6 @@ const templates_en: Record<Terrain, any> = {
     mesa: mesa_en,
     mushroom_forest: mushroom_forest_en,
     ocean: ocean_en,
-    floating_islands: floating_islands_en,
 };
 
 export const getTemplates = (lang: Language): Record<Terrain, any> => {

@@ -26,6 +26,12 @@ export const structureDefinitions: Record<string, Omit<Structure, 'buildCost' | 
         emoji: '⛏️',
         providesShelter: true,
     },
+    'Đảo Bay': {
+        name: 'Đảo Bay',
+        description: 'structure_floating_island_desc',
+        emoji: '☁️',
+        providesShelter: false,
+    },
 };
 
 export const buildableStructures: Record<string, Structure> = {

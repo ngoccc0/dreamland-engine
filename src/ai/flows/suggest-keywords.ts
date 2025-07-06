@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -20,7 +21,7 @@ export type SuggestKeywordsInput = z.infer<typeof SuggestKeywordsInputSchema>;
 
 // Output: An array of suggested keywords.
 const SuggestKeywordsOutputSchema = z.object({
-  keywords: z.array(z.string()).describe("An array of 5-7 suggested keywords or short, evocative phrases to help the user expand their idea."),
+  keywords: z.array(z.string()).describe("An array of 5-7 suggested keywords or short, evocative phrases to help them expand their idea."),
 });
 export type SuggestKeywordsOutput = z.infer<typeof SuggestKeywordsOutputSchema>;
 
@@ -34,15 +35,20 @@ export async function suggestKeywords(input: SuggestKeywordsInput): Promise<Sugg
   return suggestKeywordsFlow(input);
 }
 
-
-const promptTemplate = `You are a creative brainstorming assistant helping a user design a game world. All keywords you generate MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical requirement.
+// Define the prompt with input and output schemas.
+const keywordSuggestionPrompt = ai.definePrompt({
+  name: 'keywordSuggestionPrompt',
+  input: { schema: SuggestKeywordsInputSchema },
+  output: { schema: SuggestKeywordsOutputSchema },
+  prompt: `You are a creative brainstorming assistant helping a user design a game world. All keywords you generate MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical requirement.
 
 Based on the user's input below, suggest 5-7 related keywords or short, evocative phrases to help them expand their world concept.
 The suggestions should be creative, interesting, and varied.
 
 User's Idea: {{{userInput}}}
 
-Return the keywords in the required JSON format.`;
+Return the keywords in the required JSON format.`,
+});
 
 
 const suggestKeywordsFlow = ai.defineFlow(
@@ -63,14 +69,8 @@ const suggestKeywordsFlow = ai.defineFlow(
     
     for (const modelName of modelsToTry) {
       try {
-        const { output } = await ai.generate({
-          model: modelName,
-          prompt: promptTemplate,
-          input: input,
-          output: {
-            schema: SuggestKeywordsOutputSchema,
-          },
-        });
+        // Call the defined prompt and override the model for each attempt.
+        const { output } = await keywordSuggestionPrompt(input, { model: modelName });
         
         if (output) {
             return output;

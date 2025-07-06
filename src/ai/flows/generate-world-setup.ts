@@ -272,26 +272,31 @@ const generateWorldSetupFlow = ai.defineFlow(
     
     // Task B: Generate world names.
     const worldNamesTask = (async () => {
-        const modelName = 'googleai/gemini-2.0-flash';
-        console.log(`[Task B] Attempting world name generation with model: ${modelName}`);
         const template = Handlebars.compile(worldNamesPromptTemplate);
         const renderedPrompt = template(input);
-        const result = await ai.generate({
-            model: modelName,
-            prompt: renderedPrompt,
-            output: { schema: WorldNamesOutputSchema },
-        });
-        console.log(`[Task B] SUCCESS with ${modelName}. Raw AI Output:`, result.output);
-        return result;
+        const modelsToTry = ['googleai/gemini-2.0-flash', 'deepseek/deepseek-chat'];
+        for (const modelName of modelsToTry) {
+            try {
+                console.log(`[Task B] Attempting world name generation with model: ${modelName}`);
+                const result = await ai.generate({
+                    model: modelName,
+                    prompt: renderedPrompt,
+                    output: { schema: WorldNamesOutputSchema },
+                });
+                console.log(`[Task B] SUCCESS with ${modelName}.`);
+                return result;
+            } catch (error: any) {
+                console.warn(`[Task B] Model ${modelName} failed. Reason: ${error.message || error}. Trying next...`);
+            }
+        }
+        throw new Error("All models failed for world name generation.");
     })();
 
     // Task C: Generate narrative concepts.
     const narrativeConceptsTask = (async () => {
         const template = Handlebars.compile(narrativeConceptsPromptTemplate);
         const renderedPrompt = template(input);
-        const modelsToTry = ['deepseek/deepseek-chat', 'googleai/gemini-2.0-flash'];
-        const errorLogs: string[] = [];
-        
+        const modelsToTry = ['deepseek/deepseek-chat', 'googleai/gemini-2.0-flash', 'openai/gpt-4o'];
         for (const modelName of modelsToTry) {
             try {
                 console.log(`[Task C] Attempting narrative concepts generation with model: ${modelName}`);
@@ -300,38 +305,37 @@ const generateWorldSetupFlow = ai.defineFlow(
                     prompt: renderedPrompt,
                     output: { schema: NarrativeConceptsOutputSchema },
                 });
-                console.log(`[Task C] SUCCESS with ${modelName}. Raw AI Output:`, result.output);
+                console.log(`[Task C] SUCCESS with ${modelName}.`);
                 return result;
             } catch (error: any) {
-                 const errorMessage = `Model ${modelName} failed for narrative concepts. Reason: ${error.message || error}`;
-                console.warn(errorMessage);
-                errorLogs.push(errorMessage);
+                console.warn(`[Task C] Model ${modelName} failed. Reason: ${error.message || error}. Trying next...`);
             }
         }
-        
-        const detailedError = `All AI models failed for narrative concepts generation. \n\nIndividual model errors:\n- ${errorLogs.join('\n- ')}`;
-        throw new Error(detailedError);
+        throw new Error("All models failed for narrative concepts generation.");
     })();
     
     // Task D: Generate custom structures.
     const structureCatalogTask = (async () => {
-        const modelName = 'openai/gpt-4o'; // Use a powerful model for creative structures
-        console.log(`[Task D] Attempting structure catalog generation with model: ${modelName}`);
         const template = Handlebars.compile(structureCatalogPromptTemplate);
         const renderedPrompt = template(input);
-        try {
-            const result = await ai.generate({
-                model: modelName,
-                prompt: renderedPrompt,
-                output: { schema: StructureCatalogCreativeOutputSchema },
-            });
-            console.log(`[Task D] SUCCESS with ${modelName}. Raw AI Output:`, result.output);
-            return result;
-        } catch (error: any) {
-            console.warn(`Model ${modelName} failed for structures. Reason: ${error.message || error}. Proceeding without custom structures.`);
-            // Return a valid empty structure to prevent crashes
-            return { output: { customStructures: [] } };
+        const modelsToTry = ['openai/gpt-4o', 'googleai/gemini-1.5-pro'];
+        for (const modelName of modelsToTry) {
+            try {
+                console.log(`[Task D] Attempting structure catalog generation with model: ${modelName}`);
+                const result = await ai.generate({
+                    model: modelName,
+                    prompt: renderedPrompt,
+                    output: { schema: StructureCatalogCreativeOutputSchema },
+                });
+                console.log(`[Task D] SUCCESS with ${modelName}.`);
+                return result;
+            } catch (error: any) {
+                console.warn(`[Task D] Model ${modelName} failed. Reason: ${error.message || error}. Trying next...`);
+            }
         }
+        console.warn("[Task D] All models failed. Proceeding without custom structures.");
+        // Return a valid empty structure to prevent crashes
+        return { output: { customStructures: [] } };
     })();
 
 

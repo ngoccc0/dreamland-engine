@@ -4,9 +4,7 @@ import withPWAInit from '@ducanh2912/next-pwa';
 
 const withPWA = withPWAInit({
   dest: 'public',
-  // Forcing PWA in dev mode to make testing easier.
-  // For a real project, it's recommended to disable in dev to avoid caching issues.
-  disable: false, 
+  disable: process.env.NODE_ENV === 'development',
   register: true,
   skipWaiting: true,
   runtimeCaching: [

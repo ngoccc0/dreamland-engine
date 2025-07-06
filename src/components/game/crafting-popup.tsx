@@ -54,7 +54,7 @@ export function CraftingPopup({ open, onOpenChange, playerItems, recipes, onCraf
           <DialogDescription>{t('craftingDesc')}</DialogDescription>
         </DialogHeader>
         <Separator />
-        <ScrollArea className="h-96">
+        <ScrollArea className="max-h-[65vh] pr-4">
           <div className="p-4 space-y-4">
             {Object.values(recipes).map((recipe, index) => {
               const { canCraft, chance } = calculateCraftingOutcome(playerItems, recipe);

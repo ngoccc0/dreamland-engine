@@ -43,7 +43,7 @@ export function BuildingPopup({ open, onOpenChange, playerItems, buildableStruct
           <DialogDescription>{t('buildingDesc')}</DialogDescription>
         </DialogHeader>
         <Separator />
-        <ScrollArea className="h-96">
+        <ScrollArea className="max-h-[65vh] pr-4">
           <div className="p-4 space-y-4">
             {Object.values(buildableStructures).map((structure, index) => {
               const buildable = canBuild(structure);

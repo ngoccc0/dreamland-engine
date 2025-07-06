@@ -136,6 +136,14 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
+    'Thuyền Phao': {
+        description: 'item_inflatable_raft_desc',
+        tier: 3,
+        category: 'Equipment',
+        emoji: '🛶',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
 
     // --- VẬT PHẨM TỪ SINH VẬT ---
     'Nanh Sói': {

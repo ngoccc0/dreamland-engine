@@ -69,4 +69,13 @@ export const recipes: Record<string, Recipe> = {
         ],
         description: 'recipe_torch_desc',
     },
+    'Thuyền Phao': {
+        result: { name: 'Thuyền Phao', quantity: 1, emoji: '🛶' },
+        ingredients: [
+            { name: 'Da Gấu', quantity: 1, alternatives: [{name: 'Da Cá Sấu', tier: 1}] },
+            { name: 'Lõi Gỗ', quantity: 5 },
+            { name: 'Dây Gai', quantity: 10, alternatives: [{name: 'Tơ Nhện Khổng lồ', tier: 1}] }
+        ],
+        description: 'recipe_inflatable_raft_desc',
+    },
 };

@@ -906,6 +906,15 @@ export function useGameEngine(props: GameEngineProps) {
         regionsSnapshot = destResult.regions;
         regionCounterSnapshot = destResult.newRegionCounter;
         
+        const destinationTerrain = destResult.chunk.terrain;
+        if (destinationTerrain === 'ocean') {
+            const hasRaft = playerStats.items.some(item => item.name === 'Thuyền Phao');
+            if (!hasRaft) {
+                toast({ title: t('oceanTravelBlocked'), variant: "destructive" });
+                return; // Block movement
+            }
+        }
+
         if (destResult.chunk?.terrain === 'wall') { addNarrativeEntry(t('wallBlock'), 'system'); return; }
 
         const travelCost = playerStats.persona === 'explorer' ? Math.max(1, (worldConfig[destResult.chunk.terrain]?.travelCost || 3) - 1) : (worldConfig[destResult.chunk.terrain]?.travelCost || 3);

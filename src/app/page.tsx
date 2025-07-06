@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -168,15 +167,15 @@ export default function Home() {
                 {t('startNewAdventure')}
               </Button>
             </CardContent>
-            <CardFooter className='justify-center gap-2'>
-                 <Button onClick={() => setSettingsOpen(true)} variant="ghost">
+            <CardFooter className='flex-col sm:flex-row items-center justify-center gap-2'>
+                 <Button onClick={() => setSettingsOpen(true)} variant="ghost" className="w-full sm:w-auto">
                     <Settings className="mr-2 h-4 w-4" />
                     {t('gameSettings')}
                 </Button>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <span>
-                            <Button onClick={handleInstallClick} variant="ghost" disabled={!installPrompt}>
+                        <span className="w-full sm:w-auto">
+                            <Button onClick={handleInstallClick} variant="ghost" disabled={!installPrompt} className="w-full">
                                 <Download className="mr-2 h-4 w-4" />
                                 {t('installAppButton')}
                             </Button>

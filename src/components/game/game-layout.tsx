@@ -205,35 +205,37 @@ export default function GameLayout(props: GameLayoutProps) {
                     </div>
 
                     <div className="flex-shrink-0">
-                         <div className="flex justify-center items-center gap-4 mb-4">
+                        <div className="flex flex-col items-center gap-2 mb-4">
                             <h3 
                                 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors"
                                 onClick={() => setIsFullMapOpen(true)}
                             >
                                 {t('minimap')}
                             </h3>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <div className="flex items-center gap-1 text-sm text-muted-foreground cursor-default">
-                                        <Thermometer className="h-4 w-4 text-orange-500" />
-                                        <span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span>
-                                    </div>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>{t('environmentTempTooltip')}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                             <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <div className="flex items-center gap-1 text-sm text-muted-foreground cursor-default">
-                                        <Thermometer className="h-4 w-4 text-rose-500" />
-                                        <span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span>
-                                    </div>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>{t('bodyTempDesc')}</p>
-                                </TooltipContent>
-                            </Tooltip>
+                            <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div className="flex items-center gap-1 cursor-default">
+                                            <Thermometer className="h-4 w-4 text-orange-500" />
+                                            <span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span>
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>{t('environmentTempTooltip')}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div className="flex items-center gap-1 cursor-default">
+                                            <Thermometer className="h-4 w-4 text-rose-500" />
+                                            <span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span>
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>{t('bodyTempDesc')}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </div>
                         </div>
                         <Minimap grid={generateMapGrid()} playerPosition={playerPosition} />
                     </div>

@@ -1,3 +1,4 @@
+
 import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient, Structure, Language, Npc } from "./types";
 import { seasonConfig, worldConfig } from "./world-config";
 import { getTemplates } from "./templates";
@@ -378,9 +379,9 @@ function generateChunkContent(
 
     actions.push({ id: actionIdCounter++, text: t('exploreAction') });
 
-    if (spawnedItems.length > 0) {
-         actions.push({ id: actionIdCounter++, text: `${t('pickUpAction')} ${t(spawnedItems[0].name as TranslationKey)}` });
-    }
+    spawnedItems.forEach(item => {
+        actions.push({ id: actionIdCounter++, text: `${t('pickUpAction')} ${t(item.name as TranslationKey)}` });
+    });
     
     // Add generic survival actions
     actions.push({ id: actionIdCounter++, text: t('forageForFoodAction') });

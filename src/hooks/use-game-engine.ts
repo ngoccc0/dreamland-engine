@@ -97,6 +97,92 @@ export function useGameEngine(props: GameEngineProps) {
         });
     }, [setNarrativeLog]);
 
+    const advanceGameTime = useCallback(async (statsAfterAction?: PlayerStatus) => {
+        const initialStats = statsAfterAction || playerStats;
+        let nextPlayerStats = { ...initialStats };
+        let newWorldState = { ...world };
+        let worldWasModified = false;
+        let changes = { narrativeEntries: [] as { text: string; type: NarrativeEntry['type'] }[] };
+    
+        const newGameTime = (gameTime + 5) % 1440;
+        const currentDay = day;
+        const newDay = newGameTime < gameTime ? day + 1 : day;
+    
+        if (newDay > currentDay) {
+            addNarrativeEntry(t('newDay'), 'system');
+            if (isOnline && nextPlayerStats.dailyActionLog && nextPlayerStats.dailyActionLog.length > 0) {
+                try {
+                    const journalResult = await generateJournalEntry({
+                        dailyActionLog: nextPlayerStats.dailyActionLog,
+                        playerPersona: nextPlayerStats.persona,
+                        worldName: finalWorldSetup?.worldName || 'Dreamland',
+                        language,
+                    });
+                    nextPlayerStats.journal = { ...nextPlayerStats.journal, [currentDay]: journalResult.journalEntry };
+                    nextPlayerStats.dailyActionLog = [];
+                    addNarrativeEntry(t('journalUpdated'), 'system');
+                } catch (e) { console.error("Failed to generate journal entry:", e); }
+            } else { nextPlayerStats.dailyActionLog = []; }
+            setDay(newDay);
+        }
+        setGameTime(newGameTime);
+    
+        const newWeatherZones = { ...weatherZones };
+        let weatherHasChanged = false;
+        for (const zoneId in newWeatherZones) {
+            const zone = { ...newWeatherZones[zoneId] };
+            if (newGameTime >= zone.nextChangeTime) {
+                const newWeather = generateWeatherForZone(zone.terrain, currentSeason, zone.currentWeather);
+                zone.currentWeather = newWeather;
+                zone.nextChangeTime = newGameTime + getRandomInRange({min: newWeather.duration_range[0], max: newWeather.duration_range[1]}) * 5;
+                changes.narrativeEntries.push({ text: t(newWeather.description as TranslationKey), type: 'system'});
+                newWeatherZones[zoneId] = zone;
+                weatherHasChanged = true;
+            }
+        }
+        if (weatherHasChanged) setWeatherZones(newWeatherZones);
+    
+        const playerChunkKey = `${playerPosition.x},${playerPosition.y}`;
+        const currentPlayerBaseChunk = newWorldState[playerChunkKey];
+
+        if (currentPlayerBaseChunk) {
+            const effectiveChunk = getEffectiveChunk(currentPlayerBaseChunk);
+            const envTemp = effectiveChunk.temperature || 15;
+            
+            const tempDelta = ((envTemp - nextPlayerStats.bodyTemperature) * 0.1) + ((37.0 - nextPlayerStats.bodyTemperature) * 0.15);
+            nextPlayerStats.bodyTemperature += tempDelta;
+
+            if (nextPlayerStats.bodyTemperature < 30) { nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - 1); changes.narrativeEntries.push({ text: t('tempDangerFreezing'), type: 'system' }); }
+            else if (nextPlayerStats.bodyTemperature < 35) { nextPlayerStats.stamina = Math.max(0, nextPlayerStats.stamina - 0.5); changes.narrativeEntries.push({ text: t('tempWarningCold'), type: 'system' }); }
+            else if (nextPlayerStats.bodyTemperature > 42) { nextPlayerStats.stamina = Math.max(0, nextPlayerStats.stamina - 2); changes.narrativeEntries.push({ text: t('tempDangerHot'), type: 'system' }); }
+            else if (nextPlayerStats.bodyTemperature > 40) { nextPlayerStats.stamina = Math.max(0, nextPlayerStats.stamina - 1); changes.narrativeEntries.push({ text: t('tempWarningHot'), type: 'system' }); }
+
+            if (currentPlayerBaseChunk.enemy?.behavior === 'aggressive') {
+                changes.narrativeEntries.push({ text: t('enemyAttacks', { enemy: t(currentPlayerBaseChunk.enemy.type as TranslationKey) }), type: 'system' });
+                nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - currentPlayerBaseChunk.enemy.damage);
+            }
+        }
+        
+        // Natural Regeneration
+        const STAMINA_REGEN_RATE = 1.5;
+        const MANA_REGEN_RATE = 0.5;
+        nextPlayerStats.stamina = clamp(nextPlayerStats.stamina + STAMINA_REGEN_RATE, 0, 100);
+        nextPlayerStats.mana = clamp(nextPlayerStats.mana + MANA_REGEN_RATE, 0, 50);
+
+        const eventChance = (seasonConfig[currentSeason]?.eventChance || 0.1) / 20; 
+        if (Math.random() < eventChance) {
+            triggerRandomEvent();
+        }
+
+        if (worldWasModified) setWorld(newWorldState);
+        setPlayerStats(nextPlayerStats);
+
+        if (changes.narrativeEntries.length > 0) {
+            const uniqueNarratives = [...new Map(changes.narrativeEntries.map(item => [item.text, item])).values()];
+            uniqueNarratives.forEach(entry => addNarrativeEntry(entry.text, entry.type));
+        }
+    }, [playerStats, world, gameTime, day, addNarrativeEntry, t, isOnline, finalWorldSetup, language, weatherZones, currentSeason, playerPosition, setDay, setGameTime, setWeatherZones, setWorld, getEffectiveChunk, triggerRandomEvent, setPlayerStats]);
+
     useEffect(() => {
         if (playerStats.hp <= 0 && !isGameOver) {
             addNarrativeEntry(t('gameOverMessage'), 'system');
@@ -477,84 +563,6 @@ export function useGameEngine(props: GameEngineProps) {
             setWorld(newWorld);
         }
     }, [world, playerPosition, playerStats, currentSeason, worldProfile.theme, addNarrativeEntry, t, customItemDefinitions, language, setPlayerStats, setWorld]);
-
-    const advanceGameTime = useCallback(async () => {
-        let newWorldState = { ...world };
-        let worldWasModified = false;
-        let changes = { narrativeEntries: [] as { text: string; type: NarrativeEntry['type'] }[] };
-    
-        const newGameTime = (gameTime + 5) % 1440;
-        const currentDay = day;
-        const newDay = newGameTime < gameTime ? day + 1 : day;
-    
-        if (newDay > currentDay) {
-            addNarrativeEntry(t('newDay'), 'system');
-            if (isOnline && playerStats.dailyActionLog && playerStats.dailyActionLog.length > 0) {
-                try {
-                    const journalResult = await generateJournalEntry({
-                        dailyActionLog: playerStats.dailyActionLog,
-                        playerPersona: playerStats.persona,
-                        worldName: finalWorldSetup?.worldName || 'Dreamland',
-                        language,
-                    });
-                    setPlayerStats(prev => ({ ...prev, journal: { ...prev.journal, [currentDay]: journalResult.journalEntry }, dailyActionLog: [] }));
-                    addNarrativeEntry(t('journalUpdated'), 'system');
-                } catch (e) { console.error("Failed to generate journal entry:", e); }
-            } else { setPlayerStats(prev => ({...prev, dailyActionLog: []})); }
-            setDay(newDay);
-        }
-        setGameTime(newGameTime);
-    
-        const newWeatherZones = { ...weatherZones };
-        let weatherHasChanged = false;
-        for (const zoneId in newWeatherZones) {
-            const zone = { ...newWeatherZones[zoneId] };
-            if (newGameTime >= zone.nextChangeTime) {
-                const newWeather = generateWeatherForZone(zone.terrain, currentSeason, zone.currentWeather);
-                zone.currentWeather = newWeather;
-                zone.nextChangeTime = newGameTime + getRandomInRange({min: newWeather.duration_range[0], max: newWeather.duration_range[1]}) * 5;
-                changes.narrativeEntries.push({ text: t(newWeather.description as TranslationKey), type: 'system'});
-                newWeatherZones[zoneId] = zone;
-                weatherHasChanged = true;
-            }
-        }
-        if (weatherHasChanged) setWeatherZones(newWeatherZones);
-    
-        let nextPlayerStats = {...playerStats};
-        const playerChunkKey = `${playerPosition.x},${playerPosition.y}`;
-        const currentPlayerBaseChunk = newWorldState[playerChunkKey];
-
-        if (currentPlayerBaseChunk) {
-            const effectiveChunk = getEffectiveChunk(currentPlayerBaseChunk);
-            const envTemp = effectiveChunk.temperature || 15;
-            
-            const tempDelta = ((envTemp - nextPlayerStats.bodyTemperature) * 0.1) + ((37.0 - nextPlayerStats.bodyTemperature) * 0.15);
-            nextPlayerStats.bodyTemperature += tempDelta;
-
-            if (nextPlayerStats.bodyTemperature < 30) { nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - 1); changes.narrativeEntries.push({ text: t('tempDangerFreezing'), type: 'system' }); }
-            else if (nextPlayerStats.bodyTemperature < 35) { nextPlayerStats.stamina = Math.max(0, nextPlayerStats.stamina - 0.5); changes.narrativeEntries.push({ text: t('tempWarningCold'), type: 'system' }); }
-            else if (nextPlayerStats.bodyTemperature > 42) { nextPlayerStats.stamina = Math.max(0, nextPlayerStats.stamina - 2); changes.narrativeEntries.push({ text: t('tempDangerHot'), type: 'system' }); }
-            else if (nextPlayerStats.bodyTemperature > 40) { nextPlayerStats.stamina = Math.max(0, nextPlayerStats.stamina - 1); changes.narrativeEntries.push({ text: t('tempWarningHot'), type: 'system' }); }
-
-            if (currentPlayerBaseChunk.enemy?.behavior === 'aggressive') {
-                changes.narrativeEntries.push({ text: t('enemyAttacks', { enemy: t(currentPlayerBaseChunk.enemy.type as TranslationKey) }), type: 'system' });
-                nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - currentPlayerBaseChunk.enemy.damage);
-            }
-        }
-        
-        const eventChance = (seasonConfig[currentSeason]?.eventChance || 0.1) / 20; 
-        if (Math.random() < eventChance) {
-            triggerRandomEvent();
-        }
-
-        if (worldWasModified) setWorld(newWorldState);
-        setPlayerStats(prev => ({ ...prev, ...nextPlayerStats }));
-
-        if (changes.narrativeEntries.length > 0) {
-            const uniqueNarratives = [...new Map(changes.narrativeEntries.map(item => [item.text, item])).values()];
-            uniqueNarratives.forEach(entry => addNarrativeEntry(entry.text, entry.type));
-        }
-    }, [world, gameTime, day, playerPosition, playerStats, weatherZones, currentSeason, addNarrativeEntry, t, isOnline, language, setDay, setGameTime, setWeatherZones, setPlayerStats, setWorld, getEffectiveChunk, finalWorldSetup, triggerRandomEvent]);
     
     const handleOnlineNarrative = useCallback(async (action: string, worldCtx: World, playerPosCtx: {x: number, y: number}, playerStatsCtx: PlayerStatus) => {
         setIsLoading(true);
@@ -578,6 +586,12 @@ export function useGameEngine(props: GameEngineProps) {
             addNarrativeEntry(result.narrative, 'narrative');
             if(result.systemMessage) addNarrativeEntry(result.systemMessage, 'system');
 
+            let finalPlayerStats: PlayerStatus = { ...playerStatsCtx, ...(result.updatedPlayerStatus || {})};
+            
+            if (worldCtx[`${playerPosCtx.x},${playerPosCtx.y}`]?.enemy && result.updatedChunk?.enemy === null) {
+                finalPlayerStats.unlockProgress = { ...finalPlayerStats.unlockProgress, kills: finalPlayerStats.unlockProgress.kills + 1 };
+            }
+
             setWorld(prev => {
                 const newWorld = { ...prev };
                 const key = `${currentChunk.x},${currentChunk.y}`;
@@ -588,28 +602,20 @@ export function useGameEngine(props: GameEngineProps) {
                 }
                 return newWorld;
             });
-
-            setPlayerStats(prev => {
-                let newStats = { ...prev, ...(result.updatedPlayerStatus || {}) };
-                if (worldCtx[`${playerPosCtx.x},${playerPosCtx.y}`]?.enemy && result.updatedChunk?.enemy === null) {
-                    newStats.unlockProgress = { ...newStats.unlockProgress, kills: newStats.unlockProgress.kills + 1 };
-                }
-                return newStats;
-            });
             
             if (result.newlyGeneratedItem && !customItemDefinitions[result.newlyGeneratedItem.name]) {
                 const newItem = result.newlyGeneratedItem;
                 setCustomItemCatalog(prev => [...prev, newItem]);
                 setCustomItemDefinitions(prev => ({ ...prev, [newItem.name]: { description: newItem.description, tier: newItem.tier, category: newItem.category, emoji: newItem.emoji, effects: newItem.effects as ItemEffect[], baseQuantity: newItem.baseQuantity, growthConditions: newItem.growthConditions as any } }));
             }
+            advanceGameTime(finalPlayerStats);
         } catch (error) {
             console.error("AI narrative generation failed:", error);
             toast({ title: t('offlineModeActive'), description: t('offlineToastDesc'), variant: "destructive" });
         } finally {
-            advanceGameTime();
             setIsLoading(false);
         }
-    }, [settings.diceType, settings.aiModel, settings.narrativeLength, addNarrativeEntry, getEffectiveChunk, narrativeLog, language, customItemDefinitions, toast, advanceGameTime, finalWorldSetup, setIsLoading, setWorld, setPlayerStats, setCustomItemCatalog, setCustomItemDefinitions, t]);
+    }, [settings.diceType, settings.aiModel, settings.narrativeLength, addNarrativeEntry, getEffectiveChunk, narrativeLog, language, customItemDefinitions, toast, advanceGameTime, finalWorldSetup, setIsLoading, setWorld, setCustomItemCatalog, setCustomItemDefinitions, t]);
     
     const handleOfflineAttack = useCallback(() => {
         const key = `${playerPosition.x},${playerPosition.y}`;
@@ -662,7 +668,11 @@ export function useGameEngine(props: GameEngineProps) {
             if (!fled) enemyDamage = Math.round(currentChunk.enemy.damage);
         }
     
-        const finalPlayerHp = Math.max(0, playerStats.hp - enemyDamage);
+        let nextPlayerStats = {...playerStats};
+        nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - enemyDamage);
+        if (enemyDefeated) {
+            nextPlayerStats.unlockProgress = { ...nextPlayerStats.unlockProgress, kills: nextPlayerStats.unlockProgress.kills + 1 };
+        }
     
         let narrative = combatLogParts.join(' ');
         if (enemyDefeated) narrative += ` ${t('enemyDefeated', { enemyType: t(currentChunk.enemy.type as TranslationKey) })}` + (lootDrops.length > 0 ? ` ${t('enemyDropped', { items: lootDrops.map(i => `${i.quantity}x ${t(i.name as TranslationKey)}`).join(', ') })}` : "");
@@ -670,8 +680,6 @@ export function useGameEngine(props: GameEngineProps) {
         else if (enemyDamage > 0) narrative += ` ${t('enemyRetaliated', { enemyType: t(currentChunk.enemy.type as TranslationKey), damage: enemyDamage })}`;
         else narrative += ` ${t('enemyPrepares', { enemyType: t(currentChunk.enemy.type as TranslationKey) })}`;
         addNarrativeEntry(narrative, 'narrative');
-    
-        setPlayerStats(prev => ({ ...prev, hp: finalPlayerHp, unlockProgress: enemyDefeated ? { ...prev.unlockProgress, kills: prev.unlockProgress.kills + 1 } : prev.unlockProgress }));
     
         setWorld(prev => {
             const newWorld = { ...prev };
@@ -686,8 +694,8 @@ export function useGameEngine(props: GameEngineProps) {
             return newWorld;
         });
     
-        advanceGameTime();
-    }, [playerPosition, world, addNarrativeEntry, settings.diceType, t, getEffectiveChunk, playerStats, language, customItemDefinitions, advanceGameTime]);
+        advanceGameTime(nextPlayerStats);
+    }, [playerPosition, world, addNarrativeEntry, settings.diceType, t, getEffectiveChunk, playerStats, language, customItemDefinitions, advanceGameTime, setWorld]);
     
     const handleOfflineItemUse = useCallback((itemName: string, target: 'player' | string) => {
         addNarrativeEntry(target === 'player' ? `${t('useAction')} ${t(itemName as TranslationKey)}` : `${t('useOnAction', {item: t(itemName as TranslationKey), target: t(target as TranslationKey)})}`, 'action');
@@ -725,9 +733,9 @@ export function useGameEngine(props: GameEngineProps) {
                 addNarrativeEntry(t('tameFail', { target: t(target as TranslationKey), item: t(itemName as TranslationKey)}), 'system');
             }
         }
-        setPlayerStats({ ...newPlayerStats, items: newPlayerStats.items.filter(i => i.quantity > 0) });
-        advanceGameTime();
-    }, [addNarrativeEntry, playerStats, t, customItemDefinitions, playerPosition, world, advanceGameTime]);
+        newPlayerStats.items = newPlayerStats.items.filter(i => i.quantity > 0);
+        advanceGameTime(newPlayerStats);
+    }, [addNarrativeEntry, playerStats, t, customItemDefinitions, playerPosition, world, advanceGameTime, setWorld]);
     
     const handleOfflineSkillUse = useCallback((skillName: string) => {
         let newPlayerStats: PlayerStatus = JSON.parse(JSON.stringify(playerStats));
@@ -782,10 +790,9 @@ export function useGameEngine(props: GameEngineProps) {
         }
     
         addNarrativeEntry(narrative, 'narrative');
-        setPlayerStats(newPlayerStats);
         if(newEnemy !== currentChunk?.enemy) setWorld(prev => ({...prev, [key]: {...prev[key]!, enemy: newEnemy}}));
-        advanceGameTime();
-    }, [playerStats, settings.diceType, t, addNarrativeEntry, playerPosition, world, advanceGameTime]);
+        advanceGameTime(newPlayerStats);
+    }, [playerStats, settings.diceType, t, addNarrativeEntry, playerPosition, world, advanceGameTime, setWorld]);
     
     const handleOfflineAction = useCallback((actionText: string) => {
         addNarrativeEntry(actionText, 'action');
@@ -951,10 +958,8 @@ export function useGameEngine(props: GameEngineProps) {
             }
         }
 
-
-        setPlayerStats(newPlayerStats);
-        advanceGameTime();
-    }, [addNarrativeEntry, playerStats, t, world, playerPosition, language, toast, advanceGameTime, customItemDefinitions]);
+        advanceGameTime(newPlayerStats);
+    }, [addNarrativeEntry, playerStats, t, world, playerPosition, language, toast, advanceGameTime, customItemDefinitions, setWorld]);
     
     const handleMove = useCallback((direction: "north" | "south" | "east" | "west") => {
         if (isLoading || isGameOver) return;
@@ -1027,22 +1032,20 @@ export function useGameEngine(props: GameEngineProps) {
         setPlayerPosition(newPos);
 
         const newPlayerStats = { ...playerStats, stamina: playerStats.stamina - travelCost, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText], unlockProgress: { ...playerStats.unlockProgress, moves: playerStats.unlockProgress.moves + 1 } };
-        setPlayerStats(newPlayerStats);
 
         if (isOnline) handleOnlineNarrative(`move ${direction}`, worldSnapshot, newPos, newPlayerStats);
-        else { addNarrativeEntry(worldSnapshot[`${newPos.x},${newPos.y}`].description, 'narrative'); advanceGameTime(); }
-    }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerPosition, world, regions, regionCounter, playerStats, toast, addNarrativeEntry, t, ensureChunkExists, weatherZones, currentSeason, gameTime, setWeatherZones, setWorld, setRegions, setRegionCounter, setPlayerPosition, setPlayerStats, isOnline, handleOnlineNarrative, advanceGameTime]);
+        else { addNarrativeEntry(worldSnapshot[`${newPos.x},${newPos.y}`].description, 'narrative'); advanceGameTime(newPlayerStats); }
+    }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerPosition, world, regions, regionCounter, playerStats, toast, addNarrativeEntry, t, ensureChunkExists, weatherZones, currentSeason, gameTime, setWeatherZones, setWorld, setRegions, setRegionCounter, setPlayerPosition, isOnline, handleOnlineNarrative, advanceGameTime]);
 
     const handleAction = useCallback((actionId: number) => {
         if (isLoading || isGameOver) return;
         const chunk = world[`${playerPosition.x},${playerPosition.y}`];
         const actionText = chunk?.actions.find(a => a.id === actionId)?.text || "unknown action";
         const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
-        setPlayerStats(newPlayerStats);
         addNarrativeEntry(actionText, 'action');
         if (isOnline) handleOnlineNarrative(actionText, world, playerPosition, newPlayerStats);
         else handleOfflineAction(actionText);
-    }, [isLoading, isGameOver, world, playerPosition, playerStats, setPlayerStats, addNarrativeEntry, isOnline, handleOnlineNarrative, handleOfflineAction]);
+    }, [isLoading, isGameOver, world, playerPosition, playerStats, addNarrativeEntry, isOnline, handleOnlineNarrative, handleOfflineAction]);
 
     const handleAttack = useCallback(() => {
         if (isLoading || isGameOver) return;
@@ -1052,21 +1055,19 @@ export function useGameEngine(props: GameEngineProps) {
         
         const actionText = `${t('attackAction')} ${t(baseChunk.enemy.type as TranslationKey)}`;
         const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
-        setPlayerStats(newPlayerStats);
     
         if (isOnline) handleOnlineNarrative(actionText, world, playerPosition, newPlayerStats);
         else handleOfflineAttack();
-    }, [isLoading, isGameOver, setPlayerBehaviorProfile, world, playerPosition, addNarrativeEntry, t, playerStats, setPlayerStats, isOnline, handleOnlineNarrative, handleOfflineAttack]);
+    }, [isLoading, isGameOver, setPlayerBehaviorProfile, world, playerPosition, addNarrativeEntry, t, playerStats, isOnline, handleOnlineNarrative, handleOfflineAttack]);
     
     const handleCustomAction = useCallback((text: string) => {
         if (!text.trim() || isLoading || isGameOver) return;
         setPlayerBehaviorProfile(p => ({ ...p, customActions: p.customActions + 1 }));
         const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), text]};
-        setPlayerStats(newPlayerStats);
         addNarrativeEntry(text, 'action');
         if (isOnline) handleOnlineNarrative(text, world, playerPosition, newPlayerStats);
         else handleOfflineAction(text);
-    }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerStats, setPlayerStats, addNarrativeEntry, isOnline, handleOnlineNarrative, world, playerPosition, handleOfflineAction]);
+    }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerStats, addNarrativeEntry, isOnline, handleOnlineNarrative, world, playerPosition, handleOfflineAction]);
 
     const handleCraft = useCallback(async (recipe: Recipe) => {
         if (isLoading || isGameOver) return;
@@ -1082,16 +1083,15 @@ export function useGameEngine(props: GameEngineProps) {
             if (itemIndex > -1) updatedItems[itemIndex].quantity -= itemToConsume.quantity;
         });
         
-        setPlayerStats(prev => ({ ...prev, items: updatedItems.filter(i => i.quantity > 0), dailyActionLog: [...(prev.dailyActionLog || []), actionText] }));
+        let nextPlayerStats = { ...playerStats, items: updatedItems.filter(i => i.quantity > 0), dailyActionLog: [...(playerStats.dailyActionLog || []), actionText] };
 
         if (Math.random() * 100 < chance) {
-            setPlayerStats(prev => {
-                const newInventory = [...prev.items];
-                const resultItemIndex = newInventory.findIndex(i => i.name === recipe.result.name);
-                if (resultItemIndex > -1) newInventory[resultItemIndex].quantity += recipe.result.quantity;
-                else newInventory.push({ ...recipe.result, tier: customItemDefinitions[recipe.result.name]?.tier || 1 });
-                return { ...prev, items: newInventory };
-            });
+            const newInventory = [...nextPlayerStats.items];
+            const resultItemIndex = newInventory.findIndex(i => i.name === recipe.result.name);
+            if (resultItemIndex > -1) newInventory[resultItemIndex].quantity += recipe.result.quantity;
+            else newInventory.push({ ...recipe.result, tier: customItemDefinitions[recipe.result.name]?.tier || 1 });
+            nextPlayerStats.items = newInventory;
+            
             const successKeys: TranslationKey[] = ['craftSuccess1', 'craftSuccess2', 'craftSuccess3'];
             const randomKey = successKeys[Math.floor(Math.random() * successKeys.length)];
             addNarrativeEntry(t(randomKey, { itemName: t(recipe.result.name as TranslationKey) }), 'system');
@@ -1102,28 +1102,26 @@ export function useGameEngine(props: GameEngineProps) {
             addNarrativeEntry(t(randomKey, { itemName: t(recipe.result.name as TranslationKey) }), 'system');
             toast({ title: t('craftFailTitle'), description: t('craftFail', { itemName: t(recipe.result.name as TranslationKey) }), variant: 'destructive' });
         }
-        advanceGameTime();
+        advanceGameTime(nextPlayerStats);
     }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerStats, customItemDefinitions, addNarrativeEntry, toast, t, advanceGameTime]);
 
     const handleItemUsed = useCallback((itemName: string, target: 'player' | string) => {
         if (isLoading || isGameOver) return;
         const actionText = target === 'player' ? `${t('useAction')} ${t(itemName as TranslationKey)}` : `${t('useOnAction', {item: t(itemName as TranslationKey), target: t(target as TranslationKey)})}`;
         const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
-        setPlayerStats(newPlayerStats);
 
         if (isOnline) handleOnlineNarrative(actionText, world, playerPosition, newPlayerStats);
         else handleOfflineItemUse(itemName, target);
-    }, [isLoading, isGameOver, playerStats, world, playerPosition, isOnline, handleOnlineNarrative, t, setPlayerStats, handleOfflineItemUse]);
+    }, [isLoading, isGameOver, playerStats, world, playerPosition, isOnline, handleOnlineNarrative, t, handleOfflineItemUse]);
 
     const handleUseSkill = useCallback((skillName: string) => {
         if (isLoading || isGameOver) return;
         const actionText = `${t('useSkillAction')} ${t(skillName as TranslationKey)}`;
         const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
-        setPlayerStats(newPlayerStats);
         addNarrativeEntry(actionText, 'action');
         if (isOnline) handleOnlineNarrative(actionText, world, playerPosition, newPlayerStats);
         else handleOfflineSkillUse(skillName);
-    }, [isLoading, isGameOver, playerStats, world, playerPosition, isOnline, addNarrativeEntry, t, setPlayerStats, handleOnlineNarrative, handleOfflineSkillUse]);
+    }, [isLoading, isGameOver, playerStats, world, playerPosition, isOnline, addNarrativeEntry, t, handleOnlineNarrative, handleOfflineSkillUse]);
 
     const handleBuild = useCallback((structureName: string) => {
         if (isLoading || isGameOver) return;
@@ -1140,8 +1138,8 @@ export function useGameEngine(props: GameEngineProps) {
         let updatedItems = playerStats.items.map(i => ({...i}));
         structureToBuild.buildCost?.forEach(cost => { updatedItems.find(i => i.name === cost.name)!.quantity -= cost.quantity; });
         
-        setPlayerStats(prev => ({ ...prev, items: updatedItems.filter(item => item.quantity > 0), stamina: prev.stamina - buildStaminaCost, dailyActionLog: [...(prev.dailyActionLog || []), actionText] }));
-
+        const nextPlayerStats = { ...playerStats, items: updatedItems.filter(item => item.quantity > 0), stamina: playerStats.stamina - buildStaminaCost, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText] };
+        
         const key = `${playerPosition.x},${playerPosition.y}`;
         setWorld(prev => {
             const newWorld = { ...prev };
@@ -1153,8 +1151,8 @@ export function useGameEngine(props: GameEngineProps) {
         });
 
         addNarrativeEntry(t('builtStructure', { structureName: t(structureName as TranslationKey) }), 'system');
-        advanceGameTime();
-    }, [isLoading, isGameOver, buildableStructures, playerStats, playerPosition, addNarrativeEntry, advanceGameTime, toast, t, setPlayerStats, setWorld]);
+        advanceGameTime(nextPlayerStats);
+    }, [isLoading, isGameOver, buildableStructures, playerStats, playerPosition, addNarrativeEntry, advanceGameTime, toast, t, setWorld]);
 
     const handleRest = useCallback(() => {
         if (isLoading || isGameOver) return;
@@ -1187,9 +1185,9 @@ export function useGameEngine(props: GameEngineProps) {
             addNarrativeEntry(t('restSuccessTemp'), 'system');
         }
 
-        setPlayerStats(prev => ({ ...prev, hp: newHp, stamina: newStamina, bodyTemperature: newTemp, dailyActionLog: [...(prev.dailyActionLog || []), actionText] }));
-        advanceGameTime();
-    }, [isLoading, isGameOver, world, playerPosition, addNarrativeEntry, advanceGameTime, t, toast, setPlayerStats, playerStats]);
+        const nextPlayerStats = { ...playerStats, hp: newHp, stamina: newStamina, bodyTemperature: newTemp, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText] };
+        advanceGameTime(nextPlayerStats);
+    }, [isLoading, isGameOver, world, playerPosition, addNarrativeEntry, advanceGameTime, t, toast, playerStats]);
     
     const handleFuseItems = useCallback(async (itemsToFuse: PlayerItem[]) => {
         if (isLoading || isGameOver) return;
@@ -1211,7 +1209,8 @@ export function useGameEngine(props: GameEngineProps) {
         const actionText = t('fuseAction', { items: itemsToFuse.map(i => t(i.name as TranslationKey)).join(', ') });
         let newItems = playerStats.items.map(i => ({...i}));
         itemsToFuse.forEach(item => { newItems.find(i => i.name === item.name)!.quantity -= 1; });
-        setPlayerStats(prev => ({ ...prev, items: newItems.filter(i => i.quantity > 0), dailyActionLog: [...(prev.dailyActionLog || []), actionText] }));
+        let nextPlayerStats = { ...playerStats, items: newItems.filter(i => i.quantity > 0), dailyActionLog: [...(playerStats.dailyActionLog || []), actionText] };
+        setPlayerStats(nextPlayerStats);
 
         try {
             const result = await fuseItems({
@@ -1224,25 +1223,24 @@ export function useGameEngine(props: GameEngineProps) {
             addNarrativeEntry(result.narrative, 'narrative');
             
             if (result.resultItem) {
-                setPlayerStats(prev => {
-                    const updatedInventory = [...prev.items];
-                    const existing = updatedInventory.find(i => i.name === result.resultItem!.name);
-                    if (existing) existing.quantity += result.resultItem!.baseQuantity.min;
-                    else updatedInventory.push({ name: result.resultItem!.name, quantity: result.resultItem!.baseQuantity.min, tier: result.resultItem!.tier, emoji: result.resultItem!.emoji });
-                    return {...prev, items: updatedInventory};
-                });
+                // Update player stats with the new item
+                nextPlayerStats = { ...nextPlayerStats, items: [...nextPlayerStats.items] }; // create new copy
+                const existing = nextPlayerStats.items.find(i => i.name === result.resultItem!.name);
+                if (existing) existing.quantity += result.resultItem!.baseQuantity.min;
+                else nextPlayerStats.items.push({ name: result.resultItem!.name, quantity: result.resultItem!.baseQuantity.min, tier: result.resultItem!.tier, emoji: result.resultItem!.emoji });
                 
                 if(!customItemDefinitions[result.resultItem.name]) {
                     setCustomItemCatalog(prev => [...prev, result.resultItem!]);
                     setCustomItemDefinitions(prev => ({ ...prev, [result.resultItem!.name]: { description: result.resultItem!.description, tier: result.resultItem!.tier, category: result.resultItem!.category, emoji: result.resultItem!.emoji, effects: result.resultItem!.effects as ItemEffect[], baseQuantity: result.resultItem!.baseQuantity, growthConditions: result.resultItem!.growthConditions, }}));
                 }
             }
+            advanceGameTime(nextPlayerStats);
         } catch(e) {
             console.error("AI Fusion failed:", e);
             toast({ title: t('error'), description: t('fusionError'), variant: "destructive" });
+            advanceGameTime(nextPlayerStats);
         } finally {
             setIsLoading(false);
-            advanceGameTime();
         }
     }, [isLoading, isGameOver, world, playerPosition, playerStats, weatherZones, language, customItemDefinitions, getEffectiveChunk, addNarrativeEntry, advanceGameTime, t, toast, setIsLoading, setPlayerStats, setCustomItemCatalog, setCustomItemDefinitions]);
 

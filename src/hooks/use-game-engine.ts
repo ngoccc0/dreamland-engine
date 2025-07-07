@@ -24,7 +24,7 @@ import { worldConfig, seasonConfig } from '@/lib/game/world-config';
 import { clamp } from "@/lib/utils";
 import { randomEvents } from "@/lib/game/events";
 
-import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, ItemEffect, Terrain, PlayerPersona } from "@/lib/game/types";
+import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, ItemEffect, Terrain, PlayerPersona, EquipmentSlot } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 
 
@@ -304,6 +304,93 @@ export function useGameEngine(props: GameEngineProps) {
         nextPlayerStats.stamina = clamp(nextPlayerStats.stamina + STAMINA_REGEN_RATE, 0, 100);
         nextPlayerStats.mana = clamp(nextPlayerStats.mana + MANA_REGEN_RATE, 0, 50);
 
+        // --- WORLD SIMULATION TICK ---
+        const SIMULATION_CHANCE = 0.2; // Run simulation logic on 20% of ticks to save performance
+
+        if (Math.random() < SIMULATION_CHANCE) {
+            const worldKeys = Object.keys(newWorldState);
+            // Simulate up to 10 random chunks per tick to spread the load
+            const chunksToSimulate = worldKeys.sort(() => 0.5 - Math.random()).slice(0, 10); 
+
+            for (const key of chunksToSimulate) {
+                const chunk = newWorldState[key];
+                if (!chunk) continue;
+                
+                // 1. Resource Regeneration
+                for (const itemDefName in customItemDefinitions) {
+                    const itemDef = customItemDefinitions[itemDefName];
+                    if (itemDef.growthConditions) {
+                        const effectiveChunkForGrowth = getEffectiveChunk(chunk); // Use effective chunk for weather conditions
+                        const existingItem = chunk.items.find(i => i.name === itemDefName);
+                        
+                        let growthChance = 0;
+                        if (checkConditions(itemDef.growthConditions.optimal, effectiveChunkForGrowth)) {
+                            growthChance = 0.2; // 20% chance in optimal conditions
+                        } else if (checkConditions(itemDef.growthConditions.subOptimal, effectiveChunkForGrowth)) {
+                            growthChance = 0.05; // 5% in suboptimal
+                        }
+
+                        if (Math.random() < growthChance) {
+                            worldWasModified = true;
+                            if (existingItem) {
+                                existingItem.quantity = Math.min(existingItem.quantity + 1, itemDef.baseQuantity.max * 2); // Cap quantity
+                            } else {
+                                chunk.items.push({
+                                    name: itemDefName,
+                                    description: itemDef.description,
+                                    tier: itemDef.tier,
+                                    quantity: itemDef.baseQuantity.min,
+                                    emoji: itemDef.emoji,
+                                });
+                            }
+                        }
+                    }
+                }
+                
+                // 2. Creature Satiation & Reproduction
+                if (chunk.enemy) {
+                    // Hunger
+                    chunk.enemy.satiation = Math.max(0, chunk.enemy.satiation - 0.5);
+
+                    // Eating
+                    if (chunk.enemy.satiation < chunk.enemy.maxSatiation / 2) {
+                        const foodSource = chunk.items.find(item => chunk.enemy!.diet.includes(item.name));
+                        if (foodSource) {
+                            worldWasModified = true;
+                            foodSource.quantity -= 1;
+                            chunk.enemy.satiation = Math.min(chunk.enemy.maxSatiation, chunk.enemy.satiation + 2); // Eating restores 2 satiation
+                            if (foodSource.quantity <= 0) {
+                                chunk.items = chunk.items.filter(i => i.name !== foodSource.name);
+                            }
+                        }
+                    }
+                    
+                    // Reproduction
+                    const REPRODUCE_CHANCE = 0.1;
+                    if (chunk.enemy.satiation >= chunk.enemy.maxSatiation && Math.random() < REPRODUCE_CHANCE) {
+                        const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }];
+                        const emptyAdjacent = directions.find(dir => {
+                            const adjKey = `${chunk.x + dir.x},${chunk.y + dir.y}`;
+                            const adjChunk = newWorldState[adjKey];
+                            return adjChunk && adjChunk.terrain === chunk.terrain && !adjChunk.enemy;
+                        });
+
+                        if (emptyAdjacent) {
+                            worldWasModified = true;
+                            const adjKey = `${chunk.x + emptyAdjacent.x},${chunk.y + emptyAdjacent.y}`;
+                            newWorldState[adjKey]!.enemy = {
+                                ...chunk.enemy,
+                                hp: Math.round(chunk.enemy.hp * 0.75), // Offspring is weaker
+                                satiation: 0,
+                            };
+                            chunk.enemy.satiation = 0; // Parent is hungry after reproducing
+                        }
+                    }
+                }
+                newWorldState[key] = chunk; // Update chunk in the new state
+            }
+        }
+        
         const eventChance = (seasonConfig[currentSeason]?.eventChance || 0.1) / 20; 
         if (Math.random() < eventChance) {
             triggerRandomEvent();
@@ -316,8 +403,8 @@ export function useGameEngine(props: GameEngineProps) {
             const uniqueNarratives = [...new Map(changes.narrativeEntries.map(item => [item.text, item])).values()];
             uniqueNarratives.forEach(entry => addNarrativeEntry(entry.text, entry.type));
         }
-    }, [playerStats, world, gameTime, day, addNarrativeEntry, t, isOnline, finalWorldSetup, language, weatherZones, currentSeason, playerPosition, setDay, setGameTime, setWeatherZones, setWorld, getEffectiveChunk, triggerRandomEvent, setPlayerStats]);
-
+    }, [playerStats, world, gameTime, day, addNarrativeEntry, t, isOnline, finalWorldSetup, language, weatherZones, currentSeason, playerPosition, customItemDefinitions, setDay, setGameTime, setWeatherZones, setWorld, getEffectiveChunk, triggerRandomEvent, setPlayerStats]);
+    
     useEffect(() => {
         if (playerStats.hp <= 0 && !isGameOver) {
             addNarrativeEntry(t('gameOverMessage'), 'system');
@@ -1256,10 +1343,105 @@ export function useGameEngine(props: GameEngineProps) {
         }
     }, [playerStats.questHints, isOnline, language, setPlayerStats, toast, t]);
 
+    const handleEquipItem = useCallback((itemName: string) => {
+        if (isLoading || isGameOver) return;
+    
+        const itemDef = customItemDefinitions[itemName];
+        if (!itemDef || !itemDef.equipmentSlot) return;
+    
+        setPlayerStats(prevStats => {
+            const newStats: PlayerStatus = JSON.parse(JSON.stringify(prevStats));
+            const itemToEquipIndex = newStats.items.findIndex(i => i.name === itemName);
+            if (itemToEquipIndex === -1) return prevStats; // Item not in inventory
+    
+            const itemToEquip = newStats.items[itemToEquipIndex];
+            const slot = itemDef.equipmentSlot!;
+    
+            // Unequip current item in the slot, if any
+            const currentEquipped = newStats.equipment[slot];
+            if (currentEquipped) {
+                const existingInInventory = newStats.items.find(i => i.name === currentEquipped.name);
+                if (existingInInventory) {
+                    existingInInventory.quantity += 1;
+                } else {
+                    newStats.items.push({ ...currentEquipped, quantity: 1 });
+                }
+            }
+    
+            // Equip new item
+            newStats.equipment[slot] = { name: itemToEquip.name, quantity: 1, tier: itemToEquip.tier, emoji: itemToEquip.emoji };
+    
+            // Remove one from inventory
+            if (itemToEquip.quantity > 1) {
+                itemToEquip.quantity -= 1;
+            } else {
+                newStats.items.splice(itemToEquipIndex, 1);
+            }
+            
+            // Recalculate attributes
+            let basePhysAtk = 10, baseMagAtk = 5, baseCrit = 5, baseAtkSpd = 1.0, baseCd = 0;
+            Object.values(newStats.equipment).forEach(equipped => {
+                if (equipped) {
+                    const def = customItemDefinitions[equipped.name];
+                    if (def?.attributes) {
+                        basePhysAtk += def.attributes.physicalAttack || 0;
+                        baseMagAtk += def.attributes.magicalAttack || 0;
+                        baseCrit += def.attributes.critChance || 0;
+                        baseAtkSpd += def.attributes.attackSpeed || 0;
+                        baseCd += def.attributes.cooldownReduction || 0;
+                    }
+                }
+            });
+            newStats.attributes = { physicalAttack: basePhysAtk, magicalAttack: baseMagAtk, critChance: baseCrit, attackSpeed: baseAtkSpd, cooldownReduction: baseCd };
+
+            return newStats;
+        });
+    }, [isLoading, isGameOver, customItemDefinitions, setPlayerStats]);
+    
+    const handleUnequipItem = useCallback((slot: EquipmentSlot) => {
+        if (isLoading || isGameOver) return;
+
+        setPlayerStats(prevStats => {
+            const newStats: PlayerStatus = JSON.parse(JSON.stringify(prevStats));
+            const itemToUnequip = newStats.equipment[slot];
+            if (!itemToUnequip) return prevStats; // Nothing to unequip
+
+            // Move from equipment to inventory
+            const existingInInventory = newStats.items.find(i => i.name === itemToUnequip.name);
+            if (existingInInventory) {
+                existingInInventory.quantity += 1;
+            } else {
+                newStats.items.push({ ...itemToUnequip, quantity: 1 });
+            }
+
+            // Clear equipment slot
+            newStats.equipment[slot] = null;
+            
+            // Recalculate attributes
+            let basePhysAtk = 10, baseMagAtk = 5, baseCrit = 5, baseAtkSpd = 1.0, baseCd = 0;
+            Object.values(newStats.equipment).forEach(equipped => {
+                if (equipped) {
+                    const def = customItemDefinitions[equipped.name];
+                    if (def?.attributes) {
+                        basePhysAtk += def.attributes.physicalAttack || 0;
+                        baseMagAtk += def.attributes.magicalAttack || 0;
+                        baseCrit += def.attributes.critChance || 0;
+                        baseAtkSpd += def.attributes.attackSpeed || 0;
+                        baseCd += def.attributes.cooldownReduction || 0;
+                    }
+                }
+            });
+            newStats.attributes = { physicalAttack: basePhysAtk, magicalAttack: baseMagAtk, critChance: baseCrit, attackSpeed: baseAtkSpd, cooldownReduction: baseCd };
+            
+            return newStats;
+        });
+    }, [isLoading, isGameOver, customItemDefinitions, setPlayerStats]);
+
+
     return {
         world, recipes, buildableStructures, playerStats, playerPosition, narrativeLog, isLoading, isGameOver, finalWorldSetup, customItemDefinitions,
         currentChunk,
         handleMove, handleAttack, handleAction, handleCustomAction, handleCraft, handleBuild, handleItemUsed, handleUseSkill, handleRest, handleFuseItems,
-        handleRequestQuestHint,
+        handleRequestQuestHint, handleEquipItem, handleUnequipItem,
     }
 }

@@ -44,13 +44,12 @@ const withPWA = withPWAInit({
         },
       },
     },
-    // Cache pages using Network First strategy
+    // Cache pages using Stale While Revalidate strategy for instant loads
     {
       urlPattern: ({ request }) => request.mode === 'navigate',
-      handler: 'NetworkFirst',
+      handler: 'StaleWhileRevalidate',
       options: {
         cacheName: 'pages',
-        networkTimeoutSeconds: 10,
         expiration: {
           maxEntries: 50,
           maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days

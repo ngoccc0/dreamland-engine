@@ -24,10 +24,11 @@ import { useGameEngine } from "@/hooks/use-game-engine";
 import type { ItemDefinition, GeneratedItem, WorldConcept, PlayerItem, GameState, Structure, Chunk, EquipmentSlot } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
-import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Heart, Zap, Footprints } from "./icons";
+import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Heart, Zap, Footprints, Loader2 } from "./icons";
 
 
 interface GameLayoutProps {
+    gameSlot: number;
     worldSetup?: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog' | 'customStructures'> & { playerInventory: PlayerItem[] };
     initialGameState?: GameState;
     customItemDefinitions?: Record<string, ItemDefinition>;
@@ -64,6 +65,7 @@ export default function GameLayout(props: GameLayoutProps) {
         handleRequestQuestHint,
         handleEquipItem,
         handleUnequipItem,
+        handleReturnToMenu,
     } = useGameEngine(props);
 
     const [isStatusOpen, setStatusOpen] = useState(false);
@@ -95,6 +97,7 @@ export default function GameLayout(props: GameLayoutProps) {
     }, [props.worldSetup]);
 
     const generateMapGrid = useCallback((): (Chunk | null)[][] => {
+        if (!finalWorldSetup) return [];
         const radius = 2; // 5x5 grid
         const size = radius * 2 + 1;
         const grid: (Chunk | null)[][] = [];
@@ -116,14 +119,17 @@ export default function GameLayout(props: GameLayoutProps) {
             grid.push(row);
         }
         return grid;
-    }, [world, playerPosition.x, playerPosition.y]);
+    }, [world, playerPosition.x, playerPosition.y, finalWorldSetup]);
     
     const restingPlace = currentChunk?.structures?.find(s => s.restEffect);
 
     if (!finalWorldSetup || !currentChunk) {
         return (
-            <div className="flex items-center justify-center min-h-dvh bg-background">
-                <p className="text-foreground text-destructive">Error: Game data is missing or corrupted.</p>
+            <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
+                 <div className="flex items-center gap-2 mt-4 text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <p>{t('loadingAdventure')}</p>
+                </div>
             </div>
         );
     }
@@ -363,7 +369,7 @@ export default function GameLayout(props: GameLayoutProps) {
                 />
                 <FullMapPopup open={isFullMapOpen} onOpenChange={setIsFullMapOpen} world={world} playerPosition={playerPosition} turn={turn} />
                 <TutorialPopup open={isTutorialOpen} onOpenChange={setTutorialOpen} />
-                <SettingsPopup open={isSettingsOpen} onOpenChange={setSettingsOpen} />
+                <SettingsPopup open={isSettingsOpen} onOpenChange={setSettingsOpen} onReturnToMenu={handleReturnToMenu} isInGame={true} />
                 <PwaInstallPopup open={showInstallPopup} onOpenChange={setShowInstallPopup} />
                 
                 <AlertDialog open={isGameOver}>
@@ -376,7 +382,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                             <AlertDialogAction onClick={() => {
-                                localStorage.removeItem('gameState');
+                                localStorage.removeItem(`gameState_${props.gameSlot}`);
                                 window.location.reload();
                             }}>
                                 {t('startNewAdventure')}

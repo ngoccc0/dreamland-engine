@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/context/language-context";
 import { useSettings } from "@/context/settings-context";
 import { useAuth } from "@/context/auth-context";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, getDocs, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase-config";
 
 import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/generate-narrative-flow";
@@ -31,6 +31,7 @@ import type { TranslationKey } from "@/lib/i18n";
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
 
 interface GameEngineProps {
+    gameSlot: number;
     worldSetup?: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog' | 'customStructures'> & { playerInventory: PlayerItem[] };
     initialGameState?: GameState;
     customItemDefinitions?: Record<string, ItemDefinition>;
@@ -45,6 +46,7 @@ export function useGameEngine(props: GameEngineProps) {
     const { toast } = useToast();
     
     const {
+        isLoaded,
         worldProfile, setWorldProfile,
         currentSeason, setCurrentSeason,
         gameTime, setGameTime,
@@ -420,10 +422,12 @@ export function useGameEngine(props: GameEngineProps) {
     }, [addNarrativeEntry, t, toast, setPlayerStats]);
     
     useEffect(() => {
+        if (!isLoaded) return;
         checkSkillUnlocks(playerStats);
-    }, [playerStats.unlockProgress, checkSkillUnlocks]);
+    }, [playerStats.unlockProgress, checkSkillUnlocks, isLoaded]);
 
     useEffect(() => {
+        if (!isLoaded) return;
         const totalActions = playerBehaviorProfile.moves + playerBehaviorProfile.attacks + playerBehaviorProfile.crafts;
         
         if (totalActions < 20) return;
@@ -444,10 +448,11 @@ export function useGameEngine(props: GameEngineProps) {
             addNarrativeEntry(t(messageKey), 'system');
             toast({ title: t('personaUnlockedTitle'), description: t(messageKey) });
         }
-    }, [playerBehaviorProfile, playerStats.persona, setPlayerStats, addNarrativeEntry, t, toast]);
+    }, [playerBehaviorProfile, playerStats.persona, setPlayerStats, addNarrativeEntry, t, toast, isLoaded]);
     
     // EFFECT 1: Update the visual representation of the current chunk whenever the environment changes.
     useEffect(() => {
+        if (!isLoaded) return;
         const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
         if (baseChunk) {
             const newEffectiveChunk = getEffectiveChunk(baseChunk);
@@ -455,10 +460,11 @@ export function useGameEngine(props: GameEngineProps) {
         } else {
             setCurrentChunk(null);
         }
-    }, [world, playerPosition, gameTime, weatherZones, getEffectiveChunk, setCurrentChunk]);
+    }, [world, playerPosition, gameTime, weatherZones, getEffectiveChunk, setCurrentChunk, isLoaded]);
 
     // EFFECT 2: Update the turn counter and the chunk's `lastVisited` property ONLY when the player moves to a new position.
     useEffect(() => {
+        if (!isLoaded) return;
         const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
         if (baseChunk) {
             const newTurn = turn + 1;
@@ -471,7 +477,7 @@ export function useGameEngine(props: GameEngineProps) {
             }));
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [playerPosition]);
+    }, [playerPosition, isLoaded]);
     
     const ensureChunkExists = useCallback((
         pos: {x: number, y: number}, 
@@ -520,100 +526,9 @@ export function useGameEngine(props: GameEngineProps) {
         };
     }, [worldProfile, currentSeason, customItemDefinitions, customItemCatalog, customStructures, language]);
 
+    // Auto-saving effect
     useEffect(() => {
-        const loadGame = async () => {
-            if (user) {
-                const gameDocRef = doc(db, "games", user.uid);
-                const gameDocSnap = await getDoc(gameDocRef);
-                if (gameDocSnap.exists()) {
-                    const cloudState = gameDocSnap.data() as GameState;
-                    setWorldProfile(cloudState.worldProfile);
-                    setCurrentSeason(cloudState.currentSeason);
-                    setGameTime(cloudState.gameTime);
-                    setDay(cloudState.day);
-                    setWeatherZones(cloudState.weatherZones);
-                    setWorld(cloudState.world);
-                    setRecipes(cloudState.recipes);
-                    setBuildableStructures(cloudState.buildableStructures);
-                    setRegions(cloudState.regions);
-                    setRegionCounter(cloudState.regionCounter);
-                    setPlayerPosition(cloudState.playerPosition);
-                    setPlayerBehaviorProfile(cloudState.playerBehaviorProfile);
-                    setPlayerStats(cloudState.playerStats);
-                    setCustomItemDefinitions(cloudState.customItemDefinitions);
-                    setCustomItemCatalog(cloudState.customItemCatalog);
-                    setCustomStructures(cloudState.customStructures);
-                    setNarrativeLog(cloudState.narrativeLog);
-                    if (cloudState.narrativeLog.length > 0) {
-                        narrativeIdCounter.current = Math.max(...cloudState.narrativeLog.map(e => e.id)) + 1;
-                    }
-                    toast({ title: "Game Synced", description: "Your progress has been loaded from the cloud." });
-                    return;
-                }
-            }
-
-            if (props.initialGameState) return;
-
-            if (props.worldSetup) {
-                if (props.worldSetup.initialNarrative) {
-                    addNarrativeEntry(props.worldSetup.initialNarrative, 'narrative');
-                }
-                const startPos = { x: 0, y: 0 };
-                
-                let worldSnapshot = {};
-                let regionsSnapshot = {};
-                let regionCounterSnapshot = 0;
-                
-                const visionRadius = 1;
-                for (let dy = -visionRadius; dy <= visionRadius; dy++) {
-                    for (let dx = -visionRadius; dx <= visionRadius; dx++) {
-                         const revealPos = { x: startPos.x + dx, y: startPos.y + dy };
-                         if (!worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
-                             const terrainToGenerate = (dx === 0 && dy === 0) ? props.worldSetup.startingBiome : getValidAdjacentTerrains(revealPos, worldSnapshot)[0] || 'grassland';
-                             const result = generateRegion(
-                                revealPos, terrainToGenerate, worldSnapshot, regionsSnapshot, regionCounterSnapshot,
-                                worldProfile, currentSeason, customItemDefinitions,
-                                customItemCatalog, customStructures, language
-                            );
-                             worldSnapshot = result.newWorld;
-                             regionsSnapshot = result.newRegions;
-                             regionCounterSnapshot = result.newRegionCounter;
-                         }
-                    }
-                }
-
-                Object.keys(worldSnapshot).forEach(key => {
-                    worldSnapshot[key].explored = true;
-                });
-                
-                const newWorld = worldSnapshot;
-                const newRegions = regionsSnapshot;
-                const newRegionCounter = regionCounterSnapshot;
-
-                const startKey = `${startPos.x},${startPos.y}`;
-                if (newWorld[startKey] && newWorld[startKey].description !== props.worldSetup.initialNarrative) {
-                    addNarrativeEntry(newWorld[startKey].description, 'narrative');
-                }
-
-                const initialWeatherZones: { [zoneId: string]: WeatherZone } = {};
-                Object.entries(newRegions).forEach(([regionId, region]) => {
-                    const initialWeather = generateWeatherForZone(region.terrain, currentSeason);
-                    const nextChangeTime = gameTime + getRandomInRange({min: initialWeather.duration_range[0], max: initialWeather.duration_range[1]}) * 5;
-                    initialWeatherZones[regionId] = { id: regionId, terrain: region.terrain, currentWeather: initialWeather, nextChangeTime: nextChangeTime };
-                });
-                
-                setWeatherZones(initialWeatherZones);
-                setWorld(newWorld);
-                setRegions(newRegions);
-                setRegionCounter(newRegionCounter);
-                setPlayerStats(prev => ({ ...prev, bodyTemperature: 37 }));
-            }
-        };
-        loadGame();
-    }, [user, props.initialGameState, props.worldSetup]);
-
-    useEffect(() => {
-        if (Object.keys(world).length === 0 || !finalWorldSetup || isSaving || isGameOver) return;
+        if (!isLoaded || isSaving || isGameOver) return;
 
         const gameState: GameState = {
             worldProfile, currentSeason, world, recipes, buildableStructures,
@@ -626,8 +541,11 @@ export function useGameEngine(props: GameEngineProps) {
         const save = async () => {
             setIsSaving(true);
             try {
-                if (user) await setDoc(doc(db, "games", user.uid), gameState, { merge: true });
-                else localStorage.setItem('gameState', JSON.stringify(gameState));
+                if (user) {
+                    await setDoc(doc(db, "users", user.uid, "games", `slot_${props.gameSlot}`), gameState);
+                } else {
+                    localStorage.setItem(`gameState_${props.gameSlot}`, JSON.stringify(gameState));
+                }
             } catch (error) {
                 console.error("Failed to save game state:", error);
                 toast({ title: "Save Error", description: "Could not save your progress.", variant: "destructive"});
@@ -643,7 +561,7 @@ export function useGameEngine(props: GameEngineProps) {
         worldProfile, currentSeason, world, recipes, buildableStructures, regions, regionCounter,
         playerPosition, playerBehaviorProfile, playerStats, narrativeLog, finalWorldSetup,
         customItemDefinitions, customItemCatalog, customStructures, weatherZones, gameTime, day, user, isSaving, toast, isGameOver,
-        turn,
+        turn, props.gameSlot, isLoaded,
     ]);
     
     const handleOnlineNarrative = useCallback(async (action: string, worldCtx: World, playerPosCtx: {x: number, y: number}, playerStatsCtx: PlayerStatus) => {
@@ -1512,11 +1430,14 @@ export function useGameEngine(props: GameEngineProps) {
         });
     }, [isLoading, isGameOver, customItemDefinitions, setPlayerStats]);
 
+    const handleReturnToMenu = () => {
+        window.location.href = '/';
+    };
 
     return {
         world, recipes, buildableStructures, playerStats, playerPosition, narrativeLog, isLoading, isGameOver, finalWorldSetup, customItemDefinitions,
         currentChunk, turn,
         handleMove, handleAttack, handleAction, handleCustomAction, handleCraft, handleBuild, handleItemUsed, handleUseSkill, handleRest, handleFuseItems,
-        handleRequestQuestHint, handleEquipItem, handleUnequipItem,
+        handleRequestQuestHint, handleEquipItem, handleUnequipItem, handleReturnToMenu,
     }
 }

@@ -12,14 +12,15 @@ import { Skeleton } from "../ui/skeleton";
 import { Separator } from "../ui/separator";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { useLanguage } from "@/context/language-context";
-import type { WorldConcept, Skill } from "@/lib/game/types";
+import type { WorldConcept, Skill, GeneratedItem, ItemDefinition, Structure } from "@/lib/game/types";
+import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import type { TranslationKey } from "@/lib/i18n";
 import { SettingsPopup } from "./settings-popup";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 import { Sparkles, Wand2, ArrowRight, BrainCircuit, Loader2, Settings, ArrowLeft } from "./icons";
 
 interface WorldSetupProps {
-    onWorldCreated: (worldSetup: WorldConcept) => void;
+    onWorldCreated: (worldSetup: WorldConcept, itemCatalog: GeneratedItem[], allItemDefs: Record<string, ItemDefinition>, customStructures: Structure[]) => void;
 }
 
 type Selection = {
@@ -177,10 +178,29 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
             playerInventory: concepts[selection.playerInventory].playerInventory,
             initialQuests: concepts[selection.initialQuests].initialQuests,
             startingSkill: concepts[selection.startingSkill].startingSkill,
-            customItemCatalog: generatedData.customItemCatalog,
+            customItemCatalog: generatedData.customItemCatalog, // Keep this for reference
             customStructures: generatedData.customStructures || [], // Ensure it's always an array
         };
-        onWorldCreated(finalWorld);
+        
+        // Also prepare the full definitions needed for the game engine
+        const customDefs: Record<string, ItemDefinition> = generatedData.customItemCatalog.reduce((acc, item) => {
+            acc[item.name] = {
+                description: item.description,
+                tier: item.tier,
+                category: item.category,
+                emoji: item.emoji,
+                effects: item.effects,
+                baseQuantity: item.baseQuantity,
+                growthConditions: item.growthConditions as any,
+                equipmentSlot: item.equipmentSlot,
+                attributes: item.attributes,
+            };
+            return acc;
+        }, {} as Record<string, ItemDefinition>);
+        
+        const allItemDefinitions = { ...staticItemDefinitions, ...customDefs };
+
+        onWorldCreated(finalWorld, generatedData.customItemCatalog, allItemDefinitions, generatedData.customStructures);
     }
     
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -297,7 +317,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                                 <div className="p-1">
                                                     <Card className="shadow-inner bg-muted/30">
                                                         <CardContent className="p-4 h-40 overflow-y-auto prose prose-sm dark:prose-invert max-w-none">
-                                                            <p>{concept.initialNarrative}</p>
+                                                            <p>{t(concept.initialNarrative as TranslationKey)}</p>
                                                         </CardContent>
                                                     </Card>
                                                 </div>
@@ -401,7 +421,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                                             </CardHeader>
                                                             <CardContent className="p-4 pt-0">
                                                                 <ul className="list-disc list-inside text-sm text-muted-foreground">
-                                                                    {concept.initialQuests.map(item => <li key={item}>{item}</li>)}
+                                                                    {concept.initialQuests.map(item => <li key={item}>{t(item as TranslationKey)}</li>)}
                                                                 </ul>
                                                             </CardContent>
                                                         </Card>
@@ -420,7 +440,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                 <p className="text-muted-foreground">{t('yourWorldDescription')}</p>
                                 <Card className="mt-4 p-4 bg-background">
                                     <h4 className="font-bold text-lg">{generatedData.concepts[selection.worldName].worldName}</h4>
-                                    <p className="italic text-muted-foreground mt-2">{generatedData.concepts[selection.initialNarrative].initialNarrative}</p>
+                                    <p className="italic text-muted-foreground mt-2">{t(generatedData.concepts[selection.initialNarrative].initialNarrative as TranslationKey)}</p>
                                 </Card>
                             </div>
                         </div>
@@ -456,7 +476,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                     </div>
                     {step === 0 ? renderStep0() : renderStep1()}
                 </Card>
-                <SettingsPopup open={isSettingsOpen} onOpenChange={setSettingsOpen} />
+                <SettingsPopup open={isSettingsOpen} onOpenChange={setSettingsOpen} isInGame={false} />
             </div>
         </TooltipProvider>
     );

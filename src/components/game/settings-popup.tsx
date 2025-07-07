@@ -15,15 +15,17 @@ import type { DiceType, GameMode, AiModel, NarrativeLength } from "@/lib/game/ty
 import { Language, TranslationKey } from "@/lib/i18n";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Settings, BrainCircuit, Dice6, Bot, Feather, Languages, Download, LogIn, LogOut, UserCircle2 } from "./icons";
+import { Settings, BrainCircuit, Dice6, Bot, Feather, Languages, Download, LogIn, LogOut, UserCircle2, Home } from "./icons";
 
 
 interface SettingsPopupProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onReturnToMenu?: () => void;
+  isInGame: boolean;
 }
 
-export function SettingsPopup({ open, onOpenChange }: SettingsPopupProps) {
+export function SettingsPopup({ open, onOpenChange, onReturnToMenu, isInGame }: SettingsPopupProps) {
   const { t, language, setLanguage } = useLanguage();
   const { settings, setSettings } = useSettings();
   const { installPrompt, setInstallPrompt } = usePwaInstall();
@@ -244,6 +246,20 @@ export function SettingsPopup({ open, onOpenChange }: SettingsPopupProps) {
                 </Tooltip>
             </TooltipProvider>
           </div>
+
+          {isInGame && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <Label className="font-semibold flex items-center gap-2"><Home /> {t('mainMenu')}</Label>
+                <p className="text-sm leading-snug text-muted-foreground">{t('returnToMenuDesc')}</p>
+                <Button onClick={onReturnToMenu} className="w-full" variant="outline">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    {t('returnToMenu')}
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>

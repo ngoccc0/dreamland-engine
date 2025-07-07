@@ -170,6 +170,59 @@ export function useGameEngine(props: GameEngineProps) {
         };
     }, [worldProfile, currentSeason, customItemDefinitions, customItemCatalog, customStructures, language]);
     
+    const generateOfflineNarrative = useCallback((
+        baseChunk: Chunk,
+        world: World,
+        playerPosition: { x: number; y: number },
+        narrativeLength: NarrativeLength,
+        t: (key: TranslationKey, replacements?: { [key: string]: string | number }) => string
+    ) => {
+        const chunk = getEffectiveChunk(baseChunk);
+        let narrative = chunk.description;
+    
+        if (narrativeLength === 'short') {
+            return narrative;
+        }
+    
+        const itemsHere = chunk.items.map(i => `${i.quantity}x ${t(i.name as TranslationKey)}`).join(', ');
+        if (itemsHere) {
+            narrative += ` ${t('offlineNarrativeItems', { items: itemsHere })}`;
+        }
+        if (chunk.enemy) {
+            narrative += ` ${t('offlineNarrativeEnemy', { enemy: t(chunk.enemy.type as TranslationKey) })}`;
+        }
+        if (chunk.NPCs.length > 0) {
+            narrative += ` ${t('offlineNarrativeNPC', { npc: t(chunk.NPCs[0].name as TranslationKey) })}`;
+        }
+    
+        if (narrativeLength === 'long') {
+            const surroundingObservations: string[] = [];
+            const directions = [
+                { dx: 0, dy: 1, key: 'directionNorth' }, { dx: 1, dy: 1, key: 'directionNorthEast' },
+                { dx: 1, dy: 0, key: 'directionEast' }, { dx: 1, dy: -1, key: 'directionSouthEast' },
+                { dx: 0, dy: -1, key: 'directionSouth' }, { dx: -1, dy: -1, key: 'directionSouthWest' },
+                { dx: -1, dy: 0, key: 'directionWest' }, { dx: -1, dy: 1, key: 'directionNorthWest' },
+            ];
+    
+            for (const dir of directions) {
+                const key = `${playerPosition.x + dir.dx},${playerPosition.y + dir.dy}`;
+                const adjacentChunk = world[key];
+                if (adjacentChunk && adjacentChunk.explored) {
+                    if (adjacentChunk.enemy) {
+                        surroundingObservations.push(t('offlineNarrativeSenseEnemy', { direction: t(dir.key as TranslationKey), enemy: t(adjacentChunk.enemy.type as TranslationKey) }));
+                    } else if (adjacentChunk.structures && adjacentChunk.structures.length > 0) {
+                        surroundingObservations.push(t('offlineNarrativeSeeStructure', { direction: t(dir.key as TranslationKey), structure: t(adjacentChunk.structures[0].name as TranslationKey) }));
+                    }
+                }
+            }
+            if (surroundingObservations.length > 0) {
+                narrative += ` ${t('offlineNarrativeSurroundings')} ${surroundingObservations.slice(0, 2).join('. ')}.`;
+            }
+        }
+    
+        return narrative;
+    }, [getEffectiveChunk]);
+
     // EFFECT 0: This is the crucial fix. It runs ONCE after loading to ensure the starting chunk exists.
     useEffect(() => {
         if (!isLoaded || world[`${playerPosition.x},${playerPosition.y}`]) {
@@ -198,7 +251,7 @@ export function useGameEngine(props: GameEngineProps) {
                 if (!finalWorld[key]) {
                     const revealResult = ensureChunkExists(revealPos, finalWorld, finalRegions, finalRegionCounter);
                     finalWorld = revealResult.worldWithChunk;
-                    finalRegions = revealResult.regions;
+                    finalRegions = revealResult.newRegions;
                     finalRegionCounter = revealResult.newRegionCounter;
                 }
                 if (finalWorld[key]) finalWorld[key].explored = true;
@@ -215,13 +268,22 @@ export function useGameEngine(props: GameEngineProps) {
             }
         });
 
+        // Add the description for the newly created starting chunk to the narrative log.
+        const startingChunk = finalWorld[`${playerPosition.x},${playerPosition.y}`];
+        if (startingChunk) {
+            const initialChunkDescription = generateOfflineNarrative(startingChunk, finalWorld, playerPosition, 'medium', t);
+            if (narrativeLog[narrativeLog.length - 1]?.text !== initialChunkDescription) {
+                addNarrativeEntry(initialChunkDescription, 'narrative');
+            }
+        }
+
         // Update all the relevant states at once.
         setWorld(finalWorld);
         setRegions(finalRegions);
         setRegionCounter(finalRegionCounter);
         setWeatherZones(newWeatherZones);
 
-    }, [isLoaded, world, playerPosition, regions, regionCounter, ensureChunkExists, weatherZones, currentSeason, gameTime, setWorld, setRegions, setRegionCounter, setWeatherZones]);
+    }, [isLoaded, world, playerPosition, regions, regionCounter, ensureChunkExists, weatherZones, currentSeason, gameTime, setWorld, setRegions, setRegionCounter, setWeatherZones, generateOfflineNarrative, t, addNarrativeEntry, narrativeLog]);
 
 
     const triggerRandomEvent = useCallback(() => {
@@ -687,59 +749,6 @@ export function useGameEngine(props: GameEngineProps) {
         }
     }, [settings.diceType, settings.aiModel, settings.narrativeLength, addNarrativeEntry, getEffectiveChunk, narrativeLog, language, customItemDefinitions, toast, advanceGameTime, finalWorldSetup, setIsLoading, setWorld, setCustomItemCatalog, setCustomItemDefinitions, t]);
     
-    const generateOfflineNarrative = useCallback((
-        baseChunk: Chunk,
-        world: World,
-        playerPosition: { x: number; y: number },
-        narrativeLength: NarrativeLength,
-        t: (key: TranslationKey, replacements?: { [key: string]: string | number }) => string
-    ) => {
-        const chunk = getEffectiveChunk(baseChunk);
-        let narrative = chunk.description;
-    
-        if (narrativeLength === 'short') {
-            return narrative;
-        }
-    
-        const itemsHere = chunk.items.map(i => `${i.quantity}x ${t(i.name as TranslationKey)}`).join(', ');
-        if (itemsHere) {
-            narrative += ` ${t('offlineNarrativeItems', { items: itemsHere })}`;
-        }
-        if (chunk.enemy) {
-            narrative += ` ${t('offlineNarrativeEnemy', { enemy: t(chunk.enemy.type as TranslationKey) })}`;
-        }
-        if (chunk.NPCs.length > 0) {
-            narrative += ` ${t('offlineNarrativeNPC', { npc: t(chunk.NPCs[0].name as TranslationKey) })}`;
-        }
-    
-        if (narrativeLength === 'long') {
-            const surroundingObservations: string[] = [];
-            const directions = [
-                { dx: 0, dy: 1, key: 'directionNorth' }, { dx: 1, dy: 1, key: 'directionNorthEast' },
-                { dx: 1, dy: 0, key: 'directionEast' }, { dx: 1, dy: -1, key: 'directionSouthEast' },
-                { dx: 0, dy: -1, key: 'directionSouth' }, { dx: -1, dy: -1, key: 'directionSouthWest' },
-                { dx: -1, dy: 0, key: 'directionWest' }, { dx: -1, dy: 1, key: 'directionNorthWest' },
-            ];
-    
-            for (const dir of directions) {
-                const key = `${playerPosition.x + dir.dx},${playerPosition.y + dir.dy}`;
-                const adjacentChunk = world[key];
-                if (adjacentChunk && adjacentChunk.explored) {
-                    if (adjacentChunk.enemy) {
-                        surroundingObservations.push(t('offlineNarrativeSenseEnemy', { direction: t(dir.key as TranslationKey), enemy: t(adjacentChunk.enemy.type as TranslationKey) }));
-                    } else if (adjacentChunk.structures && adjacentChunk.structures.length > 0) {
-                        surroundingObservations.push(t('offlineNarrativeSeeStructure', { direction: t(dir.key as TranslationKey), structure: t(adjacentChunk.structures[0].name as TranslationKey) }));
-                    }
-                }
-            }
-            if (surroundingObservations.length > 0) {
-                narrative += ` ${t('offlineNarrativeSurroundings')} ${surroundingObservations.slice(0, 2).join('. ')}.`;
-            }
-        }
-    
-        return narrative;
-    }, [getEffectiveChunk]);
-
     const handleOfflineAttack = useCallback(() => {
         const key = `${playerPosition.x},${playerPosition.y}`;
         const baseChunk = world[key];
@@ -1495,5 +1504,3 @@ export function useGameEngine(props: GameEngineProps) {
         handleRequestQuestHint, handleEquipItem, handleUnequipItem, handleReturnToMenu,
     }
 }
-
-    

@@ -1,4 +1,3 @@
-
 // Re-export Lucide icons for a single point of management
 export {
   Backpack,
@@ -35,6 +34,7 @@ export {
   Zap,
   Footprints,
   MapPin,
+  Menu,
 } from 'lucide-react';
 
 

@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/context/language-context";
@@ -24,7 +25,7 @@ import { useGameEngine } from "@/hooks/use-game-engine";
 import type { ItemDefinition, GeneratedItem, WorldConcept, PlayerItem, GameState, Structure, Chunk, EquipmentSlot } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
-import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Heart, Zap, Footprints, Loader2 } from "./icons";
+import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Heart, Zap, Footprints, Loader2, Menu, LogOut } from "./icons";
 
 
 interface GameLayoutProps {
@@ -135,9 +136,18 @@ export default function GameLayout(props: GameLayoutProps) {
     }
     
     const onCustomActionSubmit = () => {
-        handleCustomAction(inputValue);
-        setInputValue("");
-    }
+        if (inputValue.trim()) {
+            handleCustomAction(inputValue);
+            setInputValue("");
+        }
+    };
+    
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          onCustomActionSubmit();
+        }
+    };
 
     return (
         <TooltipProvider>
@@ -146,28 +156,28 @@ export default function GameLayout(props: GameLayoutProps) {
                 <div className="w-full md:flex-1 flex flex-col">
                     <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10 flex justify-between items-center">
                         <h1 className="text-2xl font-bold font-headline">{finalWorldSetup.worldName}</h1>
-                        <div className="flex items-center gap-2">
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="ghost" size="icon" onClick={() => setTutorialOpen(true)}>
-                                        <LifeBuoy />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>{t('tutorialTitle')}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                             <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="ghost" size="icon" onClick={() => setSettingsOpen(true)}>
-                                        <Settings />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>{t('gameSettings')}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </div>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                    <Menu />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => setTutorialOpen(true)}>
+                                    <LifeBuoy className="mr-2 h-4 w-4" />
+                                    <span>{t('tutorialTitle')}</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
+                                    <Settings className="mr-2 h-4 w-4" />
+                                    <span>{t('gameSettings')}</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={handleReturnToMenu}>
+                                    <LogOut className="mr-2 h-4 w-4" />
+                                    <span>{t('returnToMenu')}</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </header>
 
                     <main className="flex-grow p-4 md:p-6 overflow-y-auto">
@@ -328,7 +338,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                 placeholder={t('customActionPlaceholder')}
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && onCustomActionSubmit()}
+                                onKeyDown={handleKeyDown}
                                 disabled={isLoading}
                             />
                             <Tooltip>
@@ -369,7 +379,7 @@ export default function GameLayout(props: GameLayoutProps) {
                 />
                 <FullMapPopup open={isFullMapOpen} onOpenChange={setIsFullMapOpen} world={world} playerPosition={playerPosition} turn={turn} />
                 <TutorialPopup open={isTutorialOpen} onOpenChange={setTutorialOpen} />
-                <SettingsPopup open={isSettingsOpen} onOpenChange={setSettingsOpen} onReturnToMenu={handleReturnToMenu} isInGame={true} />
+                <SettingsPopup open={isSettingsOpen} onOpenChange={setSettingsOpen} isInGame={true} />
                 <PwaInstallPopup open={showInstallPopup} onOpenChange={setShowInstallPopup} />
                 
                 <AlertDialog open={isGameOver}>

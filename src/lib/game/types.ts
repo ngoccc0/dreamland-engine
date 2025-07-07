@@ -319,7 +319,6 @@ export interface GameState {
     customItemDefinitions: Record<string, ItemDefinition>;
     customItemCatalog: GeneratedItem[];
     customStructures: Structure[];
-    // New properties for weather/time system
     weatherZones: { [zoneId: string]: WeatherZone };
     gameTime: number; // In-game minutes from 0 to 1439
     day: number;

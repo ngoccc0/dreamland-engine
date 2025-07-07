@@ -78,7 +78,7 @@ export function useGameState({ gameSlot, worldSetup: propsWorldSetup, customItem
                 // Loading existing game
                 setWorldProfile(loadedState.worldProfile);
                 setCurrentSeason(loadedState.currentSeason);
-                setGameTime(loadedState.gameTime);
+                setGameTime(loadedState.gameTime || 360);
                 setDay(loadedState.day);
                 setTurn(loadedState.turn);
                 setWeatherZones(loadedState.weatherZones);
@@ -108,6 +108,7 @@ export function useGameState({ gameSlot, worldSetup: propsWorldSetup, customItem
                         quests: propsWorldSetup.initialQuests,
                         skills: propsWorldSetup.startingSkill ? [propsWorldSetup.startingSkill] : [],
                     }));
+                     setNarrativeLog([{ id: 0, text: propsWorldSetup.initialNarrative, type: 'narrative' }]);
                 }
             }
             setIsLoaded(true);

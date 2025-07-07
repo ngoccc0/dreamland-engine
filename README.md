@@ -9,7 +9,7 @@ Dreamland Engine được xây dựng trên nền tảng các cơ chế phức t
 
 ### 1. Người Kể Chuyện AI & Chế Độ Chơi
 
-- **AI Storyteller (Mặc định):** Trái tim của trò chơi. Một AI tiên tiến sẽ đóng vai trò người quản trò (Game Master), tường thuật lại hành trình của bạn một cách sống động, sáng tạo và phản ứng linh hoạt với mọi hành động, dù là nhỏ nhất.
+- **AI Storyteller (Mặc định):** Trái tim của trò chơi. Một AI tiên tiến sẽ đóng vai trò người quản trò (Game Master), tường thuật lại hành trình của bạn một cách sống động, sáng tạo và phản ứng linh hoạt với mọi hành động, dù là nhỏ nhất. Bạn có thể chọn các "Tính cách" AI khác nhau trong phần Cài đặt để thay đổi phong cách tường thuật.
 - **Offline Mode:** Dành cho những ai yêu thích trải nghiệm cổ điển. Chế độ này sử dụng các quy tắc được lập trình sẵn, cho phép bạn chơi ngay cả khi không có kết nối internet. Bạn có thể chuyển đổi giữa hai chế độ trong phần Cài đặt.
 
 ### 2. Kiến Tạo Thế Giới Đa Tác Nhân
@@ -30,7 +30,7 @@ Mọi hành động quan trọng đều được quyết định bằng một l�
 
 ### 4. Hệ Thống Sinh Tồn
 
-- **Chỉ số cơ bản:** Quản lý Máu (HP), Năng lượng (Mana) cho kỹ năng, và Thể lực (Stamina) cho các hành động thể chất.
+- **Chỉ số cơ bản:** Quản lý Máu (HP), Năng lượng (Mana) cho kỹ năng, và Thể lực (Stamina) cho các hành động thể chất. Thể lực và Mana sẽ tự hồi phục từ từ.
 - **Thân nhiệt:** Cơ thể bạn luôn cố gắng duy trì ở 37°C. Môi trường (nắng gắt, tuyết rơi) và các công trình (lửa trại) sẽ ảnh hưởng đến thân nhiệt. Nếu quá nóng hoặc quá lạnh, thể lực và máu của bạn sẽ bị ảnh hưởng.
 
 ### 5. Chế Tạo, Xây Dựng & Hợp Nhất
@@ -43,7 +43,7 @@ Mọi hành động quan trọng đều được quyết định bằng một l�
 
 Trò chơi sẽ âm thầm phân tích hành động của bạn. Nếu bạn chiến đấu nhiều, bạn sẽ dần trở thành **Chiến binh (Warrior)** và nhận thưởng về sát thương. Khám phá nhiều sẽ biến bạn thành **Nhà thám hiểm (Explorer)**, di chuyển hiệu quả hơn. Chế tạo nhiều sẽ giúp bạn thành một **Nghệ nhân (Artisan)** với các lợi thế riêng.
 
-### 7. Thế Giới Sống (Living World)
+## ✨ Thế Giới Sống (Living World)
 
 Thế giới của Dreamland Engine không tĩnh tại. Nó sống và thở thông qua các hệ thống mô phỏng phức tạp chạy ngầm, tạo ra một trải nghiệm luôn luôn biến đổi.
 - **Thời tiết động:** Mỗi vùng có hệ thống thời tiết riêng, ảnh hưởng đến nhiệt độ, tầm nhìn, và cả gameplay.
@@ -155,3 +155,7 @@ Trò chơi có 8 loại môi trường chính, mỗi loại có hệ sinh thái,
 ## ✨ Cài đặt Ứng Dụng (PWA)
 
 Dreamland Engine là một Progressive Web App (PWA). Bạn có thể "cài đặt" trò chơi này lên màn hình chính của máy tính hoặc điện thoại để có trải nghiệm toàn màn hình, không bị phân tâm và truy cập nhanh chóng hơn. Hãy tìm nút cài đặt trong phần Cài đặt của trò chơi!
+
+## ☁️ Lưu trữ Đám mây
+
+Đăng nhập bằng tài khoản Google của bạn để tự động lưu tiến trình chơi game lên đám mây. Bạn có thể tiếp tục cuộc phiêu lưu của mình trên bất kỳ thiết bị nào.

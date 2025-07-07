@@ -6,15 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Language } from '@/lib/i18n';
 
 interface LanguageSelectorProps {
-  onLanguageSelected: () => void;
+  onLanguageSelected: (lang: Language) => void;
 }
 
 export function LanguageSelector({ onLanguageSelected }: LanguageSelectorProps) {
-  const { setLanguage, t } = useLanguage();
+  const { t } = useLanguage();
 
   const handleSelect = (lang: Language) => {
-    setLanguage(lang);
-    onLanguageSelected();
+    onLanguageSelected(lang);
   };
 
   return (

@@ -13,7 +13,7 @@ import { useLanguage } from '@/context/language-context';
 import { usePwaInstall } from '@/context/pwa-install-context';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Loader2, Settings, Download } from 'lucide-react';
-import type { TranslationKey } from '@/lib/i18n';
+import type { TranslationKey, Language } from '@/lib/i18n';
 import { LanguageSelector } from '@/components/game/language-selector';
 
 type NewGameData = {
@@ -24,9 +24,8 @@ type NewGameData = {
 }
 
 export default function Home() {
-  const { t } = useLanguage();
+  const { t, setLanguage } = useLanguage();
   const { installPrompt, setInstallPrompt } = usePwaInstall();
-  // Add 'language_select' to the possible states
   const [loadState, setLoadState] = useState<'loading' | 'language_select' | 'prompt' | 'new_game' | 'continue_game'>('loading');
   const [savedGameState, setSavedGameState] = useState<GameState | null>(null);
   const [newGameData, setNewGameData] = useState<NewGameData | null>(null);
@@ -87,8 +86,8 @@ export default function Home() {
     setLoadState('new_game');
   };
   
-  const handleLanguageSelected = () => {
-    // After language is selected, proceed to load the game state
+  const handleLanguageSelected = (lang: Language) => {
+    setLanguage(lang);
     parseAndSetSavedGame();
   };
 
@@ -187,7 +186,7 @@ export default function Home() {
                 {t('startNewAdventure')}
               </Button>
             </CardContent>
-            <CardFooter className='flex-col sm:flex-row items-center justify-center gap-2'>
+            <CardFooter className="flex-col sm:flex-row items-center justify-center gap-2">
                  <Button onClick={() => setSettingsOpen(true)} variant="ghost" className="w-full sm:w-auto">
                     <Settings className="mr-2 h-4 w-4" />
                     {t('gameSettings')}

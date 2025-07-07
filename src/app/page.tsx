@@ -121,7 +121,13 @@ export default function Home() {
 
   const onWorldCreated = async (world: WorldConcept, generatedItemCatalog: GeneratedItem[], allItemDefinitions: Record<string, any>, customStructures: Structure[]) => {
     if (activeSlot === null) return;
-    
+
+    const initialPlayerInventory = world.playerInventory.map(item => ({
+        ...item,
+        tier: allItemDefinitions[item.name]?.tier || 1,
+        emoji: allItemDefinitions[item.name]?.emoji || '❓'
+    }));
+
     // Create a full, valid initial GameState object
     const newGameState: GameState = {
         worldSetup: {
@@ -131,10 +137,11 @@ export default function Home() {
             initialQuests: world.initialQuests,
             startingSkill: world.startingSkill,
             customStructures: world.customStructures,
+            playerInventory: initialPlayerInventory,
         },
         playerStats: {
             hp: 100, mana: 50, stamina: 100, bodyTemperature: 37,
-            items: world.playerInventory.map(item => ({...item, tier: allItemDefinitions[item.name]?.tier || 1, emoji: allItemDefinitions[item.name]?.emoji || '❓' })),
+            items: initialPlayerInventory,
             equipment: { weapon: null, armor: null, accessory: null },
             quests: world.initialQuests,
             questsCompleted: 0,
@@ -267,7 +274,7 @@ export default function Home() {
                           <AlertDialogHeader>
                             <AlertDialogTitle>{t('confirmDeleteTitle')}</AlertDialogTitle>
                             <AlertDialogDescription>
-                              {slot.worldSetup
+                              {slot.worldSetup?.worldName
                                 ? t('confirmDeleteDesc', { worldName: slot.worldSetup.worldName })
                                 : t('confirmDeleteDescGeneric')
                               }
@@ -327,3 +334,5 @@ export default function Home() {
 
   return null;
 }
+
+    

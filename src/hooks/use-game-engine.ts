@@ -123,6 +123,107 @@ export function useGameEngine(props: GameEngineProps) {
         return effectiveChunk;
     }, [weatherZones, gameTime]);
 
+    const ensureChunkExists = useCallback((
+        pos: {x: number, y: number}, 
+        currentWorld: World,
+        currentRegions: { [id: number]: Region },
+        currentRegionCounter: number
+    ) => {
+        const newPosKey = `${pos.x},${pos.y}`;
+        if (currentWorld[newPosKey]) {
+            return { 
+                worldWithChunk: currentWorld, 
+                chunk: currentWorld[newPosKey],
+                newRegions: currentRegions,
+                newRegionCounter: currentRegionCounter,
+            };
+        }
+    
+        let newTerrain: Terrain;
+        const validTerrains = getValidAdjacentTerrains(pos, currentWorld);
+        const distanceFromStart = Math.abs(pos.x) + Math.abs(pos.y);
+
+        if (distanceFromStart >= 100 && validTerrains.includes('floptropica') && Math.random() < 0.001) {
+            newTerrain = 'floptropica';
+        } else {
+            const standardTerrains = validTerrains.filter(t => t !== 'floptropica');
+            
+            if (standardTerrains.length > 0) {
+                 const terrainProbs = standardTerrains.map(t => [t, worldConfig[t].spreadWeight] as [Terrain, number]);
+                 newTerrain = weightedRandom(terrainProbs);
+            } else {
+                 newTerrain = 'grassland';
+            }
+        }
+        
+        const result = generateRegion(
+            pos, newTerrain, currentWorld, currentRegions, currentRegionCounter,
+            worldProfile, currentSeason, customItemDefinitions,
+            customItemCatalog, customStructures, language
+        );
+        
+        return { 
+            worldWithChunk: result.newWorld, 
+            chunk: result.newWorld[newPosKey],
+            newRegions: result.newRegions,
+            newRegionCounter: result.newRegionCounter,
+        };
+    }, [worldProfile, currentSeason, customItemDefinitions, customItemCatalog, customStructures, language]);
+    
+    // EFFECT 0: This is the crucial fix. It runs ONCE after loading to ensure the starting chunk exists.
+    useEffect(() => {
+        if (!isLoaded || world[`${playerPosition.x},${playerPosition.y}`]) {
+            // If the game isn't loaded yet, or if the starting chunk already exists, do nothing.
+            return;
+        }
+
+        // The world is empty at the starting position, so we must generate it.
+        const result = ensureChunkExists(
+            playerPosition,
+            world,
+            regions,
+            regionCounter
+        );
+        
+        let finalWorld = result.worldWithChunk;
+        let finalRegions = result.newRegions;
+        let finalRegionCounter = result.newRegionCounter;
+
+        // Reveal the area around the player on first load.
+        const visionRadius = 1;
+        for (let dy = -visionRadius; dy <= visionRadius; dy++) {
+            for (let dx = -visionRadius; dx <= visionRadius; dx++) {
+                const revealPos = { x: playerPosition.x + dx, y: playerPosition.y + dy };
+                const key = `${revealPos.x},${revealPos.y}`;
+                if (!finalWorld[key]) {
+                    const revealResult = ensureChunkExists(revealPos, finalWorld, finalRegions, finalRegionCounter);
+                    finalWorld = revealResult.worldWithChunk;
+                    finalRegions = revealResult.regions;
+                    finalRegionCounter = revealResult.newRegionCounter;
+                }
+                if (finalWorld[key]) finalWorld[key].explored = true;
+            }
+        }
+        
+        // Initialize weather for any newly created regions.
+        const newWeatherZones = {...weatherZones};
+        Object.keys(finalRegions).filter(id => !newWeatherZones[id]).forEach(regionId => {
+            const region = finalRegions[Number(regionId)];
+            if (region) {
+                const initialWeather = generateWeatherForZone(region.terrain, currentSeason);
+                newWeatherZones[regionId] = { id: regionId, terrain: region.terrain, currentWeather: initialWeather, nextChangeTime: gameTime + getRandomInRange({min: initialWeather.duration_range[0], max: initialWeather.duration_range[1]}) * 5 };
+            }
+        });
+
+        // Update all the relevant states at once.
+        setWorld(finalWorld);
+        setRegions(finalRegions);
+        setRegionCounter(finalRegionCounter);
+        setWeatherZones(newWeatherZones);
+
+    }, [isLoaded, world, playerPosition, regions, regionCounter, ensureChunkExists, weatherZones, currentSeason, gameTime, setWorld, setRegions, setRegionCounter, setWeatherZones]);
+
+
     const triggerRandomEvent = useCallback(() => {
         const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
         if (!baseChunk) return;
@@ -479,53 +580,6 @@ export function useGameEngine(props: GameEngineProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [playerPosition, isLoaded]);
     
-    const ensureChunkExists = useCallback((
-        pos: {x: number, y: number}, 
-        currentWorld: World,
-        currentRegions: { [id: number]: Region },
-        currentRegionCounter: number
-    ) => {
-        const newPosKey = `${pos.x},${pos.y}`;
-        if (currentWorld[newPosKey]) {
-            return { 
-                worldWithChunk: currentWorld, 
-                chunk: currentWorld[newPosKey],
-                regions: currentRegions,
-                regionCounter: currentRegionCounter,
-            };
-        }
-    
-        let newTerrain: Terrain;
-        const validTerrains = getValidAdjacentTerrains(pos, currentWorld);
-        const distanceFromStart = Math.abs(pos.x) + Math.abs(pos.y);
-
-        if (distanceFromStart >= 100 && validTerrains.includes('floptropica') && Math.random() < 0.001) {
-            newTerrain = 'floptropica';
-        } else {
-            const standardTerrains = validTerrains.filter(t => t !== 'floptropica');
-            
-            if (standardTerrains.length > 0) {
-                 const terrainProbs = standardTerrains.map(t => [t, worldConfig[t].spreadWeight] as [Terrain, number]);
-                 newTerrain = weightedRandom(terrainProbs);
-            } else {
-                 newTerrain = 'grassland';
-            }
-        }
-        
-        const result = generateRegion(
-            pos, newTerrain, currentWorld, currentRegions, currentRegionCounter,
-            worldProfile, currentSeason, customItemDefinitions,
-            customItemCatalog, customStructures, language
-        );
-        
-        return { 
-            worldWithChunk: result.newWorld, 
-            chunk: result.newWorld[newPosKey],
-            regions: result.newRegions,
-            regionCounter: result.newRegionCounter,
-        };
-    }, [worldProfile, currentSeason, customItemDefinitions, customItemCatalog, customStructures, language]);
-
     // Auto-saving effect
     useEffect(() => {
         if (!isLoaded || isSaving || isGameOver) return;
@@ -561,7 +615,7 @@ export function useGameEngine(props: GameEngineProps) {
         worldProfile, currentSeason, world, recipes, buildableStructures, regions, regionCounter,
         playerPosition, playerBehaviorProfile, playerStats, narrativeLog, finalWorldSetup,
         customItemDefinitions, customItemCatalog, customStructures, weatherZones, gameTime, day, user, isSaving, toast, isGameOver,
-        turn, props.gameSlot, isLoaded,
+        turn, props.gameSlot, isLoaded, setIsSaving,
     ]);
     
     const handleOnlineNarrative = useCallback(async (action: string, worldCtx: World, playerPosCtx: {x: number, y: number}, playerStatsCtx: PlayerStatus) => {
@@ -1046,7 +1100,7 @@ export function useGameEngine(props: GameEngineProps) {
         
         const destResult = ensureChunkExists(newPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
         worldSnapshot = destResult.worldWithChunk;
-        regionsSnapshot = destResult.regions;
+        regionsSnapshot = destResult.newRegions;
         regionCounterSnapshot = destResult.newRegionCounter;
         
         const destinationTerrain = destResult.chunk.terrain;
@@ -1073,7 +1127,7 @@ export function useGameEngine(props: GameEngineProps) {
                 if (!worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
                     const result = ensureChunkExists(revealPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
                     worldSnapshot = result.worldWithChunk;
-                    regionsSnapshot = result.regions;
+                    regionsSnapshot = result.newRegions;
                     regionCounterSnapshot = result.newRegionCounter;
                 }
                 if (worldSnapshot[`${revealPos.x},${revealPos.y}`]) worldSnapshot[`${revealPos.x},${revealPos.y}`].explored = true;
@@ -1441,3 +1495,5 @@ export function useGameEngine(props: GameEngineProps) {
         handleRequestQuestHint, handleEquipItem, handleUnequipItem, handleReturnToMenu,
     }
 }
+
+    

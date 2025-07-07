@@ -26,19 +26,11 @@ type NewGameData = {
 export default function Home() {
   const { t } = useLanguage();
   const { installPrompt, setInstallPrompt } = usePwaInstall();
-  const [loadState, setLoadState] = useState<'loading' | 'prompt' | 'new_game' | 'continue_game'>('loading');
-  const [languageSelected, setLanguageSelected] = useState(false);
+  // Add 'language_select' to the possible states
+  const [loadState, setLoadState] = useState<'loading' | 'language_select' | 'prompt' | 'new_game' | 'continue_game'>('loading');
   const [savedGameState, setSavedGameState] = useState<GameState | null>(null);
   const [newGameData, setNewGameData] = useState<NewGameData | null>(null);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
-
-  // Check for language selection first
-  useEffect(() => {
-    const savedLanguage = localStorage.getItem('gameLanguage');
-    if (savedLanguage) {
-      setLanguageSelected(true);
-    }
-  }, []);
 
   const parseAndSetSavedGame = useCallback(() => {
     try {
@@ -46,6 +38,7 @@ export default function Home() {
       if (savedData) {
         const gameState: GameState = JSON.parse(savedData);
         
+        // Data migration logic from old saves
         if (gameState.playerStats?.items && gameState.playerStats.items.length > 0 && typeof (gameState.playerStats.items[0] as any) === 'string') {
           gameState.playerStats.items = (gameState.playerStats.items as unknown as string[]).map((itemName): PlayerItem => ({
             name: itemName.replace(/ \(.*/, ''),
@@ -61,7 +54,6 @@ export default function Home() {
           gameState.playerStats.bodyTemperature = 37;
         }
 
-
         setSavedGameState(gameState);
         setLoadState('prompt');
       } else {
@@ -74,12 +66,17 @@ export default function Home() {
     }
   }, []);
 
-  // Trigger game state loading after language is confirmed
+  // Combined effect to handle initial app state
   useEffect(() => {
-    if (languageSelected) {
+    const savedLanguage = localStorage.getItem('gameLanguage');
+    if (savedLanguage) {
+      // Language is set, proceed to load game state
       parseAndSetSavedGame();
+    } else {
+      // No language set, show selector after the initial loading screen
+      setLoadState('language_select');
     }
-  }, [parseAndSetSavedGame, languageSelected]);
+  }, [parseAndSetSavedGame]);
 
   const handleContinue = () => setLoadState('continue_game');
   
@@ -88,6 +85,11 @@ export default function Home() {
     setSavedGameState(null);
     setNewGameData(null);
     setLoadState('new_game');
+  };
+  
+  const handleLanguageSelected = () => {
+    // After language is selected, proceed to load the game state
+    parseAndSetSavedGame();
   };
 
   const onWorldCreated = (world: WorldConcept) => {
@@ -144,16 +146,7 @@ export default function Home() {
     });
   };
 
-  // Handle language selection
-  const handleLanguageSelected = () => {
-    setLanguageSelected(true);
-  };
-
-  // Render language selector if needed
-  if (!languageSelected) {
-    return <LanguageSelector onLanguageSelected={handleLanguageSelected} />;
-  }
-
+  // Render based on the current load state
   if (loadState === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
@@ -171,6 +164,10 @@ export default function Home() {
         </div>
       </div>
     );
+  }
+
+  if (loadState === 'language_select') {
+    return <LanguageSelector onLanguageSelected={handleLanguageSelected} />;
   }
   
   if (loadState === 'prompt') {

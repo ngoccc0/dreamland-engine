@@ -248,7 +248,7 @@ export default function Home() {
             {saveSlots.map((slot, index) => (
               <Card key={index} className={cn("flex flex-col justify-between", slot ? "border-primary" : "border-dashed")}>
                 <CardHeader>
-                  <CardTitle className="truncate">{slot ? slot.worldSetup.worldName : t('emptySlot')}</CardTitle>
+                  <CardTitle className="truncate">{slot && slot.worldSetup ? slot.worldSetup.worldName : t('emptySlot')}</CardTitle>
                   <CardDescription>{slot ? `${t('dayX', {day: slot.day})}` : t('newAdventureHint')}</CardDescription>
                 </CardHeader>
                 <CardFooter className="flex flex-col gap-2">
@@ -266,7 +266,12 @@ export default function Home() {
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>{t('confirmDeleteTitle')}</AlertDialogTitle>
-                            <AlertDialogDescription>{t('confirmDeleteDesc', { worldName: slot.worldSetup.worldName })}</AlertDialogDescription>
+                            <AlertDialogDescription>
+                              {slot.worldSetup
+                                ? t('confirmDeleteDesc', { worldName: slot.worldSetup.worldName })
+                                : t('confirmDeleteDescGeneric')
+                              }
+                            </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
@@ -322,5 +327,3 @@ export default function Home() {
 
   return null;
 }
-
-    

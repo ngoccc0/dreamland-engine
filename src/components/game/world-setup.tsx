@@ -183,6 +183,13 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         onWorldCreated(finalWorld);
     }
     
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          handleGenerate();
+        }
+    };
+    
     const renderStep0 = () => (
         <>
             <CardHeader>
@@ -194,6 +201,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                     placeholder={t('worldSetupPlaceholder')}
                     value={userInput}
                     onChange={(e) => setUserInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     rows={4}
                     className="text-base"
                 />

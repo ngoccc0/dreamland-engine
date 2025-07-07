@@ -24,7 +24,7 @@ import { worldConfig, seasonConfig } from '@/lib/game/world-config';
 import { clamp } from "@/lib/utils";
 import { randomEvents } from "@/lib/game/events";
 
-import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, ItemEffect, Terrain, PlayerPersona, EquipmentSlot } from "@/lib/game/types";
+import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, ItemEffect, Terrain, PlayerPersona, EquipmentSlot, NarrativeLength } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 
 
@@ -73,17 +73,10 @@ export function useGameEngine(props: GameEngineProps) {
     const narrativeIdCounter = useRef(1);
     
     useEffect(() => {
-        // This effect synchronizes the narrative ID counter with the current state of the log.
-        // It runs whenever the narrativeLog changes (e.g., loaded from save, or a new entry is added),
-        // ensuring the counter is always set to a value higher than any existing ID.
-        // This prevents React's "duplicate key" error.
         if (narrativeLog.length > 0) {
-            // Find the highest existing ID in the log
             const maxId = Math.max(...narrativeLog.map(entry => entry.id));
-            // Set the counter to be one higher than the max
             narrativeIdCounter.current = maxId + 1;
         } else {
-            // If the log is empty, reset the counter.
             narrativeIdCounter.current = 1;
         }
     }, [narrativeLog]);
@@ -92,7 +85,6 @@ export function useGameEngine(props: GameEngineProps) {
         setNarrativeLog(prev => {
             const newEntry = { id: narrativeIdCounter.current, text, type };
             narrativeIdCounter.current++;
-            // Keep the log to a max of 50 entries for performance
             return [...prev, newEntry].slice(-50);
         });
     }, [setNarrativeLog]);
@@ -139,14 +131,12 @@ export function useGameEngine(props: GameEngineProps) {
     
         if (possibleEvents.length === 0) return;
     
-        // Filter the possible events by their individual chance
         const triggeredEvents = possibleEvents.filter(event => Math.random() < (event.chance ?? 1.0));
     
         if (triggeredEvents.length === 0) {
-            return; // No rare event was lucky enough to trigger this time
+            return;
         }
     
-        // Pick one from the ones that passed their chance roll
         const event = triggeredEvents[Math.floor(Math.random() * triggeredEvents.length)];
     
         const eventName = t(event.id as TranslationKey);
@@ -155,21 +145,19 @@ export function useGameEngine(props: GameEngineProps) {
         const { roll } = rollDice('d20');
         const successLevel: SuccessLevel = getSuccessLevel(roll, 'd20');
     
-        const outcome = event.outcomes[successLevel] || event.outcomes['Success']; // Fallback to success
+        const outcome = event.outcomes[successLevel] || event.outcomes['Success'];
         if (!outcome) return;
     
         addNarrativeEntry(t(outcome.descriptionKey), 'narrative');
     
         const effects = outcome.effects;
     
-        // Apply effects
         let newPlayerStats = { ...playerStats };
         let worldWasModified = false;
         let newWorld = { ...world };
     
         const hasShelter = world[`${playerPosition.x},${playerPosition.y}`]?.structures.some(s => s.providesShelter);
     
-        // Conditional effects
         if (effects.hpChange) {
             let applyChange = true;
             if (event.id === 'magicRain' || event.id === 'blizzard') {
@@ -220,10 +208,6 @@ export function useGameEngine(props: GameEngineProps) {
                     worldWasModified = true;
                 }
             }
-        }
-    
-        if (effects.unlockRecipe) {
-            // Future logic to unlock a recipe
         }
     
         setPlayerStats(prev => ({ ...prev, ...newPlayerStats }));
@@ -298,42 +282,38 @@ export function useGameEngine(props: GameEngineProps) {
             }
         }
         
-        // Natural Regeneration
         const STAMINA_REGEN_RATE = 1.5;
         const MANA_REGEN_RATE = 0.5;
         nextPlayerStats.stamina = clamp(nextPlayerStats.stamina + STAMINA_REGEN_RATE, 0, 100);
         nextPlayerStats.mana = clamp(nextPlayerStats.mana + MANA_REGEN_RATE, 0, 50);
 
-        // --- WORLD SIMULATION TICK ---
-        const SIMULATION_CHANCE = 0.2; // Run simulation logic on 20% of ticks to save performance
+        const SIMULATION_CHANCE = 0.2; 
 
         if (Math.random() < SIMULATION_CHANCE) {
             const worldKeys = Object.keys(newWorldState);
-            // Simulate up to 10 random chunks per tick to spread the load
             const chunksToSimulate = worldKeys.sort(() => 0.5 - Math.random()).slice(0, 10); 
 
             for (const key of chunksToSimulate) {
                 const chunk = newWorldState[key];
                 if (!chunk) continue;
                 
-                // 1. Resource Regeneration
                 for (const itemDefName in customItemDefinitions) {
                     const itemDef = customItemDefinitions[itemDefName];
                     if (itemDef.growthConditions) {
-                        const effectiveChunkForGrowth = getEffectiveChunk(chunk); // Use effective chunk for weather conditions
+                        const effectiveChunkForGrowth = getEffectiveChunk(chunk); 
                         const existingItem = chunk.items.find(i => i.name === itemDefName);
                         
                         let growthChance = 0;
                         if (checkConditions(itemDef.growthConditions.optimal, effectiveChunkForGrowth)) {
-                            growthChance = 0.2; // 20% chance in optimal conditions
+                            growthChance = 0.2;
                         } else if (checkConditions(itemDef.growthConditions.subOptimal, effectiveChunkForGrowth)) {
-                            growthChance = 0.05; // 5% in suboptimal
+                            growthChance = 0.05;
                         }
 
                         if (Math.random() < growthChance) {
                             worldWasModified = true;
                             if (existingItem) {
-                                existingItem.quantity = Math.min(existingItem.quantity + 1, itemDef.baseQuantity.max * 2); // Cap quantity
+                                existingItem.quantity = Math.min(existingItem.quantity + 1, itemDef.baseQuantity.max * 2);
                             } else {
                                 chunk.items.push({
                                     name: itemDefName,
@@ -347,25 +327,21 @@ export function useGameEngine(props: GameEngineProps) {
                     }
                 }
                 
-                // 2. Creature Satiation & Reproduction
                 if (chunk.enemy) {
-                    // Hunger
                     chunk.enemy.satiation = Math.max(0, chunk.enemy.satiation - 0.5);
 
-                    // Eating
                     if (chunk.enemy.satiation < chunk.enemy.maxSatiation / 2) {
                         const foodSource = chunk.items.find(item => chunk.enemy!.diet.includes(item.name));
                         if (foodSource) {
                             worldWasModified = true;
                             foodSource.quantity -= 1;
-                            chunk.enemy.satiation = Math.min(chunk.enemy.maxSatiation, chunk.enemy.satiation + 2); // Eating restores 2 satiation
+                            chunk.enemy.satiation = Math.min(chunk.enemy.maxSatiation, chunk.enemy.satiation + 2);
                             if (foodSource.quantity <= 0) {
                                 chunk.items = chunk.items.filter(i => i.name !== foodSource.name);
                             }
                         }
                     }
                     
-                    // Reproduction
                     const REPRODUCE_CHANCE = 0.1;
                     if (chunk.enemy.satiation >= chunk.enemy.maxSatiation && Math.random() < REPRODUCE_CHANCE) {
                         const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }];
@@ -380,14 +356,14 @@ export function useGameEngine(props: GameEngineProps) {
                             const adjKey = `${chunk.x + emptyAdjacent.x},${chunk.y + emptyAdjacent.y}`;
                             newWorldState[adjKey]!.enemy = {
                                 ...chunk.enemy,
-                                hp: Math.round(chunk.enemy.hp * 0.75), // Offspring is weaker
+                                hp: Math.round(chunk.enemy.hp * 0.75),
                                 satiation: 0,
                             };
-                            chunk.enemy.satiation = 0; // Parent is hungry after reproducing
+                            chunk.enemy.satiation = 0;
                         }
                     }
                 }
-                newWorldState[key] = chunk; // Update chunk in the new state
+                newWorldState[key] = chunk;
             }
         }
         
@@ -403,7 +379,7 @@ export function useGameEngine(props: GameEngineProps) {
             const uniqueNarratives = [...new Map(changes.narrativeEntries.map(item => [item.text, item])).values()];
             uniqueNarratives.forEach(entry => addNarrativeEntry(entry.text, entry.type));
         }
-    }, [playerStats, world, gameTime, day, addNarrativeEntry, t, isOnline, finalWorldSetup, language, weatherZones, currentSeason, playerPosition, customItemDefinitions, setDay, setGameTime, setWeatherZones, setWorld, getEffectiveChunk, triggerRandomEvent, setPlayerStats]);
+    }, [playerStats, world, gameTime, day, addNarrativeEntry, t, isOnline, finalWorldSetup, language, weatherZones, currentSeason, playerPosition, customItemDefinitions, getEffectiveChunk, triggerRandomEvent, setDay, setGameTime, setWeatherZones, setWorld, setPlayerStats]);
     
     useEffect(() => {
         if (playerStats.hp <= 0 && !isGameOver) {
@@ -498,21 +474,15 @@ export function useGameEngine(props: GameEngineProps) {
         const validTerrains = getValidAdjacentTerrains(pos, currentWorld);
         const distanceFromStart = Math.abs(pos.x) + Math.abs(pos.y);
 
-        // Check for the special Floptropica case
         if (distanceFromStart >= 100 && validTerrains.includes('floptropica') && Math.random() < 0.001) {
             newTerrain = 'floptropica';
         } else {
-            // Otherwise, proceed with normal generation, but exclude Floptropica
             const standardTerrains = validTerrains.filter(t => t !== 'floptropica');
             
-            // This fallback is important. If floptropica was the only valid option and the 0.1% roll failed,
-            // we need to generate *something*. We can default to grassland as a safe default.
             if (standardTerrains.length > 0) {
                  const terrainProbs = standardTerrains.map(t => [t, worldConfig[t].spreadWeight] as [Terrain, number]);
                  newTerrain = weightedRandom(terrainProbs);
             } else {
-                 // This case means either no valid terrains were found, or Floptropica was the only one.
-                 // Defaulting to grassland is a safe fallback.
                  newTerrain = 'grassland';
             }
         }
@@ -661,10 +631,26 @@ export function useGameEngine(props: GameEngineProps) {
         addNarrativeEntry(t('diceRollMessage', { roll, level: t(successLevelToTranslationKey[successLevel]) }), 'system');
 
         const currentChunk = getEffectiveChunk(baseChunk);
+
+        const surroundingChunks: Chunk[] = [];
+        if (settings.narrativeLength === 'long') {
+            for (let dy = 1; dy >= -1; dy--) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    if (dx === 0 && dy === 0) continue;
+                    const key = `${playerPosCtx.x + dx},${playerPosCtx.y + dy}`;
+                    const adjacentChunk = worldCtx[key];
+                    if (adjacentChunk && adjacentChunk.explored) {
+                        surroundingChunks.push(getEffectiveChunk(adjacentChunk));
+                    }
+                }
+            }
+        }
+        
         try {
             const input: GenerateNarrativeInput = {
                 worldName: finalWorldSetup.worldName, playerAction: action, playerStatus: playerStatsCtx,
-                currentChunk: { ...currentChunk, regionId: undefined }, // regionId is not in Zod schema
+                currentChunk: { ...currentChunk, regionId: undefined },
+                surroundingChunks: surroundingChunks.length > 0 ? surroundingChunks : undefined,
                 recentNarrative: narrativeLog.slice(-5).map(e => e.text), language, customItemDefinitions,
                 diceRoll: roll, diceType: settings.diceType, diceRange: range, successLevel,
                 aiModel: settings.aiModel, narrativeLength: settings.narrativeLength,
@@ -704,6 +690,59 @@ export function useGameEngine(props: GameEngineProps) {
         }
     }, [settings.diceType, settings.aiModel, settings.narrativeLength, addNarrativeEntry, getEffectiveChunk, narrativeLog, language, customItemDefinitions, toast, advanceGameTime, finalWorldSetup, setIsLoading, setWorld, setCustomItemCatalog, setCustomItemDefinitions, t]);
     
+    const generateOfflineNarrative = useCallback((
+        baseChunk: Chunk,
+        world: World,
+        playerPosition: { x: number; y: number },
+        narrativeLength: NarrativeLength,
+        t: (key: TranslationKey, replacements?: { [key: string]: string | number }) => string
+    ) => {
+        const chunk = getEffectiveChunk(baseChunk);
+        let narrative = chunk.description;
+    
+        if (narrativeLength === 'short') {
+            return narrative;
+        }
+    
+        const itemsHere = chunk.items.map(i => `${i.quantity}x ${t(i.name as TranslationKey)}`).join(', ');
+        if (itemsHere) {
+            narrative += ` ${t('offlineNarrativeItems', { items: itemsHere })}`;
+        }
+        if (chunk.enemy) {
+            narrative += ` ${t('offlineNarrativeEnemy', { enemy: t(chunk.enemy.type as TranslationKey) })}`;
+        }
+        if (chunk.NPCs.length > 0) {
+            narrative += ` ${t('offlineNarrativeNPC', { npc: t(chunk.NPCs[0].name as TranslationKey) })}`;
+        }
+    
+        if (narrativeLength === 'long') {
+            const surroundingObservations: string[] = [];
+            const directions = [
+                { dx: 0, dy: 1, key: 'directionNorth' }, { dx: 1, dy: 1, key: 'directionNorthEast' },
+                { dx: 1, dy: 0, key: 'directionEast' }, { dx: 1, dy: -1, key: 'directionSouthEast' },
+                { dx: 0, dy: -1, key: 'directionSouth' }, { dx: -1, dy: -1, key: 'directionSouthWest' },
+                { dx: -1, dy: 0, key: 'directionWest' }, { dx: -1, dy: 1, key: 'directionNorthWest' },
+            ];
+    
+            for (const dir of directions) {
+                const key = `${playerPosition.x + dir.dx},${playerPosition.y + dir.dy}`;
+                const adjacentChunk = world[key];
+                if (adjacentChunk && adjacentChunk.explored) {
+                    if (adjacentChunk.enemy) {
+                        surroundingObservations.push(t('offlineNarrativeSenseEnemy', { direction: t(dir.key as TranslationKey), enemy: t(adjacentChunk.enemy.type as TranslationKey) }));
+                    } else if (adjacentChunk.structures && adjacentChunk.structures.length > 0) {
+                        surroundingObservations.push(t('offlineNarrativeSeeStructure', { direction: t(dir.key as TranslationKey), structure: t(adjacentChunk.structures[0].name as TranslationKey) }));
+                    }
+                }
+            }
+            if (surroundingObservations.length > 0) {
+                narrative += ` ${t('offlineNarrativeSurroundings')} ${surroundingObservations.slice(0, 2).join('. ')}.`;
+            }
+        }
+    
+        return narrative;
+    }, [getEffectiveChunk]);
+
     const handleOfflineAttack = useCallback(() => {
         const key = `${playerPosition.x},${playerPosition.y}`;
         const baseChunk = world[key];
@@ -886,7 +925,6 @@ export function useGameEngine(props: GameEngineProps) {
         let newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText] };
         const lowerAction = actionText.toLowerCase();
 
-        // Define action keys
         const talkToAction = t('talkToAction', {}).toLowerCase();
         const pickUpAction = t('pickUpAction', {}).toLowerCase();
         const exploreActionText = t('exploreAction', {}).toLowerCase();
@@ -986,7 +1024,7 @@ export function useGameEngine(props: GameEngineProps) {
                     const def = customItemDefinitions[i.name];
                     return def && def.category === 'Food';
                 });
-                if (foodItems.length > 0 && Math.random() < 0.6) { // 60% chance to find food
+                if (foodItems.length > 0 && Math.random() < 0.6) { 
                      const itemTemplate = foodItems[Math.floor(Math.random() * foodItems.length)];
                      const itemDef = customItemDefinitions[itemTemplate.name];
                      if (itemDef) {
@@ -1011,10 +1049,10 @@ export function useGameEngine(props: GameEngineProps) {
                     const def = customItemDefinitions[i.name];
                     return def && def.category === 'Material';
                 });
-                if (materialItems.length > 0 && Math.random() < 0.75) { // 75% chance
+                if (materialItems.length > 0 && Math.random() < 0.75) { 
                      const itemTemplate = materialItems[Math.floor(Math.random() * materialItems.length)];
                      const itemDef = customItemDefinitions[itemTemplate.name];
-                     if (itemDef && itemDef.tier <= 2) { // only common materials
+                     if (itemDef && itemDef.tier <= 2) { 
                          foundItems.push({ name: itemTemplate.name, description: itemDef.description, tier: itemDef.tier, quantity: getRandomInRange(itemDef.baseQuantity), emoji: itemDef.emoji });
                      }
                 }
@@ -1073,7 +1111,7 @@ export function useGameEngine(props: GameEngineProps) {
             const hasRaft = playerStats.items.some(item => item.name === 'Thuyền Phao');
             if (!hasRaft) {
                 toast({ title: t('oceanTravelBlocked'), variant: "destructive" });
-                return; // Block movement
+                return;
             }
         }
 
@@ -1120,9 +1158,14 @@ export function useGameEngine(props: GameEngineProps) {
 
         const newPlayerStats = { ...playerStats, stamina: playerStats.stamina - travelCost, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText], unlockProgress: { ...playerStats.unlockProgress, moves: playerStats.unlockProgress.moves + 1 } };
 
-        if (isOnline) handleOnlineNarrative(`move ${direction}`, worldSnapshot, newPos, newPlayerStats);
-        else { addNarrativeEntry(worldSnapshot[`${newPos.x},${newPos.y}`].description, 'narrative'); advanceGameTime(newPlayerStats); }
-    }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerPosition, world, regions, regionCounter, playerStats, toast, addNarrativeEntry, t, ensureChunkExists, weatherZones, currentSeason, gameTime, setWeatherZones, setWorld, setRegions, setRegionCounter, setPlayerPosition, isOnline, handleOnlineNarrative, advanceGameTime]);
+        if (isOnline) {
+            handleOnlineNarrative(`move ${direction}`, worldSnapshot, newPos, newPlayerStats);
+        } else {
+            const narrative = generateOfflineNarrative(worldSnapshot[`${newPos.x},${newPos.y}`], worldSnapshot, newPos, settings.narrativeLength, t);
+            addNarrativeEntry(narrative, 'narrative');
+            advanceGameTime(newPlayerStats);
+        }
+    }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerPosition, world, regions, regionCounter, playerStats, toast, addNarrativeEntry, t, ensureChunkExists, weatherZones, currentSeason, gameTime, setWeatherZones, setWorld, setRegions, setRegionCounter, setPlayerPosition, isOnline, handleOnlineNarrative, advanceGameTime, settings.narrativeLength, generateOfflineNarrative]);
 
     const handleAction = useCallback((actionId: number) => {
         if (isLoading || isGameOver) return;
@@ -1310,8 +1353,7 @@ export function useGameEngine(props: GameEngineProps) {
             addNarrativeEntry(result.narrative, 'narrative');
             
             if (result.resultItem) {
-                // Update player stats with the new item
-                nextPlayerStats = { ...nextPlayerStats, items: [...nextPlayerStats.items] }; // create new copy
+                nextPlayerStats = { ...nextPlayerStats, items: [...nextPlayerStats.items] }; 
                 const existing = nextPlayerStats.items.find(i => i.name === result.resultItem!.name);
                 if (existing) existing.quantity += result.resultItem!.baseQuantity.min;
                 else nextPlayerStats.items.push({ name: result.resultItem!.name, quantity: result.resultItem!.baseQuantity.min, tier: result.resultItem!.tier, emoji: result.resultItem!.emoji });
@@ -1352,12 +1394,11 @@ export function useGameEngine(props: GameEngineProps) {
         setPlayerStats(prevStats => {
             const newStats: PlayerStatus = JSON.parse(JSON.stringify(prevStats));
             const itemToEquipIndex = newStats.items.findIndex(i => i.name === itemName);
-            if (itemToEquipIndex === -1) return prevStats; // Item not in inventory
+            if (itemToEquipIndex === -1) return prevStats; 
     
             const itemToEquip = newStats.items[itemToEquipIndex];
             const slot = itemDef.equipmentSlot!;
     
-            // Unequip current item in the slot, if any
             const currentEquipped = newStats.equipment[slot];
             if (currentEquipped) {
                 const existingInInventory = newStats.items.find(i => i.name === currentEquipped.name);
@@ -1368,17 +1409,14 @@ export function useGameEngine(props: GameEngineProps) {
                 }
             }
     
-            // Equip new item
             newStats.equipment[slot] = { name: itemToEquip.name, quantity: 1, tier: itemToEquip.tier, emoji: itemToEquip.emoji };
     
-            // Remove one from inventory
             if (itemToEquip.quantity > 1) {
                 itemToEquip.quantity -= 1;
             } else {
                 newStats.items.splice(itemToEquipIndex, 1);
             }
             
-            // Recalculate attributes
             let basePhysAtk = 10, baseMagAtk = 5, baseCrit = 5, baseAtkSpd = 1.0, baseCd = 0;
             Object.values(newStats.equipment).forEach(equipped => {
                 if (equipped) {
@@ -1404,9 +1442,8 @@ export function useGameEngine(props: GameEngineProps) {
         setPlayerStats(prevStats => {
             const newStats: PlayerStatus = JSON.parse(JSON.stringify(prevStats));
             const itemToUnequip = newStats.equipment[slot];
-            if (!itemToUnequip) return prevStats; // Nothing to unequip
+            if (!itemToUnequip) return prevStats;
 
-            // Move from equipment to inventory
             const existingInInventory = newStats.items.find(i => i.name === itemToUnequip.name);
             if (existingInInventory) {
                 existingInInventory.quantity += 1;
@@ -1414,10 +1451,8 @@ export function useGameEngine(props: GameEngineProps) {
                 newStats.items.push({ ...itemToUnequip, quantity: 1 });
             }
 
-            // Clear equipment slot
             newStats.equipment[slot] = null;
             
-            // Recalculate attributes
             let basePhysAtk = 10, baseMagAtk = 5, baseCrit = 5, baseAtkSpd = 1.0, baseCd = 0;
             Object.values(newStats.equipment).forEach(equipped => {
                 if (equipped) {

@@ -32,6 +32,7 @@ const GenerateNarrativeInputSchema = z.object({
   playerAction: z.string().describe("The action the player just performed. E.g., 'move north', 'attack wolf', 'explore area', 'pick up Healing Herb', 'use Heal', 'give wolf fang to hunter'."),
   playerStatus: PlayerStatusSchema.describe("The player's current status (HP, items, skills, etc.)."),
   currentChunk: ChunkSchema.describe("The detailed attributes of the map tile the player is currently on. This includes dynamic weather effects and rich NPC data."),
+  surroundingChunks: z.array(ChunkSchema).optional().describe("A 3x3 grid of chunks around the player for environmental context, especially for long narratives."),
   recentNarrative: z.array(z.string()).describe("The last few entries from the narrative log to provide conversational context."),
   language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
   diceRoll: z.number().describe("The result of the dice roll."),
@@ -94,6 +95,7 @@ const narrativePromptTemplate = `You are the Game Master for a text-based advent
 - **Success Level is Law:** The 'successLevel' ('{{successLevel}}') dictates the outcome. A 'Failure' MUST be narrated as a failure, a 'CriticalSuccess' as a legendary event.
 - **Narrate Tool Results:** You MUST incorporate the factual results from any tool used into your narrative. For example, if a tool's output includes "combatLog: Player dealt 15 damage. Enemy retaliated for 8 damage.", you must weave this information into your story.
 - **Movement Narration:** If the player's action is to move (e.g., 'move north'), your narrative MUST describe the journey to the new location. Mention a specific detail about the environment they are leaving, and a sensory detail (sight, sound, smell) about the new location they are entering, using the 'Current Environment' context. Do not just say "You move north."
+- **Long Narratives:** If '{{narrativeLength}}' is 'long', use the 'Surrounding Area' context to describe the environment in greater detail. Mention what might be happening in adjacent areas (e.g., 'To the north, you can hear the roar of a waterfall from the mountain biome.') to create a more immersive, living world. Describe the atmosphere, the weather, and what the plants and creatures in the current chunk are doing.
 - **NPC Dialogue:** If the player talks to an NPC, you MUST use their 'name', 'description', and especially their 'dialogueSeed' from the context below to craft a unique and in-character response. The NPC might offer hints, lore, or a new quest.
 - **Incorporate Persona:** Weave the player's persona ('{{playerStatus.persona}}') into the story for flavor.
 - **Creature Behavior:** Respect the creature's behavior. If the 'playerAttack' tool returns 'fled: true', your narrative MUST describe the creature running away.
@@ -104,6 +106,7 @@ const narrativePromptTemplate = `You are the Game Master for a text-based advent
 - Dice Roll Outcome: {{diceRoll}} (on a {{diceType}} with range {{diceRange}}, resulting in {{successLevel}})
 - Player's Status: {{json playerStatus}}
 - Current Environment: {{json currentChunk}}
+- Surrounding Area (3x3 grid): {{#if surroundingChunks}}{{json surroundingChunks}}{{else}}Not provided.{{/if}}
 - Recent Events: {{json recentNarrative}}
 
 **Your Response:** Based on the context and rules, generate the narrative and an optional system message in the required JSON format.

@@ -183,7 +183,7 @@ export default function GameLayout(props: GameLayoutProps) {
                     <main className="flex-grow p-4 md:p-6 overflow-y-auto">
                         <div className="prose prose-stone dark:prose-invert max-w-none">
                             {narrativeLog.map((entry) => (
-                                <p key={entry.id} className={`animate-in fade-in duration-500 ${entry.type === 'action' ? 'italic text-accent-foreground/80' : ''} ${entry.type === 'system' ? 'font-semibold text-accent' : ''}`}>
+                                <p key={entry.id} className={`animate-in fade-in duration-500 ${entry.type === 'action' ? 'italic text-muted-foreground' : ''} ${entry.type === 'system' ? 'font-semibold text-accent' : ''}`}>
                                     {entry.text}
                                 </p>
                             ))}

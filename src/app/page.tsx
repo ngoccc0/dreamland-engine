@@ -14,6 +14,7 @@ import { usePwaInstall } from '@/context/pwa-install-context';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Loader2, Settings, Download } from 'lucide-react';
 import type { TranslationKey } from '@/lib/i18n';
+import { LanguageSelector } from '@/components/game/language-selector';
 
 type NewGameData = {
   worldSetup: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog' | 'customStructures'> & { playerInventory: PlayerItem[], startingSkill: Skill };
@@ -26,9 +27,18 @@ export default function Home() {
   const { t } = useLanguage();
   const { installPrompt, setInstallPrompt } = usePwaInstall();
   const [loadState, setLoadState] = useState<'loading' | 'prompt' | 'new_game' | 'continue_game'>('loading');
+  const [languageSelected, setLanguageSelected] = useState(false);
   const [savedGameState, setSavedGameState] = useState<GameState | null>(null);
   const [newGameData, setNewGameData] = useState<NewGameData | null>(null);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
+
+  // Check for language selection first
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem('gameLanguage');
+    if (savedLanguage) {
+      setLanguageSelected(true);
+    }
+  }, []);
 
   const parseAndSetSavedGame = useCallback(() => {
     try {
@@ -64,9 +74,12 @@ export default function Home() {
     }
   }, []);
 
+  // Trigger game state loading after language is confirmed
   useEffect(() => {
-    parseAndSetSavedGame();
-  }, [parseAndSetSavedGame]);
+    if (languageSelected) {
+      parseAndSetSavedGame();
+    }
+  }, [parseAndSetSavedGame, languageSelected]);
 
   const handleContinue = () => setLoadState('continue_game');
   
@@ -130,6 +143,16 @@ export default function Home() {
       setInstallPrompt(null);
     });
   };
+
+  // Handle language selection
+  const handleLanguageSelected = () => {
+    setLanguageSelected(true);
+  };
+
+  // Render language selector if needed
+  if (!languageSelected) {
+    return <LanguageSelector onLanguageSelected={handleLanguageSelected} />;
+  }
 
   if (loadState === 'loading') {
     return (

@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import GameLayout from '@/components/game/game-layout';
 import { WorldSetup } from '@/components/game/world-setup';
 import { SettingsPopup } from '@/components/game/settings-popup';
-import type { GameState, GeneratedItem, WorldConcept, Skill, Structure } from '@/lib/game/types';
+import type { GameState, GeneratedItem, WorldConcept, Skill, Structure, PlayerItem } from '@/lib/game/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useLanguage } from '@/context/language-context';
@@ -16,9 +16,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Loader2, Settings, Download, Trash2, Play, PlusCircle } from 'lucide-react';
 import type { TranslationKey, Language } from '@/lib/i18n';
 import { LanguageSelector } from '@/components/game/language-selector';
-import { doc, getDoc, setDoc, deleteDoc, collection, getDocs } from "firebase/firestore";
+import { doc, setDoc, deleteDoc, getDocs, collection } from "firebase/firestore";
 import { db } from "@/lib/firebase-config";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { recipes as staticRecipes } from '@/lib/game/recipes';
+import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
+
 
 type SaveSlotSummary = Pick<GameState, 'worldSetup' | 'day'> | null;
 
@@ -26,6 +30,7 @@ export default function Home() {
   const { t, language, setLanguage } = useLanguage();
   const { installPrompt, setInstallPrompt } = usePwaInstall();
   const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
 
   const [loadState, setLoadState] = useState<'loading' | 'language_select' | 'slot_selection' | 'new_game' | 'continue_game'>('loading');
   const [saveSlots, setSaveSlots] = useState<SaveSlotSummary[]>([null, null, null]);
@@ -37,16 +42,20 @@ export default function Home() {
     setLoadState('loading');
     let slots: SaveSlotSummary[] = [null, null, null];
     if (user) { // Load from Firebase
-      const gamesColRef = collection(db, "users", user.uid, "games");
-      const querySnapshot = await getDocs(gamesColRef);
-      querySnapshot.forEach(doc => {
-        const docId = doc.id; // e.g., "slot_0"
-        const slotIndex = parseInt(docId.split('_')[1], 10);
-        if (slotIndex >= 0 && slotIndex < 3) {
-          const data = doc.data() as GameState;
-          slots[slotIndex] = { worldSetup: data.worldSetup, day: data.day };
-        }
-      });
+      try {
+        const gamesColRef = collection(db, "users", user.uid, "games");
+        const querySnapshot = await getDocs(gamesColRef);
+        querySnapshot.forEach(doc => {
+          const docId = doc.id; // e.g., "slot_0"
+          const slotIndex = parseInt(docId.split('_')[1], 10);
+          if (slotIndex >= 0 && slotIndex < 3) {
+            const data = doc.data() as GameState;
+            slots[slotIndex] = { worldSetup: data.worldSetup, day: data.day };
+          }
+        });
+      } catch (error) {
+        console.error("Failed to load save slots from Firebase:", error);
+      }
     } else { // Load from localStorage
       slots = [0, 1, 2].map(i => {
         try {
@@ -110,30 +119,80 @@ export default function Home() {
     });
   };
 
-  const onWorldCreated = (world: WorldConcept, generatedItemCatalog: GeneratedItem[], allItemDefinitions: Record<string, any>, customStructures: Structure[]) => {
-      if (activeSlot === null) return;
-      
-      const newGameState: Partial<GameState> = {
-          worldSetup: {
-              worldName: world.worldName,
-              initialNarrative: world.initialNarrative,
-              startingBiome: world.startingBiome,
-              initialQuests: world.initialQuests,
-              startingSkill: world.startingSkill,
-          },
-          customItemCatalog: generatedItemCatalog,
-          customItemDefinitions: allItemDefinitions,
-          customStructures: customStructures,
-          day: 1,
-      };
+  const onWorldCreated = async (world: WorldConcept, generatedItemCatalog: GeneratedItem[], allItemDefinitions: Record<string, any>, customStructures: Structure[]) => {
+    if (activeSlot === null) return;
+    
+    // Create a full, valid initial GameState object
+    const newGameState: GameState = {
+        worldSetup: {
+            worldName: world.worldName,
+            initialNarrative: world.initialNarrative,
+            startingBiome: world.startingBiome,
+            initialQuests: world.initialQuests,
+            startingSkill: world.startingSkill,
+            customStructures: world.customStructures,
+        },
+        playerStats: {
+            hp: 100, mana: 50, stamina: 100, bodyTemperature: 37,
+            items: world.playerInventory.map(item => ({...item, tier: allItemDefinitions[item.name]?.tier || 1, emoji: allItemDefinitions[item.name]?.emoji || '❓' })),
+            equipment: { weapon: null, armor: null, accessory: null },
+            quests: world.initialQuests,
+            questsCompleted: 0,
+            skills: world.startingSkill ? [world.startingSkill] : [],
+            pets: [],
+            persona: 'none',
+            attributes: { physicalAttack: 10, magicalAttack: 5, critChance: 5, attackSpeed: 1.0, cooldownReduction: 0 },
+            unlockProgress: { kills: 0, damageSpells: 0, moves: 0 },
+            journal: {}, dailyActionLog: [], questHints: {},
+        },
+        customItemCatalog: generatedItemCatalog,
+        customItemDefinitions: allItemDefinitions,
+        customStructures: customStructures,
+        day: 1,
+        turn: 1,
+        narrativeLog: [{ id: 0, text: world.initialNarrative, type: 'narrative' }],
+        worldProfile: {
+            climateBase: 'temperate', magicLevel: 5, mutationFactor: 2, sunIntensity: 7,
+            weatherTypesAllowed: ['clear', 'rain', 'fog'], moistureBias: 0, tempBias: 0,
+            resourceDensity: 5, theme: 'Normal',
+        },
+        currentSeason: 'spring',
+        gameTime: 360,
+        weatherZones: {},
+        world: {},
+        recipes: staticRecipes,
+        buildableStructures: staticBuildableStructures,
+        regions: {},
+        regionCounter: 0,
+        playerPosition: { x: 0, y: 0 },
+        playerBehaviorProfile: { moves: 0, attacks: 0, crafts: 0, customActions: 0 },
+    };
 
-      setSaveSlots(prev => {
-          const newSlots = [...prev];
-          newSlots[activeSlot!] = newGameState as SaveSlotSummary;
-          return newSlots;
-      });
-      setLoadState('continue_game');
+    // Save the new state before proceeding
+    try {
+        if (user) {
+            await setDoc(doc(db, "users", user.uid, "games", `slot_${activeSlot}`), newGameState);
+        } else {
+            localStorage.setItem(`gameState_${activeSlot}`, JSON.stringify(newGameState));
+        }
+
+        setSaveSlots(prev => {
+            const newSlots = [...prev];
+            newSlots[activeSlot!] = { worldSetup: newGameState.worldSetup, day: newGameState.day };
+            return newSlots;
+        });
+
+        setLoadState('continue_game');
+    } catch (error) {
+        console.error("Failed to save new game state:", error);
+        toast({
+            title: t('worldGenError'),
+            description: "Could not save the new world. Please try again.",
+            variant: "destructive",
+        });
+    }
   };
+
 
   const handleInstallClick = () => {
     if (!installPrompt) return;
@@ -263,3 +322,5 @@ export default function Home() {
 
   return null;
 }
+
+    

@@ -35,12 +35,20 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   
   const t: TFunction = (key, replacements) => {
     // Fallback to English if translation is missing in the current language
-    let translation = (translations[language] as any)[key] || (translations.en as any)[key] || key;
+    const translationPool = (translations[language] as any)[key] || (translations.en as any)[key] || key;
+    let translation: string;
+
+    // --- NEW: Handle arrays for random selection ---
+    if (Array.isArray(translationPool)) {
+        translation = translationPool[Math.floor(Math.random() * translationPool.length)];
+    } else {
+        translation = translationPool;
+    }
     
     // Handle nested keys for custom action responses
     if (typeof translation !== 'string') {
         if (replacements && replacements.subKey && typeof translation === 'object') {
-            translation = translation[replacements.subKey as any] || key;
+            translation = (translation as any)[replacements.subKey as any] || key;
         } else {
             return key; // or a default error string
         }

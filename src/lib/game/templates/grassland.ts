@@ -5,12 +5,14 @@ export const grassland_vi = {
     descriptionTemplates: [
         'Một đồng cỏ [adjective] trải dài đến tận chân trời. Những ngọn đồi [feature] nhấp nhô nhẹ nhàng dưới bầu trời [sky].',
         'Bạn đang đứng giữa một thảo nguyên [adjective]. Gió thổi qua làm những ngọn cỏ [feature] lay động như sóng.',
+        'Mặt đất bằng phẳng, [adjective], chỉ có vài cụm [feature] mọc lác đác. Bạn ngửi thấy mùi [smell] trong không khí.',
+        'Bầu trời [sky] bao la trên đầu bạn. Một đồng cỏ [adjective] yên bình với tiếng [sound] của côn trùng.'
     ],
-    adjectives: ['xanh mướt', 'bạt ngàn', 'khô cằn', 'lộng gió', 'yên bình'],
-    features: ['hoa dại', 'cỏ cao', 'đá tảng', 'lối mòn', 'đàn gia súc'],
-    sky: ['trong xanh', 'đầy mây', 'u ám', 'hoàng hôn'],
-    sounds: ['gió thổi', 'côn trùng kêu', 'tiếng vó ngựa xa', 'sự tĩnh lặng'],
-    smells: ['cỏ tươi', 'hoa dại', 'đất khô', 'phân động vật'],
+    adjectives: ['xanh mướt', 'bạt ngàn', 'khô cằn', 'lộng gió', 'yên bình', 'hoang vắng'],
+    features: ['hoa dại', 'cỏ cao', 'đá tảng', 'lối mòn', 'đàn gia súc', 'bụi cây'],
+    sky: ['trong xanh', 'đầy mây', 'u ám', 'hoàng hôn', 'đầy sao'],
+    sounds: ['gió thổi', 'côn trùng kêu', 'tiếng vó ngựa xa', 'sự tĩnh lặng', 'tiếng chim hót'],
+    smells: ['cỏ tươi', 'hoa dại', 'đất khô', 'phân động vật', 'không khí trong lành'],
     NPCs: [
         { 
             data: { name: 'Người du mục', description: 'Một người phụ nữ với làn da rám nắng, mặc trang phục làm từ nhiều mảnh da khác nhau.', dialogueSeed: 'Một người từng trải, nói về những vùng đất xa xôi và những cơn gió.' },
@@ -52,12 +54,14 @@ export const grassland_en = {
     descriptionTemplates: [
         'An [adjective] grassland stretches to the horizon. [feature] hills roll gently under the [sky] sky.',
         'You are standing in the middle of an [adjective] prairie. The wind rustles through the [feature] grass like waves.',
+        'The ground is flat and [adjective], with only a few scattered clumps of [feature]. You smell [smell] in the air.',
+        'The vast [sky] sky is above you. A peaceful, [adjective] grassland filled with the [sound] of insects.'
     ],
-    adjectives: ['lush', 'vast', 'arid', 'windy', 'peaceful'],
-    features: ['wildflowers', 'tall grass', 'boulders', 'worn paths', 'herds of animals'],
-    sky: ['clear blue', 'cloudy', 'overcast', 'sunset'],
-    sounds: ['wind blowing', 'insects chirping', 'distant hooves', 'silence'],
-    smells: ['fresh grass', 'wildflowers', 'dry earth', 'animal dung'],
+    adjectives: ['lush', 'vast', 'arid', 'windy', 'peaceful', 'desolate'],
+    features: ['wildflowers', 'tall grass', 'boulders', 'worn paths', 'herds of animals', 'shrubs'],
+    sky: ['clear blue', 'cloudy', 'overcast', 'sunset', 'starlit'],
+    sounds: ['wind blowing', 'insects chirping', 'distant hooves', 'silence', 'birds singing'],
+    smells: ['fresh grass', 'wildflowers', 'dry earth', 'animal dung', 'fresh air'],
     NPCs: [
         { 
             data: { name: 'Nomad', description: 'A woman with sun-tanned skin, dressed in clothes made from various pieces of leather.', dialogueSeed: 'An experienced traveler who speaks of distant lands and the winds.' },

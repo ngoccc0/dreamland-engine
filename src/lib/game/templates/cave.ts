@@ -5,11 +5,13 @@ export const cave_vi = {
     descriptionTemplates: [
         'Bên trong hang động tối [adjective] và ẩm ướt. Tiếng bước chân của bạn vang vọng giữa những [feature].',
         'Những khối [feature] lấp lánh dưới ánh sáng yếu ớt lọt vào từ bên ngoài. Không khí có mùi [smell].',
+        'Bạn đi sâu vào một hang động [adjective]. Tiếng [sound] là âm thanh duy nhất phá vỡ sự tĩnh lặng.',
+        'Một luồng gió lạnh [adjective] thổi ra từ bóng tối. Những [feature] kỳ lạ mọc trên vách đá.'
     ],
-    adjectives: ['sâu thẳm', 'lạnh lẽo', 'bí ẩn', 'chằng chịt', 'tối đen'],
-    features: ['thạch nhũ', 'tinh thể', 'dòng sông ngầm', 'tranh vẽ cổ', 'mạng nhện'],
-    smells: ['đất ẩm', 'nước tù', 'khoáng chất', 'lưu huỳnh'],
-    sounds: ['tiếng nước nhỏ giọt', 'tiếng vang', 'tiếng dơi kêu', 'sự im lặng nặng nề'],
+    adjectives: ['sâu thẳm', 'lạnh lẽo', 'bí ẩn', 'chằng chịt', 'tối đen', 'âm u'],
+    features: ['thạch nhũ', 'tinh thể', 'dòng sông ngầm', 'tranh vẽ cổ', 'mạng nhện', 'đống xương'],
+    smells: ['đất ẩm', 'nước tù', 'khoáng chất', 'lưu huỳnh', 'mùi phân dơi'],
+    sounds: ['tiếng nước nhỏ giọt', 'tiếng vang', 'tiếng dơi kêu', 'sự im lặng nặng nề', 'tiếng đá lạo xạo'],
     NPCs: [
         { 
             data: { name: 'Nhà thám hiểm bị lạc', description: 'Một người với trang bị cũ kỹ, đang tuyệt vọng vẽ bản đồ lên tường.', dialogueSeed: 'Một người thông minh nhưng đang hoảng loạn, nói nhanh và liên tục hỏi về đường ra.' },
@@ -55,11 +57,13 @@ export const cave_en = {
     descriptionTemplates: [
         'Inside the [adjective] and damp cave. The sound of your footsteps echoes among the [feature].',
         'The [feature] formations glitter in the faint light filtering from outside. The air smells of [smell].',
+        'You delve deeper into an [adjective] cave. The sound of [sound] is the only thing breaking the silence.',
+        'A [adjective] cold draft blows from the darkness. Strange [feature] grow on the rock walls.'
     ],
-    adjectives: ['deep', 'cold', 'mysterious', 'labyrinthine', 'pitch-black'],
-    features: ['stalactites', 'crystals', 'an underground river', 'ancient drawings', 'cobwebs'],
-    smells: ['damp earth', 'stagnant water', 'minerals', 'sulfur'],
-    sounds: ['dripping water', 'echoes', 'bat squeaks', 'heavy silence'],
+    adjectives: ['deep', 'cold', 'mysterious', 'labyrinthine', 'pitch-black', 'gloomy'],
+    features: ['stalactites', 'crystals', 'an underground river', 'ancient drawings', 'cobwebs', 'piles of bones'],
+    smells: ['damp earth', 'stagnant water', 'minerals', 'sulfur', 'bat guano'],
+    sounds: ['dripping water', 'echoes', 'bat squeaks', 'heavy silence', 'scraping stones'],
     NPCs: [
         { 
             data: { name: 'Lost Adventurer', description: 'A person with old gear, desperately drawing a map on the wall.', dialogueSeed: 'A smart but panicked person, speaks quickly and constantly asks for a way out.' },

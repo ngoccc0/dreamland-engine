@@ -6,11 +6,13 @@ export const forest_vi = {
     descriptionTemplates: [
         'Bạn đang ở trong một khu rừng [adjective]. Những cây [feature] cao vút che khuất ánh mặt trời, và không khí phảng phất mùi [smell].',
         'Một khu rừng [adjective] bao quanh bạn. Tiếng lá xào xạc dưới chân khi bạn di chuyển giữa những cây [feature]. Bạn nghe thấy âm thanh của [sound].',
+        'Những tia nắng yếu ớt xuyên qua tán lá [adjective], chiếu rọi xuống thảm rừng phủ đầy [feature]. Mùi [smell] lan tỏa trong không khí.',
+        'Bóng tối của khu rừng [adjective] bao trùm lấy bạn. Thỉnh thoảng, bạn nghe thấy tiếng [sound] vọng lại từ xa.'
     ],
-    adjectives: ['rậm rạp', 'u ám', 'cổ xưa', 'yên tĩnh', 'ma mị', 'ẩm ướt', 'ngập nắng'],
-    features: ['sồi', 'thông', 'dương xỉ', 'nấm phát quang', 'dây leo chằng chịt', 'thân cây mục', 'suối nhỏ'],
-    smells: ['đất ẩm', 'lá cây mục', 'nhựa thông', 'hoa dại'],
-    sounds: ['chim hót', 'gió rít', 'cành cây gãy', 'sự im lặng đáng sợ'],
+    adjectives: ['rậm rạp', 'u ám', 'cổ xưa', 'yên tĩnh', 'ma mị', 'ẩm ướt', 'ngập nắng', 'sâu thẳm', 'bí ẩn'],
+    features: ['sồi', 'thông', 'dương xỉ', 'nấm phát quang', 'dây leo chằng chịt', 'thân cây mục', 'suối nhỏ', 'hoa dại', 'tảng đá phủ rêu'],
+    smells: ['đất ẩm', 'lá cây mục', 'nhựa thông', 'hoa dại', 'xạ hương động vật', 'ozon sau mưa'],
+    sounds: ['chim hót', 'gió rít', 'cành cây gãy', 'sự im lặng đáng sợ', 'tiếng suối chảy róc rách', 'tiếng côn trùng kêu'],
     NPCs: [
         { 
             data: { 

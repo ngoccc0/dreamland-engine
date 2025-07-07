@@ -3,11 +3,13 @@ export const swamp_vi = {
     descriptionTemplates: [
         'Bạn đang lội qua một đầm lầy [adjective]. Nước bùn [feature] ngập đến đầu gối.',
         'Không khí đặc quánh mùi cây cỏ mục rữa. Những cây [feature] mọc lên từ làn nước tù đọng.',
+        'Sương mù [adjective] bao phủ khắp nơi. Bạn nghe thấy tiếng [sound] và ngửi thấy mùi [smell].',
+        'Một vùng đất [adjective] chết chóc. Rễ cây [feature] trồi lên như những cánh tay xương xẩu.'
     ],
-    adjectives: ['hôi thối', 'âm u', 'chết chóc', 'sương giăng', 'ngập nước'],
-    features: ['đước', 'dây leo', 'khí độc', 'bong bóng bùn', 'côn trùng'],
-    sounds: ['ếch kêu', 'nước sủi bọt', 'muỗi vo ve', 'tiếng lội bì bõm'],
-    smells: ['cây cỏ mục', 'bùn lầy', 'khí metan', 'hoa thối'],
+    adjectives: ['hôi thối', 'âm u', 'chết chóc', 'sương giăng', 'ngập nước', 'lầy lội'],
+    features: ['đước', 'dây leo', 'khí độc', 'bong bóng bùn', 'côn trùng', 'xác động vật'],
+    sounds: ['ếch kêu', 'nước sủi bọt', 'muỗi vo ve', 'tiếng lội bì bõm', 'tiếng thì thầm'],
+    smells: ['cây cỏ mục', 'bùn lầy', 'khí metan', 'hoa thối', 'xác chết'],
     NPCs: [
         { 
             data: { name: 'Phù thủy đầm lầy', description: 'Một bà lão với nụ cười bí hiểm, sống trong một túp lều tạm bợ.', dialogueSeed: 'Một phù thủy lập dị, nói chuyện bằng những câu đố và có thể giúp đỡ nếu được trả công xứng đáng.' },
@@ -41,11 +43,13 @@ export const swamp_en = {
     descriptionTemplates: [
         'You are wading through a [adjective] swamp. The [feature] water is knee-deep.',
         'The air is thick with the smell of decay. [feature] trees rise from the stagnant water.',
+        '[adjective] fog covers everything. You hear the [sound] and smell the stench of [smell].',
+        'A deadly, [adjective] land. Tree roots [feature] rise up like bony arms.'
     ],
-    adjectives: ['stinking', 'gloomy', 'deadly', 'foggy', 'waterlogged'],
-    features: ['mangrove', 'vines', 'toxic gas', 'mud bubbles', 'insects'],
-    sounds: ['frogs croaking', 'water bubbling', 'mosquitoes buzzing', 'squelching sounds'],
-    smells: ['decaying plants', 'mud', 'methane gas', 'rotting flowers'],
+    adjectives: ['stinking', 'gloomy', 'deadly', 'foggy', 'waterlogged', 'muddy'],
+    features: ['mangroves', 'vines', 'toxic gas', 'mud bubbles', 'insects', 'animal carcasses'],
+    sounds: ['frogs croaking', 'water bubbling', 'mosquitoes buzzing', 'squelching sounds', 'whispers'],
+    smells: ['decaying plants', 'mud', 'methane gas', 'rotting flowers', 'death'],
     NPCs: [
         { 
             data: { name: 'Swamp Witch', description: 'An old woman with a mysterious smile, living in a makeshift hut.', dialogueSeed: 'An eccentric witch who speaks in riddles and might help for the right price.' },

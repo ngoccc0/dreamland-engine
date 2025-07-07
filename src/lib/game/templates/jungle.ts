@@ -2,12 +2,14 @@
 export const jungle_vi = {
     descriptionTemplates: [
         'Bạn đang ở giữa một khu rừng rậm [adjective]. Những tán lá [feature] dày đặc đến nỗi ánh sáng mặt trời khó có thể lọt qua. Tiếng [sound] vang vọng khắp nơi.',
-        'Không khí [adjective] và ẩm ướt. Cây cối và dây leo [feature] mọc um tùm, tạo thành một mê cung xanh. Mùi [smell] nồng nặc trong không khí.'
+        'Không khí [adjective] và ẩm ướt. Cây cối và dây leo [feature] mọc um tùm, tạo thành một mê cung xanh. Mùi [smell] nồng nặc trong không khí.',
+        'Mặt đất phủ đầy lá mục. Một con suối nhỏ chảy qua, nước trong vắt. Khu rừng rậm này thật [adjective].',
+        'Những cây [feature] khổng lồ vươn lên trời. Bạn cảm thấy nhỏ bé trong khu rừng rậm [adjective] này.'
     ],
-    adjectives: ['nguyên sinh', 'nhiệt đới', 'ngột ngạt', 'bí hiểm', 'sống động'],
-    features: ['khổng lồ', 'dây leo', 'hoa lạ', 'thác nước ẩn', 'tàn tích cổ'],
-    smells: ['hoa thối', 'đất ẩm', 'mùi xạ hương của động vật', 'mùi trái cây chín'],
-    sounds: ['vẹt kêu', 'khỉ hú', 'tiếng côn trùng rả rích', 'tiếng nước chảy'],
+    adjectives: ['nguyên sinh', 'nhiệt đới', 'ngột ngạt', 'bí hiểm', 'sống động', 'hoang dã'],
+    features: ['khổng lồ', 'dây leo', 'hoa lạ', 'thác nước ẩn', 'tàn tích cổ', 'cây ăn thịt'],
+    smells: ['hoa thối', 'đất ẩm', 'mùi xạ hương của động vật', 'mùi trái cây chín', 'mùi mưa'],
+    sounds: ['vẹt kêu', 'khỉ hú', 'tiếng côn trùng rả rích', 'tiếng nước chảy', 'tiếng gầm xa'],
     NPCs: [
         { 
             data: { name: 'Thầy mo của bộ lạc', description: 'Một người đàn ông lớn tuổi với khuôn mặt được sơn vẽ kỳ dị, đeo nhiều loại bùa hộ mệnh.', dialogueSeed: 'Một người thông thái và bí ẩn, nói về các linh hồn và những lời tiên tri cổ xưa.' },
@@ -37,12 +39,14 @@ export const jungle_vi = {
 export const jungle_en = {
     descriptionTemplates: [
         'You are in the middle of a [adjective] jungle. The [feature] canopy is so dense that sunlight can barely penetrate. The sound of [sound] echoes everywhere.',
-        'The air is [adjective] and humid. Trees and [feature] vines grow profusely, forming a green maze. The smell of [smell] is strong in the air.'
+        'The air is [adjective] and humid. Trees and [feature] vines grow profusely, forming a green maze. The smell of [smell] is strong in the air.',
+        'The ground is covered with decaying leaves. A small stream flows by, its water crystal clear. This jungle is truly [adjective].',
+        'Giant [feature] trees reach for the sky. You feel small in this [adjective] jungle.'
     ],
-    adjectives: ['primeval', 'tropical', 'suffocating', 'mysterious', 'vibrant'],
-    features: ['giant trees', 'vines', 'strange flowers', 'hidden waterfalls', 'ancient ruins'],
-    smells: ['rotting flowers', 'damp earth', 'animal musk', 'ripe fruit'],
-    sounds: ['parrots squawking', 'monkeys howling', 'insects chirping', 'running water'],
+    adjectives: ['primeval', 'tropical', 'suffocating', 'mysterious', 'vibrant', 'wild'],
+    features: ['giant trees', 'vines', 'strange flowers', 'hidden waterfalls', 'ancient ruins', 'carnivorous plants'],
+    smells: ['rotting flowers', 'damp earth', 'animal musk', 'ripe fruit', 'the scent of rain'],
+    sounds: ['parrots squawking', 'monkeys howling', 'insects chirping', 'running water', 'a distant roar'],
     NPCs: [
         { 
             data: { name: 'Tribal Shaman', description: 'An old man with a strangely painted face, wearing many amulets.', dialogueSeed: 'A wise and mysterious person who speaks of spirits and ancient prophecies.' },

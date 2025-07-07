@@ -3,14 +3,16 @@ import { structureDefinitions } from "../structures";
 
 export const mountain_vi = {
     descriptionTemplates: [
-        'Bạn đang leo lên một sườn núi [adjective]. Gió [feature] thổi mạnh và lạnh buốt.',
-        'Con đường mòn [feature] cheo leo dẫn lên đỉnh núi. Không khí loãng dần và tầm nhìn [visibility].',
+        'Bạn đang leo lên một sườn núi [adjective]. Gió [sound] mạnh và lạnh buốt.',
+        'Con đường mòn [adjective] cheo leo dẫn lên đỉnh núi. Không khí loãng dần và tầm nhìn [visibility].',
+        'Những đỉnh núi [adjective] nhọn hoắt chọc thủng bầu trời. Bạn ngửi thấy mùi [smell] của đá lạnh.',
+        'Một dòng sông băng [feature] chảy xuống từ trên cao, tạo ra một cảnh tượng [adjective].'
     ],
-    adjectives: ['hiểm trở', 'lộng gió', 'hùng vĩ', 'tuyết phủ', 'trơ trọi'],
-    features: ['vách đá', 'tuyết', 'hang động', 'dòng sông băng', 'mỏm đá'],
-    visibility: ['cực tốt', 'bị mây che phủ', 'hạn chế'],
-    sounds: ['gió rít', 'đá lở', 'tiếng đại bàng kêu', 'sự tĩnh lặng'],
-    smells: ['không khí lạnh', 'đá ẩm', 'mùi tuyết', 'khoáng chất'],
+    adjectives: ['hiểm trở', 'lộng gió', 'hùng vĩ', 'tuyết phủ', 'trơ trọi', 'cô độc'],
+    features: ['vách đá', 'tuyết', 'hang động', 'dòng sông băng', 'mỏm đá', 'thác nước đóng băng'],
+    visibility: ['cực tốt', 'bị mây che phủ', 'hạn chế', 'rõ ràng'],
+    sounds: ['gió rít', 'đá lở', 'tiếng đại bàng kêu', 'sự tĩnh lặng', 'tiếng tuyết lở xa'],
+    smells: ['không khí lạnh', 'đá ẩm', 'mùi tuyết', 'khoáng chất', 'sự trong lành'],
     NPCs: [
         { 
             data: { name: 'Thợ mỏ già', description: 'Một người lùn gân guốc với bộ râu được tết gọn gàng, tay cầm chiếc cuốc chim.', dialogueSeed: 'Một người thợ mỏ càu nhàu, phàn nàn về việc các mạch khoáng sản ngày càng khó tìm.' },
@@ -57,14 +59,16 @@ export const mountain_vi = {
 
 export const mountain_en = {
     descriptionTemplates: [
-        'You are climbing a [adjective] mountainside. The [feature] wind is strong and chilling.',
-        'A treacherous [feature] path leads up the peak. The air thins and the visibility is [visibility].',
+        'You are climbing a [adjective] mountainside. The [sound] wind is strong and chilling.',
+        'A treacherous [adjective] path leads up the peak. The air thins and the visibility is [visibility].',
+        'The sharp, [adjective] peaks pierce the sky. You can smell the [smell] of cold stone.',
+        'A glacier [feature] flows down from above, creating an [adjective] spectacle.'
     ],
-    adjectives: ['treacherous', 'windswept', 'majestic', 'snow-capped', 'barren'],
-    features: ['cliffs', 'snowdrifts', 'caves', 'glaciers', 'outcrops'],
-    visibility: ['excellent', 'clouded', 'limited'],
-    sounds: ['wind howling', 'rockslides', 'eagle cries', 'silence'],
-    smells: ['cold air', 'damp rock', 'snow', 'minerals'],
+    adjectives: ['treacherous', 'windswept', 'majestic', 'snow-capped', 'barren', 'lonely'],
+    features: ['cliffs', 'snowdrifts', 'caves', 'glaciers', 'outcrops', 'frozen waterfalls'],
+    visibility: ['excellent', 'clouded', 'limited', 'clear'],
+    sounds: ['wind howling', 'rockslides', 'eagle cries', 'silence', 'a distant avalanche'],
+    smells: ['cold air', 'damp rock', 'snow', 'minerals', 'crispness'],
     NPCs: [
         { 
             data: { name: 'Old Miner', description: 'A sturdy dwarf with a neatly braided beard, holding a pickaxe.', dialogueSeed: 'A grumpy miner who complains that ore veins are getting harder to find.' },

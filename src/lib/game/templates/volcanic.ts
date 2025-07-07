@@ -4,12 +4,14 @@ import { structureDefinitions } from "../structures";
 export const volcanic_vi = {
     descriptionTemplates: [
         'Mặt đất [adjective] và nứt nẻ dưới chân bạn. Không khí nồng nặc mùi [smell]. Xa xa, một [feature] phun trào những cột khói đen.',
-        'Cảnh quan ở đây thật [adjective]. Những dòng [feature] đã nguội lạnh tạo thành những hình thù kỳ quái. Thỉnh thoảng, bạn cảm nhận được mặt đất rung chuyển nhẹ.'
+        'Cảnh quan ở đây thật [adjective]. Những dòng [feature] đã nguội lạnh tạo thành những hình thù kỳ quái. Thỉnh thoảng, bạn cảm nhận được mặt đất rung chuyển nhẹ.',
+        'Một vùng đất [adjective] bị tàn phá bởi dung nham. Mùi [smell] khiến bạn khó thở.',
+        'Bầu trời bị che phủ bởi tro bụi. Âm thanh duy nhất là tiếng [sound] của ngọn núi lửa đang hoạt động.'
     ],
-    adjectives: ['hoang tàn', 'nóng bỏng', 'đáng sợ', 'đầy tro bụi'],
-    features: ['dung nham', 'khe nứt', 'cột đá bazan', 'hồ axit'],
-    smells: ['lưu huỳnh', 'đá cháy', 'kim loại nóng chảy', 'khí độc'],
-    sounds: ['tiếng dung nham sôi', 'tiếng đá nứt', 'tiếng gầm của núi lửa', 'sự im lặng chết chóc'],
+    adjectives: ['hoang tàn', 'nóng bỏng', 'đáng sợ', 'đầy tro bụi', 'địa ngục'],
+    features: ['dung nham', 'khe nứt', 'cột đá bazan', 'hồ axit', 'đá bọt'],
+    smells: ['lưu huỳnh', 'đá cháy', 'kim loại nóng chảy', 'khí độc', 'tro bụi'],
+    sounds: ['tiếng dung nham sôi', 'tiếng đá nứt', 'tiếng gầm của núi lửa', 'sự im lặng chết chóc', 'tiếng đất rung chuyển'],
     NPCs: [
         { 
             data: { name: 'Thợ rèn dung nham', description: 'Một người lùn với làn da đỏ như đồng, đang dùng một chiếc búa lớn để rèn trên một tảng đá nóng chảy.', dialogueSeed: 'Một thợ rèn bậc thầy, ít nói, chỉ quan tâm đến việc tạo ra những vũ khí huyền thoại từ vật liệu núi lửa.' },
@@ -40,12 +42,14 @@ export const volcanic_vi = {
 export const volcanic_en = {
     descriptionTemplates: [
         'The ground is [adjective] and cracked under your feet. The air is thick with the smell of [smell]. In the distance, a [feature] erupts with columns of black smoke.',
-        'The landscape here is [adjective]. Cooled [feature] flows form bizarre shapes. Occasionally, you feel the ground tremble slightly.'
+        'The landscape here is [adjective]. Cooled [feature] flows form bizarre shapes. Occasionally, you feel the ground tremble slightly.',
+        'An [adjective] land devastated by lava. The smell of [smell] makes it hard to breathe.',
+        'The sky is obscured by ash. The only sound is the [sound] of the active volcano.'
     ],
-    adjectives: ['desolate', 'scorching', 'fearsome', 'ash-covered'],
-    features: ['lava flows', 'fissures', 'basalt columns', 'acid pools'],
-    smells: ['sulfur', 'burning rock', 'molten metal', 'toxic fumes'],
-    sounds: ['bubbling lava', 'cracking rock', 'the roar of the volcano', 'deathly silence'],
+    adjectives: ['desolate', 'scorching', 'fearsome', 'ash-covered', 'hellish'],
+    features: ['lava flows', 'fissures', 'basalt columns', 'acid pools', 'pumice stones'],
+    smells: ['sulfur', 'burning rock', 'molten metal', 'toxic fumes', 'ash'],
+    sounds: ['bubbling lava', 'cracking rock', 'the roar of the volcano', 'deathly silence', 'the ground trembling'],
     NPCs: [
         { 
             data: { name: 'Lava Blacksmith', description: 'A dwarf with skin as red as copper, using a large hammer to forge on a molten rock.', dialogueSeed: 'A master blacksmith, taciturn, only interested in creating legendary weapons from volcanic materials.' },

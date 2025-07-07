@@ -3,11 +3,13 @@ export const desert_vi = {
     descriptionTemplates: [
         'Cát, cát và cát. Một sa mạc [adjective] bao la. Những [feature] là cảnh tượng duy nhất phá vỡ sự đơn điệu.',
         'Cái nóng của sa mạc [adjective] thật khắc nghiệt. Bạn thấy một [feature] ở phía xa, có thể là ảo ảnh.',
+        'Mặt đất nứt nẻ vì khô hạn. Không khí có mùi [smell] và bạn nghe thấy tiếng [sound] của gió.',
+        'Một vùng đất [adjective] và cằn cỗi. Chỉ có những [feature] gai góc nhất mới tồn tại được ở đây.'
     ],
-    adjectives: ['nóng bỏng', 'khô cằn', 'vô tận', 'lặng im', 'gió cát'],
-    features: ['cồn cát', 'ốc đảo', 'xương rồng khổng lồ', 'bộ xương cũ', 'tàn tích đá'],
-    sounds: ['gió rít', 'sự im lặng tuyệt đối', 'tiếng rắn trườn', 'tiếng cát chảy'],
-    smells: ['cát nóng', 'không có gì', 'mùi ozon', 'xác khô'],
+    adjectives: ['nóng bỏng', 'khô cằn', 'vô tận', 'lặng im', 'gió cát', 'khắc nghiệt'],
+    features: ['cồn cát', 'ốc đảo', 'xương rồng khổng lồ', 'bộ xương cũ', 'tàn tích đá', 'vực sâu'],
+    sounds: ['gió rít', 'sự im lặng tuyệt đối', 'tiếng rắn trườn', 'tiếng cát chảy', 'tiếng kền kền kêu'],
+    smells: ['cát nóng', 'không có gì', 'mùi ozon', 'xác khô', 'lưu huỳnh'],
     NPCs: [
         { 
             data: { name: 'Thương nhân lạc đà', description: 'Một người đàn ông trùm kín mặt, dẫn theo một con lạc đà chở đầy hàng hóa.', dialogueSeed: 'Một thương nhân lọc lõi, chỉ quan tâm đến việc mua bán và những món hời.' },
@@ -41,11 +43,13 @@ export const desert_en = {
     descriptionTemplates: [
         'Sand, sand, and more sand. A vast [adjective] desert. The only break in the monotony are the [feature].',
         'The heat of the [adjective] desert is oppressive. You see a [feature] in the distance, perhaps a mirage.',
+        'The ground is cracked and dry. The air smells of [smell] and you hear the [sound] of the wind.',
+        'An [adjective] and arid land. Only the toughest [feature] survive here.'
     ],
-    adjectives: ['scorching', 'arid', 'endless', 'silent', 'windswept'],
-    features: ['dunes', 'an oasis', 'giant cacti', 'old skeletons', 'stone ruins'],
-    sounds: ['wind howling', 'absolute silence', 'a snake hissing', 'sand shifting'],
-    smells: ['hot sand', 'nothing', 'ozone', 'dry carcass'],
+    adjectives: ['scorching', 'arid', 'endless', 'silent', 'windswept', 'harsh'],
+    features: ['dunes', 'an oasis', 'giant cacti', 'old skeletons', 'stone ruins', 'deep canyons'],
+    sounds: ['wind howling', 'absolute silence', 'a snake hissing', 'sand shifting', 'vulture cries'],
+    smells: ['hot sand', 'nothing', 'ozone', 'dry carcass', 'sulfur'],
     NPCs: [
         { 
             data: { name: 'Camel Merchant', description: 'A man with his face covered, leading a camel laden with goods.', dialogueSeed: 'A shrewd merchant, only interested in buying, selling, and good deals.' },

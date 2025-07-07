@@ -388,7 +388,7 @@ export function useGameEngine(props: GameEngineProps) {
             addNarrativeEntry(t('timeUpdate', { time: formattedTime }), 'system');
         }
 
-        if (turn % getRandomInRange({min: 2, max: 4}) === 0 && !isOnline) {
+        if (turn % getRandomInRange({min: 2, max: 4}) === 0) {
              const chunk = newWorldState[`${playerPosition.x},${playerPosition.y}`];
             if (chunk) {
                 const isNight = newGameTime > 1200 || newGameTime < 360; // 8 PM to 6 AM
@@ -1136,6 +1136,7 @@ export function useGameEngine(props: GameEngineProps) {
         if (playerStats.stamina < travelCost) { toast({ title: t('notEnoughStamina'), description: t('notEnoughStaminaDesc', { cost: travelCost, current: playerStats.stamina.toFixed(0) }), variant: "destructive" }); return; }
         
         const actionText = t('wentDirection', { direction: t(`direction${direction}` as TranslationKey) });
+        addNarrativeEntry(actionText, 'action');
         
         const visionRadius = 1;
         for (let dy = -visionRadius; dy <= visionRadius; dy++) {
@@ -1175,13 +1176,12 @@ export function useGameEngine(props: GameEngineProps) {
         if (isOnline) {
             handleOnlineNarrative(actionText, worldSnapshot, newPos, newPlayerStats);
         } else {
-            addNarrativeEntry(actionText, 'action');
             const narrative = generateOfflineNarrative(worldSnapshot[`${newPos.x},${newPos.y}`], worldSnapshot, newPos, settings.narrativeLength, t);
             addNarrativeEntry(narrative, 'narrative');
             advanceGameTime(newPlayerStats);
         }
     }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerPosition, world, regions, regionCounter, playerStats, toast, addNarrativeEntry, t, ensureChunkExists, weatherZones, currentSeason, gameTime, setWeatherZones, setWorld, setRegions, setRegionCounter, setPlayerPosition, isOnline, handleOnlineNarrative, advanceGameTime, settings.narrativeLength, generateOfflineNarrative]);
-
+    
     const handleAction = useCallback((actionId: number) => {
         if (isLoading || isGameOver) return;
         const chunk = world[`${playerPosition.x},${playerPosition.y}`];
@@ -1195,8 +1195,14 @@ export function useGameEngine(props: GameEngineProps) {
 
         const actionText = chunk?.actions.find(a => a.id === actionId)?.text || "unknown action";
         const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
-        if (isOnline) handleOnlineNarrative(actionText, world, playerPosition, newPlayerStats);
-        else {
+        
+        const lowerAction = actionText.toLowerCase();
+        const talkToAction = t('talkToAction', {}).toLowerCase();
+        
+        if (isOnline && lowerAction.startsWith(talkToAction)) {
+            addNarrativeEntry(actionText, 'action');
+            handleOnlineNarrative(actionText, world, playerPosition, newPlayerStats);
+        } else {
             addNarrativeEntry(actionText, 'action');
             handleOfflineAction(actionText);
         }
@@ -1209,22 +1215,19 @@ export function useGameEngine(props: GameEngineProps) {
         if (!baseChunk?.enemy) { addNarrativeEntry(t('noTarget'), 'system'); return; }
         
         const actionText = `${t('attackAction')} ${t(baseChunk.enemy.type as TranslationKey)}`;
+        addNarrativeEntry(actionText, 'action');
         const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
     
-        if (isOnline) handleOnlineNarrative(actionText, world, playerPosition, newPlayerStats);
-        else {
-            addNarrativeEntry(actionText, 'action');
-            handleOfflineAttack();
-        }
-    }, [isLoading, isGameOver, setPlayerBehaviorProfile, world, playerPosition, addNarrativeEntry, t, playerStats, isOnline, handleOnlineNarrative, handleOfflineAttack]);
+        handleOfflineAttack();
+    }, [isLoading, isGameOver, setPlayerBehaviorProfile, world, playerPosition, addNarrativeEntry, t, playerStats, handleOfflineAttack]);
     
     const handleCustomAction = useCallback((text: string) => {
         if (!text.trim() || isLoading || isGameOver) return;
         setPlayerBehaviorProfile(p => ({ ...p, customActions: p.customActions + 1 }));
         const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), text]};
+        addNarrativeEntry(text, 'action');
         if (isOnline) handleOnlineNarrative(text, world, playerPosition, newPlayerStats);
         else {
-            addNarrativeEntry(text, 'action');
             handleOfflineAction(text);
         }
     }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerStats, isOnline, handleOnlineNarrative, world, playerPosition, handleOfflineAction, addNarrativeEntry]);
@@ -1237,6 +1240,7 @@ export function useGameEngine(props: GameEngineProps) {
         if (!canCraft) { toast({ title: t('error'), description: t('notEnoughIngredients'), variant: "destructive" }); return; }
         
         const actionText = t('craftAction', {itemName: t(recipe.result.name as TranslationKey)});
+        addNarrativeEntry(actionText, 'action');
         let updatedItems = playerStats.items.map(i => ({...i}));
         ingredientsToConsume.forEach(itemToConsume => {
             const itemIndex = updatedItems.findIndex(i => i.name === itemToConsume.name);
@@ -1268,25 +1272,19 @@ export function useGameEngine(props: GameEngineProps) {
     const handleItemUsed = useCallback((itemName: string, target: 'player' | string) => {
         if (isLoading || isGameOver) return;
         const actionText = target === 'player' ? `${t('useAction')} ${t(itemName as TranslationKey)}` : `${t('useOnAction', {item: t(itemName as TranslationKey), target: t(target as TranslationKey)})}`;
-        const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
+        addNarrativeEntry(actionText, 'action');
+        
+        handleOfflineItemUse(itemName, target);
 
-        if (isOnline) handleOnlineNarrative(actionText, world, playerPosition, newPlayerStats);
-        else {
-            addNarrativeEntry(actionText, 'action');
-            handleOfflineItemUse(itemName, target);
-        }
-    }, [isLoading, isGameOver, playerStats, world, playerPosition, isOnline, handleOnlineNarrative, t, handleOfflineItemUse, addNarrativeEntry]);
+    }, [isLoading, isGameOver, t, handleOfflineItemUse, addNarrativeEntry]);
 
     const handleUseSkill = useCallback((skillName: string) => {
         if (isLoading || isGameOver) return;
         const actionText = `${t('useSkillAction')} ${t(skillName as TranslationKey)}`;
-        const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
-        if (isOnline) handleOnlineNarrative(actionText, world, playerPosition, newPlayerStats);
-        else {
-            addNarrativeEntry(actionText, 'action');
-            handleOfflineSkillUse(skillName);
-        }
-    }, [isLoading, isGameOver, playerStats, world, playerPosition, isOnline, t, handleOnlineNarrative, handleOfflineSkillUse, addNarrativeEntry]);
+        addNarrativeEntry(actionText, 'action');
+
+        handleOfflineSkillUse(skillName);
+    }, [isLoading, isGameOver, t, handleOfflineSkillUse, addNarrativeEntry]);
 
     const handleBuild = useCallback((structureName: string) => {
         if (isLoading || isGameOver) return;
@@ -1307,6 +1305,7 @@ export function useGameEngine(props: GameEngineProps) {
         if (!structureToBuild.buildCost?.every(cost => (inventoryMap.get(cost.name) || 0) >= cost.quantity)) { toast({ title: t('notEnoughIngredients'), variant: "destructive" }); return; }
         
         const actionText = t('buildConfirm', {structureName: t(structureName as TranslationKey)});
+        addNarrativeEntry(actionText, 'action');
         let updatedItems = playerStats.items.map(i => ({...i}));
         structureToBuild.buildCost?.forEach(cost => { updatedItems.find(i => i.name === cost.name)!.quantity -= cost.quantity; });
         
@@ -1332,6 +1331,7 @@ export function useGameEngine(props: GameEngineProps) {
         if (!shelter?.restEffect) { toast({ title: t('cantRestTitle'), description: t('cantRestDesc') }); return; }
 
         const actionText = t('restInShelter', { shelterName: t(shelter.name as TranslationKey) });
+        addNarrativeEntry(actionText, 'action');
         
         const oldStats = {...playerStats};
         const newHp = Math.min(100, oldStats.hp + shelter.restEffect.hp);
@@ -1378,6 +1378,7 @@ export function useGameEngine(props: GameEngineProps) {
         if(effectiveChunk.dangerLevel > 8) { successChanceBonus -= 5; chaosFactor += 2; }
         
         const actionText = t('fuseAction', { items: itemsToFuse.map(i => t(i.name as TranslationKey)).join(', ') });
+        addNarrativeEntry(actionText, 'action');
         let newItems = playerStats.items.map(i => ({...i}));
         itemsToFuse.forEach(item => { newItems.find(i => i.name === item.name)!.quantity -= 1; });
         let nextPlayerStats = { ...playerStats, items: newItems.filter(i => i.quantity > 0), dailyActionLog: [...(playerStats.dailyActionLog || []), actionText] };
@@ -1524,5 +1525,3 @@ export function useGameEngine(props: GameEngineProps) {
         handleRequestQuestHint, handleEquipItem, handleUnequipItem, handleReturnToMenu,
     }
 }
-
-    

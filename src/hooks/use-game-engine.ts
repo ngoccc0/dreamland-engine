@@ -1175,6 +1175,7 @@ export function useGameEngine(props: GameEngineProps) {
         if (isOnline) {
             handleOnlineNarrative(actionText, worldSnapshot, newPos, newPlayerStats);
         } else {
+            addNarrativeEntry(actionText, 'action');
             const narrative = generateOfflineNarrative(worldSnapshot[`${newPos.x},${newPos.y}`], worldSnapshot, newPos, settings.narrativeLength, t);
             addNarrativeEntry(narrative, 'narrative');
             advanceGameTime(newPlayerStats);
@@ -1195,9 +1196,12 @@ export function useGameEngine(props: GameEngineProps) {
         const actionText = chunk?.actions.find(a => a.id === actionId)?.text || "unknown action";
         const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
         if (isOnline) handleOnlineNarrative(actionText, world, playerPosition, newPlayerStats);
-        else handleOfflineAction(actionText);
-    }, [isLoading, isGameOver, world, playerPosition, playerStats, isOnline, handleOnlineNarrative, handleOfflineAction, toast, t]);
-
+        else {
+            addNarrativeEntry(actionText, 'action');
+            handleOfflineAction(actionText);
+        }
+    }, [isLoading, isGameOver, world, playerPosition, playerStats, isOnline, handleOnlineNarrative, handleOfflineAction, toast, t, addNarrativeEntry]);
+    
     const handleAttack = useCallback(() => {
         if (isLoading || isGameOver) return;
         setPlayerBehaviorProfile(p => ({ ...p, attacks: p.attacks + 1 }));
@@ -1208,7 +1212,10 @@ export function useGameEngine(props: GameEngineProps) {
         const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
     
         if (isOnline) handleOnlineNarrative(actionText, world, playerPosition, newPlayerStats);
-        else handleOfflineAttack();
+        else {
+            addNarrativeEntry(actionText, 'action');
+            handleOfflineAttack();
+        }
     }, [isLoading, isGameOver, setPlayerBehaviorProfile, world, playerPosition, addNarrativeEntry, t, playerStats, isOnline, handleOnlineNarrative, handleOfflineAttack]);
     
     const handleCustomAction = useCallback((text: string) => {
@@ -1216,8 +1223,11 @@ export function useGameEngine(props: GameEngineProps) {
         setPlayerBehaviorProfile(p => ({ ...p, customActions: p.customActions + 1 }));
         const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), text]};
         if (isOnline) handleOnlineNarrative(text, world, playerPosition, newPlayerStats);
-        else handleOfflineAction(text);
-    }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerStats, isOnline, handleOnlineNarrative, world, playerPosition, handleOfflineAction]);
+        else {
+            addNarrativeEntry(text, 'action');
+            handleOfflineAction(text);
+        }
+    }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerStats, isOnline, handleOnlineNarrative, world, playerPosition, handleOfflineAction, addNarrativeEntry]);
 
     const handleCraft = useCallback(async (recipe: Recipe) => {
         if (isLoading || isGameOver) return;
@@ -1261,16 +1271,22 @@ export function useGameEngine(props: GameEngineProps) {
         const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
 
         if (isOnline) handleOnlineNarrative(actionText, world, playerPosition, newPlayerStats);
-        else handleOfflineItemUse(itemName, target);
-    }, [isLoading, isGameOver, playerStats, world, playerPosition, isOnline, handleOnlineNarrative, t, handleOfflineItemUse]);
+        else {
+            addNarrativeEntry(actionText, 'action');
+            handleOfflineItemUse(itemName, target);
+        }
+    }, [isLoading, isGameOver, playerStats, world, playerPosition, isOnline, handleOnlineNarrative, t, handleOfflineItemUse, addNarrativeEntry]);
 
     const handleUseSkill = useCallback((skillName: string) => {
         if (isLoading || isGameOver) return;
         const actionText = `${t('useSkillAction')} ${t(skillName as TranslationKey)}`;
         const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
         if (isOnline) handleOnlineNarrative(actionText, world, playerPosition, newPlayerStats);
-        else handleOfflineSkillUse(skillName);
-    }, [isLoading, isGameOver, playerStats, world, playerPosition, isOnline, t, handleOnlineNarrative, handleOfflineSkillUse]);
+        else {
+            addNarrativeEntry(actionText, 'action');
+            handleOfflineSkillUse(skillName);
+        }
+    }, [isLoading, isGameOver, playerStats, world, playerPosition, isOnline, t, handleOnlineNarrative, handleOfflineSkillUse, addNarrativeEntry]);
 
     const handleBuild = useCallback((structureName: string) => {
         if (isLoading || isGameOver) return;
@@ -1508,3 +1524,5 @@ export function useGameEngine(props: GameEngineProps) {
         handleRequestQuestHint, handleEquipItem, handleUnequipItem, handleReturnToMenu,
     }
 }
+
+    

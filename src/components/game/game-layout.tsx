@@ -321,7 +321,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         )}
                         
                         <h2 className="font-headline text-lg font-semibold text-center text-foreground/80 flex-shrink-0">{t('availableActions')}</h2>
-                        <div className="space-y-2 overflow-y-auto flex-grow">
+                        <div className="grid grid-cols-2 gap-2 overflow-y-auto flex-grow content-start">
                             {currentChunk?.actions.map(action => (
                                 <Tooltip key={action.id}>
                                     <TooltipTrigger asChild>

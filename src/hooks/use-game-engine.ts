@@ -97,6 +97,141 @@ export function useGameEngine(props: GameEngineProps) {
         });
     }, [setNarrativeLog]);
 
+    const getEffectiveChunk = useCallback((baseChunk: Chunk): Chunk => {
+        if (!baseChunk) return baseChunk;
+
+        const effectiveChunk: Chunk = JSON.parse(JSON.stringify(baseChunk));
+        
+        let structureHeat = effectiveChunk.structures?.reduce((sum, s) => sum + (s.heatValue || 0), 0) || 0;
+
+        if (!weatherZones[effectiveChunk.regionId]) {
+            effectiveChunk.temperature = (baseChunk.temperature ?? 15) + structureHeat;
+            return effectiveChunk;
+        }
+
+        const weatherZone = weatherZones[baseChunk.regionId];
+        const weather = weatherZone.currentWeather;
+        
+        const baseCelsius = (baseChunk.temperature ?? 5) * 4;
+        const weatherCelsiusMod = weather.temperature_delta * 2;
+        effectiveChunk.temperature = baseCelsius + weatherCelsiusMod + structureHeat;
+
+        effectiveChunk.moisture = clamp(baseChunk.moisture + weather.moisture_delta, 0, 10);
+        effectiveChunk.windLevel = clamp((baseChunk.windLevel ?? 3) + weather.wind_delta, 0, 10);
+        
+        let timeLightMod = 0;
+        if (gameTime >= 1320 || gameTime < 300) timeLightMod = -8;
+        else if ((gameTime >= 300 && gameTime < 420) || (gameTime >= 1080 && gameTime < 1200)) timeLightMod = -3;
+        
+        effectiveChunk.lightLevel = clamp(baseChunk.lightLevel + weather.light_delta + timeLightMod, -10, 10);
+
+        return effectiveChunk;
+    }, [weatherZones, gameTime]);
+
+    const triggerRandomEvent = useCallback(() => {
+        const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
+        if (!baseChunk) return;
+    
+        const possibleEvents = randomEvents.filter(event =>
+            (event.theme === 'Normal' || event.theme === worldProfile.theme) &&
+            event.canTrigger(baseChunk, playerStats, currentSeason)
+        );
+    
+        if (possibleEvents.length === 0) return;
+    
+        // Filter the possible events by their individual chance
+        const triggeredEvents = possibleEvents.filter(event => Math.random() < (event.chance ?? 1.0));
+    
+        if (triggeredEvents.length === 0) {
+            return; // No rare event was lucky enough to trigger this time
+        }
+    
+        // Pick one from the ones that passed their chance roll
+        const event = triggeredEvents[Math.floor(Math.random() * triggeredEvents.length)];
+    
+        const eventName = t(event.id as TranslationKey);
+        addNarrativeEntry(t('eventTriggered', { eventName }), 'system');
+    
+        const { roll } = rollDice('d20');
+        const successLevel: SuccessLevel = getSuccessLevel(roll, 'd20');
+    
+        const outcome = event.outcomes[successLevel] || event.outcomes['Success']; // Fallback to success
+        if (!outcome) return;
+    
+        addNarrativeEntry(t(outcome.descriptionKey), 'narrative');
+    
+        const effects = outcome.effects;
+    
+        // Apply effects
+        let newPlayerStats = { ...playerStats };
+        let worldWasModified = false;
+        let newWorld = { ...world };
+    
+        const hasShelter = world[`${playerPosition.x},${playerPosition.y}`]?.structures.some(s => s.providesShelter);
+    
+        // Conditional effects
+        if (effects.hpChange) {
+            let applyChange = true;
+            if (event.id === 'magicRain' || event.id === 'blizzard') {
+                if (hasShelter) applyChange = false;
+            }
+            if (applyChange) newPlayerStats.hp = clamp(newPlayerStats.hp + effects.hpChange, 0, 100);
+        }
+        if (effects.staminaChange) {
+            let applyChange = true;
+            if (event.id === 'blizzard') {
+                if (hasShelter) applyChange = false;
+            }
+            if (applyChange) newPlayerStats.stamina = clamp(newPlayerStats.stamina + effects.staminaChange, 0, 100);
+        }
+        if (effects.manaChange) {
+            newPlayerStats.mana = clamp(newPlayerStats.mana + effects.manaChange, 0, 50);
+        }
+    
+        if (effects.items) {
+            const newItems = [...newPlayerStats.items];
+            effects.items.forEach(itemToAdd => {
+                const existing = newItems.find(i => i.name === itemToAdd.name);
+                if (existing) {
+                    existing.quantity += itemToAdd.quantity;
+                } else {
+                    const def = customItemDefinitions[itemToAdd.name];
+                    if (def) {
+                        newItems.push({ ...itemToAdd, tier: def.tier, emoji: def.emoji });
+                    }
+                }
+            });
+            newPlayerStats.items = newItems;
+        }
+    
+        if (effects.spawnEnemy) {
+            const key = `${playerPosition.x},${playerPosition.y}`;
+            const chunkToUpdate = newWorld[key];
+            if (chunkToUpdate && !chunkToUpdate.enemy) {
+                const templates = getTemplates(language);
+                const enemyTemplate = templates[baseChunk.terrain]?.enemies.find((e: any) => e.data.type === effects.spawnEnemy!.type)?.data;
+                if (enemyTemplate) {
+                    chunkToUpdate.enemy = {
+                        ...enemyTemplate,
+                        hp: effects.spawnEnemy.hp,
+                        damage: effects.spawnEnemy.damage,
+                        satiation: 0,
+                    };
+                    worldWasModified = true;
+                }
+            }
+        }
+    
+        if (effects.unlockRecipe) {
+            // Future logic to unlock a recipe
+        }
+    
+        setPlayerStats(prev => ({ ...prev, ...newPlayerStats }));
+        if (worldWasModified) {
+            setWorld(newWorld);
+        }
+    }, [world, playerPosition, playerStats, currentSeason, worldProfile.theme, addNarrativeEntry, t, customItemDefinitions, language, setPlayerStats, setWorld]);
+
     const advanceGameTime = useCallback(async (statsAfterAction?: PlayerStatus) => {
         const initialStats = statsAfterAction || playerStats;
         let nextPlayerStats = { ...initialStats };
@@ -247,37 +382,6 @@ export function useGameEngine(props: GameEngineProps) {
         }
     }, [playerBehaviorProfile, playerStats.persona, setPlayerStats, addNarrativeEntry, t, toast]);
     
-    const getEffectiveChunk = useCallback((baseChunk: Chunk): Chunk => {
-        if (!baseChunk) return baseChunk;
-
-        const effectiveChunk: Chunk = JSON.parse(JSON.stringify(baseChunk));
-        
-        let structureHeat = effectiveChunk.structures?.reduce((sum, s) => sum + (s.heatValue || 0), 0) || 0;
-
-        if (!weatherZones[effectiveChunk.regionId]) {
-            effectiveChunk.temperature = (baseChunk.temperature ?? 15) + structureHeat;
-            return effectiveChunk;
-        }
-
-        const weatherZone = weatherZones[baseChunk.regionId];
-        const weather = weatherZone.currentWeather;
-        
-        const baseCelsius = (baseChunk.temperature ?? 5) * 4;
-        const weatherCelsiusMod = weather.temperature_delta * 2;
-        effectiveChunk.temperature = baseCelsius + weatherCelsiusMod + structureHeat;
-
-        effectiveChunk.moisture = clamp(baseChunk.moisture + weather.moisture_delta, 0, 10);
-        effectiveChunk.windLevel = clamp((baseChunk.windLevel ?? 3) + weather.wind_delta, 0, 10);
-        
-        let timeLightMod = 0;
-        if (gameTime >= 1320 || gameTime < 300) timeLightMod = -8;
-        else if ((gameTime >= 300 && gameTime < 420) || (gameTime >= 1080 && gameTime < 1200)) timeLightMod = -3;
-        
-        effectiveChunk.lightLevel = clamp(baseChunk.lightLevel + weather.light_delta + timeLightMod, -10, 10);
-
-        return effectiveChunk;
-    }, [weatherZones, gameTime]);
-
     useEffect(() => {
         const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
         if (baseChunk) {
@@ -459,110 +563,6 @@ export function useGameEngine(props: GameEngineProps) {
         playerPosition, playerBehaviorProfile, playerStats, narrativeLog, finalWorldSetup,
         customItemDefinitions, customItemCatalog, customStructures, weatherZones, gameTime, day, user, isSaving, toast, isGameOver
     ]);
-
-    const triggerRandomEvent = useCallback(() => {
-        const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
-        if (!baseChunk) return;
-    
-        const possibleEvents = randomEvents.filter(event =>
-            (event.theme === 'Normal' || event.theme === worldProfile.theme) &&
-            event.canTrigger(baseChunk, playerStats, currentSeason)
-        );
-    
-        if (possibleEvents.length === 0) return;
-    
-        // Filter the possible events by their individual chance
-        const triggeredEvents = possibleEvents.filter(event => Math.random() < (event.chance ?? 1.0));
-    
-        if (triggeredEvents.length === 0) {
-            return; // No rare event was lucky enough to trigger this time
-        }
-    
-        // Pick one from the ones that passed their chance roll
-        const event = triggeredEvents[Math.floor(Math.random() * triggeredEvents.length)];
-    
-        const eventName = t(event.id as TranslationKey);
-        addNarrativeEntry(t('eventTriggered', { eventName }), 'system');
-    
-        const { roll } = rollDice('d20');
-        const successLevel: SuccessLevel = getSuccessLevel(roll, 'd20');
-    
-        const outcome = event.outcomes[successLevel] || event.outcomes['Success']; // Fallback to success
-        if (!outcome) return;
-    
-        addNarrativeEntry(t(outcome.descriptionKey), 'narrative');
-    
-        const effects = outcome.effects;
-    
-        // Apply effects
-        let newPlayerStats = { ...playerStats };
-        let worldWasModified = false;
-        let newWorld = { ...world };
-    
-        const hasShelter = world[`${playerPosition.x},${playerPosition.y}`]?.structures.some(s => s.providesShelter);
-    
-        // Conditional effects
-        if (effects.hpChange) {
-            let applyChange = true;
-            if (event.id === 'magicRain' || event.id === 'blizzard') {
-                if (hasShelter) applyChange = false;
-            }
-            if (applyChange) newPlayerStats.hp = clamp(newPlayerStats.hp + effects.hpChange, 0, 100);
-        }
-        if (effects.staminaChange) {
-            let applyChange = true;
-            if (event.id === 'blizzard') {
-                if (hasShelter) applyChange = false;
-            }
-            if (applyChange) newPlayerStats.stamina = clamp(newPlayerStats.stamina + effects.staminaChange, 0, 100);
-        }
-        if (effects.manaChange) {
-            newPlayerStats.mana = clamp(newPlayerStats.mana + effects.manaChange, 0, 50);
-        }
-    
-        if (effects.items) {
-            const newItems = [...newPlayerStats.items];
-            effects.items.forEach(itemToAdd => {
-                const existing = newItems.find(i => i.name === itemToAdd.name);
-                if (existing) {
-                    existing.quantity += itemToAdd.quantity;
-                } else {
-                    const def = customItemDefinitions[itemToAdd.name];
-                    if (def) {
-                        newItems.push({ ...itemToAdd, tier: def.tier, emoji: def.emoji });
-                    }
-                }
-            });
-            newPlayerStats.items = newItems;
-        }
-    
-        if (effects.spawnEnemy) {
-            const key = `${playerPosition.x},${playerPosition.y}`;
-            const chunkToUpdate = newWorld[key];
-            if (chunkToUpdate && !chunkToUpdate.enemy) {
-                const templates = getTemplates(language);
-                const enemyTemplate = templates[baseChunk.terrain]?.enemies.find((e: any) => e.data.type === effects.spawnEnemy!.type)?.data;
-                if (enemyTemplate) {
-                    chunkToUpdate.enemy = {
-                        ...enemyTemplate,
-                        hp: effects.spawnEnemy.hp,
-                        damage: effects.spawnEnemy.damage,
-                        satiation: 0,
-                    };
-                    worldWasModified = true;
-                }
-            }
-        }
-    
-        if (effects.unlockRecipe) {
-            // Future logic to unlock a recipe
-        }
-    
-        setPlayerStats(prev => ({ ...prev, ...newPlayerStats }));
-        if (worldWasModified) {
-            setWorld(newWorld);
-        }
-    }, [world, playerPosition, playerStats, currentSeason, worldProfile.theme, addNarrativeEntry, t, customItemDefinitions, language, setPlayerStats, setWorld]);
     
     const handleOnlineNarrative = useCallback(async (action: string, worldCtx: World, playerPosCtx: {x: number, y: number}, playerStatsCtx: PlayerStatus) => {
         setIsLoading(true);

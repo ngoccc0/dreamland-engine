@@ -93,7 +93,7 @@ export function useGameEngine(props: GameEngineProps) {
     const getEffectiveChunk = useCallback((baseChunk: Chunk): Chunk => {
         if (!baseChunk) return baseChunk;
 
-        const effectiveChunk: Chunk = JSON.parse(JSON.stringify(baseChunk));
+        const effectiveChunk: Chunk = { ...baseChunk };
         
         let structureHeat = effectiveChunk.structures?.reduce((sum, s) => sum + (s.heatValue || 0), 0) || 0;
 
@@ -446,18 +446,32 @@ export function useGameEngine(props: GameEngineProps) {
         }
     }, [playerBehaviorProfile, playerStats.persona, setPlayerStats, addNarrativeEntry, t, toast]);
     
+    // EFFECT 1: Update the visual representation of the current chunk whenever the environment changes.
+    useEffect(() => {
+        const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
+        if (baseChunk) {
+            const newEffectiveChunk = getEffectiveChunk(baseChunk);
+            setCurrentChunk(newEffectiveChunk);
+        } else {
+            setCurrentChunk(null);
+        }
+    }, [world, playerPosition, gameTime, weatherZones, getEffectiveChunk, setCurrentChunk]);
+
+    // EFFECT 2: Update the turn counter and the chunk's `lastVisited` property ONLY when the player moves to a new position.
     useEffect(() => {
         const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
         if (baseChunk) {
             const newTurn = turn + 1;
             setTurn(newTurn);
-            const updatedChunk = { ...baseChunk, lastVisited: newTurn };
-            setWorld(prev => ({ ...prev, [`${playerPosition.x},${playerPosition.y}`]: updatedChunk }));
-            setCurrentChunk(getEffectiveChunk(updatedChunk));
-        } else {
-            setCurrentChunk(null);
+            const updatedChunkData = { ...baseChunk, lastVisited: newTurn };
+            
+            setWorld(prevWorld => ({
+                ...prevWorld,
+                [`${playerPosition.x},${playerPosition.y}`]: updatedChunkData,
+            }));
         }
-    }, [world, playerPosition, gameTime, weatherZones, getEffectiveChunk, setCurrentChunk, setTurn, setWorld]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [playerPosition]);
     
     const ensureChunkExists = useCallback((
         pos: {x: number, y: number}, 
@@ -541,7 +555,9 @@ export function useGameEngine(props: GameEngineProps) {
             if (props.initialGameState) return;
 
             if (props.worldSetup) {
-                addNarrativeEntry(props.worldSetup.initialNarrative, 'narrative');
+                if (props.worldSetup.initialNarrative) {
+                    addNarrativeEntry(props.worldSetup.initialNarrative, 'narrative');
+                }
                 const startPos = { x: 0, y: 0 };
                 
                 let worldSnapshot = {};

@@ -15,17 +15,19 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/context/language-context";
-import type { PlayerStatus, Skill } from "@/lib/game/types";
+import type { PlayerStatus, Skill, EquipmentSlot } from "@/lib/game/types";
 import { skillDefinitions } from "@/lib/game/skills";
 import type { TranslationKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { Heart, Loader2, Book, Star, Sparkles } from "./icons";
+import { Heart, Loader2, Book, Star, Sparkles, SwordIcon } from "./icons";
+import { Button } from "../ui/button";
 
 interface StatusPopupProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   stats: PlayerStatus;
   onRequestHint: (questText: string) => Promise<void>;
+  onUnequipItem: (slot: EquipmentSlot) => void;
 }
 
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
@@ -48,7 +50,7 @@ const getNextUnlockableSkills = (currentSkills: Skill[]): Skill[] => {
 };
 
 
-export function StatusPopup({ open, onOpenChange, stats, onRequestHint }: StatusPopupProps) {
+export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequipItem }: StatusPopupProps) {
   const { t, language } = useLanguage();
   const quests = stats.quests;
   const pets = stats.pets || [];
@@ -117,8 +119,29 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint }: Status
             </div>
           </div>
           <Separator />
+            <div className="py-4">
+                <h3 className="mb-2 font-headline font-semibold">{t('equipment')}</h3>
+                <div className="space-y-2 text-sm bg-muted p-2 rounded-md">
+                    {stats.equipment && Object.entries(stats.equipment).map(([slot, item]) => (
+                    <div key={slot} className="flex justify-between items-center">
+                        <span className="capitalize text-muted-foreground">{t(slot as TranslationKey)}:</span>
+                        {item ? (
+                        <div className="flex items-center gap-2">
+                            <span className="font-semibold text-foreground">{item.emoji} {t(item.name as TranslationKey)}</span>
+                            <Button variant="ghost" size="sm" onClick={() => onUnequipItem(slot as EquipmentSlot)}>
+                            {t('unequipItem')}
+                            </Button>
+                        </div>
+                        ) : (
+                        <span className="text-foreground italic">{t('emptySlot')}</span>
+                        )}
+                    </div>
+                    ))}
+                </div>
+            </div>
+          <Separator />
           <div className="py-4">
-            <h3 className="mb-2 font-headline font-semibold">{t('combatStats')}</h3>
+            <h3 className="mb-2 font-headline font-semibold flex items-center gap-2"><SwordIcon /> {t('combatStats')}</h3>
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-muted-foreground">
               <span>{t('physicalAttack')}:</span>
               <span className="font-medium text-right text-foreground">{stats.attributes.physicalAttack}</span>

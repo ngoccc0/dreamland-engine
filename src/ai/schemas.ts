@@ -37,6 +37,15 @@ export const SpawnConditionsSchema = z.object({
 }).describe("A set of environmental conditions.");
 
 
+export const PlayerAttributesSchema = z.object({
+    physicalAttack: z.number().describe("Player's base physical damage."),
+    magicalAttack: z.number().describe("Player's base magical damage."),
+    critChance: z.number().describe("Player's chance to land a critical hit (percentage)."),
+    attackSpeed: z.number().describe("Player's attack speed modifier."),
+    cooldownReduction: z.number().describe("Player's cooldown reduction (percentage)."),
+});
+
+
 export const ItemDefinitionSchema = z.object({
     description: z.string(),
     tier: z.number(),
@@ -49,16 +58,10 @@ export const ItemDefinitionSchema = z.object({
       optimal: SpawnConditionsSchema.describe("The ideal conditions for the resource to thrive and reproduce."),
       subOptimal: SpawnConditionsSchema.describe("Conditions where the resource can survive and reproduce slowly."),
     }).optional().describe("For living resources like plants or fungi, define the conditions under which they grow. If not provided, the item will be static."),
+    equipmentSlot: z.enum(['weapon', 'armor', 'accessory']).optional().describe("If the item is equippable, which slot it goes into."),
+    attributes: PlayerAttributesSchema.optional().describe("The combat attributes this item provides when equipped."),
 });
 
-
-export const PlayerAttributesSchema = z.object({
-    physicalAttack: z.number().describe("Player's base physical damage."),
-    magicalAttack: z.number().describe("Player's base magical damage."),
-    critChance: z.number().describe("Player's chance to land a critical hit (percentage)."),
-    attackSpeed: z.number().describe("Player's attack speed modifier."),
-    cooldownReduction: z.number().describe("Player's cooldown reduction (percentage)."),
-});
 
 export const PlayerItemSchema = z.object({
     name: z.string(),
@@ -96,6 +99,11 @@ export const PlayerStatusSchema = z.object({
     mana: z.number(),
     stamina: z.number().describe("Player's stamina, used for physical actions."),
     items: z.array(PlayerItemSchema).describe("Player's inventory with item names, quantities, and tiers."),
+    equipment: z.object({ 
+        weapon: PlayerItemSchema.nullable().optional(), 
+        armor: PlayerItemSchema.nullable().optional(), 
+        accessory: PlayerItemSchema.nullable().optional() 
+    }).optional().describe("The player's equipped items."),
     quests: z.array(z.string()),
     questsCompleted: z.number().optional().default(0).describe("The total number of quests the player has completed."),
     skills: z.array(SkillSchema).describe("The skills the player knows."),
@@ -189,6 +197,8 @@ export const GeneratedItemSchema = z.object({
       optimal: SpawnConditionsSchema.describe("The ideal conditions for the resource to thrive and reproduce."),
       subOptimal: SpawnConditionsSchema.describe("Conditions where the resource can survive and reproduce slowly."),
     }).optional().describe("For living resources like plants or fungi, define the conditions under which they grow. If not provided, the item will be static."),
+    equipmentSlot: z.enum(['weapon', 'armor', 'accessory']).optional().describe("If the item is equippable, which slot it goes into."),
+    attributes: PlayerAttributesSchema.optional().describe("The combat attributes this item provides when equipped."),
 });
 
 // Schema for Narrative Concepts (part of world generation)

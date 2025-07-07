@@ -117,7 +117,9 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         category: 'Weapon',
         emoji: '🗡️',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        equipmentSlot: 'weapon',
+        attributes: { physicalAttack: 2, critChance: 1 },
     },
     'Khiên Gỗ': {
         description: 'item_wooden_shield_desc',
@@ -125,7 +127,9 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         category: 'Equipment',
         emoji: '🛡️',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        equipmentSlot: 'accessory',
+        attributes: { physicalAttack: 0 }, // Placeholder for future defense stat
     },
     'Băng Gạc': {
         description: 'item_bandage_desc',
@@ -149,7 +153,9 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         category: 'Weapon',
         emoji: '🔱',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        equipmentSlot: 'weapon',
+        attributes: { physicalAttack: 4 },
     },
     'Rìu Đá Đơn Giản': {
         description: 'item_riu_da_don_gian_desc',
@@ -157,7 +163,9 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         category: 'Tool',
         emoji: '🪓',
         effects: [],
-        baseQuantity: { min: 1, max: 1 } 
+        baseQuantity: { min: 1, max: 1 },
+        equipmentSlot: 'weapon',
+        attributes: { physicalAttack: 3 },
     },
     'Thuốc Máu Yếu': {
         description: 'item_thuoc_mau_yeu_desc',
@@ -190,7 +198,9 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         category: 'Weapon',
         emoji: '🪓',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        equipmentSlot: 'weapon',
+        attributes: { physicalAttack: 12, critChance: 5, attackSpeed: -0.1 },
     },
     'Áo Giáp Da Cá Sấu': {
         description: 'item_alligator_armor_desc',
@@ -198,7 +208,9 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         category: 'Equipment',
         emoji: '👕',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        equipmentSlot: 'armor',
+        attributes: { physicalAttack: 2, cooldownReduction: 5 },
     },
     'Thuốc Máu Mạnh': {
         description: 'item_strong_health_potion_desc',
@@ -215,7 +227,9 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         category: 'Weapon',
         emoji: '🏹',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        equipmentSlot: 'weapon',
+        attributes: { physicalAttack: 8, attackSpeed: 0.2 },
     },
     'Trượng Lõi Đá': {
         description: 'item_golem_staff_desc',
@@ -224,7 +238,9 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         subCategory: 'Magic',
         emoji: '🪄',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        equipmentSlot: 'weapon',
+        attributes: { physicalAttack: 2, magicalAttack: 15, cooldownReduction: 10 },
     },
     'Thuốc Thể Lực': {
         description: 'item_stamina_potion_desc',
@@ -241,7 +257,9 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         category: 'Weapon',
         emoji: '🔨',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        equipmentSlot: 'weapon',
+        attributes: { physicalAttack: 15, critChance: 10, attackSpeed: -0.2 },
     },
 
 

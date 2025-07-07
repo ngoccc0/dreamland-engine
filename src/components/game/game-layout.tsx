@@ -21,7 +21,7 @@ import { Progress } from "@/components/ui/progress";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/context/language-context";
 import { useGameEngine } from "@/hooks/use-game-engine";
-import type { ItemDefinition, GeneratedItem, WorldConcept, PlayerItem, GameState, Structure, Chunk } from "@/lib/game/types";
+import type { ItemDefinition, GeneratedItem, WorldConcept, PlayerItem, GameState, Structure, Chunk, EquipmentSlot } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
 import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Heart, Zap, Footprints } from "./icons";
@@ -61,6 +61,8 @@ export default function GameLayout(props: GameLayoutProps) {
         handleRest,
         handleFuseItems,
         handleRequestQuestHint,
+        handleEquipItem,
+        handleUnequipItem,
     } = useGameEngine(props);
 
     const [isStatusOpen, setStatusOpen] = useState(false);
@@ -337,6 +339,7 @@ export default function GameLayout(props: GameLayoutProps) {
                     onOpenChange={setStatusOpen} 
                     stats={playerStats} 
                     onRequestHint={handleRequestQuestHint}
+                    onUnequipItem={handleUnequipItem}
                 />
                 <InventoryPopup 
                     open={isInventoryOpen} 
@@ -345,6 +348,7 @@ export default function GameLayout(props: GameLayoutProps) {
                     itemDefinitions={customItemDefinitions}
                     enemy={currentChunk?.enemy || null}
                     onUseItem={handleItemUsed}
+                    onEquipItem={handleEquipItem}
                 />
                 <CraftingPopup open={isCraftingOpen} onOpenChange={setCraftingOpen} playerItems={playerStats.items} recipes={recipes} onCraft={handleCraft} />
                 <BuildingPopup open={isBuildingOpen} onOpenChange={setBuildingOpen} playerItems={playerStats.items} buildableStructures={buildableStructures} onBuild={handleBuild} />

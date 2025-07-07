@@ -3,7 +3,7 @@
 "use client";
 
 import { useState } from "react";
-import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet } from "@/lib/game/types";
+import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, PlayerAttributes } from "@/lib/game/types";
 import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
@@ -51,6 +51,11 @@ export function useGameState({ worldSetup, initialGameState, customItemDefinitio
             stamina: 100,
             bodyTemperature: 37,
             items: worldSetup?.playerInventory || [],
+            equipment: {
+                weapon: null,
+                armor: null,
+                accessory: null,
+            },
             quests: worldSetup?.initialQuests || [],
             questsCompleted: 0,
             skills: worldSetup?.startingSkill ? [worldSetup.startingSkill] : [],

@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/context/language-context";
-import type { PlayerItem, ItemDefinition, Chunk, ItemCategory } from "@/lib/game/types";
+import type { PlayerItem, ItemDefinition, Chunk, ItemCategory, PlayerAttributes } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +23,7 @@ interface InventoryPopupProps {
   itemDefinitions: Record<string, ItemDefinition>;
   enemy: Chunk['enemy'];
   onUseItem: (itemName: string, target: 'player' | string) => void;
+  onEquipItem: (itemName: string) => void;
 }
 
 const categoryEmojis: Record<string, string> = {
@@ -42,12 +43,21 @@ const categoryEmojis: Record<string, string> = {
   Potion: '🧪',
 };
 
-export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, enemy, onUseItem }: InventoryPopupProps) {
+const attributeLabels: Record<keyof PlayerAttributes, TranslationKey> = {
+    physicalAttack: 'physicalAttack',
+    magicalAttack: 'magicalAttack',
+    critChance: 'critChance',
+    attackSpeed: 'attackSpeed',
+    cooldownReduction: 'cooldownReduction',
+};
+
+
+export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, enemy, onUseItem, onEquipItem }: InventoryPopupProps) {
   const { t } = useLanguage();
 
-  const handleUseItem = (itemName: string, target: 'player' | string) => {
-    onUseItem(itemName, target);
-    onOpenChange(false); // Close popup after using item
+  const handleAction = (callback: () => void) => {
+    callback();
+    onOpenChange(false); // Close popup after any action
   }
 
   return (
@@ -68,7 +78,8 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                     const definition = itemDefinitions[item.name];
                     const isUsableOnSelf = definition && definition.effects.length > 0;
                     const isUsableOnEnemy = enemy && definition && t(enemy.type as TranslationKey) && enemy.diet.includes(item.name);
-                    const isInteractable = isUsableOnSelf || isUsableOnEnemy;
+                    const isEquippable = definition && definition.equipmentSlot;
+                    const isInteractable = isUsableOnSelf || isUsableOnEnemy || isEquippable;
 
                     const itemCategory = definition?.category;
                     const itemSubCategory = definition?.subCategory;
@@ -97,7 +108,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                                 </button>
                             </DropdownMenuTrigger>
                             
-                            <DropdownMenuContent className="w-56">
+                            <DropdownMenuContent className="w-64">
                                 <DropdownMenuLabel className="font-normal">
                                     <p className="font-bold">{item.emoji} {t(item.name as TranslationKey)}</p>
                                     <p className="text-xs text-muted-foreground whitespace-normal">{t(definition?.description as TranslationKey)}</p>
@@ -105,24 +116,39 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                                 
                                 {isInteractable && (
                                   <>
-                                    {definition && definition.effects.length > 0 && (
-                                        <>
-                                            <DropdownMenuSeparator />
-                                            <div className="px-2 py-1.5 text-xs space-y-1">
-                                                <p className="font-semibold text-muted-foreground">{t('effects')}:</p>
-                                                {definition.effects.map((effect, i) => (
-                                                    <p key={i} className="text-green-500 ml-2">
-                                                        {effect.type === 'HEAL' && `+${effect.amount} ${t('healthShort')}`}
-                                                        {effect.type === 'RESTORE_STAMINA' && `+${effect.amount} ${t('staminaShort')}`}
+                                    {(definition?.effects?.length > 0 || definition?.attributes) && <DropdownMenuSeparator />}
+                                    
+                                    {definition?.attributes && (
+                                        <div className="px-2 py-1.5 text-xs space-y-1">
+                                            <p className="font-semibold text-muted-foreground">{t('attributes')}:</p>
+                                            {Object.entries(definition.attributes).map(([key, value]) => {
+                                                if (value === 0) return null;
+                                                const sign = value > 0 ? '+' : '';
+                                                return (
+                                                    <p key={key} className={cn("ml-2", value > 0 ? "text-green-500" : "text-red-500")}>
+                                                        {sign}{value}{key.includes('Reduction') || key.includes('Chance') ? '%' : ''} {t(attributeLabels[key as keyof PlayerAttributes])}
                                                     </p>
-                                                ))}
-                                            </div>
-                                        </>
+                                                )
+                                            })}
+                                        </div>
+                                    )}
+
+                                    {definition?.effects?.length > 0 && (
+                                        <div className="px-2 py-1.5 text-xs space-y-1">
+                                            <p className="font-semibold text-muted-foreground">{t('effects')}:</p>
+                                            {definition.effects.map((effect, i) => (
+                                                <p key={i} className="text-green-500 ml-2">
+                                                    {effect.type === 'HEAL' && `+${effect.amount} ${t('healthShort')}`}
+                                                    {effect.type === 'RESTORE_STAMINA' && `+${effect.amount} ${t('staminaShort')}`}
+                                                </p>
+                                            ))}
+                                        </div>
                                     )}
 
                                     <DropdownMenuSeparator />
-                                    {isUsableOnSelf && <DropdownMenuItem onClick={() => handleUseItem(item.name, 'player')}>{t('useOnSelf')}</DropdownMenuItem>}
-                                    {isUsableOnEnemy && <DropdownMenuItem onClick={() => handleUseItem(item.name, enemy!.type)}>{t('useOnTarget', { target: t(enemy!.type as TranslationKey) })}</DropdownMenuItem>}
+                                    {isUsableOnSelf && <DropdownMenuItem onClick={() => handleAction(() => onUseItem(item.name, 'player'))}>{t('useOnSelf')}</DropdownMenuItem>}
+                                    {isUsableOnEnemy && <DropdownMenuItem onClick={() => handleAction(() => onUseItem(item.name, enemy!.type))}>{t('useOnTarget', { target: t(enemy!.type as TranslationKey) })}</DropdownMenuItem>}
+                                    {isEquippable && <DropdownMenuItem onClick={() => handleAction(() => onEquipItem(item.name))}>{t('equipItem')}</DropdownMenuItem>}
                                   </>
                                 )}
                             </DropdownMenuContent>

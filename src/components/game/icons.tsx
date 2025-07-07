@@ -73,9 +73,3 @@ export function ItemIcon({ emoji }: { emoji: string }) {
     <span className="text-xs drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]" role="img" aria-label="Item">{emoji}</span>
   );
 }
-
-export function StructureIcon({ emoji }: { emoji: string }) {
-  return (
-    <span className="text-xs drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]" role="img" aria-label="Structure">{emoji}</span>
-  );
-}

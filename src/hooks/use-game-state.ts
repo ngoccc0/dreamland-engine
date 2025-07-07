@@ -33,6 +33,7 @@ export function useGameState({ worldSetup, initialGameState, customItemDefinitio
     const [currentSeason, setCurrentSeason] = useState<Season>(initialGameState?.currentSeason || 'spring');
     const [gameTime, setGameTime] = useState(initialGameState?.gameTime || 360); // 6 AM
     const [day, setDay] = useState(initialGameState?.day || 1);
+    const [turn, setTurn] = useState(initialGameState?.turn || 1);
     const [weatherZones, setWeatherZones] = useState<{ [zoneId: string]: WeatherZone }>(initialGameState?.weatherZones || {});
 
     const [world, setWorld] = useState<World>(initialGameState?.world || {});
@@ -91,6 +92,7 @@ export function useGameState({ worldSetup, initialGameState, customItemDefinitio
         currentSeason, setCurrentSeason,
         gameTime, setGameTime,
         day, setDay,
+        turn, setTurn,
         weatherZones, setWeatherZones,
         world, setWorld,
         recipes, setRecipes,

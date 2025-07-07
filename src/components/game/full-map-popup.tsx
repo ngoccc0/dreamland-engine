@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/language-context";
 import type { World, Chunk, Terrain } from "@/lib/game/types";
-import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon, StructureIcon } from "./icons";
+import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon } from "./icons";
 import { MapCellDetails } from './minimap';
 import type { TranslationKey } from '@/lib/i18n';
 import { Button } from '../ui/button';
@@ -20,6 +20,7 @@ interface FullMapPopupProps {
   onOpenChange: (open: boolean) => void;
   world: World;
   playerPosition: { x: number; y: number };
+  turn: number;
 }
 
 const biomeColors: Record<Terrain | 'empty', string> = {
@@ -62,7 +63,7 @@ const biomeIcons: Record<Exclude<Terrain, 'empty'>, React.ReactNode> = {
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 5;
 
-export function FullMapPopup({ open, onOpenChange, world, playerPosition }: FullMapPopupProps) {
+export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }: FullMapPopupProps) {
   const { t } = useLanguage();
   const [zoom, setZoom] = React.useState(2);
   const mapRadius = 7;
@@ -121,12 +122,25 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
                                 const chunkKey = `${worldX},${worldY}`;
                                 const chunk = world[chunkKey];
 
-                                if (!chunk || !chunk.explored) {
+                                if (!chunk) {
                                     return <div key={chunkKey} className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />;
                                 }
-                                
+
                                 const isPlayerHere = playerPosition.x === worldX && playerPosition.y === worldY;
-                                const biomeIcon = biomeIcons[chunk.terrain as Exclude<Terrain, 'empty'>];
+                                const turnDifference = turn - chunk.lastVisited;
+                                const isFoggy = turnDifference > 50 && chunk.lastVisited !== 0;
+
+                                if (!chunk.explored || (isFoggy && !isPlayerHere)) {
+                                    return (
+                                        <div key={chunkKey} className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50 flex items-center justify-center")}>
+                                            {chunk.explored && <span className={cn(currentBiomeIconSize, "opacity-30")} title={t('fogOfWarDesc') as string}>🌫️</span>}
+                                        </div>
+                                    );
+                                }
+                                
+                                const mainIcon = (chunk.structures && chunk.structures.length > 0)
+                                    ? <span className={cn(currentBiomeIconSize, 'opacity-90 drop-shadow-lg')} role="img" aria-label={chunk.structures[0].name}>{chunk.structures[0].emoji}</span>
+                                    : biomeIcons[chunk.terrain as Exclude<Terrain, 'empty'>];
                                 
                                 return (
                                     <Popover key={chunkKey}>
@@ -141,7 +155,7 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
                                                 aria-label={`Map cell at ${chunk.x}, ${chunk.y}. Biome: ${chunk.terrain}`}
                                             >
                                                 <div className={cn(currentBiomeIconSize, 'opacity-80')}>
-                                                    {biomeIcon}
+                                                    {mainIcon}
                                                 </div>
                                                 
                                                 {showDetails && (
@@ -149,11 +163,6 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition }: Full
                                                         {isPlayerHere && (
                                                             <div className="absolute inset-0 flex items-center justify-center">
                                                                 <PlayerIcon />
-                                                            </div>
-                                                        )}
-                                                        {chunk.structures?.length > 0 && (
-                                                            <div className="absolute top-px left-px">
-                                                                <StructureIcon emoji={chunk.structures[0].emoji} />
                                                             </div>
                                                         )}
                                                         {chunk.NPCs.length > 0 && (

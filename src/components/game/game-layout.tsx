@@ -50,6 +50,7 @@ export default function GameLayout(props: GameLayoutProps) {
         finalWorldSetup,
         customItemDefinitions,
         currentChunk,
+        turn,
         handleMove,
         handleAttack,
         handleAction,
@@ -106,7 +107,7 @@ export default function GameLayout(props: GameLayoutProps) {
                 const chunkKey = `${wx},${wy}`;
                 const chunk = world[chunkKey];
     
-                if (chunk && chunk.explored) { 
+                if (chunk) { 
                     row.push(chunk);
                 } else {
                     row.push(null);
@@ -239,7 +240,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                 </Tooltip>
                             </div>
                         </div>
-                        <Minimap grid={generateMapGrid()} playerPosition={playerPosition} />
+                        <Minimap grid={generateMapGrid()} playerPosition={playerPosition} turn={turn} />
                     </div>
                     
                     {/* Combined Controls and Skills for larger screens */}
@@ -360,7 +361,7 @@ export default function GameLayout(props: GameLayoutProps) {
                     onFuse={handleFuseItems}
                     isLoading={isLoading}
                 />
-                <FullMapPopup open={isFullMapOpen} onOpenChange={setIsFullMapOpen} world={world} playerPosition={playerPosition} />
+                <FullMapPopup open={isFullMapOpen} onOpenChange={setIsFullMapOpen} world={world} playerPosition={playerPosition} turn={turn} />
                 <TutorialPopup open={isTutorialOpen} onOpenChange={setTutorialOpen} />
                 <SettingsPopup open={isSettingsOpen} onOpenChange={setSettingsOpen} />
                 <PwaInstallPopup open={showInstallPopup} onOpenChange={setShowInstallPopup} />

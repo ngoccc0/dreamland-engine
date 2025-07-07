@@ -2,7 +2,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon, StructureIcon, Backpack, UserCircle2, Home, MapPin } from "./icons";
+import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon, Home, MapPin } from "./icons";
 import { useLanguage } from "@/context/language-context";
 import type React from "react";
 import type { Chunk, Terrain } from "@/lib/game/types";
@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import type { TranslationKey } from "@/lib/i18n";
 import { Separator } from "../ui/separator";
 import { SwordIcon } from "./icons";
+import { Backpack } from "lucide-react";
 
 
 export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
@@ -49,7 +50,7 @@ export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
                 )}
                 {chunk.NPCs.length > 0 && (
                      <div>
-                        <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><UserCircle2 />{t('npcs')}:</h5>
+                        <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><NpcIcon />{t('npcs')}:</h5>
                         <ul className="space-y-1 text-xs pl-5">
                             {chunk.NPCs.map(npc => <li key={npc.name}>{t(npc.name as TranslationKey)}</li>)}
                         </ul>
@@ -64,6 +65,7 @@ export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
 interface MinimapProps {
   grid: (Chunk | null)[][];
   playerPosition: { x: number; y: number };
+  turn: number;
 }
 
 const biomeColors: Record<Terrain | 'empty', string> = {
@@ -104,7 +106,7 @@ const biomeIcons: Record<Exclude<Terrain, 'empty'>, React.ReactNode> = {
 };
 
 
-export function Minimap({ grid, playerPosition }: MinimapProps) {
+export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
   const { t } = useLanguage();
   const responsiveCellSize = "w-14 h-14 md:w-16 md:h-16 lg:w-20 lg:h-20";
 
@@ -120,6 +122,20 @@ export function Minimap({ grid, playerPosition }: MinimapProps) {
               }
               
               const isPlayerHere = playerPosition.x === cell.x && playerPosition.y === cell.y;
+              const turnDifference = turn - cell.lastVisited;
+              const isFoggy = turnDifference > 50 && cell.lastVisited !== 0;
+
+              if (!cell.explored || (isFoggy && !isPlayerHere)) {
+                return (
+                    <div key={key} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50 flex items-center justify-center")}>
+                        {cell.explored && <span className="text-2xl opacity-30" title={t('fogOfWarDesc') as string}>🌫️</span>}
+                    </div>
+                );
+              }
+
+              const mainIcon = (cell.structures && cell.structures.length > 0)
+                ? <span className="text-3xl opacity-90 drop-shadow-lg" role="img" aria-label={cell.structures[0].name}>{cell.structures[0].emoji}</span>
+                : (cell.terrain !== 'empty' ? biomeIcons[cell.terrain as Exclude<Terrain, 'empty'>] : null);
 
               return (
                  <Popover key={key}>
@@ -133,38 +149,26 @@ export function Minimap({ grid, playerPosition }: MinimapProps) {
                             )}
                             aria-label={`Map cell at ${cell.x}, ${cell.y}. Biome: ${cell.terrain}`}
                         >
-                            {/* Biome Icon in the center */}
-                            {cell.terrain !== 'empty' && biomeIcons[cell.terrain as Exclude<Terrain, 'empty'>]}
+                            {mainIcon}
                             
-                            {/* Player Icon in the center */}
                             {isPlayerHere && (
                                 <div className="absolute inset-0 flex items-center justify-center">
                                     <PlayerIcon />
                                 </div>
                             )}
                             
-                            {/* Structure Icon in top-left */}
-                            {cell.structures?.length > 0 && (
-                                <div className="absolute top-px left-px">
-                                    <StructureIcon emoji={cell.structures[0].emoji} />
-                                </div>
-                            )}
-
-                            {/* NPC Icon in top-right */}
                             {cell.NPCs.length > 0 && (
                                 <div className="absolute top-px right-px">
                                     <NpcIcon />
                                 </div>
                             )}
                             
-                            {/* Enemy Icon in bottom-left */}
                             {cell.enemy && (
                                 <div className="absolute bottom-px left-px">
                                     <EnemyIcon emoji={cell.enemy.emoji} />
                                 </div>
                             )}
 
-                            {/* Item Icon in bottom-right */}
                             {cell.items.length > 0 && (
                                 <div className="absolute bottom-px right-px">
                                     <ItemIcon emoji={cell.items[0].emoji} />

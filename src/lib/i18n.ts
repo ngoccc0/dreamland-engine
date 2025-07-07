@@ -855,7 +855,10 @@ export const translations = {
     offlineNarrativeNPC: "You see {npc} nearby.",
     offlineNarrativeSenseEnemy: "To the {direction}, you sense a {enemy}.",
     offlineNarrativeSeeStructure: "To the {direction}, you can see a {structure}.",
-    offlineNarrativeSurroundings: "Looking around, you notice a few things."
+    offlineNarrativeSurroundings: "Looking around, you notice a few things.",
+    structureLimitTitle: "Structure Limit Reached",
+    structureLimitDesc: "You can only build one structure per tile.",
+    fogOfWarDesc: "You haven't been here in a while. The area is shrouded in fog again.",
   },
   vi: {
     observeAction: 'Quan sát',
@@ -1711,7 +1714,10 @@ export const translations = {
     offlineNarrativeNPC: "Bạn thấy {npc} ở gần đây.",
     offlineNarrativeSenseEnemy: "Về phía {direction}, bạn cảm nhận được một {enemy}.",
     offlineNarrativeSeeStructure: "Về phía {direction}, bạn có thể thấy một {structure}.",
-    offlineNarrativeSurroundings: "Nhìn xung quanh, bạn để ý thấy một vài điều."
+    offlineNarrativeSurroundings: "Nhìn xung quanh, bạn để ý thấy một vài điều.",
+    structureLimitTitle: "Đã đạt giới hạn công trình",
+    structureLimitDesc: "Bạn chỉ có thể xây một công trình trên mỗi ô.",
+    fogOfWarDesc: "Bạn đã không ở đây một thời gian. Khu vực lại bị sương mù bao phủ.",
   }
 };
 

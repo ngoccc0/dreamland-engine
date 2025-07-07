@@ -1,6 +1,5 @@
 
 
-
 // --- Data Types and Interfaces for the Game Engine ---
 
 export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave" | "jungle" | "volcanic" | "wall" | "floptropica" | "tundra" | "beach" | "mesa" | "mushroom_forest" | "ocean";
@@ -150,6 +149,7 @@ export interface Chunk {
     items: ChunkItem[];
     structures: Structure[];
     explored: boolean;
+    lastVisited: number; // The turn number this chunk was last part of the player's view
     enemy: {
         type: string;
         hp: number;
@@ -323,6 +323,7 @@ export interface GameState {
     weatherZones: { [zoneId: string]: WeatherZone };
     gameTime: number; // In-game minutes from 0 to 1439
     day: number;
+    turn: number;
 }
 
 // --- NEW DATA-DRIVEN ITEM SYSTEM ---

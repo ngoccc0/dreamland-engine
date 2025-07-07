@@ -48,7 +48,7 @@ export const generateWeatherForZone = (terrain: Terrain, season: Season, previou
 // --- ENTITY SPAWNING LOGIC ---
 
 // Helper function to check if a chunk meets the spawn conditions for an entity
-export const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored' | 'structures'>): boolean => {
+export const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored' | 'structures' | 'lastVisited'>): boolean => {
     for (const key in conditions) {
         if (key === 'chance') continue;
         const condition = conditions[key as keyof typeof conditions];
@@ -81,7 +81,7 @@ export const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 
  */
 const selectEntities = <T extends {name: string, conditions: SpawnConditions} | {data: any, conditions: SpawnConditions, loot?: any}>(
     possibleEntities: T[],
-    chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored' | 'structures'>,
+    chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored' | 'structures' | 'lastVisited'>,
     allItemDefinitions: Record<string, ItemDefinition>, // Pass in all definitions
     maxCount: number = 3
 ): any[] => {
@@ -240,7 +240,7 @@ function calculateDependentChunkAttributes(
  * @returns An object containing the generated content.
  */
 function generateChunkContent(
-    chunkData: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'explored' | 'structures' | 'terrain'> & { terrain: Terrain },
+    chunkData: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'explored' | 'structures' | 'terrain' | 'lastVisited'> & { terrain: Terrain },
     worldProfile: WorldProfile,
     allItemDefinitions: Record<string, ItemDefinition>,
     customItemCatalog: GeneratedItem[],
@@ -403,6 +403,7 @@ function createWallChunk(pos: { x: number; y: number }): Chunk {
         items: [],
         structures: [],
         explored: true, // Walls are always visible
+        lastVisited: 0,
         enemy: null,
         actions: [],
         regionId: -1, // Walls don't belong to a region
@@ -483,7 +484,7 @@ export const generateRegion = (
         // Step 2: Calculate dependent attributes using the new function
         const dependentAttributes = calculateDependentChunkAttributes(
             terrain,
-            { vegetationDensity, moisture: baseMoisture, dangerLevel: baseTemperature },
+            { vegetationDensity, moisture: baseMoisture, dangerLevel: baseTemperature, temperature: baseTemperature },
             worldProfile,
             currentSeason
         );
@@ -509,6 +510,7 @@ export const generateRegion = (
             y: pos.y, 
             terrain, 
             explored: false, 
+            lastVisited: 0,
             regionId,
             ...tempChunkData,
             ...content,

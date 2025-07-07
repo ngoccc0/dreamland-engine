@@ -18,6 +18,7 @@ import type { TranslationKey, Language } from '@/lib/i18n';
 import { LanguageSelector } from '@/components/game/language-selector';
 import { doc, getDoc, setDoc, deleteDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase-config";
+import { cn } from "@/lib/utils";
 
 type SaveSlotSummary = Pick<GameState, 'worldSetup' | 'day'> | null;
 

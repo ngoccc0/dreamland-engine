@@ -266,12 +266,18 @@ function generateChunkContent(
     const feature = template.features[Math.floor(Math.random() * template.features.length)];
     const smell = template.smells[Math.floor(Math.random() * template.smells.length)];
     const sound = template.sounds[Math.floor(Math.random() * template.sounds.length)];
+    const sky = template.sky ? template.sky[Math.floor(Math.random() * template.sky.length)] : '';
+
 
     let finalDescription = baseDescriptionTemplate
         .replace('[adjective]', adjective)
         .replace('[feature]', feature)
         .replace('[smell]', smell)
         .replace('[sound]', sound);
+    
+    if (sky) {
+        finalDescription = finalDescription.replace('[sky]', sky);
+    }
     
     // --- Create a combined list of all possible items for this biome ---
     const staticSpawnCandidates = template.items;

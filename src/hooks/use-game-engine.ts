@@ -49,6 +49,7 @@ export function useGameEngine(props: GameEngineProps) {
         currentSeason, setCurrentSeason,
         gameTime, setGameTime,
         day, setDay,
+        turn, setTurn,
         weatherZones, setWeatherZones,
         world, setWorld,
         recipes, setRecipes,
@@ -448,11 +449,15 @@ export function useGameEngine(props: GameEngineProps) {
     useEffect(() => {
         const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
         if (baseChunk) {
-            setCurrentChunk(getEffectiveChunk(baseChunk));
+            const newTurn = turn + 1;
+            setTurn(newTurn);
+            const updatedChunk = { ...baseChunk, lastVisited: newTurn };
+            setWorld(prev => ({ ...prev, [`${playerPosition.x},${playerPosition.y}`]: updatedChunk }));
+            setCurrentChunk(getEffectiveChunk(updatedChunk));
         } else {
             setCurrentChunk(null);
         }
-    }, [world, playerPosition, gameTime, weatherZones, getEffectiveChunk, setCurrentChunk]);
+    }, [world, playerPosition, gameTime, weatherZones, getEffectiveChunk, setCurrentChunk, setTurn, setWorld]);
     
     const ensureChunkExists = useCallback((
         pos: {x: number, y: number}, 
@@ -570,7 +575,9 @@ export function useGameEngine(props: GameEngineProps) {
                 const newRegionCounter = regionCounterSnapshot;
 
                 const startKey = `${startPos.x},${startPos.y}`;
-                if (newWorld[startKey]) addNarrativeEntry(newWorld[startKey].description, 'narrative');
+                if (newWorld[startKey] && newWorld[startKey].description !== props.worldSetup.initialNarrative) {
+                    addNarrativeEntry(newWorld[startKey].description, 'narrative');
+                }
 
                 const initialWeatherZones: { [zoneId: string]: WeatherZone } = {};
                 Object.entries(newRegions).forEach(([regionId, region]) => {
@@ -597,6 +604,7 @@ export function useGameEngine(props: GameEngineProps) {
             regions, regionCounter, playerPosition, playerBehaviorProfile,
             playerStats, narrativeLog, worldSetup: finalWorldSetup,
             customItemDefinitions, customItemCatalog, customStructures, weatherZones, gameTime, day,
+            turn,
         };
 
         const save = async () => {
@@ -618,7 +626,8 @@ export function useGameEngine(props: GameEngineProps) {
     }, [
         worldProfile, currentSeason, world, recipes, buildableStructures, regions, regionCounter,
         playerPosition, playerBehaviorProfile, playerStats, narrativeLog, finalWorldSetup,
-        customItemDefinitions, customItemCatalog, customStructures, weatherZones, gameTime, day, user, isSaving, toast, isGameOver
+        customItemDefinitions, customItemCatalog, customStructures, weatherZones, gameTime, day, user, isSaving, toast, isGameOver,
+        turn,
     ]);
     
     const handleOnlineNarrative = useCallback(async (action: string, worldCtx: World, playerPosCtx: {x: number, y: number}, playerStatsCtx: PlayerStatus) => {
@@ -649,7 +658,7 @@ export function useGameEngine(props: GameEngineProps) {
         try {
             const input: GenerateNarrativeInput = {
                 worldName: finalWorldSetup.worldName, playerAction: action, playerStatus: playerStatsCtx,
-                currentChunk: { ...currentChunk, regionId: undefined },
+                currentChunk,
                 surroundingChunks: surroundingChunks.length > 0 ? surroundingChunks : undefined,
                 recentNarrative: narrativeLog.slice(-5).map(e => e.text), language, customItemDefinitions,
                 diceRoll: roll, diceType: settings.diceType, diceRange: range, successLevel,
@@ -767,7 +776,7 @@ export function useGameEngine(props: GameEngineProps) {
             
             let playerBaseDamage = playerStats.attributes.physicalAttack + (playerStats.persona === 'warrior' ? 2 : 0);
             playerDamage = Math.round(playerBaseDamage * damageMultiplier * playerDamageModifier);
-        } else { combatLogParts.push(successLevel === 'CriticalFailure' ? t('attackCritFail') : t('attackFail')); }
+        } else { combatLogParts.push(t(successLevel === 'CriticalFailure' ? 'attackCritFail' : 'attackFail')); }
     
         const finalEnemyHp = Math.max(0, currentChunk.enemy.hp - playerDamage);
         const enemyDefeated = finalEnemyHp <= 0;
@@ -1170,12 +1179,20 @@ export function useGameEngine(props: GameEngineProps) {
     const handleAction = useCallback((actionId: number) => {
         if (isLoading || isGameOver) return;
         const chunk = world[`${playerPosition.x},${playerPosition.y}`];
+        if(!chunk) return;
+        
+        const structure = chunk.structures[0];
+        if(structure && structure.buildable) {
+            toast({ title: t('structureLimitTitle'), description: t('structureLimitDesc'), variant: "destructive" });
+            return;
+        }
+
         const actionText = chunk?.actions.find(a => a.id === actionId)?.text || "unknown action";
         const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
         addNarrativeEntry(actionText, 'action');
         if (isOnline) handleOnlineNarrative(actionText, world, playerPosition, newPlayerStats);
         else handleOfflineAction(actionText);
-    }, [isLoading, isGameOver, world, playerPosition, playerStats, addNarrativeEntry, isOnline, handleOnlineNarrative, handleOfflineAction]);
+    }, [isLoading, isGameOver, world, playerPosition, playerStats, addNarrativeEntry, isOnline, handleOnlineNarrative, handleOfflineAction, toast, t]);
 
     const handleAttack = useCallback(() => {
         if (isLoading || isGameOver) return;
@@ -1255,6 +1272,13 @@ export function useGameEngine(props: GameEngineProps) {
 
     const handleBuild = useCallback((structureName: string) => {
         if (isLoading || isGameOver) return;
+
+        const currentChunk = world[`${playerPosition.x},${playerPosition.y}`];
+        if (currentChunk?.structures.length > 0) {
+            toast({ title: t('structureLimitTitle'), description: t('structureLimitDesc'), variant: "destructive" });
+            return;
+        }
+
         const structureToBuild = buildableStructures[structureName];
         if (!structureToBuild?.buildable) return;
 
@@ -1282,7 +1306,7 @@ export function useGameEngine(props: GameEngineProps) {
 
         addNarrativeEntry(t('builtStructure', { structureName: t(structureName as TranslationKey) }), 'system');
         advanceGameTime(nextPlayerStats);
-    }, [isLoading, isGameOver, buildableStructures, playerStats, playerPosition, addNarrativeEntry, advanceGameTime, toast, t, setWorld]);
+    }, [isLoading, isGameOver, buildableStructures, playerStats, playerPosition, addNarrativeEntry, advanceGameTime, toast, t, setWorld, world]);
 
     const handleRest = useCallback(() => {
         if (isLoading || isGameOver) return;
@@ -1475,7 +1499,7 @@ export function useGameEngine(props: GameEngineProps) {
 
     return {
         world, recipes, buildableStructures, playerStats, playerPosition, narrativeLog, isLoading, isGameOver, finalWorldSetup, customItemDefinitions,
-        currentChunk,
+        currentChunk, turn,
         handleMove, handleAttack, handleAction, handleCustomAction, handleCraft, handleBuild, handleItemUsed, handleUseSkill, handleRest, handleFuseItems,
         handleRequestQuestHint, handleEquipItem, handleUnequipItem,
     }

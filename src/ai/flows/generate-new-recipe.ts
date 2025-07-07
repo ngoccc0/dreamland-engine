@@ -1,4 +1,5 @@
 
+
 'use server';
 /**
  * @fileOverview An AI agent for dynamically generating new crafting recipes during gameplay.
@@ -16,6 +17,8 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { GeneratedItemSchema, RecipeSchema, RecipeResultSchema, type Recipe } from '@/ai/schemas';
 import { getEmojiForItem } from '@/lib/utils';
+import { setDoc, doc } from 'firebase/firestore';
+import { db } from '@/lib/firebase-config';
 
 // --- INPUT SCHEMA ---
 const GenerateNewRecipeInputSchema = z.object({
@@ -44,7 +47,7 @@ const AI_RecipeSchema = RecipeSchema.extend({
 const promptText = `You are a master artisan and game designer. Your task is to invent a new, logical, and thematically appropriate crafting recipe for a text-based adventure game. Your entire response (item names, descriptions, etc.) MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
 
 **Rules:**
-1.  The recipe must be **new**. It cannot be one of these existing recipes: {{json existingRecipes}}.
+1.  The recipe must be **new**. Its name cannot be one of these existing recipes: {{json existingRecipes}}.
 2.  The recipe must be **logical**. The ingredients should plausibly create the resulting item. (e.g., 'Wood' + 'Stone' -> 'Axe', not 'Wood' + 'Flower' -> 'Sword').
 3.  Use **only the items provided** in the catalog below as ingredients or results.
 4.  The recipe should have between 2 and 4 ingredients.
@@ -110,6 +113,17 @@ const generateNewRecipeFlow = ai.defineFlow(
             emoji,
           }
         };
+
+        // Save the new recipe to Firestore for persistence across games
+        if (db) {
+            try {
+                await setDoc(doc(db, "world-catalog", "recipes", "generated", finalRecipe.result.name), finalRecipe);
+                console.log(`[generateNewRecipeFlow] Successfully saved new recipe '${finalRecipe.result.name}' to Firestore.`);
+            } catch (error) {
+                console.error("Failed to save new recipe to Firestore:", error);
+                // We don't throw here, as the game can continue without this save.
+            }
+        }
 
         return finalRecipe;
     }

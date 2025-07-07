@@ -1,4 +1,5 @@
 
+
 'use server';
 /**
  * @fileOverview An AI agent for dynamically generating a new item after a quest is completed.
@@ -16,6 +17,8 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { GeneratedItemSchema, GenerateNewItemInputSchema } from '@/ai/schemas';
 import { getEmojiForItem } from '@/lib/utils';
+import { setDoc, doc } from 'firebase/firestore';
+import { db } from '@/lib/firebase-config';
 
 // --- INPUT/OUTPUT SCHEMAS ---
 
@@ -95,9 +98,22 @@ const generateNewItemFlow = ai.defineFlow(
         // Add the emoji using code logic
         const emoji = getEmojiForItem(itemWithoutEmoji.name, itemWithoutEmoji.category);
 
-        return {
+        const finalItem = {
             ...itemWithoutEmoji,
             emoji,
         };
+
+        // Save the new item to Firestore for persistence across games
+        if (db) {
+            try {
+                await setDoc(doc(db, "world-catalog", "items", "generated", finalItem.name), finalItem);
+                console.log(`[generateNewItemFlow] Successfully saved new item '${finalItem.name}' to Firestore.`);
+            } catch (error) {
+                console.error("Failed to save new item to Firestore:", error);
+                // We don't throw here, as the game can continue without this save.
+            }
+        }
+
+        return finalItem;
     }
 );

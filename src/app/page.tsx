@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -41,7 +42,7 @@ export default function Home() {
   const loadSaveSlots = useCallback(async () => {
     setLoadState('loading');
     let slots: SaveSlotSummary[] = [null, null, null];
-    if (user) { // Load from Firebase
+    if (user && db) { // Load from Firebase
       try {
         const gamesColRef = collection(db, "users", user.uid, "games");
         const querySnapshot = await getDocs(gamesColRef);
@@ -107,8 +108,13 @@ export default function Home() {
   };
 
   const handleDelete = async (slotIndex: number) => {
-    if (user) {
-        await deleteDoc(doc(db, "users", user.uid, "games", `slot_${slotIndex}`));
+    if (user && db) {
+        try {
+            await deleteDoc(doc(db, "users", user.uid, "games", `slot_${slotIndex}`));
+        } catch (error) {
+            console.error("Failed to delete from Firebase:", error);
+            toast({ title: "Error", description: "Failed to delete cloud save.", variant: "destructive" });
+        }
     } else {
         localStorage.removeItem(`gameState_${slotIndex}`);
     }
@@ -157,7 +163,7 @@ export default function Home() {
         customStructures: customStructures,
         day: 1,
         turn: 1,
-        narrativeLog: [{ id: 0, text: world.initialNarrative, type: 'narrative' }],
+        narrativeLog: [],
         worldProfile: {
             climateBase: 'temperate', magicLevel: 5, mutationFactor: 2, sunIntensity: 7,
             weatherTypesAllowed: ['clear', 'rain', 'fog'], moistureBias: 0, tempBias: 0,
@@ -177,7 +183,7 @@ export default function Home() {
 
     // Save the new state before proceeding
     try {
-        if (user) {
+        if (user && db) {
             await setDoc(doc(db, "users", user.uid, "games", `slot_${activeSlot}`), newGameState);
         } else {
             localStorage.setItem(`gameState_${activeSlot}`, JSON.stringify(newGameState));
@@ -255,7 +261,7 @@ export default function Home() {
             {saveSlots.map((slot, index) => (
               <Card key={index} className={cn("flex flex-col justify-between", slot ? "border-primary" : "border-dashed")}>
                 <CardHeader>
-                  <CardTitle className="truncate">{slot && slot.worldSetup ? slot.worldSetup.worldName : t('emptySlot')}</CardTitle>
+                  <CardTitle className="truncate">{slot?.worldSetup?.worldName ? t(slot.worldSetup.worldName as TranslationKey) : t('emptySlot')}</CardTitle>
                   <CardDescription>{slot ? `${t('dayX', {day: slot.day})}` : t('newAdventureHint')}</CardDescription>
                 </CardHeader>
                 <CardFooter className="flex flex-col gap-2">
@@ -275,7 +281,7 @@ export default function Home() {
                             <AlertDialogTitle>{t('confirmDeleteTitle')}</AlertDialogTitle>
                             <AlertDialogDescription>
                               {slot.worldSetup?.worldName
-                                ? t('confirmDeleteDesc', { worldName: slot.worldSetup.worldName })
+                                ? t('confirmDeleteDesc', { worldName: t(slot.worldSetup.worldName as TranslationKey) })
                                 : t('confirmDeleteDescGeneric')
                               }
                             </AlertDialogDescription>
@@ -334,5 +340,3 @@ export default function Home() {
 
   return null;
 }
-
-    

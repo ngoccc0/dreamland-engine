@@ -8,7 +8,7 @@ import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import { useAuth } from "@/context/auth-context";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase-config";
 
 interface GameStateProps {
@@ -59,6 +59,45 @@ export function useGameState({ gameSlot, worldSetup: propsWorldSetup, customItem
     useEffect(() => {
         const loadGame = async () => {
             let loadedState: GameState | null = null;
+
+            // --- Load persistent world data from Firestore first ---
+            const firestoreItems: GeneratedItem[] = [];
+            const firestoreRecipes: Record<string, Recipe> = {};
+            if (db) {
+                try {
+                    const itemsSnap = await getDocs(collection(db, 'world-catalog', 'items', 'generated'));
+                    itemsSnap.forEach(doc => firestoreItems.push(doc.data() as GeneratedItem));
+                    
+                    const recipesSnap = await getDocs(collection(db, 'world-catalog', 'recipes', 'generated'));
+                    recipesSnap.forEach(doc => {
+                        firestoreRecipes[doc.id] = doc.data() as Recipe;
+                    });
+                } catch (error) {
+                    console.warn("Could not load world catalog from Firestore. This might be expected if running without Firebase config.", error);
+                }
+            }
+            
+            // --- Merge static and Firestore data ---
+            const mergedItemCatalog = [...customItemCatalog, ...firestoreItems];
+            const mergedItemDefs: Record<string, ItemDefinition> = { ...staticItemDefinitions };
+            firestoreItems.forEach(item => {
+                if (!mergedItemDefs[item.name]) {
+                    mergedItemDefs[item.name] = {
+                        description: item.description, tier: item.tier, category: item.category,
+                        emoji: item.emoji, effects: item.effects, baseQuantity: item.baseQuantity,
+                        growthConditions: item.growthConditions as any, equipmentSlot: item.equipmentSlot,
+                        attributes: item.attributes,
+                    };
+                }
+            });
+
+            const mergedRecipes = { ...staticRecipes, ...firestoreRecipes };
+
+            setCustomItemCatalog(mergedItemCatalog);
+            setCustomItemDefinitions(mergedItemDefs);
+            setRecipes(mergedRecipes);
+
+            // --- Load the specific game slot ---
             if (user) {
                 const docRef = doc(db, "users", user.uid, "games", `slot_${gameSlot}`);
                 const docSnap = await getDoc(docRef);
@@ -83,21 +122,30 @@ export function useGameState({ gameSlot, worldSetup: propsWorldSetup, customItem
                 setTurn(loadedState.turn);
                 setWeatherZones(loadedState.weatherZones);
                 setWorld(loadedState.world);
-                setRecipes(loadedState.recipes);
                 setBuildableStructures(loadedState.buildableStructures);
                 setRegions(loadedState.regions);
                 setRegionCounter(loadedState.regionCounter);
                 setPlayerPosition(loadedState.playerPosition);
                 setPlayerBehaviorProfile(loadedState.playerBehaviorProfile);
                 setPlayerStats(loadedState.playerStats);
-                setCustomItemDefinitions(loadedState.customItemDefinitions);
-                setCustomItemCatalog(loadedState.customItemCatalog);
-                setCustomStructures(loadedState.customStructures);
                 setNarrativeLog(loadedState.narrativeLog);
                 setFinalWorldSetup(loadedState.worldSetup);
+
+                // Re-merge catalog/recipes in case they were updated since last save
+                if (loadedState.customItemCatalog) {
+                    const uniqueLoadedItems = loadedState.customItemCatalog.filter(item => !mergedItemCatalog.some(mi => mi.name === item.name));
+                    setCustomItemCatalog(prev => [...prev, ...uniqueLoadedItems]);
+                }
+                if (loadedState.customItemDefinitions) {
+                     setCustomItemDefinitions(prev => ({...prev, ...loadedState.customItemDefinitions}));
+                }
+                if(loadedState.recipes) {
+                    setRecipes(prev => ({...prev, ...loadedState.recipes}));
+                }
+                
             } else {
-                // Starting a new game from props
-                if (propsWorldSetup && propsCustomDefs && propsCustomCatalog && propsCustomStructures) {
+                 // Starting a new game from props
+                 if (propsWorldSetup && propsCustomDefs && propsCustomCatalog && propsCustomStructures) {
                     setFinalWorldSetup(propsWorldSetup);
                     setCustomItemDefinitions(propsCustomDefs);
                     setCustomItemCatalog(propsCustomCatalog);
@@ -108,14 +156,18 @@ export function useGameState({ gameSlot, worldSetup: propsWorldSetup, customItem
                         quests: propsWorldSetup.initialQuests,
                         skills: propsWorldSetup.startingSkill ? [propsWorldSetup.startingSkill] : [],
                     }));
-                     setNarrativeLog([{ id: 0, text: propsWorldSetup.initialNarrative, type: 'narrative' }]);
+                     if(propsWorldSetup.initialNarrative) {
+                        setNarrativeLog([{ id: 0, text: propsWorldSetup.initialNarrative, type: 'narrative' }]);
+                     }
                 }
             }
             setIsLoaded(true);
         };
 
         loadGame();
-    }, [gameSlot, user, propsWorldSetup, propsCustomDefs, propsCustomCatalog, propsCustomStructures]);
+    // The dependency array is intentionally kept minimal to run this only once on initial load.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [gameSlot, user]);
 
 
     return {

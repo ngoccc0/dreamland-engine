@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useEffect, useCallback, useRef } from "react";
@@ -255,12 +256,13 @@ export function useGameEngine(props: GameEngineProps) {
             setRegionCounter(newRegionCounterVal);
         }
         
-        if (finalWorldSetup && narrativeLog.length === 0) {
+        if (finalWorldSetup && narrativeLog.length <= 1) { // Check if only the initial narrative exists
             const startingChunk = worldWithChunk[`${playerPosition.x},${playerPosition.y}`];
             if (startingChunk) {
                 const chunkDescription = generateOfflineNarrative(startingChunk, worldWithChunk, playerPosition, 'medium', t);
                 const fullIntro = `${t(finalWorldSetup.initialNarrative as TranslationKey)}\n\n${chunkDescription}`;
-                addNarrativeEntry(fullIntro, 'narrative');
+                // Replace the initial narrative with the full one
+                setNarrativeLog([{ id: 0, text: fullIntro, type: 'narrative' }]);
 
                 const newWeatherZones = {...weatherZones};
                 Object.keys(newRegions).filter(id => !newWeatherZones[id]).forEach(regionId => {
@@ -273,7 +275,7 @@ export function useGameEngine(props: GameEngineProps) {
                 setWeatherZones(newWeatherZones);
             }
         }
-    }, [isLoaded, finalWorldSetup, t, world, playerPosition, regions, regionCounter, addNarrativeEntry, ensureChunkExists, generateOfflineNarrative, narrativeLog.length, setRegionCounter, setRegions, setWorld, setWeatherZones, weatherZones, currentSeason, gameTime]);
+    }, [isLoaded, finalWorldSetup, t, world, playerPosition, regions, regionCounter, setNarrativeLog, ensureChunkExists, generateOfflineNarrative, narrativeLog.length, setRegionCounter, setRegions, setWorld, setWeatherZones, weatherZones, currentSeason, gameTime]);
 
     const triggerRandomEvent = useCallback(() => {
         const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
@@ -752,6 +754,9 @@ export function useGameEngine(props: GameEngineProps) {
                 const newItem = result.newlyGeneratedItem;
                 setCustomItemCatalog(prev => [...prev, newItem]);
                 setCustomItemDefinitions(prev => ({ ...prev, [newItem.name]: { description: newItem.description, tier: newItem.tier, category: newItem.category, emoji: newItem.emoji, effects: newItem.effects as ItemEffect[], baseQuantity: newItem.baseQuantity, growthConditions: newItem.growthConditions as any } }));
+                if (db) {
+                    await setDoc(doc(db, "world-catalog", "items", "generated", newItem.name), newItem);
+                }
             }
             advanceGameTime(finalPlayerStats);
         } catch (error) {
@@ -1401,8 +1406,12 @@ export function useGameEngine(props: GameEngineProps) {
                 else nextPlayerStats.items.push({ name: result.resultItem!.name, quantity: result.resultItem!.baseQuantity.min, tier: result.resultItem!.tier, emoji: result.resultItem!.emoji });
                 
                 if(!customItemDefinitions[result.resultItem.name]) {
-                    setCustomItemCatalog(prev => [...prev, result.resultItem!]);
-                    setCustomItemDefinitions(prev => ({ ...prev, [result.resultItem!.name]: { description: result.resultItem!.description, tier: result.resultItem!.tier, category: result.resultItem!.category, emoji: result.resultItem!.emoji, effects: result.resultItem!.effects as ItemEffect[], baseQuantity: result.resultItem!.baseQuantity, growthConditions: result.resultItem!.growthConditions, }}));
+                    const newItem = result.resultItem;
+                    setCustomItemCatalog(prev => [...prev, newItem]);
+                    setCustomItemDefinitions(prev => ({ ...prev, [newItem.name]: { description: newItem.description, tier: newItem.tier, category: newItem.category, emoji: newItem.emoji, effects: newItem.effects as ItemEffect[], baseQuantity: newItem.baseQuantity, growthConditions: newItem.growthConditions, }}));
+                    if(db) {
+                        await setDoc(doc(db, "world-catalog", "items", "generated", newItem.name), newItem);
+                    }
                 }
             }
             advanceGameTime(nextPlayerStats);

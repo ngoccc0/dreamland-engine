@@ -70,6 +70,7 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     if (e.deltaY < 0) {
       setZoom((prev) => Math.min(MAX_ZOOM, prev + 1));
     } else {

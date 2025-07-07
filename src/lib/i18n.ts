@@ -1696,7 +1696,7 @@ export const translations = {
     gameOverMessage: "Bóng tối bao trùm lấy bạn. Hành trình của bạn kết thúc tại đây.",
     structures: "Công trình",
     enemy: "Kẻ địch",
-    npcs: "NPC",
+    npcs: "NPCs",
     floptropica_narrative1: "Bạn thức dậy trên một hòn đảo sôi động, hơi hỗn loạn. Không khí có mùi sản phẩm của Jiafei và tiếng la hét 'ATE!' yếu ớt. Một bản nhạc pop kỳ lạ đang phát ra từ khu rừng rậm. Bạn cảm thấy một sự thôi thúc kỳ lạ để 'phục vụ cvnt'.",
     floptropica_narrative2: "Bị dạt vào bờ, bạn thấy mình ở một vùng đất nơi các meme là tiền tệ và 'shade' là vũ khí nguy hiểm nhất. Một cung điện ở xa xa vang lên âm thanh của Nicki Minaj.",
     floptropica_narrative3: "Bạn đã bị đày đến Vùng đất hoang Bad Bussy. Ở đây, chỉ những người mang tính biểu tượng nhất mới có thể tồn tại. Mặt đất rung chuyển theo tiếng bass của những bản remix mạnh mẽ.",

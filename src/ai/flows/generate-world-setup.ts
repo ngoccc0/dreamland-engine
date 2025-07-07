@@ -34,6 +34,7 @@ import type { Terrain, Skill, Structure, GeneratedItem } from '@/lib/game/types'
 import { GeneratedItemSchema, SkillSchema, NarrativeConceptArraySchema, ItemCategorySchema, StructureSchema, allTerrains as allTerrainsSchema } from '@/ai/schemas';
 import { skillDefinitions } from '@/lib/game/skills';
 import { getEmojiForItem } from '@/lib/utils';
+import { translations, type Language, type TranslationKey } from '@/lib/i18n';
 
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
 
@@ -174,6 +175,11 @@ const generateWorldSetupFlow = ai.defineFlow(
   },
   async (input) => {
     
+    // --- Helper for translation within the flow ---
+    const t = (key: TranslationKey): string => {
+        return (translations[input.language as Language] as any)[key] || (translations.en as any)[key] || key;
+    };
+
     // --- SPECIAL DEBUG WORLD ---
     if (input.userInput.toLowerCase().trim() === 'floptropica') {
         console.log('--- DETECTED "FLOPTROPICA" DEBUG WORLD ---');
@@ -200,28 +206,28 @@ const generateWorldSetupFlow = ai.defineFlow(
         const concepts = [
             {
                 worldName: "Floptropica",
-                initialNarrative: "Bạn thức dậy trên một hòn đảo sôi động, hơi hỗn loạn. Không khí có mùi sản phẩm của Jiafei và tiếng la hét 'ATE!' yếu ớt. Một bản nhạc pop kỳ lạ đang phát ra từ khu rừng rậm. Bạn cảm thấy một sự thôi thúc kỳ lạ để 'phục vụ cvnt'.",
+                initialNarrative: t('floptropica_narrative1'),
                 startingBiome: 'floptropica' as Terrain,
                 playerInventory: [ { name: "Chảo của Jiafei", quantity: 1 }, { name: "Chủ đề Stan Twitter", quantity: 1 } ],
-                initialQuests: [ "Tìm nguồn gốc của bản nhạc pop bí ẩn.", "Phục vụ cvnt đầu tiên của bạn." ],
+                initialQuests: [ t('floptropica_quest1'), t('floptropica_quest2') ],
                 startingSkill: skill1,
                 customStructures: floptropicaStructures,
             },
             {
                 worldName: "Vương quốc Onika",
-                initialNarrative: "Bị dạt vào bờ, bạn thấy mình ở một vùng đất nơi các meme là tiền tệ và 'shade' là vũ khí nguy hiểm nhất. Một cung điện ở xa xa vang lên âm thanh của Nicki Minaj.",
+                initialNarrative: t('floptropica_narrative2'),
                 startingBiome: 'floptropica' as Terrain,
                 playerInventory: [ { name: "Bản Remix của CupcakKe", quantity: 1 }, { name: "Phiếu giảm giá Onika Burger", quantity: 1 } ],
-                initialQuests: [ "Đến Bệnh viện Barbz của Nicki.", "Chế tạo một meme xứng tầm stan." ],
+                initialQuests: [ t('floptropica_quest3'), t('floptropica_quest4') ],
                 startingSkill: skill2,
                 customStructures: floptropicaStructures,
             },
             {
                 worldName: "Vùng đất hoang Bad Bussy",
-                initialNarrative: "Bạn đã bị đày đến Vùng đất hoang Bad Bussy. Ở đây, chỉ những người mang tính biểu tượng nhất mới có thể tồn tại. Mặt đất rung chuyển theo tiếng bass của những bản remix mạnh mẽ.",
+                initialNarrative: t('floptropica_narrative3'),
                 startingBiome: 'floptropica' as Terrain,
                 playerInventory: [ { name: "Chảo của Jiafei", quantity: 1 }, { name: "Viên Yass", quantity: 2 } ],
-                initialQuests: [ "Sống sót qua đêm.", "Tìm Đại học C.V.N.T. của Deborah." ],
+                initialQuests: [ t('floptropica_quest5'), t('floptropica_quest6') ],
                 startingSkill: skill3,
                 customStructures: floptropicaStructures,
             }
@@ -449,3 +455,5 @@ const generateWorldSetupFlow = ai.defineFlow(
     return finalOutput;
   }
 );
+
+    

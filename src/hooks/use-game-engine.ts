@@ -184,7 +184,7 @@ export function useGameEngine(props: GameEngineProps) {
             return narrative;
         }
     
-        const itemsHere = chunk.items.map(i => `${i.quantity}x ${t(i.name as TranslationKey)}`).join(', ');
+        const itemsHere = chunk.items.map(i => `${i.quantity} ${t(i.name as TranslationKey)}`).join(', ');
         if (itemsHere) {
             narrative += ` ${t('offlineNarrativeItems', { items: itemsHere })}`;
         }
@@ -807,7 +807,7 @@ export function useGameEngine(props: GameEngineProps) {
         }
     
         let narrative = combatLogParts.join(' ');
-        if (enemyDefeated) narrative += ` ${t('enemyDefeated', { enemyType: t(currentChunk.enemy.type as TranslationKey) })}` + (lootDrops.length > 0 ? ` ${t('enemyDropped', { items: lootDrops.map(i => `${i.quantity}x ${t(i.name as TranslationKey)}`).join(', ') })}` : "");
+        if (enemyDefeated) narrative += ` ${t('enemyDefeated', { enemyType: t(currentChunk.enemy.type as TranslationKey) })}` + (lootDrops.length > 0 ? ` ${t('enemyDropped', { items: lootDrops.map(i => `${i.quantity} ${t(i.name as TranslationKey)}`).join(', ') })}` : "");
         else if (fled) narrative += ` ${t('enemyFled', { enemyType: t(currentChunk.enemy.type as TranslationKey) })}`;
         else if (enemyDamage > 0) narrative += ` ${t('enemyRetaliated', { enemyType: t(currentChunk.enemy.type as TranslationKey), damage: enemyDamage })}`;
         else narrative += ` ${t('enemyPrepares', { enemyType: t(currentChunk.enemy.type as TranslationKey) })}`;

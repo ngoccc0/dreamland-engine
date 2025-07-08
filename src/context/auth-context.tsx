@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
@@ -11,6 +10,7 @@ interface AuthContextType {
   loading: boolean;
   login: () => Promise<void>;
   logout: () => Promise<void>;
+  isFirebaseConfigured: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,10 +18,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const isFirebaseConfigured = !!(auth && auth.app);
 
   useEffect(() => {
-    // If auth is a mock object because Firebase config is missing, don't try to use it.
-    if (!auth || Object.keys(auth).length === 0) {
+    if (!isFirebaseConfigured) {
       setLoading(false);
       return;
     }
@@ -31,11 +31,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [isFirebaseConfigured]);
 
   const login = async () => {
-    // If auth is a mock object, do nothing.
-    if (!auth || Object.keys(auth).length === 0) {
+    if (!isFirebaseConfigured) {
         console.error("Firebase is not configured. Cannot log in.");
         return;
     }
@@ -47,8 +46,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
-    // If auth is a mock object, do nothing.
-    if (!auth || Object.keys(auth).length === 0) {
+    if (!isFirebaseConfigured) {
         console.error("Firebase is not configured. Cannot log out.");
         return;
     }
@@ -60,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, isFirebaseConfigured }}>
       {children}
     </AuthContext.Provider>
   );

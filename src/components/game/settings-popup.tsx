@@ -28,7 +28,7 @@ export function SettingsPopup({ open, onOpenChange, isInGame }: SettingsPopupPro
   const { t, language, setLanguage } = useLanguage();
   const { settings, setSettings } = useSettings();
   const { installPrompt, setInstallPrompt } = usePwaInstall();
-  const { user, login, logout } = useAuth();
+  const { user, login, logout, isFirebaseConfigured } = useAuth();
 
   const handleInstallClick = () => {
     if (!installPrompt) return;
@@ -77,20 +77,26 @@ export function SettingsPopup({ open, onOpenChange, isInGame }: SettingsPopupPro
           
           <div className="space-y-3">
             <Label className="font-semibold flex items-center gap-2"><UserCircle2 /> {t('accountSync')}</Label>
-            <p className="text-sm leading-snug text-muted-foreground">{t('accountSyncDesc')}</p>
-            {user ? (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-foreground truncate">{user.displayName || user.email}</span>
-                <Button variant="ghost" onClick={logout}>
-                  <LogOut className="mr-2" />
-                  {t('logout')}
-                </Button>
-              </div>
+            {isFirebaseConfigured ? (
+              <>
+                <p className="text-sm leading-snug text-muted-foreground">{t('accountSyncDesc')}</p>
+                {user ? (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-foreground truncate">{user.displayName || user.email}</span>
+                    <Button variant="ghost" onClick={logout}>
+                      <LogOut className="mr-2" />
+                      {t('logout')}
+                    </Button>
+                  </div>
+                ) : (
+                  <Button onClick={login} className="w-full">
+                    <LogIn className="mr-2" />
+                    {t('loginWithGoogle')}
+                  </Button>
+                )}
+              </>
             ) : (
-              <Button onClick={login} className="w-full">
-                <LogIn className="mr-2" />
-                {t('loginWithGoogle')}
-              </Button>
+              <p className="text-sm leading-snug text-destructive">{t('firebaseNotConfigured')}</p>
             )}
           </div>
           

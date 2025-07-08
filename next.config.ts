@@ -44,10 +44,10 @@ const withPWA = withPWAInit({
         },
       },
     },
-    // Cache pages using Stale While Revalidate strategy for instant loads
+    // Use NetworkFirst for navigation requests to prevent stale HTML and ChunkLoadErrors.
     {
       urlPattern: ({ request }) => request.mode === 'navigate',
-      handler: 'StaleWhileRevalidate',
+      handler: 'NetworkFirst',
       options: {
         cacheName: 'pages',
         expiration: {

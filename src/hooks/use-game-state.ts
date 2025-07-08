@@ -3,14 +3,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, PlayerAttributes } from "@/lib/game/types";
+import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, PlayerAttributes, ItemEffect } from "@/lib/game/types";
 import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import { useAuth } from "@/context/auth-context";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase-config";
-import type { ItemEffect } from "@/lib/game/types";
 
 interface GameStateProps {
     gameSlot: number;
@@ -91,35 +90,37 @@ export function useGameState({ gameSlot, worldSetup: propsWorldSetup, customItem
                 }
             }
             
-            // --- 3. Set initial state from save or props ---
+            // --- 3. Prepare session-specific data from save or props ---
+            let sessionCatalog: GeneratedItem[] = [];
+            let sessionDefs: Record<string, ItemDefinition> = {};
+            let sessionRecipes: Record<string, Recipe> = {};
+            let sessionStructures: Structure[] = [];
+
             if (loadedState) {
                 // Loading existing game
                 setWorldProfile(loadedState.worldProfile);
                 setCurrentSeason(loadedState.currentSeason);
                 setGameTime(loadedState.gameTime || 360);
                 setDay(loadedState.day);
-                setTurn(loadedState.turn);
-                setWeatherZones(loadedState.weatherZones);
-                setWorld(loadedState.world);
-                setBuildableStructures(loadedState.buildableStructures);
-                setRegions(loadedState.regions);
-                setRegionCounter(loadedState.regionCounter);
-                setPlayerPosition(loadedState.playerPosition);
-                setPlayerBehaviorProfile(loadedState.playerBehaviorProfile);
+                setTurn(loadedState.turn || 1);
+                setWeatherZones(loadedState.weatherZones || {});
+                setWorld(loadedState.world || {});
+                setRegions(loadedState.regions || {});
+                setRegionCounter(loadedState.regionCounter || 0);
+                setPlayerPosition(loadedState.playerPosition || { x: 0, y: 0 });
+                setPlayerBehaviorProfile(loadedState.playerBehaviorProfile || { moves: 0, attacks: 0, crafts: 0, customActions: 0 });
                 setPlayerStats(loadedState.playerStats);
                 setNarrativeLog(loadedState.narrativeLog);
                 setFinalWorldSetup(loadedState.worldSetup);
-                // The catalogs/definitions from the save file are the source of truth for THIS session
-                setCustomItemCatalog(loadedState.customItemCatalog || []);
-                setCustomItemDefinitions(loadedState.customItemDefinitions || {});
-                setRecipes(loadedState.recipes || {});
+
+                sessionCatalog = loadedState.customItemCatalog || [];
+                sessionDefs = loadedState.customItemDefinitions || {};
+                sessionRecipes = loadedState.recipes || {};
+                sessionStructures = loadedState.customStructures || [];
 
             } else if (propsWorldSetup && propsCustomDefs && propsCustomCatalog && propsCustomStructures) {
                 // Starting a new game from props
                 setFinalWorldSetup(propsWorldSetup);
-                setCustomItemDefinitions(propsCustomDefs);
-                setCustomItemCatalog(propsCustomCatalog);
-                setCustomStructures(propsCustomStructures);
                 setPlayerStats(prev => ({
                     ...prev,
                     items: propsWorldSetup.playerInventory,
@@ -129,35 +130,42 @@ export function useGameState({ gameSlot, worldSetup: propsWorldSetup, customItem
                  if(propsWorldSetup.initialNarrative) {
                     setNarrativeLog([{ id: 0, text: propsWorldSetup.initialNarrative, type: 'narrative' }]);
                  }
+                
+                sessionCatalog = propsCustomCatalog;
+                sessionDefs = propsCustomDefs;
+                sessionRecipes = staticRecipes;
+                sessionStructures = propsCustomStructures;
             }
 
-            // --- 4. MERGE global data into the current state ---
-            // This ensures that even old save files get access to newly discovered items from other games.
-            setRecipes(prev => {
-                const combined = { ...staticRecipes, ...prev };
-                firestoreRecipes.forEach((value, key) => combined[key] = value);
-                return combined;
+            // --- 4. MERGE global data into the session data before setting state ---
+            const finalCatalogMap = new Map<string, GeneratedItem>();
+            sessionCatalog.forEach(item => finalCatalogMap.set(item.name, item));
+            firestoreItems.forEach((item, name) => finalCatalogMap.set(name, item));
+            const finalCatalogArray = Array.from(finalCatalogMap.values());
+            
+            const finalRecipes = { ...staticRecipes, ...sessionRecipes };
+            firestoreRecipes.forEach((value, key) => {
+                if (!finalRecipes[key]) finalRecipes[key] = value;
             });
 
-            const finalItemCatalog = new Map<string, GeneratedItem>();
-            customItemCatalog.forEach(item => finalItemCatalog.set(item.name, item));
-            firestoreItems.forEach((item, name) => finalItemCatalog.set(name, item));
-            setCustomItemCatalog(Array.from(finalItemCatalog.values()));
-            
-            setCustomItemDefinitions(prev => {
-                const combined = { ...staticItemDefinitions, ...prev };
-                finalItemCatalog.forEach((item) => {
-                    if (!combined[item.name]) {
-                        combined[item.name] = {
-                            description: item.description, tier: item.tier, category: item.category,
-                            emoji: item.emoji, effects: item.effects as ItemEffect[], baseQuantity: item.baseQuantity,
-                            growthConditions: item.growthConditions, equipmentSlot: item.equipmentSlot,
-                            attributes: item.attributes,
-                        };
-                    }
-                });
-                return combined;
+            const finalDefs = { ...staticItemDefinitions, ...sessionDefs };
+            finalCatalogArray.forEach((item) => {
+                if (!finalDefs[item.name]) {
+                    finalDefs[item.name] = {
+                        description: item.description, tier: item.tier, category: item.category,
+                        emoji: item.emoji, effects: item.effects as ItemEffect[], baseQuantity: item.baseQuantity,
+                        growthConditions: item.growthConditions, equipmentSlot: item.equipmentSlot,
+                        attributes: item.attributes,
+                    };
+                }
             });
+
+            // --- 5. Set the final, merged state ---
+            setRecipes(finalRecipes);
+            setCustomItemCatalog(finalCatalogArray);
+            setCustomItemDefinitions(finalDefs);
+            setCustomStructures(sessionStructures);
+            setBuildableStructures(staticBuildableStructures); // This was missing, ensure it's always set.
             
             setIsLoaded(true);
         };

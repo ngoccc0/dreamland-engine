@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -249,7 +248,27 @@ export default function Home() {
   if (loadState === 'slot_selection') {
     return (
       <TooltipProvider>
-        <div className="flex flex-col items-center justify-center min-h-dvh bg-background text-foreground p-4">
+        <div className="flex flex-col items-center justify-center min-h-dvh bg-background text-foreground p-4 relative">
+          <div className="absolute top-4 right-4 flex items-center gap-2">
+            <Button onClick={() => setSettingsOpen(true)} variant="ghost" size="icon">
+              <Settings className="h-5 w-5" />
+            </Button>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <span className="w-full sm:w-auto">
+                        <Button onClick={handleInstallClick} variant="ghost" size="icon" disabled={!installPrompt}>
+                            <Download className="h-5 w-5" />
+                        </Button>
+                    </span>
+                </TooltipTrigger>
+                {!installPrompt && (
+                    <TooltipContent>
+                        <p>{t('installNotAvailableTooltip')}</p>
+                    </TooltipContent>
+                )}
+            </Tooltip>
+          </div>
+
           <header className="text-center mb-8">
             <h1 className="text-5xl font-bold font-headline tracking-tighter">
               {t('gameTitle')}
@@ -303,25 +322,6 @@ export default function Home() {
             ))}
           </div>
 
-          <footer className="absolute bottom-4 right-4 flex items-center gap-2">
-            <Button onClick={() => setSettingsOpen(true)} variant="ghost" size="icon">
-              <Settings className="h-5 w-5" />
-            </Button>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <span className="w-full sm:w-auto">
-                        <Button onClick={handleInstallClick} variant="ghost" size="icon" disabled={!installPrompt}>
-                            <Download className="h-5 w-5" />
-                        </Button>
-                    </span>
-                </TooltipTrigger>
-                {!installPrompt && (
-                    <TooltipContent>
-                        <p>{t('installNotAvailableTooltip')}</p>
-                    </TooltipContent>
-                )}
-            </Tooltip>
-          </footer>
         </div>
         <SettingsPopup open={isSettingsOpen} onOpenChange={setSettingsOpen} isInGame={false} />
       </TooltipProvider>

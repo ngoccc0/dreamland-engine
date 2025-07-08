@@ -35,6 +35,10 @@ import { GeneratedItemSchema, SkillSchema, NarrativeConceptArraySchema, ItemCate
 import { skillDefinitions } from '@/lib/game/skills';
 import { getEmojiForItem } from '@/lib/utils';
 import { translations, type Language, type TranslationKey } from '@/lib/i18n';
+import { db } from '@/lib/firebase-config';
+import { collection, getDocs } from 'firebase/firestore';
+import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
+
 
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
 
@@ -125,7 +129,8 @@ Based on the user's idea, your task is to generate **a small, initial catalog of
 2.  For each item, you MUST define only the following fields: 'name', 'description', 'category', and 'spawnBiomes'.
 3.  The 'category' must be one of the allowed values: 'Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion'.
 4.  The 'spawnBiomes' must be an array of biome names from this list: ${allTerrainsSchema.join(', ')}.
-5.  DO NOT include 'tier', 'effects', 'baseQuantity', or any other fields.`;
+5.  DO NOT create items that are already on this list: {{json existingItemNames}}.
+6.  DO NOT include 'tier', 'effects', 'baseQuantity', or any other fields.`;
 
 // -- Template for Task B: World Name Generation --
 const worldNamesPromptTemplate = `You are a creative brainstorming assistant. ALL TEXT in your response MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a strict requirement.
@@ -248,10 +253,25 @@ const generateWorldSetupFlow = ai.defineFlow(
     
     // --- Step 1: Define four independent AI tasks to run in parallel ---
     
+    // --- NEW: Fetch all existing item names to prevent duplicates ---
+    const existingItemNames = new Set<string>();
+    Object.keys(staticItemDefinitions).forEach(name => existingItemNames.add(name));
+    if (db) {
+        try {
+            const itemsSnap = await getDocs(collection(db, 'world-catalog', 'items', 'generated'));
+            itemsSnap.forEach(doc => existingItemNames.add(doc.id));
+        } catch (e) {
+            console.warn("Could not fetch existing items from Firestore for world-gen.", e);
+        }
+    }
+    const itemNamesList = Array.from(existingItemNames);
+
     // Task A: Generate the item catalog.
     const itemCatalogTask = (async () => {
         const template = Handlebars.compile(itemCatalogPromptTemplate);
-        const renderedPrompt = template(input);
+        const promptInput = { ...input, existingItemNames: itemNamesList };
+        const renderedPrompt = template(promptInput);
+
         const modelsToTry = ['openai/gpt-4o', 'googleai/gemini-1.5-pro', 'deepseek/deepseek-chat', 'googleai/gemini-2.0-flash'];
         const errorLogs: string[] = [];
 
@@ -455,5 +475,3 @@ const generateWorldSetupFlow = ai.defineFlow(
     return finalOutput;
   }
 );
-
-    

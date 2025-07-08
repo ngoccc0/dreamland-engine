@@ -10,6 +10,7 @@ import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import { useAuth } from "@/context/auth-context";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase-config";
+import type { ItemEffect } from "@/lib/game/types";
 
 interface GameStateProps {
     gameSlot: number;
@@ -58,46 +59,23 @@ export function useGameState({ gameSlot, worldSetup: propsWorldSetup, customItem
 
     useEffect(() => {
         const loadGame = async () => {
-            let loadedState: GameState | null = null;
-
-            // --- Load persistent world data from Firestore first ---
-            const firestoreItems: GeneratedItem[] = [];
-            const firestoreRecipes: Record<string, Recipe> = {};
+            // --- 1. Load persistent GLOBAL data from Firestore ---
+            const firestoreItems = new Map<string, GeneratedItem>();
+            const firestoreRecipes = new Map<string, Recipe>();
             if (db) {
                 try {
                     const itemsSnap = await getDocs(collection(db, 'world-catalog', 'items', 'generated'));
-                    itemsSnap.forEach(doc => firestoreItems.push(doc.data() as GeneratedItem));
+                    itemsSnap.forEach(doc => firestoreItems.set(doc.id, doc.data() as GeneratedItem));
                     
                     const recipesSnap = await getDocs(collection(db, 'world-catalog', 'recipes', 'generated'));
-                    recipesSnap.forEach(doc => {
-                        firestoreRecipes[doc.id] = doc.data() as Recipe;
-                    });
+                    recipesSnap.forEach(doc => firestoreRecipes.set(doc.id, doc.data() as Recipe));
                 } catch (error) {
-                    console.warn("Could not load world catalog from Firestore. This might be expected if running without Firebase config.", error);
+                    console.warn("Could not load world catalog from Firestore.", error);
                 }
             }
             
-            // --- Merge static and Firestore data ---
-            const mergedItemCatalog = [...customItemCatalog, ...firestoreItems];
-            const mergedItemDefs: Record<string, ItemDefinition> = { ...staticItemDefinitions };
-            firestoreItems.forEach(item => {
-                if (!mergedItemDefs[item.name]) {
-                    mergedItemDefs[item.name] = {
-                        description: item.description, tier: item.tier, category: item.category,
-                        emoji: item.emoji, effects: item.effects, baseQuantity: item.baseQuantity,
-                        growthConditions: item.growthConditions as any, equipmentSlot: item.equipmentSlot,
-                        attributes: item.attributes,
-                    };
-                }
-            });
-
-            const mergedRecipes = { ...staticRecipes, ...firestoreRecipes };
-
-            setCustomItemCatalog(mergedItemCatalog);
-            setCustomItemDefinitions(mergedItemDefs);
-            setRecipes(mergedRecipes);
-
-            // --- Load the specific game slot ---
+            // --- 2. Load the specific game slot data ---
+            let loadedState: GameState | null = null;
             if (user) {
                 const docRef = doc(db, "users", user.uid, "games", `slot_${gameSlot}`);
                 const docSnap = await getDoc(docRef);
@@ -112,7 +90,8 @@ export function useGameState({ gameSlot, worldSetup: propsWorldSetup, customItem
                     } catch (e) { console.error("Failed to parse local save data", e); }
                 }
             }
-
+            
+            // --- 3. Set initial state from save or props ---
             if (loadedState) {
                 // Loading existing game
                 setWorldProfile(loadedState.worldProfile);
@@ -130,37 +109,56 @@ export function useGameState({ gameSlot, worldSetup: propsWorldSetup, customItem
                 setPlayerStats(loadedState.playerStats);
                 setNarrativeLog(loadedState.narrativeLog);
                 setFinalWorldSetup(loadedState.worldSetup);
+                // The catalogs/definitions from the save file are the source of truth for THIS session
+                setCustomItemCatalog(loadedState.customItemCatalog || []);
+                setCustomItemDefinitions(loadedState.customItemDefinitions || {});
+                setRecipes(loadedState.recipes || {});
 
-                // Re-merge catalog/recipes in case they were updated since last save
-                if (loadedState.customItemCatalog) {
-                    const uniqueLoadedItems = loadedState.customItemCatalog.filter(item => !mergedItemCatalog.some(mi => mi.name === item.name));
-                    setCustomItemCatalog(prev => [...prev, ...uniqueLoadedItems]);
-                }
-                if (loadedState.customItemDefinitions) {
-                     setCustomItemDefinitions(prev => ({...prev, ...loadedState.customItemDefinitions}));
-                }
-                if(loadedState.recipes) {
-                    setRecipes(prev => ({...prev, ...loadedState.recipes}));
-                }
-                
-            } else {
-                 // Starting a new game from props
-                 if (propsWorldSetup && propsCustomDefs && propsCustomCatalog && propsCustomStructures) {
-                    setFinalWorldSetup(propsWorldSetup);
-                    setCustomItemDefinitions(propsCustomDefs);
-                    setCustomItemCatalog(propsCustomCatalog);
-                    setCustomStructures(propsCustomStructures);
-                    setPlayerStats(prev => ({
-                        ...prev,
-                        items: propsWorldSetup.playerInventory,
-                        quests: propsWorldSetup.initialQuests,
-                        skills: propsWorldSetup.startingSkill ? [propsWorldSetup.startingSkill] : [],
-                    }));
-                     if(propsWorldSetup.initialNarrative) {
-                        setNarrativeLog([{ id: 0, text: propsWorldSetup.initialNarrative, type: 'narrative' }]);
-                     }
-                }
+            } else if (propsWorldSetup && propsCustomDefs && propsCustomCatalog && propsCustomStructures) {
+                // Starting a new game from props
+                setFinalWorldSetup(propsWorldSetup);
+                setCustomItemDefinitions(propsCustomDefs);
+                setCustomItemCatalog(propsCustomCatalog);
+                setCustomStructures(propsCustomStructures);
+                setPlayerStats(prev => ({
+                    ...prev,
+                    items: propsWorldSetup.playerInventory,
+                    quests: propsWorldSetup.initialQuests,
+                    skills: propsWorldSetup.startingSkill ? [propsWorldSetup.startingSkill] : [],
+                }));
+                 if(propsWorldSetup.initialNarrative) {
+                    setNarrativeLog([{ id: 0, text: propsWorldSetup.initialNarrative, type: 'narrative' }]);
+                 }
             }
+
+            // --- 4. MERGE global data into the current state ---
+            // This ensures that even old save files get access to newly discovered items from other games.
+            setRecipes(prev => {
+                const combined = { ...staticRecipes, ...prev };
+                firestoreRecipes.forEach((value, key) => combined[key] = value);
+                return combined;
+            });
+
+            const finalItemCatalog = new Map<string, GeneratedItem>();
+            customItemCatalog.forEach(item => finalItemCatalog.set(item.name, item));
+            firestoreItems.forEach((item, name) => finalItemCatalog.set(name, item));
+            setCustomItemCatalog(Array.from(finalItemCatalog.values()));
+            
+            setCustomItemDefinitions(prev => {
+                const combined = { ...staticItemDefinitions, ...prev };
+                finalItemCatalog.forEach((item) => {
+                    if (!combined[item.name]) {
+                        combined[item.name] = {
+                            description: item.description, tier: item.tier, category: item.category,
+                            emoji: item.emoji, effects: item.effects as ItemEffect[], baseQuantity: item.baseQuantity,
+                            growthConditions: item.growthConditions, equipmentSlot: item.equipmentSlot,
+                            attributes: item.attributes,
+                        };
+                    }
+                });
+                return combined;
+            });
+            
             setIsLoaded(true);
         };
 

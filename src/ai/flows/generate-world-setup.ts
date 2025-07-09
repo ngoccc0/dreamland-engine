@@ -34,7 +34,6 @@ import type { Terrain, Skill, Structure, GeneratedItem } from '@/lib/game/types'
 import { GeneratedItemSchema, SkillSchema, NarrativeConceptArraySchema, ItemCategorySchema, StructureSchema, allTerrains as allTerrainsSchema } from '@/ai/schemas';
 import { skillDefinitions } from '@/lib/game/skills';
 import { getEmojiForItem } from '@/lib/utils';
-import { translations, type Language, type TranslationKey } from '@/lib/i18n';
 import { db } from '@/lib/firebase-config';
 import { collection, getDocs } from 'firebase/firestore';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
@@ -99,7 +98,7 @@ const WorldConceptSchema = z.object({
   customStructures: z.array(StructureSchema), // Pass the generated structures with each concept
 });
 
-const GenerateWorldSetupOutputSchema = z.object({
+export const GenerateWorldSetupOutputSchema = z.object({
     customItemCatalog: z.array(GeneratedItemSchema),
     customStructures: z.array(StructureSchema),
     concepts: z.array(WorldConceptSchema).length(3),
@@ -179,73 +178,6 @@ const generateWorldSetupFlow = ai.defineFlow(
     outputSchema: GenerateWorldSetupOutputSchema,
   },
   async (input) => {
-    
-    // --- Helper for translation within the flow ---
-    const t = (key: TranslationKey): string => {
-        return (translations[input.language as Language] as any)[key] || (translations.en as any)[key] || key;
-    };
-
-    // --- SPECIAL DEBUG WORLD ---
-    if (input.userInput.toLowerCase().trim() === 'floptropica') {
-        console.log('--- DETECTED "FLOPTROPICA" DEBUG WORLD ---');
-        
-        const floptropicaItems: GeneratedItem[] = [
-            { name: "Chảo của Jiafei", description: 'item_jiafei_pan_desc', emoji: '🍳', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['floptropica'] },
-            { name: "Chủ đề Stan Twitter", description: 'item_stan_twitter_thread_desc', emoji: '📜', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['floptropica'] },
-            { name: "Bản Remix của CupcakKe", description: 'item_cupcakke_remix_desc', emoji: '🎶', category: 'Support', tier: 3, effects: [{ type: 'RESTORE_STAMINA', amount: 50 }], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['floptropica'] },
-            { name: "Viên Yass", description: 'item_yass_pill_desc', emoji: '💊', category: 'Support', tier: 2, effects: [{ type: 'HEAL', amount: 30 }], baseQuantity: { min: 2, max: 2 }, spawnBiomes: ['floptropica'] },
-            { name: "Gusher", description: "item_gusher_desc", emoji: '🥤', category: 'Food', tier: 1, effects: [{ type: 'RESTORE_STAMINA', amount: 30 }], baseQuantity: { min: 1, max: 2 }, spawnBiomes: ['floptropica'] },
-            { name: "Phiếu giảm giá Onika Burger", description: "item_onika_burger_coupon_desc", emoji: '🎟️', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['floptropica'] },
-        ];
-
-        const floptropicaStructures: Structure[] = [
-            { name: 'Đại học C.V.N.T. của Deborah', description: 'structure_deborah_university_desc', emoji: '🎓', providesShelter: true, buildable: false, buildCost: [], restEffect: { hp: 30, stamina: 30 }, heatValue: 1 },
-            { name: 'Bệnh viện Barbz của Nicki', description: 'structure_nicki_hospital_desc', emoji: '🏥', providesShelter: true, buildable: false, buildCost: [], restEffect: { hp: 100, stamina: 50 }, heatValue: 0 },
-            { name: "Onika Burgers", description: "structure_onika_burgers_desc", emoji: '🍔', providesShelter: true, buildable: false, buildCost: [], restEffect: { hp: 15, stamina: 40 }, heatValue: 1 },
-        ];
-
-        const skill1: Skill = { name: 'skillFireballName', description: 'skillFireballDesc', tier: 1, manaCost: 15, effect: { type: 'DAMAGE', amount: 15, target: 'ENEMY' } };
-        const skill2: Skill = { name: 'skillHealName', description: 'skillHealDesc', tier: 1, manaCost: 20, effect: { type: 'HEAL', amount: 25, target: 'SELF' } };
-        const skill3: Skill = { name: 'skillLifeSiphonName', description: 'skillLifeSiphonDesc', tier: 2, manaCost: 30, effect: { type: 'DAMAGE', amount: 25, target: 'ENEMY', healRatio: 0.5 } };
-        
-        const concepts = [
-            {
-                worldName: "Floptropica",
-                initialNarrative: t('floptropica_narrative1'),
-                startingBiome: 'floptropica' as Terrain,
-                playerInventory: [ { name: "Chảo của Jiafei", quantity: 1 }, { name: "Chủ đề Stan Twitter", quantity: 1 } ],
-                initialQuests: [ t('floptropica_quest1'), t('floptropica_quest2') ],
-                startingSkill: skill1,
-                customStructures: floptropicaStructures,
-            },
-            {
-                worldName: "Vương quốc Onika",
-                initialNarrative: t('floptropica_narrative2'),
-                startingBiome: 'floptropica' as Terrain,
-                playerInventory: [ { name: "Bản Remix của CupcakKe", quantity: 1 }, { name: "Phiếu giảm giá Onika Burger", quantity: 1 } ],
-                initialQuests: [ t('floptropica_quest3'), t('floptropica_quest4') ],
-                startingSkill: skill2,
-                customStructures: floptropicaStructures,
-            },
-            {
-                worldName: "Vùng đất hoang Bad Bussy",
-                initialNarrative: t('floptropica_narrative3'),
-                startingBiome: 'floptropica' as Terrain,
-                playerInventory: [ { name: "Chảo của Jiafei", quantity: 1 }, { name: "Viên Yass", quantity: 2 } ],
-                initialQuests: [ t('floptropica_quest5'), t('floptropica_quest6') ],
-                startingSkill: skill3,
-                customStructures: floptropicaStructures,
-            }
-        ];
-
-        const hardcodedWorld: GenerateWorldSetupOutput = {
-            customItemCatalog: floptropicaItems,
-            customStructures: floptropicaStructures,
-            concepts: concepts as any,
-        };
-
-        return hardcodedWorld;
-    }
 
     console.log('--- STARTING WORLD GENERATION ---');
     console.log('User Input:', input.userInput);

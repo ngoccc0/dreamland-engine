@@ -74,6 +74,7 @@ export function useGameEngine(props: GameEngineProps) {
 
     const isOnline = settings.gameMode === 'ai';
     const narrativeIdCounter = useRef(1);
+    const isInitialized = useRef(false);
     
     useEffect(() => {
         if (narrativeLog.length > 0) {
@@ -223,58 +224,67 @@ export function useGameEngine(props: GameEngineProps) {
         return narrative;
     }, [getEffectiveChunk]);
 
+    // This effect handles the one-time initialization of the game world when it's first loaded.
     useEffect(() => {
-        if (!isLoaded) return;
+        if (!isLoaded || isInitialized.current || !finalWorldSetup) return;
 
-        let worldWithChunk = world;
-        let newRegions = regions;
-        let newRegionCounterVal = regionCounter;
+        let worldSnapshot = { ...world };
+        let regionsSnapshot = { ...regions };
+        let regionCounterSnapshot = regionCounter;
+        let weatherZonesSnapshot = { ...weatherZones };
+        
+        const initialPosKey = `${playerPosition.x},${playerPosition.y}`;
 
-        if (!worldWithChunk[`${playerPosition.x},${playerPosition.y}`]) {
-            const result = ensureChunkExists(playerPosition, world, regions, regionCounter);
-            worldWithChunk = result.worldWithChunk;
-            newRegions = result.newRegions;
-            newRegionCounterVal = result.newRegionCounter;
+        // Part 1: Ensure initial chunk and surroundings exist if not already loaded.
+        if (!worldSnapshot[initialPosKey]) {
+            const result = ensureChunkExists(playerPosition, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
+            worldSnapshot = result.worldWithChunk;
+            regionsSnapshot = result.newRegions;
+            regionCounterSnapshot = result.newRegionCounter;
 
             const visionRadius = 1;
             for (let dy = -visionRadius; dy <= visionRadius; dy++) {
                 for (let dx = -visionRadius; dx <= visionRadius; dx++) {
                     const revealPos = { x: playerPosition.x + dx, y: playerPosition.y + dy };
-                    if (!worldWithChunk[`${revealPos.x},${revealPos.y}`]) {
-                        const revealResult = ensureChunkExists(revealPos, worldWithChunk, newRegions, newRegionCounterVal);
-                        worldWithChunk = revealResult.worldWithChunk;
-                        newRegions = revealResult.newRegions;
-                        newRegionCounterVal = revealResult.newRegionCounter;
+                    if (!worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
+                        const revealResult = ensureChunkExists(revealPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
+                        worldSnapshot = revealResult.worldWithChunk;
+                        regionsSnapshot = revealResult.newRegions;
+                        regionCounterSnapshot = revealResult.newRegionCounter;
                     }
-                    if (worldWithChunk[`${revealPos.x},${revealPos.y}`]) worldWithChunk[`${revealPos.x},${revealPos.y}`].explored = true;
+                    if (worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
+                        worldSnapshot[`${revealPos.x},${revealPos.y}`].explored = true;
+                    }
                 }
             }
-
-            setWorld(worldWithChunk);
-            setRegions(newRegions);
-            setRegionCounter(newRegionCounterVal);
         }
         
-        if (finalWorldSetup && narrativeLog.length <= 1) { // Check if only the initial narrative exists
-            const startingChunk = worldWithChunk[`${playerPosition.x},${playerPosition.y}`];
+        // Part 2: Set up initial narrative and weather if this is a new game.
+        if (narrativeLog.length <= 1) {
+            const startingChunk = worldSnapshot[initialPosKey];
             if (startingChunk) {
-                const chunkDescription = generateOfflineNarrative(startingChunk, worldWithChunk, playerPosition, 'medium', t);
+                const chunkDescription = generateOfflineNarrative(startingChunk, worldSnapshot, playerPosition, 'medium', t);
                 const fullIntro = `${t(finalWorldSetup.initialNarrative as TranslationKey)}\n\n${chunkDescription}`;
-                // Replace the initial narrative with the full one
                 setNarrativeLog([{ id: 0, text: fullIntro, type: 'narrative' }]);
 
-                const newWeatherZones = {...weatherZones};
-                Object.keys(newRegions).filter(id => !newWeatherZones[id]).forEach(regionId => {
-                    const region = newRegions[Number(regionId)];
+                Object.keys(regionsSnapshot).filter(id => !weatherZonesSnapshot[id]).forEach(regionId => {
+                    const region = regionsSnapshot[Number(regionId)];
                     if (region) {
                         const initialWeather = generateWeatherForZone(region.terrain, currentSeason);
-                        newWeatherZones[regionId] = { id: regionId, terrain: region.terrain, currentWeather: initialWeather, nextChangeTime: gameTime + getRandomInRange({min: initialWeather.duration_range[0], max: initialWeather.duration_range[1]}) * 10 };
+                        weatherZonesSnapshot[regionId] = { id: regionId, terrain: region.terrain, currentWeather: initialWeather, nextChangeTime: gameTime + getRandomInRange({min: initialWeather.duration_range[0], max: initialWeather.duration_range[1]}) * 10 };
                     }
                 });
-                setWeatherZones(newWeatherZones);
             }
         }
-    }, [isLoaded, finalWorldSetup, t, world, playerPosition, regions, regionCounter, setNarrativeLog, ensureChunkExists, generateOfflineNarrative, narrativeLog.length, setRegionCounter, setRegions, setWorld, setWeatherZones, weatherZones, currentSeason, gameTime]);
+
+        // Commit all state changes at once and mark as initialized.
+        setWorld(worldSnapshot);
+        setRegions(regionsSnapshot);
+        setRegionCounter(regionCounterSnapshot);
+        setWeatherZones(weatherZonesSnapshot);
+        isInitialized.current = true;
+    }, [isLoaded, finalWorldSetup]);
+
 
     const triggerRandomEvent = useCallback(() => {
         const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
@@ -601,8 +611,13 @@ export function useGameEngine(props: GameEngineProps) {
     useEffect(() => {
         if (!isLoaded) return;
         checkSkillUnlocks(playerStats);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [playerStats.unlockProgress.moves, playerStats.unlockProgress.kills, playerStats.unlockProgress.damageSpells, isLoaded]);
+    }, [
+      playerStats.unlockProgress.moves, 
+      playerStats.unlockProgress.kills, 
+      playerStats.unlockProgress.damageSpells, 
+      isLoaded,
+      checkSkillUnlocks
+    ]);
 
     useEffect(() => {
         if (!isLoaded) return;
@@ -626,8 +641,17 @@ export function useGameEngine(props: GameEngineProps) {
             addNarrativeEntry(t(messageKey), 'system');
             toast({ title: t('personaUnlockedTitle'), description: t(messageKey) });
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [playerBehaviorProfile.moves, playerBehaviorProfile.attacks, playerBehaviorProfile.crafts, playerStats.persona, isLoaded]);
+    }, [
+      playerBehaviorProfile.moves, 
+      playerBehaviorProfile.attacks, 
+      playerBehaviorProfile.crafts, 
+      playerStats.persona, 
+      isLoaded,
+      addNarrativeEntry,
+      setPlayerStats,
+      t,
+      toast
+    ]);
     
     // EFFECT 1: Update the visual representation of the current chunk whenever the environment changes.
     useEffect(() => {
@@ -1534,3 +1558,4 @@ export function useGameEngine(props: GameEngineProps) {
 }
 
     
+

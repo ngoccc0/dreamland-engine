@@ -33,7 +33,6 @@ const withPWA = withPWAInit({
       },
     },
     // Cache JS and CSS files with a Stale-While-Revalidate strategy for instant loads.
-    // This is crucial for preventing ChunkLoadError.
     {
       urlPattern: /\.(?:js|css)$/i,
       handler: 'StaleWhileRevalidate',
@@ -45,11 +44,10 @@ const withPWA = withPWAInit({
         },
       },
     },
-    // Cache pages (navigation requests) with a Stale-While-Revalidate strategy
-    // for an "offline-first" experience.
+    // Use NetworkFirst for navigation requests to prevent stale HTML and ChunkLoadErrors.
     {
       urlPattern: ({ request }) => request.mode === 'navigate',
-      handler: 'StaleWhileRevalidate',
+      handler: 'NetworkFirst',
       options: {
         cacheName: 'pages',
         expiration: {

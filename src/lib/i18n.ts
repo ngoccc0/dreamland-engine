@@ -269,16 +269,6 @@ export const translations = {
     'Trượng Lõi Đá': 'Golem Core Staff',
     'Thuốc Thể Lực': 'Stamina Potion',
     'Búa Chiến Người Lùn': 'Dwarven War Hammer',
-    forest: 'Forest',
-    grassland: 'Grassland',
-    desert: 'Desert',
-    swamp: 'Swamp',
-    mountain: 'Mountain',
-    cave: 'Cave',
-    jungle: 'Jungle',
-    volcanic: 'Volcanic',
-    floptropica: 'Floptropica',
-    wall: 'Wall',
     item_stone_dagger_desc: 'A crude but sharp stone weapon, useful in close combat.',
     item_wooden_shield_desc: 'A simple shield made of wood, offering basic protection.',
     item_bandage_desc: 'Clean cloth infused with herbs, used to stop bleeding and heal minor wounds.',
@@ -692,7 +682,6 @@ export const translations = {
     playerStatus: "Player Status",
     playerStatusDesc: "Your current condition and active quests.",
     health: "Health: {hp}/100",
-    mana: "Mana: {mana}/50",
     stamina: "Stamina: {stamina}/100",
     bodyTemperature: "Body Temperature: {temp}°C",
     bodyTempDesc: "Your body tries to maintain 37°C. Extreme temperatures will affect your stamina and health.",
@@ -1025,22 +1014,26 @@ export const translations = {
     actionNarrative_attack_success: "{attack_description}, dealing {damage_report}. {sensory_feedback}. {enemy_reaction}",
     actionNarrative_attack_fail: "{attack_description}. {sensory_feedback}. The {enemy_reaction} is unfazed.",
     actionNarrative_attack_critFail: "{attack_description}. You are left exposed. {sensory_feedback}.",
-    langIdentifier: "en"
+    langIdentifier: "en",
+    biomeLabel: "Biome",
+    skillLabel: "Starting Skill",
+    questsLabel: "Quests",
   },
   vi: {
     langIdentifier: 'vi',
-    // Premade World Names (Refactored)
     worldName_rainyCity: 'Thành phố Mưa',
-    worldName_theWanderer: 'The Wanderer',
+    worldName_theWanderer: 'Kẻ Lang Thang',
     worldName_blackwoodManor: 'Biệt thự Blackwood',
-    worldName_outlawPlanet: 'Hành tinh Kẻ ngoài vòng pháp luật',
-    worldName_abyssalKingdom: 'Vương quốc Abyssal',
-    worldName_floptropica: 'Floptropica',
-    worldName_onikaKingdom: 'Vương quốc Onika',
-    worldName_badBussyWasteland: 'Vùng đất hoang Bad Bussy',
+    worldName_outlawPlanet: 'Hành tinh Ngoài vòng Pháp luật',
+    worldName_abyssalKingdom: 'Vương quốc Vực thẳm',
+    worldName_floptropica: "Floptropica",
+    worldName_onikaKingdom: "Vương quốc Onika",
+    worldName_badBussyWasteland: "Vùng đất hoang Bad Bussy",
     worldName_frostedWreckage: 'Tàn Tích Băng Giá',
     worldName_driftingAcademy: 'Học Viện Mây Trôi',
-
+    biomeLabel: "Quần xã",
+    skillLabel: "Kỹ năng Khởi đầu",
+    questsLabel: "Nhiệm vụ",
     itemPickedUpTitle: "Đã nhặt vật phẩm",
     pickedUpItemToast: "Đã thêm {quantity} {itemName} vào hành trang.",
     pickedUpItemNarrative: [
@@ -1056,6 +1049,7 @@ export type TranslationKey = keyof (typeof translations)['en'] & keyof (typeof t
 
 
     
+
 
 
 

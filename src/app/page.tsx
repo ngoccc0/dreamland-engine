@@ -262,12 +262,27 @@ export default function Home() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
             {saveSlots.map((slot, index) => (
-              <Card key={index} className={cn("flex flex-col justify-between", slot ? "border-primary" : "border-dashed")}>
+              <Card key={index} className={cn("flex flex-col", slot ? "border-primary" : "border-dashed")}>
                 <CardHeader>
                   <CardTitle className="truncate">{slot?.worldSetup?.worldName ? t(slot.worldSetup.worldName as TranslationKey) : t('emptySlot')}</CardTitle>
                   <CardDescription>{slot ? `${t('dayX', {day: slot.day})}` : t('newAdventureHint')}</CardDescription>
                 </CardHeader>
-                <CardFooter className="flex flex-col gap-2">
+
+                <CardContent className="flex-grow p-6 pt-0 text-sm text-muted-foreground">
+                    {slot?.worldSetup && (
+                        <div className="space-y-1">
+                            <div><span className="font-semibold text-foreground/80">{t('biomeLabel')}:</span> {t(slot.worldSetup.startingBiome as TranslationKey)}</div>
+                            {slot.worldSetup.startingSkill && (
+                                <div><span className="font-semibold text-foreground/80">{t('skillLabel')}:</span> {t(slot.worldSetup.startingSkill.name as TranslationKey)}</div>
+                            )}
+                            {slot.worldSetup.initialQuests && (
+                               <div><span className="font-semibold text-foreground/80">{t('questsLabel')}:</span> {slot.worldSetup.initialQuests.length}</div>
+                            )}
+                        </div>
+                    )}
+                </CardContent>
+
+                <CardFooter className="flex flex-col gap-2 p-6 pt-4 mt-auto">
                   {slot ? (
                     <>
                       <Button onClick={() => handlePlay(index)} className="w-full">

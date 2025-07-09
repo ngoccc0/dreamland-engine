@@ -2,6 +2,8 @@
 
 // --- Data Types and Interfaces for the Game Engine ---
 
+import type { BiomeDefinition } from "./definitions/biome";
+
 // Represents a contiguous region of a single biome.
 export interface Region {
     terrain: Terrain;
@@ -9,8 +11,8 @@ export interface Region {
 }
 
 
-export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave" | "jungle" | "volcanic" | "wall" | "floptropica" | "tundra" | "beach" | "mesa" | "mushroom_forest" | "ocean";
-export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky';
+export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave" | "jungle" | "volcanic" | "wall" | "floptropica" | "tundra" | "beach" | "mesa" | "mushroom_forest" | "ocean" | "city" | "space_station" | "underwater";
+export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky' | 'metal' | 'sand';
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
 export type ItemCategory = 'Weapon' | 'Material' | 'Energy Source' | 'Food' | 'Data' | 'Tool' | 'Equipment' | 'Support' | 'Magic' | 'Fusion';
 export type PlayerPersona = 'none' | 'explorer' | 'warrior' | 'artisan';
@@ -227,27 +229,6 @@ export interface PlayerBehaviorProfile {
     attacks: number;
     crafts: number;
     customActions: number;
-}
-
-// Defines the "rulebook" for the procedural world generation.
-export interface BiomeDefinition {
-    minSize: number;
-    maxSize: number;
-    travelCost: number;
-    spreadWeight: number;
-    allowedNeighbors: Terrain[];
-    // Defines the valid range for each attribute in this biome
-    defaultValueRanges: {
-        vegetationDensity: { min: number; max: number };
-        moisture: { min: number; max: number };
-        elevation: { min: number; max: number };
-        dangerLevel: { min: number; max: number };
-        magicAffinity: { min: number; max: number };
-        humanPresence: { min: number; max: number };
-        predatorPresence: { min: number; max: number };
-        temperature: { min: number; max: number };
-    };
-    soilType: SoilType[]; // Can now have multiple valid soil types
 }
 
 // Helper type for defining spawn conditions for an entity

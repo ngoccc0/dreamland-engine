@@ -13,7 +13,7 @@ import { Separator } from "../ui/separator";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { useLanguage } from "@/context/language-context";
 import type { WorldConcept, Skill } from "@/lib/game/types";
-import { premadeWorlds } from "@/lib/game/premade-worlds";
+import { premadeWorlds } from "@/lib/game/data/premade-worlds";
 import type { TranslationKey } from "@/lib/i18n";
 import { SettingsPopup } from "./settings-popup";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
@@ -152,18 +152,10 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
 
         const lowerInput = userInput.trim().toLowerCase();
 
-        const premadeMap: Record<string, GenerateWorldSetupOutput> = {
-            'floptropica': premadeWorlds[0],
-            'frozen wasteland': premadeWorlds[1],
-            'tàn tích băng giá': premadeWorlds[1],
-            'mage academy': premadeWorlds[2],
-            'học viện mây trôi': premadeWorlds[2],
-        };
-
-        if (premadeMap[lowerInput]) {
-            const premadeWorldData = premadeMap[lowerInput];
-            onWorldCreated(premadeWorldData);
-            return; 
+        // Check for secret keyword
+        if (premadeWorlds[lowerInput]) {
+            onWorldCreated(premadeWorlds[lowerInput]);
+            return;
         }
 
         setIsLoading(true);
@@ -183,22 +175,14 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
 
     const handleStartGame = () => {
         if (!generatedData) return;
-
-        const concepts = generatedData.concepts;
         
-        const finalConcept: WorldConcept = {
-            worldName: concepts[selection.worldName].worldName,
-            initialNarrative: concepts[selection.initialNarrative].initialNarrative,
-            startingBiome: concepts[selection.startingBiome].startingBiome,
-            playerInventory: concepts[selection.playerInventory].playerInventory,
-            initialQuests: concepts[selection.initialQuests].initialQuests,
-            startingSkill: concepts[selection.startingSkill].startingSkill,
-        };
+        // Use the first concept as there's only one in the array for AI-generated worlds now.
+        const finalConcept = generatedData.concepts[0];
         
         const finalOutput: GenerateWorldSetupOutput = {
             customItemCatalog: generatedData.customItemCatalog,
             customStructures: generatedData.customStructures,
-            concepts: [finalConcept as any],
+            concepts: [finalConcept as any], // Cast to bypass strict type check for biome
         };
 
         onWorldCreated(finalOutput);
@@ -254,7 +238,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                             <button
                                 key={prompt}
                                 type="button"
-                                onClick={() => setUserInput(prompt)}
+                                onClick={() => setUserInput(prompt.split("(Try: '")[1].replace("')", ""))}
                                 className="text-left p-2 rounded-md hover:bg-muted transition-colors text-accent text-sm"
                             >
                                 &raquo; {prompt}
@@ -274,8 +258,8 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
     const renderStep1 = () => (
         <>
             <CardHeader>
-                <CardTitle className="font-headline text-3xl flex items-center gap-3"><Sparkles /> {t('mixAndMatchTitle')}</CardTitle>
-                <CardDescription>{t('worldSetupStep2')}</CardDescription>
+                 <CardTitle className="font-headline text-3xl flex items-center gap-3"><Sparkles /> {t('worldGenResultTitle')}</CardTitle>
+                 <CardDescription>{t('worldGenResultDesc')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 {isLoading ? (
@@ -284,164 +268,23 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                         <p className="mt-4 text-muted-foreground">{t('generatingUniverses')}</p>
                     </div>
                 ) : (
-                    generatedData && (
+                    generatedData && generatedData.concepts[0] && (
                         <div className="space-y-8 animate-in fade-in duration-500">
-                             {/* World Name */}
                              <div className="space-y-2">
                                 <h3 className="text-lg font-semibold font-headline text-center">{t('worldName')}</h3>
-                                <Carousel setApi={setApiWorldName} opts={{ align: "start", loop: true }} className="w-full max-w-sm mx-auto">
-                                    <CarouselContent>
-                                        {generatedData.concepts.map((concept, index) => (
-                                            <CarouselItem key={index}>
-                                                <div className="p-1">
-                                                    <Card className="flex items-center justify-center p-6 h-24 shadow-inner bg-muted/30">
-                                                        <CardTitle className="text-xl text-center font-headline">{t(concept.worldName as TranslationKey)}</CardTitle>
-                                                    </Card>
-                                                </div>
-                                            </CarouselItem>
-                                        ))}
-                                    </CarouselContent>
-                                    <CarouselPrevious className="left-1 sm:-left-8" />
-                                    <CarouselNext className="right-1 sm:-right-8" />
-                                </Carousel>
+                                <Card className="flex items-center justify-center p-6 h-24 shadow-inner bg-muted/30 max-w-sm mx-auto">
+                                    <CardTitle className="text-xl text-center font-headline">{t(generatedData.concepts[0].worldName as TranslationKey)}</CardTitle>
+                                </Card>
                             </div>
 
                             <Separator />
 
-                            {/* Narrative */}
                             <div className="space-y-2">
                                 <h3 className="text-lg font-semibold font-headline text-center">{t('openingNarrative')}</h3>
-                                <Carousel setApi={setApiNarrative} opts={{ align: "start", loop: true }} className="w-full max-w-2xl mx-auto">
-                                    <CarouselContent>
-                                        {generatedData.concepts.map((concept, index) => (
-                                            <CarouselItem key={index}>
-                                                <div className="p-1">
-                                                    <Card className="shadow-inner bg-muted/30">
-                                                        <CardContent className="p-4 h-40 overflow-y-auto prose prose-sm dark:prose-invert max-w-none">
-                                                            <p>{t(concept.initialNarrative as TranslationKey)}</p>
-                                                        </CardContent>
-                                                    </Card>
-                                                </div>
-                                            </CarouselItem>
-                                        ))}
-                                    </CarouselContent>
-                                    <CarouselPrevious className="left-1 sm:-left-8" />
-                                    <CarouselNext className="right-1 sm:-right-8" />
-                                </Carousel>
-                            </div>
-                            
-                            <Separator />
-
-                             {/* Biome */}
-                             <div className="space-y-2">
-                                <h3 className="text-lg font-semibold font-headline text-center">{t('startingBiome')}</h3>
-                                <Carousel setApi={setApiBiome} opts={{ align: "start", loop: true }} className="w-full max-w-xs mx-auto">
-                                    <CarouselContent>
-                                        {generatedData.concepts.map((concept, index) => (
-                                            <CarouselItem key={index}>
-                                                <div className="p-1">
-                                                    <Card className="flex items-center justify-center p-4 h-20 shadow-inner bg-muted/30">
-                                                        <p className="font-semibold text-center text-lg capitalize">{t(concept.startingBiome as TranslationKey)}</p>
-                                                    </Card>
-                                                </div>
-                                            </CarouselItem>
-                                        ))}
-                                    </CarouselContent>
-                                    <CarouselPrevious className="left-1 sm:-left-8" />
-                                    <CarouselNext className="right-1 sm:-right-8" />
-                                </Carousel>
-                            </div>
-
-                             <Separator />
-
-                             {/* Starting Skill */}
-                            <div className="space-y-2">
-                                <h3 className="text-lg font-semibold font-headline text-center">{t('startingSkill')}</h3>
-                                <Carousel setApi={setApiSkill} opts={{ align: "start", loop: true }} className="w-full max-w-lg mx-auto">
-                                    <CarouselContent>
-                                        {generatedData.concepts.map((concept, index) => (
-                                            <CarouselItem key={index} className="md:basis-1/2">
-                                                <div className="p-1">
-                                                    <Card className="shadow-inner bg-muted/30 h-36">
-                                                        <CardHeader className="p-4">
-                                                            <CardTitle className="text-lg">{t(concept.startingSkill.name as TranslationKey)}</CardTitle>
-                                                        </CardHeader>
-                                                        <CardContent className="p-4 pt-0">
-                                                            <p className="text-sm text-muted-foreground">{t(concept.startingSkill.description as TranslationKey)}</p>
-                                                            <p className="text-xs mt-2">{t('manaCost')}: {concept.startingSkill.manaCost}</p>
-                                                        </CardContent>
-                                                    </Card>
-                                                </div>
-                                            </CarouselItem>
-                                        ))}
-                                    </CarouselContent>
-                                    <CarouselPrevious className="left-1 sm:-left-8" />
-                                    <CarouselNext className="right-1 sm:-right-8" />
-                                </Carousel>
-                            </div>
-
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                {/* Inventory */}
-                                <div className="space-y-2">
-                                    <h3 className="text-lg font-semibold font-headline text-center">{t('startingEquipment')}</h3>
-                                    <Carousel setApi={setApiInventory} opts={{ align: "start", loop: true }} className="w-full max-w-sm mx-auto">
-                                        <CarouselContent>
-                                            {generatedData.concepts.map((concept, index) => (
-                                                <CarouselItem key={index}>
-                                                    <div className="p-1">
-                                                        <Card className="h-36 shadow-inner bg-muted/30">
-                                                            <CardHeader className="p-4">
-                                                                <CardDescription>{t('itemsFromChoice', {index: index + 1})}</CardDescription>
-                                                            </CardHeader>
-                                                            <CardContent className="p-4 pt-0">
-                                                                <ul className="list-disc list-inside text-sm text-muted-foreground">
-                                                                    {concept.playerInventory.map(item => <li key={item.name}>{t(item.name as TranslationKey)} (x{item.quantity})</li>)}
-                                                                </ul>
-                                                            </CardContent>
-                                                        </Card>
-                                                    </div>
-                                                </CarouselItem>
-                                            ))}
-                                        </CarouselContent>
-                                        <CarouselPrevious className="left-1 sm:-left-8" />
-                                        <CarouselNext className="right-1 sm:-right-8" />
-                                    </Carousel>
-                                </div>
-
-                                {/* Quests */}
-                                <div className="space-y-2">
-                                    <h3 className="text-lg font-semibold font-headline text-center">{t('firstQuest')}</h3>
-                                    <Carousel setApi={setApiQuests} opts={{ align: "start", loop: true }} className="w-full max-w-sm mx-auto">
-                                        <CarouselContent>
-                                            {generatedData.concepts.map((concept, index) => (
-                                                <CarouselItem key={index}>
-                                                    <div className="p-1">
-                                                        <Card className="h-36 shadow-inner bg-muted/30">
-                                                            <CardHeader className="p-4">
-                                                                <CardDescription>{t('questFromChoice', {index: index + 1})}</CardDescription>
-                                                            </CardHeader>
-                                                            <CardContent className="p-4 pt-0">
-                                                                <ul className="list-disc list-inside text-sm text-muted-foreground">
-                                                                    {concept.initialQuests.map(item => <li key={item}>{t(item as TranslationKey)}</li>)}
-                                                                </ul>
-                                                            </CardContent>
-                                                        </Card>
-                                                    </div>
-                                                </CarouselItem>
-                                            ))}
-                                        </CarouselContent>
-                                        <CarouselPrevious className="left-1 sm:-left-8" />
-                                        <CarouselNext className="right-1 sm:-right-8" />
-                                    </Carousel>
-                                </div>
-                            </div>
-                            
-                            <div className="!mt-8 p-4 border-t">
-                                <h3 className="font-headline text-xl font-bold">{t('yourWorld')}</h3>
-                                <p className="text-muted-foreground">{t('yourWorldDescription')}</p>
-                                <Card className="mt-4 p-4 bg-background">
-                                    <h4 className="font-bold text-lg">{t(generatedData.concepts[selection.worldName].worldName as TranslationKey)}</h4>
-                                    <p className="italic text-muted-foreground mt-2">{t(generatedData.concepts[selection.initialNarrative].initialNarrative as TranslationKey)}</p>
+                                <Card className="shadow-inner bg-muted/30 max-w-2xl mx-auto">
+                                    <CardContent className="p-4 h-40 overflow-y-auto prose prose-sm dark:prose-invert max-w-none">
+                                        <p>{t(generatedData.concepts[0].initialNarrative as TranslationKey)}</p>
+                                    </CardContent>
                                 </Card>
                             </div>
                         </div>
@@ -482,6 +325,3 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         </TooltipProvider>
     );
 }
-    
-
-    

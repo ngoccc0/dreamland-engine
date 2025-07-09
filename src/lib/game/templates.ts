@@ -1,4 +1,5 @@
 
+
 import type { Language, Terrain } from "./types";
 import { forest_vi, forest_en } from './templates/forest';
 import { grassland_vi, grassland_en } from './templates/grassland';
@@ -15,6 +16,9 @@ import { beach_vi, beach_en } from "./templates/beach";
 import { mesa_vi, mesa_en } from "./templates/mesa";
 import { mushroom_forest_vi, mushroom_forest_en } from "./templates/mushroom";
 import { ocean_vi, ocean_en } from "./templates/ocean";
+import { city_vi, city_en } from "./templates/city";
+import { space_station_vi, space_station_en } from "./templates/space_station";
+import { underwater_vi, underwater_en } from "./templates/underwater";
 
 const templates_vi: Record<Terrain, any> = {
     forest: forest_vi,
@@ -32,6 +36,9 @@ const templates_vi: Record<Terrain, any> = {
     mesa: mesa_vi,
     mushroom_forest: mushroom_forest_vi,
     ocean: ocean_vi,
+    city: city_vi,
+    space_station: space_station_vi,
+    underwater: underwater_vi,
 };
 
 const templates_en: Record<Terrain, any> = {
@@ -50,6 +57,9 @@ const templates_en: Record<Terrain, any> = {
     mesa: mesa_en,
     mushroom_forest: mushroom_forest_en,
     ocean: ocean_en,
+    city: city_en,
+    space_station: space_station_en,
+    underwater: underwater_en,
 };
 
 export const getTemplates = (lang: Language): Record<Terrain, any> => {

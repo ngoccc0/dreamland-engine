@@ -1494,4 +1494,7 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
         world, recipes, buildableStructures, playerStats, playerPosition, narrativeLog, isLoading, isGameOver, finalWorldSetup, customItemDefinitions,
         currentChunk, turn,
         handleMove, handleAttack, handleAction, handleCustomAction, handleCraft, handleBuild, handleItemUsed, handleUseSkill, handleRest, handleFuseItems,
-        handleRequestQuestHint, handleEquipItem, handleUne
+        handleRequestQuestHint, handleEquipItem, handleUnequipItem,
+        handleReturnToMenu,
+    };
+}

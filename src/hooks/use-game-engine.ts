@@ -997,7 +997,14 @@ export function useGameEngine(props: GameEngineProps) {
             const chunkKey = `${playerPosition.x},${playerPosition.y}`;
             const itemInChunk = currentChunk.items.find(i => t(i.name as TranslationKey).toLowerCase() === itemName.toLowerCase());
             if (itemInChunk) {
-                setWorld(prev => ({ ...prev, [chunkKey]: { ...prev[chunkKey]!, items: currentChunk.items.filter(i => i.name !== itemInChunk.name) }}));
+                setWorld(prev => {
+                    const newWorld = { ...prev };
+                    const chunkToUpdate = { ...newWorld[chunkKey]! };
+                    chunkToUpdate.items = chunkToUpdate.items.filter(i => i.name !== itemInChunk.name);
+                    chunkToUpdate.actions = chunkToUpdate.actions.filter(a => a.text !== actionText);
+                    newWorld[chunkKey] = chunkToUpdate;
+                    return newWorld;
+                });
                 const itemInInventory = newPlayerStats.items.find(i => i.name === itemInChunk.name);
                 if (itemInInventory) itemInInventory.quantity += itemInChunk.quantity;
                 else newPlayerStats.items.push({...itemInChunk});
@@ -1215,13 +1222,19 @@ export function useGameEngine(props: GameEngineProps) {
         const chunk = world[`${playerPosition.x},${playerPosition.y}`];
         if(!chunk) return;
         
+        const action = chunk.actions.find(a => a.id === actionId);
+        if (!action) {
+            toast({ title: t('actionNotAvailableTitle'), description: t('actionNotAvailableDesc'), variant: 'destructive' });
+            return;
+        }
+
         const structure = chunk.structures[0];
         if(structure && structure.buildable) {
             toast({ title: t('structureLimitTitle'), description: t('structureLimitDesc'), variant: "destructive" });
             return;
         }
 
-        const actionText = chunk?.actions.find(a => a.id === actionId)?.text || "unknown action";
+        const actionText = action.text || "unknown action";
         const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
         
         const lowerAction = actionText.toLowerCase();
@@ -1559,3 +1572,6 @@ export function useGameEngine(props: GameEngineProps) {
 
     
 
+
+
+    

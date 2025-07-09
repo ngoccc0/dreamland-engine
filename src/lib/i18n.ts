@@ -108,24 +108,8 @@ export const translations = {
     mage_quest2: "Gather Stardust from the celestial winds.",
     createCustomWorld: 'Create a Custom World with AI',
     observeAction_enemy: 'Observe {enemyType}',
-    forageForFoodAction: "Forage for food",
-    searchForMaterialsAction: "Search for materials",
     listenToSurroundingsAction: "Listen to surroundings",
     analyzeAction: "Analyze surroundings",
-    forageSuccessTitle: "Forage Successful",
-    forageSuccess: "Your foraging trip was successful. You found: {items}.",
-    forageFail: [
-      "You search for edible plants but find nothing.",
-      "The area is barren of anything edible.",
-      "It seems there's nothing safe to eat here."
-    ],
-    searchSuccessTitle: "Materials Found",
-    searchMaterialsSuccess: "Your search for materials yields: {items}.",
-    searchMaterialsFail: [
-      "You can't find any useful materials here.",
-      "The area is barren of the materials you seek.",
-      "It seems there are no usable materials in this location."
-    ],
     listenHearNothing: [
       "You listen intently, but only hear the ambient sounds of the area.",
       "The surroundings are quiet, save for the whisper of the wind.",
@@ -912,11 +896,11 @@ export const translations = {
     directionSouthWest: "southwest",
     talkToAction_npc: "talk to {npcName}",
     pickUpAction_item: "pick up {itemName}",
-    exploreAction: "explore area",
+    exploreAction: "Search Area",
     exploreSuccessTitle: "Discovery!",
     exploreFoundItems: "You found: {items}!",
     exploreFoundItemsNarrative: [
-      "Your exploration pays off! You find {items} in the area.",
+      "Your search pays off! You find {items} in the area.",
       "A thorough search reveals {items}.",
       "After looking around, you spot {items}."
     ],
@@ -1072,6 +1056,7 @@ export type TranslationKey = keyof (typeof translations)['en'] & keyof (typeof t
 
 
     
+
 
 
 

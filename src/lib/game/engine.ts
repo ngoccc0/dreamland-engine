@@ -358,8 +358,6 @@ function generateChunkContent(
     });
     
     actions.push({ id: actionIdCounter++, textKey: 'exploreAction' });
-    actions.push({ id: actionIdCounter++, textKey: 'forageForFoodAction' });
-    actions.push({ id: actionIdCounter++, textKey: 'searchForMaterialsAction' });
     actions.push({ id: actionIdCounter++, textKey: 'listenToSurroundingsAction' });
 
     return {
@@ -626,7 +624,6 @@ export const calculateCraftingOutcome = (playerItems: PlayerItem[], recipe: Reci
  * and removes the one-time search action.
  */
 export const handleSearchAction = (
-    searchType: 'explore' | 'forage' | 'search_materials',
     currentChunk: Chunk,
     actionId: number,
     language: Language,
@@ -638,38 +635,42 @@ export const handleSearchAction = (
     const templates = getTemplates(language);
     const biomeTemplate = templates[currentChunk.terrain];
 
+    // Clone the chunk to modify it safely
+    const newChunk: Chunk = JSON.parse(JSON.stringify(currentChunk));
+    
     // Remove the search action immediately, as it's a one-time use.
-    const newChunk = { ...currentChunk };
     newChunk.actions = newChunk.actions.filter(a => a.id !== actionId);
     
     if (!biomeTemplate || !biomeTemplate.items || biomeTemplate.items.length === 0) {
         return { narrative: t('exploreFoundNothing'), newChunk };
     }
 
-    let categoryFilter: ItemCategory | undefined;
-    let successChance = 0.7; // default for explore
-    if (searchType === 'forage') {
-        categoryFilter = 'Food';
-        successChance = 0.6;
-    } else if (searchType === 'search_materials') {
-        categoryFilter = 'Material';
-        successChance = 0.75;
+    // Calculate success chance based on explorability
+    const successChance = 0.8 * (newChunk.explorability / 10); // Base 80% chance, scaled by explorability
+
+    if (Math.random() > successChance) {
+        return { narrative: t('exploreFoundNothing'), newChunk };
     }
     
-    const potentialItems = biomeTemplate.items.filter((i: any) => {
-        if (!categoryFilter) return true;
-        const def = customItemDefinitions[i.name];
-        return def && def.category === categoryFilter;
-    });
+    const potentialItems = biomeTemplate.items;
+    const itemsToFindCount = getRandomInRange({ min: 1, max: 3 });
+    const foundItems: ChunkItem[] = [];
 
-    let foundItems: ChunkItem[] = [];
-    if (Math.random() < successChance && potentialItems.length > 0) {
-         for (const itemTemplate of potentialItems) {
-            if (Math.random() < (itemTemplate.conditions.chance || 0.15)) { // Use 0.15 as a base chance
-                const itemDef = customItemDefinitions[itemTemplate.name];
-                if (itemDef) {
-                    if (searchType === 'search_materials' && itemDef.tier > 2) continue;
-                    const quantity = getRandomInRange(itemDef.baseQuantity);
+    // Shuffle potential items to find random ones
+    const shuffledPotentialItems = [...potentialItems].sort(() => 0.5 - Math.random());
+
+    for (const itemTemplate of shuffledPotentialItems) {
+        if (foundItems.length >= itemsToFindCount) break;
+
+        // Don't find items that are already on the ground
+        if (newChunk.items.some((i: ChunkItem) => i.name === itemTemplate.name)) continue;
+
+        // Check spawn chance for the item
+        if (Math.random() < (itemTemplate.conditions.chance || 0.25)) { // Use 0.25 as a base chance
+            const itemDef = customItemDefinitions[itemTemplate.name];
+            if (itemDef) {
+                const quantity = getRandomInRange(itemDef.baseQuantity);
+                if (quantity > 0) {
                     foundItems.push({
                         name: itemTemplate.name,
                         description: itemDef.description,
@@ -681,19 +682,20 @@ export const handleSearchAction = (
             }
         }
     }
-
+    
     if (foundItems.length > 0) {
         const foundItemsText = foundItems.map(item => `${item.quantity} ${t(item.name as TranslationKey)}`).join(', ');
         
         const toastInfo = {
-            title: (searchType === 'forage' ? 'forageSuccessTitle' : searchType === 'search_materials' ? 'searchSuccessTitle' : 'exploreSuccessTitle') as TranslationKey,
-            description: 'exploreFoundItems' as TranslationKey, // Use a generic key that can handle multiple items
+            title: 'exploreSuccessTitle' as TranslationKey,
+            description: 'exploreFoundItems' as TranslationKey,
             params: { items: foundItemsText }
         };
 
-        const narrative = t((searchType === 'forage' ? 'forageSuccess' : searchType === 'search_materials' ? 'searchMaterialsSuccess' : 'exploreFoundItemsNarrative') as TranslationKey, { items: foundItemsText });
+        const narrative = t('exploreFoundItemsNarrative', { items: foundItemsText });
 
-        const newItemsMap = new Map((newChunk.items || []).map(item => [item.name, { ...item }]));
+        // Add the newly found items to the chunk's item list
+        const newItemsMap = new Map((newChunk.items || []).map((item: ChunkItem) => [item.name, { ...item }]));
         foundItems.forEach(foundItem => {
             const existing = newItemsMap.get(foundItem.name);
             if (existing) {
@@ -704,11 +706,11 @@ export const handleSearchAction = (
         });
         newChunk.items = Array.from(newItemsMap.values());
         
-        // Regenerate pickup actions based on the new total list of items in the chunk
-        const otherActions = newChunk.actions.filter(a => a.textKey !== 'pickUpAction_item');
-        let actionIdCounter = newChunk.actions.reduce((maxId, a) => Math.max(a.id, maxId), 0) + 1;
+        // Regenerate pickup actions for ALL items in the chunk now
+        const otherActions = newChunk.actions.filter((a: Action) => a.textKey !== 'pickUpAction_item');
+        let actionIdCounter = newChunk.actions.reduce((maxId: number, a: Action) => Math.max(a.id, maxId), 0) + 1;
 
-        const pickUpActions = newChunk.items.map(item => ({
+        const pickUpActions = newChunk.items.map((item: ChunkItem) => ({
             id: actionIdCounter++,
             textKey: 'pickUpAction_item' as TranslationKey,
             params: { itemName: item.name as TranslationKey }
@@ -717,7 +719,8 @@ export const handleSearchAction = (
 
         return { narrative, newChunk, toastInfo };
     } else {
-        const narrative = t((searchType === 'forage' ? 'forageFail' : searchType === 'search_materials' ? 'searchMaterialsFail' : 'exploreFoundNothing') as TranslationKey);
+        // You searched successfully but were unlucky and found nothing.
+        const narrative = t('exploreFoundNothing');
         return { narrative, newChunk };
     }
 };

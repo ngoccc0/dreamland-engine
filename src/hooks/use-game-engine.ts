@@ -429,8 +429,8 @@ export function useGameEngine(props: GameEngineProps) {
         nextPlayerStats.stamina = clamp(nextPlayerStats.stamina + STAMINA_REGEN_RATE, 0, 100);
         nextPlayerStats.mana = clamp(nextPlayerStats.mana + MANA_REGEN_RATE, 0, 50);
 
-        // --- NEW Player-centric World Simulation ---
-        const simulationRadius = 2; // Simulate within a 5x5 square (25 chunks total)
+        // --- Player-centric World Simulation ---
+        const simulationRadius = 2; // Simulate within a 5x5 square
         const chunksToProcess: string[] = [];
         for (let dy = -simulationRadius; dy <= simulationRadius; dy++) {
             for (let dx = -simulationRadius; dx <= simulationRadius; dx++) {
@@ -948,13 +948,30 @@ export function useGameEngine(props: GameEngineProps) {
                     } else { newPlayerStats.quests.push(npcDef.quest); addNarrativeEntry(t('npcQuestGive', { npcName: t(npc.name as TranslationKey), questText: t(npcDef.quest as TranslationKey) }), 'narrative'); }
                 } else addNarrativeEntry(t('npcNoQuest', { npcName: t(npc.name as TranslationKey) }), 'narrative');
             }
+        } else if (textKey === 'exploreAction') {
+            const result = handleSearchAction(
+                currentChunk,
+                action.id,
+                language,
+                t,
+                customItemDefinitions,
+                getRandomInRange
+            );
+            
+            if (result.toastInfo) {
+                toast({
+                    title: t(result.toastInfo.title),
+                    description: t(result.toastInfo.description, result.toastInfo.params)
+                });
+            }
+            addNarrativeEntry(result.narrative, 'narrative');
+            setWorld(prev => ({...prev, [`${playerPosition.x},${playerPosition.y}`]: result.newChunk}));
         } else if (textKey === 'pickUpAction_item') {
             const chunkKey = `${playerPosition.x},${playerPosition.y}`;
             const itemInChunk = currentChunk.items.find(i => i.name === action.params!.itemName);
             
             if (!itemInChunk) {
-                toast({ title: t('actionNotAvailableTitle'), description: t('actionNotAvailableDesc'), variant: 'destructive' });
-                addNarrativeEntry(t('itemNotFoundNarrative', {itemName: t(action.params!.itemName as TranslationKey)}), "system")
+                toast({ title: t('actionNotAvailableTitle'), description: t('itemNotFoundNarrative', {itemName: t(action.params!.itemName as TranslationKey)}), variant: 'destructive' });
                  setWorld(prev => {
                     const newWorld = { ...prev };
                     const chunkToUpdate = { ...newWorld[chunkKey]! };
@@ -987,32 +1004,6 @@ export function useGameEngine(props: GameEngineProps) {
                 newWorld[chunkKey] = chunkToUpdate;
                 return newWorld;
             });
-
-        } else if (textKey === 'exploreAction' || textKey === 'forageForFoodAction' || textKey === 'searchForMaterialsAction') {
-            let searchType: 'explore' | 'forage' | 'search_materials';
-            if(textKey === 'exploreAction') searchType = 'explore';
-            else if(textKey === 'forageForFoodAction') searchType = 'forage';
-            else searchType = 'search_materials';
-
-            const result = handleSearchAction(
-                searchType,
-                currentChunk,
-                action.id,
-                language,
-                t,
-                customItemDefinitions,
-                getRandomInRange
-            );
-            
-            if (result.toastInfo) {
-                toast({
-                    title: t(result.toastInfo.title),
-                    description: t(result.toastInfo.description, result.toastInfo.params)
-                });
-            }
-            addNarrativeEntry(result.narrative, 'narrative');
-            setWorld(prev => ({...prev, [`${playerPosition.x},${playerPosition.y}`]: result.newChunk}));
-            
         } else if (textKey === 'listenToSurroundingsAction') {
             const directions = [{ x: 0, y: 1, dir: 'North' }, { x: 0, y: -1, dir: 'South' }, { x: 1, y: 0, dir: 'East' }, { x: -1, y: 0, dir: 'West' }];
             let heardSomething = false;

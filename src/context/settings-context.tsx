@@ -2,14 +2,7 @@
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
-import type { GameMode, DiceType, AiModel, NarrativeLength } from '@/lib/game/types';
-
-interface GameSettings {
-  gameMode: GameMode;
-  diceType: DiceType;
-  aiModel: AiModel;
-  narrativeLength: NarrativeLength;
-}
+import type { GameSettings } from '@/lib/game/types';
 
 interface SettingsContextType {
   settings: GameSettings;
@@ -23,6 +16,9 @@ const defaultSettings: GameSettings = {
   diceType: 'd20',
   aiModel: 'balanced',
   narrativeLength: 'medium',
+  fontFamily: 'literata',
+  fontSize: 'base',
+  theme: 'dark',
 };
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
@@ -32,7 +28,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     try {
       const savedSettings = localStorage.getItem('gameSettings');
       if (savedSettings) {
-        setSettingsState(JSON.parse(savedSettings));
+        // Merge saved settings with defaults to ensure all keys are present after updates
+        const parsed = JSON.parse(savedSettings);
+        setSettingsState(prev => ({...defaultSettings, ...parsed}));
       }
     } catch (error) {
       console.error("Failed to load game settings from localStorage", error);
@@ -50,6 +48,26 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       return updatedSettings;
     });
   }, []);
+
+  // Effect to apply theme and font settings to the document
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const root = document.documentElement;
+      const body = document.body;
+
+      // Theme
+      root.classList.remove('light', 'dark');
+      root.classList.add(settings.theme);
+
+      // Font Family
+      body.classList.remove('font-literata', 'font-inter', 'font-source-code-pro');
+      body.classList.add(`font-${settings.fontFamily.replace(/_/g, '-')}`);
+
+      // Font Size
+      body.classList.remove('text-sm', 'text-base', 'text-lg');
+      body.classList.add(`text-${settings.fontSize}`);
+    }
+  }, [settings.theme, settings.fontFamily, settings.fontSize]);
 
   return (
     <SettingsContext.Provider value={{ settings, setSettings }}>

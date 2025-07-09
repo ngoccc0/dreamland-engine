@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 const config = {
@@ -17,10 +18,21 @@ const config = {
         '2xl': '1400px',
       },
     },
+    fontSize: {
+      sm: '0.875rem', // 14px
+      base: '1rem', // 16px
+      lg: '1.125rem', // 18px
+      xl: '1.25rem',
+      '2xl': '1.5rem',
+      '3xl': '1.875rem',
+      '4xl': '2.25rem',
+      '5xl': '3rem',
+    },
     extend: {
       fontFamily: {
-        body: ['Literata', 'serif'],
-        headline: ['Literata', 'serif'],
+        literata: ['Literata', 'serif'],
+        inter: ['Inter', 'sans-serif'],
+        'source-code-pro': ['"Source Code Pro"', 'monospace'],
         code: ['monospace'],
       },
       colors: {

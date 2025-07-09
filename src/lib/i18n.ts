@@ -1018,6 +1018,20 @@ export const translations = {
     biomeLabel: "Biome",
     skillLabel: "Starting Skill",
     questsLabel: "Quests",
+    theme: 'Theme',
+    themeDesc: 'Choose between a light or dark interface.',
+    darkTheme: 'Dark Mode',
+    lightTheme: 'Light Mode',
+    fontFamily: 'Font Family',
+    fontFamilyDesc: 'Select the primary font for game text.',
+    fontLiterata: 'Literata',
+    fontInter: 'Inter',
+    fontSourceCodePro: 'Monospace',
+    fontSize: 'Font Size',
+    fontSizeDesc: 'Adjust the text size for readability.',
+    fontSizeSmall: 'Small',
+    fontSizeMedium: 'Medium',
+    fontSizeLarge: 'Large',
   },
   vi: {
     langIdentifier: 'vi',
@@ -1049,6 +1063,7 @@ export type TranslationKey = keyof (typeof translations)['en'] & keyof (typeof t
 
 
     
+
 
 
 

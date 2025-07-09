@@ -11,11 +11,11 @@ import { useSettings } from "@/context/settings-context";
 import { useLanguage } from "@/context/language-context";
 import { usePwaInstall } from "@/context/pwa-install-context";
 import { useAuth } from "@/context/auth-context";
-import type { DiceType, GameMode, AiModel, NarrativeLength } from "@/lib/game/types";
-import { Language, TranslationKey } from "@/lib/i18n";
+import type { DiceType, AiModel, NarrativeLength, FontFamily, FontSize, Theme } from "@/lib/game/types";
+import { Language } from "@/lib/i18n";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Settings, BrainCircuit, Dice6, Bot, Feather, Languages, Download, LogIn, LogOut, UserCircle2, Home } from "./icons";
+import { Settings, BrainCircuit, Dice6, Bot, Feather, Languages, Download, LogIn, LogOut, UserCircle2, Home, Palette, Type } from "./icons";
 
 
 interface SettingsPopupProps {
@@ -62,6 +62,19 @@ export function SettingsPopup({ open, onOpenChange, isInGame }: SettingsPopupPro
   const handleNarrativeLengthChange = (value: string) => {
     setSettings({ narrativeLength: value as NarrativeLength });
   };
+  
+  const handleThemeChange = (checked: boolean) => {
+    setSettings({ theme: checked ? 'dark' : 'light' });
+  };
+
+  const handleFontFamilyChange = (value: string) => {
+    setSettings({ fontFamily: value as FontFamily });
+  };
+  
+  const handleFontSizeChange = (value: string) => {
+    setSettings({ fontSize: value as FontSize });
+  };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -120,7 +133,72 @@ export function SettingsPopup({ open, onOpenChange, isInGame }: SettingsPopupPro
               </div>
             </RadioGroup>
           </div>
+
+          <Separator />
           
+           <div className="space-y-3">
+            <Label className="font-semibold flex items-center gap-2"><Palette /> {t('theme')}</Label>
+            <p className="text-sm leading-snug text-muted-foreground">{t('themeDesc')}</p>
+            <div className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
+              <Label htmlFor="theme-switch" className="flex flex-col space-y-1">
+                <span>{settings.theme === 'dark' ? t('darkTheme') : t('lightTheme')}</span>
+              </Label>
+              <Switch
+                id="theme-switch"
+                checked={settings.theme === 'dark'}
+                onCheckedChange={handleThemeChange}
+              />
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-3">
+            <Label className="font-semibold flex items-center gap-2"><Type /> {t('fontFamily')}</Label>
+            <p className="text-sm leading-snug text-muted-foreground">{t('fontFamilyDesc')}</p>
+            <RadioGroup
+              value={settings.fontFamily}
+              onValueChange={handleFontFamilyChange}
+              className="grid grid-cols-3 gap-2"
+            >
+              <div>
+                <RadioGroupItem value="literata" id="literata" className="sr-only peer" />
+                <Label htmlFor="literata" className="flex h-full text-center items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer font-literata">{t('fontLiterata')}</Label>
+              </div>
+              <div>
+                <RadioGroupItem value="inter" id="inter" className="sr-only peer" />
+                <Label htmlFor="inter" className="flex h-full text-center items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer font-inter">{t('fontInter')}</Label>
+              </div>
+              <div>
+                <RadioGroupItem value="source_code_pro" id="source-code-pro" className="sr-only peer" />
+                <Label htmlFor="source-code-pro" className="flex h-full text-center items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer font-source-code-pro">{t('fontSourceCodePro')}</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div className="space-y-3">
+            <Label className="font-semibold flex items-center gap-2"><Type /> {t('fontSize')}</Label>
+            <p className="text-sm leading-snug text-muted-foreground">{t('fontSizeDesc')}</p>
+            <RadioGroup
+              value={settings.fontSize}
+              onValueChange={handleFontSizeChange}
+              className="grid grid-cols-3 gap-4"
+            >
+              <div>
+                <RadioGroupItem value="sm" id="sm" className="sr-only peer" />
+                <Label htmlFor="sm" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">{t('fontSizeSmall')}</Label>
+              </div>
+              <div>
+                <RadioGroupItem value="base" id="base" className="sr-only peer" />
+                <Label htmlFor="base" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">{t('fontSizeMedium')}</Label>
+              </div>
+              <div>
+                <RadioGroupItem value="lg" id="lg" className="sr-only peer" />
+                <Label htmlFor="lg" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">{t('fontSizeLarge')}</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
           <Separator />
           
           <div className="flex items-center justify-between space-x-4">

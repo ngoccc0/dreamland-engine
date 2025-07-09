@@ -35,6 +35,8 @@ export {
   Footprints,
   MapPin,
   Menu,
+  Palette,
+  Type,
 } from 'lucide-react';
 
 

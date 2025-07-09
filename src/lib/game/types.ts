@@ -22,6 +22,9 @@ export type AiModel = 'balanced' | 'creative' | 'fast' | 'quality';
 export type NarrativeLength = 'short' | 'medium' | 'long';
 export type GameTheme = 'Magic' | 'Technology' | 'Post-Apocalypse' | 'Cyberpunk' | 'Normal';
 export type EquipmentSlot = 'weapon' | 'armor' | 'accessory';
+export type FontFamily = 'literata' | 'inter' | 'source_code_pro';
+export type FontSize = 'sm' | 'base' | 'lg';
+export type Theme = 'light' | 'dark';
 
 
 // --- NEW WEATHER SYSTEM TYPES ---
@@ -77,6 +80,9 @@ export interface GameSettings {
   diceType: DiceType;
   aiModel: AiModel;
   narrativeLength: NarrativeLength;
+  fontFamily: FontFamily;
+  fontSize: FontSize;
+  theme: Theme;
 }
 
 export interface ChunkItem {

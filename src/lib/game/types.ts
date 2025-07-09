@@ -3,6 +3,7 @@
 // --- Data Types and Interfaces for the Game Engine ---
 
 import type { BiomeDefinition } from "./definitions/biome";
+import type { RecipeIngredient } from "./recipes";
 
 // Represents a contiguous region of a single biome.
 export interface Region {
@@ -281,6 +282,19 @@ export interface RecipeIngredient {
     name: string; // The primary/ideal ingredient
     quantity: number;
     alternatives?: RecipeAlternative[]; // A list of tiered substitute items
+}
+
+// This represents the detailed result of checking a recipe, for use in the UI.
+export interface CraftingOutcome {
+    canCraft: boolean;
+    chance: number;
+    ingredientsToConsume: { name: string; quantity: number }[];
+    resolvedIngredients: {
+        requirement: RecipeIngredient;
+        usedItem: { name: string; tier: number } | null; // which item was chosen
+        isSubstitute: boolean;
+        hasEnough: boolean; // if enough of *any* valid item is available for this slot
+    }[];
 }
 
 

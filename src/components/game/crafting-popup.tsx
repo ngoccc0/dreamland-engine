@@ -7,33 +7,35 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
-import type { PlayerItem, Recipe, RecipeIngredient, RecipeAlternative } from "@/lib/game/types";
+import type { PlayerItem, Recipe, RecipeIngredient } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
-import { calculateCraftingOutcome } from "@/lib/game/engine";
+import { calculateCraftingOutcome, type CraftingOutcome } from "@/lib/game/engine";
 import { Hammer } from "./icons";
+import { cn } from "@/lib/utils";
 
 interface CraftingPopupProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   playerItems: PlayerItem[];
   recipes: Record<string, Recipe>;
-  onCraft: (recipe: Recipe) => void;
+  onCraft: (recipe: Recipe, outcome: CraftingOutcome) => void;
 }
 
 const getPlayerQuantityForIngredient = (playerItems: PlayerItem[], ingredient: RecipeIngredient): number => {
-    const possibleItems = [{ name: ingredient.name, tier: 1 as const }, ...(ingredient.alternatives || [])];
     let total = 0;
-    for (const item of possibleItems) {
-        const playerItem = playerItems.find(pi => pi.name === item.name);
+    const itemNames = new Set([ingredient.name, ...(ingredient.alternatives?.map(a => a.name) || [])]);
+    itemNames.forEach(name => {
+        const playerItem = playerItems.find(pi => pi.name === name);
         if (playerItem) {
             total += playerItem.quantity;
         }
-    }
+    });
     return total;
 };
 
 export function CraftingPopup({ open, onOpenChange, playerItems, recipes, onCraft }: CraftingPopupProps) {
   const { t } = useLanguage();
+  const playerItemMap = new Map(playerItems.map(item => [item.name, item.quantity]));
 
   const getTooltipContent = (ingredient: RecipeIngredient): string => {
     let content = `${t('buildNeed')}: ${t(ingredient.name as TranslationKey)}`;
@@ -57,7 +59,7 @@ export function CraftingPopup({ open, onOpenChange, playerItems, recipes, onCraf
         <ScrollArea className="max-h-[65vh] pr-4">
           <div className="p-4 space-y-4">
             {Object.values(recipes).map((recipe, index) => {
-              const { canCraft, chance } = calculateCraftingOutcome(playerItems, recipe);
+              const outcome = calculateCraftingOutcome(playerItems, recipe);
               return (
                 <div key={index} className="p-4 border rounded-lg bg-muted/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div className="flex-grow">
@@ -69,20 +71,26 @@ export function CraftingPopup({ open, onOpenChange, playerItems, recipes, onCraf
                     <div className="text-sm">
                       <span className="font-semibold">{t('ingredients')}:</span>
                       <ul className="list-disc list-inside ml-4">
-                        {recipe.ingredients.map(ing => {
-                          const playerQty = getPlayerQuantityForIngredient(playerItems, ing);
-                          const hasEnough = playerQty >= ing.quantity;
+                        {outcome.resolvedIngredients.map((resolvedIng, i) => {
+                           const itemToShow = resolvedIng.usedItem;
+                           const requirement = resolvedIng.requirement;
+                           const playerQty = getPlayerQuantityForIngredient(playerItems, requirement);
+
+                           let itemClass = "text-red-400";
+                           if (resolvedIng.hasEnough) {
+                               itemClass = resolvedIng.isSubstitute ? "text-yellow-400" : "text-green-400";
+                           }
 
                           return (
-                            <TooltipProvider key={ing.name}>
+                            <TooltipProvider key={i}>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <li className={hasEnough ? 'text-green-400' : 'text-red-400'}>
-                                    {t(ing.name as TranslationKey)} ({playerQty}/{ing.quantity})
+                                  <li className={itemClass}>
+                                    {itemToShow ? t(itemToShow.name as TranslationKey) : t(requirement.name as TranslationKey)} ({playerQty}/{requirement.quantity})
                                   </li>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  <p>{getTooltipContent(ing)}</p>
+                                  <p>{getTooltipContent(requirement)}</p>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
@@ -95,13 +103,13 @@ export function CraftingPopup({ open, onOpenChange, playerItems, recipes, onCraf
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="flex-shrink-0">
-                          <Button onClick={() => onCraft(recipe)} disabled={!canCraft}>
-                            {canCraft ? `${t('craft')} (${chance}%)` : t('craft')}
+                          <Button onClick={() => onCraft(recipe, outcome)} disabled={!outcome.canCraft}>
+                            {outcome.canCraft ? `${t('craft')} (${outcome.chance}%)` : t('craft')}
                           </Button>
                         </div>
                       </TooltipTrigger>
                       <TooltipContent>
-                        {canCraft ? <p>{t('successChance', { chance })}</p> : <p>{t('notEnoughIngredients')}</p>}
+                        {outcome.canCraft ? <p>{t('successChance', { chance: outcome.chance })}</p> : <p>{t('notEnoughIngredients')}</p>}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

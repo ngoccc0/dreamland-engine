@@ -1,5 +1,5 @@
 
-import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient, Structure, Language, Npc } from "./types";
+import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient, Structure, Language, Npc, CraftingOutcome } from "./types";
 import { seasonConfig, worldConfig } from "./world-config";
 import { getTemplates } from "./templates";
 import { itemDefinitions as staticItemDefinitions } from "@/lib/game/items";
@@ -550,53 +550,98 @@ export const generateRegion = (
 };
 
 // --- CRAFTING SYSTEM ---
-export const calculateCraftingOutcome = (playerItems: PlayerItem[], recipe: Recipe): { canCraft: boolean, chance: number, ingredientsToConsume: {name: string, quantity: number}[] } => {
-    const ingredientsToConsume: {name: string, quantity: number}[] = [];
+export const calculateCraftingOutcome = (playerItems: PlayerItem[], recipe: Recipe): CraftingOutcome => {
     const tempPlayerItems = new Map(playerItems.map(item => [item.name, item.quantity]));
-    let canCraft = true;
+    const resolvedIngredients: CraftingOutcome['resolvedIngredients'] = [];
+    const ingredientsToConsumeMap = new Map<string, number>();
     let worstTier = 1;
+    let canCraft = true;
 
-    const getPossibleItemsForIngredient = (ingredient: RecipeIngredient): { name: string, tier: 1 | 2 | 3}[] => {
-        const options = [{ name: ingredient.name, tier: 1 as const }];
-        if (ingredient.alternatives) {
-            options.push(...ingredient.alternatives);
-        }
-        return options.sort((a, b) => (a.tier || 1) - (b.tier || 1)); // Best tier first
+    const getPossibleItems = (ing: RecipeIngredient) => {
+        return [{ name: ing.name, tier: 1 as const }, ...(ing.alternatives || [])]
+            .sort((a, b) => a.tier - b.tier);
     };
 
-    for (const ing of recipe.ingredients) {
-        let foundItemForIngredient: { name: string, tier: number } | null = null;
-        const possibleItems = getPossibleItemsForIngredient(ing);
+    // First pass: Resolve which item to use for each requirement and check if we have enough
+    for (const requirement of recipe.ingredients) {
+        const possibleItems = getPossibleItems(requirement);
+        let usedItem: { name: string; tier: number } | null = null;
+        let hasEnoughForRequirement = false;
         
-        for (const possibleItem of possibleItems) {
-            if ((tempPlayerItems.get(possibleItem.name) || 0) >= ing.quantity) {
-                foundItemForIngredient = possibleItem;
+        // Find the best available item that we have enough of
+        for (const possible of possibleItems) {
+            if ((tempPlayerItems.get(possible.name) || 0) >= requirement.quantity) {
+                usedItem = possible;
+                hasEnoughForRequirement = true;
                 break;
             }
         }
-
-        if (foundItemForIngredient) {
-            worstTier = Math.max(worstTier, foundItemForIngredient.tier);
-            const existing = ingredientsToConsume.find(i => i.name === foundItemForIngredient!.name);
-            if (existing) {
-                existing.quantity += ing.quantity;
-            } else {
-                ingredientsToConsume.push({ name: foundItemForIngredient.name, quantity: ing.quantity });
+        
+        // If we didn't have enough of any single item, find the best one we have ANY of for display purposes
+        if (!usedItem) {
+             for (const possible of possibleItems) {
+                if ((tempPlayerItems.get(possible.name) || 0) > 0) {
+                    usedItem = possible;
+                    break;
+                }
             }
-            tempPlayerItems.set(foundItemForIngredient.name, tempPlayerItems.get(foundItemForIngredient.name)! - ing.quantity);
-        } else {
+        }
+        
+        // If still no item, default to primary for display
+        if (!usedItem) {
+            usedItem = { name: requirement.name, tier: 1 };
+        }
+
+        resolvedIngredients.push({
+            requirement,
+            usedItem,
+            isSubstitute: usedItem.name !== requirement.name,
+            hasEnough: hasEnoughForRequirement
+        });
+    }
+
+    // Second pass: Based on the resolved list, calculate final craftability and consumption
+    const finalTempPlayerItems = new Map(playerItems.map(item => [item.name, item.quantity]));
+    for (const resolved of resolvedIngredients) {
+        if (!resolved.hasEnough) {
+            canCraft = false;
+            break; // No need to continue if one requirement fails
+        }
+
+        const itemToConsume = resolved.usedItem!;
+        const currentAmount = finalTempPlayerItems.get(itemToConsume.name) || 0;
+        
+        // This check should be redundant due to hasEnough, but it's a safeguard
+        if (currentAmount < resolved.requirement.quantity) {
             canCraft = false;
             break;
         }
+        
+        // Decrement from our temporary map to handle recipes needing the same item multiple times
+        finalTempPlayerItems.set(itemToConsume.name, currentAmount - resolved.requirement.quantity);
+        
+        // Tally up the total consumption for the final output
+        const currentConsumption = ingredientsToConsumeMap.get(itemToConsume.name) || 0;
+        ingredientsToConsumeMap.set(itemToConsume.name, currentConsumption + resolved.requirement.quantity);
+        
+        worstTier = Math.max(worstTier, itemToConsume.tier);
     }
-
+    
     if (!canCraft) {
-        return { canCraft: false, chance: 0, ingredientsToConsume: [] };
+        ingredientsToConsumeMap.clear();
     }
-
+    
+    const ingredientsToConsume = Array.from(ingredientsToConsumeMap.entries()).map(([name, quantity]) => ({ name, quantity }));
+    
     let chance = 100;
     if (worstTier === 2) chance = 50;
     if (worstTier === 3) chance = 10;
-    
-    return { canCraft: true, chance, ingredientsToConsume };
+    if (!canCraft) chance = 0;
+
+    return {
+        canCraft,
+        chance,
+        ingredientsToConsume,
+        resolvedIngredients
+    };
 };

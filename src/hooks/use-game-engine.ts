@@ -17,7 +17,7 @@ import { provideQuestHint } from "@/ai/flows/provide-quest-hint";
 
 import { useGameState } from "./use-game-state";
 import { rollDice, getSuccessLevel, successLevelToTranslationKey, type SuccessLevel } from "@/lib/game/dice";
-import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, checkConditions, calculateCraftingOutcome } from "@/lib/game/engine";
+import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, checkConditions, calculateCraftingOutcome, type CraftingOutcome } from "@/lib/game/engine";
 import { skillDefinitions } from '@/lib/game/skills';
 import { getTemplates } from '@/lib/game/templates';
 import { worldConfig, seasonConfig } from '@/lib/game/world-config';
@@ -224,7 +224,7 @@ export function useGameEngine(props: GameEngineProps) {
         return narrative;
     }, [getEffectiveChunk]);
 
-    // This effect handles the one-time initialization of the game world when it's first loaded.
+    // EFFECT 1: Game Initialization (runs only once).
     useEffect(() => {
         if (!isLoaded || isInitialized.current || !finalWorldSetup) return;
 
@@ -235,7 +235,7 @@ export function useGameEngine(props: GameEngineProps) {
         
         const initialPosKey = `${playerPosition.x},${playerPosition.y}`;
 
-        // Part 1: Ensure initial chunk and surroundings exist if not already loaded.
+        // Ensure initial chunk and surroundings exist if not already loaded.
         if (!worldSnapshot[initialPosKey]) {
             const result = ensureChunkExists(playerPosition, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
             worldSnapshot = result.worldWithChunk;
@@ -259,7 +259,7 @@ export function useGameEngine(props: GameEngineProps) {
             }
         }
         
-        // Part 2: Set up initial narrative and weather if this is a new game.
+        // Set up initial narrative and weather if this is a new game.
         if (narrativeLog.length <= 1) {
             const startingChunk = worldSnapshot[initialPosKey];
             if (startingChunk) {
@@ -277,13 +277,12 @@ export function useGameEngine(props: GameEngineProps) {
             }
         }
 
-        // Commit all state changes at once and mark as initialized.
         setWorld(worldSnapshot);
         setRegions(regionsSnapshot);
         setRegionCounter(regionCounterSnapshot);
         setWeatherZones(weatherZonesSnapshot);
+        
         isInitialized.current = true;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoaded, finalWorldSetup]);
 
 
@@ -572,6 +571,7 @@ export function useGameEngine(props: GameEngineProps) {
         setPlayerStats(nextPlayerStats);
     }, [playerStats, world, gameTime, day, addNarrativeEntry, t, isOnline, finalWorldSetup, language, weatherZones, currentSeason, playerPosition, customItemDefinitions, getEffectiveChunk, triggerRandomEvent, setDay, setGameTime, setWeatherZones, setWorld, setPlayerStats, turn]);
     
+    // EFFECT: Check for game over.
     useEffect(() => {
         if (playerStats.hp <= 0 && !isGameOver) {
             addNarrativeEntry(t('gameOverMessage'), 'system');
@@ -579,18 +579,17 @@ export function useGameEngine(props: GameEngineProps) {
         }
     }, [playerStats.hp, isGameOver, addNarrativeEntry, t, setIsGameOver]);
 
-    const checkSkillUnlocks = useCallback((currentPlayerStats: PlayerStatus) => {
-        const newlyUnlockedSkills: Skill[] = [];
-        const currentSkillNames = new Set(currentPlayerStats.skills.map(s => s.name));
+    // EFFECT: Check for skill unlocks based on player's actions.
+    useEffect(() => {
+        if (!isLoaded) return;
+        const { kills, damageSpells, moves } = playerStats.unlockProgress;
+        const currentSkillNames = new Set(playerStats.skills.map(s => s.name));
 
-        for (const skillDef of skillDefinitions) {
-            if (!currentSkillNames.has(skillDef.name) && skillDef.unlockCondition) {
-                const progress = currentPlayerStats.unlockProgress[skillDef.unlockCondition.type];
-                if (progress >= skillDef.unlockCondition.count) {
-                    newlyUnlockedSkills.push(skillDef);
-                }
-            }
-        }
+        const newlyUnlockedSkills = skillDefinitions.filter(skillDef => {
+            if (currentSkillNames.has(skillDef.name) || !skillDef.unlockCondition) return false;
+            const progress = playerStats.unlockProgress[skillDef.unlockCondition.type];
+            return progress >= skillDef.unlockCondition.count;
+        });
 
         if (newlyUnlockedSkills.length > 0) {
             setPlayerStats(prev => ({
@@ -607,22 +606,20 @@ export function useGameEngine(props: GameEngineProps) {
                 });
             });
         }
-    }, [addNarrativeEntry, t, toast, setPlayerStats]);
-    
-    useEffect(() => {
-        if (!isLoaded) return;
-        checkSkillUnlocks(playerStats);
-    }, [playerStats.unlockProgress, isLoaded, checkSkillUnlocks]);
+    // Dependency array uses primitive values from the progress object to avoid infinite loops.
+    }, [playerStats.unlockProgress.kills, playerStats.unlockProgress.damageSpells, playerStats.unlockProgress.moves, isLoaded, addNarrativeEntry, setPlayerStats, t, toast, playerStats.skills]);
 
+    // EFFECT: Update player persona based on behavior profile.
     useEffect(() => {
         if (!isLoaded) return;
-        const totalActions = playerBehaviorProfile.moves + playerBehaviorProfile.attacks + playerBehaviorProfile.crafts;
+        const { moves, attacks, crafts } = playerBehaviorProfile;
+        const totalActions = moves + attacks + crafts;
         
         if (totalActions < 20) return;
 
-        const movePercentage = playerBehaviorProfile.moves / totalActions;
-        const attackPercentage = playerBehaviorProfile.attacks / totalActions;
-        const craftPercentage = playerBehaviorProfile.crafts / totalActions;
+        const movePercentage = moves / totalActions;
+        const attackPercentage = attacks / totalActions;
+        const craftPercentage = crafts / totalActions;
         
         let newPersona: PlayerPersona = 'none';
 
@@ -636,9 +633,10 @@ export function useGameEngine(props: GameEngineProps) {
             addNarrativeEntry(t(messageKey), 'system');
             toast({ title: t('personaUnlockedTitle'), description: t(messageKey) });
         }
-    }, [playerBehaviorProfile, playerStats.persona, isLoaded, addNarrativeEntry, setPlayerStats, t, toast]);
+    // Dependency array uses primitive values from the behavior object to avoid infinite loops.
+    }, [playerBehaviorProfile.moves, playerBehaviorProfile.attacks, playerBehaviorProfile.crafts, playerStats.persona, isLoaded, addNarrativeEntry, setPlayerStats, t, toast]);
     
-    // EFFECT 1: Update the visual representation of the current chunk whenever the environment changes.
+    // EFFECT: Update the visual representation of the current chunk whenever the environment changes.
     useEffect(() => {
         if (!isLoaded) return;
         const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
@@ -650,7 +648,7 @@ export function useGameEngine(props: GameEngineProps) {
         }
     }, [world, playerPosition, gameTime, weatherZones, getEffectiveChunk, setCurrentChunk, isLoaded]);
 
-    // Auto-saving effect
+    // EFFECT: Auto-saving
     useEffect(() => {
         if (!isLoaded || isSaving || isGameOver) return;
 
@@ -1280,24 +1278,23 @@ export function useGameEngine(props: GameEngineProps) {
         }
     }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerStats, isOnline, handleOnlineNarrative, world, playerPosition, handleOfflineAction, addNarrativeEntry]);
 
-    const handleCraft = useCallback(async (recipe: Recipe) => {
+    const handleCraft = useCallback(async (recipe: Recipe, outcome: CraftingOutcome) => {
         if (isLoading || isGameOver) return;
         setPlayerBehaviorProfile(p => ({ ...p, crafts: p.crafts + 1 }));
-        const { canCraft, chance, ingredientsToConsume } = calculateCraftingOutcome(playerStats.items, recipe);
 
-        if (!canCraft) { toast({ title: t('error'), description: t('notEnoughIngredients'), variant: "destructive" }); return; }
+        if (!outcome.canCraft) { toast({ title: t('error'), description: t('notEnoughIngredients'), variant: "destructive" }); return; }
         
         const actionText = t('craftAction', {itemName: t(recipe.result.name as TranslationKey)});
         addNarrativeEntry(actionText, 'action');
         let updatedItems = playerStats.items.map(i => ({...i}));
-        ingredientsToConsume.forEach(itemToConsume => {
+        outcome.ingredientsToConsume.forEach(itemToConsume => {
             const itemIndex = updatedItems.findIndex(i => i.name === itemToConsume.name);
             if (itemIndex > -1) updatedItems[itemIndex].quantity -= itemToConsume.quantity;
         });
         
         let nextPlayerStats = { ...playerStats, items: updatedItems.filter(i => i.quantity > 0), dailyActionLog: [...(playerStats.dailyActionLog || []), actionText] };
 
-        if (Math.random() * 100 < chance) {
+        if (Math.random() * 100 < outcome.chance) {
             const newInventory = [...nextPlayerStats.items];
             const resultItemIndex = newInventory.findIndex(i => i.name === recipe.result.name);
             if (resultItemIndex > -1) newInventory[resultItemIndex].quantity += recipe.result.quantity;
@@ -1583,4 +1580,5 @@ export function useGameEngine(props: GameEngineProps) {
 
 
     
+
 

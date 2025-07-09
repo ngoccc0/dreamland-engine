@@ -731,7 +731,7 @@ export const translations = {
     effects: "Effects",
     healthShort: "HP",
     staminaShort: "Stamina",
-    craftingDesc: "Combine items to create new tools and supplies.",
+    craftingDesc: "Combine items to create new tools and supplies. The system will use the best alternative ingredients you have.",
     ingredients: "Ingredients",
     craft: "Craft",
     successChance: "Success chance: {chance}%",
@@ -833,37 +833,39 @@ export const translations = {
     install: "Install",
     installAppButton: "Install App",
     installNotAvailableTooltip: "Installation is not available on your browser, or the app is already installed.",
-    tutorialTitle: "Welcome to Dreamland Engine",
+    tutorialTitle: "How to Play",
     tutorialDesc: "A guide to the core mechanics of your adventure.",
-    gettingStartedTitle: "The Adventure Begins",
-    gettingStartedContent: `Welcome! Your goal is to explore, survive, and shape the world.
-- **Exploration:** Use the arrow keys to move. New areas are procedurally generated as you go.
-- **Interaction:** Talk to characters (NPCs) to get quests. Use action buttons or type anything into the custom action box.
-- **The AI Storyteller:** The game is narrated by an AI, making every playthrough unique. Try to be creative!`,
-    uiTitle: "Understanding the Interface",
-    uiContent: `- **Left Panel:** Your story log. All narratives and system messages appear here.
+    gettingStartedTitle: "Getting Started",
+    gettingStartedContent: `Your goal is to explore, survive, and shape your own story.
+- **Movement:** Use the arrow controls or 'W, A, S, D' keys to move between areas.
+- **Actions:** Use the buttons on the right panel for common actions like checking your status or crafting.
+- **Custom Actions:** The AI Storyteller is your guide. Type anything you can imagine into the action box at the bottom right. Try to "search for hidden clues", "climb a tree to get a better view", or "try to reason with the goblin". Be creative!`,
+    uiTitle: "The Interface",
+    uiContent: `- **Left Panel:** This is your story log. Everything that happens is recorded here.
 - **Right Panel:** Your control hub.
-    - **Minimap:** Shows your surroundings. Click it to open a larger map.
-    - **Status:** Open to check your stats, skills, active quests, and read your journal.
-    - **Inventory:** Manage your items.
-    - **Craft/Build/Fuse:** Buttons to open windows for creating items and structures.`,
-    combatTitle: "Combat, Skills & Companions",
-    combatContent: `- **Attacking:** Use the Sword button to attack an enemy.
-- **Dice Rolls:** All major actions involve a dice roll. The result determines the outcome.
-- **Skills:** Use skills from the right panel to gain an advantage. They cost Mana. You'll unlock new skills by performing actions like fighting and exploring.
-- **Taming:** Some creatures can be tamed! Try giving them their favorite food from your inventory.`,
-    craftingBuildTitle: "Creation & Fusion",
-    craftingBuildContent: `- **Crafting & Building:** Collect materials to create new tools and supplies.
-- **Fusion:** Use the Fusion Altar (the flask icon) to experiment. Combine 2-3 items to discover potentially powerful—or useless—new creations. The results are not guaranteed!`,
+  - **Minimap:** Shows your immediate surroundings. Click it to view a larger world map.
+  - **Status (Shield Icon):** Check your stats, skills, equipment, quests, and read your journal.
+  - **Inventory (Backpack Icon):** Manage your items. Click on an item to see what you can do with it.
+  - **Crafting (Hammer Icon):** Combine materials to create tools, weapons, and other supplies. The system will automatically use the best alternative ingredients if you have them.
+  - **Building (House Icon):** Construct shelters and other structures to aid your survival.
+  - **Fusion (Flask Icon):** Experiment by fusing 2-3 items. You might create something powerful... or just a pile of junk.`,
+    combatTitle: "Combat & Skills",
+    combatContent: `- **Attacking:** Use the Sword button to attack an enemy in your current location.
+- **Dice Rolls:** All major actions (combat, skills, etc.) involve a dice roll (d20 by default). The result determines the level of success, from Critical Failure to Critical Success.
+- **Skills:** As you perform actions (moving, fighting), you will unlock new skills. Use them from the right panel. They cost Mana (the blue bar).
+- **Taming:** Some creatures are not hostile. Try giving them their favorite food from your inventory to tame them as companions.`,
+    craftingBuildTitle: "Crafting & Building",
+    craftingBuildContent: `- **Crafting:** Collect materials to create items. The crafting window shows what you can make. If an ingredient is yellow, it means the system is using a substitute you have. The tooltip will show all possible substitutes.
+- **Building:** Use materials to build helpful structures like Campfires for warmth or Shelters for resting.
+- **Fusion:** The Fusion Altar is for pure experimentation. The results depend on the items, the environment, and a bit of luck!`,
     survivalTitle: "Survival & Story",
-    survivalContent: `- **Stats:** Manage your Health (HP), Mana (for skills), and Stamina (for physical actions).
-- **Body Temperature:** The environment affects your temperature. Build fires or shelters to stay warm or cool down.
-- **Journal:** Each day, the AI will write a journal entry summarizing your activities. Check it in the Status window.
-- **Quest Hints:** Stuck on a quest? Click it in the Status window to ask the AI for a hint.`,
+    survivalContent: `- **Core Stats:** Manage your Health (HP, red), Mana (for skills, blue), and Stamina (for physical actions, orange). Stamina and Mana regenerate slowly over time.
+- **Body Temperature:** The environment and weather affect your body temperature. If it gets too high or low, it will drain your stamina and eventually your health. Build a fire or find shelter to regulate it.
+- **Journal:** At the start of each new day, the AI will write a journal entry from your perspective, summarizing your previous day's adventures. Check it in the Status window.`,
     customActionsTitle: "Your Imagination is the Limit",
-    customActionsContent: `This game's heart is the AI. You are not limited to the buttons.
+    customActionsContent: `This game's heart is the AI Storyteller. You are not limited to the buttons.
 - **Be Creative:** Type anything into the custom action box. Try to "search the ruins for treasure," "build a trap," or "try to intimidate the goblin."
-- **AI Interpretation:** The AI will interpret your action and decide what happens next, using the game's rules as a guide. Experiment to see what's possible!`,
+- **AI Interpretation:** The AI will interpret your action and determine the outcome, using the game's rules as a guide. The more descriptive you are, the more interesting the results can be!`,
     skillUnlocked: "Through your actions, you have awakened a new power: {skillName}.",
     skillUnlockedTitle: "New Skill Unlocked!",
     skillUnlockedDesc: "You have learned: {skillName}",

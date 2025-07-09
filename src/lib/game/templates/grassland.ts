@@ -3,20 +3,8 @@
 import { structureDefinitions } from "../structures";
 
 export const grassland_vi = {
-    descriptionTemplates: {
-        short: [
-            "Một đồng cỏ [adjective] trải dài đến tận chân trời.",
-        ],
-        medium: [
-            "Bạn đang đứng giữa một thảo nguyên [adjective]. Gió thổi qua làm những ngọn cỏ [feature] lay động như sóng. Bầu trời [sky] bao la trên đầu. {sensory_details} {entity_report}",
-            "Mặt đất bằng phẳng, [adjective], chỉ có vài cụm [feature] mọc lác đác. Bạn ngửi thấy mùi [smell] trong không khí và nghe thấy tiếng [sound] của côn trùng. {entity_report}",
-        ],
-        long: [
-            "Một đồng cỏ [adjective] trải dài đến tận chân trời. Những ngọn đồi [feature] nhấp nhô nhẹ nhàng dưới bầu trời [sky]. Gió mang theo mùi [smell] của cỏ dại và tiếng [sound] của sự sống hoang dã. {sensory_details} {entity_report} {surrounding_peek}",
-            "Bầu trời [sky] bao la trên đầu bạn, một bức tranh không giới hạn. Một đồng cỏ [adjective] yên bình với tiếng [sound] của côn trùng và những bụi [feature] đung đưa trong gió. Cảm giác vừa tự do vừa nhỏ bé. {sensory_details} {entity_report} {surrounding_peek}",
-        ]
-    },
-    adjectives: ['xanh mướt', 'bạt ngàn', 'khô cằn', 'lộng gió', 'yên bình', 'hoang vắng'],
+    location_adj: ['xanh mướt', 'bạt ngàn', 'khô cằn', 'lộng gió', 'yên bình', 'hoang vắng'],
+    terrain_desc: ['đồng cỏ trải dài', 'ngọn đồi thoai thoải', 'thảo nguyên rộng lớn'],
     features: ['hoa dại', 'cỏ cao', 'đá tảng', 'lối mòn', 'đàn gia súc', 'bụi cây'],
     sky: ['trong xanh', 'đầy mây', 'u ám', 'hoàng hôn', 'đầy sao'],
     sounds: ['gió thổi', 'côn trùng kêu', 'tiếng vó ngựa xa', 'sự tĩnh lặng', 'tiếng chim hót'],
@@ -59,20 +47,8 @@ export const grassland_vi = {
 };
 
 export const grassland_en = {
-    descriptionTemplates: {
-        short: [
-            "An [adjective] grassland stretches to the horizon.",
-        ],
-        medium: [
-            "You are standing in the middle of an [adjective] prairie. The wind rustles through the [feature] grass like waves under the vast [sky]. {sensory_details} {entity_report}",
-            "The ground is flat and [adjective], with only a few scattered clumps of [feature]. You smell [smell] in the air and hear the [sound] of insects. {entity_report}",
-        ],
-        long: [
-            "An [adjective] grassland stretches to the horizon. [feature] hills roll gently under the [sky] sky. The wind carries the scent of wild [smell] and the [sound] of wildlife. {sensory_details} {entity_report} {surrounding_peek}",
-            "The vast [sky] sky above you is a boundless canvas. A peaceful, [adjective] grassland filled with the [sound] of insects and [feature] swaying in the breeze. The feeling is one of both freedom and smallness. {sensory_details} {entity_report} {surrounding_peek}",
-        ]
-    },
-    adjectives: ['lush', 'vast', 'arid', 'windy', 'peaceful', 'desolate'],
+    location_adj: ['lush', 'vast', 'arid', 'windy', 'peaceful', 'desolate'],
+    terrain_desc: ['sprawling plains', 'gentle rolling hills', 'a vast prairie'],
     features: ['wildflowers', 'tall grass', 'boulders', 'worn paths', 'herds of animals', 'shrubs'],
     sky: ['clear blue', 'cloudy', 'overcast', 'sunset', 'starlit'],
     sounds: ['wind blowing', 'insects chirping', 'distant hooves', 'silence', 'birds singing'],

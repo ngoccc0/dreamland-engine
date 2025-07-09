@@ -211,7 +211,7 @@ export function useGameEngine(props: GameEngineProps) {
         if (narrativeLog.length <= 1) {
             const startingChunk = worldSnapshot[initialPosKey];
             if (startingChunk) {
-                const chunkDescription = generateOfflineNarrative(startingChunk, 'medium', worldSnapshot, playerPosition, t);
+                const chunkDescription = generateOfflineNarrative(startingChunk, 'long', worldSnapshot, playerPosition, t, language, customItemDefinitions);
                 const fullIntro = `${t(finalWorldSetup.initialNarrative as TranslationKey)}\n\n${chunkDescription}`;
                 setNarrativeLog([{ id: 0, text: fullIntro, type: 'narrative' }]);
 
@@ -774,7 +774,7 @@ export function useGameEngine(props: GameEngineProps) {
         }
 
         const narrativeResult = { successLevel, playerDamage, enemyDamage, enemyDefeated, fled, enemyType: currentChunk.enemy.type };
-        const narrative = generateOfflineActionNarrative('attack', narrativeResult, currentChunk, t);
+        const narrative = generateOfflineActionNarrative('attack', narrativeResult, currentChunk, t, language);
         addNarrativeEntry(narrative, 'narrative');
     
         if (enemyDefeated && lootDrops.length > 0) {
@@ -845,11 +845,11 @@ export function useGameEngine(props: GameEngineProps) {
         }
         newPlayerStats.items = newPlayerStats.items.filter(i => i.quantity > 0);
         
-        const narrative = generateOfflineActionNarrative('useItem', narrativeResult, currentChunk, t);
+        const narrative = generateOfflineActionNarrative('useItem', narrativeResult, currentChunk, t, language);
         addNarrativeEntry(narrative, 'narrative');
 
         advanceGameTime(newPlayerStats);
-    }, [playerStats, customItemDefinitions, playerPosition, world, addNarrativeEntry, t, advanceGameTime, setWorld, setPlayerStats]);
+    }, [playerStats, customItemDefinitions, playerPosition, world, addNarrativeEntry, t, advanceGameTime, setWorld, setPlayerStats, language]);
     
     const handleOfflineSkillUse = useCallback((skillName: string) => {
         let newPlayerStats: PlayerStatus = JSON.parse(JSON.stringify(playerStats));
@@ -902,12 +902,12 @@ export function useGameEngine(props: GameEngineProps) {
             }
         }
         
-        const narrative = generateOfflineActionNarrative('useSkill', narrativeResult, currentChunk, t);
+        const narrative = generateOfflineActionNarrative('useSkill', narrativeResult, currentChunk, t, language);
         addNarrativeEntry(narrative, 'narrative');
 
         if(newEnemy !== currentChunk.enemy) setWorld(prev => ({...prev, [key]: {...prev[key]!, enemy: newEnemy}}));
         advanceGameTime(newPlayerStats);
-    }, [playerStats, settings.diceType, t, addNarrativeEntry, playerPosition, world, advanceGameTime, setWorld, setPlayerStats]);
+    }, [playerStats, settings.diceType, t, addNarrativeEntry, playerPosition, world, advanceGameTime, setWorld, setPlayerStats, language]);
     
     const handleOfflineAction = useCallback((action: Action) => {
         let newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), t(action.textKey, action.params)] };
@@ -1134,11 +1134,11 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
         if (isOnline) {
             handleOnlineNarrative(actionText, worldSnapshot, newPos, newPlayerStats);
         } else {
-            const narrative = generateOfflineNarrative(worldSnapshot[destChunkKey], settings.narrativeLength, worldSnapshot, newPos, t);
+            const narrative = generateOfflineNarrative(worldSnapshot[destChunkKey], settings.narrativeLength, worldSnapshot, newPos, t, language, customItemDefinitions);
             addNarrativeEntry(narrative, 'narrative');
             advanceGameTime(newPlayerStats);
         }
-    }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerPosition, world, regions, regionCounter, turn, playerStats, toast, addNarrativeEntry, t, ensureChunkExists, weatherZones, currentSeason, gameTime, setWeatherZones, setWorld, setRegions, setRegionCounter, setPlayerPosition, isOnline, handleOnlineNarrative, advanceGameTime, settings.narrativeLength]);
+    }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerPosition, world, regions, regionCounter, turn, playerStats, toast, addNarrativeEntry, t, ensureChunkExists, weatherZones, currentSeason, gameTime, setWeatherZones, setWorld, setRegions, setRegionCounter, setPlayerPosition, isOnline, handleOnlineNarrative, advanceGameTime, settings.narrativeLength, language, customItemDefinitions]);
 
     const handleAction = useCallback((actionId: number) => {
         if (isLoading || isGameOver) return;

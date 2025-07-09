@@ -3,20 +3,8 @@
 import { structureDefinitions } from "../structures";
 
 export const cave_vi = {
-    descriptionTemplates: {
-        short: [
-            "Bên trong hang động tối [adjective] và ẩm ướt.",
-        ],
-        medium: [
-            "Bên trong hang động tối [adjective] và ẩm ướt. Tiếng bước chân của bạn vang vọng giữa những [feature]. Không khí có mùi [smell]. {entity_report}",
-            "Những khối [feature] lấp lánh dưới ánh sáng yếu ớt lọt vào từ bên ngoài. Tiếng [sound] là âm thanh duy nhất phá vỡ sự tĩnh lặng. {sensory_details} {entity_report}",
-        ],
-        long: [
-            "Bạn đi sâu vào một hang động [adjective] chằng chịt. Một luồng gió lạnh [adjective] thổi ra từ bóng tối, mang theo mùi [smell]. Những [feature] kỳ lạ mọc trên vách đá và tiếng [sound] duy nhất là của chính bạn. {sensory_details} {entity_report} {surrounding_peek}",
-            "Sự im lặng tuyệt đối của hang động [adjective] bao trùm lấy bạn. Những [feature] lấp lánh ma mị trong bóng tối, và tiếng nước [sound] từ đâu đó tạo nên một giai điệu rờn rợn. {sensory_details} {entity_report} {surrounding_peek}",
-        ]
-    },
-    adjectives: ['sâu thẳm', 'lạnh lẽo', 'bí ẩn', 'chằng chịt', 'tối đen', 'âm u'],
+    location_adj: ['sâu thẳm', 'lạnh lẽo', 'bí ẩn', 'chằng chịt', 'tối đen', 'âm u'],
+    terrain_desc: ['sự im lặng tuyệt đối', 'không gian vang vọng', 'mê cung đá vôi'],
     features: ['thạch nhũ', 'tinh thể', 'dòng sông ngầm', 'tranh vẽ cổ', 'mạng nhện', 'đống xương'],
     smells: ['đất ẩm', 'nước tù', 'khoáng chất', 'lưu huỳnh', 'mùi phân dơi'],
     sounds: ['tiếng nước nhỏ giọt', 'tiếng vang', 'tiếng dơi kêu', 'sự im lặng nặng nề', 'tiếng đá lạo xạo'],
@@ -63,20 +51,8 @@ export const cave_vi = {
 };
 
 export const cave_en = {
-    descriptionTemplates: {
-        short: [
-            "Inside the [adjective] and damp cave.",
-        ],
-        medium: [
-            "Inside the [adjective] and damp cave. The sound of your footsteps echoes among the [feature]. The air smells of [smell]. {entity_report}",
-            "The [feature] formations glitter in the faint light filtering from outside. The sound of [sound] is the only thing breaking the silence. {sensory_details} {entity_report}",
-        ],
-        long: [
-            "You delve deeper into a [adjective], labyrinthine cave. A [adjective] cold draft blows from the darkness, carrying the smell of [smell]. Strange [feature] grow on the rock walls, and the only [sound] is your own. {sensory_details} {entity_report} {surrounding_peek}",
-            "The absolute silence of the [adjective] cave envelops you. The [feature] glitters eerily in the darkness, and the [sound] of dripping water from somewhere creates a creepy melody. {sensory_details} {entity_report} {surrounding_peek}",
-        ]
-    },
-    adjectives: ['deep', 'cold', 'mysterious', 'labyrinthine', 'pitch-black', 'gloomy'],
+    location_adj: ['deep', 'cold', 'mysterious', 'labyrinthine', 'pitch-black', 'gloomy'],
+    terrain_desc: ['absolute silence', 'an echoing space', 'a limestone maze'],
     features: ['stalactites', 'crystals', 'an underground river', 'ancient drawings', 'cobwebs', 'piles of bones'],
     smells: ['damp earth', 'stagnant water', 'minerals', 'sulfur', 'bat guano'],
     sounds: ['dripping water', 'echoes', 'bat squeaks', 'heavy silence', 'scraping stones'],

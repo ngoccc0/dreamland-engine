@@ -4,21 +4,8 @@ import { structureDefinitions } from "../structures";
 import type { TranslationKey } from "@/lib/i18n";
 
 export const forest_vi = {
-    descriptionTemplates: {
-        short: [
-            "Bạn đang ở trong một khu rừng [adjective]. Những cây [feature] cao vút che khuất ánh mặt trời.",
-            "Một khu rừng [adjective] yên tĩnh bao quanh bạn, chỉ có tiếng [sound] phá vỡ sự im lặng.",
-        ],
-        medium: [
-            "Bạn đang ở trong một khu rừng [adjective]. Những cây [feature] cao vút che khuất ánh mặt trời, và không khí phảng phất mùi [smell]. {sensory_details} {entity_report}",
-            "Một khu rừng [adjective] bao quanh bạn. Tiếng [sound] vang vọng giữa những thân cây [feature]. Mùi [smell] của đất ẩm lan tỏa trong không khí. {entity_report}",
-        ],
-        long: [
-            "Những tia nắng yếu ớt xuyên qua tán lá [adjective] của khu rừng, chiếu rọi xuống thảm rừng phủ đầy [feature]. Không khí phảng phất mùi [smell] và tiếng [sound] của côn trùng tạo nên một bản giao hưởng của tự nhiên hoang dã. {sensory_details} {entity_report} {surrounding_peek}",
-            "Bóng tối của khu rừng [adjective] bao trùm lấy bạn. Thỉnh thoảng, bạn nghe thấy tiếng [sound] vọng lại từ xa, giữa những thân cây [feature] sừng sững như những người khổng lồ im lặng. {sensory_details} {entity_report} {surrounding_peek}",
-        ]
-    },
-    adjectives: ['rậm rạp', 'u ám', 'cổ xưa', 'yên tĩnh', 'ma mị', 'ẩm ướt', 'ngập nắng', 'sâu thẳm', 'bí ẩn'],
+    location_adj: ['rậm rạp', 'u ám', 'cổ xưa', 'yên tĩnh', 'ma mị', 'ẩm ướt', 'ngập nắng', 'sâu thẳm', 'bí ẩn'],
+    terrain_desc: ['cây cối um tùm', 'thảm lá mục', 'ánh nắng lốm đốm'],
     features: ['sồi', 'thông', 'dương xỉ', 'nấm phát quang', 'dây leo chằng chịt', 'thân cây mục', 'suối nhỏ', 'hoa dại', 'tảng đá phủ rêu'],
     smells: ['đất ẩm', 'lá cây mục', 'nhựa thông', 'hoa dại', 'xạ hương động vật', 'ozon sau mưa'],
     sounds: ['chim hót', 'gió rít', 'cành cây gãy', 'sự im lặng đáng sợ', 'tiếng suối chảy róc rách', 'tiếng côn trùng kêu'],
@@ -76,19 +63,11 @@ export const forest_vi = {
 };
 
 export const forest_en = { 
-    ...forest_vi,
-    descriptionTemplates: {
-        short: [
-            "You are in a [adjective] forest. Towering [feature] trees block out the sun.",
-            "A quiet, [adjective] forest surrounds you, with only the [sound] breaking the silence.",
-        ],
-        medium: [
-            "You are in a [adjective] forest. Towering [feature] trees block out the sun, and the air is scented with [smell]. {sensory_details} {entity_report}",
-            "A [adjective] forest surrounds you. The [sound] of your footsteps echoes among the [feature] trees. The scent of damp [smell] fills the air. {entity_report}",
-        ],
-        long: [
-            "Faint sunbeams pierce through the [adjective] canopy, illuminating a forest floor covered in [feature]. The air is scented with [smell], and the [sound] of insects creates a symphony of wild nature. {sensory_details} {entity_report} {surrounding_peek}",
-            "The shadows of the [adjective] forest envelop you. Occasionally, you hear a distant [sound] among the towering [feature] trees that stand like silent giants. {sensory_details} {entity_report} {surrounding_peek}",
-        ]
-    },
+    location_adj: ['dense', 'gloomy', 'ancient', 'quiet', 'eerie', 'damp', 'sun-dappled', 'deep', 'mysterious'],
+    terrain_desc: ['thick vegetation', 'a carpet of fallen leaves', 'dappled sunlight'],
+    features: ['oak', 'pine', 'fern', 'glowing mushroom', 'tangled vines', 'rotten log', 'small stream', 'wildflower', 'moss-covered rock'],
+    smells: ['damp earth', 'decaying leaves', 'pine resin', 'wildflowers', 'animal musk', 'ozone after rain'],
+    sounds: ['birds singing', 'wind whistling', 'twigs snapping', 'eerie silence', 'a babbling brook', 'insects chirping'],
+    sky: ['azure', 'golden', 'grey'],
+    ...forest_vi
 };

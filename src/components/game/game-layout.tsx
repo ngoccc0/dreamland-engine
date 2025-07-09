@@ -181,7 +181,7 @@ export default function GameLayout(props: GameLayoutProps) {
                     </header>
 
                     <main className="flex-grow p-4 md:p-6 overflow-y-auto">
-                        <div className="prose prose-stone dark:prose-invert max-w-none">
+                        <div className="prose prose-stone dark:prose-invert max-w-4xl mx-auto">
                             {narrativeLog.map((entry) => (
                                 <p key={entry.id} className={cn("animate-in fade-in duration-500 whitespace-pre-line",
                                     entry.type === 'action' ? 'italic text-muted-foreground' : '',
@@ -410,5 +410,3 @@ export default function GameLayout(props: GameLayoutProps) {
         </TooltipProvider>
     );
 }
-
-    

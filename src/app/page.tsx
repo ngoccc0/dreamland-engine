@@ -266,37 +266,30 @@ export default function Home() {
                  <div className="p-6 flex flex-col flex-grow">
                    {slot ? (
                      <>
-                       {/* Info Section - Uses grid for responsive layout */}
-                       <div className="flex-grow grid md:grid-cols-[auto_1fr] md:gap-x-6">
-                         {/* Left side: Title & Day, with separator for mobile */}
-                         <div className="border-b pb-4 md:border-b-0 md:pb-0 md:border-r md:pr-6">
-                           <CardTitle className="truncate">{t(slot.worldSetup.worldName as TranslationKey)}</CardTitle>
-                           <CardDescription>{t('dayX', { day: slot.day })}</CardDescription>
-                         </div>
-   
-                         {/* Right side: Details */}
-                         <div className="pt-4 md:pt-0 text-sm space-y-1 text-muted-foreground">
-                           <div className="flex items-baseline">
-                             <span className="font-semibold text-foreground/80 w-28 shrink-0">{t('biomeLabel')}:</span>
-                             <span className="truncate">{t(slot.worldSetup.startingBiome as TranslationKey)}</span>
-                           </div>
-                           {slot.worldSetup.startingSkill && (
-                             <div className="flex items-baseline">
-                               <span className="font-semibold text-foreground/80 w-28 shrink-0">{t('skillLabel')}:</span>
-                               <span className="truncate">{t(slot.worldSetup.startingSkill.name as TranslationKey)}</span>
-                             </div>
-                           )}
-                           {slot.worldSetup.initialQuests && (
-                             <div className="flex items-baseline">
-                               <span className="font-semibold text-foreground/80 w-28 shrink-0">{t('questsLabel')}:</span>
-                               <span className="truncate">{slot.worldSetup.initialQuests.length}</span>
-                             </div>
-                           )}
-                         </div>
-                       </div>
-   
-                       {/* Buttons Section */}
-                       <div className="mt-auto pt-4">
+                        <div className="flex-grow grid md:grid-cols-[auto_1fr] md:gap-x-4">
+                            <div className="border-b pb-4 md:border-b-0 md:pb-0 md:border-r md:pr-4">
+                                <CardTitle className="truncate">{t(slot.worldSetup.worldName as TranslationKey)}</CardTitle>
+                                <CardDescription>{t('dayX', { day: slot.day })}</CardDescription>
+                            </div>
+                            <div className="pt-4 md:pt-0 text-sm text-muted-foreground">
+                                <dl className="grid grid-cols-[auto_1fr] gap-x-2">
+                                    <dt className="font-semibold text-foreground/80">{t('biomeLabel')}:</dt>
+                                    <dd className="truncate">{t(slot.worldSetup.startingBiome as TranslationKey)}</dd>
+
+                                    {slot.worldSetup.startingSkill && <>
+                                        <dt className="font-semibold text-foreground/80">{t('skillLabel')}:</dt>
+                                        <dd className="truncate">{t(slot.worldSetup.startingSkill.name as TranslationKey)}</dd>
+                                    </>}
+
+                                    {slot.worldSetup.initialQuests && <>
+                                        <dt className="font-semibold text-foreground/80">{t('questsLabel')}:</dt>
+                                        <dd className="truncate">{slot.worldSetup.initialQuests.length}</dd>
+                                    </>}
+                                </dl>
+                            </div>
+                        </div>
+
+                       <div className="mt-auto pt-6">
                          <div className="grid grid-cols-2 gap-2">
                            <Button onClick={() => handlePlay(index)} className="w-full">
                              <Play className="mr-2 h-4 w-4" /> {t('continueJourney')}

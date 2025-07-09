@@ -3,13 +3,12 @@
 import type { TranslationKey } from "@/lib/i18n";
 
 export const jungle_vi = {
-    // Keywords for the jungle biome, used by the narrative engine
-    location_adj: ['nguyên sinh', 'nhiệt đới', 'ngột ngạt', 'bí hiểm', 'sống động', 'hoang dã'],
-    terrain_desc: ['thảm thực vật chằng chịt', 'khu rừng bạt ngàn', 'tán lá dày đặc'],
-    feeling: ["đang thở", "có linh hồn", "che giấu bí mật"],
-    beauty_adj: ["hoang dại", "nguy hiểm", "nguyên sơ"],
-    
-    // --- Dữ liệu cũ được giữ lại ---
+    descriptionTemplates: {
+        short: ["Bạn đang ở trong một khu rừng rậm [adjective]."],
+        medium: ["Rừng rậm [adjective] và ngột ngạt. Không khí đặc quánh mùi [smell] và bạn nghe thấy tiếng [sound] của sự sống hoang dã. {sensory_details} {entity_report}"],
+        long: ["Bạn đang ở sâu trong một khu rừng rậm [adjective]. Những cây [feature] khổng lồ tạo thành một mái vòm che kín bầu trời. Không khí đặc quánh mùi [smell] và tiếng [sound] không ngớt của côn trùng và động vật hoang dã tạo nên một bản giao hưởng vừa sống động vừa đáng sợ. {sensory_details} {entity_report} {surrounding_peek}"]
+    },
+    adjectives: ['nguyên sinh', 'nhiệt đới', 'ngột ngạt', 'bí hiểm', 'sống động', 'hoang dã'],
     features: ['cây khổng lồ', 'dây leo', 'hoa lạ', 'thác nước ẩn', 'tàn tích cổ', 'cây ăn thịt'],
     smells: ['hoa thối', 'đất ẩm', 'mùi xạ hương của động vật', 'mùi trái cây chín', 'mùi mưa'],
     sounds: ['vẹt kêu', 'khỉ hú', 'tiếng côn trùng rả rích', 'tiếng nước chảy', 'tiếng gầm xa'],
@@ -41,12 +40,12 @@ export const jungle_vi = {
 };
 
 export const jungle_en = {
-    location_adj: ['primeval', 'tropical', 'suffocating', 'mysterious', 'vibrant', 'wild'],
-    terrain_desc: ['dense vegetation', 'a vast jungle', 'a thick canopy'],
-    feeling: ["is breathing", "has a soul", "hides secrets"],
-    beauty_adj: ["wild", "dangerous", "pristine"],
-    
-    // --- Old data retained ---
+    descriptionTemplates: {
+        short: ["You are in a [adjective] jungle."],
+        medium: ["An [adjective] and suffocating jungle. The air is thick with the smell of [smell] and you hear the [sound] of wildlife. {sensory_details} {entity_report}"],
+        long: ["You are deep within an [adjective] jungle. Giant [feature] form a canopy that blots out the sky. The thick air smells of [smell] and the incessant [sound] of insects and wild animals creates a symphony that is both vibrant and terrifying. {sensory_details} {entity_report} {surrounding_peek}"]
+    },
+    adjectives: ['primeval', 'tropical', 'suffocating', 'mysterious', 'vibrant', 'wild'],
     features: ['giant trees', 'vines', 'strange flowers', 'hidden waterfalls', 'ancient ruins', 'carnivorous plants'],
     smells: ['rotting flowers', 'damp earth', 'animal musk', 'ripe fruit', 'the scent of rain'],
     sounds: ['parrots squawking', 'monkeys howling', 'insects chirping', 'running water', 'a distant roar'],

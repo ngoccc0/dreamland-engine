@@ -3,8 +3,12 @@
 import { structureDefinitions } from "../structures";
 
 export const cave_vi = {
-    location_adj: ['sâu thẳm', 'lạnh lẽo', 'bí ẩn', 'chằng chịt', 'tối đen', 'âm u'],
-    terrain_desc: ['sự im lặng tuyệt đối', 'không gian vang vọng', 'mê cung đá vôi'],
+    descriptionTemplates: {
+        short: ["Bạn đang ở trong một hang động [adjective]."],
+        medium: ["Một hang động [adjective] với những [feature] kỳ lạ. Không khí có mùi [smell] và bạn nghe thấy tiếng [sound] vang vọng. {sensory_details} {entity_report}"],
+        long: ["Không gian [adjective] của hang động bao trùm lấy bạn. Những [feature] tạo nên những hình thù kỳ quái trong bóng tối. Không khí có mùi [smell] và tiếng [sound] khiến bạn cảm thấy vừa tò mò vừa sợ hãi. {sensory_details} {entity_report} {surrounding_peek}"]
+    },
+    adjectives: ['sâu thẳm', 'lạnh lẽo', 'bí ẩn', 'chằng chịt', 'tối đen', 'âm u'],
     features: ['thạch nhũ', 'tinh thể', 'dòng sông ngầm', 'tranh vẽ cổ', 'mạng nhện', 'đống xương'],
     smells: ['đất ẩm', 'nước tù', 'khoáng chất', 'lưu huỳnh', 'mùi phân dơi'],
     sounds: ['tiếng nước nhỏ giọt', 'tiếng vang', 'tiếng dơi kêu', 'sự im lặng nặng nề', 'tiếng đá lạo xạo'],
@@ -51,8 +55,12 @@ export const cave_vi = {
 };
 
 export const cave_en = {
-    location_adj: ['deep', 'cold', 'mysterious', 'labyrinthine', 'pitch-black', 'gloomy'],
-    terrain_desc: ['absolute silence', 'an echoing space', 'a limestone maze'],
+    descriptionTemplates: {
+        short: ["You are in an [adjective] cave."],
+        medium: ["An [adjective] cave with strange [feature]. The air smells of [smell] and you hear the echoing [sound]. {sensory_details} {entity_report}"],
+        long: ["The [adjective] space of the cave envelops you. The [feature] create bizarre shapes in the darkness. The air smells of [smell] and the [sound] makes you feel both curious and frightened. {sensory_details} {entity_report} {surrounding_peek}"]
+    },
+    adjectives: ['deep', 'cold', 'mysterious', 'labyrinthine', 'pitch-black', 'gloomy'],
     features: ['stalactites', 'crystals', 'an underground river', 'ancient drawings', 'cobwebs', 'piles of bones'],
     smells: ['damp earth', 'stagnant water', 'minerals', 'sulfur', 'bat guano'],
     sounds: ['dripping water', 'echoes', 'bat squeaks', 'heavy silence', 'scraping stones'],

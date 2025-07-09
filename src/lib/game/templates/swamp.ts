@@ -2,17 +2,9 @@
 
 export const swamp_vi = {
     descriptionTemplates: {
-        short: [
-            "Bạn đang lội qua một đầm lầy [adjective]. Nước bùn [feature] ngập đến đầu gối.",
-        ],
-        medium: [
-            "Không khí đặc quánh mùi cây cỏ mục rữa và [smell]. Những cây [feature] mọc lên từ làn nước tù đọng. Sương mù [adjective] bao phủ khắp nơi. {sensory_details} {entity_report}",
-            "Một vùng đất [adjective] chết chóc. Rễ cây [feature] trồi lên như những cánh tay xương xẩu. Bạn nghe thấy tiếng [sound] rùng rợn từ trong sương. {sensory_details} {entity_report}",
-        ],
-        long: [
-            "Sương mù [adjective] dày đặc, che khuất tầm nhìn của bạn trong đầm lầy [adjective] này. Không khí đặc quánh mùi [smell] của cây cỏ mục rữa. Nước bùn [feature] ngập đến đầu gối, và bạn nghe thấy tiếng [sound] không ngừng của sự sống ẩn nấp. {sensory_details} {entity_report} {surrounding_peek}",
-            "Một vùng đất [adjective] chết chóc. Rễ cây [feature] trồi lên khỏi mặt nước tù đọng như những cánh tay xương xẩu. Tiếng [sound] của muỗi vo ve và tiếng nước sủi bọt từ khí metan khiến nơi này càng thêm đáng sợ. {sensory_details} {entity_report} {surrounding_peek}",
-        ]
+        short: ["Bạn đang lội qua một đầm lầy [adjective]."],
+        medium: ["Một đầm lầy [adjective]. Không khí đặc quánh mùi [smell] và bạn nghe thấy tiếng [sound] rùng rợn từ trong sương mù. {sensory_details} {entity_report}"],
+        long: ["Sương mù [adjective] dày đặc bao phủ đầm lầy, che khuất tầm nhìn. Không khí đặc quánh mùi [smell]. Nước bùn [feature] ngập đến đầu gối, và tiếng [sound] không ngừng của sự sống ẩn nấp khiến nơi đây càng thêm đáng sợ. {sensory_details} {entity_report} {surrounding_peek}"]
     },
     adjectives: ['hôi thối', 'âm u', 'chết chóc', 'sương giăng', 'ngập nước', 'lầy lội'],
     features: ['đước', 'dây leo', 'khí độc', 'bong bóng bùn', 'côn trùng', 'xác động vật'],
@@ -50,17 +42,9 @@ export const swamp_vi = {
 
 export const swamp_en = {
     descriptionTemplates: {
-        short: [
-            "You are wading through a [adjective] swamp. The [feature] water is knee-deep.",
-        ],
-        medium: [
-            "The air is thick with the smell of decay and [smell]. [feature] trees rise from the stagnant water. [adjective] fog covers everything. {sensory_details} {entity_report}",
-            "A deadly, [adjective] land. Tree roots [feature] rise up like bony arms. You hear a chilling [sound] from within the fog. {sensory_details} {entity_report}",
-        ],
-        long: [
-            "A thick, [adjective] fog obscures your vision in this [adjective] swamp. The air is thick with the [smell] of decaying plants. The [feature] water is knee-deep, and you constantly hear the [sound] of hidden life. {sensory_details} {entity_report} {surrounding_peek}",
-            "A deadly, [adjective] land. Tree roots [feature] rise from the stagnant water like bony arms. The [sound] of buzzing mosquitoes and bubbling methane makes this place even more terrifying. {sensory_details} {entity_report} {surrounding_peek}",
-        ]
+        short: ["You are wading through an [adjective] swamp."],
+        medium: ["An [adjective] swamp. The air is thick with the smell of [smell] and you hear a chilling [sound] from within the fog. {sensory_details} {entity_report}"],
+        long: ["A thick, [adjective] fog covers the swamp, obscuring your vision. The air is thick with the smell of [smell]. The [feature] water is knee-deep, and the incessant [sound] of hidden life makes the place even more terrifying. {sensory_details} {entity_report} {surrounding_peek}"]
     },
     adjectives: ['stinking', 'gloomy', 'deadly', 'foggy', 'waterlogged', 'muddy'],
     features: ['mangroves', 'vines', 'toxic gas', 'mud bubbles', 'insects', 'animal carcasses'],

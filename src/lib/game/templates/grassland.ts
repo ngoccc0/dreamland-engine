@@ -3,8 +3,12 @@
 import { structureDefinitions } from "../structures";
 
 export const grassland_vi = {
-    location_adj: ['xanh mướt', 'bạt ngàn', 'khô cằn', 'lộng gió', 'yên bình', 'hoang vắng'],
-    terrain_desc: ['đồng cỏ trải dài', 'ngọn đồi thoai thoải', 'thảo nguyên rộng lớn'],
+    descriptionTemplates: {
+        short: ["Bạn đang ở trên một đồng cỏ [adjective]."],
+        medium: ["Một đồng cỏ [adjective] với những [feature] trải dài. Bầu trời [sky] và bạn nghe thấy tiếng [sound]. {sensory_details} {entity_report}"],
+        long: ["Cỏ [adjective] trải dài đến tận chân trời, gợn sóng như một đại dương xanh dưới làn gió. Bầu trời [sky] bao la, điểm xuyết vài [feature]. Không khí trong lành mang theo mùi [smell] và tiếng [sound] của sự sống. {sensory_details} {entity_report} {surrounding_peek}"]
+    },
+    adjectives: ['xanh mướt', 'bạt ngàn', 'khô cằn', 'lộng gió', 'yên bình', 'hoang vắng'],
     features: ['hoa dại', 'cỏ cao', 'đá tảng', 'lối mòn', 'đàn gia súc', 'bụi cây'],
     sky: ['trong xanh', 'đầy mây', 'u ám', 'hoàng hôn', 'đầy sao'],
     sounds: ['gió thổi', 'côn trùng kêu', 'tiếng vó ngựa xa', 'sự tĩnh lặng', 'tiếng chim hót'],
@@ -47,8 +51,12 @@ export const grassland_vi = {
 };
 
 export const grassland_en = {
-    location_adj: ['lush', 'vast', 'arid', 'windy', 'peaceful', 'desolate'],
-    terrain_desc: ['sprawling plains', 'gentle rolling hills', 'a vast prairie'],
+    descriptionTemplates: {
+        short: ["You are on an [adjective] grassland."],
+        medium: ["An [adjective] grassland with rolling [feature]. The sky is [sky] and you hear the [sound]. {sensory_details} {entity_report}"],
+        long: ["[adjective] grass stretches to the horizon, rippling like a green ocean in the breeze. The [sky] sky is vast, dotted with a few [feature]. The fresh air carries the scent of [smell] and the [sound] of life. {sensory_details} {entity_report} {surrounding_peek}"]
+    },
+    adjectives: ['lush', 'vast', 'arid', 'windy', 'peaceful', 'desolate'],
     features: ['wildflowers', 'tall grass', 'boulders', 'worn paths', 'herds of animals', 'shrubs'],
     sky: ['clear blue', 'cloudy', 'overcast', 'sunset', 'starlit'],
     sounds: ['wind blowing', 'insects chirping', 'distant hooves', 'silence', 'birds singing'],

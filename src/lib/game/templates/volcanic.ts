@@ -4,17 +4,9 @@ import { structureDefinitions } from "../structures";
 
 export const volcanic_vi = {
     descriptionTemplates: {
-        short: [
-            "Mặt đất [adjective] và nứt nẻ dưới chân bạn.",
-        ],
-        medium: [
-            "Mặt đất [adjective] và nứt nẻ dưới chân bạn. Không khí nồng nặc mùi [smell]. Xa xa, một [feature] phun trào những cột khói đen. {sensory_details} {entity_report}",
-            "Cảnh quan ở đây thật [adjective]. Những dòng [feature] đã nguội lạnh tạo thành những hình thù kỳ quái. Thỉnh thoảng, bạn cảm nhận được mặt đất rung chuyển nhẹ. {sensory_details} {entity_report}",
-        ],
-        long: [
-            "Một vùng đất [adjective] bị tàn phá bởi dung nham. Bầu trời bị che phủ bởi tro bụi, và mùi [smell] khiến bạn khó thở. Âm thanh duy nhất là tiếng [sound] của ngọn núi lửa đang hoạt động, một lời nhắc nhở thường trực về sự hủy diệt. {sensory_details} {entity_report} {surrounding_peek}",
-            "Cảnh quan địa ngục của một vùng đất [adjective]. Những dòng [feature] đã nguội lạnh tạo thành những hình thù kỳ quái. Thỉnh thoảng, bạn cảm nhận được mặt đất rung chuyển nhẹ, và tiếng [sound] của đá nứt vang lên. {sensory_details} {entity_report} {surrounding_peek}",
-        ]
+        short: ["Mặt đất [adjective] và nứt nẻ dưới chân bạn."],
+        medium: ["Mặt đất [adjective] và nứt nẻ. Không khí nồng nặc mùi [smell]. Xa xa, một [feature] phun trào những cột khói đen. {sensory_details} {entity_report}"],
+        long: ["Một vùng đất [adjective] bị tàn phá bởi dung nham. Bầu trời [sky] bị che phủ bởi tro bụi, và mùi [smell] khiến bạn khó thở. Âm thanh duy nhất là tiếng [sound] của ngọn núi lửa đang hoạt động, một lời nhắc nhở thường trực về sự hủy diệt. {sensory_details} {entity_report} {surrounding_peek}"]
     },
     adjectives: ['hoang tàn', 'nóng bỏng', 'đáng sợ', 'đầy tro bụi', 'địa ngục'],
     features: ['dung nham', 'khe nứt', 'cột đá bazan', 'hồ axit', 'đá bọt'],
@@ -50,17 +42,9 @@ export const volcanic_vi = {
 
 export const volcanic_en = {
     descriptionTemplates: {
-        short: [
-            "The ground is [adjective] and cracked under your feet.",
-        ],
-        medium: [
-            "The ground is [adjective] and cracked under your feet. The air is thick with the smell of [smell]. In the distance, a [feature] erupts with columns of black smoke. {sensory_details} {entity_report}",
-            "The landscape here is [adjective]. Cooled [feature] flows form bizarre shapes. Occasionally, you feel the ground tremble slightly. {sensory_details} {entity_report}",
-        ],
-        long: [
-            "An [adjective] land devastated by lava. The sky is obscured by ash, and the smell of [smell] makes it hard to breathe. The only sound is the [sound] of the active volcano, a constant reminder of destruction. {sensory_details} {entity_report} {surrounding_peek}",
-            "The hellish landscape of an [adjective] land. Cooled [feature] flows form bizarre shapes. Occasionally, you feel the ground tremble slightly, and the [sound] of cracking rock echoes. {sensory_details} {entity_report} {surrounding_peek}",
-        ]
+        short: ["The ground is [adjective] and cracked under your feet."],
+        medium: ["The [adjective] and cracked ground is hot to the touch. The air is thick with the smell of [smell]. In the distance, a [feature] erupts with columns of black smoke. {sensory_details} {entity_report}"],
+        long: ["An [adjective] land devastated by lava. The [sky] sky is obscured by ash, and the smell of [smell] makes it hard to breathe. The only sound is the [sound] of the active volcano, a constant reminder of destruction. {sensory_details} {entity_report} {surrounding_peek}"]
     },
     adjectives: ['desolate', 'scorching', 'fearsome', 'ash-covered', 'hellish'],
     features: ['lava flows', 'fissures', 'basalt columns', 'acid pools', 'pumice stones'],

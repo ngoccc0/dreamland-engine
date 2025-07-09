@@ -4,21 +4,12 @@ import { structureDefinitions } from "../structures";
 
 export const mountain_vi = {
     descriptionTemplates: {
-        short: [
-            "Bạn đang leo lên một sườn núi [adjective].",
-        ],
-        medium: [
-            "Bạn đang leo lên một sườn núi [adjective]. Gió [sound] mạnh và lạnh buốt, không khí loãng dần và tầm nhìn [visibility]. {sensory_details} {entity_report}",
-            "Con đường mòn [adjective] cheo leo dẫn lên đỉnh núi. Những đỉnh núi [adjective] nhọn hoắt chọc thủng bầu trời [sky]. {sensory_details} {entity_report}",
-        ],
-        long: [
-            "Những đỉnh núi [adjective] nhọn hoắt chọc thủng bầu trời [sky]. Bạn ngửi thấy mùi [smell] của đá lạnh và nghe tiếng gió [sound]. Một dòng sông băng [feature] chảy xuống từ trên cao, tạo ra một cảnh tượng hùng vĩ nhưng cũng đầy nguy hiểm. {sensory_details} {entity_report} {surrounding_peek}",
-            "Con đường mòn [adjective] bám vào vách đá, bên dưới là vực sâu không đáy. Không khí loãng và lạnh, và tầm nhìn [visibility]. Cảm giác chinh phục và sự hiểm nguy luôn song hành. {sensory_details} {entity_report} {surrounding_peek}",
-        ]
+        short: ["Bạn đang leo lên một sườn núi [adjective]."],
+        medium: ["Bạn đang leo lên một sườn núi [adjective]. Gió [sound] mạnh và lạnh buốt, không khí loãng dần. {sensory_details} {entity_report}"],
+        long: ["Những đỉnh núi [adjective] nhọn hoắt chọc thủng bầu trời [sky]. Bạn ngửi thấy mùi [smell] của đá lạnh và nghe tiếng gió [sound]. Một dòng sông băng [feature] chảy xuống từ trên cao, tạo ra một cảnh tượng hùng vĩ nhưng cũng đầy nguy hiểm. {sensory_details} {entity_report} {surrounding_peek}"]
     },
     adjectives: ['hiểm trở', 'lộng gió', 'hùng vĩ', 'tuyết phủ', 'trơ trọi', 'cô độc'],
     features: ['vách đá', 'tuyết', 'hang động', 'dòng sông băng', 'mỏm đá', 'thác nước đóng băng'],
-    visibility: ['cực tốt', 'bị mây che phủ', 'hạn chế', 'rõ ràng'],
     sounds: ['gió rít', 'đá lở', 'tiếng đại bàng kêu', 'sự tĩnh lặng', 'tiếng tuyết lở xa'],
     smells: ['không khí lạnh', 'đá ẩm', 'mùi tuyết', 'khoáng chất', 'sự trong lành'],
     sky: ['xanh thẳm', 'xám xịt', 'trong vắt'],
@@ -68,21 +59,12 @@ export const mountain_vi = {
 
 export const mountain_en = {
     descriptionTemplates: {
-        short: [
-            "You are climbing an [adjective] mountainside.",
-        ],
-        medium: [
-            "You are climbing an [adjective] mountainside. The [sound] wind is strong and chilling, the air thins, and visibility is [visibility]. {sensory_details} {entity_report}",
-            "A treacherous [adjective] path leads up the peak. The sharp, [adjective] peaks pierce the [sky] sky. {sensory_details} {entity_report}",
-        ],
-        long: [
-            "The sharp, [adjective] peaks pierce the [sky] sky. You smell the [smell] of cold stone and hear the wind [sound]. A glacier [feature] flows down from above, creating a majestic but dangerous spectacle. {sensory_details} {entity_report} {surrounding_peek}",
-            "The [adjective] path clings to the cliffside, with a bottomless abyss below. The air is thin and cold, and visibility is [visibility]. The feeling of conquest and peril go hand in hand. {sensory_details} {entity_report} {surrounding_peek}",
-        ]
+        short: ["You are climbing an [adjective] mountainside."],
+        medium: ["You are climbing an [adjective] mountainside. The [sound] wind is strong and chilling, and the air thins. {sensory_details} {entity_report}"],
+        long: ["The sharp, [adjective] peaks pierce the [sky] sky. You smell the [smell] of cold stone and hear the wind [sound]. A [feature] flows down from above, creating a majestic but dangerous spectacle. {sensory_details} {entity_report} {surrounding_peek}"]
     },
     adjectives: ['treacherous', 'windswept', 'majestic', 'snow-capped', 'barren', 'lonely'],
     features: ['cliffs', 'snowdrifts', 'caves', 'glaciers', 'outcrops', 'frozen waterfalls'],
-    visibility: ['excellent', 'clouded', 'limited', 'clear'],
     sounds: ['howling', 'rockslides', 'eagle cries', 'silence', 'a distant avalanche'],
     smells: ['cold air', 'damp rock', 'snow', 'minerals', 'crispness'],
     sky: ['deep blue', 'grey', 'crystal clear'],

@@ -4,15 +4,17 @@ import { structureDefinitions } from "../structures";
 import type { TranslationKey } from "@/lib/i18n";
 
 export const forest_vi = {
-    // Keywords for the forest biome, used by the narrative engine
-    location_adj: ['rậm rạp', 'u ám', 'cổ xưa', 'yên tĩnh', 'ma mị', 'ẩm ướt', 'ngập nắng', 'sâu thẳm', 'bí ẩn'],
-    terrain_desc: ['cây cối um tùm', 'thảm lá mục', 'ánh nắng lốm đốm'],
+    descriptionTemplates: {
+        short: [ "Bạn đang ở trong một khu rừng [adjective]." ],
+        medium: [ "Một khu rừng [adjective] với [feature] ở khắp nơi. Không khí có mùi [smell] và bạn nghe thấy tiếng [sound]. {sensory_details} {entity_report}" ],
+        long: [ "Bạn đang ở trong một khu rừng [adjective]. Những cây [feature] vươn cao, che khuất bầu trời [sky]. Không khí có mùi [smell] và bạn nghe thấy tiếng [sound] của sự sống hoang dã. {sensory_details} {entity_report} {surrounding_peek}" ]
+    },
+    adjectives: ['rậm rạp', 'u ám', 'cổ xưa', 'yên tĩnh', 'ma mị', 'ẩm ướt', 'ngập nắng', 'sâu thẳm', 'bí ẩn'],
     features: ['sồi', 'thông', 'dương xỉ', 'nấm phát quang', 'dây leo chằng chịt', 'thân cây mục', 'suối nhỏ', 'hoa dại', 'tảng đá phủ rêu'],
     smells: ['đất ẩm', 'lá cây mục', 'nhựa thông', 'hoa dại', 'xạ hương động vật', 'ozon sau mưa'],
     sounds: ['chim hót', 'gió rít', 'cành cây gãy', 'sự im lặng đáng sợ', 'tiếng suối chảy róc rách', 'tiếng côn trùng kêu'],
     sky: ['xanh biếc', 'vàng úa', 'xám xịt'],
     
-    // --- Data for entity spawning ---
     NPCs: [
         { 
             data: { 
@@ -65,12 +67,19 @@ export const forest_vi = {
     ],
 };
 
-export const forest_en = { 
-    location_adj: ['dense', 'gloomy', 'ancient', 'quiet', 'eerie', 'damp', 'sun-dappled', 'deep', 'mysterious'],
-    terrain_desc: ['thick vegetation', 'a carpet of fallen leaves', 'dappled sunlight'],
+export const forest_en = {
+    descriptionTemplates: {
+        short: [ "You are in an [adjective] forest." ],
+        medium: [ "An [adjective] forest with [feature] everywhere. The air smells of [smell] and you hear the [sound]. {sensory_details} {entity_report}" ],
+        long: [ "You are in an [adjective] forest. Tall [feature] reach for the [sky] sky. The air smells of [smell] and you hear the [sound] of wildlife. {sensory_details} {entity_report} {surrounding_peek}" ]
+    },
+    adjectives: ['dense', 'gloomy', 'ancient', 'quiet', 'eerie', 'damp', 'sun-dappled', 'deep', 'mysterious'],
     features: ['oak', 'pine', 'fern', 'glowing mushroom', 'tangled vines', 'rotten log', 'small stream', 'wildflower', 'moss-covered rock'],
     smells: ['damp earth', 'decaying leaves', 'pine resin', 'wildflowers', 'animal musk', 'ozone after rain'],
     sounds: ['birds singing', 'wind whistling', 'twigs snapping', 'eerie silence', 'a babbling brook', 'insects chirping'],
     sky: ['azure', 'golden', 'grey'],
-    ...forest_vi
+    NPCs: forest_vi.NPCs,
+    items: forest_vi.items,
+    structures: forest_vi.structures,
+    enemies: forest_vi.enemies,
 };

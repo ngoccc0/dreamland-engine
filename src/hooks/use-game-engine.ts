@@ -173,75 +173,67 @@ export function useGameEngine(props: GameEngineProps) {
     
     // EFFECT 1: Game Initialization (runs only once).
     useEffect(() => {
-        // This effect should only run ONCE per game load.
-        // The ref ensures it doesn't re-run on subsequent renders.
-        // The other dependencies ensure it runs with the *correct* loaded state, preventing stale state bugs.
         if (isInitialized.current || !isLoaded || !finalWorldSetup) {
             return;
         }
-    
-        let worldSnapshot = { ...world };
-        let regionsSnapshot = { ...regions };
-        let regionCounterSnapshot = regionCounter;
-        let weatherZonesSnapshot = { ...weatherZones };
-    
-        const initialPosKey = `${playerPosition.x},${playerPosition.y}`;
-    
-        // Ensure initial chunk and surroundings exist if not already loaded (for new games or recovery).
-        if (!worldSnapshot[initialPosKey]) {
-            const result = ensureChunkExists(playerPosition, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
-            worldSnapshot = result.worldWithChunk;
-            regionsSnapshot = result.newRegions;
-            regionCounterSnapshot = result.newRegionCounter;
-    
-            const visionRadius = 1;
-            for (let dy = -visionRadius; dy <= visionRadius; dy++) {
-                for (let dx = -visionRadius; dx <= visionRadius; dx++) {
-                    const revealPos = { x: playerPosition.x + dx, y: playerPosition.y + dy };
-                    if (!worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
-                        const revealResult = ensureChunkExists(revealPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
-                        worldSnapshot = revealResult.worldWithChunk;
-                        regionsSnapshot = revealResult.newRegions;
-                        regionCounterSnapshot = revealResult.newRegionCounter;
-                    }
-                    if (worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
-                        worldSnapshot[`${revealPos.x},${revealPos.y}`].explored = true;
+
+        const initializeGame = () => {
+            let worldSnapshot = { ...world };
+            let regionsSnapshot = { ...regions };
+            let regionCounterSnapshot = regionCounter;
+            let weatherZonesSnapshot = { ...weatherZones };
+        
+            const initialPosKey = `${playerPosition.x},${playerPosition.y}`;
+        
+            if (!worldSnapshot[initialPosKey]) {
+                const result = ensureChunkExists(playerPosition, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
+                worldSnapshot = result.worldWithChunk;
+                regionsSnapshot = result.newRegions;
+                regionCounterSnapshot = result.newRegionCounter;
+        
+                const visionRadius = 1;
+                for (let dy = -visionRadius; dy <= visionRadius; dy++) {
+                    for (let dx = -visionRadius; dx <= visionRadius; dx++) {
+                        const revealPos = { x: playerPosition.x + dx, y: playerPosition.y + dy };
+                        if (!worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
+                            const revealResult = ensureChunkExists(revealPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
+                            worldSnapshot = revealResult.worldWithChunk;
+                            regionsSnapshot = revealResult.newRegions;
+                            regionCounterSnapshot = revealResult.newRegionCounter;
+                        }
+                        if (worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
+                            worldSnapshot[`${revealPos.x},${revealPos.y}`].explored = true;
+                        }
                     }
                 }
             }
-        }
-    
-        // Set up initial narrative and weather if this is a new game.
-        if (narrativeLog.length <= 1) {
-            const startingChunk = worldSnapshot[initialPosKey];
-            if (startingChunk) {
-                const chunkDescription = generateOfflineNarrative(startingChunk, 'long', worldSnapshot, playerPosition, t, language, customItemDefinitions);
-                const fullIntro = `${t(finalWorldSetup.initialNarrative as TranslationKey)}\n\n${chunkDescription}`;
-                setNarrativeLog([{ id: 0, text: fullIntro, type: 'narrative' }]);
-    
-                Object.keys(regionsSnapshot).filter(id => !weatherZonesSnapshot[id]).forEach(regionId => {
-                    const region = regionsSnapshot[Number(regionId)];
-                    if (region) {
-                        const initialWeather = generateWeatherForZone(region.terrain, currentSeason);
-                        weatherZonesSnapshot[regionId] = { id: regionId, terrain: region.terrain, currentWeather: initialWeather, nextChangeTime: gameTime + getRandomInRange({min: initialWeather.duration_range[0], max: initialWeather.duration_range[1]}) * 10 };
-                    }
-                });
+        
+            if (narrativeLog.length <= 1) {
+                const startingChunk = worldSnapshot[initialPosKey];
+                if (startingChunk) {
+                    const chunkDescription = generateOfflineNarrative(startingChunk, 'long', worldSnapshot, playerPosition, t, language, customItemDefinitions);
+                    const fullIntro = `${t(finalWorldSetup.initialNarrative as TranslationKey)}\n\n${chunkDescription}`;
+                    setNarrativeLog([{ id: 0, text: fullIntro, type: 'narrative' }]);
+        
+                    Object.keys(regionsSnapshot).filter(id => !weatherZonesSnapshot[id]).forEach(regionId => {
+                        const region = regionsSnapshot[Number(regionId)];
+                        if (region) {
+                            const initialWeather = generateWeatherForZone(region.terrain, currentSeason);
+                            weatherZonesSnapshot[regionId] = { id: regionId, terrain: region.terrain, currentWeather: initialWeather, nextChangeTime: gameTime + getRandomInRange({min: initialWeather.duration_range[0], max: initialWeather.duration_range[1]}) * 10 };
+                        }
+                    });
+                }
             }
+        
+            setWorld(worldSnapshot);
+            setRegions(regionsSnapshot);
+            setRegionCounter(regionCounterSnapshot);
+            setWeatherZones(weatherZonesSnapshot);
         }
-    
-        setWorld(worldSnapshot);
-        setRegions(regionsSnapshot);
-        setRegionCounter(regionCounterSnapshot);
-        setWeatherZones(weatherZonesSnapshot);
-    
-        // Mark as initialized so this never runs again for this component instance
+
+        initializeGame();
         isInitialized.current = true;
-    }, [
-        isLoaded, finalWorldSetup, world, regions, regionCounter, playerPosition,
-        narrativeLog, weatherZones, ensureChunkExists, setWorld, setRegions,
-        setRegionCounter, setWeatherZones, setNarrativeLog, t, language,
-        customItemDefinitions, currentSeason, gameTime
-    ]);
+    }, [isLoaded, finalWorldSetup]);
 
     const triggerRandomEvent = useCallback(() => {
         const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
@@ -810,56 +802,87 @@ export function useGameEngine(props: GameEngineProps) {
     const handleOfflineItemUse = useCallback((itemName: string, target: 'player' | string) => {
         const itemDef = customItemDefinitions[itemName];
         if (!itemDef) return;
-
-        let newPlayerStats = { ...playerStats };
+    
+        // Use deep copy to prevent state mutation
+        let newPlayerStats: PlayerStatus = JSON.parse(JSON.stringify(playerStats));
         const itemIndex = newPlayerStats.items.findIndex(i => i.name === itemName);
-        if (itemIndex === -1) { addNarrativeEntry(t('itemNotFound'), 'system'); return; }
+    
+        if (itemIndex === -1) {
+            addNarrativeEntry(t('itemNotFound'), 'system');
+            return;
+        }
         
         const key = `${playerPosition.x},${playerPosition.y}`;
         const currentChunk = world[key];
         if (!currentChunk) return;
-
+    
         let narrativeResult: any = { itemName, target };
-
+        let itemWasConsumed = false;
+        let finalWorldUpdate: Partial<World> | null = null;
+    
         if (target === 'player') {
-            if (!itemDef.effects.length) { addNarrativeEntry(t('itemNoEffect', { item: t(itemName as TranslationKey) }), 'system'); return; }
+            if (!itemDef.effects.length) {
+                addNarrativeEntry(t('itemNoEffect', { item: t(itemName as TranslationKey) }), 'system');
+                return;
+            }
+            itemWasConsumed = true;
             let effectDescriptions: string[] = [];
             itemDef.effects.forEach(effect => {
-                if (effect.type === 'HEAL') { const old = newPlayerStats.hp; newPlayerStats.hp = Math.min(100, newPlayerStats.hp + effect.amount); if(newPlayerStats.hp > old) effectDescriptions.push(t('itemHealEffect', { amount: newPlayerStats.hp - old })); }
-                if (effect.type === 'RESTORE_STAMINA') { const old = newPlayerStats.stamina; newPlayerStats.stamina = Math.min(100, newPlayerStats.stamina + effect.amount); if(newPlayerStats.stamina > old) effectDescriptions.push(t('itemStaminaEffect', { amount: (newPlayerStats.stamina - old).toFixed(0) })); }
+                if (effect.type === 'HEAL') {
+                    const old = newPlayerStats.hp;
+                    newPlayerStats.hp = Math.min(100, newPlayerStats.hp + effect.amount);
+                    if (newPlayerStats.hp > old) effectDescriptions.push(t('itemHealEffect', { amount: newPlayerStats.hp - old }));
+                }
+                if (effect.type === 'RESTORE_STAMINA') {
+                    const old = newPlayerStats.stamina;
+                    newPlayerStats.stamina = Math.min(100, newPlayerStats.stamina + effect.amount);
+                    if (newPlayerStats.stamina > old) effectDescriptions.push(t('itemStaminaEffect', { amount: (newPlayerStats.stamina - old).toFixed(0) }));
+                }
             });
-
             narrativeResult.wasUsed = effectDescriptions.length > 0;
-            if (narrativeResult.wasUsed) {
-                 newPlayerStats.items[itemIndex].quantity -= 1;
-                 narrativeResult.effectDescription = effectDescriptions.join(', ');
+            narrativeResult.effectDescription = effectDescriptions.join(', ');
+        } else { // Taming logic
+            if (!currentChunk.enemy || currentChunk.enemy.type !== target) {
+                addNarrativeEntry(t('noTargetForITEM', { target: t(target as TranslationKey) }), 'system');
+                return;
             }
-        } else {
-            if (!currentChunk.enemy || currentChunk.enemy.type !== target) { addNarrativeEntry(t('noTargetForITEM', {target: t(target as TranslationKey)}), 'system'); return; }
-            if (!currentChunk.enemy.diet.includes(itemName)) { addNarrativeEntry(t('targetNotInterested', { target: t(target as TranslationKey), item: t(itemName as TranslationKey) }), 'system'); return; }
-
-            newPlayerStats.items[itemIndex].quantity -= 1;
+            if (!currentChunk.enemy.diet.includes(itemName)) {
+                addNarrativeEntry(t('targetNotInterested', { target: t(target as TranslationKey), item: t(itemName as TranslationKey) }), 'system');
+                return;
+            }
+    
+            itemWasConsumed = true;
             narrativeResult.itemConsumed = true;
             const newEnemyState = { ...currentChunk.enemy, satiation: Math.min(currentChunk.enemy.satiation + 1, currentChunk.enemy.maxSatiation) };
             const tamingChance = 0.1 + (newEnemyState.satiation / newEnemyState.maxSatiation) * 0.4 - (newEnemyState.hp / 100) * 0.2;
-
+    
             if (Math.random() < tamingChance) {
                 newPlayerStats.pets = [...(newPlayerStats.pets || []), { type: currentChunk.enemy.type, level: 1 }];
-                setWorld(prev => ({...prev, [key]: {...prev[key]!, enemy: null}}));
+                finalWorldUpdate = { [key]: { ...currentChunk, enemy: null } };
                 narrativeResult.wasTamed = true;
                 narrativeResult.newPet = newPlayerStats.pets.at(-1);
             } else {
-                setWorld(prev => ({...prev, [key]: {...prev[key]!, enemy: newEnemyState}}));
+                finalWorldUpdate = { [key]: { ...currentChunk, enemy: newEnemyState } };
                 narrativeResult.wasTamed = false;
             }
         }
-        newPlayerStats.items = newPlayerStats.items.filter(i => i.quantity > 0);
+        
+        if (itemWasConsumed) {
+            newPlayerStats.items[itemIndex].quantity -= 1;
+        }
         
         const narrative = generateOfflineActionNarrative('useItem', narrativeResult, currentChunk, t, language);
         addNarrativeEntry(narrative, 'narrative');
-
+    
+        // Apply state changes at the end
+        if (finalWorldUpdate) {
+            setWorld(prev => ({ ...prev, ...finalWorldUpdate! }));
+        }
+        
+        // Now filter the items after all other logic
+        newPlayerStats.items = newPlayerStats.items.filter(i => i.quantity > 0);
         advanceGameTime(newPlayerStats);
-    }, [playerStats, customItemDefinitions, playerPosition, world, addNarrativeEntry, t, advanceGameTime, setWorld, setPlayerStats, language]);
+    }, [playerStats, customItemDefinitions, playerPosition, world, addNarrativeEntry, t, advanceGameTime, setWorld, language]);
     
     const handleOfflineSkillUse = useCallback((skillName: string) => {
         let newPlayerStats: PlayerStatus = JSON.parse(JSON.stringify(playerStats));

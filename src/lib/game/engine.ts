@@ -1,5 +1,5 @@
 
-import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient, Structure, Language, Npc, CraftingOutcome } from "./types";
+import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient, Structure, Language, Npc, CraftingOutcome, Action } from "./types";
 import { seasonConfig, worldConfig } from "./world-config";
 import { getTemplates } from "./templates";
 import { itemDefinitions as staticItemDefinitions } from "@/lib/game/items";
@@ -367,26 +367,24 @@ function generateChunkContent(
     }
 
     // Actions
-    const actions = [];
+    const actions: Action[] = [];
     let actionIdCounter = 1;
 
     if (spawnedEnemy) {
-        actions.push({ id: actionIdCounter++, text: `${t('observeAction')} ${t(spawnedEnemy.type as TranslationKey)}` });
+        actions.push({ id: actionIdCounter++, textKey: 'observeAction_enemy', params: { enemyType: spawnedEnemy.type as TranslationKey } });
     }
     if (spawnedNPCs.length > 0) {
-        actions.push({ id: actionIdCounter++, text: `${t('talkToAction')} ${t(spawnedNPCs[0].name as TranslationKey)}` });
+        actions.push({ id: actionIdCounter++, textKey: 'talkToAction_npc', params: { npcName: spawnedNPCs[0].name as TranslationKey } });
     }
 
-    actions.push({ id: actionIdCounter++, text: t('exploreAction') });
-
     spawnedItems.forEach(item => {
-        actions.push({ id: actionIdCounter++, text: `${t('pickUpAction')} ${t(item.name as TranslationKey)}` });
+        actions.push({ id: actionIdCounter++, textKey: 'pickUpAction_item', params: { itemName: item.name as TranslationKey } });
     });
     
-    // Add generic survival actions
-    actions.push({ id: actionIdCounter++, text: t('forageForFoodAction') });
-    actions.push({ id: actionIdCounter++, text: t('searchForMaterialsAction') });
-    actions.push({ id: actionIdCounter++, text: t('listenToSurroundingsAction') });
+    actions.push({ id: actionIdCounter++, textKey: 'exploreAction' });
+    actions.push({ id: actionIdCounter++, textKey: 'forageForFoodAction' });
+    actions.push({ id: actionIdCounter++, textKey: 'searchForMaterialsAction' });
+    actions.push({ id: actionIdCounter++, textKey: 'listenToSurroundingsAction' });
 
     return {
         description: finalDescription,
@@ -645,3 +643,5 @@ export const calculateCraftingOutcome = (playerItems: PlayerItem[], recipe: Reci
         resolvedIngredients
     };
 };
+
+    

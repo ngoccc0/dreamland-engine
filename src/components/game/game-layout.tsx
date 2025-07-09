@@ -22,7 +22,7 @@ import { Progress } from "@/components/ui/progress";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/context/language-context";
 import { useGameEngine } from "@/hooks/use-game-engine";
-import type { ItemDefinition, GeneratedItem, WorldConcept, PlayerItem, GameState, Structure, Chunk, EquipmentSlot } from "@/lib/game/types";
+import type { ItemDefinition, GeneratedItem, WorldConcept, PlayerItem, GameState, Structure, Chunk, EquipmentSlot, Action } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
 import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Heart, Zap, Footprints, Loader2, Menu, LogOut } from "./icons";
@@ -183,7 +183,10 @@ export default function GameLayout(props: GameLayoutProps) {
                     <main className="flex-grow p-4 md:p-6 overflow-y-auto">
                         <div className="prose prose-stone dark:prose-invert max-w-none">
                             {narrativeLog.map((entry) => (
-                                <p key={entry.id} className={`animate-in fade-in duration-500 ${entry.type === 'action' ? 'italic text-muted-foreground' : ''} ${entry.type === 'system' ? 'font-semibold text-accent' : ''}`}>
+                                <p key={entry.id} className={cn("animate-in fade-in duration-500 whitespace-pre-line",
+                                    entry.type === 'action' ? 'italic text-muted-foreground' : '',
+                                    entry.type === 'system' ? 'font-semibold text-accent' : ''
+                                )}>
                                     {entry.text}
                                 </p>
                             ))}
@@ -322,16 +325,19 @@ export default function GameLayout(props: GameLayoutProps) {
                         
                         <h2 className="font-headline text-lg font-semibold text-center text-foreground/80 flex-shrink-0">{t('availableActions')}</h2>
                         <div className="grid grid-cols-2 gap-2 overflow-y-auto flex-grow content-start">
-                            {currentChunk?.actions.map(action => (
-                                <Tooltip key={action.id}>
-                                    <TooltipTrigger asChild>
-                                        <Button variant="secondary" className="w-full justify-center" onClick={() => handleAction(action.id)} disabled={isLoading}>
-                                            {action.text}
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent><p>{action.text}</p></TooltipContent>
-                                </Tooltip>
-                            ))}
+                            {currentChunk?.actions.map(action => {
+                                const actionText = t(action.textKey, action.params as any);
+                                return (
+                                    <Tooltip key={action.id}>
+                                        <TooltipTrigger asChild>
+                                            <Button variant="secondary" className="w-full justify-center" onClick={() => handleAction(action.id)} disabled={isLoading}>
+                                                {actionText}
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>{actionText}</p></TooltipContent>
+                                    </Tooltip>
+                                );
+                            })}
                         </div>
                         <div className="flex flex-col gap-2 mt-4 flex-shrink-0">
                             <Input 
@@ -404,3 +410,5 @@ export default function GameLayout(props: GameLayoutProps) {
         </TooltipProvider>
     );
 }
+
+    

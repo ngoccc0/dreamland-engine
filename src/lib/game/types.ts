@@ -1,7 +1,6 @@
 
 
-// --- Data Types and Interfaces for the Game Engine ---
-
+import type { TranslationKey } from "../i18n";
 import type { BiomeDefinition } from "./definitions/biome";
 import type { RecipeIngredient } from "./recipes";
 
@@ -148,6 +147,12 @@ export interface Structure {
     heatValue?: number;
 }
 
+// Represents a contextual action available in a chunk
+export interface Action {
+  id: number;
+  textKey: TranslationKey;
+  params?: Record<string, string | number>;
+}
 
 // This represents the detailed properties of a single tile/chunk in the world.
 export interface Chunk {
@@ -171,7 +176,7 @@ export interface Chunk {
         maxSatiation: number; // How much food it needs to be "full"
         emoji: string;
     } | null;
-    actions: { id: number; text: string }[];
+    actions: Action[];
     regionId: number;
 
     // --- Detailed Tile Attributes ---
@@ -388,3 +393,5 @@ export interface RandomEvent {
     [key in import('./dice').SuccessLevel]?: EventOutcome;
   };
 }
+
+    

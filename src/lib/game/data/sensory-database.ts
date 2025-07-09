@@ -61,20 +61,9 @@ export const itemSensoryDB_vi: Record<string, SensoryData> = {
 export const enemySensoryDB_vi: Record<string, SensoryData> = {
     "Thỏ hoang hung dữ": {
         adjective: "hung tợn",
-        sense_effect: {
-            appearance: "có đôi mắt đỏ ngầu và răng nanh nhọn hoắt",
-            sound: "tiếng cào cấu sột soạt",
-            general: "kỳ lạ và bất ngờ"
-        }
     },
     "Khỉ đột": {
         adjective: "khổng lồ",
-        sense_effect: {
-            smell: "mùi của rừng rậm và sức mạnh",
-            appearance: "bộ lông đen xù xì, cơ bắp cuồn cuộn",
-            sound: "tiếng đấm ngực dồn dập, gầm gừ",
-            general": "đầy uy lực"
-        }
     }
 };
 
@@ -130,20 +119,9 @@ export const itemSensoryDB_en: Record<string, SensoryData> = {
 export const enemySensoryDB_en: Record<string, SensoryData> = {
     "Aggressive Rabbit": {
         adjective: "aggressive",
-        sense_effect: {
-            appearance: "has red eyes and sharp fangs",
-            sound: "a scratching, rustling sound",
-            general": "is strange and unexpected"
-        }
     },
     "Gorilla": {
         adjective: "enormous",
-        sense_effect: {
-            smell: "the scent of the jungle and raw power",
-            appearance: "a shaggy black coat, with rippling muscles",
-            sound: "the rhythmic thumping of its chest, and deep growls",
-            general": "is full of power"
-        }
     }
 };
 

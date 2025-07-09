@@ -4,12 +4,15 @@ import { structureDefinitions } from "../structures";
 import type { TranslationKey } from "@/lib/i18n";
 
 export const forest_vi = {
+    // Keywords for the forest biome, used by the narrative engine
     location_adj: ['rậm rạp', 'u ám', 'cổ xưa', 'yên tĩnh', 'ma mị', 'ẩm ướt', 'ngập nắng', 'sâu thẳm', 'bí ẩn'],
     terrain_desc: ['cây cối um tùm', 'thảm lá mục', 'ánh nắng lốm đốm'],
     features: ['sồi', 'thông', 'dương xỉ', 'nấm phát quang', 'dây leo chằng chịt', 'thân cây mục', 'suối nhỏ', 'hoa dại', 'tảng đá phủ rêu'],
     smells: ['đất ẩm', 'lá cây mục', 'nhựa thông', 'hoa dại', 'xạ hương động vật', 'ozon sau mưa'],
     sounds: ['chim hót', 'gió rít', 'cành cây gãy', 'sự im lặng đáng sợ', 'tiếng suối chảy róc rách', 'tiếng côn trùng kêu'],
     sky: ['xanh biếc', 'vàng úa', 'xám xịt'],
+    
+    // --- Data for entity spawning ---
     NPCs: [
         { 
             data: { 

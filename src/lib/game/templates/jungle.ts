@@ -3,17 +3,12 @@
 import type { TranslationKey } from "@/lib/i18n";
 
 export const jungle_vi = {
-    // --- MỚI: Dữ liệu có cấu trúc ---
+    // Keywords for the jungle biome, used by the narrative engine
     location_adj: ['nguyên sinh', 'nhiệt đới', 'ngột ngạt', 'bí hiểm', 'sống động', 'hoang dã'],
     terrain_desc: ['thảm thực vật chằng chịt', 'khu rừng bạt ngàn', 'tán lá dày đặc'],
-    temp_adj_hot: ["nóng bỏng", "oi ả", "ngột ngạt"],
-    moisture_adj_high: ["đặc quánh", "như súp", "tê dại"],
-    light_adj_dark: ["mờ ảo", "leo lét", "chập chn"],
-    light_adj_medium: ["lấp lánh", "le lói"],
-    light_adj_bright: ["chói chang", "rực rỡ"],
-    feeling_desc: ["đang thở", "có linh hồn", "che giấu bí mật"],
+    feeling: ["đang thở", "có linh hồn", "che giấu bí mật"],
     beauty_adj: ["hoang dại", "nguy hiểm", "nguyên sơ"],
-
+    
     // --- Dữ liệu cũ được giữ lại ---
     features: ['cây khổng lồ', 'dây leo', 'hoa lạ', 'thác nước ẩn', 'tàn tích cổ', 'cây ăn thịt'],
     smells: ['hoa thối', 'đất ẩm', 'mùi xạ hương của động vật', 'mùi trái cây chín', 'mùi mưa'],
@@ -46,15 +41,9 @@ export const jungle_vi = {
 };
 
 export const jungle_en = {
-    // --- NEW: Structured Data ---
     location_adj: ['primeval', 'tropical', 'suffocating', 'mysterious', 'vibrant', 'wild'],
     terrain_desc: ['dense vegetation', 'a vast jungle', 'a thick canopy'],
-    temp_adj_hot: ["scorching", "sweltering", "oppressive"],
-    moisture_adj_high: ["soupy", "cloying", "drenching"],
-    light_adj_dark: ["dim", "flickering", "eerie"],
-    light_adj_medium: ["dappled", "mottled"],
-    light_adj_bright: ["blazing", "vivid"],
-    feeling_desc: ["is breathing", "has a soul", "hides secrets"],
+    feeling: ["is breathing", "has a soul", "hides secrets"],
     beauty_adj: ["wild", "dangerous", "pristine"],
     
     // --- Old data retained ---

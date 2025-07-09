@@ -173,55 +173,56 @@ export function useGameEngine(props: GameEngineProps) {
     
     const generateOfflineNarrative = useCallback((
         baseChunk: Chunk,
-        world: World,
-        playerPosition: { x: number; y: number },
         narrativeLength: NarrativeLength,
         t: (key: TranslationKey, replacements?: { [key: string]: string | number }) => string
     ) => {
         const chunk = getEffectiveChunk(baseChunk);
-        let narrative = chunk.description;
+        const parts: string[] = [chunk.description];
     
         if (narrativeLength === 'short') {
-            return narrative;
+            return chunk.description;
         }
     
+        // Add dynamic sentences based on stats
+        if (chunk.explorability < 3) parts.push(t('offline_explorability_low'));
+        if (chunk.explorability > 8) parts.push(t('offline_explorability_high'));
+    
+        if (chunk.dangerLevel > 8) parts.push(t('offline_danger_high'));
+        else if (chunk.dangerLevel < 2) parts.push(t('offline_danger_low'));
+    
+        if (chunk.magicAffinity > 7) parts.push(t('offline_magic_high'));
+        
+        if (chunk.temperature && chunk.temperature > 8) parts.push(t('offline_temp_hot'));
+        if (chunk.temperature && chunk.temperature < 2) parts.push(t('offline_temp_cold'));
+        
+        if (chunk.moisture > 8) parts.push(t('offline_moisture_high'));
+        
+        if (chunk.lightLevel && chunk.lightLevel < -5) parts.push(t('offline_light_low'));
+    
+        if (chunk.humanPresence > 5) parts.push(t('offline_human_presence'));
+        
+        if (chunk.predatorPresence > 7) parts.push(t('offline_predator_presence'));
+    
+        // Keep the old logic for items/enemies/NPCs
         const itemsHere = chunk.items.map(i => ` ${i.quantity} ${t(i.name as TranslationKey)}`).join(',');
         if (itemsHere) {
-            narrative += ` ${t('offlineNarrativeItems', { items: itemsHere })}`;
+            parts.push(t('offlineNarrativeItems', { items: itemsHere }));
         }
         if (chunk.enemy) {
-            narrative += ` ${t('offlineNarrativeEnemy', { enemy: t(chunk.enemy.type as TranslationKey) })}`;
+            parts.push(t('offlineNarrativeEnemy', { enemy: t(chunk.enemy.type as TranslationKey) }));
         }
         if (chunk.NPCs.length > 0) {
-            narrative += ` ${t('offlineNarrativeNPC', { npc: t(chunk.NPCs[0].name as TranslationKey) })}`;
+            parts.push(t('offlineNarrativeNPC', { npc: t(chunk.NPCs[0].name as TranslationKey) }));
         }
     
-        if (narrativeLength === 'long') {
-            const surroundingObservations: string[] = [];
-            const directions = [
-                { dx: 0, dy: 1, key: 'directionNorth' }, { dx: 1, dy: 1, key: 'directionNorthEast' },
-                { dx: 1, dy: 0, key: 'directionEast' }, { dx: 1, dy: -1, key: 'directionSouthEast' },
-                { dx: 0, dy: -1, key: 'directionSouth' }, { dx: -1, dy: -1, key: 'directionSouthWest' },
-                { dx: -1, dy: 0, key: 'directionWest' }, { dx: -1, dy: 1, key: 'directionNorthWest' },
-            ];
+        const maxParts = narrativeLength === 'medium' ? 3 : 5;
+        // Shuffle the additional descriptive parts to add variety
+        const additionalParts = parts.slice(1);
+        const shuffledAdditionalParts = additionalParts.sort(() => 0.5 - Math.random());
     
-            for (const dir of directions) {
-                const key = `${playerPosition.x + dir.dx},${playerPosition.y + dir.dy}`;
-                const adjacentChunk = world[key];
-                if (adjacentChunk && adjacentChunk.explored) {
-                    if (adjacentChunk.enemy) {
-                        surroundingObservations.push(t('offlineNarrativeSenseEnemy', { direction: t(dir.key as TranslationKey), enemy: t(adjacentChunk.enemy.type as TranslationKey) }));
-                    } else if (adjacentChunk.structures && adjacentChunk.structures.length > 0) {
-                        surroundingObservations.push(t('offlineNarrativeSeeStructure', { direction: t(dir.key as TranslationKey), structure: t(adjacentChunk.structures[0].name as TranslationKey) }));
-                    }
-                }
-            }
-            if (surroundingObservations.length > 0) {
-                narrative += ` ${t('offlineNarrativeSurroundings')} ${surroundingObservations.slice(0, 2).join('. ')}.`;
-            }
-        }
+        const finalParts = [parts[0], ...shuffledAdditionalParts.slice(0, maxParts - 1)];
     
-        return narrative;
+        return finalParts.join(' ');
     }, [getEffectiveChunk]);
 
     // EFFECT 1: Game Initialization (runs only once).
@@ -263,7 +264,7 @@ export function useGameEngine(props: GameEngineProps) {
         if (narrativeLog.length <= 1) {
             const startingChunk = worldSnapshot[initialPosKey];
             if (startingChunk) {
-                const chunkDescription = generateOfflineNarrative(startingChunk, worldSnapshot, playerPosition, 'medium', t);
+                const chunkDescription = generateOfflineNarrative(startingChunk, 'medium', t);
                 const fullIntro = `${t(finalWorldSetup.initialNarrative as TranslationKey)}\n\n${chunkDescription}`;
                 setNarrativeLog([{ id: 0, text: fullIntro, type: 'narrative' }]);
 
@@ -283,7 +284,7 @@ export function useGameEngine(props: GameEngineProps) {
         setWeatherZones(weatherZonesSnapshot);
         
         isInitialized.current = true;
-    }, [isLoaded, finalWorldSetup, world, regions, regionCounter, playerPosition, narrativeLog.length, ensureChunkExists, generateOfflineNarrative, t, weatherZones, currentSeason, gameTime, setNarrativeLog, setWorld, setRegions, setRegionCounter, setWeatherZones]);
+    }, [isLoaded, finalWorldSetup]);
 
 
     const triggerRandomEvent = useCallback(() => {
@@ -606,8 +607,7 @@ export function useGameEngine(props: GameEngineProps) {
                 });
             });
         }
-    // Dependency array uses primitive values from the progress object to avoid infinite loops.
-    }, [playerStats.unlockProgress.kills, playerStats.unlockProgress.damageSpells, playerStats.unlockProgress.moves, isLoaded, addNarrativeEntry, setPlayerStats, t, toast, playerStats.skills]);
+    }, [playerStats.unlockProgress.kills, playerStats.unlockProgress.damageSpells, playerStats.unlockProgress.moves, isLoaded]);
 
     // EFFECT: Update player persona based on behavior profile.
     useEffect(() => {
@@ -633,8 +633,7 @@ export function useGameEngine(props: GameEngineProps) {
             addNarrativeEntry(t(messageKey), 'system');
             toast({ title: t('personaUnlockedTitle'), description: t(messageKey) });
         }
-    // Dependency array uses primitive values from the behavior object to avoid infinite loops.
-    }, [playerBehaviorProfile.moves, playerBehaviorProfile.attacks, playerBehaviorProfile.crafts, playerStats.persona, isLoaded, addNarrativeEntry, setPlayerStats, t, toast]);
+    }, [playerBehaviorProfile.moves, playerBehaviorProfile.attacks, playerBehaviorProfile.crafts, playerStats.persona, isLoaded]);
     
     // EFFECT: Update the visual representation of the current chunk whenever the environment changes.
     useEffect(() => {
@@ -756,7 +755,7 @@ export function useGameEngine(props: GameEngineProps) {
         } finally {
             setIsLoading(false);
         }
-    }, [settings.diceType, settings.aiModel, settings.narrativeLength, addNarrativeEntry, getEffectiveChunk, narrativeLog, language, customItemDefinitions, toast, advanceGameTime, finalWorldSetup, setIsLoading, setWorld, setCustomItemCatalog, setCustomItemDefinitions, t]);
+    }, [settings.diceType, settings.aiModel, settings.narrativeLength, addNarrativeEntry, getEffectiveChunk, narrativeLog, language, customItemDefinitions, toast, advanceGameTime, finalWorldSetup, setIsLoading, setWorld, setCustomItemCatalog, setCustomItemDefinitions, t, setPlayerStats]);
     
     const handleOfflineAttack = useCallback(() => {
         const key = `${playerPosition.x},${playerPosition.y}`;
@@ -834,7 +833,7 @@ export function useGameEngine(props: GameEngineProps) {
         });
     
         advanceGameTime(nextPlayerStats);
-    }, [playerPosition, world, addNarrativeEntry, settings.diceType, t, getEffectiveChunk, playerStats, language, customItemDefinitions, advanceGameTime, setWorld]);
+    }, [playerPosition, world, addNarrativeEntry, settings.diceType, t, getEffectiveChunk, playerStats, language, customItemDefinitions, advanceGameTime, setWorld, setPlayerStats]);
     
     const handleOfflineItemUse = useCallback((itemName: string, target: 'player' | string) => {
         let newPlayerStats = { ...playerStats };
@@ -873,7 +872,7 @@ export function useGameEngine(props: GameEngineProps) {
         }
         newPlayerStats.items = newPlayerStats.items.filter(i => i.quantity > 0);
         advanceGameTime(newPlayerStats);
-    }, [playerStats, t, customItemDefinitions, playerPosition, world, advanceGameTime, setWorld, addNarrativeEntry]);
+    }, [playerStats, t, customItemDefinitions, playerPosition, world, advanceGameTime, setWorld, addNarrativeEntry, setPlayerStats]);
     
     const handleOfflineSkillUse = useCallback((skillName: string) => {
         let newPlayerStats: PlayerStatus = JSON.parse(JSON.stringify(playerStats));
@@ -930,7 +929,7 @@ export function useGameEngine(props: GameEngineProps) {
         addNarrativeEntry(narrative, 'narrative');
         if(newEnemy !== currentChunk?.enemy) setWorld(prev => ({...prev, [key]: {...prev[key]!, enemy: newEnemy}}));
         advanceGameTime(newPlayerStats);
-    }, [playerStats, settings.diceType, t, addNarrativeEntry, playerPosition, world, advanceGameTime, setWorld]);
+    }, [playerStats, settings.diceType, t, addNarrativeEntry, playerPosition, world, advanceGameTime, setWorld, setPlayerStats]);
     
     const handleOfflineAction = useCallback((action: Action) => {
         let newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), t(action.textKey, action.params)] };
@@ -1044,10 +1043,30 @@ export function useGameEngine(props: GameEngineProps) {
             if (!heardSomething) {
                 addNarrativeEntry(t('listenHearNothing'), 'narrative');
             }
+        } else if (textKey === 'analyzeAction') {
+            const chunk = getEffectiveChunk(currentChunk);
+            const analysis = `
+[Analysis Report]
+Coordinates: (${chunk.x}, ${chunk.y})
+Terrain: ${t(chunk.terrain as TranslationKey)}
+- Temperature: ${chunk.temperature?.toFixed(1)}°C
+- Moisture: ${chunk.moisture}/10
+- Light Level: ${chunk.lightLevel}/10
+- Danger Level: ${chunk.dangerLevel}/10
+- Explorability: ${chunk.explorability.toFixed(1)}/10
+- Magic Affinity: ${chunk.magicAffinity}/10
+- Human Presence: ${chunk.humanPresence}/10
+- Predator Presence: ${chunk.predatorPresence}/10
+Items: ${chunk.items.map(i => `${t(i.name as TranslationKey)} (x${i.quantity})`).join(', ') || 'None'}
+Enemy: ${chunk.enemy ? t(chunk.enemy.type as TranslationKey) : 'None'}
+NPCs: ${chunk.NPCs.map(n => t(n.name as TranslationKey)).join(', ') || 'None'}
+Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') || 'None'}
+`;
+            addNarrativeEntry(analysis, 'system');
         }
 
         advanceGameTime(newPlayerStats);
-    }, [addNarrativeEntry, playerStats, t, world, playerPosition, language, toast, advanceGameTime, customItemDefinitions, setWorld]);
+    }, [addNarrativeEntry, playerStats, t, world, playerPosition, language, toast, advanceGameTime, customItemDefinitions, setWorld, getEffectiveChunk]);
     
     const handleMove = useCallback((direction: "north" | "south" | "east" | "west") => {
         if (isLoading || isGameOver) return;
@@ -1139,7 +1158,7 @@ export function useGameEngine(props: GameEngineProps) {
         if (isOnline) {
             handleOnlineNarrative(actionText, worldSnapshot, newPos, newPlayerStats);
         } else {
-            const narrative = generateOfflineNarrative(worldSnapshot[destChunkKey], worldSnapshot, newPos, settings.narrativeLength, t);
+            const narrative = generateOfflineNarrative(worldSnapshot[destChunkKey], settings.narrativeLength, t);
             addNarrativeEntry(narrative, 'narrative');
             advanceGameTime(newPlayerStats);
         }
@@ -1182,6 +1201,12 @@ export function useGameEngine(props: GameEngineProps) {
     const handleCustomAction = useCallback((text: string) => {
         if (!text.trim() || isLoading || isGameOver) return;
         setPlayerBehaviorProfile(p => ({ ...p, customActions: p.customActions + 1 }));
+
+        if (text.trim().toLowerCase() === 'analyze') {
+            handleOfflineAction({id: -1, textKey: 'analyzeAction'});
+            return;
+        }
+
         const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), text]};
         addNarrativeEntry(text, 'action');
         if (isOnline) handleOnlineNarrative(text, world, playerPosition, newPlayerStats);
@@ -1189,7 +1214,7 @@ export function useGameEngine(props: GameEngineProps) {
              addNarrativeEntry(t('customActionFail'), 'narrative');
              advanceGameTime();
         }
-    }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerStats, isOnline, handleOnlineNarrative, world, playerPosition, addNarrativeEntry, t, advanceGameTime]);
+    }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerStats, isOnline, handleOnlineNarrative, handleOfflineAction, world, playerPosition, addNarrativeEntry, t, advanceGameTime]);
 
     const handleCraft = useCallback(async (recipe: Recipe, outcome: CraftingOutcome) => {
         if (isLoading || isGameOver) return;
@@ -1225,7 +1250,7 @@ export function useGameEngine(props: GameEngineProps) {
             toast({ title: t('craftFailTitle'), description: t('craftFail', { itemName: t(recipe.result.name as TranslationKey) }), variant: 'destructive' });
         }
         advanceGameTime(nextPlayerStats);
-    }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerStats, customItemDefinitions, addNarrativeEntry, toast, t, advanceGameTime]);
+    }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerStats, customItemDefinitions, addNarrativeEntry, toast, t, advanceGameTime, setPlayerStats]);
 
     const handleItemUsed = useCallback((itemName: string, target: 'player' | string) => {
         if (isLoading || isGameOver) return;
@@ -1316,7 +1341,7 @@ export function useGameEngine(props: GameEngineProps) {
 
         const nextPlayerStats = { ...playerStats, hp: newHp, stamina: newStamina, bodyTemperature: newTemp, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText] };
         advanceGameTime(nextPlayerStats);
-    }, [isLoading, isGameOver, world, playerPosition, addNarrativeEntry, advanceGameTime, t, toast, playerStats]);
+    }, [isLoading, isGameOver, world, playerPosition, addNarrativeEntry, advanceGameTime, t, toast, playerStats, setPlayerStats]);
     
     const handleFuseItems = useCallback(async (itemsToFuse: PlayerItem[]) => {
         if (isLoading || isGameOver) return;
@@ -1493,6 +1518,7 @@ export function useGameEngine(props: GameEngineProps) {
 
 
     
+
 
 
 

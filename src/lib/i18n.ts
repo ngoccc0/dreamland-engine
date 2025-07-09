@@ -2,6 +2,18 @@
 
 export const translations = {
   en: {
+    // Premade World Names (Refactored)
+    worldName_rainyCity: 'Rainy City',
+    worldName_theWanderer: 'The Wanderer',
+    worldName_blackwoodManor: 'Blackwood Manor',
+    worldName_outlawPlanet: 'Outlaw Planet',
+    worldName_abyssalKingdom: 'Abyssal Kingdom',
+    worldName_floptropica: "Floptropica",
+    worldName_onikaKingdom: "Onika Kingdom",
+    worldName_badBussyWasteland: "Bad Bussy Wasteland",
+    worldName_frostedWreckage: 'The Frosted Wreckage',
+    worldName_driftingAcademy: 'The Drifting Academy',
+
     // New Premade Worlds Items & Quests
     actionNotAvailableTitle: "Action Not Available",
     actionNotAvailableDesc: "This action can no longer be performed.",
@@ -93,9 +105,7 @@ export const translations = {
     mage_narrative1: "You stand on a floating island, a piece of the renowned Aethelgard Academy. Below you, a sea of clouds. Around you, spires of marble and crystal hum with latent magic. Your final exam is about to begin.",
     mage_quest1: "Report to the Grand Library for your assignment.",
     mage_quest2: "Gather Stardust from the celestial winds.",
-    'Tàn Tích Băng Giá': 'The Frosted Wreckage',
-    'Học Viện Mây Trôi': 'The Drifting Academy',
-    'createCustomWorld': 'Create a Custom World with AI',
+    createCustomWorld: 'Create a Custom World with AI',
     observeAction: 'Observe',
     forageForFoodAction: "Forage for food",
     searchForMaterialsAction: "Search for materials",
@@ -190,7 +200,7 @@ export const translations = {
     'Cánh Dơi': 'Bat Wing',
     'Nọc Độc Nhện Hang': 'Cave Spider Venom',
     'Chất nhờn Slime': 'Slime Gel',
-    'Răng Sâu Bò': 'Crawler Tooth',
+    'Sâu Bò Khổng Lồ': 'Giant Crawler',
     'Quả Mọng Ăn Được': 'Edible Berries',
     'Nấm Độc': 'Poisonous Mushroom',
     'Thảo Dược Chữa Lành': 'Healing Herb',
@@ -1056,7 +1066,7 @@ export const translations = {
     attackDamageDealt: "It takes {damage} damage.",
     enemyDefeatedNarrative: ["The {enemyType} collapses, defeated.", "With a final groan, the {enemyType} falls to the ground."],
     enemyFledNarrative: ["Seeing your might, the {enemyType} turns and flees into the wilderness!", "The creature decides you are too much to handle and makes a hasty retreat."],
-    enemyRetaliationNarrative: ["Enraged, the {enemyType} lunges back, its attack finding its mark. It deals {damage} damage.", "The {enemyType} wastes no time in retaliating, striking you with ferocity for {damage} damage."],
+    enemyRetaliationNarrative: ["Enraged, the {enemyType} lunges back, its attack finding its mark. It deals {damage} damage.", "The {enemyType} strikes back fiercely, hitting you for {damage} damage."],
     enemyPreparesNarrative: ["The {enemyType} bristles, preparing its next move.", "The {enemyType} eyes you warily, unfazed by your attack."],
     sensoryFeedback_hot: "The heat of the environment makes the air shimmer around the combatants.",
     sensoryFeedback_cold: "Your breath crystallizes in the frigid air as you strike.",
@@ -1073,6 +1083,18 @@ export const translations = {
     skillSiphonNarrative: "You feel a surge of vitality as you leech {amount} health from your foe."
   },
   vi: {
+    // Premade World Names (Refactored)
+    worldName_rainyCity: 'Thành phố Mưa',
+    worldName_theWanderer: 'The Wanderer',
+    worldName_blackwoodManor: 'Biệt thự Blackwood',
+    worldName_outlawPlanet: 'Hành tinh Kẻ ngoài vòng pháp luật',
+    worldName_abyssalKingdom: 'Vương quốc Abyssal',
+    worldName_floptropica: 'Floptropica',
+    worldName_onikaKingdom: 'Vương quốc Onika',
+    worldName_badBussyWasteland: 'Vùng đất hoang Bad Bussy',
+    worldName_frostedWreckage: 'Tàn Tích Băng Giá',
+    worldName_driftingAcademy: 'Học Viện Mây Trôi',
+
     itemPickedUpTitle: "Đã nhặt vật phẩm",
     pickedUpItemToast: "Đã thêm {quantity} {itemName} vào hành trang.",
     pickedUpItemNarrative: [
@@ -1080,58 +1102,6 @@ export const translations = {
       "Vật phẩm {itemName} đã được thêm vào hành trang của bạn.",
       "Bạn nhanh chóng nhặt lấy {itemName} trước khi có thứ khác lấy mất.",
     ],
-    actionNotAvailableTitle: "Hành động không hợp lệ",
-    actionNotAvailableDesc: "Hành động này không còn khả dụng.",
-    item_trench_coat_desc: 'Một chiếc áo khoác trench màu be đã sờn. Có mùi của mưa và sự hối tiếc.',
-    item_magnifying_glass_desc: 'Một công cụ kinh điển cho bất kỳ thám tử nào đáng giá.',
-    item_old_revolver_desc: 'Một khẩu súng lục nặng, đáng tin cậy. Nó đã từng có những ngày tháng tốt đẹp hơn.',
-    item_case_file_desc: 'Hồ sơ cho vụ án mới nhất của bạn. Một giám đốc công ty, một con chip dữ liệu, một quý bà gặp rắc rối. Kinh điển.',
-    item_synth_whiskey_desc: 'Một loại rượu whiskey tổng hợp rẻ tiền. Cháy bỏng khi uống, nhưng giúp thần kinh vững vàng.',
-    structure_gumshoe_office_desc: 'Văn phòng của bạn. Một căn phòng bụi bặm với bàn làm việc, ghế và tầm nhìn ra một bức tường gạch.',
-    structure_neon_dragon_bar_desc: 'Một quán bar mờ ám nơi thông tin được trao đổi tự do như tiền tệ.',
-    detective_narrative1: "Mưa quất vào cửa sổ văn phòng bạn. Một đêm nữa ở Thành phố Neon. Một hồ sơ vụ án mới xuất hiện trên bàn, được luồn qua dưới cửa bởi một bóng người bí ẩn. Dường như vụ này nguy hiểm hơn hầu hết các vụ khác.",
-    detective_quest1: "Điều tra Quán Bar Rồng Neon để tìm manh mối.",
-    detective_quest2: "Tìm hiểu xem có gì trong con chip dữ liệu.",
-    item_maintenance_wrench_desc: 'Một chiếc cờ lê nặng, đa năng. Có thể dùng để sửa chữa hoặc để đập đầu.',
-    item_keycard_desc: 'Một thẻ khóa tiêu chuẩn. Cấp quyền truy cập vào các khu vực chung.',
-    item_nutrient_paste_desc: 'Một ống bột nhão màu be. Vô vị, nhưng cung cấp tất cả các chất dinh dưỡng cần thiết.',
-    item_engineer_log_desc: "Một datapad chứa nhật ký cuối cùng của một kỹ sư tàu. Nó đề cập đến những chỉ số lạ từ lõi AI.",
-    item_laser_cutter_desc: 'Một công cụ mạnh mẽ có thể cắt xuyên qua các cánh cửa được gia cố... hoặc kẻ thù.',
-    structure_cryo_bay_desc: 'Những hàng kén ngủ đông đứng im lìm. Của bạn là cái duy nhất đang mở.',
-    structure_bridge_desc: 'Trung tâm chỉ huy của con tàu. Tất cả các màn hình đều tối đen, ngoại trừ một đèn đỏ nhấp nháy duy nhất.',
-    structure_hydroponics_desc: 'Một nhà kính rộng lớn, giờ đã mọc um tùm và hoang dại. Cây cối là sinh vật sống duy nhất bạn đã thấy.',
-    genship_narrative1: 'Tiếng xì của việc giảm áp là thứ đầu tiên bạn nghe thấy. Bạn lảo đảo bước ra khỏi kén ngủ đông vào một con tàu im lặng, tối tăm. Đèn khẩn cấp tạo ra những cái bóng dài. AI của tàu, HELIOS, không phản hồi. Có điều gì đó rất không ổn.',
-    genship_quest1: "Đến Phòng Điều khiển và tìm hiểu xem chuyện gì đã xảy ra.",
-    genship_quest2: "Tìm một nguồn năng lượng đang hoạt động.",
-    item_rusty_lantern_desc: 'Một cây đèn dầu cũ. Cung cấp ánh sáng nhấp nháy, không đáng tin cậy.',
-    item_silver_key_desc: 'Một chiếc chìa khóa bạc nhỏ, được trang trí công phu. Cảm giác lạnh khi chạm vào.',
-    item_torn_diary_page_desc: "Một trang bị xé từ nhật ký. Nó ghi: '...nó biết tôi đang nghĩ gì. Những bức tường... chúng di chuyển...'",
-    item_ectoplasm_desc: 'Một chất nhớt, lấp lánh do một thực thể ma quái để lại.',
-    structure_grand_foyer_desc: 'Một sảnh lớn, hùng vĩ. Những bức chân dung trên tường dường như đang theo dõi bạn.',
-    structure_dusty_library_desc: 'Những hàng sách, phủ một lớp bụi dày. Không khí nặng mùi giấy cũ.',
-    mansion_narrative1: "Một tia chớp lóe lên soi rõ hình bóng hùng vĩ của Biệt thự Blackwood. Bạn thấy mình bị mắc kẹt bên trong, cánh cửa gỗ sồi nặng nề đóng sầm lại sau lưng. Một lời thì thầm lạnh lẽo vang vọng xuống hành lang lớn. Ngôi nhà này đang sống, và nó không muốn bạn rời đi.",
-    mansion_quest1: "Tìm một nguồn sáng.",
-    mansion_quest2: "Tìm cách thoát khỏi đại sảnh.",
-    item_laser_revolver_desc: 'Một khẩu súng lục laser sáu viên đáng tin cậy. Trang bị tiêu chuẩn cho bất kỳ tay súng nào ở vành đai ngoài.',
-    item_spice_infused_water_desc: 'Nước được tẩm loại gia vị địa phương bí ẩn. Cực kỳ sảng khoái.',
-    item_sandworm_tooth_desc: 'Một chiếc răng khổng lồ từ một trong những kẻ săn mồi đỉnh cao của hành tinh. Một chiến lợi phẩm có giá trị.',
-    item_bounty_puck_desc: 'Một chiếc đĩa ba chiều nhỏ hiển thị tiền thưởng mới nhất của bạn. Mục tiêu ở địa phương.',
-    structure_dusty_saloon_desc: 'Một quán rượu cổ điển với cửa xoay, một người pha chế cộc cằn và những khách hàng đáng ngờ.',
-    structure_sheriffs_office_desc: 'Một tòa nhà nhỏ, được gia cố. Luật pháp duy nhất trong thị trấn này.',
-    structure_crashed_freighter_desc: 'Đống đổ nát của một con tàu chở hàng, giờ là nơi ẩn náu của những kẻ nhặt rác và tệ hơn nữa.',
-    western_narrative1: "Hai mặt trời của Kaelen Prime chiếu xuống con đường chính bụi bặm của Rustwater. Bạn bước ra khỏi quán rượu, chiếc đĩa tiền thưởng ấm trong tay. Công việc này có vẻ dễ kiếm tiền, nhưng trên một hành tinh như thế này, không có gì là dễ dàng.",
-    western_quest1: "Hỏi người pha chế về tiền thưởng của bạn.",
-    western_quest2: "Kiểm tra trang bị và chuẩn bị cho cuộc săn.",
-    item_bioluminescent_pearl_desc: 'Một viên ngọc trai phát ra ánh sáng xanh lam dịu nhẹ, êm dịu.',
-    item_coral_spear_desc: 'Một cây giáo được mài sắc từ san hô cứng.',
-    item_algae_salve_desc: 'Một loại thuốc mỡ làm dịu da từ tảo biển sâu. Có đặc tính chữa lành.',
-    item_ancient_tablet_fragment_desc: 'Một mảnh của một tấm bia đá được bao phủ bởi những chữ rune cổ xưa, phát sáng.',
-    structure_coral_palace_desc: 'Một cung điện ngoạn mục được phát triển từ san hô sống.',
-    structure_sunken_temple_desc: 'Một ngôi đền dành riêng cho một vị thần biển cũ, giờ đã bị chìm sâu dưới đáy biển.',
-    structure_hydrothermal_vent_desc: 'Một khe nứt dưới đáy biển phun ra nước nóng, giàu khoáng chất.',
-    underwater_narrative1: "Áp suất rất lớn, nhưng bộ đồ của bạn vẫn chịu được. Trước mắt bạn là thành phố im lặng, phát sáng của Elysia. Nhưng ánh sáng đang mờ dần. Một sự thối rữa tối tăm, kỳ lạ lan rộng khắp các rạn san hô từng rực rỡ. Bạn phải tìm ra nguồn gốc của bệnh dịch trước khi thành phố bị dập tắt mãi mãi.",
-    underwater_quest1: "Tham khảo ý kiến của trưởng lão tại Cung điện San hô.",
-    underwater_quest2: "Thu thập các mẫu san hô bị bệnh.",
   }
 };
 
@@ -1140,5 +1110,6 @@ export type TranslationKey = keyof (typeof translations)['en'] & keyof (typeof t
 
 
     
+
 
 

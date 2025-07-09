@@ -19,7 +19,7 @@ const startingSkill: Skill = { name: 'skillFireballName', description: 'skillFir
 
 const mageAcademyConcepts: WorldConcept[] = [
     {
-        worldName: "Học Viện Mây Trôi", initialNarrative: 'mage_narrative1', startingBiome: 'mountain', // Simulate floating island
+        worldName: "worldName_driftingAcademy", initialNarrative: 'mage_narrative1', startingBiome: 'mountain', // Simulate floating island
         playerInventory: [ { name: "Đũa Phép Của Học Viên", quantity: 1 }, { name: "Sách Phép Cơ Bản", quantity: 1 } ],
         initialQuests: [ 'mage_quest1', 'mage_quest2' ], startingSkill: startingSkill, customStructures: mageAcademyStructures, customItemCatalog: mageAcademyItems
     },

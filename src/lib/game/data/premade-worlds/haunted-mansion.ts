@@ -17,7 +17,7 @@ const startingSkill: Skill = { name: 'skillFireballName', description: 'skillFir
 
 const concepts: WorldConcept[] = [
     {
-        worldName: "Biệt thự Blackwood", initialNarrative: 'mansion_narrative1', startingBiome: 'cave', // Using 'cave' to represent dark, indoor spaces
+        worldName: "worldName_blackwoodManor", initialNarrative: 'mansion_narrative1', startingBiome: 'cave', // Using 'cave' to represent dark, indoor spaces
         playerInventory: [ { name: "Đèn lồng Gỉ sét", quantity: 1 }, { name: "Trang Nhật ký Bị xé", quantity: 1 } ],
         initialQuests: [ 'mansion_quest1', 'mansion_quest2' ], startingSkill: startingSkill, customStructures: structures, customItemCatalog: items
     },

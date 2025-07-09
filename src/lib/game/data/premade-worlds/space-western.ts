@@ -18,7 +18,7 @@ const startingSkill: Skill = { name: 'skillHealName', description: 'skillHealDes
 
 const concepts: WorldConcept[] = [
     {
-        worldName: "Hành tinh Kẻ ngoài vòng pháp luật", initialNarrative: 'western_narrative1', startingBiome: 'desert',
+        worldName: "worldName_outlawPlanet", initialNarrative: 'western_narrative1', startingBiome: 'desert',
         playerInventory: [ { name: "Súng lục Laser", quantity: 1 }, { name: "Chip Tiền thưởng", quantity: 1 } ],
         initialQuests: [ 'western_quest1', 'western_quest2' ], startingSkill: startingSkill, customStructures: structures, customItemCatalog: items
     },

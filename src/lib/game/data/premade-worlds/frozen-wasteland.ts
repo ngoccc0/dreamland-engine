@@ -18,7 +18,7 @@ const startingSkill: Skill = { name: 'skillHealName', description: 'skillHealDes
 
 const frozenWastelandConcepts: WorldConcept[] = [
     {
-        worldName: "Tàn Tích Băng Giá", initialNarrative: 'frozen_narrative1', startingBiome: 'tundra',
+        worldName: "worldName_frostedWreckage", initialNarrative: 'frozen_narrative1', startingBiome: 'tundra',
         playerInventory: [ { name: "Rìu Băng Tự Chế", quantity: 1 }, { name: "Súp Nóng Đóng Hộp", quantity: 1 } ],
         initialQuests: [ 'frozen_quest1', 'frozen_quest2' ], startingSkill: startingSkill, customStructures: frozenWastelandStructures, customItemCatalog: frozenWastelandItems
     },

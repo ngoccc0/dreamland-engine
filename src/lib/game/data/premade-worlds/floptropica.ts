@@ -22,17 +22,17 @@ const skill3: Skill = { name: 'skillLifeSiphonName', description: 'skillLifeSiph
 
 const floptropicaConcepts: WorldConcept[] = [
     {
-        worldName: "Floptropica", initialNarrative: 'floptropica_narrative1', startingBiome: 'floptropica',
+        worldName: "worldName_floptropica", initialNarrative: 'floptropica_narrative1', startingBiome: 'floptropica',
         playerInventory: [ { name: "Chảo của Jiafei", quantity: 1 }, { name: "Chủ đề Stan Twitter", quantity: 1 } ],
         initialQuests: [ 'floptropica_quest1', 'floptropica_quest2' ], startingSkill: skill1, customStructures: floptropicaStructures, customItemCatalog: floptropicaItems
     },
     {
-        worldName: "Vương quốc Onika", initialNarrative: 'floptropica_narrative2', startingBiome: 'floptropica',
+        worldName: "worldName_onikaKingdom", initialNarrative: 'floptropica_narrative2', startingBiome: 'floptropica',
         playerInventory: [ { name: "Bản Remix của CupcakKe", quantity: 1 }, { name: "Phiếu giảm giá Onika Burger", quantity: 1 } ],
         initialQuests: [ 'floptropica_quest3', 'floptropica_quest4' ], startingSkill: skill2, customStructures: floptropicaStructures, customItemCatalog: floptropicaItems
     },
     {
-        worldName: "Vùng đất hoang Bad Bussy", initialNarrative: 'floptropica_narrative3', startingBiome: 'floptropica',
+        worldName: "worldName_badBussyWasteland", initialNarrative: 'floptropica_narrative3', startingBiome: 'floptropica',
         playerInventory: [ { name: "Chảo của Jiafei", quantity: 1 }, { name: "Viên Yass", quantity: 2 } ],
         initialQuests: [ 'floptropica_quest5', 'floptropica_quest6' ], startingSkill: skill3, customStructures: floptropicaStructures, customItemCatalog: floptropicaItems
     }

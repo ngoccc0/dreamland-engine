@@ -19,7 +19,7 @@ const startingSkill: Skill = { name: 'skillHealName', description: 'skillHealDes
 
 const concepts: WorldConcept[] = [
     {
-        worldName: "The Wanderer", initialNarrative: 'genship_narrative1', startingBiome: 'space_station',
+        worldName: "worldName_theWanderer", initialNarrative: 'genship_narrative1', startingBiome: 'space_station',
         playerInventory: [ { name: "Cờ lê Bảo trì", quantity: 1 }, { name: "Bột Dinh dưỡng", quantity: 2 } ],
         initialQuests: [ 'genship_quest1', 'genship_quest2' ], startingSkill: startingSkill, customStructures: structures, customItemCatalog: items
     },

@@ -18,7 +18,7 @@ const startingSkill: Skill = { name: 'skillLifeSiphonName', description: 'skillL
 
 const concepts: WorldConcept[] = [
     {
-        worldName: "Thành phố Mưa", initialNarrative: 'detective_narrative1', startingBiome: 'city',
+        worldName: "worldName_rainyCity", initialNarrative: 'detective_narrative1', startingBiome: 'city',
         playerInventory: [ { name: "Áo Khoác Trench", quantity: 1 }, { name: "Hồ Sơ Vụ Án", quantity: 1 } ],
         initialQuests: [ 'detective_quest1', 'detective_quest2' ], startingSkill: startingSkill, customStructures: structures, customItemCatalog: items
     },

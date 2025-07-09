@@ -18,7 +18,7 @@ const startingSkill: Skill = { name: 'skillHealName', description: 'skillHealDes
 
 const concepts: WorldConcept[] = [
     {
-        worldName: "Vương quốc Abyssal", initialNarrative: 'underwater_narrative1', startingBiome: 'underwater',
+        worldName: "worldName_abyssalKingdom", initialNarrative: 'underwater_narrative1', startingBiome: 'underwater',
         playerInventory: [ { name: "Giáo San hô", quantity: 1 }, { name: "Thuốc mỡ Tảo biển", quantity: 1 } ],
         initialQuests: [ 'underwater_quest1', 'underwater_quest2' ], startingSkill: startingSkill, customStructures: structures, customItemCatalog: items
     },

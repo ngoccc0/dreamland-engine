@@ -174,6 +174,8 @@ export function useGameEngine(props: GameEngineProps) {
     const generateOfflineNarrative = useCallback((
         baseChunk: Chunk,
         narrativeLength: NarrativeLength,
+        world: World,
+        playerPosition: { x: number; y: number; },
         t: (key: TranslationKey, replacements?: { [key: string]: string | number }) => string
     ) => {
         const chunk = getEffectiveChunk(baseChunk);
@@ -202,8 +204,32 @@ export function useGameEngine(props: GameEngineProps) {
         if (chunk.humanPresence > 5) parts.push(t('offline_human_presence'));
         
         if (chunk.predatorPresence > 7) parts.push(t('offline_predator_presence'));
+        
+        // Add details about surroundings
+        if (narrativeLength !== 'short') {
+            const directions = [
+                { x: 0, y: 1, dir: 'North' }, { x: 0, y: -1, dir: 'South' },
+                { x: 1, y: 0, dir: 'East' }, { x: -1, y: 0, dir: 'West' }
+            ];
+            
+            let surroundingDetails: string[] = [];
+            for (const dir of directions) {
+                const key = `${playerPosition.x + dir.x},${playerPosition.y + dir.y}`;
+                const adjacentChunk = world[key];
+                if (adjacentChunk && adjacentChunk.explored && (turn - adjacentChunk.lastVisited < 50)) { // Only describe recently visited chunks
+                    if(adjacentChunk.enemy) {
+                        surroundingDetails.push(t('offlineNarrativeSenseEnemy', { direction: t(`direction${dir.dir}` as TranslationKey), enemy: t(adjacentChunk.enemy.type as TranslationKey) }));
+                    } else if (adjacentChunk.structures.length > 0) {
+                        surroundingDetails.push(t('offlineNarrativeSeeStructure', { direction: t(`direction${dir.dir}` as TranslationKey), structure: t(adjacentChunk.structures[0].name as TranslationKey) }));
+                    }
+                }
+            }
+            if(surroundingDetails.length > 0) {
+                parts.push(t('offlineNarrativeSurroundings'), ...surroundingDetails);
+            }
+        }
     
-        // Keep the old logic for items/enemies/NPCs
+        // Keep the old logic for items/enemies/NPCs in the current chunk
         const itemsHere = chunk.items.map(i => ` ${i.quantity} ${t(i.name as TranslationKey)}`).join(',');
         if (itemsHere) {
             parts.push(t('offlineNarrativeItems', { items: itemsHere }));
@@ -223,7 +249,7 @@ export function useGameEngine(props: GameEngineProps) {
         const finalParts = [parts[0], ...shuffledAdditionalParts.slice(0, maxParts - 1)];
     
         return finalParts.join(' ');
-    }, [getEffectiveChunk]);
+    }, [getEffectiveChunk, turn]);
 
     // EFFECT 1: Game Initialization (runs only once).
     useEffect(() => {
@@ -264,7 +290,7 @@ export function useGameEngine(props: GameEngineProps) {
         if (narrativeLog.length <= 1) {
             const startingChunk = worldSnapshot[initialPosKey];
             if (startingChunk) {
-                const chunkDescription = generateOfflineNarrative(startingChunk, 'medium', t);
+                const chunkDescription = generateOfflineNarrative(startingChunk, 'medium', worldSnapshot, playerPosition, t);
                 const fullIntro = `${t(finalWorldSetup.initialNarrative as TranslationKey)}\n\n${chunkDescription}`;
                 setNarrativeLog([{ id: 0, text: fullIntro, type: 'narrative' }]);
 
@@ -484,28 +510,17 @@ export function useGameEngine(props: GameEngineProps) {
         nextPlayerStats.mana = clamp(nextPlayerStats.mana + MANA_REGEN_RATE, 0, 50);
 
         // --- NEW Player-centric World Simulation ---
-        // Every turn, we simulate a small number of chunks within a radius around the player.
-        // This makes the world feel alive without the performance cost of simulating everything.
-        const simulationRadius = 15; // Simulate within a 31x31 square
-        const chunksToSimulatePerTurn = 20; // Chunks to process each turn to avoid lag
-
-        const nearbyChunkKeys: string[] = [];
-        for (let dx = -simulationRadius; dx <= simulationRadius; dx++) {
-            for (let dy = -simulationRadius; dy <= simulationRadius; dy++) {
-                // The player's current tile is very active, so we can skip it in the background sim
-                if (dx === 0 && dy === 0) continue; 
-                
+        const simulationRadius = 2; // Simulate within a 5x5 square
+        const chunksToProcess: string[] = [];
+        for (let dy = -simulationRadius; dy <= simulationRadius; dy++) {
+            for (let dx = -simulationRadius; dx <= simulationRadius; dx++) {
+                if (dx === 0 && dy === 0) continue;
                 const key = `${playerPosition.x + dx},${playerPosition.y + dy}`;
-                // Only consider chunks that have already been generated and exist in the world state
                 if (newWorldState[key]) {
-                    nearbyChunkKeys.push(key);
+                    chunksToProcess.push(key);
                 }
             }
         }
-
-        // Shuffle the list of nearby chunks and pick a small subset to process this turn
-        const shuffledKeys = nearbyChunkKeys.sort(() => 0.5 - Math.random());
-        const chunksToProcess = shuffledKeys.slice(0, chunksToSimulatePerTurn);
 
         for (const key of chunksToProcess) {
             const chunk = newWorldState[key];
@@ -554,6 +569,12 @@ export function useGameEngine(props: GameEngineProps) {
                         worldWasModified = true;
                         foodSource.quantity -= 1;
                         chunk.enemy.satiation = Math.min(chunk.enemy.maxSatiation, chunk.enemy.satiation + 2);
+                        
+                        const foodDef = customItemDefinitions[foodSource.name];
+                        if (foodDef && (foodDef.category === 'Food' || foodDef.growthConditions)) {
+                            chunk.vegetationDensity = clamp(chunk.vegetationDensity - 0.1, 0, 10);
+                        }
+
                         if (foodSource.quantity <= 0) {
                             chunk.items = chunk.items.filter(i => i.name !== foodSource.name);
                         }
@@ -1190,7 +1211,7 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
         if (isOnline) {
             handleOnlineNarrative(actionText, worldSnapshot, newPos, newPlayerStats);
         } else {
-            const narrative = generateOfflineNarrative(worldSnapshot[destChunkKey], settings.narrativeLength, t);
+            const narrative = generateOfflineNarrative(worldSnapshot[destChunkKey], settings.narrativeLength, worldSnapshot, newPos, t);
             addNarrativeEntry(narrative, 'narrative');
             advanceGameTime(newPlayerStats);
         }
@@ -1550,6 +1571,7 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
 
 
     
+
 
 
 

@@ -2,6 +2,13 @@
 
 // --- Data Types and Interfaces for the Game Engine ---
 
+// Represents a contiguous region of a single biome.
+export interface Region {
+    terrain: Terrain;
+    cells: { x: number; y: number }[];
+}
+
+
 export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave" | "jungle" | "volcanic" | "wall" | "floptropica" | "tundra" | "beach" | "mesa" | "mushroom_forest" | "ocean";
 export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky';
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
@@ -220,12 +227,6 @@ export interface PlayerBehaviorProfile {
     attacks: number;
     crafts: number;
     customActions: number;
-}
-
-// Represents a contiguous region of a single biome.
-export interface Region {
-    terrain: Terrain;
-    cells: { x: number; y: number }[];
 }
 
 // Defines the "rulebook" for the procedural world generation.

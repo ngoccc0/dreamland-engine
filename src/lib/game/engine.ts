@@ -2,7 +2,7 @@
 import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient, Structure, Language, Npc } from "./types";
 import { seasonConfig, worldConfig } from "./world-config";
 import { getTemplates } from "./templates";
-import { itemDefinitions as staticItemDefinitions } from "./items";
+import { itemDefinitions as staticItemDefinitions } from "@/lib/game/items";
 import { weatherPresets } from "./weatherPresets";
 import { translations } from "../i18n";
 import type { TranslationKey } from "../i18n";

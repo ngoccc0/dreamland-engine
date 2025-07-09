@@ -640,23 +640,6 @@ export function useGameEngine(props: GameEngineProps) {
         }
     }, [world, playerPosition, gameTime, weatherZones, getEffectiveChunk, setCurrentChunk, isLoaded]);
 
-    // EFFECT 2: Update the turn counter and the chunk's `lastVisited` property ONLY when the player moves to a new position.
-    useEffect(() => {
-        if (!isLoaded) return;
-        const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
-        if (baseChunk) {
-            const newTurn = turn + 1;
-            setTurn(newTurn);
-            const updatedChunkData = { ...baseChunk, lastVisited: newTurn };
-            
-            setWorld(prevWorld => ({
-                ...prevWorld,
-                [`${playerPosition.x},${playerPosition.y}`]: updatedChunkData,
-            }));
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [playerPosition, isLoaded]);
-    
     // Auto-saving effect
     useEffect(() => {
         if (!isLoaded || isSaving || isGameOver) return;
@@ -1111,20 +1094,20 @@ export function useGameEngine(props: GameEngineProps) {
         setPlayerBehaviorProfile(p => ({ ...p, moves: p.moves + 1 }));
 
         let newPos = { ...playerPosition };
-        if (direction === 'north') { newPos.y++; }
-        else if (direction === 'south') { newPos.y--; }
-        else if (direction === 'east') { newPos.x++; }
-        else if (direction === 'west') { newPos.x--; }
+        if (direction === 'north') newPos.y++;
+        else if (direction === 'south') newPos.y--;
+        else if (direction === 'east') newPos.x++;
+        else if (direction === 'west') newPos.x--;
 
         let worldSnapshot = { ...world };
         let regionsSnapshot = { ...regions };
         let regionCounterSnapshot = regionCounter;
-        
+
         const destResult = ensureChunkExists(newPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
         worldSnapshot = destResult.worldWithChunk;
         regionsSnapshot = destResult.newRegions;
         regionCounterSnapshot = destResult.newRegionCounter;
-        
+
         const destinationTerrain = destResult.chunk.terrain;
         if (destinationTerrain === 'ocean') {
             const hasRaft = playerStats.items.some(item => item.name === 'Thuyền Phao');
@@ -1134,16 +1117,24 @@ export function useGameEngine(props: GameEngineProps) {
             }
         }
 
-        if (destResult.chunk?.terrain === 'wall') { addNarrativeEntry(t('wallBlock'), 'system'); return; }
+        if (destResult.chunk?.terrain === 'wall') {
+            addNarrativeEntry(t('wallBlock'), 'system');
+            return;
+        }
 
         const travelCost = playerStats.persona === 'explorer' ? Math.max(1, (worldConfig[destResult.chunk.terrain]?.travelCost || 3) - 1) : (worldConfig[destResult.chunk.terrain]?.travelCost || 3);
-        if (playerStats.stamina < travelCost) { toast({ title: t('notEnoughStamina'), description: t('notEnoughStaminaDesc', { cost: travelCost, current: playerStats.stamina.toFixed(0) }), variant: "destructive" }); return; }
-        
+        if (playerStats.stamina < travelCost) {
+            toast({ title: t('notEnoughStamina'), description: t('notEnoughStaminaDesc', { cost: travelCost, current: playerStats.stamina.toFixed(0) }), variant: "destructive" });
+            return;
+        }
+
         const capitalizedDirection = direction.charAt(0).toUpperCase() + direction.slice(1);
         const directionKey = `direction${capitalizedDirection}` as TranslationKey;
         const actionText = t('wentDirection', { direction: t(directionKey) });
         addNarrativeEntry(actionText, 'action');
-        
+
+        const newTurn = turn + 1;
+
         const visionRadius = 1;
         for (let dy = -visionRadius; dy <= visionRadius; dy++) {
             for (let dx = -visionRadius; dx <= visionRadius; dx++) {
@@ -1154,24 +1145,30 @@ export function useGameEngine(props: GameEngineProps) {
                     regionsSnapshot = result.newRegions;
                     regionCounterSnapshot = result.newRegionCounter;
                 }
-                if (worldSnapshot[`${revealPos.x},${revealPos.y}`]) worldSnapshot[`${revealPos.x},${revealPos.y}`].explored = true;
+                if (worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
+                    worldSnapshot[`${revealPos.x},${revealPos.y}`].explored = true;
+                }
             }
         }
-        
+
+        const destChunkKey = `${newPos.x},${newPos.y}`;
+        worldSnapshot[destChunkKey] = { ...worldSnapshot[destChunkKey], lastVisited: newTurn };
+
         const wasNewRegionCreated = regionCounterSnapshot > regionCounter;
         if (wasNewRegionCreated) {
-            const newWeatherZones = {...weatherZones};
+            const newWeatherZones = { ...weatherZones };
             const currentRegions = regionsSnapshot || {};
             Object.keys(currentRegions).filter(id => !newWeatherZones[id]).forEach(regionId => {
                 const region = currentRegions[Number(regionId)];
                 if (region) {
                     const initialWeather = generateWeatherForZone(region.terrain, currentSeason);
-                    newWeatherZones[regionId] = { id: regionId, terrain: region.terrain, currentWeather: initialWeather, nextChangeTime: gameTime + getRandomInRange({min: initialWeather.duration_range[0], max: initialWeather.duration_range[1]}) * 10 };
+                    newWeatherZones[regionId] = { id: regionId, terrain: region.terrain, currentWeather: initialWeather, nextChangeTime: gameTime + getRandomInRange({ min: initialWeather.duration_range[0], max: initialWeather.duration_range[1] }) * 10 };
                 }
             });
             setWeatherZones(newWeatherZones);
         }
-
+        
+        setTurn(newTurn);
         setWorld(worldSnapshot);
         setRegions(regionsSnapshot);
         setRegionCounter(regionCounterSnapshot);
@@ -1182,12 +1179,12 @@ export function useGameEngine(props: GameEngineProps) {
         if (isOnline) {
             handleOnlineNarrative(actionText, worldSnapshot, newPos, newPlayerStats);
         } else {
-            const narrative = generateOfflineNarrative(worldSnapshot[`${newPos.x},${newPos.y}`], worldSnapshot, newPos, settings.narrativeLength, t);
+            const narrative = generateOfflineNarrative(worldSnapshot[destChunkKey], worldSnapshot, newPos, settings.narrativeLength, t);
             addNarrativeEntry(narrative, 'narrative');
             advanceGameTime(newPlayerStats);
         }
-    }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerPosition, world, regions, regionCounter, playerStats, toast, addNarrativeEntry, t, ensureChunkExists, weatherZones, currentSeason, gameTime, setWeatherZones, setWorld, setRegions, setRegionCounter, setPlayerPosition, isOnline, handleOnlineNarrative, advanceGameTime, settings.narrativeLength, generateOfflineNarrative]);
-    
+    }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerPosition, world, regions, regionCounter, turn, playerStats, toast, addNarrativeEntry, t, ensureChunkExists, weatherZones, currentSeason, gameTime, setWeatherZones, setWorld, setRegions, setRegionCounter, setPlayerPosition, isOnline, handleOnlineNarrative, advanceGameTime, settings.narrativeLength, generateOfflineNarrative, setTurn]);
+
     const handleAction = useCallback((actionId: number) => {
         if (isLoading || isGameOver) return;
         const chunk = world[`${playerPosition.x},${playerPosition.y}`];

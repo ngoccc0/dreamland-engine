@@ -17,14 +17,14 @@ import { provideQuestHint } from "@/ai/flows/provide-quest-hint";
 
 import { useGameState } from "./use-game-state";
 import { rollDice, getSuccessLevel, successLevelToTranslationKey, type SuccessLevel } from "@/lib/game/dice";
-import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, checkConditions, calculateCraftingOutcome, type CraftingOutcome } from "@/lib/game/engine";
+import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateWeatherForZone, checkConditions, calculateCraftingOutcome, type CraftingOutcome, handleSearchAction } from "@/lib/game/engine";
 import { skillDefinitions } from '@/lib/game/skills';
 import { getTemplates } from '@/lib/game/templates';
 import { worldConfig, seasonConfig } from '@/lib/game/world-config';
 import { clamp } from "@/lib/utils";
 import { randomEvents } from "@/lib/game/events";
 
-import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, ItemEffect, Terrain, PlayerPersona, EquipmentSlot, NarrativeLength } from "@/lib/game/types";
+import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, ItemEffect, Terrain, PlayerPersona, EquipmentSlot, NarrativeLength, Action } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 
 
@@ -283,7 +283,7 @@ export function useGameEngine(props: GameEngineProps) {
         setWeatherZones(weatherZonesSnapshot);
         
         isInitialized.current = true;
-    }, [isLoaded, finalWorldSetup]);
+    }, [isLoaded, finalWorldSetup, world, regions, regionCounter, playerPosition, narrativeLog.length, ensureChunkExists, generateOfflineNarrative, t, weatherZones, currentSeason, gameTime, setNarrativeLog, setWorld, setRegions, setRegionCounter, setWeatherZones]);
 
 
     const triggerRandomEvent = useCallback(() => {
@@ -932,56 +932,60 @@ export function useGameEngine(props: GameEngineProps) {
         advanceGameTime(newPlayerStats);
     }, [playerStats, settings.diceType, t, addNarrativeEntry, playerPosition, world, advanceGameTime, setWorld]);
     
-    const handleOfflineAction = useCallback((actionText: string) => {
-        let newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText] };
-        const lowerAction = actionText.toLowerCase();
-
-        const talkToAction = t('talkToAction', {}).toLowerCase();
-        const pickUpAction = t('pickUpAction', {}).toLowerCase();
-        const exploreActionText = t('exploreAction', {}).toLowerCase();
-        const forageActionText = t('forageForFoodAction', {}).toLowerCase();
-        const searchMaterialsActionText = t('searchForMaterialsAction', {}).toLowerCase();
-        const listenActionText = t('listenToSurroundingsAction', {}).toLowerCase();
-
-        const currentChunk = world[ `${playerPosition.x},${playerPosition.y}`];
+    const handleOfflineAction = useCallback((action: Action) => {
+        let newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), t(action.textKey, action.params)] };
+        const currentChunk = world[`${playerPosition.x},${playerPosition.y}`];
         if (!currentChunk) return;
 
-        if (lowerAction.startsWith(talkToAction)) {
-            const npcName = actionText.substring(talkToAction.length).trim();
-            const npc = currentChunk.NPCs.find(n => t(n.name as TranslationKey).toLowerCase() === npcName.toLowerCase());
+        const { textKey } = action;
+
+        if (textKey === 'talkToAction_npc') {
+            const npcName = t(action.params!.npcName as TranslationKey);
+            const npc = currentChunk.NPCs.find(n => t(n.name as TranslationKey) === npcName);
             if (npc) {
                 const templates = getTemplates(language);
-                let npcDef: any;
-                Object.keys(templates).some(terrain => {
-                    const found = templates[terrain as Terrain].NPCs.find((n: any) => n.data.name === npc.name);
-                    if (found) { npcDef = found.data; return true; } return false;
-                });
+                let npcDef: Npc | undefined;
+                 for (const terrain of Object.keys(templates)) {
+                    const templateNpc = templates[terrain as Terrain].NPCs.find((n: any) => n.data.name === npc.name);
+                    if (templateNpc) {
+                        npcDef = templateNpc.data;
+                        break;
+                    }
+                }
                 if (npcDef?.quest && npcDef.questItem) {
                     if (newPlayerStats.quests.includes(npcDef.quest)) {
-                        const itemInInventory = newPlayerStats.items.find(i => i.name === npcDef.questItem.name);
-                        if (itemInInventory && itemInInventory.quantity >= npcDef.questItem.quantity) {
+                        const itemInInventory = newPlayerStats.items.find(i => i.name === npcDef.questItem!.name);
+                        if (itemInInventory && itemInInventory.quantity >= npcDef.questItem!.quantity) {
                             addNarrativeEntry(t('gaveItemToNpc', { quantity: npcDef.questItem.quantity, itemName: t(npcDef.questItem.name as TranslationKey), npcName: t(npc.name as TranslationKey)}), 'system');
                             itemInInventory.quantity -= npcDef.questItem.quantity;
-                            if (itemInInventory.quantity <= 0) newPlayerStats.items = newPlayerStats.items.filter(i => i.name !== npcDef.questItem.name);
+                            if (itemInInventory.quantity <= 0) newPlayerStats.items = newPlayerStats.items.filter(i => i.name !== npcDef!.questItem!.name);
                             (npcDef.rewardItems || []).forEach((reward: PlayerItem) => {
                                 const existingItem = newPlayerStats.items.find(i => i.name === reward.name);
                                 if (existingItem) existingItem.quantity += reward.quantity;
                                 else newPlayerStats.items.push({...reward});
                             });
-                            newPlayerStats.quests = newPlayerStats.quests.filter(q => q !== npcDef.quest);
+                            newPlayerStats.quests = newPlayerStats.quests.filter(q => q !== npcDef!.quest);
                             addNarrativeEntry(t('npcQuestCompleted', { npcName: t(npc.name as TranslationKey) }), 'narrative');
                             toast({ title: t('questCompletedTitle'), description: t(npcDef.quest as TranslationKey) });
                         } else addNarrativeEntry(t('npcQuestNotEnoughItems', { npcName: t(npc.name as TranslationKey), needed: npcDef.questItem.quantity - (itemInInventory?.quantity || 0), itemName: t(npcDef.questItem.name as TranslationKey) }), 'narrative');
                     } else { newPlayerStats.quests.push(npcDef.quest); addNarrativeEntry(t('npcQuestGive', { npcName: t(npc.name as TranslationKey), questText: t(npcDef.quest as TranslationKey) }), 'narrative'); }
                 } else addNarrativeEntry(t('npcNoQuest', { npcName: t(npc.name as TranslationKey) }), 'narrative');
             }
-        } else if (lowerAction.startsWith(pickUpAction)) {
-            const itemName = actionText.substring(pickUpAction.length).trim();
+        } else if (textKey === 'pickUpAction_item') {
+            const itemName = t(action.params!.itemName as TranslationKey);
             const chunkKey = `${playerPosition.x},${playerPosition.y}`;
-            const itemInChunk = currentChunk.items.find(i => t(i.name as TranslationKey).toLowerCase() === itemName.toLowerCase());
+            const itemInChunk = currentChunk.items.find(i => t(i.name as TranslationKey) === itemName);
             
             if (!itemInChunk) {
                 toast({ title: t('actionNotAvailableTitle'), description: t('actionNotAvailableDesc'), variant: 'destructive' });
+                addNarrativeEntry(t('itemNotFoundNarrative', {itemName: itemName}), "system")
+                 setWorld(prev => {
+                    const newWorld = { ...prev };
+                    const chunkToUpdate = { ...newWorld[chunkKey]! };
+                    chunkToUpdate.actions = chunkToUpdate.actions.filter(a => a.id !== action.id);
+                    newWorld[chunkKey] = chunkToUpdate;
+                    return newWorld;
+                });
                 return;
             }
 
@@ -993,7 +997,7 @@ export function useGameEngine(props: GameEngineProps) {
                 const newWorld = { ...prev };
                 const chunkToUpdate = { ...newWorld[chunkKey]! };
                 chunkToUpdate.items = chunkToUpdate.items.filter(i => i.name !== itemInChunk.name);
-                chunkToUpdate.actions = chunkToUpdate.actions.filter(a => a.text !== actionText);
+                chunkToUpdate.actions = chunkToUpdate.actions.filter(a => a.id !== action.id);
                 newWorld[chunkKey] = chunkToUpdate;
                 return newWorld;
             });
@@ -1003,111 +1007,29 @@ export function useGameEngine(props: GameEngineProps) {
             
             addNarrativeEntry(t('pickedUpItemNarrative', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name as TranslationKey) }), 'narrative');
 
-        } else if (lowerAction === exploreActionText) {
-            const templates = getTemplates(language);
-            const biomeTemplate = templates[currentChunk.terrain];
-            let foundItems: ChunkItem[] = [];
+        } else if (textKey === 'exploreAction' || textKey === 'forageForFoodAction' || textKey === 'searchForMaterialsAction') {
+            let searchType: 'explore' | 'forage' | 'search_materials';
+            if(textKey === 'exploreAction') searchType = 'explore';
+            else if(textKey === 'forageForFoodAction') searchType = 'forage';
+            else searchType = 'search_materials';
 
-            if (biomeTemplate && biomeTemplate.items) {
-                for (const itemTemplate of biomeTemplate.items) {
-                    if (Math.random() < (itemTemplate.conditions.chance || 0.1)) {
-                        const itemDef = customItemDefinitions[itemTemplate.name];
-                        if (itemDef) {
-                            const quantity = getRandomInRange(itemDef.baseQuantity);
-                            foundItems.push({
-                                name: itemTemplate.name,
-                                description: itemDef.description,
-                                tier: itemDef.tier,
-                                quantity: quantity,
-                                emoji: itemDef.emoji,
-                            });
-                        }
-                    }
-                }
+            const result = handleSearchAction(
+                searchType,
+                currentChunk,
+                action.id,
+                language,
+                t,
+                customItemDefinitions,
+                getRandomInRange
+            );
+            
+            if (result.toastInfo) {
+                toast(result.toastInfo);
             }
-
-            if (foundItems.length > 0) {
-                const itemToGive = foundItems[Math.floor(Math.random() * foundItems.length)];
-                
-                toast({
-                    title: t('exploreSuccessTitle'),
-                    description: t('exploreFoundItem', { quantity: itemToGive.quantity, itemName: t(itemToGive.name as TranslationKey) }),
-                });
-
-                const itemInInventory = newPlayerStats.items.find(i => i.name === itemToGive.name);
-                if (itemInInventory) {
-                    itemInInventory.quantity += itemToGive.quantity;
-                } else {
-                    newPlayerStats.items.push({
-                        name: itemToGive.name,
-                        quantity: itemToGive.quantity,
-                        tier: itemToGive.tier,
-                        emoji: itemToGive.emoji
-                    });
-                }
-                addNarrativeEntry(t('exploreFoundItem', { quantity: itemToGive.quantity, itemName: t(itemToGive.name as TranslationKey) }), 'narrative');
-            } else {
-                addNarrativeEntry(t('exploreFoundNothing'), 'narrative');
-            }
-        } else if (lowerAction === forageActionText) {
-            const biomeTemplate = getTemplates(language)[currentChunk.terrain];
-            let foundItems: ChunkItem[] = [];
-            if (biomeTemplate?.items) {
-                const foodItems = biomeTemplate.items.filter(i => {
-                    const def = customItemDefinitions[i.name];
-                    return def && def.category === 'Food';
-                });
-                if (foodItems.length > 0 && Math.random() < 0.6) { 
-                     const itemTemplate = foodItems[Math.floor(Math.random() * foodItems.length)];
-                     const itemDef = customItemDefinitions[itemTemplate.name];
-                     if (itemDef) {
-                         foundItems.push({ name: itemTemplate.name, description: itemDef.description, tier: itemDef.tier, quantity: getRandomInRange(itemDef.baseQuantity), emoji: itemDef.emoji });
-                     }
-                }
-            }
-            if (foundItems.length > 0) {
-                const item = foundItems[0];
-                toast({
-                    title: t('forageSuccessTitle'),
-                    description: t('forageSuccess', { quantity: item.quantity, itemName: t(item.name as TranslationKey) }),
-                });
-                addNarrativeEntry(t('forageSuccess', { quantity: item.quantity, itemName: t(item.name as TranslationKey) }), 'narrative');
-                const itemInInventory = newPlayerStats.items.find(i => i.name === item.name);
-                if (itemInInventory) itemInInventory.quantity += item.quantity;
-                else newPlayerStats.items.push({ ...item });
-            } else {
-                addNarrativeEntry(t('forageFail'), 'narrative');
-            }
-        } else if (lowerAction === searchMaterialsActionText) {
-            const biomeTemplate = getTemplates(language)[currentChunk.terrain];
-            let foundItems: ChunkItem[] = [];
-            if (biomeTemplate?.items) {
-                const materialItems = biomeTemplate.items.filter(i => {
-                    const def = customItemDefinitions[i.name];
-                    return def && def.category === 'Material';
-                });
-                if (materialItems.length > 0 && Math.random() < 0.75) { 
-                     const itemTemplate = materialItems[Math.floor(Math.random() * materialItems.length)];
-                     const itemDef = customItemDefinitions[itemTemplate.name];
-                     if (itemDef && itemDef.tier <= 2) { 
-                         foundItems.push({ name: itemTemplate.name, description: itemDef.description, tier: itemDef.tier, quantity: getRandomInRange(itemDef.baseQuantity), emoji: itemDef.emoji });
-                     }
-                }
-            }
-             if (foundItems.length > 0) {
-                const item = foundItems[0];
-                toast({
-                    title: t('searchSuccessTitle'),
-                    description: t('searchMaterialsSuccess', { quantity: item.quantity, itemName: t(item.name as TranslationKey) }),
-                });
-                addNarrativeEntry(t('searchMaterialsSuccess', { quantity: item.quantity, itemName: t(item.name as TranslationKey) }), 'narrative');
-                const itemInInventory = newPlayerStats.items.find(i => i.name === item.name);
-                if (itemInInventory) itemInInventory.quantity += item.quantity;
-                else newPlayerStats.items.push({ ...item });
-            } else {
-                addNarrativeEntry(t('searchMaterialsFail'), 'narrative');
-            }
-        } else if (lowerAction === listenActionText) {
+            addNarrativeEntry(result.narrative, 'narrative');
+            setWorld(prev => ({...prev, [`${playerPosition.x},${playerPosition.y}`]: result.newChunk}));
+            
+        } else if (textKey === 'listenToSurroundingsAction') {
             const directions = [{ x: 0, y: 1, dir: 'North' }, { x: 0, y: -1, dir: 'South' }, { x: 1, y: 0, dir: 'East' }, { x: -1, y: 0, dir: 'West' }];
             let heardSomething = false;
             for (const dir of directions) {
@@ -1233,24 +1155,14 @@ export function useGameEngine(props: GameEngineProps) {
             toast({ title: t('actionNotAvailableTitle'), description: t('actionNotAvailableDesc'), variant: 'destructive' });
             return;
         }
-
-        const structure = chunk.structures[0];
-        if(structure && structure.buildable) {
-            toast({ title: t('structureLimitTitle'), description: t('structureLimitDesc'), variant: "destructive" });
-            return;
-        }
-
-        const actionText = action.text || "unknown action";
-        const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
         
-        const lowerAction = actionText.toLowerCase();
-        const talkToAction = t('talkToAction', {}).toLowerCase();
-        
+        const actionText = t(action.textKey, action.params);
         addNarrativeEntry(actionText, 'action');
-        if (isOnline && lowerAction.startsWith(talkToAction)) {
+        if (isOnline && action.textKey === 'talkToAction_npc') {
+            const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
             handleOnlineNarrative(actionText, world, playerPosition, newPlayerStats);
         } else {
-            handleOfflineAction(actionText);
+            handleOfflineAction(action);
         }
     }, [isLoading, isGameOver, world, playerPosition, playerStats, isOnline, handleOnlineNarrative, handleOfflineAction, toast, t, addNarrativeEntry]);
     
@@ -1274,9 +1186,10 @@ export function useGameEngine(props: GameEngineProps) {
         addNarrativeEntry(text, 'action');
         if (isOnline) handleOnlineNarrative(text, world, playerPosition, newPlayerStats);
         else {
-            handleOfflineAction(text);
+             addNarrativeEntry(t('customActionFail'), 'narrative');
+             advanceGameTime();
         }
-    }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerStats, isOnline, handleOnlineNarrative, world, playerPosition, handleOfflineAction, addNarrativeEntry]);
+    }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerStats, isOnline, handleOnlineNarrative, world, playerPosition, addNarrativeEntry, t, advanceGameTime]);
 
     const handleCraft = useCallback(async (recipe: Recipe, outcome: CraftingOutcome) => {
         if (isLoading || isGameOver) return;
@@ -1580,5 +1493,6 @@ export function useGameEngine(props: GameEngineProps) {
 
 
     
+
 
 

@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
-import type { GameSettings } from '@/lib/game/types';
+import type { GameSettings, FontFamily, FontSize, Theme } from '@/lib/game/types';
 
 interface SettingsContextType {
   settings: GameSettings;
@@ -28,8 +28,27 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     try {
       const savedSettings = localStorage.getItem('gameSettings');
       if (savedSettings) {
-        // Merge saved settings with defaults to ensure all keys are present after updates
         const parsed = JSON.parse(savedSettings);
+
+        // --- VALIDATION START ---
+        // Validate theme
+        const validThemes: Theme[] = ['light', 'dark'];
+        if (!validThemes.includes(parsed.theme)) {
+            parsed.theme = defaultSettings.theme;
+        }
+        // Validate font family
+        const validFonts: FontFamily[] = ['literata', 'inter', 'source_code_pro'];
+        if (!validFonts.includes(parsed.fontFamily)) {
+          parsed.fontFamily = defaultSettings.fontFamily;
+        }
+        // Validate font size
+        const validFontSizes: FontSize[] = ['sm', 'base', 'lg'];
+        if (!validFontSizes.includes(parsed.fontSize)) {
+            parsed.fontSize = defaultSettings.fontSize;
+        }
+        // --- VALIDATION END ---
+
+        // Merge validated settings with defaults to ensure all keys are present
         setSettingsState(prev => ({...defaultSettings, ...parsed}));
       }
     } catch (error) {

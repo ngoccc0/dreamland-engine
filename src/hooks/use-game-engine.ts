@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useEffect, useCallback, useRef } from "react";
@@ -174,22 +173,27 @@ export function useGameEngine(props: GameEngineProps) {
     
     // EFFECT 1: Game Initialization (runs only once).
     useEffect(() => {
-        if (!isLoaded || isInitialized.current || !finalWorldSetup) return;
-
+        // This effect should only run ONCE per game load.
+        // The ref ensures it doesn't re-run on subsequent renders.
+        // The other dependencies ensure it runs with the *correct* loaded state, preventing stale state bugs.
+        if (isInitialized.current || !isLoaded || !finalWorldSetup) {
+            return;
+        }
+    
         let worldSnapshot = { ...world };
         let regionsSnapshot = { ...regions };
         let regionCounterSnapshot = regionCounter;
         let weatherZonesSnapshot = { ...weatherZones };
-        
+    
         const initialPosKey = `${playerPosition.x},${playerPosition.y}`;
-
-        // Ensure initial chunk and surroundings exist if not already loaded.
+    
+        // Ensure initial chunk and surroundings exist if not already loaded (for new games or recovery).
         if (!worldSnapshot[initialPosKey]) {
             const result = ensureChunkExists(playerPosition, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
             worldSnapshot = result.worldWithChunk;
             regionsSnapshot = result.newRegions;
             regionCounterSnapshot = result.newRegionCounter;
-
+    
             const visionRadius = 1;
             for (let dy = -visionRadius; dy <= visionRadius; dy++) {
                 for (let dx = -visionRadius; dx <= visionRadius; dx++) {
@@ -206,7 +210,7 @@ export function useGameEngine(props: GameEngineProps) {
                 }
             }
         }
-        
+    
         // Set up initial narrative and weather if this is a new game.
         if (narrativeLog.length <= 1) {
             const startingChunk = worldSnapshot[initialPosKey];
@@ -214,7 +218,7 @@ export function useGameEngine(props: GameEngineProps) {
                 const chunkDescription = generateOfflineNarrative(startingChunk, 'long', worldSnapshot, playerPosition, t, language, customItemDefinitions);
                 const fullIntro = `${t(finalWorldSetup.initialNarrative as TranslationKey)}\n\n${chunkDescription}`;
                 setNarrativeLog([{ id: 0, text: fullIntro, type: 'narrative' }]);
-
+    
                 Object.keys(regionsSnapshot).filter(id => !weatherZonesSnapshot[id]).forEach(regionId => {
                     const region = regionsSnapshot[Number(regionId)];
                     if (region) {
@@ -224,14 +228,20 @@ export function useGameEngine(props: GameEngineProps) {
                 });
             }
         }
-
+    
         setWorld(worldSnapshot);
         setRegions(regionsSnapshot);
         setRegionCounter(regionCounterSnapshot);
         setWeatherZones(weatherZonesSnapshot);
-        
+    
+        // Mark as initialized so this never runs again for this component instance
         isInitialized.current = true;
-    }, [isLoaded, finalWorldSetup]);
+    }, [
+        isLoaded, finalWorldSetup, world, regions, regionCounter, playerPosition,
+        narrativeLog, weatherZones, ensureChunkExists, setWorld, setRegions,
+        setRegionCounter, setWeatherZones, setNarrativeLog, t, language,
+        customItemDefinitions, currentSeason, gameTime
+    ]);
 
     const triggerRandomEvent = useCallback(() => {
         const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];

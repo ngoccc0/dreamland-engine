@@ -1,15 +1,24 @@
 
+
 export const desert_vi = {
-    descriptionTemplates: [
-        'Cát, cát và cát. Một sa mạc [adjective] bao la. Những [feature] là cảnh tượng duy nhất phá vỡ sự đơn điệu.',
-        'Cái nóng của sa mạc [adjective] thật khắc nghiệt. Bạn thấy một [feature] ở phía xa, có thể là ảo ảnh.',
-        'Mặt đất nứt nẻ vì khô hạn. Không khí có mùi [smell] và bạn nghe thấy tiếng [sound] của gió.',
-        'Một vùng đất [adjective] và cằn cỗi. Chỉ có những [feature] gai góc nhất mới tồn tại được ở đây.'
-    ],
+    descriptionTemplates: {
+        short: [
+            "Một sa mạc [adjective] bao la với những [feature] trải dài.",
+        ],
+        medium: [
+            "Cái nóng của sa mạc [adjective] thật khắc nghiệt. Không khí có mùi [smell] và bạn nghe thấy tiếng [sound] của gió. {sensory_details} {entity_report}",
+            "Một vùng đất [adjective] và cằn cỗi. Chỉ có những [feature] gai góc nhất mới tồn tại được ở đây, tạo nên một cảnh quan vừa đẹp vừa chết chóc. {sensory_details} {entity_report}",
+        ],
+        long: [
+            "Cát, cát và cát. Một sa mạc [adjective] vô tận. Những [feature] là cảnh tượng duy nhất phá vỡ sự đơn điệu. Bạn thấy một ảo ảnh ở phía xa, lung linh trong cái nóng. {sensory_details} {entity_report} {surrounding_peek}",
+            "Mặt đất nứt nẻ vì khô hạn dưới bầu trời [sky] không một gợn mây. Không khí có mùi [smell] của đá nóng và bạn nghe thấy tiếng [sound] của gió rít qua tai, một bài ca của sự cô độc. {sensory_details} {entity_report} {surrounding_peek}",
+        ]
+    },
     adjectives: ['nóng bỏng', 'khô cằn', 'vô tận', 'lặng im', 'gió cát', 'khắc nghiệt'],
     features: ['cồn cát', 'ốc đảo', 'xương rồng khổng lồ', 'bộ xương cũ', 'tàn tích đá', 'vực sâu'],
     sounds: ['gió rít', 'sự im lặng tuyệt đối', 'tiếng rắn trườn', 'tiếng cát chảy', 'tiếng kền kền kêu'],
     smells: ['cát nóng', 'không có gì', 'mùi ozon', 'xác khô', 'lưu huỳnh'],
+    sky: ['xanh ngắt', 'không gợn mây', 'đầy sao'],
     NPCs: [
         { 
             data: { name: 'Thương nhân lạc đà', description: 'Một người đàn ông trùm kín mặt, dẫn theo một con lạc đà chở đầy hàng hóa.', dialogueSeed: 'Một thương nhân lọc lõi, chỉ quan tâm đến việc mua bán và những món hời.' },
@@ -40,16 +49,24 @@ export const desert_vi = {
 };
 
 export const desert_en = {
-    descriptionTemplates: [
-        'Sand, sand, and more sand. A vast [adjective] desert. The only break in the monotony are the [feature].',
-        'The heat of the [adjective] desert is oppressive. You see a [feature] in the distance, perhaps a mirage.',
-        'The ground is cracked and dry. The air smells of [smell] and you hear the [sound] of the wind.',
-        'An [adjective] and arid land. Only the toughest [feature] survive here.'
-    ],
+    descriptionTemplates: {
+        short: [
+            "A vast, [adjective] desert with sprawling [feature].",
+        ],
+        medium: [
+            "The heat of the [adjective] desert is oppressive. The air smells of [smell] and you hear the [sound] of the wind. {sensory_details} {entity_report}",
+            "An [adjective] and arid land. Only the toughest [feature] survive here, creating a landscape both beautiful and deadly. {sensory_details} {entity_report}",
+        ],
+        long: [
+            "Sand, sand, and more sand. An endless, [adjective] desert. The only break in the monotony are the [feature]. You see a mirage in the distance, shimmering in the heat. {sensory_details} {entity_report} {surrounding_peek}",
+            "The ground is cracked and dry under a cloudless [sky] sky. The air smells of hot [smell] and you hear the [sound] of the wind whistling past your ears, a song of solitude. {sensory_details} {entity_report} {surrounding_peek}",
+        ]
+    },
     adjectives: ['scorching', 'arid', 'endless', 'silent', 'windswept', 'harsh'],
     features: ['dunes', 'an oasis', 'giant cacti', 'old skeletons', 'stone ruins', 'deep canyons'],
     sounds: ['wind howling', 'absolute silence', 'a snake hissing', 'sand shifting', 'vulture cries'],
     smells: ['hot sand', 'nothing', 'ozone', 'dry carcass', 'sulfur'],
+    sky: ['blue', 'cloudless', 'starlit'],
     NPCs: [
         { 
             data: { name: 'Camel Merchant', description: 'A man with his face covered, leading a camel laden with goods.', dialogueSeed: 'A shrewd merchant, only interested in buying, selling, and good deals.' },

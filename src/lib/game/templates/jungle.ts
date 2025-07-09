@@ -1,15 +1,24 @@
 
+
 export const jungle_vi = {
-    descriptionTemplates: [
-        'Bạn đang ở giữa một khu rừng rậm [adjective]. Những tán lá [feature] dày đặc đến nỗi ánh sáng mặt trời khó có thể lọt qua. Tiếng [sound] vang vọng khắp nơi.',
-        'Không khí [adjective] và ẩm ướt. Cây cối và dây leo [feature] mọc um tùm, tạo thành một mê cung xanh. Mùi [smell] nồng nặc trong không khí.',
-        'Mặt đất phủ đầy lá mục. Một con suối nhỏ chảy qua, nước trong vắt. Khu rừng rậm này thật [adjective].',
-        'Những cây [feature] khổng lồ vươn lên trời. Bạn cảm thấy nhỏ bé trong khu rừng rậm [adjective] này.'
-    ],
+    descriptionTemplates: {
+        short: [
+            "Bạn đang ở giữa một khu rừng rậm [adjective] và [smell].",
+        ],
+        medium: [
+            "Bạn đang ở giữa một khu rừng rậm [adjective]. Những tán lá [feature] dày đặc đến nỗi ánh sáng mặt trời khó có thể lọt qua. Tiếng [sound] vang vọng khắp nơi. {sensory_details} {entity_report}",
+            "Không khí [adjective] và ẩm ướt. Cây cối và dây leo [feature] mọc um tùm, tạo thành một mê cung xanh. Mùi [smell] nồng nặc trong không khí. {sensory_details} {entity_report}",
+        ],
+        long: [
+            "Mặt đất phủ đầy lá mục. Một con suối nhỏ chảy qua, nước trong vắt. Khu rừng rậm này thật [adjective], một thế giới riêng biệt với những quy luật của riêng nó. Tiếng [sound] và mùi [smell] hòa quyện tạo nên một cảm giác vừa choáng ngợp vừa e sợ. {sensory_details} {entity_report} {surrounding_peek}",
+            "Những cây [feature] khổng lồ vươn lên trời, che khuất cả bầu trời. Bạn cảm thấy nhỏ bé và lạc lõng trong khu rừng rậm [adjective] này. Mọi thứ đều có vẻ đang theo dõi bạn. {sensory_details} {entity_report} {surrounding_peek}"
+        ]
+    },
     adjectives: ['nguyên sinh', 'nhiệt đới', 'ngột ngạt', 'bí hiểm', 'sống động', 'hoang dã'],
     features: ['khổng lồ', 'dây leo', 'hoa lạ', 'thác nước ẩn', 'tàn tích cổ', 'cây ăn thịt'],
     smells: ['hoa thối', 'đất ẩm', 'mùi xạ hương của động vật', 'mùi trái cây chín', 'mùi mưa'],
     sounds: ['vẹt kêu', 'khỉ hú', 'tiếng côn trùng rả rích', 'tiếng nước chảy', 'tiếng gầm xa'],
+    sky: [],
     NPCs: [
         { 
             data: { name: 'Thầy mo của bộ lạc', description: 'Một người đàn ông lớn tuổi với khuôn mặt được sơn vẽ kỳ dị, đeo nhiều loại bùa hộ mệnh.', dialogueSeed: 'Một người thông thái và bí ẩn, nói về các linh hồn và những lời tiên tri cổ xưa.' },
@@ -37,16 +46,24 @@ export const jungle_vi = {
 };
 
 export const jungle_en = {
-    descriptionTemplates: [
-        'You are in the middle of a [adjective] jungle. The [feature] canopy is so dense that sunlight can barely penetrate. The sound of [sound] echoes everywhere.',
-        'The air is [adjective] and humid. Trees and [feature] vines grow profusely, forming a green maze. The smell of [smell] is strong in the air.',
-        'The ground is covered with decaying leaves. A small stream flows by, its water crystal clear. This jungle is truly [adjective].',
-        'Giant [feature] trees reach for the sky. You feel small in this [adjective] jungle.'
-    ],
+    descriptionTemplates: {
+        short: [
+            "You are in the middle of a [adjective] and [smell] jungle.",
+        ],
+        medium: [
+            "You are in the middle of a [adjective] jungle. The [feature] canopy is so dense that sunlight can barely penetrate. The [sound] echoes everywhere. {sensory_details} {entity_report}",
+            "The air is [adjective] and humid. Trees and [feature] vines grow profusely, forming a green maze. The smell of [smell] is strong in the air. {sensory_details} {entity_report}",
+        ],
+        long: [
+            "The ground is covered with decaying leaves. A small stream flows by, its water crystal clear. This jungle is truly [adjective], a separate world with its own rules. The blend of [sound] and [smell] creates a feeling of both awe and fear. {sensory_details} {entity_report} {surrounding_peek}",
+            "Giant [feature] trees reach for the sky, obscuring the heavens. You feel small and lost in this [adjective] jungle. Everything seems to be watching you. {sensory_details} {entity_report} {surrounding_peek}"
+        ]
+    },
     adjectives: ['primeval', 'tropical', 'suffocating', 'mysterious', 'vibrant', 'wild'],
     features: ['giant trees', 'vines', 'strange flowers', 'hidden waterfalls', 'ancient ruins', 'carnivorous plants'],
     smells: ['rotting flowers', 'damp earth', 'animal musk', 'ripe fruit', 'the scent of rain'],
     sounds: ['parrots squawking', 'monkeys howling', 'insects chirping', 'running water', 'a distant roar'],
+    sky: [],
     NPCs: [
         { 
             data: { name: 'Tribal Shaman', description: 'An old man with a strangely painted face, wearing many amulets.', dialogueSeed: 'A wise and mysterious person who speaks of spirits and ancient prophecies.' },

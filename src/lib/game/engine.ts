@@ -263,25 +263,11 @@ function generateChunkContent(
 
     const templates = getTemplates(language);
     const template = templates[chunkData.terrain];
-
-    // Description
-    const baseDescriptionTemplate = template.descriptionTemplates[Math.floor(Math.random() * template.descriptionTemplates.length)];
-    const adjective = template.adjectives[Math.floor(Math.random() * template.adjectives.length)];
-    const feature = template.features[Math.floor(Math.random() * template.features.length)];
-    const smell = template.smells[Math.floor(Math.random() * template.smells.length)];
-    const sound = template.sounds[Math.floor(Math.random() * template.sounds.length)];
-    const sky = template.sky ? template.sky[Math.floor(Math.random() * template.sky.length)] : '';
-
-
-    let finalDescription = baseDescriptionTemplate
-        .replace('[adjective]', adjective)
-        .replace('[feature]', feature)
-        .replace('[smell]', smell)
-        .replace('[sound]', sound);
     
-    if (sky) {
-        finalDescription = finalDescription.replace('[sky]', sky);
-    }
+    // Use the first short description as the base, since it's now more generic.
+    const finalDescription = template.descriptionTemplates.short[0]
+        .replace('[adjective]', template.adjectives[Math.floor(Math.random() * template.adjectives.length)])
+        .replace('[feature]', template.features[Math.floor(Math.random() * template.features.length)]);
     
     // --- Create a combined list of all possible items for this biome ---
     const staticSpawnCandidates = template.items;
@@ -355,20 +341,7 @@ function generateChunkContent(
    
     const enemyData = spawnedEnemies.length > 0 ? spawnedEnemies[0].data : null;
     const spawnedEnemy = enemyData ? { ...enemyData, satiation: 0, emoji: enemyData.emoji } : null;
-
-    // More description based on calculated values and spawned entities
-    if (chunkData.moisture > 8) finalDescription += ` ${t('descMoistureHigh')}`;
-    if (chunkData.windLevel && chunkData.windLevel > 8) finalDescription += ` ${t('descWindHigh')}`;
-    if (chunkData.temperature && chunkData.temperature < 3) finalDescription += ` ${t('descTempCold')}`;
-    if (chunkData.dangerLevel > 8) finalDescription += ` ${t('descDangerHigh')}`;
-    if (chunkData.humanPresence > 5) finalDescription += ` ${t('descHumanPresence')}`;
-    if (spawnedEnemy) {
-        finalDescription += ` ${t('descEnemySensed', { enemyType: t(spawnedEnemy.type as TranslationKey) })}`;
-    }
-    if (spawnedStructures.length > 0) {
-        finalDescription += ` ${t('descStructureSighted')} ${t(spawnedStructures[0].description as TranslationKey).toLowerCase()}`;
-    }
-
+    
     // Actions
     const actions: Action[] = [];
     let actionIdCounter = 1;
@@ -754,48 +727,90 @@ export const generateOfflineNarrative = (
     narrativeLength: "short" | "medium" | "long",
     world: World,
     playerPosition: { x: number; y: number; },
-    t: (key: TranslationKey, replacements?: { [key: string]: string | number }) => string
+    t: (key: TranslationKey, replacements?: any) => string
 ) => {
     const chunk = baseChunk;
-    let parts: string[] = [chunk.description];
+    const lang = (Object.keys(translations).find(key => (translations as any)[key].langIdentifier === t('langIdentifier')) || 'en') as Language;
+    const templates = getTemplates(lang);
+    const biomeTemplateData = templates[chunk.terrain];
 
-    const sensoryDetails: string[] = [];
-    if (chunk.explorability < 3) sensoryDetails.push(t('offline_explorability_low'));
-    else if (chunk.explorability > 8) sensoryDetails.push(t('offline_explorability_high'));
-    if (chunk.dangerLevel > 8) sensoryDetails.push(t('offline_danger_high'));
-    else if (chunk.dangerLevel < 2) sensoryDetails.push(t('offline_danger_low'));
-    if (chunk.magicAffinity > 7) sensoryDetails.push(t('offline_magic_high'));
-    if (chunk.temperature && chunk.temperature > 8) sensoryDetails.push(t('offline_temp_hot'));
-    else if (chunk.temperature && chunk.temperature < 2) sensoryDetails.push(t('offline_temp_cold'));
-    if (chunk.moisture > 8) sensoryDetails.push(t('offline_moisture_high'));
-    if (chunk.lightLevel && chunk.lightLevel < -5) sensoryDetails.push(t('offline_light_low'));
-    if (chunk.humanPresence > 5) sensoryDetails.push(t('offline_human_presence'));
-    if (chunk.predatorPresence > 7) sensoryDetails.push(t('offline_predator_presence'));
-    if(sensoryDetails.length > 0) parts.push(sensoryDetails.join(' '));
+    // Fallback for biomes without structured templates (like 'wall')
+    if (!biomeTemplateData.descriptionTemplates.short) {
+        return chunk.description;
+    }
 
+    const templateSet = biomeTemplateData.descriptionTemplates[narrativeLength] || biomeTemplateData.descriptionTemplates.medium;
+    let baseTemplate = Array.isArray(templateSet) ? templateSet[Math.floor(Math.random() * templateSet.length)] : templateSet;
+
+    // Fill in the simple placeholders from the biome template
+    const adjective = biomeTemplateData.adjectives[Math.floor(Math.random() * biomeTemplateData.adjectives.length)];
+    const feature = biomeTemplateData.features[Math.floor(Math.random() * biomeTemplateData.features.length)];
+    const smell = biomeTemplateData.smells[Math.floor(Math.random() * biomeTemplateData.smells.length)];
+    const sound = biomeTemplateData.sounds[Math.floor(Math.random() * biomeTemplateData.sounds.length)];
+    const sky = biomeTemplateData.sky ? biomeTemplateData.sky[Math.floor(Math.random() * biomeTemplateData.sky.length)] : '';
+
+    let populatedTemplate = baseTemplate
+        .replace(/\[adjective\]/g, adjective)
+        .replace(/\[feature\]/g, feature)
+        .replace(/\[smell\]/g, smell)
+        .replace(/\[sound\]/g, sound)
+        .replace(/\[sky\]/g, sky);
+
+    // Generate complex, logic-based parts
+    const sensoryDetailsParts: string[] = [];
+    if (chunk.explorability < 3) sensoryDetailsParts.push(t('offline_explorability_low'));
+    if (chunk.dangerLevel > 8) sensoryDetailsParts.push(t('offline_danger_high'));
+    if (chunk.magicAffinity > 7) sensoryDetailsParts.push(t('offline_magic_high'));
+    if (chunk.temperature && chunk.temperature >= 9) sensoryDetailsParts.push(t('sensoryFeedback_hot'));
+    if (chunk.temperature && chunk.temperature <= 2) sensoryDetailsParts.push(t('sensoryFeedback_cold'));
+    if (chunk.moisture && chunk.moisture >= 8) sensoryDetailsParts.push(t('offline_moisture_high'));
+    if (chunk.lightLevel && chunk.lightLevel <= -5) sensoryDetailsParts.push(t('sensoryFeedback_dark'));
+    if (chunk.humanPresence > 5) sensoryDetailsParts.push(t('offline_human_presence'));
+    if (chunk.predatorPresence > 7) sensoryDetailsParts.push(t('offline_predator_presence'));
+    
+    const sensory_details = sensoryDetailsParts.join(' ');
+
+    const entityDetailsParts: string[] = [];
+    if (chunk.items.length > 0) {
+        const itemsHere = chunk.items.map(i => `${i.quantity} ${t(i.name as TranslationKey)}`).join(', ');
+        entityDetailsParts.push(t('offlineNarrativeItems', { items: itemsHere }));
+    }
+    if (chunk.enemy) entityDetailsParts.push(t('offlineNarrativeEnemy', { enemy: t(chunk.enemy.type as TranslationKey) }));
+    if (chunk.NPCs.length > 0) entityDetailsParts.push(t('offlineNarrativeNPC', { npc: t(chunk.NPCs[0].name as TranslationKey) }));
+    if (chunk.structures.length > 0) entityDetailsParts.push(t('offlineNarrativeStructure', { structure: t(chunk.structures[0].name as TranslationKey) }));
+    const entity_report = entityDetailsParts.join(' ');
+
+    let surrounding_peek = '';
     if (narrativeLength !== 'short') {
+        const surroundingPeekParts: string[] = [];
         const directions = [{ x: 0, y: 1, dir: 'North' }, { x: 0, y: -1, dir: 'South' }, { x: 1, y: 0, dir: 'East' }, { x: -1, y: 0, dir: 'West' }];
-        let surroundingDetails: string[] = [];
         for (const dir of directions) {
             const key = `${playerPosition.x + dir.x},${playerPosition.y + dir.y}`;
             const adjacentChunk = world[key];
-            if (adjacentChunk && adjacentChunk.explored && ((baseChunk.lastVisited - adjacentChunk.lastVisited) < 50)) {
-                if(adjacentChunk.enemy) surroundingDetails.push(t('offlineNarrativeSenseEnemy', { direction: t(`direction${dir.dir}` as TranslationKey), enemy: t(adjacentChunk.enemy.type as TranslationKey) }));
-                else if (adjacentChunk.structures.length > 0) surroundingDetails.push(t('offlineNarrativeSeeStructure', { direction: t(`direction${dir.dir}` as TranslationKey), structure: t(adjacentChunk.structures[0].name as TranslationKey) }));
+            if (adjacentChunk && adjacentChunk.explored && ((chunk.lastVisited - adjacentChunk.lastVisited) < 50)) {
+                if(adjacentChunk.enemy) {
+                    surroundingPeekParts.push(t('surrounding_peek_enemy', { direction: t(`direction${dir.dir}` as TranslationKey), enemy: t(adjacentChunk.enemy.type as TranslationKey) }));
+                } else if (adjacentChunk.structures.length > 0) {
+                    surroundingPeekParts.push(t('surrounding_peek_structure', { direction: t(`direction${dir.dir}` as TranslationKey), structure: t(adjacentChunk.structures[0].name as TranslationKey) }));
+                }
             }
         }
-        if(surroundingDetails.length > 0) parts.push(t('offlineNarrativeSurroundings') + ' ' + surroundingDetails.join(' '));
+        if (surroundingPeekParts.length > 0) {
+            surrounding_peek = t('offlineNarrativeSurroundings') + ' ' + surroundingPeekParts.join('. ');
+        }
     }
 
-    const entityDetails: string[] = [];
-    const itemsHere = chunk.items.map(i => `${i.quantity} ${t(i.name as TranslationKey)}`).join(', ');
-    if (itemsHere) entityDetails.push(t('offlineNarrativeItems', { items: itemsHere }));
-    if (chunk.enemy) entityDetails.push(t('offlineNarrativeEnemy', { enemy: t(chunk.enemy.type as TranslationKey) }));
-    if (chunk.NPCs.length > 0) entityDetails.push(t('offlineNarrativeNPC', { npc: t(chunk.NPCs[0].name as TranslationKey) }));
-    if(entityDetails.length > 0) parts.push(entityDetails.join(' '));
+    // Replace placeholders and clean up
+    let finalNarrative = populatedTemplate
+        .replace('{sensory_details}', sensory_details)
+        .replace('{entity_report}', entity_report)
+        .replace('{surrounding_peek}', surrounding_peek)
+        .replace(/\s{2,}/g, ' ') // Condense multiple spaces
+        .replace(/ \./g, '.')    // Clean up space before periods
+        .replace(/ ,/g, ',')     // Clean up space before commas
+        .trim();
 
-    const maxParagraphs = narrativeLength === 'short' ? 1 : (narrativeLength === 'medium' ? 3 : 4);
-    return parts.slice(0, maxParagraphs).join('\n\n');
+    return finalNarrative;
 };
 
 export const generateOfflineActionNarrative = (
@@ -805,37 +820,43 @@ export const generateOfflineActionNarrative = (
     t: (key: TranslationKey, replacements?: any) => string
 ): string => {
     let narrativeParts: string[] = [];
-    const sensoryFeedback: string[] = [];
+    const sensoryFeedbackParts: string[] = [];
 
-    if (chunk.temperature && chunk.temperature >= 9) sensoryFeedback.push(t('sensoryFeedback_hot'));
-    if (chunk.temperature && chunk.temperature <= 2) sensoryFeedback.push(t('sensoryFeedback_cold'));
-    if (chunk.lightLevel && chunk.lightLevel <= -5) sensoryFeedback.push(t('sensoryFeedback_dark'));
-    if (chunk.moisture && chunk.moisture >= 8) sensoryFeedback.push(t('sensoryFeedback_rain'));
-
-    const addSensoryFeedback = () => {
-        if (sensoryFeedback.length > 0) {
-            narrativeParts.push(sensoryFeedback[Math.floor(Math.random() * sensoryFeedback.length)]);
-        }
-    };
-
+    if (chunk.temperature && chunk.temperature >= 9) sensoryFeedbackParts.push(t('sensoryFeedback_hot'));
+    if (chunk.temperature && chunk.temperature <= 2) sensoryFeedbackParts.push(t('sensoryFeedback_cold'));
+    if (chunk.lightLevel && chunk.lightLevel <= -5) sensoryFeedbackParts.push(t('sensoryFeedback_dark'));
+    if (chunk.moisture && chunk.moisture >= 8) sensoryFeedbackParts.push(t('sensoryFeedback_rain'));
+    
+    const sensory_feedback = sensoryFeedbackParts.join(' ');
+    
+    let templateKey: TranslationKey = 'exploreAction'; // Fallback
+    const replacements: any = { sensory_feedback };
+    
     switch (actionType) {
         case 'attack':
             const { successLevel, playerDamage, enemyDamage, enemyDefeated, fled, enemyType } = result;
             const enemyName = t(enemyType as TranslationKey);
 
-            if (successLevel === 'CriticalSuccess') narrativeParts.push(t('attackNarrative_critSuccess', { enemyType: enemyName }));
-            else if (successLevel === 'Success' || successLevel === 'GreatSuccess') narrativeParts.push(t('attackNarrative_success', { enemyType: enemyName }));
-            else if (successLevel === 'Failure') narrativeParts.push(t('attackNarrative_fail', { enemyType: enemyName }));
-            else if (successLevel === 'CriticalFailure') narrativeParts.push(t('attackNarrative_critFail', { enemyType: enemyName }));
+            if (successLevel === 'CriticalSuccess') {
+                templateKey = 'actionNarrative_attack_critSuccess';
+                replacements.attack_description = t('attackNarrative_critSuccess', { enemyType: enemyName });
+            } else if (successLevel === 'Success' || successLevel === 'GreatSuccess') {
+                templateKey = 'actionNarrative_attack_success';
+                replacements.attack_description = t('attackNarrative_success', { enemyType: enemyName });
+            } else if (successLevel === 'Failure') {
+                templateKey = 'actionNarrative_attack_fail';
+                replacements.attack_description = t('attackNarrative_fail', { enemyType: enemyName });
+            } else if (successLevel === 'CriticalFailure') {
+                templateKey = 'actionNarrative_attack_critFail';
+                replacements.attack_description = t('attackNarrative_critFail', { enemyType: enemyName });
+            }
 
-            if (playerDamage > 0) narrativeParts.push(t('attackDamageDealt', { damage: playerDamage }));
+            replacements.damage_report = t('attackDamageDealt', { damage: playerDamage });
             
-            addSensoryFeedback();
-
-            if (enemyDefeated) narrativeParts.push(t('enemyDefeatedNarrative', { enemyType: enemyName }));
-            else if (fled) narrativeParts.push(t('enemyFledNarrative', { enemyType: enemyName }));
-            else if (enemyDamage > 0) narrativeParts.push(t('enemyRetaliationNarrative', { enemyType: enemyName, damage: enemyDamage }));
-            else narrativeParts.push(t('enemyPreparesNarrative', { enemyType: enemyName }));
+            if (enemyDefeated) replacements.enemy_reaction = t('enemyDefeatedNarrative', { enemyType: enemyName });
+            else if (fled) replacements.enemy_reaction = t('enemyFledNarrative', { enemyType: enemyName });
+            else if (enemyDamage > 0) replacements.enemy_reaction = t('enemyRetaliationNarrative', { enemyType: enemyName, damage: enemyDamage });
+            else replacements.enemy_reaction = t('enemyPreparesNarrative', { enemyType: enemyName });
             
             break;
         
@@ -844,16 +865,15 @@ export const generateOfflineActionNarrative = (
             const translatedItemName = t(itemName as TranslationKey);
 
             if (target === 'player') {
-                if(wasUsed) narrativeParts.push(t('itemUsePlayerSuccessNarrative', { item: translatedItemName, effect: effectDescription }));
-                else narrativeParts.push(t('itemUsePlayerFailNarrative', { item: translatedItemName }));
+                if(wasUsed) return t('itemUsePlayerSuccessNarrative', { item: translatedItemName, effect: effectDescription, sensory_feedback });
+                else return t('itemUsePlayerFailNarrative', { item: translatedItemName, sensory_feedback });
             } else {
                 const translatedTarget = t(target as TranslationKey);
                 if(itemConsumed) {
-                    if(wasTamed) narrativeParts.push(t('itemTameSuccessNarrative', { item: translatedItemName, target: translatedTarget }));
-                    else narrativeParts.push(t('itemTameFailNarrative', { item: translatedItemName, target: translatedTarget }));
+                    if(wasTamed) return t('itemTameSuccessNarrative', { item: translatedItemName, target: translatedTarget, sensory_feedback });
+                    else return t('itemTameFailNarrative', { item: translatedItemName, target: translatedTarget, sensory_feedback });
                 }
             }
-            addSensoryFeedback();
             break;
         }
 
@@ -863,22 +883,25 @@ export const generateOfflineActionNarrative = (
             const enemyName = enemy ? t(enemy.type as TranslationKey) : '';
 
             if (successLevel === 'CriticalFailure') {
-                narrativeParts.push(t('skillCritFailNarrative', { skillName, damage: backfireDamage }));
+                return t('skillCritFailNarrative', { skillName, damage: backfireDamage, sensory_feedback });
             } else if (successLevel === 'Failure') {
-                 narrativeParts.push(t('skillFailNarrative', { skillName }));
+                return t('skillFailNarrative', { skillName, sensory_feedback });
             } else {
                 if (skill.effect.type === 'HEAL') {
-                    narrativeParts.push(t('skillHealSuccessNarrative', { skillName, amount: healedAmount }));
+                    return t('skillHealSuccessNarrative', { skillName, amount: healedAmount, sensory_feedback });
                 } else if (skill.effect.type === 'DAMAGE' && enemy) {
-                    narrativeParts.push(t('skillDamageSuccessNarrative', { skillName, enemy: enemyName, damage: finalDamage }));
-                    if (siphonedAmount) narrativeParts.push(t('skillSiphonNarrative', { amount: siphonedAmount }));
-                    if (!result.enemy) narrativeParts.push(t('enemyDefeatedNarrative', { enemyType: enemyName }));
+                    let text = t('skillDamageSuccessNarrative', { skillName, enemy: enemyName, damage: finalDamage, sensory_feedback });
+                    if (siphonedAmount) text += ' ' + t('skillSiphonNarrative', { amount: siphonedAmount });
+                    if (!result.enemy) text += ' ' + t('enemyDefeatedNarrative', { enemyType: enemyName });
+                    return text;
                 }
             }
-            addSensoryFeedback();
             break;
         }
     }
+    
+    // Fallback if templateKey wasn't set correctly
+    if (templateKey === 'exploreAction') return "An action occurred.";
 
-    return narrativeParts.filter(p => p).join(' ');
+    return t(templateKey, replacements);
 }

@@ -2,6 +2,7 @@
 
 export const translations = {
   en: {
+    langIdentifier: 'en',
     // Premade World Names (Refactored)
     worldName_rainyCity: 'Rainy City',
     worldName_theWanderer: 'The Wanderer',
@@ -106,7 +107,7 @@ export const translations = {
     mage_quest1: "Report to the Grand Library for your assignment.",
     mage_quest2: "Gather Stardust from the celestial winds.",
     createCustomWorld: 'Create a Custom World with AI',
-    observeAction: 'Observe',
+    observeAction_enemy: 'Observe {enemyType}',
     forageForFoodAction: "Forage for food",
     searchForMaterialsAction: "Search for materials",
     listenToSurroundingsAction: "Listen to surroundings",
@@ -200,6 +201,7 @@ export const translations = {
     'Cánh Dơi': 'Bat Wing',
     'Nọc Độc Nhện Hang': 'Cave Spider Venom',
     'Chất nhờn Slime': 'Slime Gel',
+    'Răng Sâu Bò': 'Crawler Tooth',
     'Sâu Bò Khổng Lồ': 'Giant Crawler',
     'Quả Mọng Ăn Được': 'Edible Berries',
     'Nấm Độc': 'Poisonous Mushroom',
@@ -992,9 +994,10 @@ export const translations = {
     offlineNarrativeItems: "On the ground, you see: {items}.",
     offlineNarrativeEnemy: "A dangerous {enemy} is here.",
     offlineNarrativeNPC: "You see {npc} nearby.",
-    offlineNarrativeSenseEnemy: "To the {direction}, you sense a {enemy}.",
-    offlineNarrativeSeeStructure: "To the {direction}, you can see a {structure}.",
-    offlineNarrativeSurroundings: "Looking around, you notice a few things.",
+    offlineNarrativeStructure: "There is a {structure} here.",
+    offlineNarrativeSurroundings: "Looking around, you notice",
+    surrounding_peek_enemy: "the presence of a {enemy} to the {direction}",
+    surrounding_peek_structure: "a {structure} to the {direction}",
     structureLimitTitle: "Structure Limit Reached",
     structureLimitDesc: "You can only build one structure per tile.",
     fogOfWarDesc: "You haven't been here in a while. The area is shrouded in fog again.",
@@ -1004,85 +1007,44 @@ export const translations = {
     dynamicRain: "🌧️ Raindrops gently patter on the leaves around you.",
     dynamicEnemy: "⚔️ The nearby {enemyType} watches your every move.",
     dynamicNoEnemy: "🍃 A sense of relative calm settles over the area for a moment.",
-    offline_explorability_low: [
-      "The dense terrain makes movement difficult.",
-      "Navigating this area is a struggle due to the thick vegetation.",
-      "It's hard to get a clear view of your surroundings here.",
-    ],
-    offline_explorability_high: [
-      "The open terrain offers a clear view of your surroundings.",
-      "It's easy to move through this wide-open space.",
-      "You can see for miles from this vantage point.",
-    ],
-    offline_danger_high: [
-      "A palpable sense of danger hangs in the air.",
-      "An unsettling feeling tells you this place is not safe.",
-      "You feel exposed and vulnerable here.",
-    ],
-    offline_danger_low: [
-      "The atmosphere here feels surprisingly calm and safe.",
-      "You feel at ease in this tranquil environment.",
-      "There seems to be no immediate threat in the area.",
-    ],
-    offline_magic_high: [
-      "You feel a humming magical energy in the environment.",
-      "The air crackles with latent magical power.",
-      "A strange, mystical aura permeates this place.",
-    ],
-    offline_temp_hot: [
-      "The air shimmers with intense heat.",
-      "A wave of oppressive heat washes over you.",
-      "It's scorching hot here.",
-    ],
-    offline_temp_cold: [
-      "A biting chill seeps into your bones.",
-      "Your breath fogs in the frigid air.",
-      "It's bitterly cold in this area.",
-    ],
-    offline_moisture_high: [
-      "The ground is damp and the air is thick with humidity.",
-      "A heavy moisture hangs in the air, clinging to everything.",
-      "This place is sodden and damp.",
-    ],
-    offline_light_low: [
-      "Deep shadows cling to everything, making it hard to see.",
-      "It's difficult to make out details in the dim light.",
-      "An oppressive darkness blankets the area.",
-    ],
-    offline_human_presence: [
-      "It looks like someone has been through here recently.",
-      "You spot a discarded tool, a sign of recent activity.",
-      "The remnants of an old campfire suggest this place was once inhabited.",
-    ],
-    offline_predator_presence: [
-      "You hear the distant sounds of predators on the hunt.",
-      "The unsettling silence suggests a large predator is nearby.",
-      "You find large, unnerving tracks on the ground.",
-    ],
-    attackNarrative_critSuccess: ["With a surge of adrenaline, you land a devastating blow on the {enemyType}!", "A flawless strike! Your weapon finds a critical weakness, staggering the {enemyType}."],
-    attackNarrative_success: ["You lunge forward, your attack connecting solidly with the {enemyType}.", "A well-aimed strike! The {enemyType} recoils from the impact."],
-    attackNarrative_fail: ["You swing wildly, your attack missing the {enemyType} by a hair's breadth.", "The {enemyType} deftly sidesteps your clumsy attack."],
-    attackNarrative_critFail: ["You lose your footing as you attack, stumbling and leaving yourself wide open.", "A disastrous miscalculation! Your weapon gets stuck for a moment, ruining your attack."],
+    offline_explorability_low: "The dense terrain makes movement difficult.",
+    offline_explorability_high: "The open terrain offers a clear view of your surroundings.",
+    offline_danger_high: "A palpable sense of danger hangs in the air.",
+    offline_danger_low: "The atmosphere here feels surprisingly calm and safe.",
+    offline_magic_high: "You feel a humming magical energy in the environment.",
+    offline_moisture_high: "The ground is damp and the air is thick with humidity.",
+    offline_human_presence: "It looks like someone has been through here recently.",
+    offline_predator_presence: "You find large, unnerving tracks on the ground.",
+    attackNarrative_critSuccess: "With a surge of adrenaline, you land a devastating blow on the {enemyType}!",
+    attackNarrative_success: "You lunge forward, your attack connecting solidly with the {enemyType}.",
+    attackNarrative_fail: "You swing wildly, your attack missing the {enemyType} by a hair's breadth.",
+    attackNarrative_critFail: "You lose your footing as you attack, stumbling and leaving yourself wide open.",
     attackDamageDealt: "It takes {damage} damage.",
-    enemyDefeatedNarrative: ["The {enemyType} collapses, defeated.", "With a final groan, the {enemyType} falls to the ground."],
-    enemyFledNarrative: ["Seeing your might, the {enemyType} turns and flees into the wilderness!", "The creature decides you are too much to handle and makes a hasty retreat."],
-    enemyRetaliationNarrative: ["Enraged, the {enemyType} lunges back, its attack finding its mark. It deals {damage} damage.", "The {enemyType} strikes back fiercely, hitting you for {damage} damage."],
-    enemyPreparesNarrative: ["The {enemyType} bristles, preparing its next move.", "The {enemyType} eyes you warily, unfazed by your attack."],
+    enemyDefeatedNarrative: "The {enemyType} collapses, defeated.",
+    enemyFledNarrative: "Seeing your might, the {enemyType} turns and flees into the wilderness!",
+    enemyRetaliationNarrative: "Enraged, the {enemyType} lunges back, its attack finding its mark. It deals {damage} damage.",
+    enemyPreparesNarrative: "The {enemyType} bristles, preparing its next move.",
     sensoryFeedback_hot: "The heat of the environment makes the air shimmer around the combatants.",
     sensoryFeedback_cold: "Your breath crystallizes in the frigid air as you strike.",
     sensoryFeedback_dark: "It's hard to track the enemy's movements in the deep shadows.",
     sensoryFeedback_rain: "Rain plasters your hair to your face, and the ground is slick underfoot.",
-    itemUsePlayerSuccessNarrative: "You use the {item}. {effect}",
-    itemUsePlayerFailNarrative: "You try to use the {item}, but it has no effect.",
-    itemTameSuccessNarrative: "You offer the {item} to the {target}. It cautiously accepts, and seems to form a bond with you!",
-    itemTameFailNarrative: "You offer the {item} to the {target}. It eats the offering but remains wary of you.",
-    skillCritFailNarrative: "The magic backfires! Your {skillName} spell fizzles and harms you instead for {damage} damage.",
-    skillFailNarrative: ["You fumble the incantation, and the {skillName} spell dissipates into nothing.", "Your attempt to cast {skillName} fails as you lose concentration."],
-    skillHealSuccessNarrative: ["A soothing light envelops you as you cast {skillName}, restoring {amount} health.", "You successfully channel your energy, and the {skillName} spell mends your wounds for {amount} HP."],
-    skillDamageSuccessNarrative: ["You unleash your magic, striking the {enemy} with a powerful {skillName} for {damage} damage.", "The {skillName} spell erupts from your hands and slams into the {enemy}, inflicting {damage} damage."],
-    skillSiphonNarrative: "You feel a surge of vitality as you leech {amount} health from your foe."
+    itemUsePlayerSuccessNarrative: "You use the {item}. {effect}. {sensory_feedback}",
+    itemUsePlayerFailNarrative: "You try to use the {item}, but it has no effect. {sensory_feedback}",
+    itemTameSuccessNarrative: "You offer the {item} to the {target}. It cautiously accepts, and seems to form a bond with you! {sensory_feedback}",
+    itemTameFailNarrative: "You offer the {item} to the {target}. It eats the offering but remains wary of you. {sensory_feedback}",
+    skillCritFailNarrative: "The magic backfires! Your {skillName} spell fizzles and harms you instead for {damage} damage. {sensory_feedback}",
+    skillFailNarrative: "You fumble the incantation, and the {skillName} spell dissipates into nothing. {sensory_feedback}",
+    skillHealSuccessNarrative: "A soothing light envelops you as you cast {skillName}, restoring {amount} health. {sensory_feedback}",
+    skillDamageSuccessNarrative: "You unleash your magic, striking the {enemy} with a powerful {skillName} for {damage} damage. {sensory_feedback}",
+    skillSiphonNarrative: "You feel a surge of vitality as you leech {amount} health from your foe.",
+    actionNarrative_attack_critSuccess: "{attack_description} {damage_report}. {sensory_feedback}. {enemy_reaction}",
+    actionNarrative_attack_success: "{attack_description}, dealing {damage_report}. {sensory_feedback}. {enemy_reaction}",
+    actionNarrative_attack_fail: "{attack_description}. {sensory_feedback}. The {enemy_reaction} is unfazed.",
+    actionNarrative_attack_critFail: "{attack_description}. You are left exposed. {sensory_feedback}.",
+    langIdentifier: "en"
   },
   vi: {
+    langIdentifier: 'vi',
     // Premade World Names (Refactored)
     worldName_rainyCity: 'Thành phố Mưa',
     worldName_theWanderer: 'The Wanderer',
@@ -1110,6 +1072,7 @@ export type TranslationKey = keyof (typeof translations)['en'] & keyof (typeof t
 
 
     
+
 
 
 

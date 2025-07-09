@@ -100,20 +100,22 @@ export const translations = {
     forageForFoodAction: "Forage for food",
     searchForMaterialsAction: "Search for materials",
     listenToSurroundingsAction: "Listen to surroundings",
+    forageSuccessTitle: "Forage Successful",
     forageSuccess: [
-      "After some searching, you find {quantity} {itemName}.",
-      "Your efforts pay off! You manage to gather {quantity} {itemName}.",
-      "You successfully forage {quantity} {itemName} from the surroundings."
+      "After some searching, you successfully forage {quantity} {itemName}.",
+      "Your knowledge of nature pays off. You gather {quantity} {itemName}.",
+      "You find a patch of edible {itemName} and collect {quantity}."
     ],
     forageFail: [
       "You search for edible plants but find nothing.",
-      "Despite your search, you come up empty-handed.",
-      "This area seems to have been picked clean. There's nothing to forage."
+      "The area is barren of anything edible.",
+      "It seems there's nothing safe to eat here."
     ],
+    searchSuccessTitle: "Materials Found",
     searchMaterialsSuccess: [
       "You scour the area and gather {quantity} {itemName}.",
-      "You find a good spot and collect {quantity} {itemName}.",
-      "Your search for materials yields {quantity} {itemName}."
+      "Your search for materials yields {quantity} {itemName}.",
+      "You find a good spot and collect {quantity} {itemName}."
     ],
     searchMaterialsFail: [
       "You can't find any useful materials here.",
@@ -897,15 +899,29 @@ export const translations = {
     talkToAction: "talk to",
     pickUpAction: "pick up",
     exploreAction: "explore area",
-    exploreFoundNothing: ["You search the area but find nothing of interest.", "A thorough search reveals nothing useful.", "Despite your efforts, the area yields no secrets."],
+    exploreSuccessTitle: "Discovery!",
+    exploreFoundItem: [
+      "Your exploration pays off! You find {quantity} {itemName}.",
+      "A glint of something catches your eye. It's {quantity} {itemName}!",
+      "Tucked away in a corner, you discover {quantity} {itemName}."
+    ],
+    exploreFoundNothing: [
+      "You search the area thoroughly, but find nothing of interest.",
+      "Despite your efforts, the area yields no secrets.",
+      "It seems this place has already been picked clean."
+    ],
     npcNoQuest: "{npcName} nods at you but has nothing to say.",
     npcQuestGive: "{npcName} looks at you and says: '{questText}'",
     npcQuestCompleted: "{npcName} seems pleased. 'You have done well. Take this reward.'",
     npcQuestNotEnoughItems: "{npcName} sees you don't have enough. 'You still need {needed} more {itemName}.'",
     gaveItemToNpc: "You gave {quantity} {itemName} to {npcName}.",
     questCompletedTitle: "Quest Completed!",
-    pickedUpItem: "You picked up {quantity} {itemName}.",
-    exploreFoundItem: "You search and discover {quantity} {itemName}.",
+    itemPickedUpTitle: "Item Acquired",
+    pickedUpItem: [
+      "You stash the {itemName} in your pack.",
+      "The {itemName} has been added to your inventory.",
+      "You quickly grab the {itemName} before something else does."
+    ],
     descMoistureHigh: 'The air is thick with moisture.',
     descWindHigh: 'A strong wind whips past your ears.',
     descTempCold: 'A biting cold chills you to the bone.',
@@ -976,6 +992,45 @@ export const translations = {
     dynamicNoEnemy: "🍃 A sense of relative calm settles over the area for a moment.",
   },
   vi: {
+    itemPickedUpTitle: "Đã nhặt vật phẩm",
+    pickedUpItem: [
+      "Bạn cất {itemName} vào túi.",
+      "Vật phẩm {itemName} đã được thêm vào hành trang của bạn.",
+      "Bạn nhanh chóng nhặt lấy {itemName} trước khi có thứ khác lấy mất."
+    ],
+    exploreSuccessTitle: "Khám phá!",
+    exploreFoundItem: [
+      "Cuộc thám hiểm của bạn đã có kết quả! Bạn tìm thấy {quantity} {itemName}.",
+      "Một tia sáng lọt vào mắt bạn. Đó là {quantity} {itemName}!",
+      "Nằm khuất trong một góc, bạn khám phá ra {quantity} {itemName}."
+    ],
+    exploreFoundNothing: [
+      "Bạn tìm kiếm kỹ lưỡng khu vực nhưng không tìm thấy gì thú vị.",
+      "Mặc dù đã nỗ lực, khu vực này không tiết lộ bí mật nào.",
+      "Dường như nơi này đã bị lùng sục sạch sẽ."
+    ],
+    forageSuccessTitle: "Tìm kiếm thành công",
+    forageSuccess: [
+      "Sau một hồi tìm kiếm, bạn đã tìm được {quantity} {itemName}.",
+      "Kiến thức về tự nhiên của bạn đã phát huy tác dụng. Bạn thu thập được {quantity} {itemName}.",
+      "Bạn tìm thấy một bụi {itemName} ăn được và thu hoạch {quantity}."
+    ],
+    forageFail: [
+      "Bạn tìm kiếm cây cỏ ăn được nhưng không thấy gì.",
+      "Khu vực này không có gì ăn được.",
+      "Dường như không có gì an toàn để ăn ở đây."
+    ],
+    searchSuccessTitle: "Đã tìm thấy nguyên liệu",
+    searchMaterialsSuccess: [
+      "Bạn lùng sục khu vực và thu thập được {quantity} {itemName}.",
+      "Cuộc tìm kiếm vật liệu của bạn mang lại {quantity} {itemName}.",
+      "Bạn tìm thấy một vị trí tốt và thu thập được {quantity} {itemName}."
+    ],
+    searchMaterialsFail: [
+      "Bạn không thể tìm thấy bất kỳ nguyên liệu hữu ích nào ở đây.",
+      "Khu vực này không có vật liệu bạn đang tìm kiếm.",
+      "Dường như không có vật liệu nào có thể sử dụng được ở vị trí này."
+    ],
     actionNotAvailableTitle: "Hành động không hợp lệ",
     actionNotAvailableDesc: "Hành động này không còn khả dụng.",
     item_trench_coat_desc: 'Một chiếc áo khoác trench màu be đã sờn. Có mùi của mưa và sự hối tiếc.',
@@ -1028,6 +1083,21 @@ export const translations = {
     underwater_narrative1: "Áp suất rất lớn, nhưng bộ đồ của bạn vẫn chịu được. Trước mắt bạn là thành phố im lặng, phát sáng của Elysia. Nhưng ánh sáng đang mờ dần. Một sự thối rữa tối tăm, kỳ lạ lan rộng khắp các rạn san hô từng rực rỡ. Bạn phải tìm ra nguồn gốc của bệnh dịch trước khi thành phố bị dập tắt mãi mãi.",
     underwater_quest1: "Tham khảo ý kiến của trưởng lão tại Cung điện San hô.",
     underwater_quest2: "Thu thập các mẫu san hô bị bệnh.",
+    'Vải Bố Cách Nhiệt': 'Vải Bố Cách Nhiệt',
+    'Súp Nóng Đóng Hộp': 'Súp Nóng Đóng Hộp',
+    'Mảnh Vỡ Vệ Tinh': 'Mảnh Vỡ Vệ Tinh',
+    'Nhật Ký Của Người Sống Sót': 'Nhật Ký Của Người Sống Sót',
+    'Rìu Băng Tự Chế': 'Rìu Băng Tự Chế',
+    'Trạm Nghiên Cứu Bị Bỏ Hoang': 'Trạm Nghiên Cứu Bị Bỏ Hoang',
+    'Vệ Tinh Rơi': 'Vệ Tinh Rơi',
+    'Đũa Phép Của Học Viên': 'Đũa Phép Của Học Viên',
+    'Sách Phép Cơ Bản': 'Sách Phép Cơ Bản',
+    'Đá Bay': 'Đá Bay',
+    'Bụi Sao': 'Bụi Sao',
+    'Áo Choàng Học Viện': 'Áo Choàng Học Viện',
+    'Đài Quan Sát Thiên Văn': 'Đài Quan Sát Thiên Văn',
+    'Thư Viện Vô Tận': 'Thư Viện Vô Tận',
+    'Phòng Thí Nghiệm Giả Kim': 'Phòng Thí Nghiệm Giả Kim',
     item_insulated_cloth_desc: 'Vải bố dày, được chắp vá lại với nhau để cung cấp một số biện pháp bảo vệ chống lại cái lạnh cắt da.',
     item_canned_hot_soup_desc: 'Một hộp súp tự hâm nóng. Một bữa ăn ấm áp là một điều xa xỉ trong thế giới băng giá này.',
     item_satellite_debris_desc: 'Một mảnh kim loại xoắn từ một vệ tinh rơi. Có thể chứa các thành phần tiên tiến.',
@@ -1049,46 +1119,6 @@ export const translations = {
     mage_narrative1: "Bạn đang đứng trên một hòn đảo bay, một phần của Học viện Aethelgard danh tiếng. Bên dưới bạn là một biển mây. Xung quanh bạn, những ngọn tháp bằng đá cẩm thạch và pha lê rung lên với ma thuật tiềm ẩn. Bài kiểm tra cuối kỳ của bạn sắp bắt đầu.",
     mage_quest1: "Đến Thư viện Lớn để nhận nhiệm vụ của bạn.",
     mage_quest2: "Thu thập Bụi Sao từ những cơn gió thiên thể.",
-    'Áo Khoác Trench': 'Áo Khoác Trench',
-    'Kính Lúp': 'Kính Lúp',
-    'Khẩu Súng Lục Cũ': 'Khẩu Súng Lục Cũ',
-    'Hồ Sơ Vụ Án': 'Hồ Sơ Vụ Án',
-    'Rượu Synth-Whiskey': 'Rượu Synth-Whiskey',
-    'Văn phòng Thám tử': "Văn phòng Thám tử",
-    'Quán Bar Rồng Neon': 'Quán Bar Rồng Neon',
-    'Thành phố Mưa': 'Thành phố Mưa',
-    'Cờ lê Bảo trì': 'Cờ lê Bảo trì',
-    'Thẻ khóa Cấp 1': 'Thẻ khóa Cấp 1',
-    'Bột Dinh dưỡng': 'Bột Dinh dưỡng',
-    'Nhật ký Kỹ sư': "Nhật ký Kỹ sư",
-    'Máy cắt Laser': 'Máy cắt Laser',
-    'Khoang Ngủ đông': 'Khoang Ngủ đông',
-    'Phòng Điều khiển': 'Phòng Điều khiển',
-    'Khu Thủy canh': 'Khu Thủy canh',
-    'The Wanderer': 'Kẻ Lang thang',
-    'Đèn lồng Gỉ sét': 'Đèn lồng Gỉ sét',
-    'Chìa khóa Bạc': 'Chìa khóa Bạc',
-    'Trang Nhật ký Bị xé': 'Trang Nhật ký Bị xé',
-    'Ectoplasm': 'Ectoplasm',
-    'Đại Sảnh': 'Đại Sảnh',
-    'Thư viện Bụi bặm': 'Thư viện Bụi bặm',
-    'Biệt thự Blackwood': 'Biệt thự Blackwood',
-    'Súng lục Laser': 'Súng lục Laser',
-    'Nước tẩm Gia vị': 'Nước tẩm Gia vị',
-    'Răng Giun cát': 'Răng Giun cát',
-    'Chip Tiền thưởng': 'Chip Tiền thưởng',
-    'Quán rượu Bụi bặm': 'Quán rượu Bụi bặm',
-    'Văn phòng Cảnh sát trưởng': "Văn phòng Cảnh sát trưởng",
-    'Xác tàu chở hàng': 'Xác tàu chở hàng',
-    'Hành tinh Kẻ ngoài vòng pháp luật': "Hành tinh Kẻ ngoài vòng pháp luật",
-    'Ngọc trai Phát quang': 'Ngọc trai Phát quang',
-    'Giáo San hô': 'Giáo San hô',
-    'Thuốc mỡ Tảo biển': 'Thuốc mỡ Tảo biển',
-    'Mảnh Bia đá Cổ': 'Mảnh Bia đá Cổ',
-    'Cung điện San hô': 'Cung điện San hô',
-    'Ngôi đền Chìm': 'Ngôi đền Chìm',
-    'Miệng phun Thủy nhiệt': 'Miệng phun Thủy nhiệt',
-    'Vương quốc Abyssal': 'Vương quốc Abyssal',
     'Tàn Tích Băng Giá': 'Tàn Tích Băng Giá',
     'Học Viện Mây Trôi': 'Học Viện Mây Trôi',
     'createCustomWorld': 'Tạo Thế giới Tùy chỉnh bằng AI',
@@ -1096,26 +1126,6 @@ export const translations = {
     forageForFoodAction: "Tìm kiếm thức ăn",
     searchForMaterialsAction: "Tìm kiếm nguyên liệu",
     listenToSurroundingsAction: "Lắng nghe xung quanh",
-    forageSuccess: [
-      "Sau một hồi tìm kiếm, bạn tìm thấy {quantity} {itemName}.",
-      "Nỗ lực của bạn đã được đền đáp! Bạn thu thập được {quantity} {itemName}.",
-      "Bạn đã tìm kiếm thành công {quantity} {itemName} từ môi trường xung quanh."
-    ],
-    forageFail: [
-      "Bạn tìm kiếm cây cỏ ăn được nhưng không thấy gì.",
-      "Mặc dù đã tìm kiếm, bạn vẫn ra về tay không.",
-      "Khu vực này dường như đã bị lùng sục sạch sẽ. Không còn gì để tìm."
-    ],
-    searchMaterialsSuccess: [
-      "Bạn lùng sục khu vực và thu thập được {quantity} {itemName}.",
-      "Bạn tìm thấy một vị trí tốt và thu thập được {quantity} {itemName}.",
-      "Cuộc tìm kiếm vật liệu của bạn mang lại {quantity} {itemName}."
-    ],
-    searchMaterialsFail: [
-      "Bạn không thể tìm thấy bất kỳ nguyên liệu hữu ích nào ở đây.",
-      "Khu vực này không có vật liệu bạn đang tìm kiếm.",
-      "Dường như không có vật liệu nào có thể sử dụng được ở vị trí này."
-    ],
     listenHearNothing: [
       "Bạn lắng nghe chăm chú, nhưng chỉ nghe thấy những âm thanh xung quanh của khu vực.",
       "Xung quanh thật yên tĩnh, chỉ có tiếng gió thì thầm.",

@@ -283,7 +283,7 @@ export function useGameEngine(props: GameEngineProps) {
         setRegionCounter(regionCounterSnapshot);
         setWeatherZones(weatherZonesSnapshot);
         isInitialized.current = true;
-    }, [isLoaded, finalWorldSetup]);
+    }, [isLoaded, finalWorldSetup, world, regions, regionCounter, playerPosition, ensureChunkExists, narrativeLog, generateOfflineNarrative, t, currentSeason, gameTime, setNarrativeLog, setWorld, setRegions, setRegionCounter, setWeatherZones]);
 
 
     const triggerRandomEvent = useCallback(() => {
@@ -611,13 +611,7 @@ export function useGameEngine(props: GameEngineProps) {
     useEffect(() => {
         if (!isLoaded) return;
         checkSkillUnlocks(playerStats);
-    }, [
-      playerStats.unlockProgress.moves, 
-      playerStats.unlockProgress.kills, 
-      playerStats.unlockProgress.damageSpells, 
-      isLoaded,
-      checkSkillUnlocks
-    ]);
+    }, [playerStats.unlockProgress.moves, playerStats.unlockProgress.kills, playerStats.unlockProgress.damageSpells, isLoaded, checkSkillUnlocks]);
 
     useEffect(() => {
         if (!isLoaded) return;
@@ -641,17 +635,7 @@ export function useGameEngine(props: GameEngineProps) {
             addNarrativeEntry(t(messageKey), 'system');
             toast({ title: t('personaUnlockedTitle'), description: t(messageKey) });
         }
-    }, [
-      playerBehaviorProfile.moves, 
-      playerBehaviorProfile.attacks, 
-      playerBehaviorProfile.crafts, 
-      playerStats.persona, 
-      isLoaded,
-      addNarrativeEntry,
-      setPlayerStats,
-      t,
-      toast
-    ]);
+    }, [playerBehaviorProfile.moves, playerBehaviorProfile.attacks, playerBehaviorProfile.crafts, playerStats.persona, isLoaded, addNarrativeEntry, setPlayerStats, t, toast]);
     
     // EFFECT 1: Update the visual representation of the current chunk whenever the environment changes.
     useEffect(() => {
@@ -997,6 +981,10 @@ export function useGameEngine(props: GameEngineProps) {
             const chunkKey = `${playerPosition.x},${playerPosition.y}`;
             const itemInChunk = currentChunk.items.find(i => t(i.name as TranslationKey).toLowerCase() === itemName.toLowerCase());
             if (itemInChunk) {
+                toast({
+                    title: t('itemPickedUpTitle'),
+                    description: t('pickedUpItem', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name as TranslationKey) }),
+                });
                 setWorld(prev => {
                     const newWorld = { ...prev };
                     const chunkToUpdate = { ...newWorld[chunkKey]! };
@@ -1036,6 +1024,11 @@ export function useGameEngine(props: GameEngineProps) {
             if (foundItems.length > 0) {
                 const itemToGive = foundItems[Math.floor(Math.random() * foundItems.length)];
                 
+                toast({
+                    title: t('exploreSuccessTitle'),
+                    description: t('exploreFoundItem', { quantity: itemToGive.quantity, itemName: t(itemToGive.name as TranslationKey) }),
+                });
+
                 const itemInInventory = newPlayerStats.items.find(i => i.name === itemToGive.name);
                 if (itemInInventory) {
                     itemInInventory.quantity += itemToGive.quantity;
@@ -1069,6 +1062,10 @@ export function useGameEngine(props: GameEngineProps) {
             }
             if (foundItems.length > 0) {
                 const item = foundItems[0];
+                toast({
+                    title: t('forageSuccessTitle'),
+                    description: t('forageSuccess', { quantity: item.quantity, itemName: t(item.name as TranslationKey) }),
+                });
                 addNarrativeEntry(t('forageSuccess', { quantity: item.quantity, itemName: t(item.name as TranslationKey) }), 'narrative');
                 const itemInInventory = newPlayerStats.items.find(i => i.name === item.name);
                 if (itemInInventory) itemInInventory.quantity += item.quantity;
@@ -1094,6 +1091,10 @@ export function useGameEngine(props: GameEngineProps) {
             }
              if (foundItems.length > 0) {
                 const item = foundItems[0];
+                toast({
+                    title: t('searchSuccessTitle'),
+                    description: t('searchMaterialsSuccess', { quantity: item.quantity, itemName: t(item.name as TranslationKey) }),
+                });
                 addNarrativeEntry(t('searchMaterialsSuccess', { quantity: item.quantity, itemName: t(item.name as TranslationKey) }), 'narrative');
                 const itemInInventory = newPlayerStats.items.find(i => i.name === item.name);
                 if (itemInInventory) itemInInventory.quantity += item.quantity;

@@ -483,84 +483,109 @@ export function useGameEngine(props: GameEngineProps) {
         nextPlayerStats.stamina = clamp(nextPlayerStats.stamina + STAMINA_REGEN_RATE, 0, 100);
         nextPlayerStats.mana = clamp(nextPlayerStats.mana + MANA_REGEN_RATE, 0, 50);
 
-        const SIMULATION_CHANCE = 0.2; 
+        // --- NEW Player-centric World Simulation ---
+        // Every turn, we simulate a small number of chunks within a radius around the player.
+        // This makes the world feel alive without the performance cost of simulating everything.
+        const simulationRadius = 15; // Simulate within a 31x31 square
+        const chunksToSimulatePerTurn = 20; // Chunks to process each turn to avoid lag
 
-        if (Math.random() < SIMULATION_CHANCE) {
-            const worldKeys = Object.keys(newWorldState);
-            const chunksToSimulate = worldKeys.sort(() => 0.5 - Math.random()).slice(0, 10); 
-
-            for (const key of chunksToSimulate) {
-                const chunk = newWorldState[key];
-                if (!chunk) continue;
+        const nearbyChunkKeys: string[] = [];
+        for (let dx = -simulationRadius; dx <= simulationRadius; dx++) {
+            for (let dy = -simulationRadius; dy <= simulationRadius; dy++) {
+                // The player's current tile is very active, so we can skip it in the background sim
+                if (dx === 0 && dy === 0) continue; 
                 
-                for (const itemDefName in customItemDefinitions) {
-                    const itemDef = customItemDefinitions[itemDefName];
-                    if (itemDef.growthConditions) {
-                        const effectiveChunkForGrowth = getEffectiveChunk(chunk); 
-                        const existingItem = chunk.items.find(i => i.name === itemDefName);
-                        
-                        let growthChance = 0;
-                        if (checkConditions(itemDef.growthConditions.optimal, effectiveChunkForGrowth)) {
-                            growthChance = 0.2;
-                        } else if (checkConditions(itemDef.growthConditions.subOptimal, effectiveChunkForGrowth)) {
-                            growthChance = 0.05;
-                        }
-
-                        if (Math.random() < growthChance) {
-                            worldWasModified = true;
-                            if (existingItem) {
-                                existingItem.quantity = Math.min(existingItem.quantity + 1, itemDef.baseQuantity.max * 2);
-                            } else {
-                                chunk.items.push({
-                                    name: itemDefName,
-                                    description: itemDef.description,
-                                    tier: itemDef.tier,
-                                    quantity: itemDef.baseQuantity.min,
-                                    emoji: itemDef.emoji,
-                                });
-                            }
-                        }
-                    }
+                const key = `${playerPosition.x + dx},${playerPosition.y + dy}`;
+                // Only consider chunks that have already been generated and exist in the world state
+                if (newWorldState[key]) {
+                    nearbyChunkKeys.push(key);
                 }
-                
-                if (chunk.enemy) {
-                    chunk.enemy.satiation = Math.max(0, chunk.enemy.satiation - 0.5);
-
-                    if (chunk.enemy.satiation < chunk.enemy.maxSatiation / 2) {
-                        const foodSource = chunk.items.find(item => chunk.enemy!.diet.includes(item.name));
-                        if (foodSource) {
-                            worldWasModified = true;
-                            foodSource.quantity -= 1;
-                            chunk.enemy.satiation = Math.min(chunk.enemy.maxSatiation, chunk.enemy.satiation + 2);
-                            if (foodSource.quantity <= 0) {
-                                chunk.items = chunk.items.filter(i => i.name !== foodSource.name);
-                            }
-                        }
-                    }
-                    
-                    const REPRODUCE_CHANCE = 0.1;
-                    if (chunk.enemy.satiation >= chunk.enemy.maxSatiation && Math.random() < REPRODUCE_CHANCE) {
-                        const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }];
-                        const emptyAdjacent = directions.find(dir => {
-                            const adjKey = `${chunk.x + dir.x},${chunk.y + dir.y}`;
-                            const adjChunk = newWorldState[adjKey];
-                            return adjChunk && adjChunk.terrain === chunk.terrain && !adjChunk.enemy;
-                        });
-
-                        if (emptyAdjacent) {
-                            worldWasModified = true;
-                            const adjKey = `${chunk.x + emptyAdjacent.x},${chunk.y + emptyAdjacent.y}`;
-                            newWorldState[adjKey]!.enemy = {
-                                ...chunk.enemy,
-                                hp: Math.round(chunk.enemy.hp * 0.75),
-                                satiation: 0,
-                            };
-                            chunk.enemy.satiation = 0;
-                        }
-                    }
-                }
-                newWorldState[key] = chunk;
             }
+        }
+
+        // Shuffle the list of nearby chunks and pick a small subset to process this turn
+        const shuffledKeys = nearbyChunkKeys.sort(() => 0.5 - Math.random());
+        const chunksToProcess = shuffledKeys.slice(0, chunksToSimulatePerTurn);
+
+        for (const key of chunksToProcess) {
+            const chunk = newWorldState[key];
+            if (!chunk) continue;
+            
+            // --- Resource Growth Simulation ---
+            for (const itemDefName in customItemDefinitions) {
+                const itemDef = customItemDefinitions[itemDefName];
+                if (itemDef.growthConditions) {
+                    const effectiveChunkForGrowth = getEffectiveChunk(chunk); 
+                    const existingItem = chunk.items.find(i => i.name === itemDefName);
+                    
+                    let growthChance = 0;
+                    if (checkConditions(itemDef.growthConditions.optimal, effectiveChunkForGrowth)) {
+                        growthChance = 0.2; // 20% chance in optimal conditions
+                    } else if (checkConditions(itemDef.growthConditions.subOptimal, effectiveChunkForGrowth)) {
+                        growthChance = 0.05; // 5% chance in sub-optimal conditions
+                    }
+
+                    if (Math.random() < growthChance) {
+                        worldWasModified = true;
+                        if (existingItem) {
+                            existingItem.quantity = Math.min(existingItem.quantity + 1, itemDef.baseQuantity.max * 2);
+                        } else {
+                            chunk.items.push({
+                                name: itemDefName,
+                                description: itemDef.description,
+                                tier: itemDef.tier,
+                                quantity: itemDef.baseQuantity.min,
+                                emoji: itemDef.emoji,
+                            });
+                        }
+                    }
+                }
+            }
+            
+            // --- Enemy Behavior Simulation ---
+            if (chunk.enemy) {
+                // Hunger increases over time
+                chunk.enemy.satiation = Math.max(0, chunk.enemy.satiation - 0.5);
+
+                // If hungry, try to eat from the chunk
+                if (chunk.enemy.satiation < chunk.enemy.maxSatiation / 2) {
+                    const foodSource = chunk.items.find(item => chunk.enemy!.diet.includes(item.name));
+                    if (foodSource) {
+                        worldWasModified = true;
+                        foodSource.quantity -= 1;
+                        chunk.enemy.satiation = Math.min(chunk.enemy.maxSatiation, chunk.enemy.satiation + 2);
+                        if (foodSource.quantity <= 0) {
+                            chunk.items = chunk.items.filter(i => i.name !== foodSource.name);
+                        }
+                    }
+                }
+                
+                // If well-fed, try to reproduce
+                const REPRODUCE_CHANCE = 0.1;
+                if (chunk.enemy.satiation >= chunk.enemy.maxSatiation && Math.random() < REPRODUCE_CHANCE) {
+                    const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }];
+                    const emptyAdjacent = directions.find(dir => {
+                        const adjKey = `${chunk.x + dir.x},${chunk.y + dir.y}`;
+                        const adjChunk = newWorldState[adjKey];
+                        // Can only reproduce in an adjacent, explored chunk of the same terrain with no enemy
+                        return adjChunk && adjChunk.terrain === chunk.terrain && !adjChunk.enemy;
+                    });
+
+                    if (emptyAdjacent) {
+                        worldWasModified = true;
+                        const adjKey = `${chunk.x + emptyAdjacent.x},${chunk.y + emptyAdjacent.y}`;
+                        // The new creature is weaker
+                        newWorldState[adjKey]!.enemy = {
+                            ...chunk.enemy,
+                            hp: Math.round(chunk.enemy.hp * 0.75),
+                            satiation: 0,
+                        };
+                        // Reset the parent's satiation after reproducing
+                        chunk.enemy.satiation = 0;
+                    }
+                }
+            }
+            newWorldState[key] = chunk;
         }
         
         const eventChance = (seasonConfig[currentSeason]?.eventChance || 0.1) / 20; 
@@ -971,13 +996,12 @@ export function useGameEngine(props: GameEngineProps) {
                 } else addNarrativeEntry(t('npcNoQuest', { npcName: t(npc.name as TranslationKey) }), 'narrative');
             }
         } else if (textKey === 'pickUpAction_item') {
-            const itemName = t(action.params!.itemName as TranslationKey);
             const chunkKey = `${playerPosition.x},${playerPosition.y}`;
-            const itemInChunk = currentChunk.items.find(i => t(i.name as TranslationKey) === itemName);
+            const itemInChunk = currentChunk.items.find(i => i.name === action.params!.itemName);
             
             if (!itemInChunk) {
                 toast({ title: t('actionNotAvailableTitle'), description: t('actionNotAvailableDesc'), variant: 'destructive' });
-                addNarrativeEntry(t('itemNotFoundNarrative', {itemName: itemName}), "system")
+                addNarrativeEntry(t('itemNotFoundNarrative', {itemName: t(action.params!.itemName as TranslationKey)}), "system")
                  setWorld(prev => {
                     const newWorld = { ...prev };
                     const chunkToUpdate = { ...newWorld[chunkKey]! };
@@ -992,6 +1016,16 @@ export function useGameEngine(props: GameEngineProps) {
                 title: t('itemPickedUpTitle'),
                 description: t('pickedUpItemToast', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name as TranslationKey) }),
             });
+            
+            const itemInInventory = newPlayerStats.items.find(i => i.name === itemInChunk.name);
+            if (itemInInventory) {
+                itemInInventory.quantity += itemInChunk.quantity;
+            } else {
+                newPlayerStats.items.push({...itemInChunk});
+            }
+            
+            addNarrativeEntry(t('pickedUpItemNarrative', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name as TranslationKey) }), 'narrative');
+
             setWorld(prev => {
                 const newWorld = { ...prev };
                 const chunkToUpdate = { ...newWorld[chunkKey]! };
@@ -1000,11 +1034,6 @@ export function useGameEngine(props: GameEngineProps) {
                 newWorld[chunkKey] = chunkToUpdate;
                 return newWorld;
             });
-            const itemInInventory = newPlayerStats.items.find(i => i.name === itemInChunk.name);
-            if (itemInInventory) itemInInventory.quantity += itemInChunk.quantity;
-            else newPlayerStats.items.push({...itemInChunk});
-            
-            addNarrativeEntry(t('pickedUpItemNarrative', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name as TranslationKey) }), 'narrative');
 
         } else if (textKey === 'exploreAction' || textKey === 'forageForFoodAction' || textKey === 'searchForMaterialsAction') {
             let searchType: 'explore' | 'forage' | 'search_materials';
@@ -1023,7 +1052,10 @@ export function useGameEngine(props: GameEngineProps) {
             );
             
             if (result.toastInfo) {
-                toast(result.toastInfo);
+                toast({
+                    title: t(result.toastInfo.title),
+                    description: t(result.toastInfo.description, result.toastInfo.params)
+                });
             }
             addNarrativeEntry(result.narrative, 'narrative');
             setWorld(prev => ({...prev, [`${playerPosition.x},${playerPosition.y}`]: result.newChunk}));
@@ -1518,6 +1550,7 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
 
 
     
+
 
 
 

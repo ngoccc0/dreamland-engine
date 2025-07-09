@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useEffect, useCallback, useRef } from "react";
@@ -602,7 +601,8 @@ export function useGameEngine(props: GameEngineProps) {
     useEffect(() => {
         if (!isLoaded) return;
         checkSkillUnlocks(playerStats);
-    }, [playerStats.unlockProgress, checkSkillUnlocks, isLoaded]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [playerStats.unlockProgress.moves, playerStats.unlockProgress.kills, playerStats.unlockProgress.damageSpells, isLoaded]);
 
     useEffect(() => {
         if (!isLoaded) return;
@@ -626,7 +626,8 @@ export function useGameEngine(props: GameEngineProps) {
             addNarrativeEntry(t(messageKey), 'system');
             toast({ title: t('personaUnlockedTitle'), description: t(messageKey) });
         }
-    }, [playerBehaviorProfile, playerStats.persona, setPlayerStats, addNarrativeEntry, t, toast, isLoaded]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [playerBehaviorProfile.moves, playerBehaviorProfile.attacks, playerBehaviorProfile.crafts, playerStats.persona, isLoaded]);
     
     // EFFECT 1: Update the visual representation of the current chunk whenever the environment changes.
     useEffect(() => {
@@ -1531,3 +1532,5 @@ export function useGameEngine(props: GameEngineProps) {
         handleRequestQuestHint, handleEquipItem, handleUnequipItem, handleReturnToMenu,
     }
 }
+
+    

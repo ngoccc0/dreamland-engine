@@ -262,62 +262,64 @@ export default function Home() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
             {saveSlots.map((slot, index) => (
-              <Card key={index} className={cn("flex flex-col", slot ? "border-primary" : "border-dashed")}>
-                <CardHeader>
-                  <CardTitle className="truncate">{slot?.worldSetup?.worldName ? t(slot.worldSetup.worldName as TranslationKey) : t('emptySlot')}</CardTitle>
-                  <CardDescription>{slot ? `${t('dayX', {day: slot.day})}` : t('newAdventureHint')}</CardDescription>
-                </CardHeader>
-
-                <CardContent className="flex-grow p-6 pt-0 text-sm text-muted-foreground">
-                    {slot?.worldSetup && (
-                        <div className="space-y-1">
-                            <div><span className="font-semibold text-foreground/80">{t('biomeLabel')}:</span> {t(slot.worldSetup.startingBiome as TranslationKey)}</div>
-                            {slot.worldSetup.startingSkill && (
-                                <div><span className="font-semibold text-foreground/80">{t('skillLabel')}:</span> {t(slot.worldSetup.startingSkill.name as TranslationKey)}</div>
-                            )}
-                            {slot.worldSetup.initialQuests && (
-                               <div><span className="font-semibold text-foreground/80">{t('questsLabel')}:</span> {slot.worldSetup.initialQuests.length}</div>
-                            )}
-                        </div>
-                    )}
-                </CardContent>
-
-                <CardFooter className="flex flex-col gap-2 p-6 pt-4 mt-auto">
-                  {slot ? (
-                    <>
-                      <Button onClick={() => handlePlay(index)} className="w-full">
-                        <Play className="mr-2 h-4 w-4" /> {t('continueJourney')}
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                           <Button variant="destructive" className="w-full">
-                                <Trash2 className="mr-2 h-4 w-4" /> {t('deleteSave')}
-                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>{t('confirmDeleteTitle')}</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              {slot.worldSetup?.worldName
-                                ? t('confirmDeleteDesc', { worldName: t(slot.worldSetup.worldName as TranslationKey) })
-                                : t('confirmDeleteDescGeneric')
-                              }
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDelete(index)}>{t('confirm')}</AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </>
-                  ) : (
-                    <Button onClick={() => handleNewGame(index)} className="w-full">
-                      <PlusCircle className="mr-2 h-4 w-4" /> {t('startNewAdventure')}
-                    </Button>
-                  )}
-                </CardFooter>
-              </Card>
+               <Card key={index} className={cn("flex flex-col", slot ? "border-primary" : "border-dashed")}>
+                 <div className="md:flex md:flex-row md:items-start md:justify-between p-6 flex-grow">
+                   <div className="flex-grow">
+                     <CardHeader className="p-0">
+                       <CardTitle className="truncate">{slot?.worldSetup?.worldName ? t(slot.worldSetup.worldName as TranslationKey) : t('emptySlot')}</CardTitle>
+                       <CardDescription>{slot ? `${t('dayX', {day: slot.day})}` : t('newAdventureHint')}</CardDescription>
+                     </CardHeader>
+                     <CardContent className="p-0 pt-4 text-sm text-muted-foreground">
+                       {slot?.worldSetup && (
+                         <div className="space-y-1">
+                           <div><span className="font-semibold text-foreground/80">{t('biomeLabel')}:</span> {t(slot.worldSetup.startingBiome as TranslationKey)}</div>
+                           {slot.worldSetup.startingSkill && (
+                             <div><span className="font-semibold text-foreground/80">{t('skillLabel')}:</span> {t(slot.worldSetup.startingSkill.name as TranslationKey)}</div>
+                           )}
+                           {slot.worldSetup.initialQuests && (
+                             <div><span className="font-semibold text-foreground/80">{t('questsLabel')}:</span> {slot.worldSetup.initialQuests.length}</div>
+                           )}
+                         </div>
+                       )}
+                     </CardContent>
+                   </div>
+                   <CardFooter className="p-0 pt-4 md:pt-0 md:pl-6 flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 self-start sm:self-center md:self-start lg:self-center flex-shrink-0">
+                     {slot ? (
+                       <>
+                         <Button onClick={() => handlePlay(index)} className="w-full sm:w-auto">
+                           <Play className="mr-2 h-4 w-4" /> {t('continueJourney')}
+                         </Button>
+                         <AlertDialog>
+                           <AlertDialogTrigger asChild>
+                             <Button variant="destructive" className="w-full sm:w-auto">
+                               <Trash2 className="mr-2 h-4 w-4" /> {t('deleteSave')}
+                             </Button>
+                           </AlertDialogTrigger>
+                           <AlertDialogContent>
+                             <AlertDialogHeader>
+                               <AlertDialogTitle>{t('confirmDeleteTitle')}</AlertDialogTitle>
+                               <AlertDialogDescription>
+                                 {slot.worldSetup?.worldName
+                                   ? t('confirmDeleteDesc', { worldName: t(slot.worldSetup.worldName as TranslationKey) })
+                                   : t('confirmDeleteDescGeneric')
+                                 }
+                               </AlertDialogDescription>
+                             </AlertDialogHeader>
+                             <AlertDialogFooter>
+                               <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                               <AlertDialogAction onClick={() => handleDelete(index)}>{t('confirm')}</AlertDialogAction>
+                             </AlertDialogFooter>
+                           </AlertDialogContent>
+                         </AlertDialog>
+                       </>
+                     ) : (
+                       <Button onClick={() => handleNewGame(index)} className="w-full">
+                         <PlusCircle className="mr-2 h-4 w-4" /> {t('startNewAdventure')}
+                       </Button>
+                     )}
+                   </CardFooter>
+                 </div>
+               </Card>
             ))}
           </div>
         </div>
@@ -338,3 +340,5 @@ export default function Home() {
 
   return null;
 }
+
+    

@@ -5,28 +5,22 @@ import { useState, useEffect, useCallback } from 'react';
 import GameLayout from '@/components/game/game-layout';
 import { WorldSetup } from '@/components/game/world-setup';
 import { SettingsPopup } from '@/components/game/settings-popup';
-import type { GameState, GeneratedItem, WorldConcept, Skill, Structure, PlayerItem } from '@/lib/game/types';
+import type { GameState } from '@/lib/game/types';
 import type { GenerateWorldSetupOutput } from "@/ai/flows/generate-world-setup";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useLanguage } from '@/context/language-context';
 import { usePwaInstall } from '@/context/pwa-install-context';
 import { useAuth } from '@/context/auth-context';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Loader2, Settings, Download, Trash2, Play, PlusCircle, Wand2 } from 'lucide-react';
+import { Loader2, Settings, Download, Trash2, Play, PlusCircle } from 'lucide-react';
 import type { TranslationKey, Language } from '@/lib/i18n';
 import { LanguageSelector } from '@/components/game/language-selector';
 import { doc, setDoc, deleteDoc, getDocs, collection } from "firebase/firestore";
 import { db } from "@/lib/firebase-config";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
-import { recipes as staticRecipes } from '@/lib/game/recipes';
-import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
-import { premadeWorlds } from '@/lib/game/premade-worlds';
-
 
 type SaveSlotSummary = Pick<GameState, 'worldSetup' | 'day'> | null;
 
@@ -128,26 +122,25 @@ export default function Home() {
     });
   };
 
-  const createGameStateFromSetup = (
-    worldSetupData: GenerateWorldSetupOutput,
-    selectedConceptIndex: number
-  ): GameState => {
-      const selectedConcept = worldSetupData.concepts[selectedConceptIndex];
+  const onWorldCreated = async (worldSetupData: GenerateWorldSetupOutput) => {
+      if (activeSlot === null) return;
       
-      const customDefs: Record<string, ItemDefinition> = (worldSetupData.customItemCatalog || []).reduce((acc, item) => {
+      const conceptIndex = Math.floor(Math.random() * worldSetupData.concepts.length);
+      const selectedConcept = worldSetupData.concepts[conceptIndex];
+      
+      const allCustomItems = worldSetupData.customItemCatalog || [];
+      const customDefs = allCustomItems.reduce((acc, item) => {
             acc[item.name] = {
                 description: item.description, tier: item.tier, category: item.category, emoji: item.emoji, effects: item.effects,
-                baseQuantity: item.baseQuantity, growthConditions: item.growthConditions as any, equipmentSlot: item.equipmentSlot, attributes: item.attributes,
+                baseQuantity: item.baseQuantity, growthConditions: item.growthConditions, equipmentSlot: item.equipmentSlot, attributes: item.attributes,
             };
             return acc;
-        }, {} as Record<string, ItemDefinition>);
+        }, {} as Record<string, any>);
         
-      const allItemDefinitions = { ...staticItemDefinitions, ...customDefs };
-
       const initialPlayerInventory = selectedConcept.playerInventory.map(item => ({
           ...item,
-          tier: allItemDefinitions[item.name]?.tier || 1,
-          emoji: allItemDefinitions[item.name]?.emoji || '❓'
+          tier: allCustomItems.find(def => def.name === item.name)?.tier || 1,
+          emoji: allCustomItems.find(def => def.name === item.name)?.emoji || '❓'
       }));
 
       const worldConceptForState: GameState['worldSetup'] = {
@@ -160,7 +153,7 @@ export default function Home() {
         playerInventory: initialPlayerInventory,
       };
 
-      return {
+      const newGameState: GameState = {
           worldSetup: worldConceptForState,
           playerStats: {
               hp: 100, mana: 50, stamina: 100, bodyTemperature: 37, items: initialPlayerInventory, equipment: { weapon: null, armor: null, accessory: null },
@@ -168,44 +161,13 @@ export default function Home() {
               attributes: { physicalAttack: 10, magicalAttack: 5, critChance: 5, attackSpeed: 1.0, cooldownReduction: 0 },
               unlockProgress: { kills: 0, damageSpells: 0, moves: 0 }, journal: {}, dailyActionLog: [], questHints: {},
           },
-          customItemCatalog: worldSetupData.customItemCatalog || [],
-          customItemDefinitions: allItemDefinitions,
+          customItemCatalog: allCustomItems,
+          customItemDefinitions: customDefs,
           customStructures: worldSetupData.customStructures || [],
           day: 1, turn: 1, narrativeLog: [], worldProfile: { climateBase: 'temperate', magicLevel: 5, mutationFactor: 2, sunIntensity: 7, weatherTypesAllowed: ['clear', 'rain', 'fog'], moistureBias: 0, tempBias: 0, resourceDensity: 5, theme: 'Normal', },
-          currentSeason: 'spring', gameTime: 360, weatherZones: {}, world: {}, recipes: staticRecipes, buildableStructures: staticBuildableStructures, regions: {}, regionCounter: 0,
+          currentSeason: 'spring', gameTime: 360, weatherZones: {}, world: {}, recipes: {}, buildableStructures: {}, regions: {}, regionCounter: 0,
           playerPosition: { x: 0, y: 0 }, playerBehaviorProfile: { moves: 0, attacks: 0, crafts: 0, customActions: 0 },
       };
-  };
-
-  const handleStartPremade = async (slotIndex: number, worldData: GenerateWorldSetupOutput) => {
-    const conceptIndex = Math.floor(Math.random() * worldData.concepts.length);
-    const newGameState = createGameStateFromSetup(worldData, conceptIndex);
-    
-    try {
-        if (user && db) {
-            await setDoc(doc(db, "users", user.uid, "games", `slot_${slotIndex}`), newGameState);
-        } else {
-            localStorage.setItem(`gameState_${slotIndex}`, JSON.stringify(newGameState));
-        }
-
-        setSaveSlots(prev => {
-            const newSlots = [...prev];
-            newSlots[slotIndex] = { worldSetup: newGameState.worldSetup, day: newGameState.day };
-            return newSlots;
-        });
-
-        setActiveSlot(slotIndex);
-        setLoadState('continue_game');
-    } catch (error) {
-        console.error("Failed to save new game state:", error);
-        toast({ title: t('worldGenError'), description: "Could not save the new world. Please try again.", variant: "destructive" });
-    }
-  };
-
-
-  const onWorldCreated = async (worldSetupData: GenerateWorldSetupOutput) => {
-    if (activeSlot === null) return;
-    const newGameState = createGameStateFromSetup(worldSetupData, 0); // For AI gen, we use the first (and only) concept.
 
     try {
         if (user && db) {
@@ -265,8 +227,6 @@ export default function Home() {
   if (loadState === 'language_select') {
     return <LanguageSelector onLanguageSelected={handleLanguageSelected} />;
   }
-  
-  const emptySlotIndex = saveSlots.findIndex(s => s === null);
   
   // Render the main slot selection menu
   if (loadState === 'slot_selection') {
@@ -337,37 +297,14 @@ export default function Home() {
                       </AlertDialog>
                     </>
                   ) : (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="secondary" className="w-full">
-                          <PlusCircle className="mr-2 h-4 w-4" /> {t('startNewAdventure')}
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        {premadeWorlds.map((world, worldIndex) => (
-                          <DropdownMenuItem key={worldIndex} onSelect={() => handleStartPremade(index, world)}>
-                            {t(world.concepts[0].worldName as TranslationKey)}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <Button onClick={() => handleNewGame(index)} className="w-full">
+                      <PlusCircle className="mr-2 h-4 w-4" /> {t('startNewAdventure')}
+                    </Button>
                   )}
                 </CardFooter>
               </Card>
             ))}
           </div>
-          
-          <div className="mt-8">
-              <Button 
-                onClick={() => handleNewGame(emptySlotIndex)}
-                disabled={emptySlotIndex === -1}
-                variant="outline"
-              >
-                  <Wand2 className="mr-2 h-4 w-4" />
-                  {t('createCustomWorld')}
-              </Button>
-          </div>
-
         </div>
         <SettingsPopup open={isSettingsOpen} onOpenChange={setSettingsOpen} isInGame={false} />
       </TooltipProvider>

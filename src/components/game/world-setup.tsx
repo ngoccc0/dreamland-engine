@@ -12,15 +12,15 @@ import { Skeleton } from "../ui/skeleton";
 import { Separator } from "../ui/separator";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { useLanguage } from "@/context/language-context";
-import type { WorldConcept, Skill, GeneratedItem, ItemDefinition, Structure } from "@/lib/game/types";
-import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
+import type { WorldConcept, Skill } from "@/lib/game/types";
+import { premadeWorlds } from "@/lib/game/premade-worlds";
 import type { TranslationKey } from "@/lib/i18n";
 import { SettingsPopup } from "./settings-popup";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 import { Sparkles, Wand2, ArrowRight, BrainCircuit, Loader2, Settings, ArrowLeft } from "./icons";
 
 interface WorldSetupProps {
-    onWorldCreated: (worldSetup: WorldConcept, itemCatalog: GeneratedItem[], allItemDefs: Record<string, ItemDefinition>, customStructures: Structure[]) => void;
+    onWorldCreated: (worldSetupData: GenerateWorldSetupOutput) => void;
 }
 
 type Selection = {
@@ -63,7 +63,6 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
 
     const { toast } = useToast();
 
-    // Randomly select prompts and description on load
     useEffect(() => {
         const allExampleKeys: TranslationKey[] = [
             'example1', 'example2', 'example3', 'example4', 'example5', 
@@ -150,16 +149,33 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
             toast({ title: t('noIdeaError'), description: t('noIdeaErrorDesc'), variant: "destructive" });
             return;
         }
+
+        const lowerInput = userInput.trim().toLowerCase();
+
+        const premadeMap: Record<string, GenerateWorldSetupOutput> = {
+            'floptropica': premadeWorlds[0],
+            'frozen wasteland': premadeWorlds[1],
+            'tàn tích băng giá': premadeWorlds[1],
+            'mage academy': premadeWorlds[2],
+            'học viện mây trôi': premadeWorlds[2],
+        };
+
+        if (premadeMap[lowerInput]) {
+            const premadeWorldData = premadeMap[lowerInput];
+            onWorldCreated(premadeWorldData);
+            return; 
+        }
+
         setIsLoading(true);
         setGeneratedData(null);
-        setStep(1); // Move to the next step to show loading
+        setStep(1);
         try {
             const result = await generateWorldSetup({ userInput, language });
             setGeneratedData(result);
         } catch (error) {
             console.error("Failed to generate world:", error);
             toast({ title: t('worldGenError'), description: t('worldGenErrorDesc'), variant: "destructive" });
-            setStep(0); // Go back if error
+            setStep(0);
         } finally {
             setIsLoading(false);
         }
@@ -170,37 +186,22 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
 
         const concepts = generatedData.concepts;
         
-        // Construct the final world object based on user selections
-        const finalWorld: WorldConcept = {
+        const finalConcept: WorldConcept = {
             worldName: concepts[selection.worldName].worldName,
             initialNarrative: concepts[selection.initialNarrative].initialNarrative,
             startingBiome: concepts[selection.startingBiome].startingBiome,
             playerInventory: concepts[selection.playerInventory].playerInventory,
             initialQuests: concepts[selection.initialQuests].initialQuests,
             startingSkill: concepts[selection.startingSkill].startingSkill,
-            customItemCatalog: generatedData.customItemCatalog, // Keep this for reference
-            customStructures: generatedData.customStructures || [], // Ensure it's always an array
         };
         
-        // Also prepare the full definitions needed for the game engine
-        const customDefs: Record<string, ItemDefinition> = generatedData.customItemCatalog.reduce((acc, item) => {
-            acc[item.name] = {
-                description: item.description,
-                tier: item.tier,
-                category: item.category,
-                emoji: item.emoji,
-                effects: item.effects,
-                baseQuantity: item.baseQuantity,
-                growthConditions: item.growthConditions as any,
-                equipmentSlot: item.equipmentSlot,
-                attributes: item.attributes,
-            };
-            return acc;
-        }, {} as Record<string, ItemDefinition>);
-        
-        const allItemDefinitions = { ...staticItemDefinitions, ...customDefs };
+        const finalOutput: GenerateWorldSetupOutput = {
+            customItemCatalog: generatedData.customItemCatalog,
+            customStructures: generatedData.customStructures,
+            concepts: [finalConcept as any],
+        };
 
-        onWorldCreated(finalWorld, generatedData.customItemCatalog, allItemDefinitions, generatedData.customStructures);
+        onWorldCreated(finalOutput);
     }
     
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -294,7 +295,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                             <CarouselItem key={index}>
                                                 <div className="p-1">
                                                     <Card className="flex items-center justify-center p-6 h-24 shadow-inner bg-muted/30">
-                                                        <CardTitle className="text-xl text-center font-headline">{concept.worldName}</CardTitle>
+                                                        <CardTitle className="text-xl text-center font-headline">{t(concept.worldName as TranslationKey)}</CardTitle>
                                                     </Card>
                                                 </div>
                                             </CarouselItem>
@@ -439,7 +440,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                 <h3 className="font-headline text-xl font-bold">{t('yourWorld')}</h3>
                                 <p className="text-muted-foreground">{t('yourWorldDescription')}</p>
                                 <Card className="mt-4 p-4 bg-background">
-                                    <h4 className="font-bold text-lg">{generatedData.concepts[selection.worldName].worldName}</h4>
+                                    <h4 className="font-bold text-lg">{t(generatedData.concepts[selection.worldName].worldName as TranslationKey)}</h4>
                                     <p className="italic text-muted-foreground mt-2">{t(generatedData.concepts[selection.initialNarrative].initialNarrative as TranslationKey)}</p>
                                 </Card>
                             </div>

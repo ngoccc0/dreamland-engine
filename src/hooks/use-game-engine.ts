@@ -179,33 +179,36 @@ export function useGameEngine(props: GameEngineProps) {
         t: (key: TranslationKey, replacements?: { [key: string]: string | number }) => string
     ) => {
         const chunk = getEffectiveChunk(baseChunk);
-        const parts: string[] = [chunk.description];
+        
+        // Paragraph 1: Core description of the current location
+        let parts: string[] = [chunk.description];
+
+        // Paragraph 2: Sensory details based on chunk stats
+        const sensoryDetails: string[] = [];
+        if (chunk.explorability < 3) sensoryDetails.push(t('offline_explorability_low'));
+        else if (chunk.explorability > 8) sensoryDetails.push(t('offline_explorability_high'));
+
+        if (chunk.dangerLevel > 8) sensoryDetails.push(t('offline_danger_high'));
+        else if (chunk.dangerLevel < 2) sensoryDetails.push(t('offline_danger_low'));
+
+        if (chunk.magicAffinity > 7) sensoryDetails.push(t('offline_magic_high'));
+        
+        if (chunk.temperature && chunk.temperature > 8) sensoryDetails.push(t('offline_temp_hot'));
+        else if (chunk.temperature && chunk.temperature < 2) sensoryDetails.push(t('offline_temp_cold'));
+        
+        if (chunk.moisture > 8) sensoryDetails.push(t('offline_moisture_high'));
+        
+        if (chunk.lightLevel && chunk.lightLevel < -5) sensoryDetails.push(t('offline_light_low'));
     
-        if (narrativeLength === 'short') {
-            return chunk.description;
+        if (chunk.humanPresence > 5) sensoryDetails.push(t('offline_human_presence'));
+        
+        if (chunk.predatorPresence > 7) sensoryDetails.push(t('offline_predator_presence'));
+        
+        if(sensoryDetails.length > 0) {
+            parts.push(sensoryDetails.join(' '));
         }
-    
-        // Add dynamic sentences based on stats
-        if (chunk.explorability < 3) parts.push(t('offline_explorability_low'));
-        if (chunk.explorability > 8) parts.push(t('offline_explorability_high'));
-    
-        if (chunk.dangerLevel > 8) parts.push(t('offline_danger_high'));
-        else if (chunk.dangerLevel < 2) parts.push(t('offline_danger_low'));
-    
-        if (chunk.magicAffinity > 7) parts.push(t('offline_magic_high'));
-        
-        if (chunk.temperature && chunk.temperature > 8) parts.push(t('offline_temp_hot'));
-        if (chunk.temperature && chunk.temperature < 2) parts.push(t('offline_temp_cold'));
-        
-        if (chunk.moisture > 8) parts.push(t('offline_moisture_high'));
-        
-        if (chunk.lightLevel && chunk.lightLevel < -5) parts.push(t('offline_light_low'));
-    
-        if (chunk.humanPresence > 5) parts.push(t('offline_human_presence'));
-        
-        if (chunk.predatorPresence > 7) parts.push(t('offline_predator_presence'));
-        
-        // Add details about surroundings
+
+        // Paragraph 3: Details about surroundings (3x3 grid)
         if (narrativeLength !== 'short') {
             const directions = [
                 { x: 0, y: 1, dir: 'North' }, { x: 0, y: -1, dir: 'South' },
@@ -225,30 +228,31 @@ export function useGameEngine(props: GameEngineProps) {
                 }
             }
             if(surroundingDetails.length > 0) {
-                parts.push(t('offlineNarrativeSurroundings'), ...surroundingDetails);
+                parts.push(surroundingDetails.join(' '));
             }
         }
     
-        // Keep the old logic for items/enemies/NPCs in the current chunk
-        const itemsHere = chunk.items.map(i => ` ${i.quantity} ${t(i.name as TranslationKey)}`).join(',');
+        // Paragraph 4: Specific entities in the current chunk
+        const entityDetails: string[] = [];
+        const itemsHere = chunk.items.map(i => `${i.quantity} ${t(i.name as TranslationKey)}`).join(', ');
         if (itemsHere) {
-            parts.push(t('offlineNarrativeItems', { items: itemsHere }));
+            entityDetails.push(t('offlineNarrativeItems', { items: itemsHere }));
         }
         if (chunk.enemy) {
-            parts.push(t('offlineNarrativeEnemy', { enemy: t(chunk.enemy.type as TranslationKey) }));
+            entityDetails.push(t('offlineNarrativeEnemy', { enemy: t(chunk.enemy.type as TranslationKey) }));
         }
         if (chunk.NPCs.length > 0) {
-            parts.push(t('offlineNarrativeNPC', { npc: t(chunk.NPCs[0].name as TranslationKey) }));
+            entityDetails.push(t('offlineNarrativeNPC', { npc: t(chunk.NPCs[0].name as TranslationKey) }));
+        }
+
+        if(entityDetails.length > 0) {
+            parts.push(entityDetails.join(' '));
         }
     
-        const maxParts = narrativeLength === 'medium' ? 3 : 5;
-        // Shuffle the additional descriptive parts to add variety
-        const additionalParts = parts.slice(1);
-        const shuffledAdditionalParts = additionalParts.sort(() => 0.5 - Math.random());
+        // Truncate based on narrative length setting
+        const maxParagraphs = narrativeLength === 'short' ? 1 : (narrativeLength === 'medium' ? 3 : 4);
     
-        const finalParts = [parts[0], ...shuffledAdditionalParts.slice(0, maxParts - 1)];
-    
-        return finalParts.join(' ');
+        return parts.slice(0, maxParagraphs).join('\n\n');
     }, [getEffectiveChunk, turn]);
 
     // EFFECT 1: Game Initialization (runs only once).
@@ -310,7 +314,7 @@ export function useGameEngine(props: GameEngineProps) {
         setWeatherZones(weatherZonesSnapshot);
         
         isInitialized.current = true;
-    }, [isLoaded, finalWorldSetup]);
+    }, [isLoaded, finalWorldSetup, playerPosition, world, regions, regionCounter, weatherZones, narrativeLog.length, ensureChunkExists, generateOfflineNarrative, t, currentSeason, gameTime, setWorld, setRegions, setRegionCounter, setWeatherZones, setNarrativeLog]);
 
 
     const triggerRandomEvent = useCallback(() => {
@@ -510,11 +514,10 @@ export function useGameEngine(props: GameEngineProps) {
         nextPlayerStats.mana = clamp(nextPlayerStats.mana + MANA_REGEN_RATE, 0, 50);
 
         // --- NEW Player-centric World Simulation ---
-        const simulationRadius = 2; // Simulate within a 5x5 square
+        const simulationRadius = 2; // Simulate within a 5x5 square (25 chunks total)
         const chunksToProcess: string[] = [];
         for (let dy = -simulationRadius; dy <= simulationRadius; dy++) {
             for (let dx = -simulationRadius; dx <= simulationRadius; dx++) {
-                if (dx === 0 && dy === 0) continue;
                 const key = `${playerPosition.x + dx},${playerPosition.y + dy}`;
                 if (newWorldState[key]) {
                     chunksToProcess.push(key);
@@ -653,7 +656,7 @@ export function useGameEngine(props: GameEngineProps) {
                 });
             });
         }
-    }, [playerStats.unlockProgress.kills, playerStats.unlockProgress.damageSpells, playerStats.unlockProgress.moves, isLoaded]);
+    }, [playerStats.unlockProgress, playerStats.skills, isLoaded, t, addNarrativeEntry, toast, setPlayerStats]);
 
     // EFFECT: Update player persona based on behavior profile.
     useEffect(() => {
@@ -663,23 +666,22 @@ export function useGameEngine(props: GameEngineProps) {
         
         if (totalActions < 20) return;
 
+        let newPersona: PlayerPersona = playerStats.persona;
         const movePercentage = moves / totalActions;
         const attackPercentage = attacks / totalActions;
         const craftPercentage = crafts / totalActions;
         
-        let newPersona: PlayerPersona = 'none';
+        if (movePercentage > 0.6 && newPersona !== 'explorer') newPersona = 'explorer';
+        else if (attackPercentage > 0.6 && newPersona !== 'warrior') newPersona = 'warrior';
+        else if (craftPercentage > 0.5 && newPersona !== 'artisan') newPersona = 'artisan';
 
-        if (movePercentage > 0.6) newPersona = 'explorer';
-        else if (attackPercentage > 0.6) newPersona = 'warrior';
-        else if (craftPercentage > 0.5) newPersona = 'artisan';
-
-        if (newPersona !== playerStats.persona && newPersona !== 'none') {
+        if (newPersona !== playerStats.persona) {
             setPlayerStats(prev => ({ ...prev, persona: newPersona }));
             const messageKey = newPersona === 'explorer' ? 'personaExplorer' : newPersona === 'warrior' ? 'personaWarrior' : 'personaArtisan';
             addNarrativeEntry(t(messageKey), 'system');
             toast({ title: t('personaUnlockedTitle'), description: t(messageKey) });
         }
-    }, [playerBehaviorProfile.moves, playerBehaviorProfile.attacks, playerBehaviorProfile.crafts, playerStats.persona, isLoaded]);
+    }, [playerBehaviorProfile, playerStats.persona, isLoaded, setPlayerStats, addNarrativeEntry, t, toast]);
     
     // EFFECT: Update the visual representation of the current chunk whenever the environment changes.
     useEffect(() => {
@@ -1571,6 +1573,7 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
 
 
     
+
 
 
 

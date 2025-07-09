@@ -632,7 +632,11 @@ export const translations = {
     noTargetForITEM: "There is no {target} here to use the item on.",
     targetNotInterested: "The {target} is not interested in the {item}.",
     itemNotFound: "You do not have that item.",
-    itemNotFoundNarrative: "You look for {itemName}, but can't find it here.",
+    itemNotFoundNarrative: [
+      "You rummage through your pack but can't find any {itemName}.",
+      "There are no {itemName} here to be found.",
+      "After a quick search, it's clear there are no {itemName} in this area."
+    ],
     itemNoEffect: "{item} has no effect when used this way.",
     itemDidNothing: "{item} had no effect.",
     itemUsedSuccess: "You use the {item}. It {effect}.",
@@ -842,7 +846,7 @@ export const translations = {
   - **Minimap:** Shows your immediate surroundings. Click it to view a larger world map.
   - **Status (Shield Icon):** Check your stats, skills, equipment, quests, and read your journal.
   - **Inventory (Backpack Icon):** Manage your items. Click on an item to see what you can do with it.
-  - **Crafting (Hammer Icon):** Combine materials to create tools, weapons, and other supplies. The system will automatically use the best alternative ingredients if you have them.
+  - **Crafting (Hammer Icon):** Combine materials to create new tools, weapons, and other supplies. The system will automatically use the best alternative ingredients if you have them.
   - **Building (House Icon):** Construct shelters and other structures to aid your survival.
   - **Fusion (Flask Icon):** Experiment by fusing 2-3 items. You might create something powerful... or just a pile of junk.`,
     combatTitle: "Combat & Skills",
@@ -990,17 +994,61 @@ export const translations = {
     dynamicRain: "🌧️ Raindrops gently patter on the leaves around you.",
     dynamicEnemy: "⚔️ The nearby {enemyType} watches your every move.",
     dynamicNoEnemy: "🍃 A sense of relative calm settles over the area for a moment.",
-    offline_explorability_low: ["The dense terrain makes movement difficult.", "Navigating this area is a struggle due to the thick vegetation.", "It's hard to get a clear view of your surroundings here."],
-    offline_explorability_high: ["The open terrain offers a clear view of your surroundings.", "It's easy to move through this wide-open space.", "You can see for miles from this vantage point."],
-    offline_danger_high: ["A palpable sense of danger hangs in the air.", "An unsettling feeling tells you this place is not safe.", "You feel exposed and vulnerable here."],
-    offline_danger_low: ["The atmosphere here feels surprisingly calm and safe.", "You feel at ease in this tranquil environment.", "There seems to be no immediate threat in the area."],
-    offline_magic_high: ["You feel a humming magical energy in the environment.", "The air crackles with latent magical power.", "A strange, mystical aura permeates this place."],
-    offline_temp_hot: ["The air shimmers with intense heat.", "A wave of oppressive heat washes over you.", "It's scorching hot here."],
-    offline_temp_cold: ["A biting chill seeps into your bones.", "Your breath fogs in the frigid air.", "It's bitterly cold in this area."],
-    offline_moisture_high: ["The ground is damp and the air is thick with humidity.", "A heavy moisture hangs in the air, clinging to everything.", "This place is sodden and damp."],
-    offline_light_low: ["Deep shadows cling to everything, making it hard to see.", "It's difficult to make out details in the dim light.", "An oppressive darkness blankets the area."],
-    offline_human_presence: ["It looks like someone has been through here recently.", "You spot a discarded tool, a sign of recent activity.", "The remnants of an old campfire suggest this place was once inhabited."],
-    offline_predator_presence: ["You hear the distant sounds of predators on the hunt.", "The unsettling silence suggests a large predator is nearby.", "You find large, unnerving tracks on the ground."]
+    offline_explorability_low: [
+      "The dense terrain makes movement difficult.",
+      "Navigating this area is a struggle due to the thick vegetation.",
+      "It's hard to get a clear view of your surroundings here.",
+    ],
+    offline_explorability_high: [
+      "The open terrain offers a clear view of your surroundings.",
+      "It's easy to move through this wide-open space.",
+      "You can see for miles from this vantage point.",
+    ],
+    offline_danger_high: [
+      "A palpable sense of danger hangs in the air.",
+      "An unsettling feeling tells you this place is not safe.",
+      "You feel exposed and vulnerable here.",
+    ],
+    offline_danger_low: [
+      "The atmosphere here feels surprisingly calm and safe.",
+      "You feel at ease in this tranquil environment.",
+      "There seems to be no immediate threat in the area.",
+    ],
+    offline_magic_high: [
+      "You feel a humming magical energy in the environment.",
+      "The air crackles with latent magical power.",
+      "A strange, mystical aura permeates this place.",
+    ],
+    offline_temp_hot: [
+      "The air shimmers with intense heat.",
+      "A wave of oppressive heat washes over you.",
+      "It's scorching hot here.",
+    ],
+    offline_temp_cold: [
+      "A biting chill seeps into your bones.",
+      "Your breath fogs in the frigid air.",
+      "It's bitterly cold in this area.",
+    ],
+    offline_moisture_high: [
+      "The ground is damp and the air is thick with humidity.",
+      "A heavy moisture hangs in the air, clinging to everything.",
+      "This place is sodden and damp.",
+    ],
+    offline_light_low: [
+      "Deep shadows cling to everything, making it hard to see.",
+      "It's difficult to make out details in the dim light.",
+      "An oppressive darkness blankets the area.",
+    ],
+    offline_human_presence: [
+      "It looks like someone has been through here recently.",
+      "You spot a discarded tool, a sign of recent activity.",
+      "The remnants of an old campfire suggest this place was once inhabited.",
+    ],
+    offline_predator_presence: [
+      "You hear the distant sounds of predators on the hunt.",
+      "The unsettling silence suggests a large predator is nearby.",
+      "You find large, unnerving tracks on the ground.",
+    ]
   },
   vi: {
     itemPickedUpTitle: "Đã nhặt vật phẩm",
@@ -1070,3 +1118,4 @@ export type TranslationKey = keyof (typeof translations)['en'] & keyof (typeof t
 
 
     
+

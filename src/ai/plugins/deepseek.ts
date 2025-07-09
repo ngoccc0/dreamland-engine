@@ -1,3 +1,4 @@
+
 import {
   defineModel,
   modelRef,
@@ -11,7 +12,7 @@ const DEEPSEEK_API_BASE_URL = 'https://api.deepseek.com/v1';
 
 // Define model references that flows can use.
 export const deepseekChat = modelRef({
-  name: 'deepseek-chat',
+  name: 'deepseek/deepseek-chat',
   info: {
     label: 'DeepSeek Chat',
     supports: {
@@ -82,23 +83,22 @@ async function deepseekGenerate(
   };
 }
 
-// The plugin definition.
-export const deepseek: Plugin<{ apiKey?: string }> = (params) => {
-  const apiKey = params?.apiKey || process.env.DEEPSEEK_API_KEY;
-  if (!apiKey) {
-    throw new Error('DEEPSEEK_API_KEY is not configured.');
-  }
+// The plugin definition, exported as a direct object.
+export const deepseek: Plugin = {
+  name: 'genkit-plugin-custom-deepseek',
+  configure: (config) => {
+    const apiKey = process.env.DEEPSEEK_API_KEY;
+    if (!apiKey) {
+      console.warn('DEEPSEEK_API_KEY not found. Deepseek models will not be available.');
+      return;
+    }
 
-  return {
-    name: 'genkit-plugin-custom-deepseek',
-    configure: (config) => {
-      defineModel(
-        {
-          name: deepseekChat.name,
-          ...deepseekChat.info,
-        },
-        (request) => deepseekGenerate(request, apiKey)
-      );
-    },
-  };
+    defineModel(
+      {
+        name: deepseekChat.name,
+        ...deepseekChat.info,
+      },
+      (request) => deepseekGenerate(request, apiKey)
+    );
+  },
 };

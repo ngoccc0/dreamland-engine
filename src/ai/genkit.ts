@@ -49,15 +49,10 @@ if (process.env.OPENAI_API_KEY) {
   );
 }
 
-if (process.env.DEEPSEEK_API_KEY) {
-  console.log('Found DEEPSEEK_API_KEY. Initializing Deepseek plugin.');
-  // The custom plugin also reads the key from the environment.
-  plugins.push(deepseek());
-} else {
-  console.warn(
-    'DEEPSEEK_API_KEY not found. Deepseek plugin will not be available.'
-  );
-}
+// The deepseek plugin object is pushed directly.
+// Its internal `configure` method handles the API key check.
+plugins.push(deepseek);
+
 
 export const ai = genkit({
   plugins,

@@ -283,7 +283,8 @@ export function useGameEngine(props: GameEngineProps) {
         setRegionCounter(regionCounterSnapshot);
         setWeatherZones(weatherZonesSnapshot);
         isInitialized.current = true;
-    }, [isLoaded, finalWorldSetup, world, regions, regionCounter, playerPosition, ensureChunkExists, narrativeLog, generateOfflineNarrative, t, currentSeason, gameTime, setNarrativeLog, setWorld, setRegions, setRegionCounter, setWeatherZones]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoaded, finalWorldSetup]);
 
 
     const triggerRandomEvent = useCallback(() => {
@@ -611,7 +612,7 @@ export function useGameEngine(props: GameEngineProps) {
     useEffect(() => {
         if (!isLoaded) return;
         checkSkillUnlocks(playerStats);
-    }, [playerStats.unlockProgress.moves, playerStats.unlockProgress.kills, playerStats.unlockProgress.damageSpells, isLoaded, checkSkillUnlocks]);
+    }, [playerStats.unlockProgress, isLoaded, checkSkillUnlocks]);
 
     useEffect(() => {
         if (!isLoaded) return;
@@ -635,7 +636,7 @@ export function useGameEngine(props: GameEngineProps) {
             addNarrativeEntry(t(messageKey), 'system');
             toast({ title: t('personaUnlockedTitle'), description: t(messageKey) });
         }
-    }, [playerBehaviorProfile.moves, playerBehaviorProfile.attacks, playerBehaviorProfile.crafts, playerStats.persona, isLoaded, addNarrativeEntry, setPlayerStats, t, toast]);
+    }, [playerBehaviorProfile, playerStats.persona, isLoaded, addNarrativeEntry, setPlayerStats, t, toast]);
     
     // EFFECT 1: Update the visual representation of the current chunk whenever the environment changes.
     useEffect(() => {
@@ -980,24 +981,30 @@ export function useGameEngine(props: GameEngineProps) {
             const itemName = actionText.substring(pickUpAction.length).trim();
             const chunkKey = `${playerPosition.x},${playerPosition.y}`;
             const itemInChunk = currentChunk.items.find(i => t(i.name as TranslationKey).toLowerCase() === itemName.toLowerCase());
-            if (itemInChunk) {
-                toast({
-                    title: t('itemPickedUpTitle'),
-                    description: t('pickedUpItem', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name as TranslationKey) }),
-                });
-                setWorld(prev => {
-                    const newWorld = { ...prev };
-                    const chunkToUpdate = { ...newWorld[chunkKey]! };
-                    chunkToUpdate.items = chunkToUpdate.items.filter(i => i.name !== itemInChunk.name);
-                    chunkToUpdate.actions = chunkToUpdate.actions.filter(a => a.text !== actionText);
-                    newWorld[chunkKey] = chunkToUpdate;
-                    return newWorld;
-                });
-                const itemInInventory = newPlayerStats.items.find(i => i.name === itemInChunk.name);
-                if (itemInInventory) itemInInventory.quantity += itemInChunk.quantity;
-                else newPlayerStats.items.push({...itemInChunk});
-                addNarrativeEntry(t('pickedUpItem', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name as TranslationKey) }), 'narrative');
+            
+            if (!itemInChunk) {
+                toast({ title: t('actionNotAvailableTitle'), description: t('actionNotAvailableDesc'), variant: 'destructive' });
+                return;
             }
+
+            toast({
+                title: t('itemPickedUpTitle'),
+                description: t('pickedUpItemToast', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name as TranslationKey) }),
+            });
+            setWorld(prev => {
+                const newWorld = { ...prev };
+                const chunkToUpdate = { ...newWorld[chunkKey]! };
+                chunkToUpdate.items = chunkToUpdate.items.filter(i => i.name !== itemInChunk.name);
+                chunkToUpdate.actions = chunkToUpdate.actions.filter(a => a.text !== actionText);
+                newWorld[chunkKey] = chunkToUpdate;
+                return newWorld;
+            });
+            const itemInInventory = newPlayerStats.items.find(i => i.name === itemInChunk.name);
+            if (itemInInventory) itemInInventory.quantity += itemInChunk.quantity;
+            else newPlayerStats.items.push({...itemInChunk});
+            
+            addNarrativeEntry(t('pickedUpItemNarrative', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name as TranslationKey) }), 'narrative');
+
         } else if (lowerAction === exploreActionText) {
             const templates = getTemplates(language);
             const biomeTemplate = templates[currentChunk.terrain];
@@ -1576,3 +1583,4 @@ export function useGameEngine(props: GameEngineProps) {
 
 
     
+

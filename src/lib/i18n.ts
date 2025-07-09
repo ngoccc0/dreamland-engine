@@ -854,7 +854,7 @@ export const translations = {
 - **Taming:** Some creatures can be tamed! Try giving them their favorite food from your inventory.`,
     craftingBuildTitle: "Creation & Fusion",
     craftingBuildContent: `- **Crafting & Building:** Collect materials to create new tools and supplies.
-- **Fusion:** Use the Fusion Altar (the flask icon) to experiment. Combine 2-3 items to discover potentially powerful—or useless—new creations. The results are unpredictable!`,
+- **Fusion:** Use the Fusion Altar (the flask icon) to experiment. Combine 2-3 items to discover potentially powerful—or useless—new creations. The results are not guaranteed!`,
     survivalTitle: "Survival & Story",
     survivalContent: `- **Stats:** Manage your Health (HP), Mana (for skills), and Stamina (for physical actions).
 - **Body Temperature:** The environment affects your temperature. Build fires or shelters to stay warm or cool down.
@@ -917,10 +917,14 @@ export const translations = {
     gaveItemToNpc: "You gave {quantity} {itemName} to {npcName}.",
     questCompletedTitle: "Quest Completed!",
     itemPickedUpTitle: "Item Acquired",
-    pickedUpItem: [
+    pickedUpItemToast: "Added {quantity} {itemName} to inventory.",
+    pickedUpItemNarrative: [
       "You stash the {itemName} in your pack.",
       "The {itemName} has been added to your inventory.",
-      "You quickly grab the {itemName} before something else does."
+      "You quickly grab the {itemName} before something else does.",
+      "You've gathered the last of the {itemName} from this spot.",
+      "Having taken the {itemName}, there is nothing left to gather.",
+      "You pocket the {itemName}, leaving the area clear."
     ],
     descMoistureHigh: 'The air is thick with moisture.',
     descWindHigh: 'A strong wind whips past your ears.',
@@ -993,43 +997,14 @@ export const translations = {
   },
   vi: {
     itemPickedUpTitle: "Đã nhặt vật phẩm",
-    pickedUpItem: [
+    pickedUpItemToast: "Đã thêm {quantity} {itemName} vào hành trang.",
+    pickedUpItemNarrative: [
       "Bạn cất {itemName} vào túi.",
       "Vật phẩm {itemName} đã được thêm vào hành trang của bạn.",
-      "Bạn nhanh chóng nhặt lấy {itemName} trước khi có thứ khác lấy mất."
-    ],
-    exploreSuccessTitle: "Khám phá!",
-    exploreFoundItem: [
-      "Cuộc thám hiểm của bạn đã có kết quả! Bạn tìm thấy {quantity} {itemName}.",
-      "Một tia sáng lọt vào mắt bạn. Đó là {quantity} {itemName}!",
-      "Nằm khuất trong một góc, bạn khám phá ra {quantity} {itemName}."
-    ],
-    exploreFoundNothing: [
-      "Bạn tìm kiếm kỹ lưỡng khu vực nhưng không tìm thấy gì thú vị.",
-      "Mặc dù đã nỗ lực, khu vực này không tiết lộ bí mật nào.",
-      "Dường như nơi này đã bị lùng sục sạch sẽ."
-    ],
-    forageSuccessTitle: "Tìm kiếm thành công",
-    forageSuccess: [
-      "Sau một hồi tìm kiếm, bạn đã tìm được {quantity} {itemName}.",
-      "Kiến thức về tự nhiên của bạn đã phát huy tác dụng. Bạn thu thập được {quantity} {itemName}.",
-      "Bạn tìm thấy một bụi {itemName} ăn được và thu hoạch {quantity}."
-    ],
-    forageFail: [
-      "Bạn tìm kiếm cây cỏ ăn được nhưng không thấy gì.",
-      "Khu vực này không có gì ăn được.",
-      "Dường như không có gì an toàn để ăn ở đây."
-    ],
-    searchSuccessTitle: "Đã tìm thấy nguyên liệu",
-    searchMaterialsSuccess: [
-      "Bạn lùng sục khu vực và thu thập được {quantity} {itemName}.",
-      "Cuộc tìm kiếm vật liệu của bạn mang lại {quantity} {itemName}.",
-      "Bạn tìm thấy một vị trí tốt và thu thập được {quantity} {itemName}."
-    ],
-    searchMaterialsFail: [
-      "Bạn không thể tìm thấy bất kỳ nguyên liệu hữu ích nào ở đây.",
-      "Khu vực này không có vật liệu bạn đang tìm kiếm.",
-      "Dường như không có vật liệu nào có thể sử dụng được ở vị trí này."
+      "Bạn nhanh chóng nhặt lấy {itemName} trước khi có thứ khác lấy mất.",
+      "Bạn đã thu thập hết {itemName} ở đây.",
+      "Sau khi nhặt {itemName}, không còn gì để thu thập nữa.",
+      "Bạn cất {itemName} vào túi, khu vực này giờ đã trống."
     ],
     actionNotAvailableTitle: "Hành động không hợp lệ",
     actionNotAvailableDesc: "Hành động này không còn khả dụng.",
@@ -1126,21 +1101,6 @@ export const translations = {
     forageForFoodAction: "Tìm kiếm thức ăn",
     searchForMaterialsAction: "Tìm kiếm nguyên liệu",
     listenToSurroundingsAction: "Lắng nghe xung quanh",
-    listenHearNothing: [
-      "Bạn lắng nghe chăm chú, nhưng chỉ nghe thấy những âm thanh xung quanh của khu vực.",
-      "Xung quanh thật yên tĩnh, chỉ có tiếng gió thì thầm.",
-      "Bạn tập trung lắng nghe nhưng không phát hiện điều gì bất thường."
-    ],
-    listenHearSomething: "Bạn nghe thấy một tiếng {sound} lạ đến từ phía {direction}.",
-    enemySoundGeneric: "sột soạt",
-    ocean: 'Đại dương',
-    tundra: 'Lãnh nguyên',
-    beach: 'Bãi biển',
-    mesa: 'Hẻm núi',
-    mushroom_forest: 'Rừng Nấm',
-    city: 'Thành phố',
-    space_station: 'Trạm không gian',
-    underwater: 'Dưới nước',
     'Gusher': 'Gusher',
     'Phiếu giảm giá Onika Burger': 'Phiếu giảm giá Onika Burger',
     'Chảo của Jiafei': 'Chảo của Jiafei',

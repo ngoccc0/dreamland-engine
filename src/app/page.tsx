@@ -263,27 +263,31 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
             {saveSlots.map((slot, index) => (
                <Card key={index} className={cn("flex flex-col", slot ? "border-primary" : "border-dashed")}>
-                 <div className="md:flex md:flex-row md:items-start md:justify-between p-6 flex-grow">
+                 <div className="flex flex-col md:flex-row md:items-center md:justify-between p-6 flex-grow gap-4">
                    <div className="flex-grow">
                      <CardHeader className="p-0">
-                       <CardTitle className="truncate">{slot?.worldSetup?.worldName ? t(slot.worldSetup.worldName as TranslationKey) : t('emptySlot')}</CardTitle>
-                       <CardDescription>{slot ? `${t('dayX', {day: slot.day})}` : t('newAdventureHint')}</CardDescription>
+                       <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-x-3">
+                         <CardTitle className="truncate">{slot?.worldSetup?.worldName ? t(slot.worldSetup.worldName as TranslationKey) : t('emptySlot')}</CardTitle>
+                         <CardDescription>{slot ? `${t('dayX', {day: slot.day})}` : t('newAdventureHint')}</CardDescription>
+                       </div>
                      </CardHeader>
-                     <CardContent className="p-0 pt-4 text-sm text-muted-foreground">
-                       {slot?.worldSetup && (
-                         <div className="space-y-1">
-                           <div><span className="font-semibold text-foreground/80">{t('biomeLabel')}:</span> {t(slot.worldSetup.startingBiome as TranslationKey)}</div>
-                           {slot.worldSetup.startingSkill && (
-                             <div><span className="font-semibold text-foreground/80">{t('skillLabel')}:</span> {t(slot.worldSetup.startingSkill.name as TranslationKey)}</div>
+                     {slot ? (
+                        <CardContent className="p-0 pt-2 text-sm text-muted-foreground">
+                           {slot.worldSetup && (
+                               <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                                   <div className="inline-flex items-center"><span className="font-semibold text-foreground/80 mr-1.5">{t('biomeLabel')}:</span> {t(slot.worldSetup.startingBiome as TranslationKey)}</div>
+                                   {slot.worldSetup.startingSkill && (
+                                       <div className="inline-flex items-center"><span className="font-semibold text-foreground/80 mr-1.5">{t('skillLabel')}:</span> {t(slot.worldSetup.startingSkill.name as TranslationKey)}</div>
+                                   )}
+                                   {slot.worldSetup.initialQuests && (
+                                       <div className="inline-flex items-center"><span className="font-semibold text-foreground/80 mr-1.5">{t('questsLabel')}:</span> {slot.worldSetup.initialQuests.length}</div>
+                                   )}
+                               </div>
                            )}
-                           {slot.worldSetup.initialQuests && (
-                             <div><span className="font-semibold text-foreground/80">{t('questsLabel')}:</span> {slot.worldSetup.initialQuests.length}</div>
-                           )}
-                         </div>
-                       )}
-                     </CardContent>
+                        </CardContent>
+                     ) : null}
                    </div>
-                   <CardFooter className="p-0 pt-4 md:pt-0 md:pl-6 flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 self-start sm:self-center md:self-start lg:self-center flex-shrink-0">
+                   <CardFooter className="p-0 flex flex-row gap-2 self-stretch sm:self-center md:self-auto flex-shrink-0">
                      {slot ? (
                        <>
                          <Button onClick={() => handlePlay(index)} className="w-full sm:w-auto">
@@ -340,5 +344,3 @@ export default function Home() {
 
   return null;
 }
-
-    

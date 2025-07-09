@@ -6,6 +6,7 @@ import { itemDefinitions as staticItemDefinitions } from "@/lib/game/items";
 import { weatherPresets } from "./weatherPresets";
 import { translations } from "../i18n";
 import type { TranslationKey } from "../i18n";
+import { clamp } from "@/lib/utils";
 
 // --- HELPER FUNCTIONS ---
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
@@ -746,3 +747,5 @@ export const handleSearchAction = (
 };
 
     
+
+

@@ -979,7 +979,7 @@ export const translations = {
     weapon: 'Weapon',
     armor: 'Armor',
     accessory: 'Accessory',
-    offlineNarrativeItems: "On the ground, you see{items}.",
+    offlineNarrativeItems: "On the ground, you see: {items}.",
     offlineNarrativeEnemy: "A dangerous {enemy} is here.",
     offlineNarrativeNPC: "You see {npc} nearby.",
     offlineNarrativeSenseEnemy: "To the {direction}, you sense a {enemy}.",
@@ -1048,7 +1048,29 @@ export const translations = {
       "You hear the distant sounds of predators on the hunt.",
       "The unsettling silence suggests a large predator is nearby.",
       "You find large, unnerving tracks on the ground.",
-    ]
+    ],
+    attackNarrative_critSuccess: ["With a surge of adrenaline, you land a devastating blow on the {enemyType}!", "A flawless strike! Your weapon finds a critical weakness, staggering the {enemyType}."],
+    attackNarrative_success: ["You lunge forward, your attack connecting solidly with the {enemyType}.", "A well-aimed strike! The {enemyType} recoils from the impact."],
+    attackNarrative_fail: ["You swing wildly, your attack missing the {enemyType} by a hair's breadth.", "The {enemyType} deftly sidesteps your clumsy attack."],
+    attackNarrative_critFail: ["You lose your footing as you attack, stumbling and leaving yourself wide open.", "A disastrous miscalculation! Your weapon gets stuck for a moment, ruining your attack."],
+    attackDamageDealt: "It takes {damage} damage.",
+    enemyDefeatedNarrative: ["The {enemyType} collapses, defeated.", "With a final groan, the {enemyType} falls to the ground."],
+    enemyFledNarrative: ["Seeing your might, the {enemyType} turns and flees into the wilderness!", "The creature decides you are too much to handle and makes a hasty retreat."],
+    enemyRetaliationNarrative: ["Enraged, the {enemyType} lunges back, its attack finding its mark. It deals {damage} damage.", "The {enemyType} wastes no time in retaliating, striking you with ferocity for {damage} damage."],
+    enemyPreparesNarrative: ["The {enemyType} bristles, preparing its next move.", "The {enemyType} eyes you warily, unfazed by your attack."],
+    sensoryFeedback_hot: "The heat of the environment makes the air shimmer around the combatants.",
+    sensoryFeedback_cold: "Your breath crystallizes in the frigid air as you strike.",
+    sensoryFeedback_dark: "It's hard to track the enemy's movements in the deep shadows.",
+    sensoryFeedback_rain: "Rain plasters your hair to your face, and the ground is slick underfoot.",
+    itemUsePlayerSuccessNarrative: "You use the {item}. {effect}",
+    itemUsePlayerFailNarrative: "You try to use the {item}, but it has no effect.",
+    itemTameSuccessNarrative: "You offer the {item} to the {target}. It cautiously accepts, and seems to form a bond with you!",
+    itemTameFailNarrative: "You offer the {item} to the {target}. It eats the offering but remains wary of you.",
+    skillCritFailNarrative: "The magic backfires! Your {skillName} spell fizzles and harms you instead for {damage} damage.",
+    skillFailNarrative: ["You fumble the incantation, and the {skillName} spell dissipates into nothing.", "Your attempt to cast {skillName} fails as you lose concentration."],
+    skillHealSuccessNarrative: ["A soothing light envelops you as you cast {skillName}, restoring {amount} health.", "You successfully channel your energy, and the {skillName} spell mends your wounds for {amount} HP."],
+    skillDamageSuccessNarrative: ["You unleash your magic, striking the {enemy} with a powerful {skillName} for {damage} damage.", "The {skillName} spell erupts from your hands and slams into the {enemy}, inflicting {damage} damage."],
+    skillSiphonNarrative: "You feel a surge of vitality as you leech {amount} health from your foe."
   },
   vi: {
     itemPickedUpTitle: "Đã nhặt vật phẩm",
@@ -1118,4 +1140,5 @@ export type TranslationKey = keyof (typeof translations)['en'] & keyof (typeof t
 
 
     
+
 

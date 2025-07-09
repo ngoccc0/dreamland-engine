@@ -1,5 +1,6 @@
 
-import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient, Structure, Language, Npc, CraftingOutcome, Action, ItemCategory } from "./types";
+
+import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient, Structure, Language, Npc, CraftingOutcome, Action, ItemCategory, Skill } from "./types";
 import { seasonConfig, worldConfig } from "./world-config";
 import { getTemplates } from "./templates";
 import { itemDefinitions as staticItemDefinitions } from "@/lib/game/items";
@@ -7,6 +8,7 @@ import { weatherPresets } from "./weatherPresets";
 import { translations } from "../i18n";
 import type { TranslationKey } from "../i18n";
 import { clamp } from "@/lib/utils";
+import type { SuccessLevel } from "./dice";
 
 // --- HELPER FUNCTIONS ---
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
@@ -249,7 +251,8 @@ function generateChunkContent(
     language: Language
 ) {
     const t = (key: TranslationKey, replacements?: { [key: string]: string | number }): string => {
-        let text = (translations[language] as any)[key] || (translations.en as any)[key] || key;
+        let textPool = (translations[language] as any)[key] || (translations.en as any)[key] || key;
+        let text = Array.isArray(textPool) ? textPool[Math.floor(Math.random() * textPool.length)] : textPool;
         if (replacements && typeof text === 'string') {
             for (const [replaceKey, value] of Object.entries(replacements)) {
                 text = text.replace(`{${replaceKey}}`, String(value));
@@ -746,6 +749,136 @@ export const handleSearchAction = (
     }
 };
 
-    
+export const generateOfflineNarrative = (
+    baseChunk: Chunk,
+    narrativeLength: "short" | "medium" | "long",
+    world: World,
+    playerPosition: { x: number; y: number; },
+    t: (key: TranslationKey, replacements?: { [key: string]: string | number }) => string
+) => {
+    const chunk = baseChunk;
+    let parts: string[] = [chunk.description];
 
+    const sensoryDetails: string[] = [];
+    if (chunk.explorability < 3) sensoryDetails.push(t('offline_explorability_low'));
+    else if (chunk.explorability > 8) sensoryDetails.push(t('offline_explorability_high'));
+    if (chunk.dangerLevel > 8) sensoryDetails.push(t('offline_danger_high'));
+    else if (chunk.dangerLevel < 2) sensoryDetails.push(t('offline_danger_low'));
+    if (chunk.magicAffinity > 7) sensoryDetails.push(t('offline_magic_high'));
+    if (chunk.temperature && chunk.temperature > 8) sensoryDetails.push(t('offline_temp_hot'));
+    else if (chunk.temperature && chunk.temperature < 2) sensoryDetails.push(t('offline_temp_cold'));
+    if (chunk.moisture > 8) sensoryDetails.push(t('offline_moisture_high'));
+    if (chunk.lightLevel && chunk.lightLevel < -5) sensoryDetails.push(t('offline_light_low'));
+    if (chunk.humanPresence > 5) sensoryDetails.push(t('offline_human_presence'));
+    if (chunk.predatorPresence > 7) sensoryDetails.push(t('offline_predator_presence'));
+    if(sensoryDetails.length > 0) parts.push(sensoryDetails.join(' '));
 
+    if (narrativeLength !== 'short') {
+        const directions = [{ x: 0, y: 1, dir: 'North' }, { x: 0, y: -1, dir: 'South' }, { x: 1, y: 0, dir: 'East' }, { x: -1, y: 0, dir: 'West' }];
+        let surroundingDetails: string[] = [];
+        for (const dir of directions) {
+            const key = `${playerPosition.x + dir.x},${playerPosition.y + dir.y}`;
+            const adjacentChunk = world[key];
+            if (adjacentChunk && adjacentChunk.explored && ((baseChunk.lastVisited - adjacentChunk.lastVisited) < 50)) {
+                if(adjacentChunk.enemy) surroundingDetails.push(t('offlineNarrativeSenseEnemy', { direction: t(`direction${dir.dir}` as TranslationKey), enemy: t(adjacentChunk.enemy.type as TranslationKey) }));
+                else if (adjacentChunk.structures.length > 0) surroundingDetails.push(t('offlineNarrativeSeeStructure', { direction: t(`direction${dir.dir}` as TranslationKey), structure: t(adjacentChunk.structures[0].name as TranslationKey) }));
+            }
+        }
+        if(surroundingDetails.length > 0) parts.push(t('offlineNarrativeSurroundings') + ' ' + surroundingDetails.join(' '));
+    }
+
+    const entityDetails: string[] = [];
+    const itemsHere = chunk.items.map(i => `${i.quantity} ${t(i.name as TranslationKey)}`).join(', ');
+    if (itemsHere) entityDetails.push(t('offlineNarrativeItems', { items: itemsHere }));
+    if (chunk.enemy) entityDetails.push(t('offlineNarrativeEnemy', { enemy: t(chunk.enemy.type as TranslationKey) }));
+    if (chunk.NPCs.length > 0) entityDetails.push(t('offlineNarrativeNPC', { npc: t(chunk.NPCs[0].name as TranslationKey) }));
+    if(entityDetails.length > 0) parts.push(entityDetails.join(' '));
+
+    const maxParagraphs = narrativeLength === 'short' ? 1 : (narrativeLength === 'medium' ? 3 : 4);
+    return parts.slice(0, maxParagraphs).join('\n\n');
+};
+
+export const generateOfflineActionNarrative = (
+    actionType: 'attack' | 'useSkill' | 'useItem',
+    result: any,
+    chunk: Chunk,
+    t: (key: TranslationKey, replacements?: any) => string
+): string => {
+    let narrativeParts: string[] = [];
+    const sensoryFeedback: string[] = [];
+
+    if (chunk.temperature && chunk.temperature >= 9) sensoryFeedback.push(t('sensoryFeedback_hot'));
+    if (chunk.temperature && chunk.temperature <= 2) sensoryFeedback.push(t('sensoryFeedback_cold'));
+    if (chunk.lightLevel && chunk.lightLevel <= -5) sensoryFeedback.push(t('sensoryFeedback_dark'));
+    if (chunk.moisture && chunk.moisture >= 8) sensoryFeedback.push(t('sensoryFeedback_rain'));
+
+    const addSensoryFeedback = () => {
+        if (sensoryFeedback.length > 0) {
+            narrativeParts.push(sensoryFeedback[Math.floor(Math.random() * sensoryFeedback.length)]);
+        }
+    };
+
+    switch (actionType) {
+        case 'attack':
+            const { successLevel, playerDamage, enemyDamage, enemyDefeated, fled, enemyType } = result;
+            const enemyName = t(enemyType as TranslationKey);
+
+            if (successLevel === 'CriticalSuccess') narrativeParts.push(t('attackNarrative_critSuccess', { enemyType: enemyName }));
+            else if (successLevel === 'Success' || successLevel === 'GreatSuccess') narrativeParts.push(t('attackNarrative_success', { enemyType: enemyName }));
+            else if (successLevel === 'Failure') narrativeParts.push(t('attackNarrative_fail', { enemyType: enemyName }));
+            else if (successLevel === 'CriticalFailure') narrativeParts.push(t('attackNarrative_critFail', { enemyType: enemyName }));
+
+            if (playerDamage > 0) narrativeParts.push(t('attackDamageDealt', { damage: playerDamage }));
+            
+            addSensoryFeedback();
+
+            if (enemyDefeated) narrativeParts.push(t('enemyDefeatedNarrative', { enemyType: enemyName }));
+            else if (fled) narrativeParts.push(t('enemyFledNarrative', { enemyType: enemyName }));
+            else if (enemyDamage > 0) narrativeParts.push(t('enemyRetaliationNarrative', { enemyType: enemyName, damage: enemyDamage }));
+            else narrativeParts.push(t('enemyPreparesNarrative', { enemyType: enemyName }));
+            
+            break;
+        
+        case 'useItem': {
+            const { itemName, target, wasUsed, effectDescription, wasTamed, itemConsumed } = result;
+            const translatedItemName = t(itemName as TranslationKey);
+
+            if (target === 'player') {
+                if(wasUsed) narrativeParts.push(t('itemUsePlayerSuccessNarrative', { item: translatedItemName, effect: effectDescription }));
+                else narrativeParts.push(t('itemUsePlayerFailNarrative', { item: translatedItemName }));
+            } else {
+                const translatedTarget = t(target as TranslationKey);
+                if(itemConsumed) {
+                    if(wasTamed) narrativeParts.push(t('itemTameSuccessNarrative', { item: translatedItemName, target: translatedTarget }));
+                    else narrativeParts.push(t('itemTameFailNarrative', { item: translatedItemName, target: translatedTarget }));
+                }
+            }
+            addSensoryFeedback();
+            break;
+        }
+
+        case 'useSkill': {
+            const { skill, successLevel, backfireDamage, healedAmount, finalDamage, siphonedAmount, enemy } = result as { skill: Skill, successLevel: SuccessLevel, backfireDamage?: number, healedAmount?: number, finalDamage?: number, siphonedAmount?: number, enemy: Chunk['enemy'] };
+            const skillName = t(skill.name as TranslationKey);
+            const enemyName = enemy ? t(enemy.type as TranslationKey) : '';
+
+            if (successLevel === 'CriticalFailure') {
+                narrativeParts.push(t('skillCritFailNarrative', { skillName, damage: backfireDamage }));
+            } else if (successLevel === 'Failure') {
+                 narrativeParts.push(t('skillFailNarrative', { skillName }));
+            } else {
+                if (skill.effect.type === 'HEAL') {
+                    narrativeParts.push(t('skillHealSuccessNarrative', { skillName, amount: healedAmount }));
+                } else if (skill.effect.type === 'DAMAGE' && enemy) {
+                    narrativeParts.push(t('skillDamageSuccessNarrative', { skillName, enemy: enemyName, damage: finalDamage }));
+                    if (siphonedAmount) narrativeParts.push(t('skillSiphonNarrative', { amount: siphonedAmount }));
+                    if (!result.enemy) narrativeParts.push(t('enemyDefeatedNarrative', { enemyType: enemyName }));
+                }
+            }
+            addSensoryFeedback();
+            break;
+        }
+    }
+
+    return narrativeParts.filter(p => p).join(' ');
+}

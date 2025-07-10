@@ -13,13 +13,20 @@ const structures: Structure[] = [
     { name: 'Thư viện Bụi bặm', description: 'structure_dusty_library_desc', emoji: '📚', providesShelter: true, buildable: false, restEffect: { hp: 10, stamina: 10 }, heatValue: -1 },
 ];
 
-const startingSkill: Skill = { name: 'skillFireballName', description: 'skillFireballDesc', tier: 1, manaCost: 15, effect: { type: 'DAMAGE', amount: 15, target: 'ENEMY' } };
+const skill1: Skill = { name: 'skillFireballName', description: 'skillFireballDesc', tier: 1, manaCost: 15, effect: { type: 'DAMAGE', amount: 15, target: 'ENEMY' } };
+const skill2: Skill = { name: 'skillHealName', description: 'skillHealDesc', tier: 1, manaCost: 20, effect: { type: 'HEAL', amount: 25, target: 'SELF' } };
+
 
 const concepts: WorldConcept[] = [
     {
         worldName: "worldName_blackwoodManor", initialNarrative: 'mansion_narrative1', startingBiome: 'cave', // Using 'cave' to represent dark, indoor spaces
         playerInventory: [ { name: "Đèn lồng Gỉ sét", quantity: 1 }, { name: "Trang Nhật ký Bị xé", quantity: 1 } ],
-        initialQuests: [ 'mansion_quest1', 'mansion_quest2' ], startingSkill: startingSkill, customStructures: structures, customItemCatalog: items
+        initialQuests: [ 'mansion_quest1', 'mansion_quest2' ], startingSkill: skill1, customStructures: structures
+    },
+    {
+        worldName: "worldName_blackwoodManor", initialNarrative: 'mansion_narrative2', startingBiome: 'cave',
+        playerInventory: [ { name: "Chìa khóa Bạc", quantity: 1 } ],
+        initialQuests: [ 'mansion_quest3' ], startingSkill: skill2, customStructures: structures
     },
 ];
 

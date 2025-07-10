@@ -39,6 +39,10 @@ export {
   Type,
   ChevronLeft,
   ChevronRight,
+  BookOpen,
+  Map,
+  BaggageClaim,
+  ListTodo,
 } from 'lucide-react';
 
 

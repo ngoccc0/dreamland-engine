@@ -11,12 +11,12 @@ import { suggestKeywords } from "@/ai/flows/suggest-keywords";
 import { Skeleton } from "../ui/skeleton";
 import { Separator } from "../ui/separator";
 import { useLanguage } from "@/context/language-context";
-import type { WorldConcept, Skill, PlayerItem, GeneratedItem } from "@/lib/game/types";
+import type { WorldConcept, Skill, PlayerItem, GeneratedItem, Terrain } from "@/lib/game/types";
 import { premadeWorlds } from "@/lib/game/data/premade-worlds";
 import type { TranslationKey } from "@/lib/i18n";
 import { SettingsPopup } from "./settings-popup";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
-import { Sparkles, ArrowRight, BrainCircuit, Loader2, Settings, ArrowLeft, ChevronLeft, ChevronRight } from "./icons";
+import { Sparkles, ArrowRight, BrainCircuit, Loader2, Settings, ArrowLeft, ChevronLeft, ChevronRight, BookOpen, Map, WandSparkles, BaggageClaim, ListTodo } from "./icons";
 import { ScrollArea } from "../ui/scroll-area";
 import { cn } from "@/lib/utils";
 
@@ -33,33 +33,41 @@ type Selection = {
     startingSkill: number;
 };
 
-// Component to render a selectable row in the mix-and-match UI
-const SelectionRow = ({ label, options, selectedIndex, onSelect, renderOption }: {
-    label: string;
-    options: any[];
-    selectedIndex: number;
-    onSelect: (index: number) => void;
-    renderOption: (option: any) => React.ReactNode;
+// Component to render a selectable card in the new mix-and-match UI
+const SelectionCard = ({
+  label,
+  icon,
+  options,
+  selectedIndex,
+  onSelect,
+  renderOption,
+  className = ''
+}: {
+  label: string;
+  icon: React.ReactNode;
+  options: any[];
+  selectedIndex: number;
+  onSelect: (index: number) => void;
+  renderOption: (option: any) => React.ReactNode;
+  className?: string;
 }) => (
-    <div className="space-y-2">
-        <Label className="text-lg font-headline font-semibold">{label}</Label>
-        <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" className="h-full" onClick={() => onSelect((selectedIndex - 1 + options.length) % options.length)}>
-                <ChevronLeft />
-            </Button>
-            <Card className="flex-grow p-4 bg-muted/30 min-h-[80px]">
-                {renderOption(options[selectedIndex])}
-            </Card>
-            <Button variant="outline" size="icon" className="h-full" onClick={() => onSelect((selectedIndex + 1) % options.length)}>
-                <ChevronRight />
-            </Button>
-        </div>
-    </div>
-);
-
-// A simple Label component for the UI
-const Label = ({ className, ...props }: React.ComponentProps<"label">) => (
-  <label className={cn("font-medium text-foreground/80", className)} {...props} />
+  <Card className={cn("flex flex-col", className)}>
+    <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <CardTitle className="text-sm font-medium flex items-center gap-2">{icon} {label}</CardTitle>
+      <div className="flex items-center gap-1">
+        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onSelect((selectedIndex - 1 + options.length) % options.length)}>
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <span className="text-xs text-muted-foreground tabular-nums">{selectedIndex + 1}/{options.length}</span>
+        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onSelect((selectedIndex + 1) % options.length)}>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+    </CardHeader>
+    <CardContent className="flex-grow flex items-center justify-center text-center p-4 pt-0 min-h-[90px]">
+      {renderOption(options[selectedIndex])}
+    </CardContent>
+  </Card>
 );
 
 
@@ -152,7 +160,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
             setGeneratedData(result);
         } catch (error) {
             console.error("Failed to generate world:", error);
-            toast({ title: t('worldGenError'), description: t('worldGenErrorDesc'), variant: "destructive" });
+            toast({ title: t('worldGenError'), description: String(error), variant: "destructive" });
             setStep(0);
         } finally {
             setIsLoading(false);
@@ -170,7 +178,6 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
             initialQuests: generatedData.concepts[selection.initialQuests].initialQuests,
             startingSkill: generatedData.concepts[selection.startingSkill].startingSkill,
             customStructures: generatedData.customStructures, // Shared across concepts
-            customItemCatalog: generatedData.customItemCatalog, // Shared across concepts
         };
         
         const finalOutput: GenerateWorldSetupOutput = {
@@ -268,76 +275,85 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                     </div>
                 ) : (
                     generatedData && (
-                        <ScrollArea className="max-h-[60vh]">
-                            <div className="space-y-6 p-4">
-                                <SelectionRow 
-                                    label={t('worldName')}
-                                    options={generatedData.concepts.map(c => c.worldName)}
-                                    selectedIndex={selection.worldName}
-                                    onSelect={(index) => setSelection(s => ({...s, worldName: index}))}
-                                    renderOption={(option) => <p className="text-2xl font-bold font-headline">{t(option as TranslationKey)}</p>}
-                                />
-                                <SelectionRow 
-                                    label={t('openingNarrative')}
-                                    options={generatedData.concepts.map(c => c.initialNarrative)}
-                                    selectedIndex={selection.initialNarrative}
-                                    onSelect={(index) => setSelection(s => ({...s, initialNarrative: index}))}
-                                    renderOption={(option) => <p className="text-sm italic">{t(option as TranslationKey)}</p>}
-                                />
-                                <SelectionRow 
-                                    label={t('startingBiome')}
-                                    options={generatedData.concepts.map(c => c.startingBiome)}
-                                    selectedIndex={selection.startingBiome}
-                                    onSelect={(index) => setSelection(s => ({...s, startingBiome: index}))}
-                                    renderOption={(option) => <p className="font-semibold">{t(option as TranslationKey)}</p>}
-                                />
-                                 <SelectionRow 
-                                    label={t('startingSkill')}
-                                    options={generatedData.concepts.map(c => c.startingSkill)}
-                                    selectedIndex={selection.startingSkill}
-                                    onSelect={(index) => setSelection(s => ({...s, startingSkill: index}))}
-                                    renderOption={(option: Skill) => 
-                                        <div>
-                                            <p className="font-semibold">{t(option.name as TranslationKey)}</p>
-                                            <p className="text-xs text-muted-foreground">{t(option.description as TranslationKey)}</p>
-                                        </div>
-                                    }
-                                />
-                                <SelectionRow 
-                                    label={t('firstQuest')}
-                                    options={generatedData.concepts.map(c => c.initialQuests)}
-                                    selectedIndex={selection.initialQuests}
-                                    onSelect={(index) => setSelection(s => ({...s, initialQuests: index}))}
-                                    renderOption={(option: string[]) => 
-                                        <ul className="list-disc list-inside text-sm">
-                                            {option.map((q, i) => <li key={i}>{t(q as TranslationKey)}</li>)}
-                                        </ul>
-                                    }
-                                />
-                                <SelectionRow 
-                                    label={t('startingEquipment')}
-                                    options={generatedData.concepts.map(c => c.playerInventory)}
-                                    selectedIndex={selection.playerInventory}
-                                    onSelect={(index) => setSelection(s => ({...s, playerInventory: index}))}
-                                    renderOption={(option: PlayerItem[]) => 
-                                        <div className="flex flex-wrap gap-4 text-sm">
-                                            {option.map((item, i) => {
-                                                const def = generatedData.customItemCatalog.find(d => d.name === item.name);
-                                                return <span key={i}>{def?.emoji} {t(item.name as TranslationKey)} (x{item.quantity})</span>
-                                            })}
-                                        </div>
-                                    }
-                                />
-                            </div>
-                        </ScrollArea>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="lg:col-span-2">
+                            <SelectionCard
+                                label={t('worldName')}
+                                icon={<Sparkles />}
+                                options={generatedData.concepts.map(c => c.worldName)}
+                                selectedIndex={selection.worldName}
+                                onSelect={(index) => setSelection(s => ({...s, worldName: index}))}
+                                renderOption={(option) => <p className="text-xl font-bold font-headline">{t(option as TranslationKey)}</p>}
+                            />
+                        </div>
+                        <SelectionCard
+                            label={t('openingNarrative')}
+                            icon={<BookOpen />}
+                            options={generatedData.concepts.map(c => c.initialNarrative)}
+                            selectedIndex={selection.initialNarrative}
+                            onSelect={(index) => setSelection(s => ({...s, initialNarrative: index}))}
+                            renderOption={(option) => <ScrollArea className="h-24"><p className="text-sm italic text-muted-foreground">{t(option as TranslationKey)}</p></ScrollArea>}
+                        />
+                        <SelectionCard
+                            label={t('startingBiome')}
+                            icon={<Map />}
+                            options={generatedData.concepts.map(c => c.startingBiome)}
+                            selectedIndex={selection.startingBiome}
+                            onSelect={(index) => setSelection(s => ({...s, startingBiome: index}))}
+                            renderOption={(option) => <p className="font-semibold text-lg">{t(option as TranslationKey)}</p>}
+                        />
+                         <SelectionCard
+                            label={t('startingSkill')}
+                            icon={<WandSparkles />}
+                            options={generatedData.concepts.map(c => c.startingSkill)}
+                            selectedIndex={selection.startingSkill}
+                            onSelect={(index) => setSelection(s => ({...s, startingSkill: index}))}
+                            renderOption={(option: Skill) => 
+                                <div>
+                                    <p className="font-semibold">{t(option.name as TranslationKey)}</p>
+                                    <p className="text-xs text-muted-foreground">{t(option.description as TranslationKey)}</p>
+                                </div>
+                            }
+                        />
+                         <SelectionCard
+                            label={t('startingEquipment')}
+                            icon={<BaggageClaim />}
+                            options={generatedData.concepts.map(c => c.playerInventory)}
+                            selectedIndex={selection.playerInventory}
+                            onSelect={(index) => setSelection(s => ({...s, playerInventory: index}))}
+                            renderOption={(option: PlayerItem[]) => 
+                                <div className="flex flex-wrap gap-x-4 gap-y-2 justify-center text-sm">
+                                    {option.map((item, i) => {
+                                        const allItems = [...(premadeWorlds[userInput.toLowerCase()]?.customItemCatalog || []), ...(generatedData?.customItemCatalog || [])];
+                                        const def = allItems.find(d => d.name === item.name);
+                                        return <span key={i} className="flex items-center gap-1">{def?.emoji} {t(item.name as TranslationKey)} x{item.quantity}</span>
+                                    })}
+                                </div>
+                            }
+                        />
+                        <div className="lg:col-span-2">
+                          <SelectionCard
+                              label={t('firstQuest')}
+                              icon={<ListTodo />}
+                              options={generatedData.concepts.map(c => c.initialQuests)}
+                              selectedIndex={selection.initialQuests}
+                              onSelect={(index) => setSelection(s => ({...s, initialQuests: index}))}
+                              renderOption={(option: string[]) => 
+                                  <ul className="space-y-1 text-sm text-accent-foreground list-disc list-inside">
+                                      {option.map((q, i) => <li key={i}>{t(q as TranslationKey)}</li>)}
+                                  </ul>
+                              }
+                          />
+                        </div>
+                      </div>
                     )
                 )}
             </CardContent>
-            <CardFooter className="flex flex-col-reverse sm:flex-row sm:justify-between gap-2">
+            <CardFooter className="flex flex-col-reverse sm:flex-row sm:justify-between gap-2 pt-6">
                 <Button variant="ghost" onClick={() => { setStep(0); setGeneratedData(null); }} type="button">
                     <ArrowLeft className="mr-2"/> {t('backAndEdit')}
                 </Button>
-                <Button onClick={handleStartGame} disabled={isLoading || !generatedData} type="button">
+                <Button onClick={handleStartGame} disabled={isLoading || !generatedData} type="button" size="lg">
                     {t('startAdventure')} <ArrowRight className="ml-2"/>
                 </Button>
             </CardFooter>
@@ -367,5 +383,3 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         </TooltipProvider>
     );
 }
-
-    

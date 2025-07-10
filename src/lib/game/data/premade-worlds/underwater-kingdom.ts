@@ -4,7 +4,7 @@ import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/t
 const items: GeneratedItem[] = [
     { name: 'Ngọc trai Phát quang', description: 'item_bioluminescent_pearl_desc', emoji: '💡', category: 'Material', tier: 2, effects: [], baseQuantity: { min: 1, max: 3 }, spawnBiomes: ['underwater', 'ocean'] },
     { name: 'Giáo San hô', description: 'item_coral_spear_desc', emoji: '🔱', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: [], equipmentSlot: 'weapon', attributes: { physicalAttack: 5 } },
-    { name: 'Thuốc mỡ Tảo biển', description: 'item_algae_salve_desc', emoji: '🌿', category: 'Support', tier: 1, effects: [{ type: 'HEAL', amount: 20 }], baseQuantity: { min: 1, max: 2 }, spawnBiomes: ['underwater'] },
+    { name: 'Thuốc mỡ Tảo biển', description: 'item_algae_salve_desc', emoji: '🌿', category: 'Support', tier: 1, effects: [{ type: 'HEAL', amount: 20 }, { type: 'RESTORE_MANA', amount: 2 }], baseQuantity: { min: 1, max: 2 }, spawnBiomes: ['underwater'] },
     { name: 'Mảnh Bia đá Cổ', description: 'item_ancient_tablet_fragment_desc', emoji: '📜', category: 'Data', tier: 3, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['underwater'] },
 ];
 
@@ -14,13 +14,19 @@ const structures: Structure[] = [
     { name: 'Miệng phun Thủy nhiệt', description: 'structure_hydrothermal_vent_desc', emoji: '💨', providesShelter: false, buildable: false, heatValue: 5 },
 ];
 
-const startingSkill: Skill = { name: 'skillHealName', description: 'skillHealDesc', tier: 1, manaCost: 20, effect: { type: 'HEAL', amount: 25, target: 'SELF' } };
+const skill1: Skill = { name: 'skillHealName', description: 'skillHealDesc', tier: 1, manaCost: 20, effect: { type: 'HEAL', amount: 25, target: 'SELF' } };
+const skill2: Skill = { name: 'skillLifeSiphonName', description: 'skillLifeSiphonDesc', tier: 2, manaCost: 30, effect: { type: 'DAMAGE', amount: 25, target: 'ENEMY', healRatio: 0.5 } };
 
 const concepts: WorldConcept[] = [
     {
         worldName: "worldName_abyssalKingdom", initialNarrative: 'underwater_narrative1', startingBiome: 'underwater',
         playerInventory: [ { name: "Giáo San hô", quantity: 1 }, { name: "Thuốc mỡ Tảo biển", quantity: 1 } ],
-        initialQuests: [ 'underwater_quest1', 'underwater_quest2' ], startingSkill: startingSkill, customStructures: structures, customItemCatalog: items
+        initialQuests: [ 'underwater_quest1', 'underwater_quest2' ], startingSkill: skill1, customStructures: structures
+    },
+    {
+        worldName: "worldName_abyssalKingdom", initialNarrative: 'underwater_narrative2', startingBiome: 'underwater',
+        playerInventory: [ { name: "Ngọc trai Phát quang", quantity: 2 }, { name: "Mảnh Bia đá Cổ", quantity: 1 } ],
+        initialQuests: [ 'underwater_quest3' ], startingSkill: skill2, customStructures: structures
     },
 ];
 

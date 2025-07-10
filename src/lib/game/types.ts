@@ -1,9 +1,9 @@
 import type { TranslationKey } from "../i18n";
-import type { ItemDefinition, ItemEffect, GeneratedItem } from "./definitions/item";
+import type { ItemDefinition, ItemEffect, GeneratedItem, MultilingualText } from "./definitions/item";
 import type { Recipe } from "./definitions/recipe";
 
 // Re-export for easier access elsewhere
-export type { ItemDefinition, ItemEffect, GeneratedItem, Recipe };
+export type { ItemDefinition, ItemEffect, GeneratedItem, Recipe, MultilingualText };
 
 // Represents a contiguous region of a single biome.
 export interface Region {
@@ -30,8 +30,8 @@ export type Theme = 'light' | 'dark';
 // --- NEW WEATHER SYSTEM TYPES ---
 
 export interface WeatherState {
-  name: string;
-  description: string;
+  name: MultilingualText;
+  description: MultilingualText;
   biome_affinity: Terrain[];
   season_affinity: Season[];
   temperature_delta: number;
@@ -83,6 +83,7 @@ export interface GameSettings {
   fontFamily: FontFamily;
   fontSize: FontSize;
   theme: Theme;
+  mods: ModBundle | null;
 }
 
 export interface ChunkItem {
@@ -117,9 +118,9 @@ export interface PlayerAttributes {
 }
 
 export interface Npc {
-    name: string;
-    description: string;
-    dialogueSeed: string;
+    name: MultilingualText;
+    description: MultilingualText;
+    dialogueSeed: MultilingualText;
     quest?: string;
     questItem?: { name: string; quantity: number };
     rewardItems?: PlayerItem[];
@@ -127,8 +128,8 @@ export interface Npc {
 
 // Represents a skill the player can use.
 export interface Skill {
-    name: string;
-    description: string;
+    name: MultilingualText;
+    description: MultilingualText;
     tier: number;
     manaCost: number;
     effect: {
@@ -145,8 +146,8 @@ export interface Skill {
 
 // Represents a structure in the world (natural or player-built)
 export interface Structure {
-    name: string;
-    description: string;
+    name: MultilingualText;
+    description: MultilingualText;
     emoji: string;
     providesShelter?: boolean;
     buildable?: boolean;
@@ -364,8 +365,12 @@ export interface EnemySpawn {
     conditions: SpawnConditions;
 }
 
-export interface ModDefinition {
-    items: Record<string, ItemDefinition>;
-    recipes: Record<string, Recipe>;
-    enemies: Partial<Record<Terrain, EnemySpawn[]>>;
+export interface ModBundle {
+    id: string;
+    items?: Record<string, ItemDefinition>;
+    recipes?: Record<string, Recipe>;
+    enemies?: Partial<Record<Terrain, EnemySpawn[]>>;
+    // Future modding capabilities can be added here
+    // biomes?: Record<string, BiomeDefinition>;
+    // weathers?: WeatherState[];
 }

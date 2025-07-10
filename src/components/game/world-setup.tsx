@@ -106,7 +106,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         ];
     
         const shuffled = [...allExampleKeys].sort(() => 0.5 - Math.random());
-        const selectedExamples = shuffled.slice(0, 6).map(key => {
+        const selectedExamples = shuffled.slice(0, 6).map((key, index) => {
             const text = t(key);
             const match = text.match(/\(Thử: '([^']+)'\)|\(Try: '([^']+)'\)/);
             const keyword = match ? (match[1] || match[2]) : null;
@@ -351,7 +351,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                               selectedIndex={selection.initialQuests}
                               onSelect={(index) => setSelection(s => ({...s, initialQuests: index}))}
                               renderOption={(option: string[]) => 
-                                  <ul className="space-y-1 text-sm text-accent-foreground list-disc list-inside">
+                                  <ul className="space-y-1 text-sm text-muted-foreground list-disc list-inside">
                                       {option.map((q, i) => <li key={i}>{t(q as TranslationKey)}</li>)}
                                   </ul>
                               }

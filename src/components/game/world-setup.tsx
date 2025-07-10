@@ -44,21 +44,12 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
     
     const [isLoading, setIsLoading] = useState(false);
     const [generatedData, setGeneratedData] = useState<GenerateWorldSetupOutput | null>(null);
-    const [selection, setSelection] = useState<Selection>({
-        worldName: 0,
-        initialNarrative: 0,
-        startingBiome: 0,
-        playerInventory: 0,
-        initialQuests: 0,
-        startingSkill: 0,
-    });
+    const [isPremade, setIsPremade] = useState(false);
     
-    const [apiWorldName, setApiWorldName] = useState<CarouselApi>();
-    const [apiNarrative, setApiNarrative] = useState<CarouselApi>();
-    const [apiBiome, setApiBiome] = useState<CarouselApi>();
-    const [apiInventory, setApiInventory] = useState<CarouselApi>();
-    const [apiQuests, setApiQuests] = useState<CarouselApi>();
-    const [apiSkill, setApiSkill] = useState<CarouselApi>();
+    const [api, setApi] = useState<CarouselApi>()
+    const [current, setCurrent] = useState(0)
+    const [count, setCount] = useState(0)
+    
     const [isSettingsOpen, setSettingsOpen] = useState(false);
 
     const { toast } = useToast();
@@ -86,48 +77,18 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
     }, [t]);
 
 
-    // Attach listeners to each carousel to update the selection state
-    useEffect(() => {
-        if (!apiWorldName) return;
-        const onSelect = () => setSelection(p => ({ ...p, worldName: apiWorldName.selectedScrollSnap() }));
-        apiWorldName.on('select', onSelect);
-        return () => { apiWorldName.off('select', onSelect); };
-    }, [apiWorldName]);
-
-    useEffect(() => {
-        if (!apiNarrative) return;
-        const onSelect = () => setSelection(p => ({ ...p, initialNarrative: apiNarrative.selectedScrollSnap() }));
-        apiNarrative.on('select', onSelect);
-        return () => { apiNarrative.off('select', onSelect); };
-    }, [apiNarrative]);
+     useEffect(() => {
+        if (!api) {
+          return
+        }
     
-    useEffect(() => {
-        if (!apiBiome) return;
-        const onSelect = () => setSelection(p => ({ ...p, startingBiome: apiBiome.selectedScrollSnap() }));
-        apiBiome.on('select', onSelect);
-        return () => { apiBiome.off('select', onSelect); };
-    }, [apiBiome]);
-
-    useEffect(() => {
-        if (!apiInventory) return;
-        const onSelect = () => setSelection(p => ({ ...p, playerInventory: apiInventory.selectedScrollSnap() }));
-        apiInventory.on('select', onSelect);
-        return () => { apiInventory.off('select', onSelect); };
-    }, [apiInventory]);
-
-    useEffect(() => {
-        if (!apiQuests) return;
-        const onSelect = () => setSelection(p => ({ ...p, initialQuests: apiQuests.selectedScrollSnap() }));
-        apiQuests.on('select', onSelect);
-        return () => { apiQuests.off('select', onSelect); };
-    }, [apiQuests]);
-
-    useEffect(() => {
-        if (!apiSkill) return;
-        const onSelect = () => setSelection(p => ({ ...p, startingSkill: apiSkill.selectedScrollSnap() }));
-        apiSkill.on('select', onSelect);
-        return () => { apiSkill.off('select', onSelect); };
-    }, [apiSkill]);
+        setCount(api.scrollSnapList().length)
+        setCurrent(api.selectedScrollSnap() + 1)
+    
+        api.on("select", () => {
+          setCurrent(api.selectedScrollSnap() + 1)
+        })
+      }, [api])
 
 
     const handleSuggest = async () => {
@@ -151,16 +112,21 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         }
 
         const lowerInput = userInput.trim().toLowerCase();
-
-        // Check for secret keyword
-        if (premadeWorlds[lowerInput]) {
-            onWorldCreated(premadeWorlds[lowerInput]);
-            return;
-        }
-
+        
         setIsLoading(true);
         setGeneratedData(null);
         setStep(1);
+
+        // Check for secret keyword
+        if (premadeWorlds[lowerInput]) {
+            setGeneratedData(premadeWorlds[lowerInput]);
+            setIsPremade(true);
+            setIsLoading(false);
+            return;
+        }
+        
+        setIsPremade(false);
+
         try {
             const result = await generateWorldSetup({ userInput, language });
             setGeneratedData(result);
@@ -176,13 +142,16 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
     const handleStartGame = () => {
         if (!generatedData) return;
         
-        // Use the first concept as there's only one in the array for AI-generated worlds now.
-        const finalConcept = generatedData.concepts[0];
+        // If it's a premade world, there can be multiple concepts. Pick one.
+        // If it's AI-generated, there's only one concept.
+        const conceptIndex = isPremade ? (api?.selectedScrollSnap() || 0) : 0;
+        const selectedConcept = generatedData.concepts[conceptIndex];
         
+        // We only need the selected concept and the shared catalogs to start the game.
         const finalOutput: GenerateWorldSetupOutput = {
             customItemCatalog: generatedData.customItemCatalog,
             customStructures: generatedData.customStructures,
-            concepts: [finalConcept as any], // Cast to bypass strict type check for biome
+            concepts: [selectedConcept as any], // Cast to bypass strict type check for biome
         };
 
         onWorldCreated(finalOutput);
@@ -259,7 +228,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         <>
             <CardHeader>
                  <CardTitle className="font-headline text-3xl flex items-center gap-3"><Sparkles /> {t('worldGenResultTitle')}</CardTitle>
-                 <CardDescription>{t('worldGenResultDesc')}</CardDescription>
+                 <CardDescription>{isPremade ? "Choose a starting scenario for this pre-made world." : t('worldGenResultDesc')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 {isLoading ? (
@@ -268,26 +237,38 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                         <p className="mt-4 text-muted-foreground">{t('generatingUniverses')}</p>
                     </div>
                 ) : (
-                    generatedData && generatedData.concepts[0] && (
-                        <div className="space-y-8 animate-in fade-in duration-500">
-                             <div className="space-y-2">
-                                <h3 className="text-lg font-semibold font-headline text-center">{t('worldName')}</h3>
-                                <Card className="flex items-center justify-center p-6 h-24 shadow-inner bg-muted/30 max-w-sm mx-auto">
-                                    <CardTitle className="text-xl text-center font-headline">{t(generatedData.concepts[0].worldName as TranslationKey)}</CardTitle>
-                                </Card>
+                    generatedData && (
+                         <Carousel setApi={setApi} className="w-full max-w-xl mx-auto">
+                            <CarouselContent>
+                                {generatedData.concepts.map((concept, index) => (
+                                    <CarouselItem key={index}>
+                                        <div className="p-1">
+                                            <Card>
+                                                <CardHeader>
+                                                    <CardTitle className="font-headline text-center">{t(concept.worldName as TranslationKey)}</CardTitle>
+                                                </CardHeader>
+                                                <CardContent className="space-y-4">
+                                                     <div className="prose prose-sm dark:prose-invert max-w-none h-24 overflow-y-auto p-2 bg-muted/30 rounded-md">
+                                                        <p>{t(concept.initialNarrative as TranslationKey)}</p>
+                                                    </div>
+                                                    <Separator/>
+                                                    <div className="text-sm">
+                                                        <p><span className="font-semibold">Biome:</span> {t(concept.startingBiome as TranslationKey)}</p>
+                                                        <p><span className="font-semibold">Skill:</span> {t(concept.startingSkill.name as TranslationKey)}</p>
+                                                        <p><span className="font-semibold">Quests:</span> {concept.initialQuests.map(q => t(q as TranslationKey)).join(', ')}</p>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        </div>
+                                    </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                             <CarouselPrevious />
+                            <CarouselNext />
+                             <div className="py-2 text-center text-sm text-muted-foreground">
+                                Scenario {current} of {count}
                             </div>
-
-                            <Separator />
-
-                            <div className="space-y-2">
-                                <h3 className="text-lg font-semibold font-headline text-center">{t('openingNarrative')}</h3>
-                                <Card className="shadow-inner bg-muted/30 max-w-2xl mx-auto">
-                                    <CardContent className="p-4 h-40 overflow-y-auto prose prose-sm dark:prose-invert max-w-none">
-                                        <p>{t(generatedData.concepts[0].initialNarrative as TranslationKey)}</p>
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        </div>
+                        </Carousel>
                     )
                 )}
             </CardContent>

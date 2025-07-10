@@ -78,7 +78,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
     const [userInput, setUserInput] = useState("");
     const [isSuggesting, setIsSuggesting] = useState(false);
     const [suggestedKeywords, setSuggestedKeywords] = useState<string[]>([]);
-    const [examplePrompts, setExamplePrompts] = useState<string[]>([]);
+    const [examplePrompts, setExamplePrompts] = useState<{text: string; keyword: string | null}[]>([]);
     const [worldDescription, setWorldDescription] = useState("");
     
     const [isLoading, setIsLoading] = useState(false);
@@ -104,10 +104,17 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
             'example6', 'example7', 'example8', 'example9', 'example10',
             'example11', 'example12'
         ];
-
+    
         const shuffled = [...allExampleKeys].sort(() => 0.5 - Math.random());
-        const selectedPrompts = shuffled.slice(0, 6).map(key => t(key));
-        setExamplePrompts(selectedPrompts);
+        const selectedExamples = shuffled.slice(0, 6).map(key => {
+            const text = t(key);
+            const match = text.match(/\(Try: '([^']+)'\)/);
+            return {
+                text: text.replace(/\s\(Try: '([^']+)'\)/, ''),
+                keyword: match ? match[1] : null
+            };
+        });
+        setExamplePrompts(selectedExamples);
 
         const descriptionKeys: TranslationKey[] = [
             'worldSetupDesc1',
@@ -196,13 +203,8 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         }
     };
     
-    const handleExampleClick = (prompt: string) => {
-        const match = prompt.match(/\(Try: '([^']+)'\)/);
-        if (match && match[1]) {
-            setUserInput(match[1]);
-        } else {
-            setUserInput(prompt);
-        }
+    const handleExampleClick = (prompt: {text: string, keyword: string | null}) => {
+        setUserInput(prompt.keyword || prompt.text);
     };
 
     const renderStep0 = () => (
@@ -246,12 +248,12 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         {examplePrompts.map((prompt) => (
                             <button
-                                key={prompt}
+                                key={prompt.text}
                                 type="button"
                                 onClick={() => handleExampleClick(prompt)}
-                                className="text-left p-2 rounded-md hover:bg-muted transition-colors text-accent text-sm"
+                                className="text-left p-2 rounded-md hover:bg-muted transition-colors text-accent text-sm flex items-center gap-2"
                             >
-                                &raquo; {prompt}
+                                &raquo; {prompt.text} {prompt.keyword && <span title="Pre-made World">⭐</span>}
                             </button>
                         ))}
                     </div>

@@ -3,6 +3,7 @@
 
 
 
+
 export const translations = {
   en: {
     langIdentifier: 'en',

@@ -8,6 +8,7 @@ import type {
     BiomeDefinition,
     WeatherDefinition,
     RandomEventDefinition,
+    CreatureDefinition,
     LootDrop,
     SpawnConditions,
     PlayerAttributes
@@ -23,6 +24,7 @@ export type {
     BiomeDefinition,
     WeatherDefinition,
     RandomEventDefinition,
+    CreatureDefinition,
     LootDrop,
     SpawnConditions,
     PlayerAttributes,
@@ -119,10 +121,10 @@ export interface Pet {
 }
 
 export interface Npc {
-    name: TranslationKey;
-    description: TranslationKey;
-    dialogueSeed: TranslationKey;
-    quest?: TranslationKey;
+    name: { en: string; vi: string };
+    description: { en: string; vi: string };
+    dialogueSeed: { en: string; vi: string };
+    quest?: { en: string; vi: string };
     questItem?: { name: string; quantity: number };
     rewardItems?: PlayerItem[];
 }
@@ -323,35 +325,13 @@ export interface ModBundle {
     items?: Record<string, ItemDefinition>;
     recipes?: Record<string, Recipe>;
     structures?: Record<string, StructureDefinition>;
+    creatures?: Record<string, CreatureDefinition>;
     biomes?: Record<string, BiomeDefinition>;
     events?: Record<string, RandomEventDefinition>;
     weather?: Record<string, WeatherDefinition>;
 }
 
-// Spawn types for biome templates
 export interface EnemySpawn {
-    data: {
-        type: string;
-        emoji: string;
-        hp: number;
-        damage: number;
-        behavior: 'aggressive' | 'passive' | 'defensive' | 'territorial' | 'immobile' | 'ambush';
-        size: 'small' | 'medium' | 'large';
-        diet: string[];
-        satiation: number;
-        maxSatiation: number;
-        loot?: LootDrop[];
-        harvestable?: {
-            difficulty: number;
-            requiredTool: string;
-            loot: LootDrop[];
-        };
-        senseEffect?: { keywords: string[] };
-    };
-    conditions: SpawnConditions;
-}
-
-export interface NpcSpawn {
-    data: Npc;
+    data: CreatureDefinition;
     conditions: SpawnConditions;
 }

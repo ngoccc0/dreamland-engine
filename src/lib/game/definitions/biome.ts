@@ -22,14 +22,21 @@ const NpcSpawnTemplateSchema = z.object({
     name: MultilingualTextSchema,
     description: MultilingualTextSchema,
     dialogueSeed: MultilingualTextSchema,
+    quest: MultilingualTextSchema.optional(),
+    questItem: z.object({ name: z.string(), quantity: z.number() }).optional(),
+    rewardItems: z.array(z.object({ name: z.string(), quantity: z.number(), tier: z.number(), emoji: z.string() })).optional(),
   }),
   conditions: SpawnConditionsSchema,
 });
+export type NpcSpawn = z.infer<typeof NpcSpawnTemplateSchema>;
+
 
 // The main schema for defining a biome. This structure allows mods to create new biomes.
 export const BiomeDefinitionSchema = z.object({
   id: z.string().describe("Unique identifier for the biome, e.g., 'forest', 'modded_lava_caves'."),
   travelCost: z.number().describe("The amount of stamina it costs to enter a tile of this biome."),
+  minSize: z.number().int().describe("The minimum number of cells a region of this biome can have."),
+  maxSize: z.number().int().describe("The maximum number of cells a region of this biome can have."),
   spreadWeight: z.number().describe("How likely this biome is to be chosen during world generation."),
   allowedNeighbors: z.array(z.custom<Terrain>()).describe("A list of other biome IDs this biome can be adjacent to."),
   defaultValueRanges: z.object({
@@ -52,8 +59,8 @@ export const BiomeDefinitionSchema = z.object({
     sky: z.array(z.string()).optional(),
     NPCs: z.array(NpcSpawnTemplateSchema),
     items: z.array(EntitySpawnTemplateSchema),
-    structures: z.array(EntitySpawnTemplateSchema),
-    enemies: z.array(EntitySpawnTemplateSchema), // Enemy spawns now also use the generic entity spawn template
+    structures: z.array(z.any()), // Can be simplified as well if needed
+    creatures: z.array(EntitySpawnTemplateSchema),
   }).describe("The templates used to procedurally generate the content of a chunk within this biome."),
 });
 

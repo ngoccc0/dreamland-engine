@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -30,7 +29,6 @@ import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermomet
 
 interface GameLayoutProps {
     gameSlot: number;
-    initialGameState?: GameState;
 }
 
 export default function GameLayout(props: GameLayoutProps) {
@@ -148,7 +146,7 @@ export default function GameLayout(props: GameLayoutProps) {
 
     return (
         <TooltipProvider>
-            <div className="flex flex-col md:flex-row bg-background text-foreground font-body md:h-dvh">
+            <div className="flex flex-col md:flex-row md:h-dvh bg-background text-foreground font-body">
                 {/* Left Panel: Narrative */}
                 <div className="w-full md:flex-1 flex flex-col md:overflow-hidden">
                     <header className="p-4 border-b flex-shrink-0 flex justify-between items-center">
@@ -177,7 +175,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         </DropdownMenu>
                     </header>
 
-                    <main className="flex-grow p-4 md:p-6 overflow-y-auto max-h-[50dvh] md:max-h-full">
+                    <main className="flex-grow p-4 md:p-6 overflow-y-auto max-h-[50dvh] md:max-h-full hide-scrollbar">
                         <div className="prose prose-stone dark:prose-invert max-w-4xl mx-auto">
                             {narrativeLog.map((entry) => (
                                 <p key={entry.id} className={cn("animate-in fade-in duration-500 whitespace-pre-line",
@@ -249,7 +247,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                     {playerStats.skills?.map((skill) => (
                                         <Tooltip key={skill.name}>
                                             <TooltipTrigger asChild>
-                                                <Button variant="secondary" className="w-full justify-center text-xs" onClick={() => handleUseSkill(skill.name)} disabled={isLoading || playerStats.mana < skill.manaCost}>
+                                                <Button variant="secondary" className="w-full justify-center text-xs" onClick={() => handleUseSkill(t(skill.name as TranslationKey))} disabled={isLoading || playerStats.mana < skill.manaCost}>
                                                     <WandSparkles className="mr-2 h-3 w-3" />
                                                     {t(skill.name as TranslationKey)} ({skill.manaCost} MP)
                                                 </Button>
@@ -337,5 +335,3 @@ export default function GameLayout(props: GameLayoutProps) {
         </TooltipProvider>
     );
 }
-
-    

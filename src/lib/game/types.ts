@@ -10,6 +10,7 @@ import type {
     RandomEventDefinition,
     LootDrop,
     SpawnConditions,
+    PlayerAttributes
 } from "./definitions";
 
 
@@ -24,6 +25,7 @@ export type {
     RandomEventDefinition,
     LootDrop,
     SpawnConditions,
+    PlayerAttributes,
 };
 
 // Represents a contiguous region of a single biome.
@@ -114,16 +116,6 @@ export interface Pet {
     type: string;
     name?: string;
     level: number;
-}
-
-export interface PlayerAttributes {
-    physicalAttack?: number;
-    magicalAttack?: number;
-    physicalDefense?: number;
-    magicalDefense?: number;
-    critChance?: number;
-    attackSpeed?: number;
-    cooldownReduction?: number;
 }
 
 export interface Npc {
@@ -324,7 +316,6 @@ export interface GameState {
 // This is an instance of a RandomEventDefinition
 export type RandomEvent = RandomEventDefinition;
 
-
 // --- MODDING ---
 // This is now the definitive structure for a mod file.
 export interface ModBundle {
@@ -335,4 +326,32 @@ export interface ModBundle {
     biomes?: Record<string, BiomeDefinition>;
     events?: Record<string, RandomEventDefinition>;
     weather?: Record<string, WeatherDefinition>;
+}
+
+// Spawn types for biome templates
+export interface EnemySpawn {
+    data: {
+        type: string;
+        emoji: string;
+        hp: number;
+        damage: number;
+        behavior: 'aggressive' | 'passive' | 'defensive' | 'territorial' | 'immobile' | 'ambush';
+        size: 'small' | 'medium' | 'large';
+        diet: string[];
+        satiation: number;
+        maxSatiation: number;
+        loot?: LootDrop[];
+        harvestable?: {
+            difficulty: number;
+            requiredTool: string;
+            loot: LootDrop[];
+        };
+        senseEffect?: { keywords: string[] };
+    };
+    conditions: SpawnConditions;
+}
+
+export interface NpcSpawn {
+    data: Npc;
+    conditions: SpawnConditions;
 }

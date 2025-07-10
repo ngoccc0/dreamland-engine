@@ -8,20 +8,17 @@ export const recipes: Record<string, Recipe> = {
             { 
                 name: 'Cành Cây Chắc Chắn', 
                 quantity: 1, 
-                relationship: { substituteFor: 'Cành Cây Chắc Chắn', quality: 1 },
             },
             { 
                 name: 'Đá Cuội', 
                 quantity: 1, 
-                relationship: { substituteFor: 'Đá Cuội', quality: 1 },
             },
             { 
                 name: 'Dây Gai', 
                 quantity: 1, 
-                relationship: { substituteFor: 'Dây Gai', quality: 1 },
             }
         ],
-        description: 'recipe_simple_stone_axe_desc',
+        description: { en: 'Craft a basic stone axe. An essential tool for survival.', vi: 'Chế tạo một chiếc rìu đá cơ bản. Một công cụ cần thiết để sinh tồn.' },
     },
     'Thuốc Máu Yếu': {
         result: { name: 'Thuốc Máu Yếu', quantity: 1, emoji: '🧪' },
@@ -35,7 +32,7 @@ export const recipes: Record<string, Recipe> = {
                 quantity: 1, 
             }
         ],
-        description: 'recipe_weak_health_potion_desc',
+        description: { en: 'Brew a simple health potion from herbs and clean water.', vi: 'Pha chế một lọ thuốc máu đơn giản từ thảo dược và nước sạch.' },
     },
     'Bó Đuốc': {
         result: { name: 'Bó Đuốc', quantity: 1, emoji: '🔥' },
@@ -47,7 +44,7 @@ export const recipes: Record<string, Recipe> = {
             },
             { name: 'Nhựa Cây Dính', quantity: 1 }
         ],
-        description: 'recipe_torch_desc',
+        description: { en: 'Create a temporary light source to explore dark places.', vi: 'Tạo một nguồn sáng tạm thời để khám phá những nơi tối tăm.' },
     },
     'Thuyền Phao': {
         result: { name: 'Thuyền Phao', quantity: 1, emoji: '🛶' },
@@ -56,7 +53,7 @@ export const recipes: Record<string, Recipe> = {
             { name: 'Lõi Gỗ', quantity: 5 },
             { name: 'Dây Gai', quantity: 10 }
         ],
-        description: 'recipe_inflatable_raft_desc',
+        description: { en: 'Craft a simple raft to travel across water.', vi: 'Chế tạo một chiếc bè đơn giản để đi qua mặt nước.' },
     },
     'Dao Găm Đá': {
         result: { name: 'Dao Găm Đá', quantity: 1, emoji: '🗡️' },
@@ -64,7 +61,7 @@ export const recipes: Record<string, Recipe> = {
             { name: 'Đá Cuội', quantity: 2 },
             { name: 'Mảnh Vải Rách', quantity: 1 }
         ],
-        description: 'recipe_stone_dagger_desc',
+        description: { en: 'Craft a stone dagger for self-defense.', vi: 'Chế tạo một con dao găm bằng đá để tự vệ.' },
     },
     'Khiên Gỗ': {
         result: { name: 'Khiên Gỗ', quantity: 1, emoji: '🛡️' },
@@ -72,7 +69,7 @@ export const recipes: Record<string, Recipe> = {
             { name: 'Lõi Gỗ', quantity: 4 },
             { name: 'Da Heo Rừng', quantity: 1 }
         ],
-        description: 'recipe_wooden_shield_desc',
+        description: { en: 'Craft a wooden shield to block attacks.', vi: 'Chế tạo một chiếc khiên gỗ để chặn các cuộc tấn công.' },
     },
     'Băng Gạc': {
         result: { name: 'Băng Gạc', quantity: 1, emoji: '🩹' },
@@ -80,7 +77,7 @@ export const recipes: Record<string, Recipe> = {
             { name: 'Mảnh Vải Rách', quantity: 2 },
             { name: 'Thảo Dược Chữa Lành', quantity: 1 }
         ],
-        description: 'recipe_bandage_desc',
+        description: { en: 'Create a clean bandage to treat wounds.', vi: 'Tạo một miếng băng sạch để băng bó vết thương.' },
     },
     'Cuốc Đá': {
         result: { name: 'Cuốc Đá', quantity: 1, emoji: '⛏️' },
@@ -89,7 +86,7 @@ export const recipes: Record<string, Recipe> = {
             { name: 'Đá Cuội', quantity: 3 },
             { name: 'Dây Gai', quantity: 2 }
         ],
-        description: 'recipe_stone_pickaxe_desc',
+        description: { en: 'Craft a stone pickaxe for mining minerals.', vi: 'Chế tạo một chiếc cuốc đá để khai thác khoáng sản.' },
     },
     'Giáo Xương': {
         result: { name: 'Giáo Xương', quantity: 1, emoji: '🔱' },
@@ -98,7 +95,7 @@ export const recipes: Record<string, Recipe> = {
             { name: 'Nanh Sói', quantity: 1 },
             { name: 'Dây Gai', quantity: 2 }
         ],
-        description: 'recipe_bone_spear_desc',
+        description: { en: 'Craft a bone spear for hunting and combat.', vi: 'Chế tạo một cây giáo xương để săn bắn và chiến đấu.' },
     },
     'Rìu Chiến Obsidian': {
         result: { name: 'Rìu Chiến Obsidian', quantity: 1, emoji: '🪓' },
@@ -107,7 +104,7 @@ export const recipes: Record<string, Recipe> = {
             { name: 'Đá Obsidian', quantity: 3 },
             { name: 'Da Gấu', quantity: 1 }
         ],
-        description: 'recipe_obsidian_battleaxe_desc',
+        description: { en: 'Craft a fearsome battleaxe from obsidian.', vi: 'Chế tạo một chiếc rìu chiến đáng sợ từ obsidian.' },
     },
     'Áo Giáp Da Cá Sấu': {
         result: { name: 'Áo Giáp Da Cá Sấu', quantity: 1, emoji: '👕' },
@@ -115,7 +112,7 @@ export const recipes: Record<string, Recipe> = {
             { name: 'Da Cá Sấu', quantity: 2 },
             { name: 'Tơ Nhện Khổng lồ', quantity: 5 }
         ],
-        description: 'recipe_alligator_armor_desc',
+        description: { en: 'Craft a durable set of alligator hide armor.', vi: 'Chế tạo một bộ giáp bền từ da cá sấu.' },
     },
     'Thuốc Máu Mạnh': {
         result: { name: 'Thuốc Máu Mạnh', quantity: 1, emoji: '🧪' },
@@ -124,7 +121,7 @@ export const recipes: Record<string, Recipe> = {
             { name: 'Cây Thuốc Núi', quantity: 1 },
             { name: 'Nước Ngầm', quantity: 1 }
         ],
-        description: 'recipe_strong_health_potion_desc',
+        description: { en: 'Brew a potent healing potion.', vi: 'Pha chế một lọ thuốc chữa bệnh mạnh.' },
     },
     'Cung Tên Harpy': {
         result: { name: 'Cung Tên Harpy', quantity: 1, emoji: '🏹' },
@@ -133,7 +130,7 @@ export const recipes: Record<string, Recipe> = {
             { name: 'Lông Harpie', quantity: 5 },
             { name: 'Tơ Nhện Khổng lồ', quantity: 3 }
         ],
-        description: 'recipe_harpy_bow_desc',
+        description: { en: 'Craft a lightweight and precise bow.', vi: 'Chế tạo một cây cung nhẹ và chính xác.' },
     },
     'Trượng Lõi Đá': {
         result: { name: 'Trượng Lõi Đá', quantity: 1, emoji: '🪄' },
@@ -142,7 +139,7 @@ export const recipes: Record<string, Recipe> = {
             { name: 'Lõi Gỗ', quantity: 1 },
             { name: 'Pha Lê Núi', quantity: 2 }
         ],
-        description: 'recipe_golem_staff_desc',
+        description: { en: 'Imbue a staff with the power of a golem core.', vi: 'Thấm nhuần một cây trượng với sức mạnh của lõi người đá.' },
     },
     'Thuốc Thể Lực': {
         result: { name: 'Thuốc Thể Lực', quantity: 1, emoji: '🥤' },
@@ -151,7 +148,7 @@ export const recipes: Record<string, Recipe> = {
             { name: 'Mật Ong Hoang', quantity: 1 },
             { name: 'Nước Ngầm', quantity: 1 }
         ],
-        description: 'recipe_stamina_potion_desc',
+        description: { en: 'Mix a potion to rapidly restore stamina.', vi: 'Pha một lọ thuốc để phục hồi thể lực nhanh chóng.' },
     },
     'Búa Chiến Người Lùn': {
         result: { name: 'Búa Chiến Người Lùn', quantity: 1, emoji: '🔨' },
@@ -160,7 +157,7 @@ export const recipes: Record<string, Recipe> = {
             { name: 'Lõi Người Đá', quantity: 1 },
             { name: 'Da Gấu', quantity: 2 }
         ],
-        description: 'recipe_dwarven_hammer_desc',
+        description: { en: 'Forge a mighty war hammer.', vi: 'Rèn một chiếc búa chiến hùng mạnh.' },
     },
     ...naturePlusRecipes,
 };

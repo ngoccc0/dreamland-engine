@@ -162,7 +162,7 @@ Dreamland Engine là một Progressive Web App (PWA). Bạn có thể "cài đ�
 
 ---
 
-## 🛠️ Hướng Dẫn Tạo Mod
+## 🛠️ Hướng Dẫn Tạo Mod Toàn Diện
 
 Hệ thống mod của Dreamland Engine được thiết kế theo hướng dữ liệu (data-driven), cho phép bạn dễ dàng thêm nội dung mới như vật phẩm, công thức, và sinh vật mà không cần sửa mã nguồn logic của game.
 
@@ -176,13 +176,131 @@ Hệ thống mod của Dreamland Engine được thiết kế theo hướng dữ
 Tạo một tệp mới trong thư mục `src/lib/game/mods/`, ví dụ: `my_epic_mod.ts`.
 
 #### Bước 2: Định nghĩa Nội dung
-Bên trong tệp mới, bạn sẽ định nghĩa các đối tượng chứa vật phẩm, công thức, và sinh vật mới. Cấu trúc phải tuân thủ kiểu `ModDefinition`. **QUAN TRỌNG:** Tất cả các trường dữ liệu trong các định nghĩa (`ItemDefinition`, `Recipe`, `EnemySpawn`) đều là bắt buộc để đảm bảo game hoạt động ổn định.
+Bên trong tệp mới, bạn sẽ định nghĩa các đối tượng chứa vật phẩm, công thức, và sinh vật mới. Cấu trúc phải tuân thủ kiểu `ModDefinition`.
 
-**Ví dụ `my_epic_mod.ts` (Hoàn chỉnh):**
+#### Bước 3: Đăng ký Mod
+Mở tệp `src/lib/game/mods/index.ts` và thêm mod của bạn vào mảng `allMods`.
+
 ```typescript
+// src/lib/game/mods/index.ts
+
+import type { ModDefinition } from '@/lib/game/types';
+import { mod as exampleMod } from './example_mod';
+import { mod as myEpicMod } from './my_epic_mod'; // <- Nhập mod của bạn
+
+// Thêm mod của bạn vào mảng này
+export const allMods: ModDefinition[] = [
+  exampleMod,
+  myEpicMod, // <- Thêm vào đây
+];
+```
+
+### 3. Hướng Dẫn Định Nghĩa Chi Tiết
+
+**QUAN TRỌNG:** Tất cả các trường dữ liệu trong các định nghĩa (`ItemDefinition`, `Recipe`, `EnemySpawn`) đều là bắt buộc để đảm bảo game hoạt động ổn định. Hệ thống sẽ tự động kiểm tra các tệp mod của bạn. Nếu có bất kỳ trường dữ liệu bắt buộc nào bị thiếu, game sẽ không khởi động và sẽ hiển thị một thông báo lỗi chi tiết trên console của trình duyệt.
+
+#### 3.1. Định nghĩa Vật phẩm (`ItemDefinition`)
+```typescript
+const items: Record<string, ItemDefinition> = {
+  'Dragon Scale': {
+    // === Thông tin Cơ bản (Bắt buộc) ===
+    description: 'Một chiếc vảy cứng như thép, lấp lánh màu đỏ.', // Mô tả trong game, hỗ trợ đa ngôn ngữ qua key
+    tier: 5,                                             // Cấp độ vật phẩm (1-6), ảnh hưởng đến độ hiếm và sức mạnh
+    category: 'Material',                                // Danh mục chính (xem ItemCategory trong types.ts)
+    emoji: '🐉',                                             // Emoji đại diện
+    effects: [],                                         // Hiệu ứng khi sử dụng (ví dụ: [{ type: 'HEAL', amount: 20 }])
+    baseQuantity: { min: 1, max: 3 },                    // Số lượng rơi ra mặc định
+
+    // === Thông tin Trang bị (Tùy chọn) ===
+    equipmentSlot: 'armor',                              // Vị trí trang bị: 'weapon', 'armor', 'accessory'
+    attributes: {                                        // Chỉ số cộng thêm khi trang bị
+      physicalAttack: 0,
+      magicalAttack: 0,
+      critChance: 0,
+      attackSpeed: 0,
+      cooldownReduction: 10,                             // Giảm 10% hồi chiêu
+    },
+
+    // === Thông tin Chức năng (Tùy chọn) ===
+    function: 'A key crafting material for dragon armor.', // Mô tả chức năng
+    weight: 0.5,                                         // Trọng lượng
+    stackable: 20,                                       // Số lượng tối đa trong một ô đồ
+
+    // === Mối quan hệ Vật phẩm (Tùy chọn) ===
+    relationship: {
+      substituteFor: 'Da Gấu',                            // Có thể dùng thay thế cho 'Da Gấu' trong công thức
+      tier: 1,                                           // Mức độ thay thế (1: tốt, 2: trung bình, 3: kém)
+    },
+
+    // === Điều kiện Xuất hiện (Tùy chọn) ===
+    naturalSpawn: [                                      // Nơi nó có thể xuất hiện tự nhiên
+      {
+        biome: 'volcanic',                               // Quần xã sinh vật
+        chance: 0.1,                                     // Tỷ lệ xuất hiện
+        conditions: { temperature: { min: 8 } }          // Chỉ xuất hiện khi nhiệt độ > 8
+      }
+    ],
+    droppedBy: [                                         // Sinh vật có thể đánh rơi
+      { creature: 'Rồng lửa con', chance: 0.5 }
+    ]
+  },
+};
+```
+
+#### 3.2. Định nghĩa Công thức (`Recipe`)
+```typescript
+const recipes: Record<string, Recipe> = {
+  'Dragon Tooth Spear': {
+    result: { name: 'Dragon Tooth Spear', quantity: 1, emoji: '🔱' },
+    ingredients: [
+      { name: 'Dragon Tooth', quantity: 1 },
+      { name: 'Lõi Gỗ', quantity: 2 },
+      { name: 'Dây Gai', quantity: 3 }
+    ],
+    description: 'Chế tạo một ngọn giáo mạnh mẽ từ Răng Rồng.',
+    requiredTool: 'Đá Mài', // Yêu cầu có 'Đá Mài' trong túi đồ (không bị tiêu hao)
+  }
+};
+```
+
+#### 3.3. Định nghĩa Sinh vật (`EnemySpawn`)
+```typescript
+const enemies: Partial<Record<"forest" | "mountain", EnemySpawn[]>> = {
+  'mountain': [
+    {
+      // === Dữ liệu Sinh vật (Bắt buộc) ===
+      data: {
+        type: 'Wyvern',                                  // Tên loại
+        emoji: '🐉',
+        hp: 120,
+        damage: 25,
+        behavior: 'territorial',                         // Hành vi: aggressive, passive, defensive, territorial
+        size: 'large',                                   // Kích cỡ: small, medium, large
+        diet: ['Dê núi hung hãn'],                      // Thức ăn (dùng cho hệ sinh thái và thuần hóa)
+        satiation: 0,                                    // Mức độ no hiện tại
+        maxSatiation: 2,                                 // Mức độ no tối đa
+        loot: [                                          // Bảng vật phẩm rơi ra
+          { name: 'Dragon Scale', chance: 0.5, quantity: { min: 1, max: 2 } },
+        ]
+      },
+      // === Điều kiện Xuất hiện (Bắt buộc) ===
+      conditions: {
+        chance: 0.15,                                    // Tỷ lệ xuất hiện tổng thể
+        elevation: { min: 8 },                           // Chỉ xuất hiện ở nơi có độ cao > 8
+        windLevel: { min: 6 }                            // Chỉ xuất hiện khi gió cấp > 6
+      }
+    }
+  ]
+};
+```
+
+### 4. Ví dụ một tệp Mod hoàn chỉnh
+```typescript
+// src/lib/game/mods/my_epic_mod.ts
+
 import type { ModDefinition, ItemDefinition, Recipe, EnemySpawn, EquipmentSlot } from '@/lib/game/types';
 
-// Định nghĩa các vật phẩm mới. Bắt buộc phải có đủ các trường.
+// Định nghĩa vật phẩm mới
 const items: Record<string, ItemDefinition> = {
   'Dragon Scale': {
     description: 'Một chiếc vảy cứng như thép, lấp lánh màu đỏ.',
@@ -212,7 +330,7 @@ const items: Record<string, ItemDefinition> = {
   },
 };
 
-// Định nghĩa các công thức chế tạo mới.
+// Định nghĩa công thức chế tạo mới
 const recipes: Record<string, Recipe> = {
   'Dragon Tooth Spear': {
     result: { name: 'Dragon Tooth Spear', quantity: 1, emoji: '🔱' },
@@ -225,7 +343,7 @@ const recipes: Record<string, Recipe> = {
   }
 };
 
-// Định nghĩa các sinh vật mới và điều kiện xuất hiện của chúng.
+// Định nghĩa sinh vật mới và điều kiện xuất hiện
 const enemies: Partial<Record<"forest" | "mountain", EnemySpawn[]>> = {
   'mountain': [
     {
@@ -243,41 +361,43 @@ const enemies: Partial<Record<"forest" | "mountain", EnemySpawn[]>> = {
           { name: 'Dragon Scale', chance: 0.5, quantity: { min: 1, max: 2 } },
         ]
       },
-      // Điều kiện xuất hiện: chỉ ở những ngọn núi cao và lộng gió.
       conditions: { elevation: { min: 8 }, windLevel: { min: 6 }, chance: 0.15 }
     }
   ]
 };
 
-// Xuất tất cả các định nghĩa trong một đối tượng mod duy nhất.
+// Xuất tất cả các định nghĩa trong một đối tượng mod duy nhất
 export const mod: ModDefinition = {
   items,
   recipes,
   enemies,
 };
 ```
-
-#### Bước 3: Đăng ký Mod
-Mở tệp `src/lib/game/mods/index.ts` và thêm mod của bạn vào mảng `allMods`.
-
-```typescript
-import type { ModDefinition } from '@/lib/game/types';
-import { mod as exampleMod } from './example_mod';
-import { mod as myEpicMod } from './my_epic_mod'; // <- Nhập mod của bạn
-
-// Thêm mod của bạn vào mảng này
-export const allMods: ModDefinition[] = [
-  exampleMod,
-  myEpicMod, // <- Thêm vào đây
-];
-```
-
-### 3. Xác thực Dữ liệu
-Hệ thống sẽ tự động kiểm tra các tệp mod của bạn. Nếu có bất kỳ trường dữ liệu bắt buộc nào bị thiếu (ví dụ: `description`, `tier`, `category` cho vật phẩm, hoặc `data`, `conditions` cho kẻ địch), game sẽ không khởi động và sẽ hiển thị một thông báo lỗi chi tiết trên console của trình duyệt, chỉ rõ mod nào và trường dữ liệu nào đang bị thiếu. Điều này giúp bạn dễ dàng gỡ lỗi và đảm bảo các mod luôn ổn định.
-
 ---
 
 ## 📜 Nhật Ký Cập Nhật
+
+### Phiên bản 0.2.0 (12/07/2025, 11:30 SA)
+
+- **✨ [Tính năng] Hệ thống Chế tạo Nâng cao:**
+  - **Vật phẩm Thay thế (Substitutes):** Hệ thống chế tạo giờ đây thông minh hơn. Nếu thiếu một nguyên liệu chính, nó sẽ tự động tìm kiếm các vật phẩm thay thế trong kho đồ của người chơi. Ví dụ, nếu công thức cần `Lõi Gỗ` nhưng bạn không có, hệ thống có thể sử dụng `Cành Cây Chắc Chắn` thay thế, nhưng có thể làm giảm tỷ lệ thành công.
+  - **Yêu cầu Công cụ:** Một số công thức giờ đây yêu cầu người chơi phải có một công cụ cụ thể (ví dụ: `Đá Mài`) trong hành trang để thực hiện (công cụ không bị tiêu hao).
+  - Giao diện người dùng được cập nhật để hiển thị rõ ràng các vật phẩm thay thế đang được sử dụng và các công cụ cần thiết.
+- **✨ [Tính năng] Hệ thống Trang bị Hoàn chỉnh:**
+  - Người chơi giờ đây có thể trang bị và tháo vũ khí, áo giáp, và phụ kiện.
+  - Các chỉ số từ trang bị (`Tấn công vật lý`, `Sát thương phép`, `Tỷ lệ chí mạng`, v.v.) sẽ được cộng trực tiếp vào chỉ số của nhân vật.
+  - Giao diện `Trạng thái` và `Hành trang` được cập nhật để hiển thị và quản lý trang bị một cách trực quan.
+- **✨ [Tính năng] Hướng dẫn Mod Toàn diện:**
+  - Tệp `README.md` đã được đại tu hoàn toàn với một phần hướng dẫn modding chi tiết, giải thích rõ ràng cách thêm vật phẩm, công thức, và sinh vật, kèm theo các ví dụ mã cụ thể và giải thích về từng trường dữ liệu.
+- **✨ [Tính năng] Cải tiến Nội dung:**
+  - Thêm một loạt các vật phẩm, nguyên liệu, và trang bị cao cấp mới để tạo thêm thử thách và phần thưởng cho giai đoạn cuối game.
+  - Bổ sung các công thức chế tạo tương ứng cho các vật phẩm cao cấp mới.
+- **🐛 [Sửa lỗi] Giao diện Người dùng:**
+  - Khắc phục triệt để lỗi tooltip trong cửa sổ Hành trang bị tràn ra khỏi màn hình bằng cách đảm bảo nó luôn được hiển thị trong khung nhìn.
+  - Sửa lỗi logic hiển thị khiến nút "Trang bị" không xuất hiện cho các vật phẩm không có hiệu ứng sử dụng.
+- **🏗️ [Tái cấu trúc] Mã nguồn:**
+  - Tách hook `useGameEngine` thành `useGameActions` (chuyên xử lý hành động) và `useGameState` (chuyên quản lý trạng thái), giúp mã nguồn trở nên gọn gàng, dễ bảo trì và mở rộng hơn.
+  - Chuẩn hóa và tổ chức lại các định nghĩa dữ liệu cốt lõi (Item, Recipe, Skill, Creature, v.v.) vào thư mục `src/lib/game/definitions/` để có cấu trúc dự án rõ ràng.
 
 ### Phiên bản 0.1.1 (10/07/2025, 9:04 SA)
 
@@ -298,3 +418,5 @@ Hệ thống sẽ tự động kiểm tra các tệp mod của bạn. Nếu có 
 - **🐛 [Sửa lỗi] Cải thiện Logic Game:**
   - Sửa lỗi thuật toán tạo thế giới, đảm bảo các quần xã sinh vật (biome) được tạo ra một cách logic và tuân thủ các quy tắc về "hàng xóm" (ví dụ: tuyết không thể nằm cạnh bãi biển).
   - Khắc phục lỗi `ChunkLoadError` bằng cách thay đổi chiến lược lưu cache, đảm bảo người chơi luôn nhận được phiên bản mới nhất của ứng dụng.
+
+    

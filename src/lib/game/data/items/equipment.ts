@@ -82,4 +82,12 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         equipmentSlot: 'weapon',
         attributes: { physicalAttack: 15, critChance: 10, attackSpeed: -0.2 },
     },
+     'Thuyền Phao': {
+        description: 'item_inflatable_raft_desc',
+        tier: 3,
+        category: 'Equipment',
+        emoji: '🛶',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
 };

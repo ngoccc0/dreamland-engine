@@ -20,7 +20,7 @@ import { playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillToo
 import { generateNewQuest } from './generate-new-quest';
 import { generateLegendaryQuest } from './generate-legendary-quest-flow';
 import { generateNewItem } from './generate-new-item';
-import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
+import { itemDefinitions as staticItemDefinitions } from '@/lib/game/data/items';
 import type { AiModel, NarrativeLength } from '@/lib/game/types';
 
 

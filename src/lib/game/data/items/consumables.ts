@@ -113,15 +113,6 @@ export const consumableItems: Record<string, ItemDefinition> = {
         effects: [{ type: 'RESTORE_STAMINA', amount: 10 }],
         baseQuantity: { min: 2, max: 5 }
     },
-    'Bình Nước Cũ': {
-        description: 'item_binh_nuoc_cu_desc',
-        tier: 1,
-        category: 'Support',
-        subCategory: 'Potion',
-        emoji: '💧',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 25 }],
-        baseQuantity: { min: 1, max: 1 }
-    },
     'Hoa Xương Rồng': {
         description: 'item_hoa_xuong_rong_desc',
         tier: 1,
@@ -149,14 +140,6 @@ export const consumableItems: Record<string, ItemDefinition> = {
         effects: [{ type: 'RESTORE_STAMINA', amount: 50 }],
         baseQuantity: { min: 1, max: 2 }
     },
-    'Tuyết': {
-        description: 'item_tuyet_desc',
-        tier: 1,
-        category: 'Support',
-        emoji: '❄️',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
-        baseQuantity: { min: 1, max: 3 }
-    },
     'Quả Lạ': {
         description: 'item_qua_la_desc',
         tier: 2,
@@ -166,25 +149,17 @@ export const consumableItems: Record<string, ItemDefinition> = {
         effects: [{ type: 'RESTORE_STAMINA', amount: 15 }],
         baseQuantity: { min: 1, max: 3 }
     },
-    'Thảo Dược Chữa Lành': {
-        description: 'item_thao_duoc_chua_lanh_desc',
-        tier: 2,
-        category: 'Support',
-        subCategory: 'Potion',
-        emoji: '🌿',
-        effects: [{ type: 'HEAL', amount: 20 }],
-        baseQuantity: { min: 1, max: 2 },
-        growthConditions: {
-            optimal: { moisture: { min: 6, max: 8 }, temperature: { min: 5, max: 8 }, lightLevel: { min: 2, max: 6 } },
-            subOptimal: { moisture: { min: 4, max: 5 }, temperature: { min: 3, max: 4 } }
-        }
-    },
-     'Nước Ngầm': {
-        description: 'item_nuoc_ngam_desc',
+     'Cây Xương Rồng Nhỏ': {
+        description: 'item_cay_xuong_rong_nho_desc',
         tier: 1,
-        category: 'Support',
-        emoji: '💧',
-        effects: [{ type: 'HEAL', amount: 5 }, { type: 'RESTORE_STAMINA', amount: 10 }],
-        baseQuantity: { min: 1, max: 1 }
+        category: 'Food',
+        subCategory: 'Vegetable',
+        emoji: '🌵',
+        effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
+        baseQuantity: { min: 1, max: 3 },
+        growthConditions: {
+            optimal: { temperature: { min: 8 }, moisture: { max: 1 } },
+            subOptimal: { temperature: { min: 6, max: 7 }, moisture: { min: 2, max: 3 } }
+        }
     },
 };

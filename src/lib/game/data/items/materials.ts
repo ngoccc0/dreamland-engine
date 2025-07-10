@@ -89,14 +89,6 @@ export const materialItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
-    'Chìa Khóa Rỉ Sét': {
-        description: 'item_chia_khoa_ri_set_desc',
-        tier: 2,
-        category: 'Data',
-        emoji: '🗝️',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
-    },
     'Nanh Sói': {
         description: 'item_nanh_soi_desc',
         tier: 2,
@@ -126,14 +118,6 @@ export const materialItems: Record<string, ItemDefinition> = {
         tier: 2,
         category: 'Material',
         emoji: '🐗',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
-    },
-    'Tai Yêu Tinh': {
-        description: 'item_tai_yeu_tinh_desc',
-        tier: 2,
-        category: 'Data',
-        emoji: '👂',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
@@ -201,14 +185,6 @@ export const materialItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 2, max: 5 }
     },
-    'Cát Ma Thuật': {
-        description: 'item_cat_ma_thuat_desc',
-        tier: 4,
-        category: 'Magic',
-        emoji: '✨',
-        effects: [],
-        baseQuantity: { min: 1, max: 2 }
-    },
     'Chất nhờn của Đỉa': {
         description: 'item_chat_nhon_cua_dia_desc',
         tier: 2,
@@ -216,14 +192,6 @@ export const materialItems: Record<string, ItemDefinition> = {
         emoji: '💧',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
-    },
-    'Tinh chất Ma trơi': {
-        description: 'item_tinh_chat_ma_troi_desc',
-        tier: 4,
-        category: 'Magic',
-        emoji: '💡',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
     },
     'Da Cá Sấu': {
         description: 'item_da_ca_sau_desc',
@@ -256,14 +224,6 @@ export const materialItems: Record<string, ItemDefinition> = {
         emoji: '🐐',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
-    },
-    'Lõi Người Đá': {
-        description: 'item_loi_nguoi_da_desc',
-        tier: 5,
-        category: 'Energy Source',
-        emoji: '💖',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
     },
     'Lông Harpie': {
         description: 'item_long_harpie_desc',
@@ -341,18 +301,6 @@ export const materialItems: Record<string, ItemDefinition> = {
         emoji: '🏹',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
-    },
-    'Hoa Tinh Linh': {
-        description: 'item_hoa_tinh_linh_desc',
-        tier: 4,
-        category: 'Magic',
-        emoji: '🌸',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 },
-        growthConditions: {
-            optimal: { magicAffinity: { min: 7 } },
-            subOptimal: { magicAffinity: { min: 5, max: 6 } }
-        }
     },
      'Rễ Cây Hiếm': {
         description: 'item_re_cay_hiem_desc',
@@ -434,14 +382,6 @@ export const materialItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 4 }
     },
-    'Mảnh Gốm Cổ': {
-        description: 'item_manh_gom_co_desc',
-        tier: 2,
-        category: 'Data',
-        emoji: '🏺',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
-    },
     'Xương Động Vật': {
         description: 'item_xuong_dong_vat_desc',
         tier: 1,
@@ -465,19 +405,6 @@ export const materialItems: Record<string, ItemDefinition> = {
         emoji: '☠️',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
-    },
-    'Cây Xương Rồng Nhỏ': {
-        description: 'item_cay_xuong_rong_nho_desc',
-        tier: 1,
-        category: 'Food',
-        subCategory: 'Vegetable',
-        emoji: '🌵',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
-        baseQuantity: { min: 1, max: 3 },
-        growthConditions: {
-            optimal: { temperature: { min: 8 }, moisture: { max: 1 } },
-            subOptimal: { temperature: { min: 6, max: 7 }, moisture: { min: 2, max: 3 } }
-        }
     },
     'Thủy tinh sa mạc': {
         description: 'item_thuy_tinh_sa_mac_desc',
@@ -548,32 +475,6 @@ export const materialItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
-    'Pha Lê Núi': {
-        description: 'item_pha_le_nui_desc',
-        tier: 4,
-        category: 'Magic',
-        emoji: '💎',
-        effects: [],
-        baseQuantity: { min: 1, max: 2 }
-    },
-    'Cây Thuốc Núi': {
-        description: 'item_cay_thuoc_nui_desc',
-        tier: 3,
-        category: 'Support',
-        subCategory: 'Potion',
-        emoji: '🌿',
-        effects: [{ type: 'HEAL', amount: 50 }],
-        baseQuantity: { min: 1, max: 1 }
-    },
-    'Trứng Griffon': {
-        description: 'item_trung_griffon_desc',
-        tier: 6,
-        category: 'Data',
-        subCategory: 'Misc',
-        emoji: '🥚',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
-    },
     'Đá Vỏ Chai': {
         description: 'item_da_vo_chai_desc',
         tier: 3,
@@ -597,22 +498,6 @@ export const materialItems: Record<string, ItemDefinition> = {
         emoji: '🌿',
         effects: [],
         baseQuantity: { min: 2, max: 4 }
-    },
-    'Mảnh Tinh Thể': {
-        description: 'item_manh_tinh_the_desc',
-        tier: 2,
-        category: 'Magic',
-        emoji: '💎',
-        effects: [],
-        baseQuantity: { min: 2, max: 7 }
-    },
-    'Bản Đồ Cổ': {
-        description: 'item_ban_do_co_desc',
-        tier: 3,
-        category: 'Data',
-        emoji: '🗺️',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
     },
     'Xương Cổ': {
         description: 'item_xuong_co_desc',
@@ -716,14 +601,6 @@ export const materialItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 3 }
     },
-    'Trái tim Magma': {
-        description: 'item_trai_tim_magma_desc',
-        tier: 5,
-        category: 'Energy Source',
-        emoji: '❤️‍🔥',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
-    },
     'Tro núi lửa': {
         description: 'item_tro_nui_lua_desc',
         tier: 1,
@@ -731,5 +608,109 @@ export const materialItems: Record<string, ItemDefinition> = {
         emoji: '🌋',
         effects: [],
         baseQuantity: { min: 1, max: 5 }
+    },
+    // --- Data ---
+    'Chìa Khóa Rỉ Sét': {
+        description: 'item_chia_khoa_ri_set_desc',
+        tier: 2,
+        category: 'Data',
+        emoji: '🗝️',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Tai Yêu Tinh': {
+        description: 'item_tai_yeu_tinh_desc',
+        tier: 2,
+        category: 'Data',
+        emoji: '👂',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Mảnh Gốm Cổ': {
+        description: 'item_manh_gom_co_desc',
+        tier: 2,
+        category: 'Data',
+        emoji: '🏺',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+     'Trứng Griffon': {
+        description: 'item_trung_griffon_desc',
+        tier: 6,
+        category: 'Data',
+        subCategory: 'Misc',
+        emoji: '🥚',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Bản Đồ Cổ': {
+        description: 'item_ban_do_co_desc',
+        tier: 3,
+        category: 'Data',
+        emoji: '🗺️',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    // --- Magic ---
+    'Cát Ma Thuật': {
+        description: 'item_cat_ma_thuat_desc',
+        tier: 4,
+        category: 'Magic',
+        emoji: '✨',
+        effects: [],
+        baseQuantity: { min: 1, max: 2 }
+    },
+    'Tinh chất Ma trơi': {
+        description: 'item_tinh_chat_ma_troi_desc',
+        tier: 4,
+        category: 'Magic',
+        emoji: '💡',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+     'Hoa Tinh Linh': {
+        description: 'item_hoa_tinh_linh_desc',
+        tier: 4,
+        category: 'Magic',
+        emoji: '🌸',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 },
+        growthConditions: {
+            optimal: { magicAffinity: { min: 7 } },
+            subOptimal: { magicAffinity: { min: 5, max: 6 } }
+        }
+    },
+    'Pha Lê Núi': {
+        description: 'item_pha_le_nui_desc',
+        tier: 4,
+        category: 'Magic',
+        emoji: '💎',
+        effects: [],
+        baseQuantity: { min: 1, max: 2 }
+    },
+     'Mảnh Tinh Thể': {
+        description: 'item_manh_tinh_the_desc',
+        tier: 2,
+        category: 'Magic',
+        emoji: '💎',
+        effects: [],
+        baseQuantity: { min: 2, max: 7 }
+    },
+    // --- Energy Source ---
+    'Lõi Người Đá': {
+        description: 'item_loi_nguoi_da_desc',
+        tier: 5,
+        category: 'Energy Source',
+        emoji: '💖',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Trái tim Magma': {
+        description: 'item_trai_tim_magma_desc',
+        tier: 5,
+        category: 'Energy Source',
+        emoji: '❤️‍🔥',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
     },
 };

@@ -1,7 +1,7 @@
+
 import type { TranslationKey } from "../i18n";
-import type { ItemDefinition, ItemEffect, GeneratedItem } from "./definitions/item";
-import type { Recipe } from "./definitions/recipe";
-import type { StructureDefinition } from "./definitions/structure";
+import type { ItemDefinition, ItemEffect, GeneratedItem, RecipeIngredient, Recipe, StructureDefinition } from "./definitions";
+
 
 // Re-export for easier access elsewhere
 export type { ItemDefinition, ItemEffect, GeneratedItem, Recipe, StructureDefinition };
@@ -15,7 +15,7 @@ export interface Region {
 export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave" | "jungle" | "volcanic" | "wall" | "floptropica" | "tundra" | "beach" | "mesa" | "mushroom_forest" | "ocean" | "city" | "space_station" | "underwater";
 export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky' | 'metal';
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
-export type ItemCategory = 'Weapon' | 'Material' | 'Energy Source' | 'Food' | 'Data' | 'Tool' | 'Equipment' | 'Support' | 'Magic' | 'Fusion' | 'Consumable' | 'Utility' | 'Armor';
+export type ItemCategory = 'Weapon' | 'Material' | 'Energy Source' | 'Food' | 'Data' | 'Tool' | 'Equipment' | 'Support' | 'Magic' | 'Fusion' | 'Consumable' | 'Utility' | 'Armor' | 'Potion' | 'Misc';
 export type PlayerPersona = 'none' | 'explorer' | 'warrior' | 'artisan';
 export type GameMode = 'ai' | 'offline';
 export type DiceType = 'd20' | 'd12' | '2d6';
@@ -111,11 +111,11 @@ export interface Pet {
 export interface PlayerAttributes {
     physicalAttack?: number;
     magicalAttack?: number;
+    physicalDefense?: number;
+    magicalDefense?: number;
     critChance?: number;
     attackSpeed?: number;
     cooldownReduction?: number;
-    physicalDefense?: number;
-    magicalDefense?: number;
 }
 
 export interface Npc {
@@ -163,6 +163,25 @@ export interface Action {
   textKey: TranslationKey;
   params?: Record<string, string | number>;
 }
+
+// Helper type for defining spawn conditions for an entity
+export interface SpawnConditions {
+    chance?: number;
+    vegetationDensity?: { min?: number, max?: number };
+    moisture?: { min?: number, max?: number };
+    elevation?: { min?: number, max?: number };
+    dangerLevel?: { min?: number, max?: number };
+    magicAffinity?: { min?: number, max?: number };
+    humanPresence?: { min?: number, max?: number };
+    predatorPresence?: { min?: number, max?: number };
+    lightLevel?: { min?: number, max?: number };
+    temperature?: { min?: number, max?: number };
+    soilType?: SoilType[];
+    timeOfDay?: 'day' | 'night';
+    visibility?: { min?: number, max?: number };
+    humidity?: { min?: number, max?: number };
+};
+
 
 // This represents the detailed properties of a single tile/chunk in the world.
 export interface Chunk {
@@ -258,24 +277,6 @@ export interface PlayerBehaviorProfile {
     customActions: number;
 }
 
-// Helper type for defining spawn conditions for an entity
-export interface SpawnConditions {
-    chance?: number;
-    vegetationDensity?: { min?: number, max?: number };
-    moisture?: { min?: number, max?: number };
-    elevation?: { min?: number, max?: number };
-    dangerLevel?: { min?: number, max?: number };
-    magicAffinity?: { min?: number, max?: number };
-    humanPresence?: { min?: number, max?: number };
-    predatorPresence?: { min?: number, max?: number };
-    lightLevel?: { min?: number, max?: number };
-    temperature?: { min?: number, max?: number };
-    soilType?: SoilType[];
-    timeOfDay?: 'day' | 'night';
-    visibility?: { min?: number, max?: number };
-    humidity?: { min?: number, max?: number };
-};
-
 export type NarrativeEntry = {
     id: number;
     text: string;
@@ -302,7 +303,7 @@ export interface CraftingOutcome {
     hasRequiredTool: boolean;
     ingredientsToConsume: { name: string; quantity: number }[];
     resolvedIngredients: {
-        requirement: import('./definitions/recipe').RecipeIngredient;
+        requirement: RecipeIngredient;
         usedItem: { name: string; tier: number } | null; // which item was chosen
         isSubstitute: boolean;
         hasEnough: boolean; // if enough of *any* valid item is available for this slot
@@ -360,6 +361,27 @@ export interface RandomEvent {
   };
 }
 
+
+export interface BiomeDefinition {
+    minSize: number;
+    maxSize: number;
+    travelCost: number;
+    spreadWeight: number;
+    allowedNeighbors: Terrain[];
+    defaultValueRanges: {
+        vegetationDensity: { min: number, max: number };
+        moisture: { min: number, max: number };
+        elevation: { min: number, max: number };
+        dangerLevel: { min: number, max: number };
+        magicAffinity: { min: number, max: number };
+        humanPresence: { min: number, max: number };
+        predatorPresence: { min: number, max: number };
+        temperature: { min: number, max: number };
+    };
+    soilType: SoilType[];
+}
+
+
 // --- MODDING ---
 export interface EnemySpawn {
     data: Omit<NonNullable<Chunk['enemy']>, 'type'> & { type: string };
@@ -373,3 +395,14 @@ export interface ModBundle {
     enemies?: Partial<Record<Terrain, EnemySpawn[]>>;
     // Future modding capabilities can be added here
     // biomes?: Record<string
+}
+
+// This is the structure a modder uses to define new content.
+// It's a superset of ModBundle, meant for local development with full typing.
+export interface ModDefinition {
+    id: string;
+    items?: Record<string, ItemDefinition>;
+    recipes?: Record<string, Recipe>;
+    enemies?: Partial<Record<Terrain, EnemySpawn[]>>;
+    structures?: Record<string, StructureDefinition>;
+}

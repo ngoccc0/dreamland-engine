@@ -1,5 +1,5 @@
+
 import {z} from 'zod';
-import type { TranslationKey } from '@/lib/i18n';
 
 export const StructureDefinitionSchema = z.object({
     name: z.object({ en: z.string(), vi: z.string() }).describe("The multilingual name of the structure."),
@@ -13,4 +13,3 @@ export const StructureDefinitionSchema = z.object({
 });
 
 export type StructureDefinition = z.infer<typeof StructureDefinitionSchema>;
-```

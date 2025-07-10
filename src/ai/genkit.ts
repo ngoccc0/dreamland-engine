@@ -3,7 +3,7 @@ import 'dotenv/config';
 import {genkit, Plugin} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 import {openAI} from 'genkitx-openai';
-import {deepseek} from './plugins/deepseek';
+import {deepseekPlugin} from './plugins/deepseek';
 
 /**
  * This file configures the Genkit AI object.
@@ -49,9 +49,8 @@ if (process.env.OPENAI_API_KEY) {
   );
 }
 
-// The deepseek plugin object is pushed directly.
-// Its internal `configure` method handles the API key check.
-plugins.push(deepseek);
+// The deepseek plugin is now called as a function, which is the standard pattern.
+plugins.push(deepseekPlugin());
 
 
 export const ai = genkit({

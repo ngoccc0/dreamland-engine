@@ -83,8 +83,8 @@ async function deepseekGenerate(
   };
 }
 
-// The plugin definition, exported as a direct object.
-export const deepseek: Plugin = {
+// The plugin definition, now exported as a function.
+export const deepseekPlugin = (): Plugin => ({
   name: 'genkit-plugin-custom-deepseek',
   configure: (config) => {
     const apiKey = process.env.DEEPSEEK_API_KEY;
@@ -101,4 +101,4 @@ export const deepseek: Plugin = {
       (request) => deepseekGenerate(request, apiKey)
     );
   },
-};
+});

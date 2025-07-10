@@ -23,7 +23,7 @@ export const ItemCategorySchema = z.enum([
     'Magic', 
     'Data', 
     'Fusion',
-    'Potion'
+    'Energy Source',
 ]).describe("The category of the item.");
 
 export const ItemEffectSchema = z.object({

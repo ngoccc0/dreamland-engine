@@ -1,6 +1,6 @@
 import type { ItemDefinition } from "../../types";
 
-export const consumableItems: Record<string, ItemDefinition> = {
+export const foodItems: Record<string, ItemDefinition> = {
     'Thịt Sói Sống': {
         description: 'item_thit_soi_song_desc',
         tier: 1,
@@ -161,5 +161,14 @@ export const consumableItems: Record<string, ItemDefinition> = {
             optimal: { temperature: { min: 8 }, moisture: { max: 1 } },
             subOptimal: { temperature: { min: 6, max: 7 }, moisture: { min: 2, max: 3 } }
         }
+    },
+    'Bình Nước Cũ': {
+        description: 'item_binh_nuoc_cu_desc',
+        tier: 1,
+        category: 'Food',
+        subCategory: 'Misc',
+        emoji: '💧',
+        effects: [{ type: 'RESTORE_STAMINA', amount: 25 }],
+        baseQuantity: { min: 1, max: 1 }
     },
 };

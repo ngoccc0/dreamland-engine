@@ -22,6 +22,7 @@ import { generateLegendaryQuest } from './generate-legendary-quest-flow';
 import { generateNewItem } from './generate-new-item';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/data/items';
 import type { AiModel, NarrativeLength } from '@/lib/game/types';
+import { itemSensoryDB_en, itemSensoryDB_vi, enemySensoryDB_en, enemySensoryDB_vi } from '@/lib/game/data/sensory-database';
 
 
 // == STEP 1: DEFINE THE INPUT SCHEMA ==
@@ -100,6 +101,7 @@ You MUST use the detailed 'Current Environment' context to make your description
     -   **Vegetation & Terrain (\`vegetationDensity\`, \`explorability\`):** Describe the environment. Is it an "impenetrably dense jungle where every step is a struggle" (low explorability), or "wide-open plains easy to traverse" (high explorability)?
     -   **Presence & Danger (\`dangerLevel\`, \`humanPresence\`, \`predatorPresence\`):** Create atmosphere. Does the place feel "ominously silent" (high danger), or can you see "the faint remnants of an old campfire" (human presence)? Does it feel "teeming with unseen predators"?
     -   **Magic (\`magicAffinity\`):** Is there a "faint hum of magical energy in the air," or does it feel "strangely mundane and inert"?
+    -   **Items, Enemies, and NPCs:** When describing the scene, integrate the items, enemies, and NPCs present. Use the provided **Sensory Databases** to add rich detail. For example, instead of "You see a Poisonous Mushroom," describe it as "You spot a menacing, dark purple mushroom with strange green spots, emitting a pungent odor of decay and sulfur."
 
 -   **Creative Actions:** When the player performs a creative action (e.g., "I listen carefully"), use these attributes to determine the narrative result. A high \`dangerLevel\` might mean they hear a twig snap behind them. High \`vegetationDensity\` might mean they can't see far.
 
@@ -110,6 +112,8 @@ You MUST use the detailed 'Current Environment' context to make your description
 -   **Current Environment:** {{json currentChunk}}
 -   **Surrounding Area (3x3 grid):** {{#if surroundingChunks}}{{json surroundingChunks}}{{else}}Not provided.{{/if}}
 -   **Recent Events:** {{json recentNarrative}}
+-   **Item Sensory Database:** {{json itemSensoryDB}}
+-   **Enemy Sensory Database:** {{json enemySensoryDB}}
 
 **Your Response:** Based on ALL the context and rules above, especially the Dynamic Narration Guidelines, generate the narrative and an optional system message in the required JSON format.
 `;
@@ -141,6 +145,16 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
         'googleai/gemini-1.5-pro',
     ];
     const uniqueModelsToTry = [...new Set(modelsToTry)];
+
+    // Select the correct sensory database based on language
+    const itemSensoryDB = input.language === 'vi' ? itemSensoryDB_vi : itemSensoryDB_en;
+    const enemySensoryDB = input.language === 'vi' ? enemySensoryDB_vi : enemySensoryDB_en;
+
+    const fullInput = {
+        ...input,
+        itemSensoryDB,
+        enemySensoryDB
+    };
     
     let llmResponse;
     let lastError: any;
@@ -151,7 +165,7 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
             llmResponse = await ai.generate({
                 model: model,
                 prompt: narrativePromptTemplate,
-                input: input,
+                input: fullInput,
                 output: { schema: AINarrativeResponseSchema },
                 tools: [playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool, completeQuestTool, startQuestTool],
             });

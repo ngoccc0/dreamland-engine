@@ -1,11 +1,13 @@
-import { consumableItems } from "./consumables";
+import { foodItems } from "./food";
 import { equipmentItems } from "./equipment";
 import { materialItems } from "./materials";
 import { toolItems } from "./tools";
+import { supportItems } from "./support";
 
 export const itemDefinitions = {
-    ...consumableItems,
+    ...foodItems,
     ...equipmentItems,
     ...materialItems,
-    ...toolItems
+    ...toolItems,
+    ...supportItems,
 };

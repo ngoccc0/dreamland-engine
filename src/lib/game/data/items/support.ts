@@ -14,7 +14,7 @@ export const supportItems: Record<string, ItemDefinition> = {
         description: 'item_thao_duoc_chua_lanh_desc',
         tier: 2,
         category: 'Support',
-        subCategory: 'Potion',
+        subCategory: 'Misc',
         emoji: '🌿',
         effects: [{ type: 'HEAL', amount: 20 }],
         baseQuantity: { min: 1, max: 2 },
@@ -43,7 +43,7 @@ export const supportItems: Record<string, ItemDefinition> = {
         description: 'item_cay_thuoc_nui_desc',
         tier: 3,
         category: 'Support',
-        subCategory: 'Potion',
+        subCategory: 'Misc',
         emoji: '🌿',
         effects: [{ type: 'HEAL', amount: 50 }],
         baseQuantity: { min: 1, max: 1 }
@@ -72,15 +72,6 @@ export const supportItems: Record<string, ItemDefinition> = {
         subCategory: 'Potion',
         emoji: '🥤',
         effects: [{ type: 'RESTORE_STAMINA', amount: 70 }],
-        baseQuantity: { min: 1, max: 1 }
-    },
-    'Bình Nước Cũ': {
-        description: 'item_binh_nuoc_cu_desc',
-        tier: 1,
-        category: 'Support',
-        subCategory: 'Potion',
-        emoji: '💧',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 25 }],
         baseQuantity: { min: 1, max: 1 }
     },
 };

@@ -1,5 +1,7 @@
 
 import {z} from 'genkit';
+import type { ZodType } from 'zod';
+import type { Terrain, Season } from '../types'; // Import types for validation
 
 // Defines a range for environmental conditions, e.g., moisture: { min: 5, max: 8 }.
 const ConditionRangeSchema = z.object({
@@ -24,6 +26,8 @@ export const SpawnConditionsSchema = z.object({
   visibility: ConditionRangeSchema.optional(),
   humidity: ConditionRangeSchema.optional(),
 }).describe("A set of environmental conditions that must be met for spawning.");
+export type SpawnConditions = z.infer<typeof SpawnConditionsSchema>;
+
 
 // Defines the combat attributes that can be applied to a player or an item.
 export const PlayerAttributesSchema = z.object({
@@ -44,3 +48,23 @@ export const ItemCategorySchema = z.enum([
     'Data', 'Tool', 'Utility',
     'Magic', 'Fusion', 'Misc'
 ]).describe("The primary category of the item.");
+
+
+// Defines a multilingual string object.
+export const MultilingualTextSchema = z.object({
+  en: z.string(),
+  vi: z.string(),
+});
+export type MultilingualText = z.infer<typeof MultilingualTextSchema>;
+
+
+// Defines the loot dropped by an entity (creature, harvestable node, etc.).
+export const LootDropSchema = z.object({
+  name: z.string().describe("The unique ID of the item to drop."),
+  chance: z.number().min(0).max(1).describe("The probability of this item dropping (0 to 1)."),
+  quantity: z.object({
+    min: z.number().int().min(1),
+    max: z.number().int().min(1),
+  }).describe("The range of quantities that can drop."),
+});
+export type LootDrop = z.infer<typeof LootDropSchema>;

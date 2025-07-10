@@ -1,10 +1,30 @@
 
 import type { TranslationKey } from "../i18n";
-import type { ItemDefinition, ItemEffect, GeneratedItem, RecipeIngredient, Recipe, StructureDefinition } from "./definitions";
+import type { 
+    ItemDefinition, 
+    ItemEffect, 
+    Recipe, 
+    StructureDefinition,
+    BiomeDefinition,
+    WeatherDefinition,
+    RandomEventDefinition,
+    LootDrop,
+    SpawnConditions,
+} from "./definitions";
 
 
 // Re-export for easier access elsewhere
-export type { ItemDefinition, ItemEffect, GeneratedItem, Recipe, StructureDefinition };
+export type { 
+    ItemDefinition, 
+    ItemEffect, 
+    Recipe, 
+    StructureDefinition,
+    BiomeDefinition,
+    WeatherDefinition,
+    RandomEventDefinition,
+    LootDrop,
+    SpawnConditions,
+};
 
 // Represents a contiguous region of a single biome.
 export interface Region {
@@ -28,21 +48,9 @@ export type FontSize = 'sm' | 'base' | 'lg';
 export type Theme = 'light' | 'dark';
 
 
-// --- NEW WEATHER SYSTEM TYPES ---
-
-export interface WeatherState {
-  name: TranslationKey;
-  description: TranslationKey;
-  biome_affinity: Terrain[];
-  season_affinity: Season[];
-  temperature_delta: number;
-  moisture_delta: number;
-  wind_delta: number;
-  light_delta: number;
-  spawnWeight: number; // How likely this weather is to be chosen
-  exclusive_tags: string[]; // e.g., ["rain", "storm"]. Prevents illogical combinations.
-  duration_range: [number, number]; // in game ticks
-}
+// --- WEATHER SYSTEM TYPES ---
+// WeatherState is now an instance of a WeatherDefinition
+export type WeatherState = WeatherDefinition;
 
 export interface WeatherZone {
   id: string; // Typically the regionId
@@ -89,7 +97,7 @@ export interface GameSettings {
 
 export interface ChunkItem {
     name: string;
-    description: string;
+    description: TranslationKey; // Now a key
     quantity: number;
     tier: number;
     emoji: string;
@@ -146,16 +154,11 @@ export interface Skill {
 }
 
 // Represents a structure in the world (natural or player-built)
-export interface Structure {
-    name: TranslationKey;
-    description: TranslationKey;
-    emoji: string;
-    providesShelter?: boolean;
-    buildable?: boolean;
-    buildCost?: { name: string; quantity: number }[];
-    restEffect?: { hp: number; stamina: number };
-    heatValue?: number;
+// This is now an instance of a StructureDefinition
+export interface Structure extends StructureDefinition {
+    // any instance-specific state could go here in the future
 }
+
 
 // Represents a contextual action available in a chunk
 export interface Action {
@@ -163,24 +166,6 @@ export interface Action {
   textKey: TranslationKey;
   params?: Record<string, string | number>;
 }
-
-// Helper type for defining spawn conditions for an entity
-export interface SpawnConditions {
-    chance?: number;
-    vegetationDensity?: { min?: number, max?: number };
-    moisture?: { min?: number, max?: number };
-    elevation?: { min?: number, max?: number };
-    dangerLevel?: { min?: number, max?: number };
-    magicAffinity?: { min?: number, max?: number };
-    humanPresence?: { min?: number, max?: number };
-    predatorPresence?: { min?: number, max?: number };
-    lightLevel?: { min?: number, max?: number };
-    temperature?: { min?: number, max?: number };
-    soilType?: SoilType[];
-    timeOfDay?: 'day' | 'night';
-    visibility?: { min?: number, max?: number };
-    humidity?: { min?: number, max?: number };
-};
 
 
 // This represents the detailed properties of a single tile/chunk in the world.
@@ -200,14 +185,14 @@ export interface Chunk {
         damage: number;
         behavior: 'aggressive' | 'passive' | 'defensive' | 'territorial' | 'immobile' | 'ambush';
         size: 'small' | 'medium' | 'large';
-        diet: string[]; // e.g., ['Thỏ hoang hung dữ', 'Quả Mọng Ăn Được']
+        diet: string[]; // e.g., ['Thịt hoang hung dữ', 'Quả Mọng Ăn Được']
         satiation: number; // Current food level
         maxSatiation: number; // How much food it needs to be "full"
         emoji: string;
         harvestable?: { // For resources like trees
             difficulty: number;
             requiredTool: string;
-            loot: { name: string; chance: number; quantity: { min: number; max: number } }[];
+            loot: LootDrop[];
         };
         senseEffect?: { keywords: string[] };
     } | null;
@@ -289,21 +274,21 @@ export interface WorldConcept {
   worldName: string;
   initialNarrative: string;
   startingBiome: Terrain;
-  customItemCatalog: GeneratedItem[];
-  customStructures: Structure[];
+  customItemCatalog: ItemDefinition[];
+  customStructures: StructureDefinition[];
   playerInventory: { name: string; quantity: number }[];
   initialQuests: string[];
   startingSkill: Skill;
 }
 
-// This represents the detailed result of checking a recipe, for use in the UI.
+// Represents the detailed result of checking a recipe, for use in the UI.
 export interface CraftingOutcome {
     canCraft: boolean;
     chance: number;
     hasRequiredTool: boolean;
     ingredientsToConsume: { name: string; quantity: number }[];
     resolvedIngredients: {
-        requirement: RecipeIngredient;
+        requirement: {name: string, quantity: number};
         usedItem: { name: string; tier: number } | null; // which item was chosen
         isSubstitute: boolean;
         hasEnough: boolean; // if enough of *any* valid item is available for this slot
@@ -327,8 +312,8 @@ export interface GameState {
     narrativeLog: NarrativeEntry[];
     worldSetup: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog' | 'customStructures'> & { playerInventory: PlayerItem[], startingSkill: Skill, customStructures: Structure[] };
     customItemDefinitions: Record<string, ItemDefinition>;
-    customItemCatalog: GeneratedItem[];
-    customStructures: Structure[];
+    customItemCatalog: ItemDefinition[];
+    customStructures: StructureDefinition[];
     weatherZones: { [zoneId: string]: WeatherZone };
     gameTime: number; // In-game minutes from 0 to 1439
     day: number;
@@ -336,73 +321,18 @@ export interface GameState {
 }
 
 // --- RANDOM EVENT SYSTEM ---
-
-export interface EventOutcome {
-  descriptionKey: import('../i18n').TranslationKey;
-  effects: {
-    hpChange?: number;
-    staminaChange?: number;
-    manaChange?: number;
-    items?: { name: string; quantity: number }[];
-    spawnEnemy?: { type: string; hp: number; damage: number };
-    unlockRecipe?: string;
-  };
-}
-
-export interface RandomEvent {
-  id: import('../i18n').TranslationKey; // The ID is also the translation key for the event name
-  theme: GameTheme;
-  difficulty: 'easy' | 'medium' | 'hard';
-  chance?: number;
-  // A function to check if this event can trigger in the current context
-  canTrigger: (chunk: Chunk, playerStats: PlayerStatus, season: Season) => boolean;
-  outcomes: {
-    [key in import('./dice').SuccessLevel]?: EventOutcome;
-  };
-}
-
-
-export interface BiomeDefinition {
-    minSize: number;
-    maxSize: number;
-    travelCost: number;
-    spreadWeight: number;
-    allowedNeighbors: Terrain[];
-    defaultValueRanges: {
-        vegetationDensity: { min: number, max: number };
-        moisture: { min: number, max: number };
-        elevation: { min: number, max: number };
-        dangerLevel: { min: number, max: number };
-        magicAffinity: { min: number, max: number };
-        humanPresence: { min: number, max: number };
-        predatorPresence: { min: number, max: number };
-        temperature: { min: number, max: number };
-    };
-    soilType: SoilType[];
-}
+// This is an instance of a RandomEventDefinition
+export type RandomEvent = RandomEventDefinition;
 
 
 // --- MODDING ---
-export interface EnemySpawn {
-    data: Omit<NonNullable<Chunk['enemy']>, 'type'> & { type: string };
-    conditions: SpawnConditions;
-}
-
+// This is now the definitive structure for a mod file.
 export interface ModBundle {
-    id: string;
-    items?: Record<string, Omit<ItemDefinition, 'id' | 'name' | 'description'> & { name: {en: string, vi: string}, description: {en: string, vi: string} }>;
-    recipes?: Record<string, Omit<Recipe, 'id' | 'description' | 'result'> & { result: { itemId: string, quantity: number}, description: {en: string, vi: string} }>;
-    enemies?: Partial<Record<Terrain, EnemySpawn[]>>;
-    // Future modding capabilities can be added here
-    // biomes?: Record<string
-}
-
-// This is the structure a modder uses to define new content.
-// It's a superset of ModBundle, meant for local development with full typing.
-export interface ModDefinition {
     id: string;
     items?: Record<string, ItemDefinition>;
     recipes?: Record<string, Recipe>;
-    enemies?: Partial<Record<Terrain, EnemySpawn[]>>;
     structures?: Record<string, StructureDefinition>;
+    biomes?: Record<string, BiomeDefinition>;
+    events?: Record<string, RandomEventDefinition>;
+    weather?: Record<string, WeatherDefinition>;
 }

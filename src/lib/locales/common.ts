@@ -73,10 +73,11 @@ export const commonTranslations = {
     floptropica: 'Floptropica',
     wall: 'Wall',
     dayX: "Day {day}",
-    none: 'None',
+    none: 'Undetermined',
     explorer: 'Explorer',
     warrior: 'Warrior',
     artisan: 'Artisan',
+    personaLabel: "Personality",
   },
   vi: {
     gameTitle: "Dreamland Engine",
@@ -149,9 +150,10 @@ export const commonTranslations = {
     floptropica: 'Floptropica',
     wall: 'Tường',
     dayX: "Ngày {day}",
-    none: 'Không có',
+    none: 'Chưa xác định',
     explorer: 'Nhà thám hiểm',
     warrior: 'Chiến binh',
     artisan: 'Nghệ nhân',
+    personaLabel: "Tính cách",
   }
 };

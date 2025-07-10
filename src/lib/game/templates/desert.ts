@@ -2,7 +2,7 @@
 export const desert_vi = {
     descriptionTemplates: {
         short: [
-            "Một sa mạc [adjective] bao la với những [feature] trải dài.",
+            "Bạn đang ở giữa một sa mạc [adjective] bao la với những [feature] trải dài.",
         ],
         medium: [
             "Cái nóng của sa mạc [adjective] thật khắc nghiệt. Không khí có mùi của [smell] và bạn nghe thấy tiếng [sound] của gió.",
@@ -10,13 +10,13 @@ export const desert_vi = {
         ],
         long: [
             "Cát, cát và cát. Một sa mạc [adjective] vô tận. Những [feature] là cảnh tượng duy nhất phá vỡ sự đơn điệu. Bạn thấy một ảo ảnh ở phía xa, lung linh trong cái nóng.",
-            "Mặt đất nứt nẻ vì khô hạn dưới bầu trời [sky] không một gợn mây. Không khí có mùi của [smell] và bạn nghe thấy tiếng [sound] của gió rít qua tai, một bài ca của sự cô độc.",
+            "Mặt đất nứt nẻ vì khô hạn dưới bầu trời [sky]. Không khí có mùi của [smell] và bạn nghe thấy tiếng [sound] rít qua tai, một bài ca của sự cô độc.",
         ]
     },
     adjectives: ['nóng bỏng', 'khô cằn', 'vô tận', 'lặng im', 'gió cát', 'khắc nghiệt'],
     features: ['cồn cát', 'ốc đảo', 'xương rồng khổng lồ', 'bộ xương cũ', 'tàn tích đá', 'vực sâu'],
     sounds: ['gió rít', 'sự im lặng tuyệt đối', 'tiếng rắn trườn', 'tiếng cát chảy', 'tiếng kền kền kêu'],
-    smells: ['cát nóng', 'không có gì', 'mùi ozon', 'xác khô', 'lưu huỳnh'],
+    smells: ['cát nóng', 'không có gì', 'ozon', 'xác khô', 'lưu huỳnh'],
     sky: ['xanh ngắt', 'không gợn mây', 'đầy sao'],
     NPCs: [
         { 
@@ -50,7 +50,7 @@ export const desert_vi = {
 export const desert_en = {
     descriptionTemplates: {
         short: [
-            "A vast, [adjective] desert with sprawling [feature].",
+            "You are in a vast, [adjective] desert with sprawling [feature].",
         ],
         medium: [
             "The heat of the [adjective] desert is oppressive. The air smells of [smell] and you hear the [sound] of the wind.",
@@ -58,7 +58,7 @@ export const desert_en = {
         ],
         long: [
             "Sand, sand, and more sand. An endless, [adjective] desert. The only break in the monotony are the [feature]. You see a mirage in the distance, shimmering in the heat.",
-            "The ground is cracked and dry under a cloudless [sky] sky. The air smells of hot [smell] and you hear the [sound] of the wind whistling past your ears, a song of solitude.",
+            "The ground is cracked and dry under a cloudless [sky]. The air smells of hot [smell] and you hear the [sound] of the wind whistling past your ears, a song of solitude.",
         ]
     },
     adjectives: ['scorching', 'arid', 'endless', 'silent', 'windswept', 'harsh'],

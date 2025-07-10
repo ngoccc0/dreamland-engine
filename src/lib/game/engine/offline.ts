@@ -117,20 +117,21 @@ export const generateOfflineNarrative = (
         return chunk.description || "You are in an unknown area.";
     }
 
-    let templateSet = biomeTemplateData.descriptionTemplates[narrativeLength] || biomeTemplateData.descriptionTemplates.medium;
-    if (narrativeLength === 'long' && !templateSet) templateSet = biomeTemplateData.descriptionTemplates.medium;
-    if (!templateSet) templateSet = biomeTemplateData.descriptionTemplates.short;
-    let baseTemplate = Array.isArray(templateSet) ? templateSet[Math.floor(Math.random() * templateSet.length)] : templateSet;
+    // --- REFACTORED LOGIC ---
+    let narrativeParts: string[] = [];
 
-    const populatedTemplate = baseTemplate
+    // 1. Get the base description
+    const templateSet = biomeTemplateData.descriptionTemplates[narrativeLength] || biomeTemplateData.descriptionTemplates.short;
+    let baseTemplate = Array.isArray(templateSet) ? templateSet[Math.floor(Math.random() * templateSet.length)] : templateSet;
+    const baseDescription = baseTemplate
         .replace(/\[adjective\]/g, () => biomeTemplateData.adjectives[Math.floor(Math.random() * biomeTemplateData.adjectives.length)])
         .replace(/\[feature\]/g, () => biomeTemplateData.features[Math.floor(Math.random() * biomeTemplateData.features.length)])
         .replace(/\[smell\]/g, () => biomeTemplateData.smells[Math.floor(Math.random() * biomeTemplateData.smells.length)])
         .replace(/\[sound\]/g, () => biomeTemplateData.sounds[Math.floor(Math.random() * biomeTemplateData.sounds.length)])
         .replace(/\[sky\]/g, () => biomeTemplateData.sky ? biomeTemplateData.sky[Math.floor(Math.random() * biomeTemplateData.sky.length)] : '');
-
-    let finalNarrativeParts: string[] = [populatedTemplate];
-
+    narrativeParts.push(baseDescription);
+    
+    // 2. Add sensory details based on conditions
     const sensoryDetailsParts: string[] = [];
     if (chunk.explorability < 3) sensoryDetailsParts.push(t('offline_explorability_low'));
     if (chunk.dangerLevel > 8) sensoryDetailsParts.push(t('offline_danger_high'));
@@ -141,18 +142,26 @@ export const generateOfflineNarrative = (
     if (chunk.lightLevel && chunk.lightLevel <= -5) sensoryDetailsParts.push(t('sensoryFeedback_dark'));
     if (chunk.humanPresence > 5) sensoryDetailsParts.push(t('offline_human_presence'));
     if (chunk.predatorPresence > 7) sensoryDetailsParts.push(t('offline_predator_presence'));
-    if (sensoryDetailsParts.length > 0) finalNarrativeParts.push(sensoryDetailsParts.join(' '));
+    if (sensoryDetailsParts.length > 0) {
+        narrativeParts.push(sensoryDetailsParts.join(' '));
+    }
 
-    const entityDetailsParts: string[] = [];
+    // 3. Add entity reports if they exist
     if (chunk.items.length > 0) {
         const itemsHere = chunk.items.map(i => `${i.quantity} ${t(i.name as TranslationKey)}`).join(', ');
-        entityDetailsParts.push(t('offlineNarrativeItems', { items: itemsHere }));
+        narrativeParts.push(t('offlineNarrativeItems', { items: itemsHere }));
     }
-    if (chunk.enemy) entityDetailsParts.push(t('offlineNarrativeEnemy', { enemy: t(chunk.enemy.type as TranslationKey) }));
-    if (chunk.NPCs.length > 0) entityDetailsParts.push(t('offlineNarrativeNPC', { npc: t(chunk.NPCs[0].name as TranslationKey) }));
-    if (chunk.structures.length > 0) entityDetailsParts.push(t('offlineNarrativeStructure', { structure: t(chunk.structures[0].name as TranslationKey) }));
-    if (entityDetailsParts.length > 0) finalNarrativeParts.push(entityDetailsParts.join(' '));
+    if (chunk.enemy) {
+        narrativeParts.push(t('offlineNarrativeEnemy', { enemy: t(chunk.enemy.type as TranslationKey) }));
+    }
+    if (chunk.NPCs.length > 0) {
+        narrativeParts.push(t('offlineNarrativeNPC', { npc: t(chunk.NPCs[0].name as TranslationKey) }));
+    }
+    if (chunk.structures.length > 0) {
+        narrativeParts.push(t('offlineNarrativeStructure', { structure: t(chunk.structures[0].name as TranslationKey) }));
+    }
 
+    // 4. Add surrounding peek details
     if (narrativeLength !== 'short') {
         const surroundingPeekParts: string[] = [];
         const directions = [{ x: 0, y: 1, dir: 'North' }, { x: 0, y: -1, dir: 'South' }, { x: 1, y: 0, dir: 'East' }, { x: -1, y: 0, dir: 'West' }];
@@ -168,12 +177,14 @@ export const generateOfflineNarrative = (
             }
         }
         if (surroundingPeekParts.length > 0) {
-            finalNarrativeParts.push(t('offlineNarrativeSurroundings') + ' ' + surroundingPeekParts.join('. '));
+            narrativeParts.push(t('offlineNarrativeSurroundings') + ' ' + surroundingPeekParts.join('. '));
         }
     }
     
-    return finalNarrativeParts.join(' ').replace(/\s{2,}/g, ' ').trim();
+    // 5. Join all parts into a final narrative string.
+    return narrativeParts.join(' ').replace(/\s{2,}/g, ' ').trim();
 };
+
 
 export const generateOfflineActionNarrative = (
     actionType: 'attack' | 'useSkill' | 'useItem',

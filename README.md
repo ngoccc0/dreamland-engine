@@ -1,162 +1,166 @@
-
 # Dreamland Engine - Ký Sự Lãng Du
 
 Chào mừng bạn đến với **Dreamland Engine**, một game phiêu lưu text-based được kiến tạo bởi trí tuệ nhân tạo. Tại đây, mỗi quyết định, mỗi hành động của bạn không chỉ định hình nên nhân vật mà còn cả một thế giới sống động, luôn biến đổi và đầy bất ngờ.
 
-## 🚀 Các Cơ Chế Cốt Lõi
+## ✨ Tính Năng Nổi Bật
 
-Dreamland Engine được xây dựng trên nền tảng các cơ chế phức tạp và độc đáo, mang lại trải nghiệm không giới hạn.
-
-### 1. Người Kể Chuyện AI & Chế Độ Chơi
-
-- **AI Storyteller (Mặc định):** Trái tim của trò chơi. Một AI tiên tiến sẽ đóng vai trò người quản trò (Game Master), tường thuật lại hành trình của bạn một cách sống động, sáng tạo và phản ứng linh hoạt với mọi hành động, dù là nhỏ nhất. Bạn có thể chọn các "Tính cách" AI khác nhau trong phần Cài đặt để thay đổi phong cách tường thuật.
-- **Offline Mode:** Dành cho những ai yêu thích trải nghiệm cổ điển. Chế độ này sử dụng các quy tắc được lập trình sẵn, cho phép bạn chơi ngay cả khi không có kết nối internet. Bạn có thể chuyển đổi giữa hai chế độ trong phần Cài đặt.
-
-### 2. Kiến Tạo Thế Giới Đa Tác Nhân
-
-Thay vì dựa vào một AI duy nhất, quá trình tạo thế giới được phân chia cho một đội ngũ các "chuyên gia" AI, mỗi người một nhiệm vụ, hoạt động song song để mang lại kết quả tối ưu:
-- **Bậc thầy Chế tác:** Sáng tạo ra danh mục vật phẩm độc đáo.
-- **Nhà thơ Đặt tên:** Brainstorm các tên thế giới sáng tạo.
-- **Người kể chuyện Khởi đầu:** Viết nên những cốt truyện mở đầu hấp dẫn.
-
-### 3. Hệ Thống Xúc Xắc & Chiến Đấu
-
-Mọi hành động quan trọng đều được quyết định bằng một lần gieo xúc xắc (D20, D12, hoặc 2D6 tùy bạn chọn). Kết quả được chia thành 5 cấp độ, ảnh hưởng trực tiếp đến hậu quả:
-- **Thất bại Thảm hại (Critical Failure):** Đòn đánh của bạn không chỉ trượt mà còn có thể gây hại cho chính bạn.
-- **Thất bại (Failure):** Hành động không thành công.
-- **Thành công (Success):** Hành động thành công với kết quả cơ bản.
-- **Thành công Lớn (Great Success):** Kết quả tốt hơn mong đợi (ví dụ: gây thêm 50% sát thương).
-- **Thành công Xuất sắc (Critical Success):** Kết quả vượt trội, có thể kèm theo hiệu ứng đặc biệt (ví dụ: gây gấp đôi sát thương, khiến kẻ địch yếu bỏ chạy).
-
-### 4. Hệ Thống Sinh Tồn
-
-- **Chỉ số cơ bản:** Quản lý Máu (HP), Năng lượng (Mana) cho kỹ năng, và Thể lực (Stamina) cho các hành động thể chất. Thể lực và Mana sẽ tự hồi phục từ từ.
-- **Thân nhiệt:** Cơ thể bạn luôn cố gắng duy trì ở 37°C. Môi trường (nắng gắt, tuyết rơi) và các công trình (lửa trại) sẽ ảnh hưởng đến thân nhiệt. Nếu quá nóng hoặc quá lạnh, thể lực và máu của bạn sẽ bị ảnh hưởng.
-
-### 5. Chế Tạo, Xây Dựng & Hợp Nhất
-
-- **Chế tạo (Crafting):** Thu thập nguyên liệu và kết hợp chúng theo các công thức có sẵn (hoặc do AI tự tạo ra trong quá trình chơi) để tạo ra công cụ và vật phẩm mới.
-- **Xây dựng (Building):** Dựng nên các công trình từ Lửa trại để sưởi ấm đến Nhà trú ẩn để nghỉ ngơi hồi phục.
-- **Hợp nhất (Fusion):** Một hệ thống thử nghiệm đầy rủi ro. Kết hợp 2-3 vật phẩm bất kỳ để xem điều gì sẽ xảy ra. Kết quả phụ thuộc vào nguyên liệu, môi trường, và một chút may mắn.
-
-### 6. Hệ Thống Tính Cách (Player Persona)
-
-Trò chơi sẽ âm thầm phân tích hành động của bạn. Nếu bạn chiến đấu nhiều, bạn sẽ dần trở thành **Chiến binh (Warrior)** và nhận thưởng về sát thương. Khám phá nhiều sẽ biến bạn thành **Nhà thám hiểm (Explorer)**, di chuyển hiệu quả hơn. Chế tạo nhiều sẽ giúp bạn thành một **Nghệ nhân (Artisan)** với các lợi thế riêng.
-
-## ✨ Thế Giới Sống (Living World)
-
-Thế giới của Dreamland Engine không tĩnh tại. Nó sống và thở thông qua các hệ thống mô phỏng phức tạp chạy ngầm, tạo ra một trải nghiệm luôn luôn biến đổi.
-- **Thời tiết động:** Mỗi vùng có hệ thống thời tiết riêng, ảnh hưởng đến nhiệt độ, tầm nhìn, và cả gameplay.
-- **Hệ sinh thái tài nguyên:** Tài nguyên như cây cỏ có thể tự sinh sôi trong điều kiện thuận lợi hoặc lụi tàn nếu môi trường trở nên khắc nghiệt.
-- **Vòng đời sinh vật:** Các sinh vật sẽ tự di chuyển để tìm thức ăn theo chế độ ăn của chúng, và thậm chí có thể sinh sản nếu được ăn no, tạo ra một hệ sinh thái luôn biến động.
-
----
-
-## 📖 Nội Dung Trò Chơi
-
-Thế giới của Dreamland Engine vô cùng rộng lớn và đa dạng.
-
-### Các Môi Trường (Biomes)
-
-Trò chơi có 8 loại môi trường chính, mỗi loại có hệ sinh thái, tài nguyên và kẻ địch riêng:
-- Rừng (Forest)
-- Đồng cỏ (Grassland)
-- Sa mạc (Desert)
-- Đầm lầy (Swamp)
-- Núi (Mountain)
-- Hang động (Cave)
-- Rừng rậm (Jungle)
-- Núi lửa (Volcanic)
-
-### Sinh Vật (Creatures)
-
-| Tên | Máu (HP) | Sát thương | Hành vi | Kích cỡ |
-| :--- | :--- | :--- | :--- | :--- |
-| Sói | 30 | 10 | Hung hãn | Vừa |
-| Nhện khổng lồ | 40 | 15 | Lãnh thổ | Vừa |
-| Heo Rừng | 50 | 8 | Phòng thủ | Vừa |
-| Yêu Tinh Rừng | 25 | 8 | Hung hãn | Nhỏ |
-| Gấu | 80 | 20 | Lãnh thổ | Lớn |
-| Thỏ hoang hung dữ | 20 | 5 | Phòng thủ | Nhỏ |
-| Cáo gian xảo | 25 | 8 | Lãnh thổ | Nhỏ |
-| Bầy châu chấu | 35 | 5 | Hung hãn | Nhỏ |
-| Linh cẩu | 40 | 12 | Hung hãn | Vừa |
-| Rắn đuôi chuông | 30 | 15 | Phòng thủ | Nhỏ |
-| Bọ cạp khổng lồ | 50 | 10 | Lãnh thổ | Vừa |
-| Kền kền | 25 | 8 | Thụ động | Vừa |
-| Linh hồn cát | 60 | 12 | Lãnh thổ | Vừa |
-| Đỉa khổng lồ | 40 | 5 | Hung hãn | Nhỏ |
-| Ma trơi | 25 | 20 | Lãnh thổ | Nhỏ |
-| Cá sấu | 70 | 25 | Lãnh thổ | Lớn |
-| Muỗi khổng lồ | 15 | 5 | Hung hãn | Nhỏ |
-| Dê núi hung hãn | 50 | 15 | Phòng thủ | Vừa |
-| Người đá | 80 | 10 | Phòng thủ | Lớn |
-| Harpie | 45 | 18 | Hung hãn | Vừa |
-| Báo tuyết | 60 | 20 | Hung hãn | Lớn |
-| Dơi khổng lồ | 25 | 10 | Thụ động | Nhỏ |
-| Nhện hang | 45 | 15 | Lãnh thổ | Vừa |
-| Slime | 30 | 8 | Thụ động | Nhỏ |
-| Sâu Bò Khổng Lồ | 100 | 20 | Phòng thủ | Lớn |
-| Trăn khổng lồ | 90 | 18 | Lãnh thổ | Lớn |
-| Báo đốm | 70 | 22 | Hung hãn | Lớn |
-| Khỉ đột | 80 | 20 | Phòng thủ | Lớn |
-| Salamander lửa | 50 | 15 | Lãnh thổ | Vừa |
-| Golem dung nham | 120 | 25 | Phòng thủ | Lớn |
-| Rồng lửa con | 150 | 30 | Hung hãn | Lớn |
-
-### Kỹ Năng (Skills)
-
-| Tên | Cấp | Mana | Hiệu ứng |
-| :--- | :--- | :--- | :--- |
-| Hồi Máu | 1 | 20 | Hồi 25 máu cho bản thân. |
-| Quả Cầu Lửa | 1 | 15 | Gây 15 sát thương phép lên kẻ địch. |
-| Hút Sinh Lực | 2 | 30 | Gây 25 sát thương phép và hồi máu bằng 50% sát thương gây ra. |
-| Sét Chuỗi | 2 | 25 | Gây 30 sát thương phép lên kẻ địch. |
-| Dịch Chuyển | 3 | 40 | Dịch chuyển tức thời đến một vị trí gần. |
-
-### Vật Phẩm (Items)
-
-Đây là danh sách một phần các vật phẩm bạn có thể tìm thấy hoặc chế tạo. Thế giới luôn có thể tạo ra những vật phẩm mới!
-
-| Tên | Cấp | Loại | Tác dụng |
-| :--- | :--- | :--- | :--- |
-| **--- Nguyên liệu Cơ bản ---** |
-| Sỏi | 1 | Nguyên liệu | Vật liệu chế tạo cơ bản. |
-| Đá Cuội | 1 | Nguyên liệu | Vật liệu chế tạo cơ bản. |
-| Cành Cây Chắc Chắn | 1 | Nguyên liệu | Dùng để chế tạo công cụ và vũ khí. |
-| Dây Gai | 1 | Nguyên liệu | Dùng để buộc, chế tạo. |
-| Lõi Gỗ | 2 | Nguyên liệu | Vật liệu cao cấp hơn cành cây. |
-| Quặng Sắt | 2 | Nguyên liệu | Dùng để rèn kim loại. |
-| **--- Công cụ ---** |
-| Rìu Đá Đơn Giản | 1 | Công cụ | Dùng để chặt cây. |
-| Đá Lửa | 1 | Công cụ | Dùng để nhóm lửa. |
-| Bó Đuốc | 1 | Công cụ | Cung cấp ánh sáng. |
-| Đá Mài | 2 | Công cụ | Dùng để chế tạo. |
-| **--- Vật phẩm Hỗ trợ ---** |
-| Thảo Dược Chữa Lành | 2 | Hỗ trợ | Hồi 20 máu khi sử dụng. |
-| Thuốc Máu Yếu | 1 | Hỗ trợ | Hồi 35 máu khi sử dụng. |
-| Bình Nước Cũ | 1 | Hỗ trợ | Hồi 25 thể lực. |
-| **--- Thức ăn ---** |
-| Quả Mọng Ăn Được | 1 | Thức ăn | Hồi 15 thể lực. |
-| Thịt Sói Sống | 1 | Thức ăn | Hồi 5 thể lực. |
-| Thịt Heo Rừng | 2 | Thức ăn | Hồi 20 thể lực. |
-| ...và rất nhiều vật phẩm khác | | | |
+- **Người Kể Chuyện AI & Chế Độ Offline:** Lựa chọn giữa một AI kể chuyện sáng tạo hoặc một chế độ offline dựa trên quy tắc.
+- **Kiến Tạo Thế Giới Đa Tác Nhân:** Một đội ngũ "chuyên gia" AI cùng nhau tạo ra thế giới độc đáo cho bạn.
+- **Thế Giới Sống:** Hệ sinh thái, thời tiết, và tài nguyên luôn biến đổi.
+- **Hệ Thống Sinh Tồn & Chế Tạo Sâu Sắc:** Quản lý chỉ số, thân nhiệt, chế tạo công cụ, xây dựng nơi trú ẩn và thử nghiệm hợp nhất vật phẩm.
+- **Hệ Thống Mod Linh Hoạt:** Dễ dàng thêm nội dung mới vào game thông qua các gói mod dạng JSON.
 
 ---
 
 ## 🎮 Cách Chơi
 
-1.  **Tạo thế giới:** Mô tả ý tưởng của bạn và để AI kiến tạo nên các phiên bản thế giới độc đáo.
-2.  **Lựa chọn & Kết hợp:** Chọn các yếu tố bạn thích nhất từ các phiên bản để tạo ra thế giới cuối cùng của riêng bạn.
-3.  **Khám phá:** Sử dụng các nút mũi tên để di chuyển và khám phá thế giới xung quanh.
+1.  **Tạo thế giới:** Mô tả ý tưởng của bạn hoặc chọn một kịch bản có sẵn.
+2.  **Lựa chọn & Kết hợp:** Trộn lẫn các yếu tố bạn thích từ các phiên bản AI đề xuất để tạo ra thế giới cuối cùng.
+3.  **Khám phá:** Sử dụng các nút mũi tên hoặc phím `W,A,S,D` để di chuyển.
 4.  **Tương tác:** Sử dụng các nút hành động theo ngữ cảnh hoặc nhập bất kỳ hành động nào bạn muốn vào ô văn bản. Hãy sáng tạo! AI sẽ diễn giải và phản hồi lại.
 5.  **Sinh tồn:** Để mắt đến các chỉ số, chế tạo công cụ, xây dựng nơi trú ẩn và chiến đấu để tồn tại.
 
-## ✨ Cài đặt Ứng Dụng (PWA)
+---
 
-Dreamland Engine là một Progressive Web App (PWA). Bạn có thể "cài đặt" trò chơi này lên màn hình chính của máy tính hoặc điện thoại để có trải nghiệm toàn màn hình, không bị phân tâm và truy cập nhanh chóng hơn. Hãy tìm nút cài đặt trong phần Cài đặt của trò chơi!
+## 🛠️ Hướng Dẫn Modding (Cơ bản)
 
-## ☁️ Lưu trữ Đám mây
+Dreamland Engine được thiết kế với khả năng tùy biến cao. Bạn có thể dễ dàng thêm vật phẩm, công thức, và sinh vật mới vào game mà không cần sửa đổi mã nguồn.
 
-Đăng nhập bằng tài khoản Google của bạn để tự động lưu tiến trình chơi game lên đám mây. Bạn có thể tiếp tục cuộc phiêu lưu của mình trên bất kỳ thiết bị nào.
+### Cấu trúc cơ bản của một Gói Mod
 
+Một gói mod (ModBundle) là một đối tượng JSON duy nhất chứa tất cả nội dung bạn muốn thêm vào.
+
+**Ví dụ cấu trúc `ModBundle` (Dạng TypeScript để tham khảo):**
+
+```typescript
+// file: my_awesome_mod.ts (Để phát triển với type-checking)
+import type { ModBundle } from './src/lib/game/types'; // Import các định nghĩa
+
+export const myMod: ModBundle = {
+  id: "my_awesome_mod", // ID duy nhất cho mod của bạn
+  items: {
+    // ... định nghĩa các vật phẩm ở đây
+  },
+  recipes: {
+    // ... định nghĩa các công thức ở đây
+  },
+  enemies: {
+    // ... định nghĩa các kẻ địch ở đây
+  },
+};
+```
+
+**Cách sử dụng:**
+1.  Viết mod của bạn trong một tệp `.ts` (ví dụ: `my_awesome_mod.ts`) để tận dụng type-checking.
+2.  Sau khi hoàn thành, sao chép đối tượng JSON từ `myMod` (không bao gồm `export const myMod =`).
+3.  Vào game, mở **Cài đặt (Settings)** -> **Tab Mods**.
+4.  Dán mã JSON của bạn vào ô văn bản và nhấn **"Apply Mods"**.
+
+### 1. Thêm Vật phẩm mới (`items`)
+
+Mỗi vật phẩm được định nghĩa là một đối tượng trong `items`.
+
+**Cấu trúc `ItemDefinition`:**
+
+| Thuộc tính         | Kiểu dữ liệu                                       | Bắt buộc? | Mô tả                                                                                              |
+| ------------------ | -------------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------- |
+| `name`             | `{ en: string, vi: string }`                       | **Có**    | Tên hiển thị đa ngôn ngữ của vật phẩm.                                                              |
+| `description`      | `{ en: string, vi: string }`                       | **Có**    | Mô tả đa ngôn ngữ.                                                                                  |
+| `tier`             | `number`                                           | **Có**    | Cấp độ của vật phẩm (1-6), ảnh hưởng đến độ hiếm và sức mạnh.                                         |
+| `category`         | `string` (xem danh sách bên dưới)                  | **Có**    | Loại vật phẩm.                                                                                     |
+| `emoji`            | `string`                                           | **Có**    | Một emoji duy nhất đại diện cho vật phẩm.                                                            |
+| `baseQuantity`     | `{ min: number, max: number }`                     | **Có**    | Số lượng vật phẩm thường xuất hiện khi được tạo ra trong thế giới.                                   |
+| `effects`          | `Array` của `ItemEffect`                           | **Có**    | Mảng các hiệu ứng khi sử dụng vật phẩm (có thể là mảng rỗng `[]`).                                   |
+| `equipmentSlot`    | `'weapon'`, `'armor'`, `'accessory'`               | Không     | Nếu là trang bị, nó thuộc khe nào.                                                                  |
+| `attributes`       | `PlayerAttributes`                                 | Không     | Các chỉ số cộng thêm khi trang bị.                                                                  |
+| `weight`           | `number`                                           | Không     | Trọng lượng của vật phẩm. (Hiện chỉ để tham khảo)                                                   |
+| `stackable`        | `number`                                           | Không     | Số lượng tối đa trong một ô chứa đồ. (Hiện chỉ để tham khảo)                                        |
+
+**Ví dụ: Thêm "Đá Ma Thuật"**
+
+```json
+{
+  "my_magic_stone": {
+    "name": { "en": "Magic Stone", "vi": "Đá Ma Thuật" },
+    "description": { "en": "A stone humming with faint magical energy.", "vi": "Một viên đá rung động với năng lượng ma thuật yếu." },
+    "tier": 2,
+    "category": "Magic",
+    "emoji": "💎",
+    "effects": [{ "type": "RESTORE_MANA", "amount": 10 }],
+    "baseQuantity": { "min": 1, "max": 3 }
+  }
+}
+```
+
+### 2. Thêm Công thức mới (`recipes`)
+
+Mỗi công thức được định nghĩa là một đối tượng trong `recipes`.
+
+**Cấu trúc `Recipe`:**
+
+| Thuộc tính       | Kiểu dữ liệu                     | Bắt buộc? | Mô tả                                                               |
+| ---------------- | -------------------------------- | --------- | ------------------------------------------------------------------- |
+| `result`         | `{ itemId: string, quantity: number }` | **Có**    | ID và số lượng vật phẩm tạo ra.                                      |
+| `ingredients`    | `Array` của `RecipeIngredient`     | **Có**    | Danh sách các nguyên liệu cần thiết (từ 1 đến 5).                      |
+| `description`    | `{ en: string, vi: string }`     | **Có**    | Mô tả đa ngôn ngữ về công thức.                                      |
+| `requiredTool`   | `string` (Item ID)               | Không     | ID của công cụ cần có trong hành trang để thực hiện công thức.      |
+
+**Ví dụ: Công thức chế tạo "Đuốc"**
+
+```json
+{
+  "torch": {
+    "result": { "itemId": "torch", "quantity": 1 },
+    "description": { "en": "A simple torch to light your way.", "vi": "Một ngọn đuốc đơn giản để soi sáng đường đi." },
+    "ingredients": [
+      { "itemId": "sturdyBranch", "quantity": 1 },
+      { "itemId": "tornCloth", "quantity": 1 }
+    ],
+    "requiredTool": "flint"
+  }
+}
+```
+*Lưu ý: `itemId` phải là ID duy nhất của vật phẩm (ví dụ: `healingHerb`, không phải tên hiển thị "Healing Herb").*
+
+### 3. Thêm Kẻ địch mới (`enemies`)
+
+Kẻ địch được thêm vào một khu vực (biome) cụ thể.
+
+**Cấu trúc `EnemySpawn`:**
+
+| Thuộc tính   | Kiểu dữ liệu                 | Bắt buộc? | Mô tả                                                            |
+| ------------ | ---------------------------- | --------- | ---------------------------------------------------------------- |
+| `data`       | `object` (chi tiết kẻ địch)  | **Có**    | Chứa các thông tin như `type`, `hp`, `damage`, `loot`...            |
+| `conditions` | `SpawnConditions`            | **Có**    | Các điều kiện để kẻ địch xuất hiện (ví dụ: `chance`, `timeOfDay`). |
+
+**Ví dụ: Thêm "Quái vật Bùn" vào Đầm lầy**
+
+```json
+{
+  "swamp": [
+    {
+      "data": {
+        "type": "Mud Monster",
+        "emoji": "🧌",
+        "hp": 60,
+        "damage": 10,
+        "behavior": "territorial",
+        "size": "medium",
+        "diet": ["Fish"],
+        "satiation": 0,
+        "maxSatiation": 2,
+        "loot": [
+          { "name": "MuddyWater", "chance": 0.5, "quantity": { "min": 1, "max": 2 } }
+        ]
+      },
+      "conditions": {
+        "chance": 0.2,
+        "moisture": { "min": 8 }
+      }
+    }
+  ]
+}
+```
+
+---
+Hãy sáng tạo và làm cho thế giới của Dreamland Engine trở nên phong phú hơn

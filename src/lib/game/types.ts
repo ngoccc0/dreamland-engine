@@ -1,9 +1,10 @@
 import type { TranslationKey } from "../i18n";
-import type { ItemDefinition, ItemEffect, GeneratedItem, MultilingualText } from "./definitions/item";
+import type { ItemDefinition, ItemEffect, GeneratedItem } from "./definitions/item";
 import type { Recipe } from "./definitions/recipe";
+import type { StructureDefinition } from "./definitions/structure";
 
 // Re-export for easier access elsewhere
-export type { ItemDefinition, ItemEffect, GeneratedItem, Recipe, MultilingualText };
+export type { ItemDefinition, ItemEffect, GeneratedItem, Recipe, StructureDefinition };
 
 // Represents a contiguous region of a single biome.
 export interface Region {
@@ -30,8 +31,8 @@ export type Theme = 'light' | 'dark';
 // --- NEW WEATHER SYSTEM TYPES ---
 
 export interface WeatherState {
-  name: MultilingualText;
-  description: MultilingualText;
+  name: TranslationKey;
+  description: TranslationKey;
   biome_affinity: Terrain[];
   season_affinity: Season[];
   temperature_delta: number;
@@ -108,28 +109,28 @@ export interface Pet {
 }
 
 export interface PlayerAttributes {
-    physicalAttack: number;
-    magicalAttack: number;
-    critChance: number;
-    attackSpeed: number;
-    cooldownReduction: number;
+    physicalAttack?: number;
+    magicalAttack?: number;
+    critChance?: number;
+    attackSpeed?: number;
+    cooldownReduction?: number;
     physicalDefense?: number;
     magicalDefense?: number;
 }
 
 export interface Npc {
-    name: MultilingualText;
-    description: MultilingualText;
-    dialogueSeed: MultilingualText;
-    quest?: string;
+    name: TranslationKey;
+    description: TranslationKey;
+    dialogueSeed: TranslationKey;
+    quest?: TranslationKey;
     questItem?: { name: string; quantity: number };
     rewardItems?: PlayerItem[];
 }
 
 // Represents a skill the player can use.
 export interface Skill {
-    name: MultilingualText;
-    description: MultilingualText;
+    name: TranslationKey;
+    description: TranslationKey;
     tier: number;
     manaCost: number;
     effect: {
@@ -146,8 +147,8 @@ export interface Skill {
 
 // Represents a structure in the world (natural or player-built)
 export interface Structure {
-    name: MultilingualText;
-    description: MultilingualText;
+    name: TranslationKey;
+    description: TranslationKey;
     emoji: string;
     providesShelter?: boolean;
     buildable?: boolean;
@@ -258,7 +259,7 @@ export interface PlayerBehaviorProfile {
 }
 
 // Helper type for defining spawn conditions for an entity
-export type SpawnConditions = {
+export interface SpawnConditions {
     chance?: number;
     vegetationDensity?: { min?: number, max?: number };
     moisture?: { min?: number, max?: number };
@@ -361,16 +362,14 @@ export interface RandomEvent {
 
 // --- MODDING ---
 export interface EnemySpawn {
-    data: Chunk['enemy'];
+    data: Omit<NonNullable<Chunk['enemy']>, 'type'> & { type: string };
     conditions: SpawnConditions;
 }
 
 export interface ModBundle {
     id: string;
-    items?: Record<string, ItemDefinition>;
-    recipes?: Record<string, Recipe>;
+    items?: Record<string, Omit<ItemDefinition, 'id' | 'name' | 'description'> & { name: {en: string, vi: string}, description: {en: string, vi: string} }>;
+    recipes?: Record<string, Omit<Recipe, 'id' | 'description' | 'result'> & { result: { itemId: string, quantity: number}, description: {en: string, vi: string} }>;
     enemies?: Partial<Record<Terrain, EnemySpawn[]>>;
     // Future modding capabilities can be added here
-    // biomes?: Record<string, BiomeDefinition>;
-    // weathers?: WeatherState[];
-}
+    // biomes?: Record<string

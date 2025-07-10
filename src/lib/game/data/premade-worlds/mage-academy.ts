@@ -2,11 +2,11 @@ import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
 import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
 
 const mageAcademyItems: GeneratedItem[] = [
-    { name: 'Đũa Phép Của Học Viên', description: 'item_student_wand_desc', emoji: '🪄', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: [], equipmentSlot: 'weapon', attributes: { magicalAttack: 5 } },
+    { name: 'Đũa Phép Của Học Viên', description: 'item_student_wand_desc', emoji: '🪄', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: [], equipmentSlot: 'weapon', attributes: { physicalAttack: 0, magicalAttack: 5, critChance: 0, attackSpeed: 0, cooldownReduction: 0 } },
     { name: 'Sách Phép Cơ Bản', description: 'item_tome_of_cantrips_desc', emoji: '📕', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: [] },
     { name: 'Đá Bay', description: 'item_floatstone_desc', emoji: '☁️', category: 'Material', tier: 3, effects: [], baseQuantity: { min: 1, max: 3 }, spawnBiomes: ['mountain'] },
     { name: 'Bụi Sao', description: 'item_stardust_desc', emoji: '✨', category: 'Magic', tier: 4, effects: [], baseQuantity: { min: 1, max: 2 }, spawnBiomes: ['mountain'] },
-    { name: 'Áo Choàng Học Viện', description: 'item_academy_robe_desc', emoji: '🥋', category: 'Equipment', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: [], equipmentSlot: 'armor', attributes: { cooldownReduction: 5 } },
+    { name: 'Áo Choàng Học Viện', description: 'item_academy_robe_desc', emoji: '🥋', category: 'Equipment', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: [], equipmentSlot: 'armor', attributes: { physicalAttack: 0, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 5 } },
 ];
 
 const mageAcademyStructures: Structure[] = [

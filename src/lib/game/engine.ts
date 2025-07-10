@@ -1,6 +1,5 @@
 
 
-
 import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient, Structure, Language, Npc, CraftingOutcome, Action, ItemCategory, Skill } from "./types";
 import { seasonConfig, worldConfig } from "./world-config";
 import { getTemplates } from "./templates";
@@ -845,4 +844,7 @@ export const generateOfflineActionNarrative = (
     }
     
     // Fallback if templateKey wasn't set correctly
-    if (templateKey === 'exploreAction') return "An
+    if (templateKey === 'exploreAction') return t('customActionFail');
+    
+    return t(templateKey, replacements);
+};

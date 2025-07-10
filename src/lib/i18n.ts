@@ -646,7 +646,7 @@ export const translations = {
     skillDamageCritSuccess: "A magical CRITICAL HIT! Your {skillName} explodes violently, dealing a devastating {damage} damage to the {enemy}.",
     enemyMovedIn: "A hostile {enemy} attacks, dealing {damage} damage!",
     enemyAttacks: "The aggressive {enemy} attacks, dealing {damage} damage!",
-    customActionFail: "Your effort yields no result.",
+    customActionFail: "An unexpected result. Try a different approach.",
     customActionCritFail: "Your clumsy action costs you some stamina.",
     status: "Status",
     statusTooltip: "View health, mana, and quests.",
@@ -908,7 +908,7 @@ export const translations = {
     questCompletedTitle: "Quest Completed!",
     itemPickedUpTitle: "Item Acquired",
     pickedUpItemToast: "Added {quantity} {itemName} to inventory.",
-    pickedUpItemNarrative: [
+    itemPickedUpNarrative: [
       "You stash the {itemName} in your pack.",
       "The {itemName} has been added to your inventory.",
       "You quickly grab the {itemName} before something else does.",
@@ -1062,18 +1062,3 @@ export const translations = {
 
 export type Language = keyof typeof translations;
 export type TranslationKey = keyof (typeof translations)['en'] & keyof (typeof translations)['vi'];
-
-
-    
-
-
-
-
-
-
-
-
-
-    
-
-```

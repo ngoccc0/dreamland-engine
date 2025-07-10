@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
-import type { PlayerItem, Recipe, RecipeIngredient } from "@/lib/game/types";
+import type { PlayerItem, Recipe, RecipeIngredient, ItemDefinition } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 import { calculateCraftingOutcome, type CraftingOutcome } from "@/lib/game/engine";
 import { Hammer } from "./icons";
@@ -17,33 +17,16 @@ interface CraftingPopupProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   playerItems: PlayerItem[];
+  itemDefinitions: Record<string, ItemDefinition>;
   recipes: Record<string, Recipe>;
   onCraft: (recipe: Recipe, outcome: CraftingOutcome) => void;
 }
 
-const getPlayerQuantityForIngredient = (playerItems: PlayerItem[], ingredient: RecipeIngredient): number => {
-    let total = 0;
-    const itemNames = new Set([ingredient.name, ...(ingredient.alternatives?.map(a => a.name) || [])]);
-    itemNames.forEach(name => {
-        const playerItem = playerItems.find(pi => pi.name === name);
-        if (playerItem) {
-            total += playerItem.quantity;
-        }
-    });
-    return total;
-};
-
-export function CraftingPopup({ open, onOpenChange, playerItems, recipes, onCraft }: CraftingPopupProps) {
+export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions, recipes, onCraft }: CraftingPopupProps) {
   const { t } = useLanguage();
-  const playerItemMap = new Map(playerItems.map(item => [item.name, item.quantity]));
 
   const getTooltipContent = (ingredient: RecipeIngredient): string => {
-    let content = `${t('buildNeed')}: ${t(ingredient.name as TranslationKey)}`;
-    if (ingredient.alternatives && ingredient.alternatives.length > 0) {
-        const altStrings = ingredient.alternatives.map(alt => `${t(alt.name as TranslationKey)} (${t('tierLabel')} ${alt.tier})`);
-        content += ` (${t('orLabel')}: ${altStrings.join(', ')})`;
-    }
-    return content;
+    return `${t('buildNeed')}: ${t(ingredient.name as TranslationKey)}`;
   };
 
   return (
@@ -59,7 +42,7 @@ export function CraftingPopup({ open, onOpenChange, playerItems, recipes, onCraf
         <ScrollArea className="max-h-[65vh] pr-4">
           <div className="p-4 space-y-4">
             {Object.values(recipes).map((recipe, index) => {
-              const outcome = calculateCraftingOutcome(playerItems, recipe);
+              const outcome = calculateCraftingOutcome(playerItems, itemDefinitions, recipe);
               return (
                 <div key={index} className="p-4 border rounded-lg bg-muted/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div className="flex-grow">
@@ -69,12 +52,11 @@ export function CraftingPopup({ open, onOpenChange, playerItems, recipes, onCraf
                     </h4>
                     <p className="text-sm text-muted-foreground italic mb-2">{t(recipe.description as TranslationKey)}</p>
                     <div className="text-sm">
-                      <span className="font-semibold">{t('ingredients')}:</span>
-                      <ul className="list-disc list-inside ml-4">
+                      <div className="font-semibold mb-1">{t('ingredients')}:</div>
+                      <ul className="list-disc list-inside ml-4 space-y-1">
                         {outcome.resolvedIngredients.map((resolvedIng, i) => {
-                           const itemToShow = resolvedIng.usedItem;
                            const requirement = resolvedIng.requirement;
-                           const playerQty = getPlayerQuantityForIngredient(playerItems, requirement);
+                           const used = resolvedIng.usedItem;
 
                            let itemClass = "text-red-400";
                            if (resolvedIng.hasEnough) {
@@ -85,18 +67,27 @@ export function CraftingPopup({ open, onOpenChange, playerItems, recipes, onCraf
                             <TooltipProvider key={i}>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <li className={itemClass}>
-                                    {itemToShow ? t(itemToShow.name as TranslationKey) : t(requirement.name as TranslationKey)} ({playerQty}/{requirement.quantity})
+                                  <li className={cn(itemClass, "cursor-help")}>
+                                    {t(requirement.name as TranslationKey)} ({used.playerQuantity}/{requirement.quantity})
+                                    {resolvedIng.isSubstitute && <span className="text-xs italic"> ({t('usingLabel')} {t(used.name as TranslationKey)})</span>}
                                   </li>
                                 </TooltipTrigger>
                                 <TooltipContent>
                                   <p>{getTooltipContent(requirement)}</p>
+                                  {resolvedIng.isSubstitute && <p className="text-xs text-yellow-300">{t('substitutePenaltyWarning', { tier: used.tier})}</p>}
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
                           )
                         })}
                       </ul>
+                      {recipe.requiredTool && (
+                        <div className="mt-2 text-xs">
+                           <span className={cn("font-semibold", outcome.hasRequiredTool ? 'text-green-400' : 'text-red-400')}>
+                                {t('requiredToolLabel')}: {t(recipe.requiredTool as TranslationKey)} ({outcome.hasRequiredTool ? t('hasToolLabel') : t('missingToolLabel')})
+                           </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <TooltipProvider>

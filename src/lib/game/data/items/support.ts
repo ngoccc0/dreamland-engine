@@ -1,6 +1,14 @@
 import type { ItemDefinition } from "../../types";
 
 export const supportItems: Record<string, ItemDefinition> = {
+    'Nước Ngầm': {
+        description: 'item_nuoc_ngam_desc',
+        tier: 1,
+        category: 'Support',
+        emoji: '💧',
+        effects: [{ type: 'HEAL', amount: 5 }, { type: 'RESTORE_STAMINA', amount: 10 }],
+        baseQuantity: { min: 1, max: 1 }
+    },
     'Thuốc Máu Yếu': {
         description: 'item_thuoc_mau_yeu_desc',
         tier: 1,
@@ -18,18 +26,6 @@ export const supportItems: Record<string, ItemDefinition> = {
         emoji: '🌿',
         effects: [{ type: 'HEAL', amount: 20 }],
         baseQuantity: { min: 1, max: 2 },
-        growthConditions: {
-            optimal: { moisture: { min: 6, max: 8 }, temperature: { min: 5, max: 8 }, lightLevel: { min: 2, max: 6 } },
-            subOptimal: { moisture: { min: 4, max: 5 }, temperature: { min: 3, max: 4 } }
-        }
-    },
-    'Nước Ngầm': {
-        description: 'item_nuoc_ngam_desc',
-        tier: 1,
-        category: 'Support',
-        emoji: '💧',
-        effects: [{ type: 'HEAL', amount: 5 }, { type: 'RESTORE_STAMINA', amount: 10 }],
-        baseQuantity: { min: 1, max: 1 }
     },
     'Tuyết': {
         description: 'item_tuyet_desc',

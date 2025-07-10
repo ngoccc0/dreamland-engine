@@ -1,6 +1,43 @@
 import type { ItemDefinition } from "../../types";
 
 export const materialItems: Record<string, ItemDefinition> = {
+    'Cành Cây Chắc Chắn': {
+        description: 'item_canh_cay_chac_chan_desc',
+        tier: 1,
+        category: 'Material',
+        emoji: '🪵',
+        effects: [],
+        baseQuantity: { min: 1, max: 2 },
+        relationship: { substituteFor: 'Lõi Gỗ', tier: 2 }
+    },
+    'Mảnh Xương': {
+        description: 'item_manh_xuong_desc',
+        tier: 1,
+        category: 'Material',
+        emoji: '🦴',
+        effects: [],
+        baseQuantity: { min: 1, max: 4 },
+        relationship: { substituteFor: 'Lõi Gỗ', tier: 3 }
+    },
+     'Da Thú Nhỏ': {
+        description: 'item_da_thu_nho_desc',
+        tier: 1,
+        category: 'Material',
+        subCategory: 'Loot',
+        emoji: '🩹',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 },
+        relationship: { substituteFor: 'Dây Gai', tier: 2 }
+    },
+    'Mảnh Vải Rách': {
+        description: 'item_manh_vai_rach_desc',
+        tier: 1,
+        category: 'Material',
+        emoji: ' rags ',
+        effects: [],
+        baseQuantity: { min: 1, max: 2 },
+        relationship: { substituteFor: 'Dây Gai', tier: 3 }
+    },
     'Lá cây lớn': {
         description: 'item_la_cay_lon_desc',
         tier: 1,
@@ -41,14 +78,6 @@ export const materialItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 2, max: 6 }
     },
-    'Mảnh Xương': {
-        description: 'item_manh_xuong_desc',
-        tier: 1,
-        category: 'Material',
-        emoji: '🦴',
-        effects: [],
-        baseQuantity: { min: 1, max: 4 }
-    },
     'Dây Gai': {
         description: 'item_day_gai_desc',
         tier: 1,
@@ -56,23 +85,6 @@ export const materialItems: Record<string, ItemDefinition> = {
         emoji: '🌿',
         effects: [],
         baseQuantity: { min: 1, max: 3 }
-    },
-    'Da Thú Nhỏ': {
-        description: 'item_da_thu_nho_desc',
-        tier: 1,
-        category: 'Material',
-        subCategory: 'Loot',
-        emoji: '🩹',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
-    },
-    'Mảnh Vải Rách': {
-        description: 'item_manh_vai_rach_desc',
-        tier: 1,
-        category: 'Material',
-        emoji: ' rags ',
-        effects: [],
-        baseQuantity: { min: 1, max: 2 }
     },
     'Lõi Gỗ': {
         description: 'item_loi_go_desc',
@@ -98,7 +110,8 @@ export const materialItems: Record<string, ItemDefinition> = {
         subCategory: 'Loot',
         emoji: '🦷',
         effects: [],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        relationship: { substituteFor: 'Móng Vuốt Gấu', tier: 2 }
     },
     'Tơ Nhện Khổng lồ': {
         description: 'item_to_nhen_khong_lo_desc',
@@ -107,7 +120,8 @@ export const materialItems: Record<string, ItemDefinition> = {
         subCategory: 'Loot',
         emoji: '🕸️',
         effects: [],
-        baseQuantity: { min: 1, max: 3 }
+        baseQuantity: { min: 1, max: 3 },
+        relationship: { substituteFor: 'Dây Gai', tier: 1 }
     },
     'Mắt Nhện': {
         description: 'item_mat_nhen_desc',
@@ -125,7 +139,8 @@ export const materialItems: Record<string, ItemDefinition> = {
         subCategory: 'Loot',
         emoji: '🐗',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        relationship: { substituteFor: 'Da Gấu', tier: 2 }
     },
     'Móng Vuốt Gấu': {
         description: 'item_mong_vuot_gau_desc',
@@ -215,7 +230,8 @@ export const materialItems: Record<string, ItemDefinition> = {
         subCategory: 'Loot',
         emoji: '🐊',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        relationship: { substituteFor: 'Da Gấu', tier: 1 }
     },
     'Răng Cá Sấu': {
         description: 'item_rang_ca_sau_desc',
@@ -224,7 +240,8 @@ export const materialItems: Record<string, ItemDefinition> = {
         subCategory: 'Loot',
         emoji: '🦷',
         effects: [],
-        baseQuantity: { min: 1, max: 4 }
+        baseQuantity: { min: 1, max: 4 },
+        relationship: { substituteFor: 'Móng Vuốt Gấu', tier: 1 }
     },
     'Cánh Muỗi': {
         description: 'item_canh_muoi_desc',
@@ -306,18 +323,6 @@ export const materialItems: Record<string, ItemDefinition> = {
         emoji: '🍄',
         effects: [], // No positive effects
         baseQuantity: { min: 1, max: 3 },
-        growthConditions: {
-            optimal: { moisture: { min: 7, max: 10 }, lightLevel: { max: -2 } },
-            subOptimal: { moisture: { min: 5, max: 6 }, lightLevel: { min: -1, max: 1 } }
-        }
-    },
-    'Cành Cây Chắc Chắn': {
-        description: 'item_canh_cay_chac_chan_desc',
-        tier: 1,
-        category: 'Material',
-        emoji: '🪵',
-        effects: [],
-        baseQuantity: { min: 1, max: 2 }
     },
     'Mũi Tên Cũ': {
         description: 'item_mui_ten_cu_desc',
@@ -421,7 +426,8 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🏜️',
         effects: [],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        relationship: { substituteFor: 'Đá Cuội', tier: 2 }
     },
     'Nọc Bọ Cạp': {
         description: 'item_noc_bo_cap_desc',
@@ -446,10 +452,6 @@ export const materialItems: Record<string, ItemDefinition> = {
         emoji: '✨',
         effects: [],
         baseQuantity: { min: 1, max: 4 },
-        growthConditions: {
-            optimal: { moisture: { min: 8 }, lightLevel: { max: -5 } },
-            subOptimal: { moisture: { min: 6, max: 7 }, lightLevel: { min: -4, max: -2 } }
-        }
     },
     'Trứng Bò Sát': {
         description: 'item_trung_bo_sat_desc',
@@ -483,7 +485,8 @@ export const materialItems: Record<string, ItemDefinition> = {
         subCategory: 'Liquid',
         emoji: '💧',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        relationship: { substituteFor: 'Nước Ngầm', tier: 2 }
     },
     'Quặng Sắt': {
         description: 'item_quang_sat_desc',
@@ -517,7 +520,8 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🪨',
         effects: [],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        relationship: { substituteFor: 'Đá Cuội', tier: 1 }
     },
     'Cây Địa Y': {
         description: 'item_cay_dia_y_desc',
@@ -551,10 +555,6 @@ export const materialItems: Record<string, ItemDefinition> = {
         emoji: '🍄',
         effects: [],
         baseQuantity: { min: 2, max: 5 },
-        growthConditions: {
-            optimal: { lightLevel: { max: -6 }, moisture: { min: 7 } },
-            subOptimal: { lightLevel: { min: -5, max: -3 } }
-        }
     },
     'Túi Trứng Nhện': {
         description: 'item_tui_trung_nhen_desc',

@@ -82,8 +82,8 @@ export const ItemDefinitionSchema = BaseGameEntitySchema.extend({
     // Relational and sensory properties
     senseEffect: SenseEffectSchema.optional(),
     relationship: z.object({
-        substituteFor: z.array(z.string()).describe("A list of other item names this item can be a substitute for in crafting."),
-        level: z.enum(['full', 'partial', 'none']).describe("'full' means a perfect substitute, 'partial' might reduce crafting success chance."),
+        substituteFor: z.string().optional().describe("The name of another item that this item can be a substitute for in crafting (e.g., 'Cành Cây Chắc Chắn' can substitute for 'Lõi Gỗ')."),
+        tier: z.number().int().min(1).max(3).optional().describe("The effectiveness tier of the substitution (1=best, 3=worst). A higher tier number may result in a lower crafting success chance."),
     }).optional(),
 
     // Spawning properties

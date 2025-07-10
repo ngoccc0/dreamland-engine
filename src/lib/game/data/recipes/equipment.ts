@@ -4,34 +4,12 @@ export const equipmentRecipes: Record<string, Recipe> = {
     'Rìu Đá Đơn Giản': {
         result: { name: 'Rìu Đá Đơn Giản', quantity: 1, emoji: '🪓' },
         ingredients: [
-            { 
-                name: 'Cành Cây Chắc Chắn', 
-                quantity: 1, 
-                alternatives: [
-                    { name: 'Lõi Gỗ', tier: 1 },
-                    { name: 'Mảnh Xương', tier: 3 },
-                ] 
-            },
-            { 
-                name: 'Đá Cuội', 
-                quantity: 1, 
-                alternatives: [
-                    { name: 'Đá Lửa', tier: 1 }, 
-                    { name: 'Đá Granit', tier: 1 },
-                    { name: 'Đá Sa Thạch', tier: 2 },
-                ] 
-            },
-            { 
-                name: 'Dây Gai', 
-                quantity: 1, 
-                alternatives: [
-                    { name: 'Tơ Nhện Khổng lồ', tier: 1 },
-                    { name: 'Da Thú Nhỏ', tier: 2 },
-                    { name: 'Mảnh Vải Rách', tier: 3 },
-                ] 
-            }
+            { name: 'Lõi Gỗ', quantity: 1 },
+            { name: 'Đá Cuội', quantity: 1 },
+            { name: 'Dây Gai', quantity: 1 }
         ],
         description: 'recipe_simple_stone_axe_desc',
+        requiredTool: 'Đá Mài',
     },
     'Dao Găm Đá': {
         result: { name: 'Dao Găm Đá', quantity: 1, emoji: '🗡️' },
@@ -40,12 +18,13 @@ export const equipmentRecipes: Record<string, Recipe> = {
             { name: 'Mảnh Vải Rách', quantity: 1 }
         ],
         description: 'recipe_stone_dagger_desc',
+        requiredTool: 'Đá Mài',
     },
     'Khiên Gỗ': {
         result: { name: 'Khiên Gỗ', quantity: 1, emoji: '🛡️' },
         ingredients: [
             { name: 'Lõi Gỗ', quantity: 4 },
-            { name: 'Da Heo Rừng', quantity: 1, alternatives: [{ name: 'Da Gấu', tier: 1 }] }
+            { name: 'Da Heo Rừng', quantity: 1 }
         ],
         description: 'recipe_wooden_shield_desc',
     },
@@ -62,7 +41,7 @@ export const equipmentRecipes: Record<string, Recipe> = {
         result: { name: 'Giáo Xương', quantity: 1, emoji: '🔱' },
         ingredients: [
             { name: 'Lõi Gỗ', quantity: 1 },
-            { name: 'Nanh Sói', quantity: 1, alternatives: [{ name: 'Móng Vuốt Gấu', tier: 1 }, { name: 'Răng Cá Sấu', tier: 2 }] },
+            { name: 'Nanh Sói', quantity: 1 },
             { name: 'Dây Gai', quantity: 2 }
         ],
         description: 'recipe_bone_spear_desc',

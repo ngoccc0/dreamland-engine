@@ -4,20 +4,8 @@ export const consumableRecipes: Record<string, Recipe> = {
     'Thuốc Máu Yếu': {
         result: { name: 'Thuốc Máu Yếu', quantity: 1, emoji: '🧪' },
         ingredients: [
-            { 
-                name: 'Thảo Dược Chữa Lành', 
-                quantity: 1,
-                alternatives: [
-                    { name: 'Hoa Dại', tier: 3 }
-                ]
-            },
-            { 
-                name: 'Nước Ngầm', 
-                quantity: 1, 
-                alternatives: [
-                    { name: 'Nước Bùn', tier: 2 }
-                ] 
-            }
+            { name: 'Thảo Dược Chữa Lành', quantity: 1 },
+            { name: 'Nước Ngầm', quantity: 1 }
         ],
         description: 'recipe_weak_health_potion_desc',
     },

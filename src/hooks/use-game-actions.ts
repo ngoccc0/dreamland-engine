@@ -12,7 +12,7 @@ import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/gener
 import { fuseItems } from "@/ai/flows/fuse-items-flow";
 import { provideQuestHint } from "@/ai/flows/provide-quest-hint";
 
-import { rollDice, getSuccessLevel, successLevelToTranslationKey } from "@/lib/game/dice";
+import { rollDice, getSuccessLevel, successLevelToTranslationKey, type SuccessLevel } from "@/lib/game/dice";
 import { generateRegion, getValidAdjacentTerrains, weightedRandom, generateOfflineActionNarrative, handleSearchAction, generateOfflineNarrative } from "@/lib/game/engine";
 import { getTemplates } from '@/lib/game/templates';
 import { worldConfig } from '@/lib/game/world-config';
@@ -20,8 +20,11 @@ import { clamp } from "@/lib/utils";
 
 import type { GameState, World, PlayerStatus, Chunk, Region, PlayerItem, ItemDefinition, GeneratedItem, Recipe, Structure, Pet, ItemEffect, Terrain, PlayerPersona, EquipmentSlot, NarrativeLength, Action, PlayerAttributes, CraftingOutcome } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
+import type { useGameState } from "./use-game-state";
 
-type GameActionsProps = GameState & {
+type GameStateProps = ReturnType<typeof useGameState>;
+
+type GameActionsProps = GameStateProps & {
     addNarrativeEntry: (text: string, type: 'narrative' | 'action' | 'system') => void;
     advanceGameTime: (stats?: PlayerStatus) => Promise<void>;
     getEffectiveChunk: (baseChunk: Chunk) => Chunk;
@@ -29,6 +32,7 @@ type GameActionsProps = GameState & {
 
 export function useGameActions(props: GameActionsProps) {
     const {
+        isLoaded,
         gameSlot,
         world, setWorld,
         recipes,
@@ -158,6 +162,12 @@ export function useGameActions(props: GameActionsProps) {
                 return newWorld;
             });
             
+            if(result.newlyGeneratedItem) {
+                const newItem = result.newlyGeneratedItem;
+                setCustomItemCatalog(prev => [...prev, newItem]);
+                setCustomItemDefinitions(prev => ({ ...prev, [newItem.name]: { ...newItem }}));
+            }
+            
             advanceGameTime(finalPlayerStats);
         } catch (error: any) {
             if (error.message === 'AI_OFFLINE_FALLBACK') {
@@ -167,11 +177,12 @@ export function useGameActions(props: GameActionsProps) {
             } else {
                  console.error("AI narrative generation failed:", error);
                  toast({ title: t('error'), description: 'An unexpected error occurred with the AI storyteller.', variant: "destructive" });
+                 advanceGameTime(); // advance time even on error
             }
         } finally {
             setIsLoading(false);
         }
-    }, [settings.diceType, settings.aiModel, settings.narrativeLength, addNarrativeEntry, getEffectiveChunk, narrativeLog, language, customItemDefinitions, toast, advanceGameTime, finalWorldSetup, setIsLoading, setWorld, setPlayerStats, t, setSettings]);
+    }, [settings.diceType, settings.aiModel, settings.narrativeLength, addNarrativeEntry, getEffectiveChunk, narrativeLog, language, customItemDefinitions, toast, advanceGameTime, finalWorldSetup, setIsLoading, setWorld, setPlayerStats, t, setSettings, setCustomItemCatalog, setCustomItemDefinitions]);
     
     const handleOfflineAttack = useCallback(() => {
         const key = `${playerPosition.x},${playerPosition.y}`;
@@ -210,7 +221,10 @@ export function useGameActions(props: GameActionsProps) {
                 for (const lootItem of enemyTemplate.data.loot) {
                     if (Math.random() < lootItem.chance) {
                         const definition = customItemDefinitions[lootItem.name];
-                        if (definition) { lootDrops.push({ name: lootItem.name, description: definition.description, tier: definition.tier, quantity: require('@/lib/game/engine').getRandomInRange(lootItem.quantity), emoji: definition.emoji }); }
+                        if (definition) {
+                            const quantity = require('@/lib/game/engine').getRandomInRange(lootItem.quantity);
+                            lootDrops.push({ name: lootItem.name, description: definition.description, tier: definition.tier, quantity, emoji: definition.emoji });
+                        }
                     }
                 }
             }
@@ -270,7 +284,7 @@ export function useGameActions(props: GameActionsProps) {
         let finalWorldUpdate: Partial<World> | null = null;
     
         if (target === 'player') {
-            if (!itemDef.effects.length) {
+            if (!itemDef.effects || itemDef.effects.length === 0) {
                 addNarrativeEntry(t('itemNoEffect', { item: t(itemName as TranslationKey) }), 'system');
                 return;
             }
@@ -752,7 +766,10 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
             const newInventory = [...nextPlayerStats.items];
             const resultItemIndex = newInventory.findIndex(i => i.name === recipe.result.name);
             if (resultItemIndex > -1) newInventory[resultItemIndex].quantity += recipe.result.quantity;
-            else newInventory.push({ ...recipe.result, tier: customItemDefinitions[recipe.result.name]?.tier || 1 });
+            else {
+                const itemDef = customItemDefinitions[recipe.result.name];
+                newInventory.push({ ...recipe.result, tier: itemDef?.tier || 1 });
+            }
             nextPlayerStats.items = newInventory;
             
             const successKeys: TranslationKey[] = ['craftSuccess1', 'craftSuccess2', 'craftSuccess3'];
@@ -1033,5 +1050,3 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
         handleUnequipItem,
     };
 }
-
-    

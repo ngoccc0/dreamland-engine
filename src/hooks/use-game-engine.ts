@@ -52,15 +52,10 @@ export function useGameEngine(props: GameEngineProps) {
         turn, setTurn,
         weatherZones, setWeatherZones,
         world, setWorld,
-        recipes,
-        buildableStructures,
-        regions,
-        regionCounter,
-        playerPosition,
         playerBehaviorProfile, setPlayerBehaviorProfile,
         playerStats, setPlayerStats,
         customItemDefinitions,
-        isLoading, setIsLoading,
+        isLoading,
         isGameOver, setIsGameOver,
         isSaving, setIsSaving,
         narrativeLog, setNarrativeLog,
@@ -462,7 +457,7 @@ export function useGameEngine(props: GameEngineProps) {
                 });
             });
         }
-    }, [playerStats.unlockProgress.kills, playerStats.unlockProgress.damageSpells, playerStats.unlockProgress.moves]);
+    }, [isLoaded, playerStats.unlockProgress, playerStats.skills, setPlayerStats, addNarrativeEntry, t, toast]);
 
     // EFFECT: Update player persona based on behavior profile.
     useEffect(() => {
@@ -487,7 +482,7 @@ export function useGameEngine(props: GameEngineProps) {
             addNarrativeEntry(t(messageKey as TranslationKey), 'system');
             toast({ title: t('personaUnlockedTitle') as TranslationKey, description: t(messageKey as TranslationKey) });
         }
-    }, [playerBehaviorProfile.moves, playerBehaviorProfile.attacks, playerBehaviorProfile.crafts]);
+    }, [isLoaded, playerBehaviorProfile, playerStats.persona, setPlayerStats, addNarrativeEntry, t, toast]);
     
     // EFFECT: Update the visual representation of the current chunk whenever the environment changes.
     useEffect(() => {
@@ -531,7 +526,7 @@ export function useGameEngine(props: GameEngineProps) {
         const save = async () => {
             setIsSaving(true);
             try {
-                if (user) {
+                if (user && db) {
                     await setDoc(doc(db, "users", user.uid, "games", `slot_${props.gameSlot}`), gameStateToSave);
                 } else {
                     localStorage.setItem(`gameState_${props.gameSlot}`, JSON.stringify(gameStateToSave));
@@ -562,5 +557,3 @@ export function useGameEngine(props: GameEngineProps) {
         handleReturnToMenu,
     };
 }
-
-    

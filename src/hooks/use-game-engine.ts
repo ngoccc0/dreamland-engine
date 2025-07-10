@@ -20,7 +20,7 @@ import { seasonConfig, worldConfig } from '@/lib/game/world-config';
 import { clamp } from "@/lib/utils";
 import { randomEvents } from "@/lib/game/events";
 
-import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Region, PlayerItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, ItemEffect, Terrain, PlayerPersona, EquipmentSlot, NarrativeLength, Action, PlayerAttributes } from "@/lib/game/types";
+import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Region, PlayerItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, ItemEffect, Terrain, PlayerPersona, EquipmentSlot, NarrativeLength, Action, PlayerAttributes, SuccessLevel } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 
 
@@ -49,11 +49,11 @@ export function useGameEngine(props: GameEngineProps) {
         currentSeason,
         gameTime, setGameTime,
         day, setDay,
-        turn, setTurn,
+        turn,
         weatherZones, setWeatherZones,
         world, setWorld,
         playerPosition,
-        playerBehaviorProfile, setPlayerBehaviorProfile,
+        playerBehaviorProfile,
         playerStats, setPlayerStats,
         customItemDefinitions,
         isLoading,
@@ -411,7 +411,7 @@ export function useGameEngine(props: GameEngineProps) {
 
         if (worldWasModified) setWorld(newWorldState);
         setPlayerStats(nextPlayerStats);
-    }, [playerStats, world, gameTime, day, addNarrativeEntry, t, isOnline, finalWorldSetup, language, weatherZones, currentSeason, playerPosition, customItemDefinitions, getEffectiveChunk, triggerRandomEvent, setDay, setGameTime, setWeatherZones, setWorld, setPlayerStats, turn]);
+    }, [playerStats, world, gameTime, day, turn, addNarrativeEntry, t, isOnline, finalWorldSetup, language, weatherZones, currentSeason, playerPosition, customItemDefinitions, getEffectiveChunk, triggerRandomEvent, setDay, setGameTime, setWeatherZones, setWorld, setPlayerStats]);
     
     // --- ACTIONS ---
     const gameActions = useGameActions({
@@ -501,32 +501,19 @@ export function useGameEngine(props: GameEngineProps) {
     useEffect(() => {
         if (!isLoaded || isSaving || isGameOver) return;
 
-        const gameStateToSave: GameState = {
-            ...gameState,
-            worldProfile: gameState.worldProfile,
-            currentSeason: gameState.currentSeason,
-            world: gameState.world,
-            recipes: gameState.recipes,
-            buildableStructures: gameState.buildableStructures,
-            regions: gameState.regions,
-            regionCounter: gameState.regionCounter,
-            playerPosition: gameState.playerPosition,
-            playerBehaviorProfile: gameState.playerBehaviorProfile,
-            playerStats: gameState.playerStats,
-            narrativeLog: gameState.narrativeLog,
-            worldSetup: gameState.finalWorldSetup!,
-            customItemDefinitions: gameState.customItemDefinitions,
-            customItemCatalog: gameState.customItemCatalog,
-            customStructures: gameState.customStructures,
-            weatherZones: gameState.weatherZones,
-            gameTime: gameState.gameTime,
-            day: gameState.day,
-            turn: gameState.turn,
-        };
-
         const save = async () => {
             setIsSaving(true);
             try {
+                // We create the gameState object inside the save function
+                // to ensure we capture the absolute latest state from React.
+                const gameStateToSave: GameState = {
+                    worldProfile, currentSeason, world, recipes: gameState.recipes, 
+                    buildableStructures: gameState.buildableStructures, regions: gameState.regions,
+                    regionCounter: gameState.regionCounter, playerPosition, playerBehaviorProfile,
+                    playerStats, narrativeLog, worldSetup: finalWorldSetup!, 
+                    customItemDefinitions, customItemCatalog: gameState.customItemCatalog,
+                    customStructures: gameState.customStructures, weatherZones, gameTime, day, turn,
+                };
                 if (user && db) {
                     await setDoc(doc(db, "users", user.uid, "games", `slot_${props.gameSlot}`), gameStateToSave);
                 } else {
@@ -543,9 +530,7 @@ export function useGameEngine(props: GameEngineProps) {
         const timerId = setTimeout(save, 1500); 
         return () => clearTimeout(timerId);
 
-    }, [
-        gameState, user, isSaving, toast, isGameOver, props.gameSlot, isLoaded, setIsSaving,
-    ]);
+    }, [isLoaded, isSaving, isGameOver, user, props.gameSlot, finalWorldSetup, customItemDefinitions, playerStats, playerPosition, playerBehaviorProfile, narrativeLog, world, worldProfile, currentSeason, gameState.recipes, gameState.buildableStructures, gameState.regions, gameState.regionCounter, gameState.customItemCatalog, gameState.customStructures, weatherZones, gameTime, day, turn, setIsSaving, toast]);
     
     const handleReturnToMenu = () => {
         window.location.href = '/';
@@ -558,3 +543,5 @@ export function useGameEngine(props: GameEngineProps) {
         handleReturnToMenu,
     };
 }
+
+    

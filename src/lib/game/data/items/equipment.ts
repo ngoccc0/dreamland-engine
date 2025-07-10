@@ -1,3 +1,4 @@
+
 import type { ItemDefinition } from "../../types";
 
 export const equipmentItems: Record<string, ItemDefinition> = {
@@ -9,7 +10,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         category: 'Weapon',
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 2, critChance: 1 },
+        attributes: { physicalAttack: 2, critChance: 1, magicalAttack: 0, attackSpeed: 0, cooldownReduction: 0 },
         weight: 0.5,
         stackable: 1,
         function: 'A basic, sharp stone for combat.',
@@ -23,7 +24,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         category: 'Equipment',
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'accessory',
-        attributes: { physicalAttack: 0 }, // Placeholder for defense
+        attributes: { physicalAttack: 0, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 },
         weight: 3.0,
         stackable: 1,
         function: 'A simple shield for blocking attacks.',
@@ -37,7 +38,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         category: 'Weapon',
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 4 },
+        attributes: { physicalAttack: 4, critChance: 0, magicalAttack: 0, attackSpeed: 0, cooldownReduction: 0 },
         weight: 1.5,
         stackable: 1,
         function: 'A spear tipped with a sharpened bone.',
@@ -51,7 +52,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         category: 'Weapon',
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 12, critChance: 5, attackSpeed: -0.1 },
+        attributes: { physicalAttack: 12, critChance: 5, attackSpeed: -0.1, magicalAttack: 0, cooldownReduction: 0 },
         weight: 4.0,
         stackable: 1,
         function: 'A heavy and sharp volcanic glass axe.',
@@ -65,7 +66,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         category: 'Equipment',
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'armor',
-        attributes: { physicalAttack: 2, cooldownReduction: 5 },
+        attributes: { physicalAttack: 2, cooldownReduction: 5, magicalAttack: 0, critChance: 0, attackSpeed: 0 },
         weight: 8.0,
         stackable: 1,
         function: 'Durable armor made from alligator hide.',
@@ -79,7 +80,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         category: 'Weapon',
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 8, attackSpeed: 0.2 },
+        attributes: { physicalAttack: 8, attackSpeed: 0.2, magicalAttack: 0, critChance: 0, cooldownReduction: 0 },
         weight: 2.0,
         stackable: 1,
         function: 'A lightweight and fast bow made with harpy feathers.',
@@ -94,7 +95,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         subCategory: 'Magic',
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 2, magicalAttack: 15, cooldownReduction: 10 },
+        attributes: { physicalAttack: 2, magicalAttack: 15, cooldownReduction: 10, critChance: 0, attackSpeed: 0 },
         weight: 2.5,
         stackable: 1,
         function: 'A staff imbued with a golem core to amplify magic.',
@@ -108,7 +109,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         category: 'Weapon',
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 15, critChance: 10, attackSpeed: -0.2 },
+        attributes: { physicalAttack: 15, critChance: 10, attackSpeed: -0.2, magicalAttack: 0, cooldownReduction: 0 },
         weight: 6.0,
         stackable: 1,
         function: 'A heavy, powerful hammer forged by dwarves.',
@@ -125,5 +126,8 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         weight: 5.0,
         stackable: 1,
         function: 'Allows travel across water tiles.',
+        attributes: { physicalAttack: 0, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 },
     },
 };
+
+    

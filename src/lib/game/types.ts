@@ -400,4 +400,46 @@ export interface RandomEvent {
   };
 }
 
-    
+// --- MODDING SYSTEM ---
+
+export interface EnemyLoot {
+  name: string;
+  chance: number;
+  quantity: { min: number; max: number };
+}
+
+export interface EnemyData {
+  type: string;
+  emoji: string;
+  hp: number;
+  damage: number;
+  behavior: 'aggressive' | 'passive' | 'defensive' | 'territorial';
+  size: 'small' | 'medium' | 'large';
+  diet: string[];
+  satiation: number;
+  maxSatiation: number;
+  loot?: EnemyLoot[];
+}
+
+export interface EnemySpawn {
+  data: EnemyData;
+  conditions: SpawnConditions;
+}
+
+/**
+ * Defines the structure for a mod file.
+ * Each mod file must export a constant named `mod` of this type.
+ */
+export interface ModDefinition {
+  /** A dictionary of new items to add to the game. The key is the item name. */
+  items?: Record<string, ItemDefinition>;
+  /** A dictionary of new recipes. The key is the name of the resulting item. */
+  recipes?: Record<string, Recipe>;
+  /** A dictionary where keys are biome names and values are arrays of enemies to add to that biome. */
+  enemies?: Partial<Record<Terrain, EnemySpawn[]>>;
+  /** A dictionary of new structures. The key is the structure name. */
+  structures?: Record<string, Structure>;
+  // Future extension points:
+  // quests?: Record<string, QuestDefinition>;
+  // events?: RandomEvent[];
+}

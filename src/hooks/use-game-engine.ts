@@ -800,17 +800,17 @@ export function useGameEngine(props: GameEngineProps) {
     }, [playerPosition, world, addNarrativeEntry, settings.diceType, t, getEffectiveChunk, playerStats, language, customItemDefinitions, advanceGameTime, setWorld]);
     
     const handleOfflineItemUse = useCallback((itemName: string, target: 'player' | string) => {
-        const itemDef = customItemDefinitions[itemName];
-        if (!itemDef) return;
-    
-        let newPlayerStats: PlayerStatus = JSON.parse(JSON.stringify(playerStats));
-        const itemIndex = newPlayerStats.items.findIndex(i => i.name === itemName);
-    
+        const newPlayerStats: PlayerStatus = JSON.parse(JSON.stringify(playerStats));
+        const itemIndex = newPlayerStats.items.findIndex(i => i.name.toLowerCase() === itemName.toLowerCase());
+        
         if (itemIndex === -1) {
             addNarrativeEntry(t('itemNotFound'), 'system');
             return;
         }
-        
+
+        const itemDef = customItemDefinitions[itemName];
+        if (!itemDef) return;
+    
         const key = `${playerPosition.x},${playerPosition.y}`;
         const currentChunk = world[key];
         if (!currentChunk) return;

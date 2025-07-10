@@ -2,7 +2,7 @@ import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
 import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
 
 const floptropicaItems: GeneratedItem[] = [
-    { name: 'Chảo của Jiafei', description: 'item_jiafei_pan_desc', emoji: '🍳', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['floptropica'], equipmentSlot: 'weapon', attributes: { physicalAttack: 5, critChance: 2, magicalAttack: 0, attackSpeed: 0, cooldownReduction: 0 } },
+    { name: 'Chảo của Jiafei', description: 'item_jiafei_pan_desc', emoji: '🍳', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['floptropica'], equipmentSlot: 'weapon', attributes: { physicalAttack: 5, critChance: 2 } },
     { name: 'Chủ đề Stan Twitter', description: 'item_stan_twitter_thread_desc', emoji: '📜', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['floptropica'] },
     { name: 'Bản Remix của CupcakKe', description: 'item_cupcakke_remix_desc', emoji: '🎶', category: 'Support', tier: 3, effects: [{ type: 'RESTORE_STAMINA', amount: 50 }], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['floptropica'] },
     { name: 'Viên Yass', description: 'item_yass_pill_desc', emoji: '💊', category: 'Support', tier: 2, effects: [{ type: 'HEAL', amount: 30 }], baseQuantity: { min: 2, max: 2 }, spawnBiomes: ['floptropica'] },

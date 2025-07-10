@@ -3,7 +3,7 @@ import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/t
 
 const items: GeneratedItem[] = [
     { name: 'Ngọc trai Phát quang', description: 'item_bioluminescent_pearl_desc', emoji: '💡', category: 'Material', tier: 2, effects: [], baseQuantity: { min: 1, max: 3 }, spawnBiomes: ['underwater', 'ocean'] },
-    { name: 'Giáo San hô', description: 'item_coral_spear_desc', emoji: '🔱', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: [], equipmentSlot: 'weapon', attributes: { physicalAttack: 5, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 } },
+    { name: 'Giáo San hô', description: 'item_coral_spear_desc', emoji: '🔱', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: [], equipmentSlot: 'weapon', attributes: { physicalAttack: 5 } },
     { name: 'Thuốc mỡ Tảo biển', description: 'item_algae_salve_desc', emoji: '🌿', category: 'Support', tier: 1, effects: [{ type: 'HEAL', amount: 20 }], baseQuantity: { min: 1, max: 2 }, spawnBiomes: ['underwater'] },
     { name: 'Mảnh Bia đá Cổ', description: 'item_ancient_tablet_fragment_desc', emoji: '📜', category: 'Data', tier: 3, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['underwater'] },
 ];

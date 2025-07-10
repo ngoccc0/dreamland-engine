@@ -77,8 +77,8 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                   {items.map((item, index) => {
                     const definition = itemDefinitions[item.name];
                     const isUsableOnSelf = definition?.effects?.length > 0;
-                    const isUsableOnEnemy = enemy && definition && t(enemy.type as TranslationKey) && enemy.diet.includes(item.name);
-                    const isEquippable = definition && definition.equipmentSlot;
+                    const isUsableOnEnemy = enemy && definition && t(enemy.type as TranslationKey) && (definition as any).diet?.includes(item.name);
+                    const isEquippable = !!(definition && definition.equipmentSlot);
                     const isInteractable = isUsableOnSelf || isUsableOnEnemy || isEquippable;
 
                     const itemCategory = definition?.category;
@@ -114,43 +114,40 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                                     <p className="text-xs text-muted-foreground whitespace-normal">{t(definition?.description as TranslationKey)}</p>
                                 </DropdownMenuLabel>
                                 
-                                {isInteractable && (
-                                  <>
-                                    {(definition?.effects?.length > 0 || definition?.attributes) && <DropdownMenuSeparator />}
-                                    
-                                    {definition?.attributes && (
-                                        <div className="px-2 py-1.5 text-xs space-y-1">
-                                            <p className="font-semibold text-muted-foreground">{t('attributes')}:</p>
-                                            {Object.entries(definition.attributes).map(([key, value]) => {
-                                                if (value === 0) return null;
-                                                const sign = value > 0 ? '+' : '';
-                                                return (
-                                                    <p key={key} className={cn("ml-2", value > 0 ? "text-green-500" : "text-red-500")}>
-                                                        {sign}{value}{key.includes('Reduction') || key.includes('Chance') ? '%' : ''} {t(attributeLabels[key as keyof PlayerAttributes])}
-                                                    </p>
-                                                )
-                                            })}
-                                        </div>
-                                    )}
-
-                                    {definition?.effects?.length > 0 && (
-                                        <div className="px-2 py-1.5 text-xs space-y-1">
-                                            <p className="font-semibold text-muted-foreground">{t('effects')}:</p>
-                                            {definition.effects.map((effect, i) => (
-                                                <p key={i} className="text-green-500 ml-2">
-                                                    {effect.type === 'HEAL' && `+${effect.amount} ${t('healthShort')}`}
-                                                    {effect.type === 'RESTORE_STAMINA' && `+${effect.amount} ${t('staminaShort')}`}
+                                {(definition?.effects?.length > 0 || definition?.attributes) && <DropdownMenuSeparator />}
+                                
+                                {definition?.attributes && (
+                                    <div className="px-2 py-1.5 text-xs space-y-1">
+                                        <p className="font-semibold text-muted-foreground">{t('attributes')}:</p>
+                                        {Object.entries(definition.attributes).map(([key, value]) => {
+                                            if (value === 0) return null;
+                                            const sign = value > 0 ? '+' : '';
+                                            return (
+                                                <p key={key} className={cn("ml-2", value > 0 ? "text-green-500" : "text-red-500")}>
+                                                    {sign}{value}{key.includes('Reduction') || key.includes('Chance') ? '%' : ''} {t(attributeLabels[key as keyof PlayerAttributes])}
                                                 </p>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    <DropdownMenuSeparator />
-                                    {isUsableOnSelf && <DropdownMenuItem onClick={() => handleAction(() => onUseItem(item.name, 'player'))}>{t('useOnSelf')}</DropdownMenuItem>}
-                                    {isUsableOnEnemy && <DropdownMenuItem onClick={() => handleAction(() => onUseItem(item.name, enemy!.type))}>{t('useOnTarget', { target: t(enemy!.type as TranslationKey) })}</DropdownMenuItem>}
-                                    {isEquippable && <DropdownMenuItem onClick={() => handleAction(() => onEquipItem(item.name))}>{t('equipItem')}</DropdownMenuItem>}
-                                  </>
+                                            )
+                                        })}
+                                    </div>
                                 )}
+
+                                {definition?.effects?.length > 0 && (
+                                    <div className="px-2 py-1.5 text-xs space-y-1">
+                                        <p className="font-semibold text-muted-foreground">{t('effects')}:</p>
+                                        {definition.effects.map((effect, i) => (
+                                            <p key={i} className="text-green-500 ml-2">
+                                                {effect.type === 'HEAL' && `+${effect.amount} ${t('healthShort')}`}
+                                                {effect.type === 'RESTORE_STAMINA' && `+${effect.amount} ${t('staminaShort')}`}
+                                            </p>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {isInteractable && <DropdownMenuSeparator />}
+
+                                {isUsableOnSelf && <DropdownMenuItem onClick={() => handleAction(() => onUseItem(item.name, 'player'))}>{t('useOnSelf')}</DropdownMenuItem>}
+                                {isUsableOnEnemy && <DropdownMenuItem onClick={() => handleAction(() => onUseItem(item.name, enemy!.type))}>{t('useOnTarget', { target: t(enemy!.type as TranslationKey) })}</DropdownMenuItem>}
+                                {isEquippable && <DropdownMenuItem onClick={() => handleAction(() => onEquipItem(item.name))}>{t('equipItem')}</DropdownMenuItem>}
                             </DropdownMenuContent>
                         </DropdownMenu>
                       </li>

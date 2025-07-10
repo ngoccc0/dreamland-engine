@@ -36,7 +36,7 @@ import { skillDefinitions } from '@/lib/game/skills';
 import { getEmojiForItem } from '@/lib/utils';
 import { db } from '@/lib/firebase-config';
 import { collection, getDocs } from 'firebase/firestore';
-import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
+import { itemDefinitions as staticItemDefinitions } from '@/lib/game/data/items';
 
 
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;

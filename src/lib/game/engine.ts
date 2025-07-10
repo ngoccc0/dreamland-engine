@@ -146,41 +146,33 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
     }
 
     if (adjacentTerrains.size === 0) {
-        return Object.keys(worldConfig) as Terrain[];
-    }
-
-    const validTerrains = new Set<Terrain>();
-    for (const terrain of Object.keys(worldConfig) as Terrain[]) {
-        if (terrain === 'wall') continue; // Walls should not be generated randomly as biomes
-        const config = worldConfig[terrain];
-        // Check if this new terrain can be a neighbor to all existing adjacent terrains
-        let canBeNeighborToAll = true;
-        for (const adjTerrain of adjacentTerrains) {
-            const adjConfig = worldConfig[adjTerrain];
-            if (!adjConfig.allowedNeighbors.includes(terrain)) {
-                canBeNeighborToAll = false;
-                break;
-            }
-        }
-
-        // Check if all existing adjacent terrains can be neighbors to this new terrain
-        let allCanBeNeighborsTo = true;
-        if (canBeNeighborToAll) {
-            for (const adjTerrain of adjacentTerrains) {
-                if (!config.allowedNeighbors.includes(adjTerrain)) {
-                    allCanBeNeighborsTo = false;
-                    break;
-                }
-            }
-        }
-        
-        if (canBeNeighborToAll && allCanBeNeighborsTo) {
-            validTerrains.add(terrain);
-        }
+        return Object.keys(worldConfig).filter(t => t !== 'wall') as Terrain[];
     }
     
-    const validTerrainsArray = Array.from(validTerrains);
-    return validTerrainsArray.length > 0 ? validTerrainsArray : Object.keys(worldConfig).filter(t => t !== 'wall') as Terrain[];
+    const allPossibleNeighbors = new Set<Terrain>();
+    for (const adjTerrain of adjacentTerrains) {
+        const adjConfig = worldConfig[adjTerrain];
+        if (adjConfig) {
+            adjConfig.allowedNeighbors.forEach(neighbor => allPossibleNeighbors.add(neighbor));
+        }
+    }
+
+    const validTerrains = [...allPossibleNeighbors].filter(terrain => {
+        if (terrain === 'wall') return false;
+        const config = worldConfig[terrain];
+        if (!config) return false;
+
+        // A potential new terrain is valid if it's allowed to be a neighbor of ALL existing adjacent terrains.
+        for(const adjTerrain of adjacentTerrains) {
+            const adjConfig = worldConfig[adjTerrain];
+            if (!adjConfig.allowedNeighbors.includes(terrain)) {
+                return false;
+            }
+        }
+        return true;
+    });
+    
+    return validTerrains.length > 0 ? validTerrains : Object.keys(worldConfig).filter(t => t !== 'wall') as Terrain[];
 };
 
 /**
@@ -264,20 +256,17 @@ function generateChunkContent(
     const templates = getTemplates(language);
     const template = templates[chunkData.terrain];
     
-    // Use the first short description as the base, since it's now more generic.
     const finalDescription = template.descriptionTemplates.short[0]
         .replace('[adjective]', template.adjectives[Math.floor(Math.random() * template.adjectives.length)])
         .replace('[feature]', template.features[Math.floor(Math.random() * template.features.length)]);
     
-    // --- Create a combined list of all possible items for this biome ---
     const staticSpawnCandidates = template.items;
     const customSpawnCandidates = customItemCatalog
         .filter(item => item.spawnBiomes.includes(chunkData.terrain as Terrain))
-        .map(item => ({ name: item.name, conditions: { chance: 0.15 } })); // Give custom items a base chance
+        .map(item => ({ name: item.name, conditions: { chance: 0.15 } })); 
     
     const allSpawnCandidates = [...staticSpawnCandidates, ...customSpawnCandidates];
 
-    // --- Generate Items from the combined list ---
     const spawnedItemRefs = selectEntities(allSpawnCandidates, chunkData, allItemDefinitions, 3);
     const spawnedItems: ChunkItem[] = [];
 
@@ -300,20 +289,17 @@ function generateChunkContent(
         }
     }
     
-    // NPCs and Enemies
     const spawnedNPCs: Npc[] = selectEntities(template.NPCs, chunkData, allItemDefinitions, 1).map(ref => ref.data);
     const spawnedEnemies = selectEntities(template.enemies, chunkData, allItemDefinitions, 1);
     
-    // Structures - Mix of AI-generated and template
     let spawnedStructures: Structure[] = [];
-    if (Math.random() < 0.25 && customStructures && customStructures.length > 0) { // 25% chance to spawn a unique AI structure
+    if (Math.random() < 0.25 && customStructures && customStructures.length > 0) {
         const uniqueStructure = customStructures[Math.floor(Math.random() * customStructures.length)];
         spawnedStructures.push(uniqueStructure);
     } else {
         const spawnedStructureRefs = selectEntities(template.structures, chunkData, allItemDefinitions, 1);
         spawnedStructures = spawnedStructureRefs.map(ref => ref.data);
-         // Add loot from template structures
-        for (const structureRef of spawnedStructureRefs) {
+         for (const structureRef of spawnedStructureRefs) {
             if (structureRef.loot) {
                 for (const lootItem of structureRef.loot) {
                     if (Math.random() < lootItem.chance) {
@@ -342,7 +328,6 @@ function generateChunkContent(
     const enemyData = spawnedEnemies.length > 0 ? spawnedEnemies[0].data : null;
     const spawnedEnemy = enemyData ? { ...enemyData, satiation: 0, emoji: enemyData.emoji } : null;
     
-    // Actions
     const actions: Action[] = [];
     let actionIdCounter = 1;
 
@@ -401,7 +386,6 @@ function createWallChunk(pos: { x: number; y: number }): Chunk {
     };
 }
 
-// This is the core "factory" function for building a new region of the world.
 export const generateRegion = (
     startPos: { x: number; y: number }, 
     terrain: Terrain, 
@@ -410,8 +394,8 @@ export const generateRegion = (
     currentRegionCounter: number,
     worldProfile: WorldProfile,
     currentSeason: Season,
-    allItemDefinitions: Record<string, ItemDefinition>, // Pass in all definitions
-    customItemCatalog: GeneratedItem[],                   // Pass in custom catalog for spawning
+    allItemDefinitions: Record<string, ItemDefinition>,
+    customItemCatalog: GeneratedItem[],
     customStructures: Structure[],
     language: Language
 ) => {
@@ -450,7 +434,6 @@ export const generateRegion = (
     for (const pos of regionCells) {
         const posKey = `${pos.x},${pos.y}`;
 
-        // Step 1: Generate base attributes from biome definitions
         const vegetationDensity = getRandomInRange(biomeDef.defaultValueRanges.vegetationDensity);
         const baseMoisture = getRandomInRange(biomeDef.defaultValueRanges.moisture);
         const elevation = getRandomInRange(biomeDef.defaultValueRanges.elevation);
@@ -460,7 +443,6 @@ export const generateRegion = (
         const predatorPresence = getRandomInRange(biomeDef.defaultValueRanges.predatorPresence);
         const baseTemperature = getRandomInRange(biomeDef.defaultValueRanges.temperature);
 
-        // Step 2: Calculate dependent attributes using the new function
         const dependentAttributes = calculateDependentChunkAttributes(
             terrain,
             { vegetationDensity, moisture: baseMoisture, dangerLevel: baseTemperature, temperature: baseTemperature },
@@ -468,7 +450,6 @@ export const generateRegion = (
             currentSeason
         );
         
-        // Step 3: Combine all attributes to form the final chunk data for content generation
         const tempChunkData = {
             terrain,
             vegetationDensity,
@@ -481,7 +462,6 @@ export const generateRegion = (
             ...dependentAttributes,
         };
 
-        // Step 4: Generate content based on the final chunk data
         const content = generateChunkContent(tempChunkData, worldProfile, allItemDefinitions, customItemCatalog, customStructures, language);
         
         newWorld[posKey] = {
@@ -496,7 +476,6 @@ export const generateRegion = (
         };
     }
 
-    // --- Add walls around certain biomes ---
     const BORDER_WALL_CHANCE = 0.3; 
     if (['cave', 'mountain', 'volcanic'].includes(terrain) && Math.random() < BORDER_WALL_CHANCE) {
         const borderCells = new Set<string>();
@@ -534,13 +513,11 @@ export const calculateCraftingOutcome = (playerItems: PlayerItem[], recipe: Reci
             .sort((a, b) => a.tier - b.tier);
     };
 
-    // First pass: Resolve which item to use for each requirement and check if we have enough
     for (const requirement of recipe.ingredients) {
         const possibleItems = getPossibleItems(requirement);
         let usedItem: { name: string; tier: number } | null = null;
         let hasEnoughForRequirement = false;
         
-        // Find the best available item that we have enough of
         for (const possible of possibleItems) {
             if ((tempPlayerItems.get(possible.name) || 0) >= requirement.quantity) {
                 usedItem = possible;
@@ -549,7 +526,6 @@ export const calculateCraftingOutcome = (playerItems: PlayerItem[], recipe: Reci
             }
         }
         
-        // If we didn't have enough of any single item, find the best one we have ANY of for display purposes
         if (!usedItem) {
              for (const possible of possibleItems) {
                 if ((tempPlayerItems.get(possible.name) || 0) > 0) {
@@ -559,7 +535,6 @@ export const calculateCraftingOutcome = (playerItems: PlayerItem[], recipe: Reci
             }
         }
         
-        // If still no item, default to primary for display
         if (!usedItem) {
             usedItem = { name: requirement.name, tier: 1 };
         }
@@ -572,27 +547,23 @@ export const calculateCraftingOutcome = (playerItems: PlayerItem[], recipe: Reci
         });
     }
 
-    // Second pass: Based on the resolved list, calculate final craftability and consumption
     const finalTempPlayerItems = new Map(playerItems.map(item => [item.name, item.quantity]));
     for (const resolved of resolvedIngredients) {
         if (!resolved.hasEnough) {
             canCraft = false;
-            break; // No need to continue if one requirement fails
+            break; 
         }
 
         const itemToConsume = resolved.usedItem!;
         const currentAmount = finalTempPlayerItems.get(itemToConsume.name) || 0;
         
-        // This check should be redundant due to hasEnough, but it's a safeguard
         if (currentAmount < resolved.requirement.quantity) {
             canCraft = false;
             break;
         }
         
-        // Decrement from our temporary map to handle recipes needing the same item multiple times
         finalTempPlayerItems.set(itemToConsume.name, currentAmount - resolved.requirement.quantity);
         
-        // Tally up the total consumption for the final output
         const currentConsumption = ingredientsToConsumeMap.get(itemToConsume.name) || 0;
         ingredientsToConsumeMap.set(itemToConsume.name, currentConsumption + resolved.requirement.quantity);
         
@@ -618,11 +589,6 @@ export const calculateCraftingOutcome = (playerItems: PlayerItem[], recipe: Reci
     };
 };
 
-/**
- * Handles "search" type actions (explore, forage, search for materials).
- * This function reveals hidden items in a chunk, adds them to the chunk's item list,
- * and removes the one-time search action.
- */
 export const handleSearchAction = (
     currentChunk: Chunk,
     actionId: number,
@@ -635,18 +601,15 @@ export const handleSearchAction = (
     const templates = getTemplates(language);
     const biomeTemplate = templates[currentChunk.terrain];
 
-    // Clone the chunk to modify it safely
     const newChunk: Chunk = JSON.parse(JSON.stringify(currentChunk));
     
-    // Remove the search action immediately, as it's a one-time use.
     newChunk.actions = newChunk.actions.filter(a => a.id !== actionId);
     
     if (!biomeTemplate || !biomeTemplate.items || biomeTemplate.items.length === 0) {
         return { narrative: t('exploreFoundNothing'), newChunk };
     }
 
-    // Calculate success chance based on explorability
-    const successChance = 0.8 * (newChunk.explorability / 10); // Base 80% chance, scaled by explorability
+    const successChance = 0.8 * (newChunk.explorability / 10);
 
     if (Math.random() > successChance) {
         return { narrative: t('exploreFoundNothing'), newChunk };
@@ -656,17 +619,14 @@ export const handleSearchAction = (
     const itemsToFindCount = getRandomInRange({ min: 1, max: 3 });
     const foundItems: ChunkItem[] = [];
 
-    // Shuffle potential items to find random ones
     const shuffledPotentialItems = [...potentialItems].sort(() => 0.5 - Math.random());
 
     for (const itemTemplate of shuffledPotentialItems) {
         if (foundItems.length >= itemsToFindCount) break;
 
-        // Don't find items that are already on the ground
         if (newChunk.items.some((i: ChunkItem) => i.name === itemTemplate.name)) continue;
 
-        // Check spawn chance for the item
-        if (Math.random() < (itemTemplate.conditions.chance || 0.25)) { // Use 0.25 as a base chance
+        if (Math.random() < (itemTemplate.conditions.chance || 0.25)) { 
             const itemDef = customItemDefinitions[itemTemplate.name];
             if (itemDef) {
                 const quantity = getRandomInRange(itemDef.baseQuantity);
@@ -694,7 +654,6 @@ export const handleSearchAction = (
 
         const narrative = t('exploreFoundItemsNarrative', { items: foundItemsText });
 
-        // Add the newly found items to the chunk's item list
         const newItemsMap = new Map((newChunk.items || []).map((item: ChunkItem) => [item.name, { ...item }]));
         foundItems.forEach(foundItem => {
             const existing = newItemsMap.get(foundItem.name);
@@ -706,7 +665,6 @@ export const handleSearchAction = (
         });
         newChunk.items = Array.from(newItemsMap.values());
         
-        // Regenerate pickup actions for ALL items in the chunk now
         const otherActions = newChunk.actions.filter((a: Action) => a.textKey !== 'pickUpAction_item');
         let actionIdCounter = newChunk.actions.reduce((maxId: number, a: Action) => Math.max(a.id, maxId), 0) + 1;
 
@@ -719,7 +677,6 @@ export const handleSearchAction = (
 
         return { narrative, newChunk, toastInfo };
     } else {
-        // You searched successfully but were unlucky and found nothing.
         const narrative = t('exploreFoundNothing');
         return { narrative, newChunk };
     }
@@ -737,15 +694,13 @@ export const generateOfflineNarrative = (
     const templates = getTemplates(lang);
     const biomeTemplateData = templates[chunk.terrain];
 
-    // Fallback for biomes without structured templates (like 'wall')
-    if (!biomeTemplateData.descriptionTemplates.short) {
-        return chunk.description;
+    if (!biomeTemplateData?.descriptionTemplates) {
+        return chunk.description || "You are in an unknown area.";
     }
 
     const templateSet = biomeTemplateData.descriptionTemplates[narrativeLength] || biomeTemplateData.descriptionTemplates.medium;
     let baseTemplate = Array.isArray(templateSet) ? templateSet[Math.floor(Math.random() * templateSet.length)] : templateSet;
 
-    // Fill in the simple placeholders from the biome template
     const adjective = biomeTemplateData.adjectives[Math.floor(Math.random() * biomeTemplateData.adjectives.length)];
     const feature = biomeTemplateData.features[Math.floor(Math.random() * biomeTemplateData.features.length)];
     const smell = biomeTemplateData.smells[Math.floor(Math.random() * biomeTemplateData.smells.length)];
@@ -759,7 +714,6 @@ export const generateOfflineNarrative = (
         .replace(/\[sound\]/g, sound)
         .replace(/\[sky\]/g, sky);
 
-    // Generate complex, logic-based parts
     const sensoryDetailsParts: string[] = [];
     if (chunk.explorability < 3) sensoryDetailsParts.push(t('offline_explorability_low'));
     if (chunk.dangerLevel > 8) sensoryDetailsParts.push(t('offline_danger_high'));
@@ -803,14 +757,13 @@ export const generateOfflineNarrative = (
         }
     }
 
-    // Replace placeholders and clean up
     let finalNarrative = populatedTemplate
         .replace('{sensory_details}', sensory_details)
         .replace('{entity_report}', entity_report)
         .replace('{surrounding_peek}', surrounding_peek)
-        .replace(/\s{2,}/g, ' ') // Condense multiple spaces
-        .replace(/ \./g, '.')    // Clean up space before periods
-        .replace(/ ,/g, ',')     // Clean up space before commas
+        .replace(/\s{2,}/g, ' ')
+        .replace(/ \./g, '.')
+        .replace(/ ,/g, ',')
         .trim();
 
     return finalNarrative;

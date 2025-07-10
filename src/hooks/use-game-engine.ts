@@ -74,7 +74,6 @@ export function useGameEngine(props: GameEngineProps) {
 
     const isOnline = settings.gameMode === 'ai';
     const narrativeIdCounter = useRef(1);
-    const isInitialized = useRef(false);
     
     useEffect(() => {
         if (narrativeLog.length > 0) {
@@ -171,57 +170,59 @@ export function useGameEngine(props: GameEngineProps) {
         };
     }, [worldProfile, currentSeason, customItemDefinitions, customItemCatalog, customStructures, language]);
     
-    // EFFECT 1: Game Initialization (runs only once).
+    // EFFECT 1: Game Initialization (runs only once when isLoaded becomes true).
     useEffect(() => {
-        if (isInitialized.current || !isLoaded || !finalWorldSetup) {
-            return;
-        }
+        if (!isLoaded || !finalWorldSetup) return;
 
-        const initializeGame = () => {
+        const initializeFirstChunk = () => {
             let worldSnapshot = { ...world };
             let regionsSnapshot = { ...regions };
             let regionCounterSnapshot = regionCounter;
             let weatherZonesSnapshot = { ...weatherZones };
         
             const initialPosKey = `${playerPosition.x},${playerPosition.y}`;
+            let initialChunkExists = !!worldSnapshot[initialPosKey];
         
-            if (!worldSnapshot[initialPosKey]) {
+            if (!initialChunkExists) {
                 const result = ensureChunkExists(playerPosition, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
                 worldSnapshot = result.worldWithChunk;
                 regionsSnapshot = result.newRegions;
                 regionCounterSnapshot = result.newRegionCounter;
+            }
         
-                const visionRadius = 1;
-                for (let dy = -visionRadius; dy <= visionRadius; dy++) {
-                    for (let dx = -visionRadius; dx <= visionRadius; dx++) {
-                        const revealPos = { x: playerPosition.x + dx, y: playerPosition.y + dy };
-                        if (!worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
-                            const revealResult = ensureChunkExists(revealPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
-                            worldSnapshot = revealResult.worldWithChunk;
-                            regionsSnapshot = revealResult.newRegions;
-                            regionCounterSnapshot = revealResult.newRegionCounter;
-                        }
-                        if (worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
-                            worldSnapshot[`${revealPos.x},${revealPos.y}`].explored = true;
-                        }
+            // Ensure chunks around player exist and are explored
+            const visionRadius = 1;
+            for (let dy = -visionRadius; dy <= visionRadius; dy++) {
+                for (let dx = -visionRadius; dx <= visionRadius; dx++) {
+                    const revealPos = { x: playerPosition.x + dx, y: playerPosition.y + dy };
+                    if (!worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
+                        const revealResult = ensureChunkExists(revealPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
+                        worldSnapshot = revealResult.worldWithChunk;
+                        regionsSnapshot = revealResult.newRegions;
+                        regionCounterSnapshot = revealResult.newRegionCounter;
+                    }
+                    if (worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
+                        worldSnapshot[`${revealPos.x},${revealPos.y}`].explored = true;
                     }
                 }
             }
         
-            if (narrativeLog.length <= 1) {
+            // Initialize weather for any new regions
+            Object.keys(regionsSnapshot).filter(id => !weatherZonesSnapshot[id]).forEach(regionId => {
+                const region = regionsSnapshot[Number(regionId)];
+                if (region) {
+                    const initialWeather = generateWeatherForZone(region.terrain, currentSeason);
+                    weatherZonesSnapshot[regionId] = { id: regionId, terrain: region.terrain, currentWeather: initialWeather, nextChangeTime: gameTime + getRandomInRange({min: initialWeather.duration_range[0], max: initialWeather.duration_range[1]}) * 10 };
+                }
+            });
+        
+            // Write initial narrative only if it's a brand new game
+            if (narrativeLog.length <= 1) { 
                 const startingChunk = worldSnapshot[initialPosKey];
                 if (startingChunk) {
-                    const chunkDescription = generateOfflineNarrative(startingChunk, 'long', worldSnapshot, playerPosition, t, language, customItemDefinitions);
+                    const chunkDescription = generateOfflineNarrative(startingChunk, 'long', worldSnapshot, playerPosition, t, language);
                     const fullIntro = `${t(finalWorldSetup.initialNarrative as TranslationKey)}\n\n${chunkDescription}`;
-                    setNarrativeLog([{ id: 0, text: fullIntro, type: 'narrative' }]);
-        
-                    Object.keys(regionsSnapshot).filter(id => !weatherZonesSnapshot[id]).forEach(regionId => {
-                        const region = regionsSnapshot[Number(regionId)];
-                        if (region) {
-                            const initialWeather = generateWeatherForZone(region.terrain, currentSeason);
-                            weatherZonesSnapshot[regionId] = { id: regionId, terrain: region.terrain, currentWeather: initialWeather, nextChangeTime: gameTime + getRandomInRange({min: initialWeather.duration_range[0], max: initialWeather.duration_range[1]}) * 10 };
-                        }
-                    });
+                    addNarrativeEntry(fullIntro, 'narrative');
                 }
             }
         
@@ -229,10 +230,9 @@ export function useGameEngine(props: GameEngineProps) {
             setRegions(regionsSnapshot);
             setRegionCounter(regionCounterSnapshot);
             setWeatherZones(weatherZonesSnapshot);
-        }
+        };
 
-        initializeGame();
-        isInitialized.current = true;
+        initializeFirstChunk();
     }, [isLoaded, finalWorldSetup]);
 
     const triggerRandomEvent = useCallback(() => {
@@ -776,7 +776,7 @@ export function useGameEngine(props: GameEngineProps) {
         }
 
         const narrativeResult = { successLevel, playerDamage, enemyDamage, enemyDefeated, fled, enemyType: currentChunk.enemy.type };
-        const narrative = generateOfflineActionNarrative('attack', narrativeResult, currentChunk, t, language);
+        const narrative = generateOfflineActionNarrative('attack', narrativeResult, currentChunk, t);
         addNarrativeEntry(narrative, 'narrative');
     
         if (enemyDefeated && lootDrops.length > 0) {
@@ -797,13 +797,12 @@ export function useGameEngine(props: GameEngineProps) {
         });
     
         advanceGameTime(nextPlayerStats);
-    }, [playerPosition, world, addNarrativeEntry, settings.diceType, t, getEffectiveChunk, playerStats, language, customItemDefinitions, advanceGameTime, setWorld, setPlayerStats]);
+    }, [playerPosition, world, addNarrativeEntry, settings.diceType, t, getEffectiveChunk, playerStats, language, customItemDefinitions, advanceGameTime, setWorld]);
     
     const handleOfflineItemUse = useCallback((itemName: string, target: 'player' | string) => {
         const itemDef = customItemDefinitions[itemName];
         if (!itemDef) return;
     
-        // Use deep copy to prevent state mutation
         let newPlayerStats: PlayerStatus = JSON.parse(JSON.stringify(playerStats));
         const itemIndex = newPlayerStats.items.findIndex(i => i.name === itemName);
     
@@ -871,7 +870,7 @@ export function useGameEngine(props: GameEngineProps) {
             newPlayerStats.items[itemIndex].quantity -= 1;
         }
         
-        const narrative = generateOfflineActionNarrative('useItem', narrativeResult, currentChunk, t, language);
+        const narrative = generateOfflineActionNarrative('useItem', narrativeResult, currentChunk, t);
         addNarrativeEntry(narrative, 'narrative');
     
         // Apply state changes at the end
@@ -879,10 +878,9 @@ export function useGameEngine(props: GameEngineProps) {
             setWorld(prev => ({ ...prev, ...finalWorldUpdate! }));
         }
         
-        // Now filter the items after all other logic
         newPlayerStats.items = newPlayerStats.items.filter(i => i.quantity > 0);
         advanceGameTime(newPlayerStats);
-    }, [playerStats, customItemDefinitions, playerPosition, world, addNarrativeEntry, t, advanceGameTime, setWorld, language]);
+    }, [playerStats, customItemDefinitions, playerPosition, world, addNarrativeEntry, t, advanceGameTime, setWorld]);
     
     const handleOfflineSkillUse = useCallback((skillName: string) => {
         let newPlayerStats: PlayerStatus = JSON.parse(JSON.stringify(playerStats));
@@ -935,12 +933,12 @@ export function useGameEngine(props: GameEngineProps) {
             }
         }
         
-        const narrative = generateOfflineActionNarrative('useSkill', narrativeResult, currentChunk, t, language);
+        const narrative = generateOfflineActionNarrative('useSkill', narrativeResult, currentChunk, t);
         addNarrativeEntry(narrative, 'narrative');
 
         if(newEnemy !== currentChunk.enemy) setWorld(prev => ({...prev, [key]: {...prev[key]!, enemy: newEnemy}}));
         advanceGameTime(newPlayerStats);
-    }, [playerStats, settings.diceType, t, addNarrativeEntry, playerPosition, world, advanceGameTime, setWorld, setPlayerStats, language]);
+    }, [playerStats, settings.diceType, t, addNarrativeEntry, playerPosition, world, advanceGameTime, setWorld, language]);
     
     const handleOfflineAction = useCallback((action: Action) => {
         let newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), t(action.textKey, action.params)] };
@@ -1078,7 +1076,7 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
     }, [addNarrativeEntry, playerStats, t, world, playerPosition, language, toast, advanceGameTime, customItemDefinitions, setWorld, getEffectiveChunk]);
     
     const handleMove = useCallback((direction: "north" | "south" | "east" | "west") => {
-        if (isLoading || isGameOver) return;
+        if (isLoading || isGameOver || !isLoaded) return;
         setPlayerBehaviorProfile(p => ({ ...p, moves: p.moves + 1 }));
 
         let newPos = { ...playerPosition };
@@ -1167,14 +1165,14 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
         if (isOnline) {
             handleOnlineNarrative(actionText, worldSnapshot, newPos, newPlayerStats);
         } else {
-            const narrative = generateOfflineNarrative(worldSnapshot[destChunkKey], settings.narrativeLength, worldSnapshot, newPos, t, language, customItemDefinitions);
+            const narrative = generateOfflineNarrative(worldSnapshot[destChunkKey], settings.narrativeLength, worldSnapshot, newPos, t, language);
             addNarrativeEntry(narrative, 'narrative');
             advanceGameTime(newPlayerStats);
         }
-    }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerPosition, world, regions, regionCounter, turn, playerStats, toast, addNarrativeEntry, t, ensureChunkExists, weatherZones, currentSeason, gameTime, setWeatherZones, setWorld, setRegions, setRegionCounter, setPlayerPosition, isOnline, handleOnlineNarrative, advanceGameTime, settings.narrativeLength, language, customItemDefinitions]);
+    }, [isLoading, isGameOver, isLoaded, setPlayerBehaviorProfile, playerPosition, world, regions, regionCounter, turn, playerStats, toast, addNarrativeEntry, t, ensureChunkExists, weatherZones, currentSeason, gameTime, setWeatherZones, setWorld, setRegions, setRegionCounter, setPlayerPosition, isOnline, handleOnlineNarrative, advanceGameTime, settings.narrativeLength, language, customItemDefinitions]);
 
     const handleAction = useCallback((actionId: number) => {
-        if (isLoading || isGameOver) return;
+        if (isLoading || isGameOver || !isLoaded) return;
         const chunk = world[`${playerPosition.x},${playerPosition.y}`];
         if(!chunk) return;
         
@@ -1192,10 +1190,10 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
         } else {
             handleOfflineAction(action);
         }
-    }, [isLoading, isGameOver, world, playerPosition, playerStats, isOnline, handleOnlineNarrative, handleOfflineAction, toast, t, addNarrativeEntry]);
+    }, [isLoading, isGameOver, isLoaded, world, playerPosition, playerStats, isOnline, handleOnlineNarrative, handleOfflineAction, toast, t, addNarrativeEntry]);
     
     const handleAttack = useCallback(() => {
-        if (isLoading || isGameOver) return;
+        if (isLoading || isGameOver || !isLoaded) return;
         setPlayerBehaviorProfile(p => ({ ...p, attacks: p.attacks + 1 }));
         const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
         if (!baseChunk?.enemy) { addNarrativeEntry(t('noTarget'), 'system'); return; }
@@ -1205,10 +1203,10 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
         const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
     
         handleOfflineAttack();
-    }, [isLoading, isGameOver, setPlayerBehaviorProfile, world, playerPosition, addNarrativeEntry, t, playerStats, handleOfflineAttack]);
+    }, [isLoading, isGameOver, isLoaded, setPlayerBehaviorProfile, world, playerPosition, addNarrativeEntry, t, playerStats, handleOfflineAttack]);
     
     const handleCustomAction = useCallback((text: string) => {
-        if (!text.trim() || isLoading || isGameOver) return;
+        if (!text.trim() || isLoading || isGameOver || !isLoaded) return;
         setPlayerBehaviorProfile(p => ({ ...p, customActions: p.customActions + 1 }));
 
         if (text.trim().toLowerCase() === 'analyze') {
@@ -1223,7 +1221,7 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
              addNarrativeEntry(t('customActionFail'), 'narrative');
              advanceGameTime();
         }
-    }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerStats, isOnline, handleOnlineNarrative, handleOfflineAction, world, playerPosition, addNarrativeEntry, t, advanceGameTime]);
+    }, [isLoading, isGameOver, isLoaded, setPlayerBehaviorProfile, playerStats, isOnline, handleOnlineNarrative, handleOfflineAction, world, playerPosition, addNarrativeEntry, t, advanceGameTime]);
 
     const handleCraft = useCallback(async (recipe: Recipe, outcome: CraftingOutcome) => {
         if (isLoading || isGameOver) return;
@@ -1262,21 +1260,21 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
     }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerStats, customItemDefinitions, addNarrativeEntry, toast, t, advanceGameTime, setPlayerStats]);
 
     const handleItemUsed = useCallback((itemName: string, target: 'player' | string) => {
-        if (isLoading || isGameOver) return;
+        if (isLoading || isGameOver || !isLoaded) return;
         const actionText = target === 'player' ? `${t('useAction')} ${t(itemName as TranslationKey)}` : `${t('useOnAction', {item: t(itemName as TranslationKey), target: t(target as TranslationKey)})}`;
         addNarrativeEntry(actionText, 'action');
         
         handleOfflineItemUse(itemName, target);
 
-    }, [isLoading, isGameOver, t, handleOfflineItemUse, addNarrativeEntry]);
+    }, [isLoading, isGameOver, isLoaded, t, handleOfflineItemUse, addNarrativeEntry]);
 
     const handleUseSkill = useCallback((skillName: string) => {
-        if (isLoading || isGameOver) return;
+        if (isLoading || isGameOver || !isLoaded) return;
         const actionText = `${t('useSkillAction')} ${t(skillName as TranslationKey)}`;
         addNarrativeEntry(actionText, 'action');
 
         handleOfflineSkillUse(skillName);
-    }, [isLoading, isGameOver, t, handleOfflineSkillUse, addNarrativeEntry]);
+    }, [isLoading, isGameOver, isLoaded, t, handleOfflineSkillUse, addNarrativeEntry]);
 
     const handleBuild = useCallback((structureName: string) => {
         if (isLoading || isGameOver) return;

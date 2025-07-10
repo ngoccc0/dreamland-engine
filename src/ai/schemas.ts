@@ -6,9 +6,9 @@
  */
 
 import {z} from 'genkit';
-import type { Terrain } from '@/lib/game/types';
+import type { Terrain, Language } from '@/lib/game/types';
 
-export const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic", "wall", "floptropica", "tundra", "beach", "mesa", "mushroom_forest", "ocean"];
+export const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic", "wall", "floptropica", "tundra", "beach", "mesa", "mushroom_forest", "ocean", "city", "space_station", "underwater"];
 
 export const ItemCategorySchema = z.enum(['Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion']).describe("The category of the item.");
 
@@ -118,6 +118,7 @@ export const PlayerStatusSchema = z.object({
     journal: z.record(z.string()).optional().describe("A record of daily journal entries written by the AI, indexed by day number."),
     dailyActionLog: z.array(z.string()).optional().describe("A log of player actions taken during the current day, used for journaling."),
     questHints: z.record(z.string()).optional().describe("A map of quest texts to their AI-generated hints."),
+    language: z.enum(['en', 'vi']).optional().describe("The player's current language preference."),
 });
 
 export const EnemySchema = z.object({

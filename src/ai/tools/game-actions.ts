@@ -94,8 +94,8 @@ export const playerAttackTool = ai.defineTool({
     
     // Enemy Response Logic
     if (enemyDefeated) {
-        const templates = getTemplates('en');
-        const enemyTemplate = templates[terrain]?.enemies.find(e => e.data.type === enemy.type);
+        const templates = getTemplates(playerStatus.language || 'en');
+        const enemyTemplate = templates[terrain]?.enemies.find((e: any) => e.data.type === enemy.type);
         if (enemyTemplate && enemyTemplate.data.loot) {
             const allItemDefinitions = customItemDefinitions;
             const drops: ChunkItem[] = [];
@@ -117,6 +117,7 @@ export const playerAttackTool = ai.defineTool({
             }
             if (drops.length > 0) {
                  lootDrops = drops;
+                 combatLogParts.push(`Enemy dropped ${drops.map(d => `${d.quantity} ${d.name}`).join(', ')}.`);
             }
         }
         

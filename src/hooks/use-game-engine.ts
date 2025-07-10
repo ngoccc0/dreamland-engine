@@ -12,6 +12,7 @@ import { db } from "@/lib/firebase-config";
 import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/generate-narrative-flow";
 import { fuseItems } from "@/ai/flows/fuse-items-flow";
 import { provideQuestHint } from "@/ai/flows/provide-quest-hint";
+import { generateJournalEntry } from "@/ai/flows/generate-journal-entry";
 
 import { useGameState } from "./use-game-state";
 import { rollDice, getSuccessLevel, successLevelToTranslationKey, type SuccessLevel } from "@/lib/game/dice";
@@ -41,6 +42,7 @@ export function useGameEngine(props: GameEngineProps) {
     const { t, language } = useLanguage();
     const { settings, setSettings } = useSettings();
     const { toast } = useToast();
+    const { user } = useAuth();
     
     const {
         isLoaded,
@@ -607,7 +609,6 @@ export function useGameEngine(props: GameEngineProps) {
     // EFFECT: Auto-saving
     useEffect(() => {
         if (!isLoaded || isSaving || isGameOver) return;
-        const { user } = auth;
 
         const gameState: GameState = {
             worldProfile, currentSeason, world, recipes, buildableStructures,
@@ -639,7 +640,7 @@ export function useGameEngine(props: GameEngineProps) {
     }, [
         worldProfile, currentSeason, world, recipes, buildableStructures, regions, regionCounter,
         playerPosition, playerBehaviorProfile, playerStats, narrativeLog, finalWorldSetup,
-        customItemDefinitions, customItemCatalog, customStructures, weatherZones, gameTime, day, auth.user, isSaving, toast, isGameOver,
+        customItemDefinitions, customItemCatalog, customStructures, weatherZones, gameTime, day, user, isSaving, toast, isGameOver,
         turn, props.gameSlot, isLoaded, setIsSaving,
     ]);
     
@@ -1569,5 +1570,3 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
         handleReturnToMenu,
     };
 }
-
-    

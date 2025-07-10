@@ -40,7 +40,8 @@ interface GameEngineProps {
 }
 
 export function useGameEngine(props: GameEngineProps) {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
+    const { settings } = useSettings();
     
     const {
         isLoaded,
@@ -217,7 +218,7 @@ export function useGameEngine(props: GameEngineProps) {
             if (narrativeLog.length <= 1) { 
                 const startingChunk = worldSnapshot[initialPosKey];
                 if (startingChunk) {
-                    const chunkDescription = generateOfflineNarrative(startingChunk, 'long', worldSnapshot, playerPosition, t, language);
+                    const chunkDescription = generateOfflineNarrative(startingChunk, 'long', worldSnapshot, playerPosition, t);
                     const fullIntro = `${t(finalWorldSetup.initialNarrative as TranslationKey)}\n\n${chunkDescription}`;
                     addNarrativeEntry(fullIntro, 'narrative');
                 }
@@ -1156,7 +1157,7 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
         if (isOnline) {
             handleOnlineNarrative(actionText, worldSnapshot, newPos, newPlayerStats);
         } else {
-            const narrative = generateOfflineNarrative(worldSnapshot[destChunkKey], settings.narrativeLength, worldSnapshot, newPos, t, language);
+            const narrative = generateOfflineNarrative(worldSnapshot[destChunkKey], settings.narrativeLength, worldSnapshot, newPos, t);
             addNarrativeEntry(narrative, 'narrative');
             advanceGameTime(newPlayerStats);
         }

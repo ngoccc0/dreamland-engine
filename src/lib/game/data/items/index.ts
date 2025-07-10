@@ -3,6 +3,9 @@ import { equipmentItems } from "./equipment";
 import { materialItems } from "./materials";
 import { toolItems } from "./tools";
 import { supportItems } from "./support";
+import { dataItems } from "./data";
+import { magicItems } from "./magic";
+import { energySourceItems } from "./energy_source";
 
 export const itemDefinitions = {
     ...foodItems,
@@ -10,4 +13,7 @@ export const itemDefinitions = {
     ...materialItems,
     ...toolItems,
     ...supportItems,
+    ...dataItems,
+    ...magicItems,
+    ...energySourceItems,
 };

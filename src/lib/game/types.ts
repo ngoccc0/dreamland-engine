@@ -1,5 +1,3 @@
-
-
 import type { TranslationKey } from "../i18n";
 import type { BiomeDefinition } from "./definitions/biome";
 import type { RecipeIngredient } from "./data/recipes";
@@ -16,7 +14,7 @@ export const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "des
 
 export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky' | 'metal' | 'sand';
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
-export type ItemCategory = 'Weapon' | 'Material' | 'Energy Source' | 'Food' | 'Data' | 'Tool' | 'Equipment' | 'Support' | 'Magic' | 'Fusion' | 'Misc';
+export type ItemCategory = 'Weapon' | 'Material' | 'Energy Source' | 'Food' | 'Data' | 'Tool' | 'Equipment' | 'Support' | 'Magic' | 'Fusion' | 'Misc' | 'Liquid' | 'Loot' | 'Vegetable' | 'Meat' | 'Fruit' | 'Technology';
 export type PlayerPersona = 'none' | 'explorer' | 'warrior' | 'artisan';
 export type GameMode = 'ai' | 'offline';
 export type DiceType = 'd20' | 'd12' | '2d6';
@@ -344,7 +342,7 @@ export interface ItemDefinition {
   description: string;
   tier: number;
   category: ItemCategory;
-  subCategory?: string;
+  subCategory?: ItemCategory;
   emoji: string;
   effects: ItemEffect[];
   baseQuantity: { min: number, max: number };

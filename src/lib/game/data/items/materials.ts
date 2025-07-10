@@ -61,6 +61,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_da_thu_nho_desc',
         tier: 1,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '🩹',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
@@ -85,6 +86,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_bot_xuong_desc',
         tier: 2,
         category: 'Material',
+        subCategory: 'Magic',
         emoji: '💀',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
@@ -93,6 +95,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_nanh_soi_desc',
         tier: 2,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '🦷',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
@@ -101,6 +104,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_to_nhen_khong_lo_desc',
         tier: 2,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '🕸️',
         effects: [],
         baseQuantity: { min: 1, max: 3 }
@@ -109,6 +113,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_mat_nhen_desc',
         tier: 2,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '👁️',
         effects: [],
         baseQuantity: { min: 2, max: 8 }
@@ -117,6 +122,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_da_heo_rung_desc',
         tier: 2,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '🐗',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
@@ -125,6 +131,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_mong_vuot_gau_desc',
         tier: 4,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '🐾',
         effects: [],
         baseQuantity: { min: 2, max: 4 }
@@ -133,6 +140,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_da_gau_desc',
         tier: 4,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '🐻',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
@@ -141,6 +149,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_da_cao_desc',
         tier: 2,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '🦊',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
@@ -149,6 +158,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_canh_chau_chau_desc',
         tier: 1,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '🦗',
         effects: [],
         baseQuantity: { min: 5, max: 10 }
@@ -157,6 +167,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_rang_linh_cau_desc',
         tier: 2,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '🦷',
         effects: [],
         baseQuantity: { min: 1, max: 3 }
@@ -165,6 +176,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_da_ran_desc',
         tier: 2,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '🐍',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
@@ -173,6 +185,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_duoi_bo_cap_desc',
         tier: 3,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '🦂',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
@@ -181,6 +194,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_long_ken_ken_desc',
         tier: 2,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '🪶',
         effects: [],
         baseQuantity: { min: 2, max: 5 }
@@ -189,6 +203,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_chat_nhon_cua_dia_desc',
         tier: 2,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '💧',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
@@ -197,6 +212,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_da_ca_sau_desc',
         tier: 4,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '🐊',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
@@ -205,6 +221,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_rang_ca_sau_desc',
         tier: 3,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '🦷',
         effects: [],
         baseQuantity: { min: 1, max: 4 }
@@ -213,6 +230,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_canh_muoi_desc',
         tier: 1,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '🦟',
         effects: [],
         baseQuantity: { min: 2, max: 6 }
@@ -221,6 +239,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_sung_de_nui_desc',
         tier: 3,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '🐐',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
@@ -229,6 +248,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_long_harpie_desc',
         tier: 3,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '🪶',
         effects: [],
         baseQuantity: { min: 3, max: 6 }
@@ -237,6 +257,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_da_bao_tuyet_desc',
         tier: 4,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '🐆',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
@@ -245,6 +266,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_canh_doi_desc',
         tier: 2,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '🦇',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
@@ -253,6 +275,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_noc_doc_nhen_hang_desc',
         tier: 3,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '☠️',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
@@ -261,6 +284,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_chat_nhon_slime_desc',
         tier: 2,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '💧',
         effects: [],
         baseQuantity: { min: 1, max: 3 }
@@ -269,6 +293,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_rang_sau_bo_desc',
         tier: 5,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '🦷',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
@@ -455,6 +480,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_nuoc_bun_desc',
         tier: 1,
         category: 'Material',
+        subCategory: 'Liquid',
         emoji: '💧',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
@@ -471,6 +497,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_long_dai_bang_desc',
         tier: 3,
         category: 'Material',
+        subCategory: 'Loot',
         emoji: '🪶',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
@@ -479,6 +506,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_da_vo_chai_desc',
         tier: 3,
         category: 'Material',
+        subCategory: 'Weapon',
         emoji: '🪨',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
@@ -589,6 +617,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_da_obsidian_desc',
         tier: 3,
         category: 'Material',
+        subCategory: 'Magic',
         emoji: '🪨',
         effects: [],
         baseQuantity: { min: 2, max: 4 }
@@ -608,109 +637,5 @@ export const materialItems: Record<string, ItemDefinition> = {
         emoji: '🌋',
         effects: [],
         baseQuantity: { min: 1, max: 5 }
-    },
-    // --- Data ---
-    'Chìa Khóa Rỉ Sét': {
-        description: 'item_chia_khoa_ri_set_desc',
-        tier: 2,
-        category: 'Data',
-        emoji: '🗝️',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
-    },
-    'Tai Yêu Tinh': {
-        description: 'item_tai_yeu_tinh_desc',
-        tier: 2,
-        category: 'Data',
-        emoji: '👂',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
-    },
-    'Mảnh Gốm Cổ': {
-        description: 'item_manh_gom_co_desc',
-        tier: 2,
-        category: 'Data',
-        emoji: '🏺',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
-    },
-     'Trứng Griffon': {
-        description: 'item_trung_griffon_desc',
-        tier: 6,
-        category: 'Data',
-        subCategory: 'Misc',
-        emoji: '🥚',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
-    },
-    'Bản Đồ Cổ': {
-        description: 'item_ban_do_co_desc',
-        tier: 3,
-        category: 'Data',
-        emoji: '🗺️',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
-    },
-    // --- Magic ---
-    'Cát Ma Thuật': {
-        description: 'item_cat_ma_thuat_desc',
-        tier: 4,
-        category: 'Magic',
-        emoji: '✨',
-        effects: [],
-        baseQuantity: { min: 1, max: 2 }
-    },
-    'Tinh chất Ma trơi': {
-        description: 'item_tinh_chat_ma_troi_desc',
-        tier: 4,
-        category: 'Magic',
-        emoji: '💡',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
-    },
-     'Hoa Tinh Linh': {
-        description: 'item_hoa_tinh_linh_desc',
-        tier: 4,
-        category: 'Magic',
-        emoji: '🌸',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 },
-        growthConditions: {
-            optimal: { magicAffinity: { min: 7 } },
-            subOptimal: { magicAffinity: { min: 5, max: 6 } }
-        }
-    },
-    'Pha Lê Núi': {
-        description: 'item_pha_le_nui_desc',
-        tier: 4,
-        category: 'Magic',
-        emoji: '💎',
-        effects: [],
-        baseQuantity: { min: 1, max: 2 }
-    },
-     'Mảnh Tinh Thể': {
-        description: 'item_manh_tinh_the_desc',
-        tier: 2,
-        category: 'Magic',
-        emoji: '💎',
-        effects: [],
-        baseQuantity: { min: 2, max: 7 }
-    },
-    // --- Energy Source ---
-    'Lõi Người Đá': {
-        description: 'item_loi_nguoi_da_desc',
-        tier: 5,
-        category: 'Energy Source',
-        emoji: '💖',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
-    },
-    'Trái tim Magma': {
-        description: 'item_trai_tim_magma_desc',
-        tier: 5,
-        category: 'Energy Source',
-        emoji: '❤️‍🔥',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
     },
 };

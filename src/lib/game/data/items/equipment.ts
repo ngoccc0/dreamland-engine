@@ -9,7 +9,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 2, critChance: 1 },
+        attributes: { physicalAttack: 2, critChance: 1, magicalAttack: 0, attackSpeed: 0, cooldownReduction: 0 },
     },
     'Khiên Gỗ': {
         description: 'item_wooden_shield_desc',
@@ -19,7 +19,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'accessory',
-        attributes: { physicalAttack: 0 }, // Placeholder for future defense stat
+        attributes: { physicalAttack: 0, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 }, // Placeholder for future defense stat
     },
     'Giáo Xương': {
         description: 'item_bone_spear_desc',
@@ -29,7 +29,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 4 },
+        attributes: { physicalAttack: 4, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 },
     },
     'Rìu Chiến Obsidian': {
         description: 'item_obsidian_battleaxe_desc',
@@ -39,7 +39,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 12, critChance: 5, attackSpeed: -0.1 },
+        attributes: { physicalAttack: 12, critChance: 5, attackSpeed: -0.1, magicalAttack: 0, cooldownReduction: 0 },
     },
     'Áo Giáp Da Cá Sấu': {
         description: 'item_alligator_armor_desc',
@@ -49,7 +49,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'armor',
-        attributes: { physicalAttack: 2, cooldownReduction: 5 },
+        attributes: { physicalAttack: 2, cooldownReduction: 5, magicalAttack: 0, critChance: 0, attackSpeed: 0 },
     },
     'Cung Tên Harpy': {
         description: 'item_harpy_bow_desc',
@@ -59,7 +59,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 8, attackSpeed: 0.2 },
+        attributes: { physicalAttack: 8, attackSpeed: 0.2, magicalAttack: 0, critChance: 0, cooldownReduction: 0 },
     },
     'Trượng Lõi Đá': {
         description: 'item_golem_staff_desc',
@@ -70,7 +70,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 2, magicalAttack: 15, cooldownReduction: 10 },
+        attributes: { physicalAttack: 2, magicalAttack: 15, cooldownReduction: 10, critChance: 0, attackSpeed: 0 },
     },
     'Búa Chiến Người Lùn': {
         description: 'item_dwarven_hammer_desc',
@@ -80,12 +80,13 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 15, critChance: 10, attackSpeed: -0.2 },
+        attributes: { physicalAttack: 15, critChance: 10, attackSpeed: -0.2, magicalAttack: 0, cooldownReduction: 0 },
     },
      'Thuyền Phao': {
         description: 'item_inflatable_raft_desc',
         tier: 3,
         category: 'Equipment',
+        subCategory: 'Tool',
         emoji: '🛶',
         effects: [],
         baseQuantity: { min: 1, max: 1 }

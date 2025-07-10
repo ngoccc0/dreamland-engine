@@ -7,6 +7,7 @@ import { useLanguage } from '@/context/language-context';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-config';
 import { useAuth } from '@/context/auth-context';
+import { useSettings } from '@/context/settings-context';
 import { generateNewRecipe } from '@/ai/flows/generate-new-recipe';
 import { generateJournalEntry } from '@/ai/flows/generate-journal-entry';
 import { skillDefinitions } from '@/lib/game/skills';

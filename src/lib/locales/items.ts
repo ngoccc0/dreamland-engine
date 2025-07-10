@@ -2,6 +2,7 @@
 
 export const itemTranslations = {
   en: {
+    'Sợi Thực Vật': 'Plant Fiber',
     'Gusher': 'Gusher',
     'Phiếu giảm giá Onika Burger': 'Onika Burger Coupon',
     'Chảo của Jiafei': "Jiafei's Pan",
@@ -158,7 +159,6 @@ export const itemTranslations = {
     'Bình Đất Sét': 'Clay Pot',
     'Công Cụ Đồng Thô Sơ': 'Crude Copper Tool',
     'Vữa Xây Dựng': 'Mortar',
-    'Sợi Thực Vật': 'Plant Fiber',
     'Đèn Lồng Đom Đóm': 'Firefly Lantern',
     'Thuốc Giải Độc Thảo Mộc': 'Herbal Antidote',
     'Áo Giáp Lông Sói': 'Wolf Pelt Armor',
@@ -218,6 +218,7 @@ export const itemTranslations = {
     'Mảnh Bia đá Cổ': 'Ancient Tablet Fragment',
   },
   vi: {
+    'Sợi Thực Vật': 'Sợi Thực Vật',
     'Gusher': 'Nước giải khát Gusher',
     'Phiếu giảm giá Onika Burger': 'Phiếu giảm giá Onika Burger',
     'Chảo của Jiafei': "Chảo của Jiafei",
@@ -374,7 +375,6 @@ export const itemTranslations = {
     'Bình Đất Sét': 'Bình Đất Sét',
     'Công Cụ Đồng Thô Sơ': 'Công Cụ Đồng Thô Sơ',
     'Vữa Xây Dựng': 'Vữa Xây Dựng',
-    'Sợi Thực Vật': 'Sợi Thực Vật',
     'Đèn Lồng Đom Đóm': 'Đèn Lồng Đom Đóm',
     'Thuốc Giải Độc Thảo Mộc': 'Thuốc Giải Độc Thảo Mộc',
     'Áo Giáp Lông Sói': 'Áo Giáp Lông Sói',

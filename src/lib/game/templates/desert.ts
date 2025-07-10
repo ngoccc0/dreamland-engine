@@ -1,17 +1,16 @@
 
-
 export const desert_vi = {
     descriptionTemplates: {
         short: [
             "Một sa mạc [adjective] bao la với những [feature] trải dài.",
         ],
         medium: [
-            "Cái nóng của sa mạc [adjective] thật khắc nghiệt. Không khí có mùi của [smell] và bạn nghe thấy tiếng [sound] của gió. {sensory_details} {entity_report}",
-            "Một vùng đất [adjective] và cằn cỗi. Chỉ có những [feature] gai góc nhất mới tồn tại được ở đây, tạo nên một cảnh quan vừa đẹp vừa chết chóc. {sensory_details} {entity_report}",
+            "Cái nóng của sa mạc [adjective] thật khắc nghiệt. Không khí có mùi của [smell] và bạn nghe thấy tiếng [sound] của gió.",
+            "Một vùng đất [adjective] và cằn cỗi. Chỉ có những [feature] gai góc nhất mới tồn tại được ở đây, tạo nên một cảnh quan vừa đẹp vừa chết chóc.",
         ],
         long: [
-            "Cát, cát và cát. Một sa mạc [adjective] vô tận. Những [feature] là cảnh tượng duy nhất phá vỡ sự đơn điệu. Bạn thấy một ảo ảnh ở phía xa, lung linh trong cái nóng. {sensory_details} {entity_report} {surrounding_peek}",
-            "Mặt đất nứt nẻ vì khô hạn dưới bầu trời [sky] không một gợn mây. Không khí có mùi của [smell] và bạn nghe thấy tiếng [sound] của gió rít qua tai, một bài ca của sự cô độc. {sensory_details} {entity_report} {surrounding_peek}",
+            "Cát, cát và cát. Một sa mạc [adjective] vô tận. Những [feature] là cảnh tượng duy nhất phá vỡ sự đơn điệu. Bạn thấy một ảo ảnh ở phía xa, lung linh trong cái nóng.",
+            "Mặt đất nứt nẻ vì khô hạn dưới bầu trời [sky] không một gợn mây. Không khí có mùi của [smell] và bạn nghe thấy tiếng [sound] của gió rít qua tai, một bài ca của sự cô độc.",
         ]
     },
     adjectives: ['nóng bỏng', 'khô cằn', 'vô tận', 'lặng im', 'gió cát', 'khắc nghiệt'],
@@ -54,12 +53,12 @@ export const desert_en = {
             "A vast, [adjective] desert with sprawling [feature].",
         ],
         medium: [
-            "The heat of the [adjective] desert is oppressive. The air smells of [smell] and you hear the [sound] of the wind. {sensory_details} {entity_report}",
-            "An [adjective] and arid land. Only the toughest [feature] survive here, creating a landscape both beautiful and deadly. {sensory_details} {entity_report}",
+            "The heat of the [adjective] desert is oppressive. The air smells of [smell] and you hear the [sound] of the wind.",
+            "An [adjective] and arid land. Only the toughest [feature] survive here, creating a landscape both beautiful and deadly.",
         ],
         long: [
-            "Sand, sand, and more sand. An endless, [adjective] desert. The only break in the monotony are the [feature]. You see a mirage in the distance, shimmering in the heat. {sensory_details} {entity_report} {surrounding_peek}",
-            "The ground is cracked and dry under a cloudless [sky] sky. The air smells of hot [smell] and you hear the [sound] of the wind whistling past your ears, a song of solitude. {sensory_details} {entity_report} {surrounding_peek}",
+            "Sand, sand, and more sand. An endless, [adjective] desert. The only break in the monotony are the [feature]. You see a mirage in the distance, shimmering in the heat.",
+            "The ground is cracked and dry under a cloudless [sky] sky. The air smells of hot [smell] and you hear the [sound] of the wind whistling past your ears, a song of solitude.",
         ]
     },
     adjectives: ['scorching', 'arid', 'endless', 'silent', 'windswept', 'harsh'],
@@ -86,4 +85,3 @@ export const desert_en = {
         { data: { type: 'Sand Spirit', emoji: '👻', hp: 60, damage: 12, behavior: 'territorial', size: 'medium', diet: ['Pha Lê Núi'], satiation: 0, maxSatiation: 1, loot: [{name: 'Cát Ma Thuật', chance: 0.15, quantity: {min: 1, max: 2}}] }, conditions: { magicAffinity: { min: 5 }, chance: 0.1 } },
     ],
 };
-

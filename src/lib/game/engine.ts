@@ -1,6 +1,4 @@
 
-
-
 import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient, Structure, Language, Npc, CraftingOutcome, Action, ItemCategory, Skill } from "./types";
 import { seasonConfig, worldConfig } from "./world-config";
 import { getTemplates } from "./templates";
@@ -32,7 +30,7 @@ export const generateWeatherForZone = (terrain: Terrain, season: Season, previou
     
     if (candidateWeather.length === 0) {
         // Fallback to clear weather if no valid weather is found after filtering
-        return weatherPresets.find(w => w.name === 'Clear Skies')!;
+        return weatherPresets.find(w => w.name.en === 'Clear Skies')!;
     }
 
     const totalWeight = candidateWeather.reduce((sum, w) => sum + w.spawnWeight, 0);
@@ -284,7 +282,7 @@ function generateChunkContent(
             if (finalQuantity > 0) {
                 spawnedItems.push({
                     name: itemRef.name,
-                    description: itemDef.description as TranslationKey,
+                    description: t(itemDef.description.en as TranslationKey), // Use key, not translated value
                     tier: itemDef.tier,
                     quantity: finalQuantity,
                     emoji: itemDef.emoji,
@@ -316,7 +314,7 @@ function generateChunkContent(
                             } else {
                                 spawnedItems.push({
                                     name: lootItem.name,
-                                    description: definition.description as TranslationKey,
+                                    description: t(definition.description.en as TranslationKey),
                                     tier: definition.tier,
                                     quantity: quantity,
                                     emoji: definition.emoji,
@@ -624,7 +622,7 @@ export const handleSearchAction = (
                 if (quantity > 0) {
                     foundItems.push({
                         name: itemTemplate.name,
-                        description: itemDef.description as TranslationKey,
+                        description: t(itemDef.description.en as TranslationKey),
                         tier: itemDef.tier,
                         quantity,
                         emoji: itemDef.emoji,
@@ -689,14 +687,11 @@ export const generateOfflineNarrative = (
         return chunk.description || "You are in an unknown area.";
     }
 
-    // Determine the template level to use
     let templateSet = biomeTemplateData.descriptionTemplates[narrativeLength] || biomeTemplateData.descriptionTemplates.medium;
     if (narrativeLength === 'long' && !templateSet) templateSet = biomeTemplateData.descriptionTemplates.medium;
     if (!templateSet) templateSet = biomeTemplateData.descriptionTemplates.short;
-
     let baseTemplate = Array.isArray(templateSet) ? templateSet[Math.floor(Math.random() * templateSet.length)] : templateSet;
 
-    // Build the main description by replacing placeholders
     const populatedTemplate = baseTemplate
         .replace(/\[adjective\]/g, () => biomeTemplateData.adjectives[Math.floor(Math.random() * biomeTemplateData.adjectives.length)])
         .replace(/\[feature\]/g, () => biomeTemplateData.features[Math.floor(Math.random() * biomeTemplateData.features.length)])
@@ -706,7 +701,6 @@ export const generateOfflineNarrative = (
 
     let finalNarrativeParts: string[] = [populatedTemplate];
 
-    // Build sensory details
     const sensoryDetailsParts: string[] = [];
     if (chunk.explorability < 3) sensoryDetailsParts.push(t('offline_explorability_low'));
     if (chunk.dangerLevel > 8) sensoryDetailsParts.push(t('offline_danger_high'));
@@ -719,7 +713,6 @@ export const generateOfflineNarrative = (
     if (chunk.predatorPresence > 7) sensoryDetailsParts.push(t('offline_predator_presence'));
     if (sensoryDetailsParts.length > 0) finalNarrativeParts.push(sensoryDetailsParts.join(' '));
 
-    // Build entity report
     const entityDetailsParts: string[] = [];
     if (chunk.items.length > 0) {
         const itemsHere = chunk.items.map(i => `${i.quantity} ${t(i.name as TranslationKey)}`).join(', ');
@@ -730,7 +723,6 @@ export const generateOfflineNarrative = (
     if (chunk.structures.length > 0) entityDetailsParts.push(t('offlineNarrativeStructure', { structure: t(chunk.structures[0].name as TranslationKey) }));
     if (entityDetailsParts.length > 0) finalNarrativeParts.push(entityDetailsParts.join(' '));
 
-    // Build surrounding peek report
     if (narrativeLength !== 'short') {
         const surroundingPeekParts: string[] = [];
         const directions = [{ x: 0, y: 1, dir: 'North' }, { x: 0, y: -1, dir: 'South' }, { x: 1, y: 0, dir: 'East' }, { x: -1, y: 0, dir: 'West' }];
@@ -750,8 +742,7 @@ export const generateOfflineNarrative = (
         }
     }
     
-    // Clean up any remaining placeholders and extra spaces
-    return finalNarrativeParts.join(' ').replace(/\{[^}]+\}/g, '').replace(/\s{2,}/g, ' ').trim();
+    return finalNarrativeParts.join(' ').replace(/\s{2,}/g, ' ').trim();
 };
 
 export const generateOfflineActionNarrative = (
@@ -846,4 +837,3 @@ export const generateOfflineActionNarrative = (
     
     return t(templateKey, replacements);
 };
-

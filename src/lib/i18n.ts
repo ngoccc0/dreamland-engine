@@ -676,7 +676,7 @@ export const translations = {
     enemyDropped: "It dropped {items}.",
     enemyFled: ["The {enemyType} shrieks in terror and flees!", "Seeing your might, the {enemyType} decides to run for its life.", "The wounded {enemyType} scrambles away into the undergrowth."],
     enemyRetaliated: "The {enemyType} retaliates, dealing {damage} damage!",
-    enemyPrepares: "The {enemyType} prepares for its next move.",
+    enemyPrepares: "The {enemyType} bristles, preparing its next move.",
     enemyVanquished: "The {enemyType} has been vanquished!",
     siphonHealth: "You siphon {amount} health from the hit.",
     noTargetForITEM: "There is no {target} here to use the item on.",
@@ -1101,6 +1101,8 @@ export const translations = {
     harvestFail_noTool: "You need a {tool} to harvest the {target}.",
     harvestFail_tooHard: "The {target} is too tough for your current tool.",
     harvestSuccess: "You successfully harvest {loot} from the {target}.",
+    harvestFail_noLoot: "You harvest the {target} but find no usable resources.",
+    cantHarvest: "You cannot harvest this."
   },
   vi: {
     langIdentifier: 'vi',

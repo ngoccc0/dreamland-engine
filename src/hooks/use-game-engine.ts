@@ -1224,7 +1224,7 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
                 report += ` - ${t('category')}: ${t(def.category as TranslationKey)}`;
                 if (def.subCategory) report += ` (${t(def.subCategory as TranslationKey)})`;
                 report += ` | ${t('tier', { tier: def.tier })}\n`;
-                if (def.weight) report += ` - Weight: ${def.weight} | Stack: ${def.stackable || 1}\n`;
+                if(def.weight) report += ` - Weight: ${def.weight} | Stack: ${def.stackable || 1}\n`;
 
                 if (def.equipmentSlot) {
                     report += ` - Slot: ${t(def.equipmentSlot as TranslationKey)}\n`;
@@ -1235,7 +1235,7 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
                 }
 
                 if(def.effects && def.effects.length > 0) {
-                    const effects = def.effects.map(e => `${t(e.type)} ${e.amount}`).join(', ');
+                    const effects = def.effects.map(e => `+${e.amount} ${t(e.type === 'HEAL' ? 'healthShort' : 'staminaShort')}`).join(', ');
                      if(effects) report += ` - ${t('effects')}: ${effects}\n`;
                 }
 
@@ -1570,3 +1570,5 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
         handleReturnToMenu,
     };
 }
+
+    

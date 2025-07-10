@@ -13,13 +13,9 @@ import { db } from "@/lib/firebase-config";
 
 interface GameStateProps {
     gameSlot: number;
-    worldSetup?: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog' | 'customStructures'> & { playerInventory: PlayerItem[] };
-    customItemDefinitions?: Record<string, ItemDefinition>;
-    customItemCatalog?: GeneratedItem[];
-    customStructures?: Structure[];
 }
 
-export function useGameState({ gameSlot, worldSetup: propsWorldSetup, customItemDefinitions: propsCustomDefs, customItemCatalog: propsCustomCatalog, customStructures: propsCustomStructures }: GameStateProps) {
+export function useGameState({ gameSlot }: GameStateProps) {
     const { user } = useAuth();
     const [isLoaded, setIsLoaded] = useState(false);
 
@@ -57,7 +53,8 @@ export function useGameState({ gameSlot, worldSetup: propsWorldSetup, customItem
     const [currentChunk, setCurrentChunk] = useState<Chunk | null>(null);
 
      const addNarrativeEntry = useCallback((text: string, type: NarrativeEntry['type']) => {
-        setNarrativeLog(prev => [...prev, { id: prev.length, text, type }]);
+        const uniqueId = `${Date.now()}-${Math.random()}`;
+        setNarrativeLog(prev => [...prev, { id: uniqueId, text, type }]);
     }, []);
 
     const advanceGameTime = useCallback((newPlayerStats?: PlayerStatus) => {
@@ -137,25 +134,7 @@ export function useGameState({ gameSlot, worldSetup: propsWorldSetup, customItem
                 sessionRecipes = loadedState.recipes || {};
                 sessionStructures = loadedState.customStructures || [];
 
-            } else if (propsWorldSetup && propsCustomDefs && propsCustomCatalog && propsCustomStructures) {
-                // Starting a new game from props
-                setFinalWorldSetup(propsWorldSetup);
-                setPlayerStats(prev => ({
-                    ...prev,
-                    items: propsWorldSetup.playerInventory,
-                    quests: propsWorldSetup.initialQuests,
-                    skills: propsWorldSetup.startingSkill ? [propsWorldSetup.startingSkill] : [],
-                }));
-                 if(propsWorldSetup.initialNarrative) {
-                    setNarrativeLog([{ id: 0, text: propsWorldSetup.initialNarrative, type: 'narrative' }]);
-                 }
-                
-                sessionCatalog = propsCustomCatalog;
-                sessionDefs = propsCustomDefs;
-                sessionRecipes = staticRecipes;
-                sessionStructures = propsCustomStructures;
             }
-
             // --- 4. MERGE global data into the session data before setting state ---
             const finalCatalogMap = new Map<string, GeneratedItem>();
             sessionCatalog.forEach(item => finalCatalogMap.set(item.name, item));

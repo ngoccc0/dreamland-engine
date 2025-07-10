@@ -1,4 +1,5 @@
 
+
 import type { TranslationKey } from "../i18n";
 import type { 
     ItemDefinition, 
@@ -257,7 +258,7 @@ export interface PlayerBehaviorProfile {
 }
 
 export type NarrativeEntry = {
-    id: number;
+    id: string;
     text: string;
     type: 'narrative' | 'action' | 'system';
 }

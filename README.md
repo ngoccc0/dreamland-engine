@@ -176,15 +176,15 @@ Hệ thống mod của Dreamland Engine được thiết kế theo hướng dữ
 Tạo một tệp mới trong thư mục `src/lib/game/mods/`, ví dụ: `my_epic_mod.ts`.
 
 #### Bước 2: Định nghĩa Nội dung
-Bên trong tệp mới, bạn sẽ định nghĩa các đối tượng chứa vật phẩm, công thức, và sinh vật mới. Cấu trúc phải tuân thủ kiểu `ModDefinition`.
+Bên trong tệp mới, bạn sẽ định nghĩa các đối tượng chứa vật phẩm, công thức, và sinh vật mới. Cấu trúc phải tuân thủ kiểu `ModDefinition`. **QUAN TRỌNG:** Tất cả các trường dữ liệu trong các định nghĩa (`ItemDefinition`, `Recipe`, `EnemySpawn`) đều là bắt buộc để đảm bảo game hoạt động ổn định.
 
-**Ví dụ `my_epic_mod.ts`:**
+**Ví dụ `my_epic_mod.ts` (Hoàn chỉnh):**
 ```typescript
-import type { ModDefinition, ItemDefinition, Recipe, EnemySpawn } from '@/lib/game/types';
+import type { ModDefinition, ItemDefinition, Recipe, EnemySpawn, EquipmentSlot } from '@/lib/game/types';
 
 // Định nghĩa các vật phẩm mới. Bắt buộc phải có đủ các trường.
 const items: Record<string, ItemDefinition> = {
-  'Vảy Rồng': {
+  'Dragon Scale': {
     description: 'Một chiếc vảy cứng như thép, lấp lánh màu đỏ.',
     tier: 5,
     category: 'Material',
@@ -192,21 +192,40 @@ const items: Record<string, ItemDefinition> = {
     effects: [],
     baseQuantity: { min: 1, max: 3 },
   },
+  'Dragon Tooth': {
+    description: 'Một chiếc răng sắc như dao găm.',
+    tier: 5,
+    category: 'Material',
+    emoji: '🦷',
+    effects: [],
+    baseQuantity: { min: 1, max: 2 },
+  },
+  'Dragon Tooth Spear': {
+    description: 'Một ngọn giáo mạnh mẽ được chế tạo từ Răng Rồng.',
+    tier: 5,
+    category: 'Weapon',
+    emoji: '🔱',
+    effects: [],
+    baseQuantity: { min: 1, max: 1 },
+    equipmentSlot: 'weapon' as EquipmentSlot,
+    attributes: { physicalAttack: 18, critChance: 5, magicalAttack: 0, attackSpeed: 0, cooldownReduction: 0 },
+  },
 };
 
-// Định nghĩa các công thức chế tạo mới
+// Định nghĩa các công thức chế tạo mới.
 const recipes: Record<string, Recipe> = {
-  'Giáo Răng Rồng': {
-    result: { name: 'Giáo Răng Rồng', quantity: 1, emoji: '🔱' },
+  'Dragon Tooth Spear': {
+    result: { name: 'Dragon Tooth Spear', quantity: 1, emoji: '🔱' },
     ingredients: [
-      { name: 'Răng Rồng', quantity: 1 }, // Giả sử 'Răng Rồng' đã tồn tại
+      { name: 'Dragon Tooth', quantity: 1 },
       { name: 'Lõi Gỗ', quantity: 2 },
+      { name: 'Dây Gai', quantity: 3 }
     ],
     description: 'Chế tạo một ngọn giáo mạnh mẽ từ Răng Rồng.',
   }
 };
 
-// Định nghĩa các sinh vật mới và điều kiện xuất hiện của chúng
+// Định nghĩa các sinh vật mới và điều kiện xuất hiện của chúng.
 const enemies: Partial<Record<"forest" | "mountain", EnemySpawn[]>> = {
   'mountain': [
     {
@@ -221,7 +240,7 @@ const enemies: Partial<Record<"forest" | "mountain", EnemySpawn[]>> = {
         satiation: 0,
         maxSatiation: 2,
         loot: [
-          { name: 'Vảy Rồng', chance: 0.5, quantity: { min: 1, max: 2 } },
+          { name: 'Dragon Scale', chance: 0.5, quantity: { min: 1, max: 2 } },
         ]
       },
       // Điều kiện xuất hiện: chỉ ở những ngọn núi cao và lộng gió.
@@ -230,7 +249,7 @@ const enemies: Partial<Record<"forest" | "mountain", EnemySpawn[]>> = {
   ]
 };
 
-// Xuất tất cả các định nghĩa trong một đối tượng mod duy nhất
+// Xuất tất cả các định nghĩa trong một đối tượng mod duy nhất.
 export const mod: ModDefinition = {
   items,
   recipes,
@@ -254,7 +273,7 @@ export const allMods: ModDefinition[] = [
 ```
 
 ### 3. Xác thực Dữ liệu
-Hệ thống sẽ tự động kiểm tra các tệp mod của bạn. Nếu có bất kỳ trường dữ liệu bắt buộc nào bị thiếu (ví dụ: `description`, `tier`, `category` cho vật phẩm), game sẽ không khởi động và sẽ hiển thị một thông báo lỗi chi tiết trên console của trình duyệt, chỉ rõ mod nào và trường dữ liệu nào đang bị thiếu. Điều này giúp bạn dễ dàng gỡ lỗi và đảm bảo các mod luôn ổn định.
+Hệ thống sẽ tự động kiểm tra các tệp mod của bạn. Nếu có bất kỳ trường dữ liệu bắt buộc nào bị thiếu (ví dụ: `description`, `tier`, `category` cho vật phẩm, hoặc `data`, `conditions` cho kẻ địch), game sẽ không khởi động và sẽ hiển thị một thông báo lỗi chi tiết trên console của trình duyệt, chỉ rõ mod nào và trường dữ liệu nào đang bị thiếu. Điều này giúp bạn dễ dàng gỡ lỗi và đảm bảo các mod luôn ổn định.
 
 ---
 
@@ -279,4 +298,3 @@ Hệ thống sẽ tự động kiểm tra các tệp mod của bạn. Nếu có 
 - **🐛 [Sửa lỗi] Cải thiện Logic Game:**
   - Sửa lỗi thuật toán tạo thế giới, đảm bảo các quần xã sinh vật (biome) được tạo ra một cách logic và tuân thủ các quy tắc về "hàng xóm" (ví dụ: tuyết không thể nằm cạnh bãi biển).
   - Khắc phục lỗi `ChunkLoadError` bằng cách thay đổi chiến lược lưu cache, đảm bảo người chơi luôn nhận được phiên bản mới nhất của ứng dụng.
-

@@ -6,7 +6,7 @@
  * `allMods` array in `src/lib/game/mods/index.ts`.
  */
 
-import type { ModDefinition, ItemDefinition, Recipe, EnemySpawn } from '@/lib/game/types';
+import type { ModDefinition, ItemDefinition, Recipe, EnemySpawn, EquipmentSlot } from '@/lib/game/types';
 
 // Define new items. All fields are required for validation.
 const items: Record<string, ItemDefinition> = {
@@ -33,8 +33,8 @@ const items: Record<string, ItemDefinition> = {
     emoji: '🔱',
     effects: [],
     baseQuantity: { min: 1, max: 1 },
-    equipmentSlot: 'weapon',
-    attributes: { physicalAttack: 18, critChance: 5 },
+    equipmentSlot: 'weapon' as EquipmentSlot,
+    attributes: { physicalAttack: 18, critChance: 5, magicalAttack: 0, attackSpeed: 0, cooldownReduction: 0 },
   },
 };
 
@@ -52,7 +52,7 @@ const recipes: Record<string, Recipe> = {
 };
 
 // Define new enemies and specify which biomes they can spawn in.
-const enemies: Partial<Record<"forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave" | "jungle" | "volcanic", EnemySpawn[]>> = {
+const enemies: Partial<Record<"forest" | "mountain", EnemySpawn[]>> = {
   'forest': [
     {
       data: {

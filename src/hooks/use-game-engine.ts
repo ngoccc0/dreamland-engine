@@ -37,7 +37,7 @@ interface GameEngineProps {
 
 export function useGameEngine(props: GameEngineProps) {
     const { t, language } = useLanguage();
-    const { settings, setSettings } = useSettings();
+    const { settings } = useSettings();
     const { toast } = useToast();
     const { user } = useAuth();
     
@@ -52,6 +52,7 @@ export function useGameEngine(props: GameEngineProps) {
         turn, setTurn,
         weatherZones, setWeatherZones,
         world, setWorld,
+        playerPosition,
         playerBehaviorProfile, setPlayerBehaviorProfile,
         playerStats, setPlayerStats,
         customItemDefinitions,

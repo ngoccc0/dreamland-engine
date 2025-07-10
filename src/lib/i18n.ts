@@ -1,5 +1,4 @@
 
-
 export const translations = {
   en: {
     langIdentifier: 'en',
@@ -707,6 +706,9 @@ export const translations = {
     inventoryPopupTitle: "Inventory",
     inventoryPopupDesc: "Items you've collected. Click an item to see available actions.",
     inventoryEmpty: "Your inventory is empty.",
+    noData: "No detailed data available.",
+    category: "Category",
+    equipmentSlot: "Equipment Slot",
     tier: "Tier {tier}",
     useOnSelf: "Use on Self",
     useOnTarget: "Use on {target}",
@@ -1072,3 +1074,4 @@ export type TranslationKey = keyof (typeof translations)['en'] & keyof (typeof t
 
 
     
+

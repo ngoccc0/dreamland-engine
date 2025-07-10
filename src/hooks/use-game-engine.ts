@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useCallback, useRef } from "react";
@@ -24,7 +23,7 @@ import { worldConfig, seasonConfig } from '@/lib/game/world-config';
 import { clamp } from "@/lib/utils";
 import { randomEvents } from "@/lib/game/events";
 
-import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, ItemEffect, Terrain, PlayerPersona, EquipmentSlot, NarrativeLength, Action } from "@/lib/game/types";
+import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ChunkItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, ItemEffect, Terrain, PlayerPersona, EquipmentSlot, NarrativeLength, Action, PlayerAttributes } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 
 
@@ -709,7 +708,7 @@ export function useGameEngine(props: GameEngineProps) {
             if (result.newlyGeneratedItem && !customItemDefinitions[result.newlyGeneratedItem.name]) {
                 const newItem = result.newlyGeneratedItem;
                 setCustomItemCatalog(prev => [...prev, newItem]);
-                setCustomItemDefinitions(prev => ({ ...prev, [newItem.name]: { description: newItem.description, tier: newItem.tier, category: newItem.category, emoji: newItem.emoji, effects: newItem.effects as ItemEffect[], baseQuantity: newItem.baseQuantity, growthConditions: newItem.growthConditions as any } }));
+                setCustomItemDefinitions(prev => ({ ...prev, [newItem.name]: { ...newItem } }));
                 if (db) {
                     await setDoc(doc(db, "world-catalog", "items", "generated", newItem.name), newItem);
                 }
@@ -1209,9 +1208,48 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
         if (!text.trim() || isLoading || isGameOver || !isLoaded) return;
         setPlayerBehaviorProfile(p => ({ ...p, customActions: p.customActions + 1 }));
 
-        if (text.trim().toLowerCase() === 'analyze') {
+        const command = text.trim().toLowerCase();
+
+        if (command === 'analyze') {
             handleOfflineAction({id: -1, textKey: 'analyzeAction'});
             return;
+        }
+        
+        if (command === 'read') {
+            addNarrativeEntry(text, 'action');
+            if (playerStats.items.length === 0) {
+                addNarrativeEntry(t('inventoryEmpty'), 'system');
+                return;
+            }
+
+            const itemsToRead = playerStats.items.slice(0, 5);
+            const itemReports = itemsToRead.map(item => {
+                const def = customItemDefinitions[item.name];
+                if (!def) return `[${t(item.name as TranslationKey)}]: ${t('noData')}`;
+                
+                let report = `[${t(item.name as TranslationKey)}] (x${item.quantity})\n`;
+                report += `${t(def.description as TranslationKey)}\n`;
+                report += ` - ${t('category')}: ${t(def.category as TranslationKey)}`;
+                if (def.subCategory) report += ` (${t(def.subCategory as TranslationKey)})`;
+                report += `\n - ${t('tier')}: ${def.tier}\n`;
+                if (def.equipmentSlot) report += ` - ${t('equipmentSlot')}: ${t(def.equipmentSlot as TranslationKey)}\n`;
+                
+                if (def.attributes) {
+                    const attrs = Object.entries(def.attributes)
+                        .map(([key, val]) => `${t(key as TranslationKey)}: ${val}`)
+                        .join(', ');
+                    if(attrs) report += ` - ${t('attributes')}: ${attrs}\n`;
+                }
+
+                if(def.effects && def.effects.length > 0) {
+                    const effects = def.effects.map(e => `${t(e.type)} ${e.amount}`).join(', ');
+                     if(effects) report += ` - ${t('effects')}: ${effects}\n`;
+                }
+                return report;
+            }).join('\n\n');
+
+            addNarrativeEntry(itemReports, 'system');
+            return; // Reading doesn't advance time
         }
 
         const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), text]};
@@ -1221,7 +1259,7 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
              addNarrativeEntry(t('customActionFail'), 'narrative');
              advanceGameTime();
         }
-    }, [isLoading, isGameOver, isLoaded, setPlayerBehaviorProfile, playerStats, isOnline, handleOnlineNarrative, handleOfflineAction, world, playerPosition, addNarrativeEntry, t, advanceGameTime]);
+    }, [isLoading, isGameOver, isLoaded, setPlayerBehaviorProfile, playerStats, isOnline, handleOnlineNarrative, handleOfflineAction, world, playerPosition, addNarrativeEntry, t, advanceGameTime, customItemDefinitions]);
 
     const handleCraft = useCallback(async (recipe: Recipe, outcome: CraftingOutcome) => {
         if (isLoading || isGameOver) return;
@@ -1393,7 +1431,7 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
                 if(!customItemDefinitions[result.resultItem.name]) {
                     const newItem = result.resultItem;
                     setCustomItemCatalog(prev => [...prev, newItem]);
-                    setCustomItemDefinitions(prev => ({ ...prev, [newItem.name]: { description: newItem.description, tier: newItem.tier, category: newItem.category, emoji: newItem.emoji, effects: newItem.effects as ItemEffect[], baseQuantity: newItem.baseQuantity, growthConditions: newItem.growthConditions, }}));
+                    setCustomItemDefinitions(prev => ({ ...prev, [newItem.name]: { ...newItem }}));
                     if(db) {
                         await setDoc(doc(db, "world-catalog", "items", "generated", newItem.name), newItem);
                     }

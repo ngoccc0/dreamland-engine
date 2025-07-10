@@ -4,9 +4,9 @@
 
 import { useState, useEffect } from "react";
 import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, PlayerAttributes, ItemEffect, Terrain, ModDefinition, EnemySpawn } from "@/lib/game/types";
-import { recipes as staticRecipes } from '@/lib/game/recipes';
+import { recipes as staticRecipes } from '@/lib/game/data/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
-import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
+import { itemDefinitions as staticItemDefinitions } from '@/lib/game/data/items';
 import { useAuth } from "@/context/auth-context";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase-config";

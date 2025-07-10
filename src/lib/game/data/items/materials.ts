@@ -1,9 +1,6 @@
-import type { ItemDefinition } from "./types";
+import type { ItemDefinition } from "../../types";
 
-
-// --- CENTRAL ITEM CATALOG ---
-// The description field now holds a key for the i18n system.
-export const itemDefinitions: Record<string, ItemDefinition> = {
+export const materialItems: Record<string, ItemDefinition> = {
     'Lá cây lớn': {
         description: 'item_la_cay_lon_desc',
         tier: 1,
@@ -12,7 +9,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 5, max: 15 }
     },
-    // --- VẬT PHẨM CHẾ TẠO CƠ BẢN ---
     'Sỏi': {
         description: 'item_soi_desc',
         tier: 1,
@@ -85,14 +81,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
-    'Đá Mài': {
-        description: 'item_da_mai_desc',
-        tier: 2,
-        category: 'Tool',
-        emoji: '🔪',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
-    },
     'Bột Xương': {
         description: 'item_bot_xuong_desc',
         tier: 2,
@@ -109,161 +97,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
-
-    // --- VẬT PHẨM CHẾ TẠO ĐƯỢC ---
-    'Dao Găm Đá': {
-        description: 'item_stone_dagger_desc',
-        tier: 1,
-        category: 'Weapon',
-        emoji: '🗡️',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 },
-        equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 2, critChance: 1 },
-    },
-    'Khiên Gỗ': {
-        description: 'item_wooden_shield_desc',
-        tier: 2,
-        category: 'Equipment',
-        emoji: '🛡️',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 },
-        equipmentSlot: 'accessory',
-        attributes: { physicalAttack: 0 }, // Placeholder for future defense stat
-    },
-    'Băng Gạc': {
-        description: 'item_bandage_desc',
-        tier: 2,
-        category: 'Support',
-        emoji: '🩹',
-        effects: [{ type: 'HEAL', amount: 15 }],
-        baseQuantity: { min: 1, max: 1 }
-    },
-    'Cuốc Đá': {
-        description: 'item_stone_pickaxe_desc',
-        tier: 2,
-        category: 'Tool',
-        emoji: '⛏️',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
-    },
-    'Giáo Xương': {
-        description: 'item_bone_spear_desc',
-        tier: 2,
-        category: 'Weapon',
-        emoji: '🔱',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 },
-        equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 4 },
-    },
-    'Rìu Đá Đơn Giản': {
-        description: 'item_riu_da_don_gian_desc',
-        tier: 1,
-        category: 'Tool',
-        emoji: '🪓',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 },
-        equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 3 },
-    },
-    'Thuốc Máu Yếu': {
-        description: 'item_thuoc_mau_yeu_desc',
-        tier: 1,
-        category: 'Support',
-        subCategory: 'Potion',
-        emoji: '🧪',
-        effects: [{ type: 'HEAL', amount: 35 }],
-        baseQuantity: { min: 1, max: 1 }
-    },
-    'Bó Đuốc': {
-        description: 'item_bo_duoc_desc',
-        tier: 1,
-        category: 'Tool',
-        emoji: '🔥',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
-    },
-    'Thuyền Phao': {
-        description: 'item_inflatable_raft_desc',
-        tier: 3,
-        category: 'Equipment',
-        emoji: '🛶',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
-    },
-    'Rìu Chiến Obsidian': {
-        description: 'item_obsidian_battleaxe_desc',
-        tier: 4,
-        category: 'Weapon',
-        emoji: '🪓',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 },
-        equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 12, critChance: 5, attackSpeed: -0.1 },
-    },
-    'Áo Giáp Da Cá Sấu': {
-        description: 'item_alligator_armor_desc',
-        tier: 4,
-        category: 'Equipment',
-        emoji: '👕',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 },
-        equipmentSlot: 'armor',
-        attributes: { physicalAttack: 2, cooldownReduction: 5 },
-    },
-    'Thuốc Máu Mạnh': {
-        description: 'item_strong_health_potion_desc',
-        tier: 3,
-        category: 'Support',
-        subCategory: 'Potion',
-        emoji: '🧪',
-        effects: [{ type: 'HEAL', amount: 75 }],
-        baseQuantity: { min: 1, max: 1 }
-    },
-    'Cung Tên Harpy': {
-        description: 'item_harpy_bow_desc',
-        tier: 4,
-        category: 'Weapon',
-        emoji: '🏹',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 },
-        equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 8, attackSpeed: 0.2 },
-    },
-    'Trượng Lõi Đá': {
-        description: 'item_golem_staff_desc',
-        tier: 5,
-        category: 'Weapon',
-        subCategory: 'Magic',
-        emoji: '🪄',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 },
-        equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 2, magicalAttack: 15, cooldownReduction: 10 },
-    },
-    'Thuốc Thể Lực': {
-        description: 'item_stamina_potion_desc',
-        tier: 3,
-        category: 'Support',
-        subCategory: 'Potion',
-        emoji: '🥤',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 70 }],
-        baseQuantity: { min: 1, max: 1 }
-    },
-    'Búa Chiến Người Lùn': {
-        description: 'item_dwarven_hammer_desc',
-        tier: 5,
-        category: 'Weapon',
-        emoji: '🔨',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 },
-        equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 15, critChance: 10, attackSpeed: -0.2 },
-    },
-
-
-    // --- VẬT PHẨM TỪ SINH VẬT ---
     'Nanh Sói': {
         description: 'item_nanh_soi_desc',
         tier: 2,
@@ -271,15 +104,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         emoji: '🦷',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
-    },
-    'Thịt Sói Sống': {
-        description: 'item_thit_soi_song_desc',
-        tier: 1,
-        category: 'Food',
-        subCategory: 'Meat',
-        emoji: '🥩',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
-        baseQuantity: { min: 1, max: 1 }
     },
     'Tơ Nhện Khổng lồ': {
         description: 'item_to_nhen_khong_lo_desc',
@@ -305,15 +129,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
-    'Thịt Heo Rừng': {
-        description: 'item_thit_heo_rung_desc',
-        tier: 2,
-        category: 'Food',
-        subCategory: 'Meat',
-        emoji: '🍖',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 20 }],
-        baseQuantity: { min: 1, max: 2 }
-    },
     'Tai Yêu Tinh': {
         description: 'item_tai_yeu_tinh_desc',
         tier: 2,
@@ -337,15 +152,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         emoji: '🐻',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
-    },
-    'Thịt Thỏ': {
-        description: 'item_thit_tho_desc',
-        tier: 1,
-        category: 'Food',
-        subCategory: 'Meat',
-        emoji: '🐰',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 10 }],
-        baseQuantity: { min: 1, max: 2 }
     },
     'Da Cáo': {
         description: 'item_da_cao_desc',
@@ -378,15 +184,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         emoji: '🐍',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
-    },
-    'Trứng Rắn': {
-        description: 'item_trung_ran_desc',
-        tier: 2,
-        category: 'Food',
-        subCategory: 'Misc',
-        emoji: '🥚',
-        effects: [],
-        baseQuantity: { min: 2, max: 4 }
     },
     'Đuôi Bọ Cạp': {
         description: 'item_duoi_bo_cap_desc',
@@ -460,15 +257,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
-    'Thịt Dê Núi': {
-        description: 'item_thit_de_nui_desc',
-        tier: 2,
-        category: 'Food',
-        subCategory: 'Meat',
-        emoji: '🍖',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 25 }],
-        baseQuantity: { min: 1, max: 2 }
-    },
     'Lõi Người Đá': {
         description: 'item_loi_nguoi_da_desc',
         tier: 5,
@@ -492,15 +280,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         emoji: '🐆',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
-    },
-    'Thịt Báo Tuyết': {
-        description: 'item_thit_bao_tuyet_desc',
-        tier: 3,
-        category: 'Food',
-        subCategory: 'Meat',
-        emoji: '🍖',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 40 }],
-        baseQuantity: { min: 1, max: 2 }
     },
     'Cánh Dơi': {
         description: 'item_canh_doi_desc',
@@ -534,21 +313,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
-
-    // --- TÀI NGUYÊN BIOME - RỪNG ---
-    'Quả Mọng Ăn Được': {
-        description: 'item_qua_mong_an_duoc_desc',
-        tier: 1,
-        category: 'Food',
-        subCategory: 'Fruit',
-        emoji: '🍓',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 15 }],
-        baseQuantity: { min: 2, max: 6 },
-        growthConditions: {
-            optimal: { moisture: { min: 5 }, vegetationDensity: { min: 7 } },
-            subOptimal: { moisture: { min: 3, max: 4 } }
-        }
-    },
     'Nấm Độc': {
         description: 'item_nam_doc_desc',
         tier: 2,
@@ -560,19 +324,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         growthConditions: {
             optimal: { moisture: { min: 7, max: 10 }, lightLevel: { max: -2 } },
             subOptimal: { moisture: { min: 5, max: 6 }, lightLevel: { min: -1, max: 1 } }
-        }
-    },
-    'Thảo Dược Chữa Lành': {
-        description: 'item_thao_duoc_chua_lanh_desc',
-        tier: 2,
-        category: 'Support',
-        subCategory: 'Potion',
-        emoji: '🌿',
-        effects: [{ type: 'HEAL', amount: 20 }],
-        baseQuantity: { min: 1, max: 2 },
-        growthConditions: {
-            optimal: { moisture: { min: 6, max: 8 }, temperature: { min: 5, max: 8 }, lightLevel: { min: 2, max: 6 } },
-            subOptimal: { moisture: { min: 4, max: 5 }, temperature: { min: 3, max: 4 } }
         }
     },
     'Cành Cây Chắc Chắn': {
@@ -596,7 +347,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         tier: 4,
         category: 'Magic',
         emoji: '🌸',
-        effects: [], // Would be 'RESTORE_MANA' if mana existed
+        effects: [],
         baseQuantity: { min: 1, max: 1 },
         growthConditions: {
             optimal: { magicAffinity: { min: 7 } },
@@ -627,15 +378,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
-    'Mật Ong Hoang': {
-        description: 'item_mat_ong_hoang_desc',
-        tier: 2,
-        category: 'Food',
-        subCategory: 'Misc',
-        emoji: '🍯',
-        effects: [{ type: 'HEAL', amount: 10 }, { type: 'RESTORE_STAMINA', amount: 15 }],
-        baseQuantity: { min: 1, max: 1 }
-    },
     'Rêu Xanh': {
         description: 'item_reu_xanh_desc',
         tier: 1,
@@ -660,9 +402,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
-
-
-    // --- TÀI NGUYÊN BIOME - ĐỒNG CỎ ---
     'Hoa Dại': {
         description: 'item_hoa_dai_desc',
         tier: 1,
@@ -670,15 +409,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         emoji: '🌻',
         effects: [],
         baseQuantity: { min: 3, max: 8 }
-    },
-    'Lúa Mì': {
-        description: 'item_lua_mi_desc',
-        tier: 1,
-        category: 'Food',
-        subCategory: 'Vegetable',
-        emoji: '🌾',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
-        baseQuantity: { min: 2, max: 5 }
     },
     'Lông Chim Ưng': {
         description: 'item_long_chim_ung_desc',
@@ -688,32 +418,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
-    'Đá Lửa': {
-        description: 'item_da_lua_desc',
-        tier: 1,
-        category: 'Tool',
-        emoji: '🔥',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
-    },
-    'Trứng Chim Hoang': {
-        description: 'item_trung_chim_hoang_desc',
-        tier: 1,
-        category: 'Food',
-        subCategory: 'Misc',
-        emoji: '🥚',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 20 }],
-        baseQuantity: { min: 2, max: 4 }
-    },
-    'Rễ Củ Ăn Được': {
-        description: 'item_re_cu_an_duoc_desc',
-        tier: 1,
-        category: 'Food',
-        subCategory: 'Vegetable',
-        emoji: '🥔',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 25 }],
-        baseQuantity: { min: 1, max: 3 }
-    },
     'Hạt Giống Hoa Dại': {
         description: 'item_hat_giong_hoa_dai_desc',
         tier: 1,
@@ -721,15 +425,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         emoji: '🌱',
         effects: [],
         baseQuantity: { min: 5, max: 10 }
-    },
-    'Nấm Mỡ': {
-        description: 'item_nam_mo_desc',
-        tier: 1,
-        category: 'Food',
-        subCategory: 'Vegetable',
-        emoji: '🍄',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 10 }],
-        baseQuantity: { min: 2, max: 5 }
     },
     'Cỏ Khô': {
         description: 'item_co_kho_desc',
@@ -739,17 +434,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 4 }
     },
-
-    // --- TÀI NGUYÊN BIOME - SA MẠC ---
-    'Bình Nước Cũ': {
-        description: 'item_binh_nuoc_cu_desc',
-        tier: 1,
-        category: 'Support',
-        subCategory: 'Potion',
-        emoji: '💧',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 25 }],
-        baseQuantity: { min: 1, max: 1 }
-    },
     'Mảnh Gốm Cổ': {
         description: 'item_manh_gom_co_desc',
         tier: 2,
@@ -757,15 +441,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         emoji: '🏺',
         effects: [],
         baseQuantity: { min: 1, max: 1 }
-    },
-    'Hoa Xương Rồng': {
-        description: 'item_hoa_xuong_rong_desc',
-        tier: 1,
-        category: 'Food',
-        subCategory: 'Fruit',
-        emoji: '🌵',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 20 }],
-        baseQuantity: { min: 1, max: 2 }
     },
     'Xương Động Vật': {
         description: 'item_xuong_dong_vat_desc',
@@ -812,8 +487,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
-
-    // --- TÀI NGUYÊN BIOME - ĐẦM LẦY ---
     'Rêu Phát Sáng': {
         description: 'item_reu_phat_sang_desc',
         tier: 2,
@@ -834,15 +507,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         emoji: '🥚',
         effects: [],
         baseQuantity: { min: 2, max: 5 }
-    },
-    'Nấm Đầm Lầy': {
-        description: 'item_nam_dam_lay_desc',
-        tier: 1,
-        category: 'Food',
-        subCategory: 'Vegetable',
-        emoji: '🍄',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 10 }],
-        baseQuantity: { min: 2, max: 4 }
     },
     'Cây Sậy': {
         description: 'item_cay_say_desc',
@@ -868,8 +532,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
-
-    // --- TÀI NGUYÊN BIOME - NÚI ---
     'Quặng Sắt': {
         description: 'item_quang_sat_desc',
         tier: 2,
@@ -936,26 +598,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 2, max: 4 }
     },
-    'Trứng Đại Bàng': {
-        description: 'item_trung_dai_bang_desc',
-        tier: 3,
-        category: 'Food',
-        subCategory: 'Misc',
-        emoji: '🥚',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 50 }],
-        baseQuantity: { min: 1, max: 2 }
-    },
-    'Tuyết': {
-        description: 'item_tuyet_desc',
-        tier: 1,
-        category: 'Support',
-        emoji: '❄️',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
-        baseQuantity: { min: 1, max: 3 }
-    },
-
-    // --- TÀI NGUYÊN BIOME - HANG ĐỘNG ---
-     'Mảnh Tinh Thể': {
+    'Mảnh Tinh Thể': {
         description: 'item_manh_tinh_the_desc',
         tier: 2,
         category: 'Magic',
@@ -993,7 +636,7 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         category: 'Material',
         subCategory: 'Vegetable',
         emoji: '🍄',
-        effects: [], // Special effect would require new logic, so no effect for now.
+        effects: [],
         baseQuantity: { min: 2, max: 5 },
         growthConditions: {
             optimal: { lightLevel: { max: -6 }, moisture: { min: 7 } },
@@ -1007,14 +650,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         subCategory: 'Misc',
         emoji: '🥚',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
-    },
-    'Nước Ngầm': {
-        description: 'item_nuoc_ngam_desc',
-        tier: 1,
-        category: 'Support',
-        emoji: '💧',
-        effects: [{ type: 'HEAL', amount: 5 }, { type: 'RESTORE_STAMINA', amount: 10 }],
         baseQuantity: { min: 1, max: 1 }
     },
     'Đá Vôi': {
@@ -1033,8 +668,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },
-
-    // --- TÀI NGUYÊN BIOME - RỪNG RẬM (JUNGLE) ---
     'Dây leo Titan': {
         description: 'item_day_leo_titan_desc',
         tier: 3,
@@ -1067,17 +700,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 2, max: 5 }
     },
-    'Quả Lạ': {
-        description: 'item_qua_la_desc',
-        tier: 2,
-        category: 'Food',
-        subCategory: 'Fruit',
-        emoji: '🥥',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 15 }],
-        baseQuantity: { min: 1, max: 3 }
-    },
-
-    // --- TÀI NGUYÊN BIOME - NÚI LỬA (VOLCANIC) ---
     'Đá Obsidian': {
         description: 'item_da_obsidian_desc',
         tier: 3,

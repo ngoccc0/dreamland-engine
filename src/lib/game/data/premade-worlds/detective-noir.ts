@@ -3,7 +3,7 @@ import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/t
 
 const items: GeneratedItem[] = [
     { name: 'Áo Khoác Trench', description: 'item_trench_coat_desc', emoji: '🧥', category: 'Equipment', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['city'], equipmentSlot: 'armor' },
-    { name: 'Kính Lúp', description: 'item_magnifying_glass_desc', emoji: ' magnifying_glass ', category: 'Tool', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: [] },
+    { name: 'Kính Lúp', description: 'item_magnifying_glass_desc', emoji: '🔎', category: 'Tool', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: [] },
     { name: 'Khẩu Súng Lục Cũ', description: 'item_old_revolver_desc', emoji: '🔫', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: [], equipmentSlot: 'weapon', attributes: { physicalAttack: 6, critChance: 3 } },
     { name: 'Hồ Sơ Vụ Án', description: 'item_case_file_desc', emoji: '📂', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: [] },
     { name: 'Rượu Synth-Whiskey', description: 'item_synth_whiskey_desc', emoji: '🥃', category: 'Support', tier: 1, effects: [{ type: 'RESTORE_STAMINA', amount: 20 }], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['city'] },

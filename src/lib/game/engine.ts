@@ -1,9 +1,10 @@
 
 
+
 import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient, Structure, Language, Npc, CraftingOutcome, Action, ItemCategory, Skill } from "./types";
 import { seasonConfig, worldConfig } from "./world-config";
 import { getTemplates } from "./templates";
-import { itemDefinitions as staticItemDefinitions } from "@/lib/game/items";
+import { itemDefinitions as staticItemDefinitions } from "@/lib/game/data/items";
 import { weatherPresets } from "./weatherPresets";
 import { translations } from "../i18n";
 import type { TranslationKey } from "../i18n";
@@ -256,7 +257,7 @@ function generateChunkContent(
     const templates = getTemplates(language);
     const template = templates[chunkData.terrain];
     
-    const finalDescription = template.descriptionTemplates.short[0]
+    const finalDescription = (template.descriptionTemplates.short[0] ?? "")
         .replace('[adjective]', template.adjectives[Math.floor(Math.random() * template.adjectives.length)])
         .replace('[feature]', template.features[Math.floor(Math.random() * template.features.length)]);
     
@@ -861,3 +862,4 @@ export const generateOfflineActionNarrative = (
 
     return t(templateKey, replacements);
 }
+

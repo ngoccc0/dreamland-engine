@@ -1,6 +1,6 @@
-import type { Recipe } from "./types";
+import type { Recipe } from "../../types";
 
-export const recipes: Record<string, Recipe> = {
+export const equipmentRecipes: Record<string, Recipe> = {
     'Rìu Đá Đơn Giản': {
         result: { name: 'Rìu Đá Đơn Giản', quantity: 1, emoji: '🪓' },
         ingredients: [
@@ -33,51 +33,6 @@ export const recipes: Record<string, Recipe> = {
         ],
         description: 'recipe_simple_stone_axe_desc',
     },
-    'Thuốc Máu Yếu': {
-        result: { name: 'Thuốc Máu Yếu', quantity: 1, emoji: '🧪' },
-        ingredients: [
-            { 
-                name: 'Thảo Dược Chữa Lành', 
-                quantity: 1,
-                alternatives: [
-                    { name: 'Hoa Dại', tier: 3 }
-                ]
-            },
-            { 
-                name: 'Nước Ngầm', 
-                quantity: 1, 
-                alternatives: [
-                    { name: 'Nước Bùn', tier: 2 }
-                ] 
-            }
-        ],
-        description: 'recipe_weak_health_potion_desc',
-    },
-    'Bó Đuốc': {
-        result: { name: 'Bó Đuốc', quantity: 1, emoji: '🔥' },
-        ingredients: [
-            { name: 'Cành Cây Chắc Chắn', quantity: 1 },
-            { 
-                name: 'Mảnh Vải Rách', 
-                quantity: 1,
-                alternatives: [
-                    { name: 'Cỏ Khô', tier: 2 },
-                    { name: 'Da Thú Nhỏ', tier: 3 },
-                ]
-            },
-            { name: 'Nhựa Cây Dính', quantity: 1 }
-        ],
-        description: 'recipe_torch_desc',
-    },
-    'Thuyền Phao': {
-        result: { name: 'Thuyền Phao', quantity: 1, emoji: '🛶' },
-        ingredients: [
-            { name: 'Da Gấu', quantity: 1, alternatives: [{name: 'Da Cá Sấu', tier: 1}] },
-            { name: 'Lõi Gỗ', quantity: 5 },
-            { name: 'Dây Gai', quantity: 10, alternatives: [{name: 'Tơ Nhện Khổng lồ', tier: 1}] }
-        ],
-        description: 'recipe_inflatable_raft_desc',
-    },
     'Dao Găm Đá': {
         result: { name: 'Dao Găm Đá', quantity: 1, emoji: '🗡️' },
         ingredients: [
@@ -93,14 +48,6 @@ export const recipes: Record<string, Recipe> = {
             { name: 'Da Heo Rừng', quantity: 1, alternatives: [{ name: 'Da Gấu', tier: 1 }] }
         ],
         description: 'recipe_wooden_shield_desc',
-    },
-    'Băng Gạc': {
-        result: { name: 'Băng Gạc', quantity: 1, emoji: '🩹' },
-        ingredients: [
-            { name: 'Mảnh Vải Rách', quantity: 2 },
-            { name: 'Thảo Dược Chữa Lành', quantity: 1 }
-        ],
-        description: 'recipe_bandage_desc',
     },
     'Cuốc Đá': {
         result: { name: 'Cuốc Đá', quantity: 1, emoji: '⛏️' },
@@ -137,15 +84,6 @@ export const recipes: Record<string, Recipe> = {
         ],
         description: 'recipe_alligator_armor_desc',
     },
-    'Thuốc Máu Mạnh': {
-        result: { name: 'Thuốc Máu Mạnh', quantity: 1, emoji: '🧪' },
-        ingredients: [
-            { name: 'Thuốc Máu Yếu', quantity: 1 },
-            { name: 'Cây Thuốc Núi', quantity: 1 },
-            { name: 'Nước Ngầm', quantity: 1 }
-        ],
-        description: 'recipe_strong_health_potion_desc',
-    },
     'Cung Tên Harpy': {
         result: { name: 'Cung Tên Harpy', quantity: 1, emoji: '🏹' },
         ingredients: [
@@ -163,15 +101,6 @@ export const recipes: Record<string, Recipe> = {
             { name: 'Pha Lê Núi', quantity: 2 }
         ],
         description: 'recipe_golem_staff_desc',
-    },
-    'Thuốc Thể Lực': {
-        result: { name: 'Thuốc Thể Lực', quantity: 1, emoji: '🥤' },
-        ingredients: [
-            { name: 'Quả Mọng Ăn Được', quantity: 5 },
-            { name: 'Mật Ong Hoang', quantity: 1 },
-            { name: 'Nước Ngầm', quantity: 1 }
-        ],
-        description: 'recipe_stamina_potion_desc',
     },
     'Búa Chiến Người Lùn': {
         result: { name: 'Búa Chiến Người Lùn', quantity: 1, emoji: '🔨' },

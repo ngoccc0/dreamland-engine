@@ -4,7 +4,7 @@ import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/t
 const items: GeneratedItem[] = [
     { name: 'Cờ lê Bảo trì', description: 'item_maintenance_wrench_desc', emoji: '🔧', category: 'Weapon', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['space_station'], equipmentSlot: 'weapon', attributes: { physicalAttack: 3 } },
     { name: 'Thẻ khóa Cấp 1', description: 'item_keycard_desc', emoji: '💳', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['space_station'] },
-    { name: 'Bột Dinh dưỡng', description: 'item_nutrient_paste_desc', emoji: ' ống ', category: 'Food', tier: 1, effects: [{ type: 'RESTORE_STAMINA', amount: 25 }], baseQuantity: { min: 2, max: 4 }, spawnBiomes: ['space_station'] },
+    { name: 'Bột Dinh dưỡng', description: 'item_nutrient_paste_desc', emoji: '🧪', category: 'Food', tier: 1, effects: [{ type: 'RESTORE_STAMINA', amount: 25 }], baseQuantity: { min: 2, max: 4 }, spawnBiomes: ['space_station'] },
     { name: 'Nhật ký Kỹ sư', description: 'item_engineer_log_desc', emoji: '📋', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['space_station'] },
     { name: 'Máy cắt Laser', description: 'item_laser_cutter_desc', emoji: '✨', category: 'Tool', tier: 3, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: [] },
 ];

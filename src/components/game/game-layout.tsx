@@ -75,13 +75,16 @@ export default function GameLayout(props: GameLayoutProps) {
     const [showInstallPopup, setShowInstallPopup] = useState(false);
     const [inputValue, setInputValue] = useState("");
     
-    const pageEndRef = useRef<HTMLDivElement>(null);
+    const narrativeContainerRef = useRef<HTMLDivElement>(null);
     
     useEffect(() => {
-        const timer = setTimeout(() => {
-            pageEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-        }, 100);
-        return () => clearTimeout(timer);
+        if (narrativeContainerRef.current) {
+            const { scrollHeight, clientHeight } = narrativeContainerRef.current;
+            narrativeContainerRef.current.scrollTo({
+                top: scrollHeight - clientHeight,
+                behavior: 'smooth'
+            });
+        }
     }, [narrativeLog]);
 
     useEffect(() => {
@@ -175,7 +178,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         </DropdownMenu>
                     </header>
 
-                    <main className="flex-grow p-4 md:p-6 overflow-y-auto max-h-[50dvh] md:max-h-full hide-scrollbar">
+                    <main ref={narrativeContainerRef} className="flex-grow p-4 md:p-6 overflow-y-auto max-h-[50dvh] md:max-h-full hide-scrollbar">
                         <div className="prose prose-stone dark:prose-invert max-w-4xl mx-auto">
                             {narrativeLog.map((entry) => (
                                 <p key={entry.id} className={cn("animate-in fade-in duration-500 whitespace-pre-line",
@@ -192,7 +195,6 @@ export default function GameLayout(props: GameLayoutProps) {
                                 </div>
                             )}
                         </div>
-                         <div ref={pageEndRef} />
                     </main>
                 </div>
 

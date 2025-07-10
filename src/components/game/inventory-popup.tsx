@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/context/language-context";
-import type { PlayerItem, ItemDefinition, Chunk, ItemCategory, PlayerAttributes } from "@/lib/game/types";
+import type { PlayerItem, ItemDefinition, Chunk, PlayerAttributes } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -76,7 +76,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                 <ul className="space-y-2">
                   {items.map((item, index) => {
                     const definition = itemDefinitions[item.name];
-                    const isUsableOnSelf = definition && definition.effects.length > 0;
+                    const isUsableOnSelf = definition?.effects?.length > 0;
                     const isUsableOnEnemy = enemy && definition && t(enemy.type as TranslationKey) && enemy.diet.includes(item.name);
                     const isEquippable = definition && definition.equipmentSlot;
                     const isInteractable = isUsableOnSelf || isUsableOnEnemy || isEquippable;

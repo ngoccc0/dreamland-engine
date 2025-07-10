@@ -30,11 +30,7 @@ import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermomet
 
 interface GameLayoutProps {
     gameSlot: number;
-    worldSetup?: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog' | 'customStructures'> & { playerInventory: PlayerItem[] };
     initialGameState?: GameState;
-    customItemDefinitions?: Record<string, ItemDefinition>;
-    customItemCatalog?: GeneratedItem[];
-    customStructures?: Structure[];
 }
 
 export default function GameLayout(props: GameLayoutProps) {
@@ -91,11 +87,11 @@ export default function GameLayout(props: GameLayoutProps) {
 
     useEffect(() => {
         const promptShown = localStorage.getItem('pwaInstallPromptShown');
-        if (!promptShown && props.worldSetup) {
+        if (!promptShown && finalWorldSetup) {
             setShowInstallPopup(true);
             localStorage.setItem('pwaInstallPromptShown', 'true');
         }
-    }, [props.worldSetup]);
+    }, [finalWorldSetup]);
 
     const generateMapGrid = useCallback((): (Chunk | null)[][] => {
         if (!finalWorldSetup) return [];
@@ -410,3 +406,5 @@ export default function GameLayout(props: GameLayoutProps) {
         </TooltipProvider>
     );
 }
+
+    

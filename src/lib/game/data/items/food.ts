@@ -2,173 +2,254 @@ import type { ItemDefinition } from "../../types";
 
 export const foodItems: Record<string, ItemDefinition> = {
     'Thịt Sói Sống': {
+        name: 'Thịt Sói Sống',
         description: 'item_thit_soi_song_desc',
+        emoji: '🥩',
         tier: 1,
         category: 'Food',
         subCategory: 'Meat',
-        emoji: '🥩',
         effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        weight: 0.5,
+        stackable: 10,
+        function: 'Raw meat that can be eaten for stamina or used as bait.',
+        senseEffect: { keywords: ['bloody', 'raw'] },
+        droppedBy: [{ creature: 'Sói', chance: 0.7 }]
     },
     'Thịt Heo Rừng': {
+        name: 'Thịt Heo Rừng',
         description: 'item_thit_heo_rung_desc',
+        emoji: '🍖',
         tier: 2,
         category: 'Food',
         subCategory: 'Meat',
-        emoji: '🍖',
         effects: [{ type: 'RESTORE_STAMINA', amount: 20 }],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        weight: 1.0,
+        stackable: 5,
+        function: 'A hearty piece of meat.',
+        droppedBy: [{ creature: 'Heo Rừng', chance: 0.8 }]
     },
     'Thịt Thỏ': {
+        name: 'Thịt Thỏ',
         description: 'item_thit_tho_desc',
+        emoji: '🐰',
         tier: 1,
         category: 'Food',
         subCategory: 'Meat',
-        emoji: '🐰',
         effects: [{ type: 'RESTORE_STAMINA', amount: 10 }],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        weight: 0.3,
+        stackable: 10,
+        function: 'A small but decent meal.',
+        droppedBy: [{ creature: 'Thỏ hoang hung dữ', chance: 0.6 }]
     },
     'Trứng Rắn': {
+        name: 'Trứng Rắn',
         description: 'item_trung_ran_desc',
+        emoji: '🥚',
         tier: 2,
         category: 'Food',
         subCategory: 'Misc',
-        emoji: '🥚',
-        effects: [],
-        baseQuantity: { min: 2, max: 4 }
+        baseQuantity: { min: 2, max: 4 },
+        weight: 0.1,
+        stackable: 20,
+        function: 'A protein-rich snake egg.',
+        droppedBy: [{ creature: 'Rắn đuôi chuông', chance: 0.05 }]
     },
     'Thịt Dê Núi': {
+        name: 'Thịt Dê Núi',
         description: 'item_thit_de_nui_desc',
+        emoji: '🍖',
         tier: 2,
         category: 'Food',
         subCategory: 'Meat',
-        emoji: '🍖',
         effects: [{ type: 'RESTORE_STAMINA', amount: 25 }],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        weight: 0.8,
+        stackable: 5,
+        function: 'Tough but nutritious meat.',
+        droppedBy: [{ creature: 'Dê núi hung hãn', chance: 0.7 }]
     },
     'Thịt Báo Tuyết': {
+        name: 'Thịt Báo Tuyết',
         description: 'item_thit_bao_tuyet_desc',
+        emoji: '🍖',
         tier: 3,
         category: 'Food',
         subCategory: 'Meat',
-        emoji: '🍖',
         effects: [{ type: 'RESTORE_STAMINA', amount: 40 }],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        weight: 1.2,
+        stackable: 3,
+        function: 'Meat from a powerful predator.',
+        droppedBy: [{ creature: 'Báo tuyết', chance: 0.6 }]
     },
     'Quả Mọng Ăn Được': {
+        name: 'Quả Mọng Ăn Được',
         description: 'item_qua_mong_an_duoc_desc',
+        emoji: '🍓',
         tier: 1,
         category: 'Food',
         subCategory: 'Fruit',
-        emoji: '🍓',
         effects: [{ type: 'RESTORE_STAMINA', amount: 15 }],
         baseQuantity: { min: 2, max: 6 },
-        growthConditions: {
-            optimal: { moisture: { min: 5 }, vegetationDensity: { min: 7 } },
-            subOptimal: { moisture: { min: 3, max: 4 } }
-        }
+        weight: 0.1,
+        stackable: 20,
+        function: 'A quick and easy source of energy.',
+        naturalSpawn: [{ biome: 'forest', chance: 0.3, conditions: { dangerLevel: { max: 4 } } }]
     },
     'Mật Ong Hoang': {
+        name: 'Mật Ong Hoang',
         description: 'item_mat_ong_hoang_desc',
+        emoji: '🍯',
         tier: 2,
         category: 'Food',
         subCategory: 'Misc',
-        emoji: '🍯',
         effects: [{ type: 'HEAL', amount: 10 }, { type: 'RESTORE_STAMINA', amount: 15 }],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        weight: 0.3,
+        stackable: 5,
+        function: 'A sweet and healing treat.',
+        naturalSpawn: [{ biome: 'forest', chance: 0.1, conditions: { vegetationDensity: { min: 6 } } }]
     },
     'Lúa Mì': {
+        name: 'Lúa Mì',
         description: 'item_lua_mi_desc',
+        emoji: '🌾',
         tier: 1,
         category: 'Food',
         subCategory: 'Vegetable',
-        emoji: '🌾',
         effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
-        baseQuantity: { min: 2, max: 5 }
+        baseQuantity: { min: 2, max: 5 },
+        weight: 0.1,
+        stackable: 50,
+        function: 'Grains that can be processed into flour.',
+        naturalSpawn: [{ biome: 'grassland', chance: 0.2, conditions: { soilType: ['loamy'], moisture: { min: 3, max: 6 } } }]
     },
     'Trứng Chim Hoang': {
+        name: 'Trứng Chim Hoang',
         description: 'item_trung_chim_hoang_desc',
+        emoji: '🥚',
         tier: 1,
         category: 'Food',
         subCategory: 'Misc',
-        emoji: '🥚',
         effects: [{ type: 'RESTORE_STAMINA', amount: 20 }],
-        baseQuantity: { min: 2, max: 4 }
+        baseQuantity: { min: 2, max: 4 },
+        weight: 0.1,
+        stackable: 12,
+        function: 'Nutritious eggs from a wild bird.',
+        naturalSpawn: [{ biome: 'grassland', chance: 0.25 }]
     },
     'Rễ Củ Ăn Được': {
+        name: 'Rễ Củ Ăn Được',
         description: 'item_re_cu_an_duoc_desc',
+        emoji: '🥔',
         tier: 1,
         category: 'Food',
         subCategory: 'Vegetable',
-        emoji: '🥔',
         effects: [{ type: 'RESTORE_STAMINA', amount: 25 }],
-        baseQuantity: { min: 1, max: 3 }
+        baseQuantity: { min: 1, max: 3 },
+        weight: 0.4,
+        stackable: 10,
+        function: 'A starchy root that provides energy.',
+        naturalSpawn: [{ biome: 'grassland', chance: 0.15, conditions: { soilType: ['loamy'] } }]
     },
     'Nấm Mỡ': {
+        name: 'Nấm Mỡ',
         description: 'item_nam_mo_desc',
+        emoji: '🍄',
         tier: 1,
         category: 'Food',
         subCategory: 'Vegetable',
-        emoji: '🍄',
         effects: [{ type: 'RESTORE_STAMINA', amount: 10 }],
-        baseQuantity: { min: 2, max: 5 }
+        baseQuantity: { min: 2, max: 5 },
+        weight: 0.1,
+        stackable: 15,
+        function: 'A common, edible mushroom.',
     },
     'Hoa Xương Rồng': {
+        name: 'Hoa Xương Rồng',
         description: 'item_hoa_xuong_rong_desc',
+        emoji: '🌵',
         tier: 1,
         category: 'Food',
         subCategory: 'Fruit',
-        emoji: '🌵',
         effects: [{ type: 'RESTORE_STAMINA', amount: 20 }],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        weight: 0.2,
+        stackable: 5,
+        function: 'A juicy cactus fruit that quenches thirst and hunger.',
+        naturalSpawn: [{ biome: 'desert', chance: 0.2, conditions: { vegetationDensity: { min: 1 } } }]
     },
     'Nấm Đầm Lầy': {
+        name: 'Nấm Đầm Lầy',
         description: 'item_nam_dam_lay_desc',
+        emoji: '🍄',
         tier: 1,
         category: 'Food',
         subCategory: 'Vegetable',
-        emoji: '🍄',
         effects: [{ type: 'RESTORE_STAMINA', amount: 10 }],
-        baseQuantity: { min: 2, max: 4 }
+        baseQuantity: { min: 2, max: 4 },
+        weight: 0.1,
+        stackable: 15,
+        function: 'An edible mushroom found in swamps.',
+        naturalSpawn: [{ biome: 'swamp', chance: 0.25, conditions: { moisture: { min: 9 } } }]
     },
     'Trứng Đại Bàng': {
+        name: 'Trứng Đại Bàng',
         description: 'item_trung_dai_bang_desc',
+        emoji: '🥚',
         tier: 3,
         category: 'Food',
         subCategory: 'Misc',
-        emoji: '🥚',
         effects: [{ type: 'RESTORE_STAMINA', amount: 50 }],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        weight: 0.5,
+        stackable: 6,
+        function: 'A very large and nutritious egg.',
+        naturalSpawn: [{ biome: 'mountain', chance: 0.1, conditions: { elevation: { min: 8 } } }]
     },
     'Quả Lạ': {
+        name: 'Quả Lạ',
         description: 'item_qua_la_desc',
+        emoji: '🥥',
         tier: 2,
         category: 'Food',
         subCategory: 'Fruit',
-        emoji: '🥥',
         effects: [{ type: 'RESTORE_STAMINA', amount: 15 }],
-        baseQuantity: { min: 1, max: 3 }
+        baseQuantity: { min: 1, max: 3 },
+        weight: 0.3,
+        stackable: 8,
+        function: 'A strange fruit with an unknown taste.',
+        naturalSpawn: [{ biome: 'jungle', chance: 0.25 }]
     },
      'Cây Xương Rồng Nhỏ': {
+        name: 'Cây Xương Rồng Nhỏ',
         description: 'item_cay_xuong_rong_nho_desc',
+        emoji: '🌵',
         tier: 1,
         category: 'Food',
         subCategory: 'Vegetable',
-        emoji: '🌵',
         effects: [{ type: 'RESTORE_STAMINA', amount: 5 }],
         baseQuantity: { min: 1, max: 3 },
-        growthConditions: {
-            optimal: { temperature: { min: 8 }, moisture: { max: 1 } },
-            subOptimal: { temperature: { min: 6, max: 7 }, moisture: { min: 2, max: 3 } }
-        }
+        weight: 0.6,
+        stackable: 5,
+        function: 'Can be broken down for a small amount of water.',
+        naturalSpawn: [{ biome: 'desert', chance: 0.3, conditions: { temperature: { min: 8 }, moisture: { max: 1 } } }]
     },
     'Bình Nước Cũ': {
+        name: 'Bình Nước Cũ',
         description: 'item_binh_nuoc_cu_desc',
-        tier: 1,
-        category: 'Food',
-        subCategory: 'Misc',
         emoji: '💧',
+        tier: 1,
+        category: 'Support',
+        subCategory: 'Misc',
         effects: [{ type: 'RESTORE_STAMINA', amount: 25 }],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        weight: 1.0,
+        stackable: 1,
+        function: 'A container with potable water.',
+        naturalSpawn: [{ biome: 'desert', chance: 0.15, conditions: { humanPresence: { min: 1 } } }]
     },
 };

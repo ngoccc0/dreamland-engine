@@ -21,6 +21,7 @@ import { doc, setDoc, deleteDoc, getDocs, collection } from "firebase/firestore"
 import { db } from "@/lib/firebase-config";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { Separator } from '@/components/ui/separator';
 
 type SaveSlotSummary = Pick<GameState, 'worldSetup' | 'day'> | null;
 
@@ -263,29 +264,44 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
             {saveSlots.map((slot, index) => (
                <Card key={index} className={cn("flex flex-col", slot ? "border-primary" : "border-dashed")}>
-                 <div className="p-6 flex flex-col flex-grow">
+                 <div className="p-4 flex flex-col flex-grow">
                    {slot ? (
                      <>
-                        <div className="flex-grow grid md:grid-cols-[auto_1fr] md:gap-x-4">
-                            <div className="border-b pb-4 md:border-b-0 md:pb-0 md:border-r md:pr-4">
-                                <CardTitle className="truncate">{t(slot.worldSetup.worldName as TranslationKey)}</CardTitle>
-                                <CardDescription>{t('dayX', { day: slot.day })}</CardDescription>
-                            </div>
-                            <div className="pt-4 md:pt-0 text-sm text-muted-foreground">
-                                <dl className="grid grid-cols-[auto_1fr] gap-x-2">
-                                    <dt className="font-semibold text-foreground/80">{t('biomeLabel')}:</dt>
-                                    <dd className="truncate">{t(slot.worldSetup.startingBiome as TranslationKey)}</dd>
-
-                                    {slot.worldSetup.startingSkill && <>
-                                        <dt className="font-semibold text-foreground/80">{t('skillLabel')}:</dt>
-                                        <dd className="truncate">{t(slot.worldSetup.startingSkill.name as TranslationKey)}</dd>
-                                    </>}
-
-                                    {slot.worldSetup.initialQuests && <>
-                                        <dt className="font-semibold text-foreground/80">{t('questsLabel')}:</dt>
-                                        <dd className="truncate">{slot.worldSetup.initialQuests.length}</dd>
-                                    </>}
-                                </dl>
+                        <div className="flex-grow space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <CardTitle className="truncate">{t(slot.worldSetup.worldName as TranslationKey)}</CardTitle>
+                                    <CardDescription>{t('dayX', { day: slot.day })}</CardDescription>
+                                </div>
+                                <Separator className="md:hidden" />
+                                <div className="hidden md:block border-l pl-4">
+                                     <dl className="grid grid-cols-[auto_1fr] gap-x-2 text-sm text-muted-foreground">
+                                        <dt className="font-semibold text-foreground/80">{t('biomeLabel')}:</dt>
+                                        <dd className="truncate">{t(slot.worldSetup.startingBiome as TranslationKey)}</dd>
+                                        {slot.worldSetup.startingSkill && <>
+                                            <dt className="font-semibold text-foreground/80">{t('skillLabel')}:</dt>
+                                            <dd className="truncate">{t(slot.worldSetup.startingSkill.name as TranslationKey)}</dd>
+                                        </>}
+                                        {slot.worldSetup.initialQuests && <>
+                                            <dt className="font-semibold text-foreground/80">{t('questsLabel')}:</dt>
+                                            <dd className="truncate">{slot.worldSetup.initialQuests.length}</dd>
+                                        </>}
+                                    </dl>
+                                </div>
+                                <div className="md:hidden text-sm text-muted-foreground">
+                                    <dl className="grid grid-cols-[auto_1fr] gap-x-2">
+                                        <dt className="font-semibold text-foreground/80">{t('biomeLabel')}:</dt>
+                                        <dd className="truncate">{t(slot.worldSetup.startingBiome as TranslationKey)}</dd>
+                                        {slot.worldSetup.startingSkill && <>
+                                            <dt className="font-semibold text-foreground/80">{t('skillLabel')}:</dt>
+                                            <dd className="truncate">{t(slot.worldSetup.startingSkill.name as TranslationKey)}</dd>
+                                        </>}
+                                        {slot.worldSetup.initialQuests && <>
+                                            <dt className="font-semibold text-foreground/80">{t('questsLabel')}:</dt>
+                                            <dd className="truncate">{slot.worldSetup.initialQuests.length}</dd>
+                                        </>}
+                                    </dl>
+                                </div>
                             </div>
                         </div>
 

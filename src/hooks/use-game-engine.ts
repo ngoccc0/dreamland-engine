@@ -262,7 +262,7 @@ export function useGameEngine(props: GameEngineProps) {
         const outcome = event.outcomes[successLevel] || event.outcomes['Success'];
         if (!outcome) return;
     
-        addNarrativeEntry(t(outcome.descriptionKey), 'narrative');
+        addNarrativeEntry(t(outcome.descriptionKey as TranslationKey), 'narrative');
     
         const effects = outcome.effects;
     
@@ -589,8 +589,8 @@ export function useGameEngine(props: GameEngineProps) {
         if (newPersona !== playerStats.persona) {
             setPlayerStats(prev => ({ ...prev, persona: newPersona }));
             const messageKey = newPersona === 'explorer' ? 'personaExplorer' : newPersona === 'warrior' ? 'personaWarrior' : 'personaArtisan';
-            addNarrativeEntry(t(messageKey), 'system');
-            toast({ title: t('personaUnlockedTitle'), description: t(messageKey) });
+            addNarrativeEntry(t(messageKey as TranslationKey), 'system');
+            toast({ title: t('personaUnlockedTitle') as TranslationKey, description: t(messageKey as TranslationKey) });
         }
     }, [playerBehaviorProfile.moves, playerBehaviorProfile.attacks, playerBehaviorProfile.crafts]);
     
@@ -945,7 +945,7 @@ export function useGameEngine(props: GameEngineProps) {
                 const templates = getTemplates(language);
                 let npcDef: Npc | undefined;
                  for (const terrain of Object.keys(templates)) {
-                    const templateNpc = templates[terrain as Terrain].NPCs.find((n: any) => n.data.name === npc.name);
+                    const templateNpc = (templates[terrain as Terrain].NPCs || []).find((n: any) => n.data.name === npc.name);
                     if (templateNpc) {
                         npcDef = templateNpc.data;
                         break;
@@ -1224,7 +1224,7 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
                 report += ` - ${t('category')}: ${t(def.category as TranslationKey)}`;
                 if (def.subCategory) report += ` (${t(def.subCategory as TranslationKey)})`;
                 report += ` | ${t('tier', { tier: def.tier })}\n`;
-                if(def.weight) report += ` - Weight: ${def.weight} | Stack: ${def.stackable || 1}\n`;
+                if (def.weight) report += ` - Weight: ${def.weight} | Stack: ${def.stackable || 1}\n`;
 
                 if (def.equipmentSlot) {
                     report += ` - Slot: ${t(def.equipmentSlot as TranslationKey)}\n`;
@@ -1247,14 +1247,14 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
                     report += ` - Function: ${t(def.function as TranslationKey)}\n`;
                 }
 
-                if (def.naturalSpawn) {
+                if (def.naturalSpawn && def.naturalSpawn.length > 0) {
                     const spawns = def.naturalSpawn.map(s => `${t(s.biome as TranslationKey)} (${(s.chance*100).toFixed(0)}%)`).join(', ');
-                    report += ` - Spawns In: ${spawns}\n`;
+                    if(spawns) report += ` - Spawns In: ${spawns}\n`;
                 }
 
-                if (def.droppedBy) {
+                if (def.droppedBy && def.droppedBy.length > 0) {
                     const drops = def.droppedBy.map(d => `${t(d.creature as TranslationKey)} (${(d.chance*100).toFixed(0)}%)`).join(', ');
-                    report += ` - Dropped By: ${drops}\n`;
+                    if(drops) report += ` - Dropped By: ${drops}\n`;
                 }
                 
                 return report;

@@ -67,6 +67,7 @@ export default function GameLayout(props: GameLayoutProps) {
         handleUnequipItem,
         handleReturnToMenu,
         handleHarvest,
+        handleAttack,
     } = useGameEngine(props);
 
     const [isStatusOpen, setStatusOpen] = useState(false);
@@ -410,3 +411,5 @@ export default function GameLayout(props: GameLayoutProps) {
         </TooltipProvider>
     );
 }
+
+    

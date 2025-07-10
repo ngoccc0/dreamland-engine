@@ -1,5 +1,6 @@
 
 
+
 import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient, Structure, Language, Npc, CraftingOutcome, Action, ItemCategory, Skill } from "./types";
 import { seasonConfig, worldConfig } from "./world-config";
 import { getTemplates } from "./templates";
@@ -688,24 +689,23 @@ export const generateOfflineNarrative = (
         return chunk.description || "You are in an unknown area.";
     }
 
-    const templateSet = biomeTemplateData.descriptionTemplates[narrativeLength] || biomeTemplateData.descriptionTemplates.medium;
+    // Determine the template level to use
+    let templateSet = biomeTemplateData.descriptionTemplates[narrativeLength] || biomeTemplateData.descriptionTemplates.medium;
+    if (narrativeLength === 'long' && !templateSet) templateSet = biomeTemplateData.descriptionTemplates.medium;
+    if (!templateSet) templateSet = biomeTemplateData.descriptionTemplates.short;
+
     let baseTemplate = Array.isArray(templateSet) ? templateSet[Math.floor(Math.random() * templateSet.length)] : templateSet;
 
-    const adjective = biomeTemplateData.adjectives[Math.floor(Math.random() * biomeTemplateData.adjectives.length)];
-    const feature = biomeTemplateData.features[Math.floor(Math.random() * biomeTemplateData.features.length)];
-    const smell = biomeTemplateData.smells[Math.floor(Math.random() * biomeTemplateData.smells.length)];
-    const sound = biomeTemplateData.sounds[Math.floor(Math.random() * biomeTemplateData.sounds.length)];
-    const sky = biomeTemplateData.sky ? biomeTemplateData.sky[Math.floor(Math.random() * biomeTemplateData.sky.length)] : '';
-
-    let populatedTemplate = baseTemplate
-        .replace(/\[adjective\]/g, adjective)
-        .replace(/\[feature\]/g, feature)
-        .replace(/\[smell\]/g, smell)
-        .replace(/\[sound\]/g, sound)
-        .replace(/\[sky\]/g, sky);
+    // Build the main description by replacing placeholders
+    const populatedTemplate = baseTemplate
+        .replace(/\[adjective\]/g, () => biomeTemplateData.adjectives[Math.floor(Math.random() * biomeTemplateData.adjectives.length)])
+        .replace(/\[feature\]/g, () => biomeTemplateData.features[Math.floor(Math.random() * biomeTemplateData.features.length)])
+        .replace(/\[smell\]/g, () => biomeTemplateData.smells[Math.floor(Math.random() * biomeTemplateData.smells.length)])
+        .replace(/\[sound\]/g, () => biomeTemplateData.sounds[Math.floor(Math.random() * biomeTemplateData.sounds.length)])
+        .replace(/\[sky\]/g, () => biomeTemplateData.sky ? biomeTemplateData.sky[Math.floor(Math.random() * biomeTemplateData.sky.length)] : '');
 
     let finalNarrativeParts: string[] = [populatedTemplate];
-    
+
     // Build sensory details
     const sensoryDetailsParts: string[] = [];
     if (chunk.explorability < 3) sensoryDetailsParts.push(t('offline_explorability_low'));
@@ -749,8 +749,9 @@ export const generateOfflineNarrative = (
             finalNarrativeParts.push(t('offlineNarrativeSurroundings') + ' ' + surroundingPeekParts.join('. '));
         }
     }
-
-    return finalNarrativeParts.join(' ').replace(/\s{2,}/g, ' ').trim();
+    
+    // Clean up any remaining placeholders and extra spaces
+    return finalNarrativeParts.join(' ').replace(/\{[^}]+\}/g, '').replace(/\s{2,}/g, ' ').trim();
 };
 
 export const generateOfflineActionNarrative = (
@@ -845,3 +846,4 @@ export const generateOfflineActionNarrative = (
     
     return t(templateKey, replacements);
 };
+

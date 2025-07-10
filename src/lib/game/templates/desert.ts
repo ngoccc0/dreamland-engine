@@ -6,12 +6,12 @@ export const desert_vi = {
             "Một sa mạc [adjective] bao la với những [feature] trải dài.",
         ],
         medium: [
-            "Cái nóng của sa mạc [adjective] thật khắc nghiệt. Không khí có mùi [smell] và bạn nghe thấy tiếng [sound] của gió. {sensory_details} {entity_report}",
+            "Cái nóng của sa mạc [adjective] thật khắc nghiệt. Không khí có mùi của [smell] và bạn nghe thấy tiếng [sound] của gió. {sensory_details} {entity_report}",
             "Một vùng đất [adjective] và cằn cỗi. Chỉ có những [feature] gai góc nhất mới tồn tại được ở đây, tạo nên một cảnh quan vừa đẹp vừa chết chóc. {sensory_details} {entity_report}",
         ],
         long: [
             "Cát, cát và cát. Một sa mạc [adjective] vô tận. Những [feature] là cảnh tượng duy nhất phá vỡ sự đơn điệu. Bạn thấy một ảo ảnh ở phía xa, lung linh trong cái nóng. {sensory_details} {entity_report} {surrounding_peek}",
-            "Mặt đất nứt nẻ vì khô hạn dưới bầu trời [sky] không một gợn mây. Không khí có mùi [smell] của đá nóng và bạn nghe thấy tiếng [sound] của gió rít qua tai, một bài ca của sự cô độc. {sensory_details} {entity_report} {surrounding_peek}",
+            "Mặt đất nứt nẻ vì khô hạn dưới bầu trời [sky] không một gợn mây. Không khí có mùi của [smell] và bạn nghe thấy tiếng [sound] của gió rít qua tai, một bài ca của sự cô độc. {sensory_details} {entity_report} {surrounding_peek}",
         ]
     },
     adjectives: ['nóng bỏng', 'khô cằn', 'vô tận', 'lặng im', 'gió cát', 'khắc nghiệt'],
@@ -86,3 +86,4 @@ export const desert_en = {
         { data: { type: 'Sand Spirit', emoji: '👻', hp: 60, damage: 12, behavior: 'territorial', size: 'medium', diet: ['Pha Lê Núi'], satiation: 0, maxSatiation: 1, loot: [{name: 'Cát Ma Thuật', chance: 0.15, quantity: {min: 1, max: 2}}] }, conditions: { magicAffinity: { min: 5 }, chance: 0.1 } },
     ],
 };
+

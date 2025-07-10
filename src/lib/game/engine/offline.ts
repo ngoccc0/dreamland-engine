@@ -52,7 +52,7 @@ export const handleSearchAction = (
                 if (quantity > 0) {
                     foundItems.push({
                         name: itemTemplate.name,
-                        description: itemDef.description,
+                        description: t(itemDef.description as TranslationKey),
                         tier: itemDef.tier,
                         quantity,
                         emoji: itemDef.emoji,
@@ -116,22 +116,13 @@ export const generateOfflineNarrative = (
     if (!biomeTemplateData?.descriptionTemplates) {
         return chunk.description || "You are in an unknown area.";
     }
-
-    // --- REFACTORED LOGIC ---
-    let narrativeParts: string[] = [];
-
-    // 1. Get the base description
-    const templateSet = biomeTemplateData.descriptionTemplates[narrativeLength] || biomeTemplateData.descriptionTemplates.short;
-    let baseTemplate = Array.isArray(templateSet) ? templateSet[Math.floor(Math.random() * templateSet.length)] : templateSet;
-    const baseDescription = baseTemplate
-        .replace(/\[adjective\]/g, () => biomeTemplateData.adjectives[Math.floor(Math.random() * biomeTemplateData.adjectives.length)])
-        .replace(/\[feature\]/g, () => biomeTemplateData.features[Math.floor(Math.random() * biomeTemplateData.features.length)])
-        .replace(/\[smell\]/g, () => biomeTemplateData.smells[Math.floor(Math.random() * biomeTemplateData.smells.length)])
-        .replace(/\[sound\]/g, () => biomeTemplateData.sounds[Math.floor(Math.random() * biomeTemplateData.sounds.length)])
-        .replace(/\[sky\]/g, () => biomeTemplateData.sky ? biomeTemplateData.sky[Math.floor(Math.random() * biomeTemplateData.sky.length)] : '');
-    narrativeParts.push(baseDescription);
     
-    // 2. Add sensory details based on conditions
+    const templateSet = biomeTemplateData.descriptionTemplates[narrativeLength] || biomeTemplateData.descriptionTemplates.medium || biomeTemplateData.descriptionTemplates.short;
+    let baseTemplate = Array.isArray(templateSet) ? templateSet[Math.floor(Math.random() * templateSet.length)] : templateSet;
+
+    // --- 1. PRE-BUILD CONTENT FOR PLACEHOLDERS ---
+
+    // Build {sensory_details}
     const sensoryDetailsParts: string[] = [];
     if (chunk.explorability < 3) sensoryDetailsParts.push(t('offline_explorability_low'));
     if (chunk.dangerLevel > 8) sensoryDetailsParts.push(t('offline_danger_high'));
@@ -142,47 +133,67 @@ export const generateOfflineNarrative = (
     if (chunk.lightLevel && chunk.lightLevel <= -5) sensoryDetailsParts.push(t('sensoryFeedback_dark'));
     if (chunk.humanPresence > 5) sensoryDetailsParts.push(t('offline_human_presence'));
     if (chunk.predatorPresence > 7) sensoryDetailsParts.push(t('offline_predator_presence'));
-    if (sensoryDetailsParts.length > 0) {
-        narrativeParts.push(sensoryDetailsParts.join(' '));
-    }
+    const sensoryDetailsText = sensoryDetailsParts.join(' ');
 
-    // 3. Add entity reports if they exist
+    // Build {entity_report}
+    const entityReportParts: string[] = [];
     if (chunk.items.length > 0) {
         const itemsHere = chunk.items.map(i => `${i.quantity} ${t(i.name as TranslationKey)}`).join(', ');
-        narrativeParts.push(t('offlineNarrativeItems', { items: itemsHere }));
+        entityReportParts.push(t('offlineNarrativeItems', { items: itemsHere }));
     }
     if (chunk.enemy) {
-        narrativeParts.push(t('offlineNarrativeEnemy', { enemy: t(chunk.enemy.type as TranslationKey) }));
+        entityReportParts.push(t('offlineNarrativeEnemy', { enemy: t(chunk.enemy.type as TranslationKey) }));
     }
     if (chunk.NPCs.length > 0) {
-        narrativeParts.push(t('offlineNarrativeNPC', { npc: t(chunk.NPCs[0].name as TranslationKey) }));
+        entityReportParts.push(t('offlineNarrativeNPC', { npc: t(chunk.NPCs[0].name as TranslationKey) }));
     }
     if (chunk.structures.length > 0) {
-        narrativeParts.push(t('offlineNarrativeStructure', { structure: t(chunk.structures[0].name as TranslationKey) }));
+        entityReportParts.push(t('offlineNarrativeStructure', { structure: t(chunk.structures[0].name as TranslationKey) }));
     }
-
-    // 4. Add surrounding peek details
+    const entityReportText = entityReportParts.join(' ');
+    
+    // Build {surrounding_peek}
+    const surroundingPeekParts: string[] = [];
     if (narrativeLength !== 'short') {
-        const surroundingPeekParts: string[] = [];
         const directions = [{ x: 0, y: 1, dir: 'North' }, { x: 0, y: -1, dir: 'South' }, { x: 1, y: 0, dir: 'East' }, { x: -1, y: 0, dir: 'West' }];
         for (const dir of directions) {
             const key = `${playerPosition.x + dir.x},${playerPosition.y + dir.y}`;
             const adjacentChunk = world[key];
             if (adjacentChunk && adjacentChunk.explored && ((chunk.lastVisited - adjacentChunk.lastVisited) < 50)) {
-                if(adjacentChunk.enemy) {
+                if (adjacentChunk.enemy) {
                     surroundingPeekParts.push(t('surrounding_peek_enemy', { direction: t(`direction${dir.dir}` as TranslationKey), enemy: t(adjacentChunk.enemy.type as TranslationKey) }));
                 } else if (adjacentChunk.structures.length > 0) {
                     surroundingPeekParts.push(t('surrounding_peek_structure', { direction: t(`direction${dir.dir}` as TranslationKey), structure: t(adjacentChunk.structures[0].name as TranslationKey) }));
                 }
             }
         }
-        if (surroundingPeekParts.length > 0) {
-            narrativeParts.push(t('offlineNarrativeSurroundings') + ' ' + surroundingPeekParts.join('. '));
-        }
     }
+    const surroundingPeekText = surroundingPeekParts.length > 0 ? t('offlineNarrativeSurroundings') + ' ' + surroundingPeekParts.join(' ') : '';
     
-    // 5. Join all parts into a final narrative string.
-    return narrativeParts.join(' ').replace(/\s{2,}/g, ' ').trim();
+    // --- 2. PERFORM REPLACEMENTS ---
+    
+    baseTemplate = baseTemplate
+        .replace(/\[adjective\]/g, () => biomeTemplateData.adjectives[Math.floor(Math.random() * biomeTemplateData.adjectives.length)])
+        .replace(/\[feature\]/g, () => biomeTemplateData.features[Math.floor(Math.random() * biomeTemplateData.features.length)])
+        .replace(/\[smell\]/g, () => biomeTemplateData.smells[Math.floor(Math.random() * biomeTemplateData.smells.length)])
+        .replace(/\[sound\]/g, () => biomeTemplateData.sounds[Math.floor(Math.random() * biomeTemplateData.sounds.length)])
+        .replace(/\[sky\]/g, () => biomeTemplateData.sky ? biomeTemplateData.sky[Math.floor(Math.random() * biomeTemplateData.sky.length)] : '');
+
+    let finalNarrative = baseTemplate
+        .replace('{sensory_details}', sensoryDetailsText)
+        .replace('{entity_report}', entityReportText)
+        .replace('{surrounding_peek}', surroundingPeekText);
+        
+    // --- 3. CLEAN UP ---
+    // Remove any extra whitespace that might result from empty replacements
+    finalNarrative = finalNarrative.replace(/\s{2,}/g, ' ').trim();
+    // Remove dangling sentences or sentence fragments that might end with a period followed by nothing.
+    finalNarrative = finalNarrative.replace(/\. \./g, '.');
+    finalNarrative = finalNarrative.replace(/ \./g, '.');
+    finalNarrative = finalNarrative.replace(/\s,/g, ',');
+
+
+    return finalNarrative;
 };
 
 

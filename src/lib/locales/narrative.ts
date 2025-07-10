@@ -1,3 +1,4 @@
+
 // This file is currently empty, but can be used to store narrative-specific phrases
 // that don't fit into other categories, such as combat descriptions or dynamic environmental text.
 
@@ -47,7 +48,9 @@ export const narrativeTranslations = {
             "Despite your best efforts, your search yields no results.",
             "The area seems to have been picked clean already."
         ],
+        exploreFoundItems: "Found Items: {items}",
         exploreFoundItemsNarrative: "After a careful search, you find: {items}!",
+        exploreSuccessTitle: "Search Successful",
     },
     vi: {
         itemUsePlayerSuccessNarrative: "Bạn sử dụng {item}. {effect}. {sensory_feedback}",
@@ -94,6 +97,8 @@ export const narrativeTranslations = {
             "Mặc dù đã cố gắng hết sức, cuộc tìm kiếm của bạn không mang lại kết quả.",
             "Khu vực này dường như đã bị ai đó lục soát sạch sẽ rồi."
         ],
+        exploreFoundItems: "Vật phẩm tìm thấy: {items}",
         exploreFoundItemsNarrative: "Sau khi tìm kiếm cẩn thận, bạn tìm thấy: {items}!",
+        exploreSuccessTitle: "Tìm kiếm thành công",
     }
 };

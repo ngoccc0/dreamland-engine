@@ -16,7 +16,6 @@ import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, Equipment
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-config';
 import { getEffectiveChunk } from '../lib/game/engine/generation';
-import { useGameEffects } from './use-game-effects';
 
 type ActionHandlerDeps = {
   isLoaded: boolean;
@@ -40,13 +39,14 @@ type ActionHandlerDeps = {
   playerPosition: { x: number; y: number };
   weatherZones: Record<string, any>;
   turn: number;
+  gameTime: number;
 };
 
 export function useActionHandlers(deps: ActionHandlerDeps) {
   const {
     isLoaded, isLoading, isGameOver, setIsLoading, playerStats, setPlayerStats, world, setWorld, recipes, buildableStructures,
     customItemDefinitions, setCustomItemCatalog, setCustomItemDefinitions, finalWorldSetup, narrativeLog, addNarrativeEntry, advanceGameTime,
-    setPlayerBehaviorProfile, playerPosition, weatherZones, turn
+    setPlayerBehaviorProfile, playerPosition, weatherZones, turn, gameTime
   } = deps;
 
   const { t, language } = useLanguage();

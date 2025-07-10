@@ -108,10 +108,11 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         const shuffled = [...allExampleKeys].sort(() => 0.5 - Math.random());
         const selectedExamples = shuffled.slice(0, 6).map(key => {
             const text = t(key);
-            const match = text.match(/\(Try: '([^']+)'\)/);
+            const match = text.match(/\(Thử: '([^']+)'\)|\(Try: '([^']+)'\)/);
+            const keyword = match ? (match[1] || match[2]) : null;
             return {
-                text: text.replace(/\s\(Try: '([^']+)'\)/, ''),
-                keyword: match ? match[1] : null
+                text: text.replace(/\s\(Thử: '([^']+)'\)|\s\(Try: '([^']+)'\)/, ''),
+                keyword: keyword
             };
         });
         setExamplePrompts(selectedExamples);

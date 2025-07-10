@@ -18,7 +18,7 @@ export const forest_vi = {
     NPCs: [
         { 
             data: { 
-                name: 'Thợ săn bí ẩn', 
+                name: 'Thợ săn bí ẩn' as TranslationKey, 
                 description: 'Một người đàn ông với ánh mắt sắc lẹm và bộ quần áo bằng da cũ kỹ, luôn mang theo cây cung dài.', 
                 dialogueSeed: 'dialogueSeed_hunter' as TranslationKey,
                 quest: 'quest_hunter_wolf_fangs' as TranslationKey,
@@ -28,11 +28,11 @@ export const forest_vi = {
             conditions: { humanPresence: { min: 2 }, chance: 0.05 } 
         },
         { 
-            data: { name: 'Linh hồn cây', description: 'Một thực thể được tạo thành từ cành và lá cây, đôi mắt phát ra ánh sáng xanh dịu.', dialogueSeed: 'Một linh hồn cổ xưa, nói chuyện chậm rãi và uyên thâm, quan tâm đến sự cân bằng của khu rừng.' },
+            data: { name: 'Linh hồn cây' as TranslationKey, description: 'Một thực thể được tạo thành từ cành và lá cây, đôi mắt phát ra ánh sáng xanh dịu.', dialogueSeed: 'Một linh hồn cổ xưa, nói chuyện chậm rãi và uyên thâm, quan tâm đến sự cân bằng của khu rừng.' },
             conditions: { magicAffinity: { min: 6 }, chance: 0.02 } 
         },
         { 
-            data: { name: 'Ẩn sĩ', description: 'Một ông lão có bộ râu dài, sống một mình trong rừng.', dialogueSeed: 'Một người sống ẩn dật, nói chuyện có vẻ điên rồ nhưng đôi khi lại chứa đựng những sự thật sâu sắc.' },
+            data: { name: 'Ẩn sĩ' as TranslationKey, description: 'Một ông lão có bộ râu dài, sống một mình trong rừng.', dialogueSeed: 'Một người sống ẩn dật, nói chuyện có vẻ điên rồ nhưng đôi khi lại chứa đựng những sự thật sâu sắc.' },
             conditions: { humanPresence: { min: 1, max: 3 }, chance: 0.03 } 
         },
     ],
@@ -75,9 +75,7 @@ export const forest_vi = {
                     requiredTool: 'Rìu Đá Đơn Giản',
                     loot: [
                         { name: 'Lõi Gỗ', chance: 1.0, quantity: { min: 2, max: 4 } },
-                        { name: 'Cành Cây', chance: 1.0, quantity: { min: 3, max: 6 } },
-                        { name: 'Lá Cây Khô', chance: 0.5, quantity: { min: 1, max: 3 } },
-                        { name: 'Lá Cây Tươi', chance: 0.5, quantity: { min: 1, max: 3 } }
+                        { name: 'Cành Cây Chắc Chắn', chance: 1.0, quantity: { min: 3, max: 6 } },
                     ]
                 },
                 senseEffect: { keywords: ['woody', 'tall', 'rustling'] },
@@ -113,7 +111,13 @@ export const forest_vi = {
 
 export const forest_en = {
     ...forest_vi,
-    NPCs: forest_vi.NPCs,
+    NPCs: forest_vi.NPCs.map(npc => ({
+        ...npc,
+        data: {
+            ...npc.data,
+            name: (npc.data.name.charAt(0).toUpperCase() + npc.data.name.slice(1)).replace(/_/g, ' ') as TranslationKey
+        }
+    })),
     items: forest_vi.items,
     structures: forest_vi.structures,
     enemies: forest_vi.enemies,

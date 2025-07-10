@@ -154,7 +154,7 @@ export default function GameLayout(props: GameLayoutProps) {
         <TooltipProvider>
             <div className="flex flex-col md:flex-row h-dvh bg-background text-foreground font-body">
                 {/* Left Panel: Narrative */}
-                <div className="w-full md:flex-1 flex flex-col">
+                <main className="w-full md:flex-1 flex flex-col">
                     <header className="p-4 border-b flex-shrink-0 flex justify-between items-center">
                         <h1 className="text-2xl font-bold font-headline">{t(finalWorldSetup.worldName as TranslationKey)}</h1>
                         <DropdownMenu>
@@ -181,7 +181,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         </DropdownMenu>
                     </header>
 
-                    <main className="flex-grow p-4 md:p-6 overflow-y-auto">
+                    <div className="flex-grow p-4 md:p-6 overflow-y-auto">
                         <div className="prose prose-stone dark:prose-invert max-w-4xl mx-auto">
                             {narrativeLog.map((entry) => (
                                 <p key={entry.id} className={cn("animate-in fade-in duration-500 whitespace-pre-line",
@@ -199,14 +199,14 @@ export default function GameLayout(props: GameLayoutProps) {
                             )}
                         </div>
                          <div ref={pageEndRef} />
-                    </main>
-                </div>
+                    </div>
+                </main>
 
                 {/* Right Panel: Controls & Actions */}
-                <aside className="w-full md:w-[420px] md:max-w-[420px] md:flex-shrink-0 bg-card border-l p-4 md:p-6 flex flex-col gap-6">
-                    {/* Fixed Top Part */}
+                <aside className="w-full md:w-[420px] md:max-w-[420px] md:flex-shrink-0 bg-card border-l p-4 md:p-6 flex flex-col gap-4">
+                    {/* --- FIXED TOP PART --- */}
                     <div className="flex-shrink-0 space-y-4">
-                        {/* HUD - Always visible stats */}
+                        {/* HUD */}
                         <div className="space-y-3">
                             <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
                                 <div className="space-y-1">
@@ -228,16 +228,15 @@ export default function GameLayout(props: GameLayoutProps) {
                                 <span>{playerStats.stamina.toFixed(0)} / 100</span>
                             </div>
                         </div>
-
-                        {/* Minimap Section */}
+                        {/* Minimap */}
                         <div className="flex flex-col items-center gap-2">
-                            <h3 
+                             <h3 
                                 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors"
                                 onClick={() => setIsFullMapOpen(true)}
                             >
                                 {t('minimap')}
                             </h3>
-                            <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
+                             <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <div className="flex items-center gap-1 cursor-default">
@@ -263,9 +262,22 @@ export default function GameLayout(props: GameLayoutProps) {
                             </div>
                             <Minimap grid={generateMapGrid()} playerPosition={playerPosition} turn={turn} />
                         </div>
+                         {/* Main Action Buttons */}
+                        <div className="space-y-2">
+                            <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('mainActions')}</h3>
+                            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setStatusOpen(true)}><Shield /></Button></TooltipTrigger><TooltipContent><p>{t('statusTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setInventoryOpen(true)}><Backpack /></Button></TooltipTrigger><TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setCraftingOpen(true)}><Hammer /></Button></TooltipTrigger><TooltipContent><p>{t('craftingTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setBuildingOpen(true)}><Home /></Button></TooltipTrigger><TooltipContent><p>{t('buildingTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setFusionOpen(true)}><FlaskConical /></Button></TooltipTrigger><TooltipContent><p>{t('fusionTooltip')}</p></TooltipContent></Tooltip>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Scrollable Bottom Part */}
+                    <Separator />
+                    
+                    {/* --- SCROLLABLE BOTTOM PART --- */}
                     <div className="flex-grow flex flex-col gap-4 overflow-y-auto -mr-2 pr-2">
                         {/* Combined Controls and Skills */}
                         <div className="flex flex-col md:flex-row md:justify-around md:items-start md:gap-x-6 gap-y-4">
@@ -295,24 +307,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                 </div>
                             </div>
                         </div>
-
-                        {/* Main Action Buttons */}
-                        <div className="space-y-2">
-                            <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('mainActions')}</h3>
-                            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setStatusOpen(true)}><Shield /></Button></TooltipTrigger><TooltipContent><p>{t('statusTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setInventoryOpen(true)}><Backpack /></Button></TooltipTrigger><TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setCraftingOpen(true)}><Hammer /></Button></TooltipTrigger><TooltipContent><p>{t('craftingTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setBuildingOpen(true)}><Home /></Button></TooltipTrigger><TooltipContent><p>{t('buildingTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setFusionOpen(true)}><FlaskConical /></Button></TooltipTrigger><TooltipContent><p>{t('fusionTooltip')}</p></TooltipContent></Tooltip>
-                            </div>
-                        </div>
-                        
-                        <Separator />
-                        
-                        {/* Contextual Actions */}
-                        <div className="space-y-2">
-                            {restingPlace && (
+                        {restingPlace && (
                                 <>
                                     <div className="space-y-2">
                                         <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('structureActions')}</h2>
@@ -326,10 +321,10 @@ export default function GameLayout(props: GameLayoutProps) {
                                             <TooltipContent><p>{t('restTooltip', { shelterName: t(restingPlace.name as TranslationKey), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent>
                                         </Tooltip>
                                     </div>
-                                    <Separator />
                                 </>
                             )}
-                            
+                        {/* Available Actions */}
+                        <div className="space-y-2">
                             <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('availableActions')}</h2>
                             <div className="grid grid-cols-2 gap-2">
                                 {currentChunk?.actions.map(action => {

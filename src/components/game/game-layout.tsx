@@ -154,7 +154,7 @@ export default function GameLayout(props: GameLayoutProps) {
         <TooltipProvider>
             <div className="flex flex-col md:flex-row h-dvh bg-background text-foreground font-body">
                 {/* Left Panel: Narrative */}
-                 <div className="w-full md:flex-1 flex flex-col h-full overflow-hidden">
+                <div className="w-full md:flex-1 flex flex-col h-full overflow-hidden">
                     <header className="p-4 border-b flex-shrink-0 flex justify-between items-center">
                         <h1 className="text-2xl font-bold font-headline">{t(finalWorldSetup.worldName as TranslationKey)}</h1>
                         <DropdownMenu>
@@ -203,7 +203,8 @@ export default function GameLayout(props: GameLayoutProps) {
                 </div>
 
                 {/* Right Panel: Controls & Actions */}
-                <aside className="w-full md:w-[420px] md:max-w-[420px] md:flex-shrink-0 bg-card border-l p-4 md:p-6 flex flex-col gap-4">
+                <aside className="w-full md:w-[420px] md:max-w-[420px] md:flex-shrink-0 bg-card border-l p-4 flex flex-col gap-4 h-full overflow-hidden">
+                    
                     {/* --- FIXED TOP PART --- */}
                     <div className="flex-shrink-0 space-y-4">
                         {/* HUD */}
@@ -278,7 +279,7 @@ export default function GameLayout(props: GameLayoutProps) {
                     <Separator className="flex-shrink-0" />
                     
                     {/* --- SCROLLABLE BOTTOM PART --- */}
-                    <div className="flex-grow flex flex-col gap-4 overflow-y-auto pr-1 -mr-2">
+                    <div className="flex-grow flex flex-col gap-4 overflow-y-auto pr-2 -mr-4">
                         {/* Combined Controls and Skills */}
                         <div className="flex flex-col md:flex-row md:justify-around md:items-start md:gap-x-6 gap-y-4">
                             <Controls onMove={handleMove} onAttack={handleAttack} />
@@ -416,7 +417,3 @@ export default function GameLayout(props: GameLayoutProps) {
         </TooltipProvider>
     );
 }
-
-    
-
-    

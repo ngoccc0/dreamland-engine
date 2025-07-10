@@ -54,7 +54,6 @@ export default function GameLayout(props: GameLayoutProps) {
         currentChunk,
         turn,
         handleMove,
-        handleAttack,
         handleAction,
         handleCustomAction,
         handleCraft,
@@ -67,6 +66,7 @@ export default function GameLayout(props: GameLayoutProps) {
         handleEquipItem,
         handleUnequipItem,
         handleReturnToMenu,
+        handleHarvest,
     } = useGameEngine(props);
 
     const [isStatusOpen, setStatusOpen] = useState(false);
@@ -151,10 +151,10 @@ export default function GameLayout(props: GameLayoutProps) {
 
     return (
         <TooltipProvider>
-            <div className="flex flex-col md:flex-row min-h-dvh bg-background text-foreground font-body">
+            <div className="flex flex-col md:flex-row h-dvh bg-background text-foreground font-body">
                 {/* Left Panel: Narrative */}
                 <div className="w-full md:flex-1 flex flex-col">
-                    <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10 flex justify-between items-center">
+                    <header className="p-4 border-b flex-shrink-0 flex justify-between items-center">
                         <h1 className="text-2xl font-bold font-headline">{finalWorldSetup.worldName}</h1>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -202,9 +202,9 @@ export default function GameLayout(props: GameLayoutProps) {
                 </div>
 
                 {/* Right Panel: Controls & Actions */}
-                <aside className="w-full md:w-[420px] md:flex-shrink-0 bg-card border-l p-4 md:p-6 flex flex-col gap-6">
+                <aside className="w-full md:w-[420px] md:flex-shrink-0 bg-card border-l p-4 md:p-6 flex flex-col gap-6 overflow-hidden">
                     {/* HUD - Always visible stats */}
-                    <div className="space-y-3">
+                    <div className="space-y-3 flex-shrink-0">
                         <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
                             <div className="space-y-1">
                                 <label className="flex items-center gap-1.5 text-muted-foreground"><Heart /> {t('hudHealth')}</label>
@@ -263,7 +263,7 @@ export default function GameLayout(props: GameLayoutProps) {
                     </div>
                     
                     {/* Combined Controls and Skills for larger screens */}
-                    <div className="flex flex-col md:flex-row md:justify-around md:items-start md:gap-x-6 gap-y-4">
+                    <div className="flex flex-col md:flex-row md:justify-around md:items-start md:gap-x-6 gap-y-4 flex-shrink-0">
                         <Controls onMove={handleMove} onAttack={handleAttack} />
                         <div className="flex flex-col space-y-2 w-full md:max-w-xs">
                             <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('skills')}</h3>
@@ -291,7 +291,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         </div>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-2 flex-shrink-0">
                         <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('mainActions')}</h3>
                         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                             <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setStatusOpen(true)}><Shield /></Button></TooltipTrigger><TooltipContent><p>{t('statusTooltip')}</p></TooltipContent></Tooltip>
@@ -304,10 +304,10 @@ export default function GameLayout(props: GameLayoutProps) {
                     
                     <Separator className="flex-shrink-0" />
                     
-                    <div className="space-y-4 flex-grow flex flex-col">
+                    <div className="space-y-4 flex-grow flex flex-col overflow-y-auto pr-2 -mr-2">
                         {restingPlace && (
                             <>
-                                <div className="space-y-2">
+                                <div className="space-y-2 flex-shrink-0">
                                     <h2 className="font-headline text-lg font-semibold text-center text-foreground/80 flex-shrink-0">{t('structureActions')}</h2>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
@@ -324,7 +324,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         )}
                         
                         <h2 className="font-headline text-lg font-semibold text-center text-foreground/80 flex-shrink-0">{t('availableActions')}</h2>
-                        <div className="grid grid-cols-2 gap-2 overflow-y-auto flex-grow content-start">
+                        <div className="grid grid-cols-2 gap-2">
                             {currentChunk?.actions.map(action => {
                                 const actionText = t(action.textKey, action.params as any);
                                 return (
@@ -339,7 +339,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                 );
                             })}
                         </div>
-                        <div className="flex flex-col gap-2 mt-4 flex-shrink-0">
+                        <div className="flex flex-col gap-2 mt-auto pt-4 flex-shrink-0">
                             <Input 
                                 placeholder={t('customActionPlaceholder')}
                                 value={inputValue}
@@ -373,7 +373,7 @@ export default function GameLayout(props: GameLayoutProps) {
                     onUseItem={handleItemUsed}
                     onEquipItem={handleEquipItem}
                 />
-                <CraftingPopup open={isCraftingOpen} onOpenChange={setCraftingOpen} playerItems={playerStats.items} recipes={recipes} onCraft={handleCraft} />
+                <CraftingPopup open={isCraftingOpen} onOpenChange={setCraftingOpen} playerItems={playerStats.items} recipes={recipes} onCraft={handleCraft} itemDefinitions={customItemDefinitions} />
                 <BuildingPopup open={isBuildingOpen} onOpenChange={setBuildingOpen} playerItems={playerStats.items} buildableStructures={buildableStructures} onBuild={handleBuild} />
                 <FusionPopup 
                     open={isFusionOpen} 

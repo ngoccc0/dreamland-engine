@@ -155,7 +155,7 @@ export default function GameLayout(props: GameLayoutProps) {
                 {/* Left Panel: Narrative */}
                 <div className="w-full md:flex-1 flex flex-col">
                     <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10 flex justify-between items-center">
-                        <h1 className="text-2xl font-bold font-headline">{finalWorldSetup.worldName}</h1>
+                        <h1 className="text-2xl font-bold font-headline">{t(finalWorldSetup.worldName as TranslationKey)}</h1>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon">
@@ -326,7 +326,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         <h2 className="font-headline text-lg font-semibold text-center text-foreground/80 flex-shrink-0">{t('availableActions')}</h2>
                         <div className="grid grid-cols-2 gap-2 overflow-y-auto flex-grow content-start">
                             {currentChunk?.actions.map(action => {
-                                const actionText = t(action.textKey, action.params as any);
+                                const actionText = t(action.textKey, action.params);
                                 return (
                                     <Tooltip key={action.id}>
                                         <TooltipTrigger asChild>

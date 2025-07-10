@@ -196,6 +196,15 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         }
     };
     
+    const handleExampleClick = (prompt: string) => {
+        const match = prompt.match(/\(Try: '([^']+)'\)/);
+        if (match && match[1]) {
+            setUserInput(match[1]);
+        } else {
+            setUserInput(prompt);
+        }
+    };
+
     const renderStep0 = () => (
         <>
             <CardHeader>
@@ -239,7 +248,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                             <button
                                 key={prompt}
                                 type="button"
-                                onClick={() => setUserInput(prompt.split("(Try: '")[1].replace("')", ""))}
+                                onClick={() => handleExampleClick(prompt)}
                                 className="text-left p-2 rounded-md hover:bg-muted transition-colors text-accent text-sm"
                             >
                                 &raquo; {prompt}

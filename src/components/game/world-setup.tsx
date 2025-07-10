@@ -10,14 +10,15 @@ import { generateWorldSetup, type GenerateWorldSetupOutput } from "@/ai/flows/ge
 import { suggestKeywords } from "@/ai/flows/suggest-keywords";
 import { Skeleton } from "../ui/skeleton";
 import { Separator } from "../ui/separator";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { useLanguage } from "@/context/language-context";
-import type { WorldConcept, Skill } from "@/lib/game/types";
+import type { WorldConcept, Skill, PlayerItem, GeneratedItem } from "@/lib/game/types";
 import { premadeWorlds } from "@/lib/game/data/premade-worlds";
 import type { TranslationKey } from "@/lib/i18n";
 import { SettingsPopup } from "./settings-popup";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
-import { Sparkles, Wand2, ArrowRight, BrainCircuit, Loader2, Settings, ArrowLeft } from "./icons";
+import { Sparkles, Wand2, ArrowRight, BrainCircuit, Loader2, Settings, ArrowLeft, ChevronLeft, ChevronRight } from "./icons";
+import { ScrollArea } from "../ui/scroll-area";
+import { cn } from "@/lib/utils";
 
 interface WorldSetupProps {
     onWorldCreated: (worldSetupData: GenerateWorldSetupOutput) => void;
@@ -31,6 +32,36 @@ type Selection = {
     initialQuests: number;
     startingSkill: number;
 };
+
+// Component to render a selectable row in the mix-and-match UI
+const SelectionRow = ({ label, options, selectedIndex, onSelect, renderOption }: {
+    label: string;
+    options: any[];
+    selectedIndex: number;
+    onSelect: (index: number) => void;
+    renderOption: (option: any) => React.ReactNode;
+}) => (
+    <div className="space-y-2">
+        <Label className="text-lg font-headline font-semibold">{label}</Label>
+        <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" className="h-full" onClick={() => onSelect((selectedIndex - 1 + options.length) % options.length)}>
+                <ChevronLeft />
+            </Button>
+            <Card className="flex-grow p-4 bg-muted/30 min-h-[80px]">
+                {renderOption(options[selectedIndex])}
+            </Card>
+            <Button variant="outline" size="icon" className="h-full" onClick={() => onSelect((selectedIndex + 1) % options.length)}>
+                <ChevronRight />
+            </Button>
+        </div>
+    </div>
+);
+
+// A simple Label component for the UI
+const Label = ({ className, ...props }: React.ComponentProps<"label">) => (
+  <label className={cn("font-medium text-foreground/80", className)} {...props} />
+);
+
 
 export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
     const { t, language } = useLanguage();
@@ -46,9 +77,14 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
     const [generatedData, setGeneratedData] = useState<GenerateWorldSetupOutput | null>(null);
     const [isPremade, setIsPremade] = useState(false);
     
-    const [api, setApi] = useState<CarouselApi>()
-    const [current, setCurrent] = useState(0)
-    const [count, setCount] = useState(0)
+    const [selection, setSelection] = useState<Selection>({
+        worldName: 0,
+        initialNarrative: 0,
+        startingBiome: 0,
+        playerInventory: 0,
+        initialQuests: 0,
+        startingSkill: 0,
+    });
     
     const [isSettingsOpen, setSettingsOpen] = useState(false);
 
@@ -76,21 +112,6 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
 
     }, [t]);
 
-
-     useEffect(() => {
-        if (!api) {
-          return
-        }
-    
-        setCount(api.scrollSnapList().length)
-        setCurrent(api.selectedScrollSnap() + 1)
-    
-        api.on("select", () => {
-          setCurrent(api.selectedScrollSnap() + 1)
-        })
-      }, [api])
-
-
     const handleSuggest = async () => {
         if (!userInput.trim()) return;
         setIsSuggesting(true);
@@ -117,7 +138,6 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         setGeneratedData(null);
         setStep(1);
 
-        // Check for secret keyword
         if (premadeWorlds[lowerInput]) {
             setGeneratedData(premadeWorlds[lowerInput]);
             setIsPremade(true);
@@ -142,16 +162,21 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
     const handleStartGame = () => {
         if (!generatedData) return;
         
-        // If it's a premade world, there can be multiple concepts. Pick one.
-        // If it's AI-generated, there's only one concept.
-        const conceptIndex = isPremade ? (api?.selectedScrollSnap() || 0) : 0;
-        const selectedConcept = generatedData.concepts[conceptIndex];
+        const finalConcept: WorldConcept = {
+            worldName: generatedData.concepts[selection.worldName].worldName,
+            initialNarrative: generatedData.concepts[selection.initialNarrative].initialNarrative,
+            startingBiome: generatedData.concepts[selection.startingBiome].startingBiome,
+            playerInventory: generatedData.concepts[selection.playerInventory].playerInventory,
+            initialQuests: generatedData.concepts[selection.initialQuests].initialQuests,
+            startingSkill: generatedData.concepts[selection.startingSkill].startingSkill,
+            customStructures: generatedData.customStructures, // Shared across concepts
+            customItemCatalog: generatedData.customItemCatalog, // Shared across concepts
+        };
         
-        // We only need the selected concept and the shared catalogs to start the game.
         const finalOutput: GenerateWorldSetupOutput = {
             customItemCatalog: generatedData.customItemCatalog,
             customStructures: generatedData.customStructures,
-            concepts: [selectedConcept as any], // Cast to bypass strict type check for biome
+            concepts: [finalConcept as any],
         };
 
         onWorldCreated(finalOutput);
@@ -228,47 +253,83 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         <>
             <CardHeader>
                  <CardTitle className="font-headline text-3xl flex items-center gap-3"><Sparkles /> {t('worldGenResultTitle')}</CardTitle>
-                 <CardDescription>{isPremade ? "Choose a starting scenario for this pre-made world." : t('worldGenResultDesc')}</CardDescription>
+                 <CardDescription>{isPremade ? t('premadeWorldSelectDesc') : t('worldGenResultDesc')}</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent>
                 {isLoading ? (
-                    <div className="text-center py-10">
-                        <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-                        <p className="mt-4 text-muted-foreground">{t('generatingUniverses')}</p>
+                    <div className="space-y-4 py-10">
+                        <div className="text-center">
+                          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+                          <p className="mt-4 text-muted-foreground">{t('generatingUniverses')}</p>
+                        </div>
+                        <Skeleton className="h-20 w-full" />
+                        <Skeleton className="h-20 w-full" />
+                        <Skeleton className="h-20 w-full" />
                     </div>
                 ) : (
                     generatedData && (
-                         <Carousel setApi={setApi} className="w-full max-w-xl mx-auto">
-                            <CarouselContent>
-                                {generatedData.concepts.map((concept, index) => (
-                                    <CarouselItem key={index}>
-                                        <div className="p-1">
-                                            <Card>
-                                                <CardHeader>
-                                                    <CardTitle className="font-headline text-center">{t(concept.worldName as TranslationKey)}</CardTitle>
-                                                </CardHeader>
-                                                <CardContent className="space-y-4">
-                                                     <div className="prose prose-sm dark:prose-invert max-w-none h-24 overflow-y-auto p-2 bg-muted/30 rounded-md">
-                                                        <p>{t(concept.initialNarrative as TranslationKey)}</p>
-                                                    </div>
-                                                    <Separator/>
-                                                    <div className="text-sm">
-                                                        <p><span className="font-semibold">Biome:</span> {t(concept.startingBiome as TranslationKey)}</p>
-                                                        <p><span className="font-semibold">Skill:</span> {t(concept.startingSkill.name as TranslationKey)}</p>
-                                                        <p><span className="font-semibold">Quests:</span> {concept.initialQuests.map(q => t(q as TranslationKey)).join(', ')}</p>
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
+                        <ScrollArea className="max-h-[60vh]">
+                            <div className="space-y-6 p-4">
+                                <SelectionRow 
+                                    label={t('worldName')}
+                                    options={generatedData.concepts.map(c => c.worldName)}
+                                    selectedIndex={selection.worldName}
+                                    onSelect={(index) => setSelection(s => ({...s, worldName: index}))}
+                                    renderOption={(option) => <p className="text-2xl font-bold font-headline">{t(option as TranslationKey)}</p>}
+                                />
+                                <SelectionRow 
+                                    label={t('openingNarrative')}
+                                    options={generatedData.concepts.map(c => c.initialNarrative)}
+                                    selectedIndex={selection.initialNarrative}
+                                    onSelect={(index) => setSelection(s => ({...s, initialNarrative: index}))}
+                                    renderOption={(option) => <p className="text-sm italic">{t(option as TranslationKey)}</p>}
+                                />
+                                <SelectionRow 
+                                    label={t('startingBiome')}
+                                    options={generatedData.concepts.map(c => c.startingBiome)}
+                                    selectedIndex={selection.startingBiome}
+                                    onSelect={(index) => setSelection(s => ({...s, startingBiome: index}))}
+                                    renderOption={(option) => <p className="font-semibold">{t(option as TranslationKey)}</p>}
+                                />
+                                 <SelectionRow 
+                                    label={t('startingSkill')}
+                                    options={generatedData.concepts.map(c => c.startingSkill)}
+                                    selectedIndex={selection.startingSkill}
+                                    onSelect={(index) => setSelection(s => ({...s, startingSkill: index}))}
+                                    renderOption={(option: Skill) => 
+                                        <div>
+                                            <p className="font-semibold">{t(option.name as TranslationKey)}</p>
+                                            <p className="text-xs text-muted-foreground">{t(option.description as TranslationKey)}</p>
                                         </div>
-                                    </CarouselItem>
-                                ))}
-                            </CarouselContent>
-                             <CarouselPrevious />
-                            <CarouselNext />
-                             <div className="py-2 text-center text-sm text-muted-foreground">
-                                Scenario {current} of {count}
+                                    }
+                                />
+                                <SelectionRow 
+                                    label={t('firstQuest')}
+                                    options={generatedData.concepts.map(c => c.initialQuests)}
+                                    selectedIndex={selection.initialQuests}
+                                    onSelect={(index) => setSelection(s => ({...s, initialQuests: index}))}
+                                    renderOption={(option: string[]) => 
+                                        <ul className="list-disc list-inside text-sm">
+                                            {option.map((q, i) => <li key={i}>{t(q as TranslationKey)}</li>)}
+                                        </ul>
+                                    }
+                                />
+                                <SelectionRow 
+                                    label={t('startingEquipment')}
+                                    options={generatedData.concepts.map(c => c.playerInventory)}
+                                    selectedIndex={selection.playerInventory}
+                                    onSelect={(index) => setSelection(s => ({...s, playerInventory: index}))}
+                                    renderOption={(option: PlayerItem[]) => 
+                                        <div className="flex flex-wrap gap-4 text-sm">
+                                            {option.map((item, i) => {
+                                                const def = generatedData.customItemCatalog.find(d => d.name === item.name);
+                                                return <span key={i}>{def?.emoji} {t(item.name as TranslationKey)} (x{item.quantity})</span>
+                                            })}
+                                        </div>
+                                    }
+                                />
                             </div>
-                        </Carousel>
+                        </ScrollArea>
                     )
                 )}
             </CardContent>
@@ -306,3 +367,5 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         </TooltipProvider>
     );
 }
+
+    

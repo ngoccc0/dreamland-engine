@@ -541,16 +541,15 @@ export const translations = {
     tryTheseIdeas: "Or try one of these ideas to start a pre-made world (keywords are in quotes):",
     generateWorlds: "Generate / Start World",
     worldGenResultTitle: "Your World Awaits",
-    worldGenResultDesc: "The AI has forged a new reality based on your vision.",
-    worldSetupStep2: "The AI has created 3 versions. Use the < > buttons to view and select the elements you like best!",
+    worldGenResultDesc: "The AI has forged 3 versions of reality. Mix and match your favorite elements to create your perfect world!",
+    premadeWorldSelectDesc: "This pre-made world has several starting scenarios. Choose your favorite to begin!",
     mixAndMatchTitle: "Select & Mix",
     generatingUniverses: "Forging universes... Please wait!",
     worldName: "World Name",
     openingNarrative: "Opening Narrative",
     startingBiome: "Starting Biome",
     startingSkill: "Starting Skill",
-    startingEquipment: "Starting Equipment",
-    itemsFromChoice: "Items from Choice {index}",
+    startingEquipment: "Starting Items",
     firstQuest: "First Quest",
     questFromChoice: "Quest from Choice {index}",
     yourWorld: "Your World:",
@@ -640,7 +639,7 @@ export const translations = {
     skillCritSuccessBonus: "A divine energy surrounds you, miraculously healing your wounds!",
     skillHealSuccess: ["Used {skillName}, healing for {amount} HP.", "A soothing light envelops you, restoring {amount} health.", "You channel your energy, successfully healing for {amount} HP."],
     skillNoTarget: "Used {skillName}, but there was no target.",
-    skillDamageSuccess: ["Used {skillName}, dealing {damage} magic damage to the {enemy}.", "You unleash your magic, striking the {enemy} for {damage} damage.", "The {skillName} hits the {enemy}, causing {damage} magic damage."],
+    skillDamageSuccess: ["You unleash your magic, striking the {enemy} with a powerful {skillName} for {damage} damage.", "You unleash a powerful {skillName} at the {enemy}, dealing {damage} damage."],
     skillDamageGreatSuccessBonus: "The fireball flies faster and more accurately, dealing extra damage.",
     skillDamageCritSuccess: "A magical CRITICAL HIT! Your {skillName} explodes violently, dealing a devastating {damage} damage to the {enemy}.",
     enemyMovedIn: "A hostile {enemy} has moved in and attacks you!",
@@ -1008,11 +1007,11 @@ export const translations = {
     skillCritFailNarrative: "The magic backfires! Your {skillName} spell fizzles and harms you instead for {damage} damage. {sensory_feedback}",
     skillFailNarrative: "You fumble the incantation, and the {skillName} spell dissipates into nothing. {sensory_feedback}",
     skillHealSuccessNarrative: "A soothing light envelops you as you cast {skillName}, restoring {amount} health. {sensory_feedback}",
-    skillDamageSuccessNarrative: "You unleash your magic, striking the {enemy} with a powerful {skillName} for {damage} damage. {sensory_feedback}",
+    skillDamageSuccessNarrative: "You unleash a powerful {skillName} at the {enemy}, dealing {damage} damage. {sensory_feedback}",
     skillSiphonNarrative: "You feel a surge of vitality as you leech {amount} health from your foe.",
     actionNarrative_attack_critSuccess: "{attack_description} {damage_report}. {sensory_feedback}. {enemy_reaction}",
-    actionNarrative_attack_success: "{attack_description}, dealing {damage_report}. {sensory_feedback}. {enemy_reaction}",
-    actionNarrative_attack_fail: "{attack_description}. {sensory_feedback}. The {enemy_reaction} is unfazed.",
+    actionNarrative_attack_success: "{attack_description} {damage_report}. {sensory_feedback}. {enemy_reaction}",
+    actionNarrative_attack_fail: "{attack_description}. {sensory_feedback}. The {enemy_reaction}",
     actionNarrative_attack_critFail: "{attack_description}. You are left exposed. {sensory_feedback}.",
     langIdentifier: "en",
     biomeLabel: "Biome",
@@ -1070,3 +1069,6 @@ export type TranslationKey = keyof (typeof translations)['en'] & keyof (typeof t
 
 
 
+
+
+    

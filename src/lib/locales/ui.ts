@@ -1,3 +1,4 @@
+
 // src/lib/locales/ui.ts
 
 export const uiTranslations = {
@@ -9,6 +10,11 @@ export const uiTranslations = {
     confirmDeleteDescGeneric: "Are you sure you want to delete this save slot? This action cannot be undone.",
     emptySlot: "Empty Slot",
     newAdventureHint: "Start a new journey.",
+    dayX_time: "Day {day} - {time}",
+    levelLabel: "Level",
+    personaLabel: "Persona",
+    itemsLabel: "Items",
+    killsLabel: "Kills",
 
     // In-Game UI
     mainActions: "Main Actions",
@@ -60,7 +66,6 @@ export const uiTranslations = {
     tempDangerHot: "You are overheating! Your stamina is draining rapidly.",
     companions: "Companions",
     noCompanions: "No companions yet.",
-    levelLabel: "Level",
     quests: "Quests",
     noQuests: "No active quests.",
     combatStats: "Combat Stats",
@@ -73,8 +78,6 @@ export const uiTranslations = {
     noJournalEntries: "No entries yet.",
     skillUnlockProgressTitle: "Skill Unlock Progress",
     unlockCondition: "Unlock Condition",
-    kills: "Kills",
-    damageSpells: "Damage Spells Cast",
     moves: "Moves",
     equipment: 'Equipment',
     weapon: 'Weapon',
@@ -220,6 +223,11 @@ export const uiTranslations = {
     confirmDeleteDescGeneric: "Bạn có chắc chắn muốn xóa ô lưu này không? Hành động này không thể hoàn tác.",
     emptySlot: "Ô trống",
     newAdventureHint: "Bắt đầu một hành trình mới.",
+    dayX_time: "Ngày {day} - {time}",
+    levelLabel: "Cấp độ",
+    personaLabel: "Nhân cách",
+    itemsLabel: "Vật phẩm",
+    killsLabel: "Hạ gục",
 
     // In-Game UI
     mainActions: "Hành động chính",
@@ -271,7 +279,6 @@ export const uiTranslations = {
     tempDangerHot: "Bạn đang bị quá nhiệt! Thể lực của bạn đang cạn kiệt nhanh chóng.",
     companions: "Bạn đồng hành",
     noCompanions: "Chưa có bạn đồng hành.",
-    levelLabel: "Cấp",
     quests: "Nhiệm vụ",
     noQuests: "Không có nhiệm vụ nào đang hoạt động.",
     combatStats: "Chỉ số Chiến đấu",
@@ -284,8 +291,6 @@ export const uiTranslations = {
     noJournalEntries: "Chưa có mục nào.",
     skillUnlockProgressTitle: "Tiến độ Mở khóa Kỹ năng",
     unlockCondition: "Điều kiện Mở khóa",
-    kills: "Số lần giết",
-    damageSpells: "Số phép sát thương đã dùng",
     moves: "Số lần di chuyển",
     equipment: 'Trang bị',
     weapon: 'Vũ khí',

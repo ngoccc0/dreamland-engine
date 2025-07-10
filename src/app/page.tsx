@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import GameLayout from '@/components/game/game-layout';
 import { WorldSetup } from '@/components/game/world-setup';
 import { SettingsPopup } from '@/components/game/settings-popup';
-import type { GameState } from '@/lib/game/types';
+import type { GameState, PlayerStatus } from '@/lib/game/types';
 import type { GenerateWorldSetupOutput } from "@/ai/flows/generate-world-setup";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -14,7 +14,7 @@ import { usePwaInstall } from '@/context/pwa-install-context';
 import { useAuth } from '@/context/auth-context';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Loader2, Settings, Download, Trash2, Play, PlusCircle } from 'lucide-react';
+import { Loader2, Settings, Download, Trash2, Play, PlusCircle, Star, User, Backpack, Swords } from 'lucide-react';
 import type { TranslationKey, Language } from '@/lib/i18n';
 import { LanguageSelector } from '@/components/game/language-selector';
 import { doc, setDoc, deleteDoc, getDocs, collection } from "firebase/firestore";
@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from '@/components/ui/separator';
 
-type SaveSlotSummary = Pick<GameState, 'worldSetup' | 'day'> | null;
+type SaveSlotSummary = Pick<GameState, 'worldSetup' | 'day' | 'gameTime' | 'playerStats'> | null;
 
 export default function Home() {
   const { t, language, setLanguage } = useLanguage();
@@ -49,7 +49,7 @@ export default function Home() {
           const slotIndex = parseInt(docId.split('_')[1], 10);
           if (slotIndex >= 0 && slotIndex < 3) {
             const data = doc.data() as GameState;
-            slots[slotIndex] = { worldSetup: data.worldSetup, day: data.day };
+            slots[slotIndex] = { worldSetup: data.worldSetup, day: data.day, gameTime: data.gameTime, playerStats: data.playerStats };
           }
         });
       } catch (error) {
@@ -61,7 +61,7 @@ export default function Home() {
           const savedData = localStorage.getItem(`gameState_${i}`);
           if (savedData) {
             const gameState: GameState = JSON.parse(savedData);
-            return { worldSetup: gameState.worldSetup, day: gameState.day };
+            return { worldSetup: gameState.worldSetup, day: gameState.day, gameTime: gameState.gameTime, playerStats: gameState.playerStats };
           }
           return null;
         } catch {
@@ -179,7 +179,7 @@ export default function Home() {
 
         setSaveSlots(prev => {
             const newSlots = [...prev];
-            newSlots[activeSlot!] = { worldSetup: newGameState.worldSetup, day: newGameState.day };
+            newSlots[activeSlot!] = { worldSetup: newGameState.worldSetup, day: newGameState.day, gameTime: newGameState.gameTime, playerStats: newGameState.playerStats };
             return newSlots;
         });
 
@@ -203,6 +203,12 @@ export default function Home() {
       setInstallPrompt(null);
     });
   };
+  
+  const getGameTimeAsString = (gameTime: number): string => {
+      const hour = Math.floor(gameTime / 60);
+      const minute = gameTime % 60;
+      return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+  }
 
   // Render loading screen
   if (loadState === 'loading' || authLoading) {
@@ -261,46 +267,34 @@ export default function Home() {
             <p className="text-muted-foreground">{t('welcomeBack')}</p>
           </header>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
             {saveSlots.map((slot, index) => (
                <Card key={index} className={cn("flex flex-col", slot ? "border-primary" : "border-dashed")}>
                  <div className="p-4 flex flex-col flex-grow">
                    {slot ? (
                      <>
                         <div className="flex-grow space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <CardTitle className="truncate">{t(slot.worldSetup.worldName as TranslationKey)}</CardTitle>
-                                    <CardDescription>{t('dayX', { day: slot.day })}</CardDescription>
+                            <CardTitle className="truncate">{t(slot.worldSetup.worldName as TranslationKey)}</CardTitle>
+                            <CardDescription>{t('dayX_time', { day: slot.day, time: getGameTimeAsString(slot.gameTime ?? 360) })}</CardDescription>
+
+                            <Separator />
+
+                            <div className="text-sm text-muted-foreground space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <Star className="h-4 w-4 text-primary" />
+                                    <span>{t('levelLabel')}: {slot.playerStats.questsCompleted + 1}</span>
                                 </div>
-                                <Separator className="md:hidden" />
-                                <div className="hidden md:block border-l pl-4">
-                                     <dl className="grid grid-cols-[auto_1fr] gap-x-2 text-sm text-muted-foreground">
-                                        <dt className="font-semibold text-foreground/80">{t('biomeLabel')}:</dt>
-                                        <dd className="truncate">{t(slot.worldSetup.startingBiome as TranslationKey)}</dd>
-                                        {slot.worldSetup.startingSkill && <>
-                                            <dt className="font-semibold text-foreground/80">{t('skillLabel')}:</dt>
-                                            <dd className="truncate">{t(slot.worldSetup.startingSkill.name as TranslationKey)}</dd>
-                                        </>}
-                                        {slot.worldSetup.initialQuests && <>
-                                            <dt className="font-semibold text-foreground/80">{t('questsLabel')}:</dt>
-                                            <dd className="truncate">{slot.worldSetup.initialQuests.length}</dd>
-                                        </>}
-                                    </dl>
+                                <div className="flex items-center gap-2">
+                                    <User className="h-4 w-4 text-primary" />
+                                    <span>{t('personaLabel')}: {t(slot.playerStats.persona as TranslationKey)}</span>
                                 </div>
-                                <div className="md:hidden text-sm text-muted-foreground">
-                                    <dl className="grid grid-cols-[auto_1fr] gap-x-2">
-                                        <dt className="font-semibold text-foreground/80">{t('biomeLabel')}:</dt>
-                                        <dd className="truncate">{t(slot.worldSetup.startingBiome as TranslationKey)}</dd>
-                                        {slot.worldSetup.startingSkill && <>
-                                            <dt className="font-semibold text-foreground/80">{t('skillLabel')}:</dt>
-                                            <dd className="truncate">{t(slot.worldSetup.startingSkill.name as TranslationKey)}</dd>
-                                        </>}
-                                        {slot.worldSetup.initialQuests && <>
-                                            <dt className="font-semibold text-foreground/80">{t('questsLabel')}:</dt>
-                                            <dd className="truncate">{slot.worldSetup.initialQuests.length}</dd>
-                                        </>}
-                                    </dl>
+                                <div className="flex items-center gap-2">
+                                    <Backpack className="h-4 w-4 text-primary" />
+                                    <span>{t('itemsLabel')}: {slot.playerStats.items.reduce((acc, item) => acc + item.quantity, 0)}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Swords className="h-4 w-4 text-primary" />
+                                    <span>{t('killsLabel')}: {slot.playerStats.unlockProgress.kills}</span>
                                 </div>
                             </div>
                         </div>

@@ -1,3 +1,4 @@
+
 // src/lib/locales/common.ts
 
 export const commonTranslations = {
@@ -72,6 +73,10 @@ export const commonTranslations = {
     floptropica: 'Floptropica',
     wall: 'Wall',
     dayX: "Day {day}",
+    none: 'None',
+    explorer: 'Explorer',
+    warrior: 'Warrior',
+    artisan: 'Artisan',
   },
   vi: {
     gameTitle: "Dreamland Engine",
@@ -144,5 +149,9 @@ export const commonTranslations = {
     floptropica: 'Floptropica',
     wall: 'Tường',
     dayX: "Ngày {day}",
+    none: 'Không có',
+    explorer: 'Nhà thám hiểm',
+    warrior: 'Chiến binh',
+    artisan: 'Nghệ nhân',
   }
 };

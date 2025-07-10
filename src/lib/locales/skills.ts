@@ -1,0 +1,42 @@
+// src/lib/locales/skills.ts
+
+export const skillTranslations = {
+  en: {
+    skillHealName: 'Heal',
+    skillHealDesc: 'Use mana to restore a small amount of health.',
+    skillFireballName: 'Fireball',
+    skillFireballDesc: 'Launch a fireball at an enemy, dealing magic damage.',
+    skillLifeSiphonName: 'Life Siphon',
+    skillLifeSiphonDesc: 'Deal magic damage and heal for 50% of the damage dealt.',
+    skillChainLightningName: 'Chain Lightning',
+    skillChainLightningDesc: 'Unleash a powerful bolt of lightning. Higher damage than Fireball.',
+    skillBlinkName: 'Blink',
+    skillBlinkDesc: 'Instantly teleport to a nearby location in sight.',
+    skillUnlocked: "Through your actions, you have awakened a new power: {skillName}.",
+    skillUnlockedTitle: "New Skill Unlocked!",
+    skillUnlockedDesc: "You have learned: {skillName}",
+    personaUnlockedTitle: 'Playstyle Defined!',
+    personaExplorer: 'Your constant travels have made you more resilient on the road.',
+    personaWarrior: 'Your combat experience has honed your attacks.',
+    personaArtisan: 'Your hands move with newfound confidence in your craft.',
+  },
+  vi: {
+    skillHealName: 'Chữa lành',
+    skillHealDesc: 'Sử dụng mana để phục hồi một lượng nhỏ máu.',
+    skillFireballName: 'Quả cầu lửa',
+    skillFireballDesc: 'Phóng một quả cầu lửa vào kẻ thù, gây sát thương phép.',
+    skillLifeSiphonName: 'Hút sinh lực',
+    skillLifeSiphonDesc: 'Gây sát thương phép và hồi máu bằng 50% sát thương gây ra.',
+    skillChainLightningName: 'Sét chuỗi',
+    skillChainLightningDesc: 'Phóng ra một tia sét mạnh mẽ. Sát thương cao hơn Quả cầu lửa.',
+    skillBlinkName: 'Dịch chuyển',
+    skillBlinkDesc: 'Dịch chuyển tức thời đến một vị trí gần đó trong tầm mắt.',
+    skillUnlocked: "Thông qua hành động của mình, bạn đã đánh thức một sức mạnh mới: {skillName}.",
+    skillUnlockedTitle: "Đã mở khóa Kỹ năng Mới!",
+    skillUnlockedDesc: "Bạn đã học được: {skillName}",
+    personaUnlockedTitle: 'Đã xác định Phong cách Chơi!',
+    personaExplorer: 'Những chuyến đi liên tục đã khiến bạn trở nên kiên cường hơn trên đường.',
+    personaWarrior: 'Kinh nghiệm chiến đấu của bạn đã mài giũa các đòn tấn công của bạn.',
+    personaArtisan: 'Đôi tay của bạn di chuyển với sự tự tin mới trong nghề thủ công của mình.',
+  }
+};

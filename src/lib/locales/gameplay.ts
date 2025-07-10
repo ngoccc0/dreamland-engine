@@ -1,0 +1,134 @@
+// src/lib/locales/gameplay.ts
+
+export const gameplayTranslations = {
+  en: {
+    // Dice Rolls
+    diceRollMessage: "You roll a {diceType}... It's a {roll}! ({level})",
+    criticalFailure: "Critical Failure",
+    failure: "Failure",
+    success: "Success",
+    greatSuccess: "Great Success",
+    criticalSuccess: "Critical Success",
+
+    // Time & Events
+    timeUpdate: "🕖 The time is now {time}.",
+    newDay: "A new day has begun.",
+    journalUpdated: "Your journal has been updated.",
+    eventTriggered: 'A random event occurs: {eventName}!',
+
+    // Actions & Results
+    observeAction_enemy: 'Observe {enemyType}',
+    observeSuccess: 'You begin tracking the {enemyName}. You might get updates on its activity later.',
+    trackedEnemyHunting: 'The {enemyName} you were tracking seems to be on the hunt.',
+    trackedEnemyGeneric: 'The {enemyName} you were tracking is moving about its territory.',
+    trackedEnemyLost: 'You lose track of the {enemyName}.',
+    listenToSurroundingsAction: "Listen to surroundings",
+    listenHearNothing: [
+      "You listen intently, but only hear the ambient sounds of the area.",
+      "The surroundings are quiet, save for the whisper of the wind.",
+      "You focus your hearing but detect nothing out of the ordinary."
+    ],
+    listenHearSomething: "You hear a strange {sound} coming from the {direction}.",
+    listenHearBiome: "You hear the faint {sound} coming from the {direction}.",
+    enemySoundGeneric: "rustling",
+    talkToAction_npc: "talk to {npcName}",
+    pickUpAction_item: "pick up {itemName}",
+    exploreAction: "Search Area",
+    harvestAction: 'Harvest {target}',
+    attackAction: "Attack",
+    useAction: "Use",
+    useOnAction: "Use {item} on {target}",
+    useSkillAction: "use skill",
+    craftAction: "Craft {itemName}",
+    buildConfirm: "Build {structureName}",
+    fuseAction: "Fuse {items}",
+    wentDirection: "You went {direction}.",
+    directionNorth: "north",
+    directionSouth: "south",
+    directionEast: "east",
+    directionWest: "west",
+
+    // System Messages
+    craftSuccess: "You successfully crafted: {itemName}",
+    craftSuccessTitle: "Crafting Successful!",
+    craftFail: "Your attempt to craft {itemName} failed, and the ingredients were lost.",
+    craftFailTitle: "Crafting Failed!",
+    newRecipeIdea: "New Recipe Idea!",
+    newRecipeDiscovered: "You've thought of a new recipe: {recipeName}!",
+    builtStructure: "You have successfully built a {structureName}.",
+    itemPickedUpNarrative: [
+      "You stash the {itemName} in your pack.",
+      "The {itemName} has been added to your inventory.",
+      "You quickly grab the {itemName} before something else does."
+    ],
+    pickedUpItemToast: "Added {quantity} {itemName} to inventory.",
+    gameOverTitle: "You Have Fallen",
+    gameOverDesc: "Your adventure has ended, but your story will be remembered.",
+    gameOverMessage: "Darkness envelops you. Your journey ends here.",
+  },
+  vi: {
+    // Dice Rolls
+    diceRollMessage: "Bạn gieo một {diceType}... được {roll}! ({level})",
+    criticalFailure: "Thất bại Thảm hại",
+    failure: "Thất bại",
+    success: "Thành công",
+    greatSuccess: "Thành công Lớn",
+    criticalSuccess: "Thành công Xuất sắc",
+
+    // Time & Events
+    timeUpdate: "🕖 Bây giờ là {time}.",
+    newDay: "Một ngày mới đã bắt đầu.",
+    journalUpdated: "Nhật ký của bạn đã được cập nhật.",
+    eventTriggered: 'Một sự kiện ngẫu nhiên xảy ra: {eventName}!',
+
+    // Actions & Results
+    observeAction_enemy: 'Quan sát {enemyType}',
+    observeSuccess: 'Bạn bắt đầu theo dõi {enemyName}. Bạn có thể nhận được cập nhật về hoạt động của nó sau.',
+    trackedEnemyHunting: '{enemyName} bạn đang theo dõi dường như đang đi săn.',
+    trackedEnemyGeneric: '{enemyName} bạn đang theo dõi đang di chuyển trong lãnh thổ của nó.',
+    trackedEnemyLost: 'Bạn mất dấu {enemyName}.',
+    listenToSurroundingsAction: "Lắng nghe xung quanh",
+    listenHearNothing: [
+      "Bạn lắng nghe chăm chú, nhưng chỉ nghe thấy những âm thanh xung quanh của khu vực.",
+      "Xung quanh yên tĩnh, chỉ có tiếng gió thì thầm.",
+      "Bạn tập trung thính giác nhưng không phát hiện ra điều gì bất thường."
+    ],
+    listenHearSomething: "Bạn nghe thấy một tiếng {sound} lạ phát ra từ phía {direction}.",
+    listenHearBiome: "Bạn nghe thấy tiếng {sound} mờ ảo từ phía {direction}.",
+    enemySoundGeneric: "xào xạc",
+    talkToAction_npc: "nói chuyện với {npcName}",
+    pickUpAction_item: "nhặt {itemName}",
+    exploreAction: "Tìm kiếm khu vực",
+    harvestAction: 'Thu hoạch {target}',
+    attackAction: "Tấn công",
+    useAction: "Sử dụng",
+    useOnAction: "Sử dụng {item} lên {target}",
+    useSkillAction: "sử dụng kỹ năng",
+    craftAction: "Chế tạo {itemName}",
+    buildConfirm: "Xây {structureName}",
+    fuseAction: "Hợp nhất {items}",
+    wentDirection: "Bạn đã đi về phía {direction}.",
+    directionNorth: "bắc",
+    directionSouth: "nam",
+    directionEast: "đông",
+    directionWest: "tây",
+    
+    // System Messages
+    craftSuccess: "Bạn đã chế tạo thành công: {itemName}",
+    craftSuccessTitle: "Chế tạo thành công!",
+    craftFail: "Nỗ lực chế tạo {itemName} của bạn đã thất bại, và các nguyên liệu đã bị mất.",
+    craftFailTitle: "Chế tạo thất bại!",
+    newRecipeIdea: "Ý tưởng Công thức Mới!",
+    newRecipeDiscovered: "Bạn đã nghĩ ra một công thức mới: {recipeName}!",
+    builtStructure: "Bạn đã xây dựng thành công một {structureName}.",
+    itemPickedUpNarrative: [
+      "Bạn cất {itemName} vào túi.",
+      "Vật phẩm {itemName} đã được thêm vào hành trang của bạn.",
+      "Bạn nhanh chóng nhặt lấy {itemName} trước khi có thứ khác lấy mất."
+    ],
+    pickedUpItemToast: "Đã thêm {quantity} {itemName} vào hành trang.",
+    gameOverTitle: "Bạn đã gục ngã",
+    gameOverDesc: "Cuộc phiêu lưu của bạn đã kết thúc, nhưng câu chuyện của bạn sẽ được ghi nhớ.",
+    gameOverMessage: "Bóng tối bao trùm bạn. Hành trình của bạn kết thúc tại đây.",
+  }
+};

@@ -40,7 +40,6 @@ export const forest_vi = {
         { name: 'Quả Mọng Ăn Được', conditions: { dangerLevel: { max: 4 }, chance: 0.3 } },
         { name: 'Nấm Độc', conditions: { dangerLevel: { min: 5 }, moisture: { min: 6 }, chance: 0.25 } },
         { name: 'Thảo Dược Chữa Lành', conditions: { vegetationDensity: { min: 8 }, chance: 0.2 } },
-        { name: 'Cành Cây Chắc Chắn', conditions: { chance: 0.6 } },
         { name: 'Mũi Tên Cũ', conditions: { humanPresence: { min: 2 }, chance: 0.05 } },
         { name: 'Hoa Tinh Linh', conditions: { magicAffinity: { min: 7 }, chance: 0.05 } },
         { name: 'Vỏ Cây Cổ Thụ', conditions: { vegetationDensity: { min: 9 }, chance: 0.02 } },
@@ -59,25 +58,58 @@ export const forest_vi = {
         },
     ],
     enemies: [
+        { 
+            data: { 
+                type: 'Cây Gỗ Thường',
+                emoji: '🌳',
+                hp: 30,
+                damage: 0,
+                behavior: 'passive',
+                size: 'large',
+                diet: [],
+                satiation: 0,
+                maxSatiation: 0,
+                harvestable: {
+                    difficulty: 1,
+                    requiredTool: 'Rìu Đá Đơn Giản',
+                    loot: [
+                        { name: 'Lõi Gỗ', chance: 1.0, quantity: { min: 2, max: 4 } },
+                        { name: 'Cành Cây Chắc Chắn', chance: 1.0, quantity: { min: 3, max: 6 } },
+                    ]
+                },
+                senseEffect: { keywords: ['woody', 'tall', 'rustling'] },
+            },
+            conditions: { chance: 0.7, vegetationDensity: { min: 3 } }
+        },
         { data: { type: 'Sói', emoji: '🐺', hp: 30, damage: 10, behavior: 'aggressive', size: 'medium', diet: ['Thịt Heo Rừng', 'Thịt Thỏ'], satiation: 0, maxSatiation: 2, loot: [{name: 'Thịt Sói Sống', chance: 0.7, quantity: {min: 1, max: 1}}, {name: 'Nanh Sói', chance: 0.15, quantity: {min: 1, max: 2}}] }, conditions: { predatorPresence: { min: 5 }, chance: 0.4 } },
         { data: { type: 'Nhện khổng lồ', emoji: '🕷️', hp: 40, damage: 15, behavior: 'territorial', size: 'medium', diet: ['Heo Rừng', 'Yêu Tinh Rừng'], satiation: 0, maxSatiation: 2, loot: [{name: 'Tơ Nhện Khổng lồ', chance: 0.6, quantity: {min: 1, max: 3}}, {name: 'Mắt Nhện', chance: 0.1, quantity: {min: 2, max: 8}}] }, conditions: { vegetationDensity: { min: 8 }, dangerLevel: { min: 6 }, chance: 0.3 } },
         { data: { type: 'Heo Rừng', emoji: '🐗', hp: 50, damage: 8, behavior: 'defensive', size: 'medium', diet: ['Quả Mọng Ăn Được', 'Rễ Cây Hiếm'], satiation: 0, maxSatiation: 3, loot: [{name: 'Thịt Heo Rừng', chance: 0.8, quantity: {min: 1, max: 2}}, {name: 'Da Heo Rừng', chance: 0.2, quantity: {min: 1, max: 1}}] }, conditions: { predatorPresence: { min: 4 }, chance: 0.3 } },
         { data: { type: 'Yêu Tinh Rừng', emoji: '👺', hp: 25, damage: 8, behavior: 'aggressive', size: 'small', diet: ['Thịt Thỏ', 'Nấm Độc'], satiation: 0, maxSatiation: 3, loot: [{name: 'Tai Yêu Tinh', chance: 0.5, quantity: {min: 1, max: 1}}, {name: 'Mũi Tên Cũ', chance: 0.05, quantity: {min: 1, max: 1}}, {name: 'Sỏi', chance: 0.2, quantity: {min: 1, max: 3}}] }, conditions: { dangerLevel: { min: 5 }, humanPresence: { min: 1 }, chance: 0.25 } },
         { data: { type: 'Gấu', emoji: '🐻', hp: 80, damage: 20, behavior: 'territorial', size: 'large', diet: ['Heo Rừng', 'Cá sấu'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Gấu', chance: 0.5, quantity: {min: 1, max: 1}}, {name: 'Móng Vuốt Gấu', chance: 0.3, quantity: {min: 2, max: 4}}] }, conditions: { predatorPresence: { min: 8 }, dangerLevel: { min: 7 }, chance: 0.1 } },
+        { 
+            data: { 
+                type: 'Sói Bóng Đêm',
+                emoji: '🐺🌑',
+                hp: 45,
+                damage: 15,
+                behavior: 'aggressive', // Ambush behavior not supported, changed to aggressive
+                size: 'medium',
+                diet: ['Heo Rừng', 'Thỏ hoang hung dữ'],
+                satiation: 0,
+                maxSatiation: 2,
+                loot: [
+                    { name: 'Lông Sói Đen', chance: 0.6, quantity: { min: 1, max: 2 } },
+                    { name: 'Thịt Sói Sống', chance: 0.8, quantity: { min: 1, max: 1 } }
+                ],
+                senseEffect: { keywords: ['silent', 'swift', 'dark'] },
+            },
+            conditions: { chance: 0.2 } // timeOfDay condition not supported yet
+        },
     ],
 };
 
 export const forest_en = {
-    descriptionTemplates: {
-        short: [ "You are in an [adjective] forest." ],
-        medium: [ "An [adjective] forest with [feature] everywhere. The air smells of [smell] and you hear the [sound]. {sensory_details} {entity_report}" ],
-        long: [ "You are in an [adjective] forest. Tall [feature] reach for the [sky] sky. The air smells of [smell] and you hear the [sound] of wildlife. {sensory_details} {entity_report} {surrounding_peek}" ]
-    },
-    adjectives: ['dense', 'gloomy', 'ancient', 'quiet', 'eerie', 'damp', 'sun-dappled', 'deep', 'mysterious'],
-    features: ['oak', 'pine', 'fern', 'glowing mushroom', 'tangled vines', 'rotten log', 'small stream', 'wildflower', 'moss-covered rock'],
-    smells: ['damp earth', 'decaying leaves', 'pine resin', 'wildflowers', 'animal musk', 'ozone after rain'],
-    sounds: ['birds singing', 'wind whistling', 'twigs snapping', 'eerie silence', 'a babbling brook', 'insects chirping'],
-    sky: ['azure', 'golden', 'grey'],
+    ...forest_vi,
     NPCs: forest_vi.NPCs,
     items: forest_vi.items,
     structures: forest_vi.structures,

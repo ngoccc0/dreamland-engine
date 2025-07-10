@@ -6,6 +6,7 @@ import { supportItems } from "./support";
 import { dataItems } from "./data";
 import { magicItems } from "./magic";
 import { energySourceItems } from "./energy_source";
+import { cookedFoodItems } from "../recipes/food";
 
 export const itemDefinitions = {
     ...foodItems,
@@ -16,4 +17,5 @@ export const itemDefinitions = {
     ...dataItems,
     ...magicItems,
     ...energySourceItems,
+    ...cookedFoodItems,
 };

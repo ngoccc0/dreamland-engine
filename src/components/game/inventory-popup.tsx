@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel, DropdownMenuPortal } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/context/language-context";
@@ -91,8 +91,10 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                             <DropdownMenuTrigger asChild>
                                 <button
                                     className={cn(
-                                        "w-full flex justify-between items-center p-2 bg-muted rounded-md text-left text-sm cursor-pointer hover:bg-accent/20"
+                                        "w-full flex justify-between items-center p-2 bg-muted rounded-md text-left text-sm cursor-pointer hover:bg-accent/20",
+                                        !isInteractable && "cursor-default hover:bg-muted"
                                     )}
+                                    disabled={!isInteractable}
                                 >
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <span className="text-2xl mr-2">{item.emoji}</span>
@@ -108,47 +110,51 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                                 </button>
                             </DropdownMenuTrigger>
                             
-                            <DropdownMenuContent className="w-64">
-                                <DropdownMenuLabel className="font-normal">
-                                    <p className="font-bold">{item.emoji} {t(item.name as TranslationKey)}</p>
-                                    <p className="text-xs text-muted-foreground whitespace-normal">{t(definition?.description as TranslationKey)}</p>
-                                </DropdownMenuLabel>
-                                
-                                {(definition?.effects?.length > 0 || definition?.attributes) && <DropdownMenuSeparator />}
-                                
-                                {definition?.attributes && (
-                                    <div className="px-2 py-1.5 text-xs space-y-1">
-                                        <p className="font-semibold text-muted-foreground">{t('attributes')}:</p>
-                                        {Object.entries(definition.attributes).map(([key, value]) => {
-                                            if (value === 0) return null;
-                                            const sign = value > 0 ? '+' : '';
-                                            return (
-                                                <p key={key} className={cn("ml-2", value > 0 ? "text-green-500" : "text-red-500")}>
-                                                    {sign}{value}{key.includes('Reduction') || key.includes('Chance') ? '%' : ''} {t(attributeLabels[key as keyof PlayerAttributes])}
-                                                </p>
-                                            )
-                                        })}
-                                    </div>
-                                )}
+                            {isInteractable && (
+                                <DropdownMenuPortal>
+                                    <DropdownMenuContent className="w-64" sideOffset={5} collisionPadding={10}>
+                                        <DropdownMenuLabel className="font-normal">
+                                            <p className="font-bold">{item.emoji} {t(item.name as TranslationKey)}</p>
+                                            <p className="text-xs text-muted-foreground whitespace-normal">{t(definition?.description as TranslationKey)}</p>
+                                        </DropdownMenuLabel>
+                                        
+                                        {(definition?.effects?.length > 0 || definition?.attributes) && <DropdownMenuSeparator />}
+                                        
+                                        {definition?.attributes && (
+                                            <div className="px-2 py-1.5 text-xs space-y-1">
+                                                <p className="font-semibold text-muted-foreground">{t('attributes')}:</p>
+                                                {Object.entries(definition.attributes).map(([key, value]) => {
+                                                    if (value === 0) return null;
+                                                    const sign = value > 0 ? '+' : '';
+                                                    return (
+                                                        <p key={key} className={cn("ml-2", value > 0 ? "text-green-500" : "text-red-500")}>
+                                                            {sign}{value}{key.includes('Reduction') || key.includes('Chance') ? '%' : ''} {t(attributeLabels[key as keyof PlayerAttributes])}
+                                                        </p>
+                                                    )
+                                                })}
+                                            </div>
+                                        )}
 
-                                {definition?.effects?.length > 0 && (
-                                    <div className="px-2 py-1.5 text-xs space-y-1">
-                                        <p className="font-semibold text-muted-foreground">{t('effects')}:</p>
-                                        {definition.effects.map((effect, i) => (
-                                            <p key={i} className="text-green-500 ml-2">
-                                                {effect.type === 'HEAL' && `+${effect.amount} ${t('healthShort')}`}
-                                                {effect.type === 'RESTORE_STAMINA' && `+${effect.amount} ${t('staminaShort')}`}
-                                            </p>
-                                        ))}
-                                    </div>
-                                )}
+                                        {definition?.effects?.length > 0 && (
+                                            <div className="px-2 py-1.5 text-xs space-y-1">
+                                                <p className="font-semibold text-muted-foreground">{t('effects')}:</p>
+                                                {definition.effects.map((effect, i) => (
+                                                    <p key={i} className="text-green-500 ml-2">
+                                                        {effect.type === 'HEAL' && `+${effect.amount} ${t('healthShort')}`}
+                                                        {effect.type === 'RESTORE_STAMINA' && `+${effect.amount} ${t('staminaShort')}`}
+                                                    </p>
+                                                ))}
+                                            </div>
+                                        )}
 
-                                {isInteractable && <DropdownMenuSeparator />}
+                                        {(isUsableOnSelf || isUsableOnEnemy || isEquippable) && <DropdownMenuSeparator />}
 
-                                {isUsableOnSelf && <DropdownMenuItem onClick={() => handleAction(() => onUseItem(item.name, 'player'))}>{t('useOnSelf')}</DropdownMenuItem>}
-                                {isUsableOnEnemy && <DropdownMenuItem onClick={() => handleAction(() => onUseItem(item.name, enemy!.type))}>{t('useOnTarget', { target: t(enemy!.type as TranslationKey) })}</DropdownMenuItem>}
-                                {isEquippable && <DropdownMenuItem onClick={() => handleAction(() => onEquipItem(item.name))}>{t('equipItem')}</DropdownMenuItem>}
-                            </DropdownMenuContent>
+                                        {isUsableOnSelf && <DropdownMenuItem onClick={() => handleAction(() => onUseItem(item.name, 'player'))}>{t('useOnSelf')}</DropdownMenuItem>}
+                                        {isUsableOnEnemy && <DropdownMenuItem onClick={() => handleAction(() => onUseItem(item.name, enemy!.type))}>{t('useOnTarget', { target: t(enemy!.type as TranslationKey) })}</DropdownMenuItem>}
+                                        {isEquippable && <DropdownMenuItem onClick={() => handleAction(() => onEquipItem(item.name))}>{t('equipItem')}</DropdownMenuItem>}
+                                    </DropdownMenuContent>
+                                </DropdownMenuPortal>
+                            )}
                         </DropdownMenu>
                       </li>
                     );

@@ -1,5 +1,5 @@
-'use server';
 
+'use server';
 /**
  * @fileOverview An AI agent for generating game world concepts by distributing tasks across multiple AI models.
  *
@@ -29,8 +29,11 @@
 import Handlebars from 'handlebars';
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
-import type { Terrain, Skill, Structure, GeneratedItem } from '@/lib/game/types';
-import { GeneratedItemSchema, SkillSchema, NarrativeConceptArraySchema, ItemCategorySchema, StructureSchema, allTerrains as allTerrainsSchema } from '@/ai/schemas';
+import type { Terrain } from '@/lib/game/types';
+import { GeneratedItemSchema, NarrativeConceptArraySchema, ItemCategorySchema, allTerrains as allTerrainsSchema } from '@/ai/schemas';
+import { SkillSchema } from '@/lib/game/definitions/skill';
+import { StructureSchema } from '@/lib/game/definitions/structure';
+import type { Skill, Structure, GeneratedItem, ItemDefinition } from '@/lib/game/types';
 import { skillDefinitions } from '@/lib/game/skills';
 import { getEmojiForItem } from '@/lib/utils';
 import { db } from '@/lib/firebase-config';

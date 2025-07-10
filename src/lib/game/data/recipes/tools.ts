@@ -1,4 +1,4 @@
-import type { Recipe } from "../../types";
+import type { Recipe } from "../../definitions/recipe";
 
 export const toolRecipes: Record<string, Recipe> = {
     'Bó Đuốc': {

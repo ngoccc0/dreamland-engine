@@ -1,6 +1,8 @@
 import type { TranslationKey } from "../i18n";
 import type { BiomeDefinition } from "./definitions/biome";
-import type { RecipeIngredient } from "./data/recipes";
+import type { Recipe as RecipeDef, RecipeIngredient } from "./definitions/recipe";
+import type { z } from "zod";
+import type { SkillSchema } from "./definitions/skill";
 
 // Represents a contiguous region of a single biome.
 export interface Region {
@@ -124,22 +126,7 @@ export interface Npc {
 }
 
 // Represents a skill the player can use.
-export interface Skill {
-    name: string;
-    description: string;
-    tier: number;
-    manaCost: number;
-    effect: {
-        type: 'HEAL' | 'DAMAGE' | 'TELEPORT';
-        amount: number;
-        target: 'SELF' | 'ENEMY';
-        healRatio?: number;
-    };
-    unlockCondition?: {
-        type: 'kills' | 'damageSpells' | 'moves';
-        count: number;
-    };
-}
+export type Skill = z.infer<typeof SkillSchema>;
 
 // Represents a structure in the world (natural or player-built)
 export interface Structure {
@@ -278,22 +265,7 @@ export interface WorldConcept {
 }
 
 // This represents a recipe for crafting, which can now be dynamic.
-export interface Recipe {
-    result: { name: string; quantity: number, emoji: string; };
-    ingredients: RecipeIngredient[];
-    description: string;
-}
-
-export interface RecipeAlternative {
-    name: string;
-    tier: 1 | 2 | 3; // 1: Perfect, 2: Good, 3: Viable but risky
-}
-
-export interface RecipeIngredient {
-    name: string; // The primary/ideal ingredient
-    quantity: number;
-    alternatives?: RecipeAlternative[]; // A list of tiered substitute items
-}
+export type Recipe = RecipeDef;
 
 // This represents the detailed result of checking a recipe, for use in the UI.
 export interface CraftingOutcome {
@@ -342,14 +314,11 @@ export interface ItemDefinition {
   description: string;
   tier: number;
   category: ItemCategory;
-  subCategory?: ItemCategory;
+  subCategory?: string;
   emoji: string;
   effects: ItemEffect[];
   baseQuantity: { min: number, max: number };
-  growthConditions?: {
-    optimal: SpawnConditions;
-    subOptimal: SpawnConditions;
-  };
+  naturalSpawn?: { biome: Terrain, chance: number, conditions?: SpawnConditions }[];
   equipmentSlot?: EquipmentSlot;
   attributes?: Partial<PlayerAttributes>;
 }
@@ -360,15 +329,10 @@ export interface GeneratedItem {
     description: string;
     tier: number;
     category: ItemCategory;
-    subCategory?: string;
     emoji: string;
     effects: ItemEffect[];
     baseQuantity: { min: number; max: number; };
     spawnBiomes: Terrain[];
-    growthConditions?: {
-      optimal: SpawnConditions;
-      subOptimal: SpawnConditions;
-    };
     equipmentSlot?: EquipmentSlot;
     attributes?: Partial<PlayerAttributes>;
 }

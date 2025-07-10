@@ -1,4 +1,4 @@
-import type { Recipe } from "../../types";
+import type { Recipe } from "../../definitions/recipe";
 
 export const consumableRecipes: Record<string, Recipe> = {
     'Thuốc Máu Yếu': {

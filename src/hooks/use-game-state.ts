@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, PlayerAttributes, ItemEffect } from "@/lib/game/types";
 import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
@@ -55,6 +55,25 @@ export function useGameState({ gameSlot, worldSetup: propsWorldSetup, customItem
     const [isSaving, setIsSaving] = useState(false);
     const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>([]);
     const [currentChunk, setCurrentChunk] = useState<Chunk | null>(null);
+
+     const addNarrativeEntry = useCallback((text: string, type: NarrativeEntry['type']) => {
+        setNarrativeLog(prev => [...prev, { id: prev.length, text, type }]);
+    }, []);
+
+    const advanceGameTime = useCallback((newPlayerStats?: PlayerStatus) => {
+        setTurn(prev => prev + 1);
+        const finalStats = newPlayerStats || playerStats;
+
+        const newTime = (gameTime + 10) % 1440;
+        setGameTime(newTime);
+        if (newTime < gameTime) { // Day changed
+            setDay(d => d + 1);
+        }
+        
+        // Update stats after advancing time. If new stats are passed, use them.
+        setPlayerStats(finalStats);
+
+    }, [gameTime, playerStats, setTurn, setGameTime, setDay, setPlayerStats]);
 
     useEffect(() => {
         const loadGame = async () => {
@@ -177,7 +196,7 @@ export function useGameState({ gameSlot, worldSetup: propsWorldSetup, customItem
 
 
     return {
-        isLoaded,
+        isLoaded, setIsLoaded,
         worldProfile, setWorldProfile,
         currentSeason, setCurrentSeason,
         gameTime, setGameTime,
@@ -198,8 +217,9 @@ export function useGameState({ gameSlot, worldSetup: propsWorldSetup, customItem
         isLoading, setIsLoading,
         isGameOver, setIsGameOver,
         isSaving, setIsSaving,
-        narrativeLog, setNarrativeLog,
+        narrativeLog, addNarrativeEntry,
         currentChunk, setCurrentChunk,
         finalWorldSetup,
+        advanceGameTime,
     };
 }

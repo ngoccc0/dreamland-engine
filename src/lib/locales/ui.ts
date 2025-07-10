@@ -54,6 +54,10 @@ export const uiTranslations = {
     hudHealth: "Health",
     hudMana: "Mana",
     hudStamina: "Stamina",
+    environmentTemperature: "Env. Temp: {temp}°C",
+    environmentTempTooltip: "The current temperature of your surroundings, influenced by biome, time, and weather.",
+    hudBodyTemp: "Body Temp: {temp}°C",
+
 
     // Status Popup
     playerStatus: "Player Status",
@@ -270,6 +274,10 @@ export const uiTranslations = {
     hudHealth: "Máu",
     hudMana: "Mana",
     hudStamina: "Thể lực",
+    environmentTemperature: "Nhiệt độ MT: {temp}°C",
+    environmentTempTooltip: "Nhiệt độ hiện tại của môi trường xung quanh bạn, bị ảnh hưởng bởi quần xã, thời gian và thời tiết.",
+    hudBodyTemp: "Thân nhiệt: {temp}°C",
+
 
     // Status Popup
     playerStatus: "Trạng thái người chơi",

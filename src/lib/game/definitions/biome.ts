@@ -1,6 +1,6 @@
 
 import { z } from 'zod';
-import { MultilingualTextSchema, SpawnConditionsSchema, LootDropSchema } from './base';
+import { MultilingualTextSchema, SpawnConditionsSchema } from './base';
 import type { Terrain } from '../types';
 
 // Defines a template for generating descriptive text.
@@ -10,7 +10,7 @@ const DescriptionTemplatesSchema = z.object({
   long: z.array(z.string()),
 });
 
-// Defines a template for a single entity spawn (e.g., an item or structure).
+// Defines a template for a single entity spawn (e.g., an item, structure, or enemy).
 const EntitySpawnTemplateSchema = z.object({
   name: z.string().describe("The unique ID of the entity to spawn."),
   conditions: SpawnConditionsSchema,
@@ -25,29 +25,6 @@ const NpcSpawnTemplateSchema = z.object({
   }),
   conditions: SpawnConditionsSchema,
 });
-
-// Defines a template for an enemy spawn, including its stats and loot.
-const EnemySpawnTemplateSchema = z.object({
-  data: z.object({
-    type: z.string().describe("The unique ID/type of the enemy."),
-    emoji: z.string(),
-    hp: z.number(),
-    damage: z.number(),
-    behavior: z.enum(['aggressive', 'passive', 'defensive', 'territorial', 'immobile', 'ambush']),
-    size: z.enum(['small', 'medium', 'large']),
-    diet: z.array(z.string()),
-    satiation: z.number(),
-    maxSatiation: z.number(),
-    loot: z.array(LootDropSchema).optional(),
-  }),
-  conditions: SpawnConditionsSchema,
-});
-
-// Defines a structure spawn, which might include loot.
-const StructureSpawnTemplateSchema = EntitySpawnTemplateSchema.extend({
-  loot: z.array(LootDropSchema).optional(),
-});
-
 
 // The main schema for defining a biome. This structure allows mods to create new biomes.
 export const BiomeDefinitionSchema = z.object({
@@ -75,8 +52,8 @@ export const BiomeDefinitionSchema = z.object({
     sky: z.array(z.string()).optional(),
     NPCs: z.array(NpcSpawnTemplateSchema),
     items: z.array(EntitySpawnTemplateSchema),
-    structures: z.array(StructureSpawnTemplateSchema),
-    enemies: z.array(EnemySpawnTemplateSchema),
+    structures: z.array(EntitySpawnTemplateSchema),
+    enemies: z.array(EntitySpawnTemplateSchema), // Enemy spawns now also use the generic entity spawn template
   }).describe("The templates used to procedurally generate the content of a chunk within this biome."),
 });
 

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useEffect, useCallback, useRef } from "react";
@@ -417,7 +418,7 @@ export function useGameEngine(props: GameEngineProps) {
 
             if (nextPlayerStats.bodyTemperature < 30) { nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - 1); addNarrativeEntry(t('tempDangerFreezing'), 'system'); }
             else if (nextPlayerStats.bodyTemperature < 35) { nextPlayerStats.stamina = Math.max(0, nextPlayerStats.stamina - 0.5); addNarrativeEntry(t('tempWarningCold'), 'system'); }
-            else if (nextPlayerStats.bodyTemperature > 42) { nextPlayerStats.stamina = Math.max(0, nextPlayerStats.stamina - 2); addNarrativeEntry(t('tempDangerHot'), 'system'); }
+            else if (nextPlayerStats.bodyTemperature > 42) { nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - 1); addNarrativeEntry(t('tempDangerHot'), 'system'); }
             else if (nextPlayerStats.bodyTemperature > 40) { nextPlayerStats.stamina = Math.max(0, nextPlayerStats.stamina - 1); addNarrativeEntry(t('tempWarningHot'), 'system'); }
 
             if (currentPlayerBaseChunk.enemy?.behavior === 'aggressive') {
@@ -427,7 +428,7 @@ export function useGameEngine(props: GameEngineProps) {
             }
         }
         
-        const STAMINA_REGEN_RATE = 1.5;
+        const STAMINA_REGEN_RATE = 1.0;
         const MANA_REGEN_RATE = 0.5;
         nextPlayerStats.stamina = clamp(nextPlayerStats.stamina + STAMINA_REGEN_RATE, 0, 100);
         nextPlayerStats.mana = clamp(nextPlayerStats.mana + MANA_REGEN_RATE, 0, 50);
@@ -1513,11 +1514,84 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
         window.location.href = '/';
     };
 
+    const handleHarvest = useCallback((actionId: number) => {
+        if (isLoading || isGameOver || !isLoaded) return;
+        const chunk = world[`${playerPosition.x},${playerPosition.y}`];
+        if(!chunk) return;
+        
+        const action = chunk.actions.find(a => a.id === actionId);
+        if (!action) {
+            toast({ title: t('actionNotAvailableTitle'), description: t('actionNotAvailableDesc'), variant: 'destructive' });
+            return;
+        }
+
+        const targetName = action.params?.targetName as string;
+        const enemy = chunk.enemy;
+        if (!enemy || enemy.type !== targetName || !enemy.harvestable) {
+            toast({ title: t('actionNotAvailableTitle'), description: t('cantHarvest'), variant: 'destructive' });
+            return;
+        }
+
+        const requiredTool = enemy.harvestable.requiredTool;
+        const playerHasTool = playerStats.items.some(item => item.name === requiredTool);
+
+        if (!playerHasTool) {
+            toast({ title: t('harvestFail_noTool'), description: t('harvestFail_noTool_desc', { tool: t(requiredTool as TranslationKey), target: t(targetName as TranslationKey) }), variant: 'destructive' });
+            return;
+        }
+        
+        const actionText = t('harvestAction', { target: t(targetName as TranslationKey) });
+        addNarrativeEntry(actionText, 'action');
+
+        let nextPlayerStats = { ...playerStats };
+        let worldWasModified = false;
+        const newWorld = { ...world };
+        
+        const lootItems: ChunkItem[] = [];
+        enemy.harvestable.loot.forEach(loot => {
+            if (Math.random() < loot.chance) {
+                const itemDef = customItemDefinitions[loot.name];
+                if(itemDef) {
+                    lootItems.push({
+                        ...itemDef,
+                        quantity: getRandomInRange(loot.quantity)
+                    });
+                }
+            }
+        });
+        
+        if (lootItems.length > 0) {
+            const lootText = lootItems.map(l => `${l.quantity} ${t(l.name as TranslationKey)}`).join(', ');
+            addNarrativeEntry(t('harvestSuccess', { loot: lootText, target: t(targetName as TranslationKey)}), 'system');
+            
+            lootItems.forEach(lootItem => {
+                const existingItem = nextPlayerStats.items.find(i => i.name === lootItem.name);
+                if(existingItem) {
+                    existingItem.quantity += lootItem.quantity;
+                } else {
+                    nextPlayerStats.items.push(lootItem);
+                }
+            });
+        } else {
+            addNarrativeEntry(t('harvestFail_noLoot', { target: t(targetName as TranslationKey) }), 'system');
+        }
+
+        newWorld[`${playerPosition.x},${playerPosition.y}`]!.enemy = null;
+        newWorld[`${playerPosition.x},${playerPosition.y}`]!.actions = newWorld[`${playerPosition.x},${playerPosition.y}`]!.actions.filter(a => a.id !== actionId);
+        worldWasModified = true;
+        
+        if(worldWasModified) {
+            setWorld(newWorld);
+        }
+
+        advanceGameTime(nextPlayerStats);
+    }, [isLoading, isGameOver, isLoaded, world, playerPosition, playerStats, toast, t, addNarrativeEntry, customItemDefinitions, advanceGameTime, setWorld]);
+
     return {
         world, recipes, buildableStructures, playerStats, playerPosition, narrativeLog, isLoading, isGameOver, finalWorldSetup, customItemDefinitions,
         currentChunk, turn,
         handleMove, handleAttack, handleAction, handleCustomAction, handleCraft, handleBuild, handleItemUsed, handleUseSkill, handleRest, handleFuseItems,
         handleRequestQuestHint, handleEquipItem, handleUnequipItem,
-        handleReturnToMenu,
+        handleReturnToMenu, handleHarvest,
     };
 }

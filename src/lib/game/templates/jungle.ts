@@ -24,13 +24,13 @@ export const jungle_vi = {
         }
     ],
     items: [
-        { name: 'Dây leo Titan', conditions: { vegetationDensity: { min: 9 }, chance: 0.2 } },
+        { name: 'Dây leo Titan', conditions: { vegetationDensity: { min: 9 }, chance: 0.25 } },
         { name: 'Hoa ăn thịt', conditions: { dangerLevel: { min: 6 }, vegetationDensity: { min: 8 }, chance: 0.1 } },
         { name: 'Nọc Ếch độc', conditions: { dangerLevel: { min: 7 }, moisture: { min: 8 }, chance: 0.05 } },
-        { name: 'Lông Vẹt Sặc Sỡ', conditions: { chance: 0.3 } },
-        { name: 'Quả Lạ', conditions: { chance: 0.25 } },
-        { name: 'Lá cây lớn', conditions: { vegetationDensity: { min: 8 }, chance: 0.4 } },
-        { name: 'Cành Cây Chắc Chắn', conditions: { chance: 0.4 } },
+        { name: 'Lông Vẹt Sặc Sỡ', conditions: { chance: 0.35 } },
+        { name: 'Quả Lạ', conditions: { chance: 0.3 } },
+        { name: 'Lá cây lớn', conditions: { vegetationDensity: { min: 8 }, chance: 0.5 } },
+        { name: 'Cành Cây Chắc Chắn', conditions: { chance: 0.5 } },
     ],
     structures: [],
     enemies: [

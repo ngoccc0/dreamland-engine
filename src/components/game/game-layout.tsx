@@ -30,11 +30,7 @@ import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermomet
 
 interface GameLayoutProps {
     gameSlot: number;
-    worldSetup?: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog' | 'customStructures'> & { playerInventory: PlayerItem[] };
     initialGameState?: GameState;
-    customItemDefinitions?: Record<string, ItemDefinition>;
-    customItemCatalog?: GeneratedItem[];
-    customStructures?: Structure[];
 }
 
 export default function GameLayout(props: GameLayoutProps) {
@@ -92,11 +88,11 @@ export default function GameLayout(props: GameLayoutProps) {
 
     useEffect(() => {
         const promptShown = localStorage.getItem('pwaInstallPromptShown');
-        if (!promptShown && props.worldSetup) {
+        if (!promptShown) {
             setShowInstallPopup(true);
             localStorage.setItem('pwaInstallPromptShown', 'true');
         }
-    }, [props.worldSetup]);
+    }, []);
 
     const generateMapGrid = useCallback((): (Chunk | null)[][] => {
         if (!finalWorldSetup) return [];
@@ -152,9 +148,9 @@ export default function GameLayout(props: GameLayoutProps) {
 
     return (
         <TooltipProvider>
-            <div className="flex flex-col md:flex-row h-dvh bg-background text-foreground font-body">
+            <div className="flex flex-col md:flex-row bg-background text-foreground font-body md:h-dvh">
                 {/* Left Panel: Narrative */}
-                <div className="w-full md:flex-1 flex flex-col h-full overflow-hidden">
+                <div className="w-full md:flex-1 flex flex-col md:overflow-hidden">
                     <header className="p-4 border-b flex-shrink-0 flex justify-between items-center">
                         <h1 className="text-2xl font-bold font-headline">{t(finalWorldSetup.worldName as TranslationKey)}</h1>
                         <DropdownMenu>
@@ -181,7 +177,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         </DropdownMenu>
                     </header>
 
-                    <main className="flex-grow p-4 md:p-6 overflow-y-auto">
+                    <main className="flex-grow p-4 md:p-6 overflow-y-auto max-h-[50dvh] md:max-h-full">
                         <div className="prose prose-stone dark:prose-invert max-w-4xl mx-auto">
                             {narrativeLog.map((entry) => (
                                 <p key={entry.id} className={cn("animate-in fade-in duration-500 whitespace-pre-line",
@@ -203,8 +199,8 @@ export default function GameLayout(props: GameLayoutProps) {
                 </div>
 
                 {/* Right Panel: Controls & Actions */}
-                <aside className="w-full md:w-[420px] md:flex-shrink-0 bg-card border-l p-4 md:p-6 flex flex-col gap-6 overflow-hidden">
-                    {/* Top fixed section */}
+                <aside className="w-full md:w-[420px] md:flex-shrink-0 bg-card border-l p-4 md:p-6 flex flex-col gap-6 md:overflow-y-auto">
+                    {/* Top Section - HUD & Minimap */}
                     <div className="flex-shrink-0 flex flex-col gap-6">
                         {/* HUD */}
                         <div className="space-y-3">
@@ -242,8 +238,8 @@ export default function GameLayout(props: GameLayoutProps) {
                         </div>
                     </div>
                     
-                    {/* Scrollable Section */}
-                    <div className="flex-grow flex flex-col gap-4 overflow-y-auto -mr-2 pr-2">
+                    {/* Bottom Section - Actions */}
+                    <div className="flex flex-col gap-4 flex-grow">
                         {/* Controls and Skills */}
                         <div className="flex flex-col md:flex-row md:justify-around md:items-start md:gap-x-6 gap-y-4">
                             <Controls onMove={handleMove} onAttack={handleAttack} />
@@ -342,3 +338,4 @@ export default function GameLayout(props: GameLayoutProps) {
     );
 }
 
+    

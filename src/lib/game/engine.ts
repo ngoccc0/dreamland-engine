@@ -1,5 +1,6 @@
 
 
+
 import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient, Structure, Language, Npc, CraftingOutcome, Action, ItemCategory, Skill } from "./types";
 import { seasonConfig, worldConfig } from "./world-config";
 import { getTemplates } from "./templates";
@@ -293,7 +294,7 @@ function generateChunkContent(
     const spawnedEnemies = selectEntities(template.enemies, chunkData, allItemDefinitions, 1);
     
     let spawnedStructures: Structure[] = [];
-    if (Math.random() < 0.25 && customStructures && customStructures.length > 0) {
+    if (Math.random() < 0.05 && customStructures && customStructures.length > 0) { // Reduced chance
         const uniqueStructure = customStructures[Math.floor(Math.random() * customStructures.length)];
         spawnedStructures.push(uniqueStructure);
     } else {
@@ -501,81 +502,67 @@ export const generateRegion = (
 };
 
 // --- CRAFTING SYSTEM ---
-export const calculateCraftingOutcome = (playerItems: PlayerItem[], recipe: Recipe): CraftingOutcome => {
-    const tempPlayerItems = new Map(playerItems.map(item => [item.name, item.quantity]));
+export const calculateCraftingOutcome = (
+    playerItems: PlayerItem[], 
+    recipe: Recipe,
+    allItemDefinitions: Record<string, ItemDefinition>
+): CraftingOutcome => {
     const resolvedIngredients: CraftingOutcome['resolvedIngredients'] = [];
     const ingredientsToConsumeMap = new Map<string, number>();
     let worstTier = 1;
-    let canCraft = true;
+    let canCraftAllIngredients = true;
 
-    const getPossibleItems = (ing: RecipeIngredient) => {
-        return [{ name: ing.name, tier: 1 as const }, ...(ing.alternatives || [])]
-            .sort((a, b) => a.tier - b.tier);
-    };
+    const hasRequiredTool = !recipe.requiredTool || playerItems.some(item => item.name === recipe.requiredTool);
 
     for (const requirement of recipe.ingredients) {
-        const possibleItems = getPossibleItems(requirement);
-        let usedItem: { name: string; tier: number } | null = null;
-        let hasEnoughForRequirement = false;
+        let bestAvailable: { item: PlayerItem, quality: number } | null = null;
+        
+        const possibleItems = Object.entries(allItemDefinitions)
+            .filter(([_, def]) => def.relationship?.substituteFor === requirement.name || _ === requirement.name)
+            .map(([name, def]) => ({ name, quality: def.relationship?.quality ?? 1 }));
+            
+        // Also add the primary ingredient itself if not already included via relationship
+        if (!possibleItems.some(p => p.name === requirement.name)) {
+            possibleItems.push({ name: requirement.name, quality: 1 });
+        }
+        
+        // Find the best quality substitute the player has enough of
+        possibleItems.sort((a, b) => a.quality - b.quality);
         
         for (const possible of possibleItems) {
-            if ((tempPlayerItems.get(possible.name) || 0) >= requirement.quantity) {
-                usedItem = possible;
-                hasEnoughForRequirement = true;
+            const playerItem = playerItems.find(pi => pi.name === possible.name);
+            if (playerItem && playerItem.quantity >= requirement.quantity) {
+                bestAvailable = { item: playerItem, quality: possible.quality };
                 break;
             }
         }
         
-        if (!usedItem) {
-             for (const possible of possibleItems) {
-                if ((tempPlayerItems.get(possible.name) || 0) > 0) {
-                    usedItem = possible;
-                    break;
-                }
-            }
-        }
-        
-        if (!usedItem) {
-            usedItem = { name: requirement.name, tier: 1 };
-        }
+        const playerQuantity = playerItems.find(pi => pi.name === (bestAvailable?.item.name || requirement.name))?.quantity || 0;
 
-        resolvedIngredients.push({
-            requirement,
-            usedItem,
-            isSubstitute: usedItem.name !== requirement.name,
-            hasEnough: hasEnoughForRequirement
-        });
+        if (bestAvailable) {
+            resolvedIngredients.push({
+                requirement,
+                usedItem: { name: bestAvailable.item.name, tier: bestAvailable.quality },
+                isSubstitute: bestAvailable.item.name !== requirement.name,
+                hasEnough: true,
+                playerQuantity
+            });
+            worstTier = Math.max(worstTier, bestAvailable.quality);
+            const currentConsumption = ingredientsToConsumeMap.get(bestAvailable.item.name) || 0;
+            ingredientsToConsumeMap.set(bestAvailable.item.name, currentConsumption + requirement.quantity);
+        } else {
+            canCraftAllIngredients = false;
+            resolvedIngredients.push({
+                requirement,
+                usedItem: { name: requirement.name, tier: 1 },
+                isSubstitute: false,
+                hasEnough: false,
+                playerQuantity
+            });
+        }
     }
 
-    const finalTempPlayerItems = new Map(playerItems.map(item => [item.name, item.quantity]));
-    for (const resolved of resolvedIngredients) {
-        if (!resolved.hasEnough) {
-            canCraft = false;
-            break; 
-        }
-
-        const itemToConsume = resolved.usedItem!;
-        const currentAmount = finalTempPlayerItems.get(itemToConsume.name) || 0;
-        
-        if (currentAmount < resolved.requirement.quantity) {
-            canCraft = false;
-            break;
-        }
-        
-        finalTempPlayerItems.set(itemToConsume.name, currentAmount - resolved.requirement.quantity);
-        
-        const currentConsumption = ingredientsToConsumeMap.get(itemToConsume.name) || 0;
-        ingredientsToConsumeMap.set(itemToConsume.name, currentConsumption + resolved.requirement.quantity);
-        
-        worstTier = Math.max(worstTier, itemToConsume.tier);
-    }
-    
-    if (!canCraft) {
-        ingredientsToConsumeMap.clear();
-    }
-    
-    const ingredientsToConsume = Array.from(ingredientsToConsumeMap.entries()).map(([name, quantity]) => ({ name, quantity }));
-    
+    const canCraft = canCraftAllIngredients && hasRequiredTool;
     let chance = 100;
     if (worstTier === 2) chance = 50;
     if (worstTier === 3) chance = 10;
@@ -584,7 +571,8 @@ export const calculateCraftingOutcome = (playerItems: PlayerItem[], recipe: Reci
     return {
         canCraft,
         chance,
-        ingredientsToConsume,
+        hasRequiredTool,
+        ingredientsToConsume: Array.from(ingredientsToConsumeMap.entries()).map(([name, quantity]) => ({ name, quantity })),
         resolvedIngredients
     };
 };
@@ -857,7 +845,4 @@ export const generateOfflineActionNarrative = (
     }
     
     // Fallback if templateKey wasn't set correctly
-    if (templateKey === 'exploreAction') return "An action occurred.";
-
-    return t(templateKey, replacements);
-}
+    if (templateKey === 'exploreAction') return "An

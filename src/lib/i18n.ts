@@ -1,5 +1,6 @@
 
 
+
 export const translations = {
   en: {
     langIdentifier: 'en',
@@ -564,7 +565,7 @@ export const translations = {
     worldGenErrorDesc: "Cosmic energies are disturbed. Please try again.",
     offlineModeActive: "Offline Mode Active",
     offlineToastDesc: "Don't worry, you can continue your journey without an internet connection, but having one provides the best experience.",
-    notEnoughIngredients: "Not enough ingredients.",
+    notEnoughIngredients: "Not enough ingredients or required tool is missing.",
     notEnoughStamina: "Not Enough Stamina!",
     notEnoughStaminaDesc: "Building requires {cost} stamina, but you only have {current}.",
     craftAction: "Craft {itemName}",
@@ -610,7 +611,7 @@ export const translations = {
     enemyDefeated: "The {enemyType} is defeated!",
     enemyDropped: "It dropped {items}.",
     enemyFled: ["The {enemyType} shrieks in terror and flees!", "Seeing your might, the {enemyType} decides to run for its life.", "The wounded {enemyType} scrambles away into the undergrowth."],
-    enemyRetaliated: ["The {enemyType} retaliates, dealing {damage} damage to you.", "The {enemyType} strikes back fiercely, hitting you for {damage} damage.", "Enraged, {enemyType} lashes out, causing you {damage} damage."],
+    enemyRetaliated: "The {enemyType} retaliates, dealing {damage} damage!",
     enemyPrepares: "The {enemyType} prepares for its next move.",
     enemyVanquished: "The {enemyType} has been vanquished!",
     siphonHealth: "You siphon {amount} health from the hit.",
@@ -638,11 +639,12 @@ export const translations = {
     skillGreatSuccessBonus: "A powerful surge of energy makes you feel much more refreshed.",
     skillCritSuccessBonus: "A divine energy surrounds you, miraculously healing your wounds!",
     skillHealSuccess: ["Used {skillName}, healing for {amount} HP.", "A soothing light envelops you, restoring {amount} health.", "You channel your energy, successfully healing for {amount} HP."],
+    noTargetForSkill: "Used {skillName}, but there was no target.",
     skillNoTarget: "Used {skillName}, but there was no target.",
     skillDamageSuccess: ["You unleash a powerful {skillName} at the {enemy}, dealing {damage} damage.", "You unleash a powerful {skillName} at the {enemy}, dealing {damage} damage."],
     skillDamageGreatSuccessBonus: "The fireball flies faster and more accurately, dealing extra damage.",
     skillDamageCritSuccess: "A magical CRITICAL HIT! Your {skillName} explodes violently, dealing a devastating {damage} damage to the {enemy}.",
-    enemyMovedIn: "A hostile {enemy} has moved in and attacks you!",
+    enemyMovedIn: "A hostile {enemy} attacks, dealing {damage} damage!",
     enemyAttacks: "The aggressive {enemy} attacks, dealing {damage} damage!",
     customActionFail: "Your effort yields no result.",
     customActionCritFail: "Your clumsy action costs you some stamina.",
@@ -717,6 +719,7 @@ export const translations = {
     staminaShort: "Stamina",
     craftingDesc: "Combine items to create new tools and supplies. The system will use the best alternative ingredients you have.",
     ingredients: "Ingredients",
+    requiredTool: "Required Tool",
     craft: "Craft",
     successChance: "Success chance: {chance}%",
     fusionAltar: "Fusion Altar",
@@ -1072,3 +1075,5 @@ export type TranslationKey = keyof (typeof translations)['en'] & keyof (typeof t
 
 
     
+
+```

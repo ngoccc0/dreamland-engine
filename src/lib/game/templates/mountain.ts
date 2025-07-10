@@ -16,11 +16,11 @@ export const mountain_vi = {
     NPCs: [
         { 
             data: { name: 'Thợ mỏ già', description: 'Một người lùn gân guốc với bộ râu được tết gọn gàng, tay cầm chiếc cuốc chim.', dialogueSeed: 'Một người thợ mỏ càu nhàu, phàn nàn về việc các mạch khoáng sản ngày càng khó tìm.' },
-            conditions: { humanPresence: { min: 3 }, elevation: { min: 7 }, chance: 0.15 } 
+            conditions: { humanPresence: { min: 3 }, elevation: { min: 7 }, chance: 0.1 } 
         },
         { 
             data: { name: 'Người cưỡi griffon', description: 'Một chiến binh mặc áo giáp sáng bóng, đứng cạnh một sinh vật griffon uy nghi.', dialogueSeed: 'Một hiệp sĩ cao ngạo, chỉ nói chuyện với những người mà họ cho là xứng đáng.' },
-            conditions: { magicAffinity: { min: 6 }, elevation: { min: 9 }, chance: 0.05 } 
+            conditions: { magicAffinity: { min: 6 }, elevation: { min: 9 }, chance: 0.02 } 
         },
     ],
     items: [
@@ -42,11 +42,11 @@ export const mountain_vi = {
                 { name: 'Quặng Sắt', chance: 0.3, quantity: { min: 1, max: 2 } }, 
                 { name: 'Chìa Khóa Rỉ Sét', chance: 0.1, quantity: { min: 1, max: 1 } }
             ],
-            conditions: { elevation: { min: 5 }, dangerLevel: { min: 6 }, chance: 0.1 } 
+            conditions: { elevation: { min: 5 }, dangerLevel: { min: 6 }, chance: 0.05 } 
         },
         { 
             data: structureDefinitions['Đảo Bay'],
-            conditions: { elevation: { min: 10 }, magicAffinity: { min: 8 }, chance: 0.02 } 
+            conditions: { elevation: { min: 10 }, magicAffinity: { min: 8 }, chance: 0.01 } 
         },
     ],
     enemies: [
@@ -71,11 +71,11 @@ export const mountain_en = {
     NPCs: [
         { 
             data: { name: 'Old Miner', description: 'A sturdy dwarf with a neatly braided beard, holding a pickaxe.', dialogueSeed: 'A grumpy miner who complains that ore veins are getting harder to find.' },
-            conditions: { humanPresence: { min: 3 }, elevation: { min: 7 }, chance: 0.15 } 
+            conditions: { humanPresence: { min: 3 }, elevation: { min: 7 }, chance: 0.1 } 
         },
         { 
             data: { name: 'Griffon Rider', description: 'A warrior in shining armor, standing next to a majestic griffon creature.', dialogueSeed: 'An arrogant knight who only speaks to those they deem worthy.' },
-            conditions: { magicAffinity: { min: 6 }, elevation: { min: 9 }, chance: 0.05 } 
+            conditions: { magicAffinity: { min: 6 }, elevation: { min: 9 }, chance: 0.02 } 
         },
     ],
     items: mountain_vi.items,
@@ -86,11 +86,11 @@ export const mountain_en = {
                 { name: 'Quặng Sắt', chance: 0.3, quantity: { min: 1, max: 2 } }, 
                 { name: 'Chìa Khóa Rỉ Sét', chance: 0.1, quantity: { min: 1, max: 1 } }
             ],
-            conditions: { elevation: { min: 5 }, dangerLevel: { min: 6 }, chance: 0.1 } 
+            conditions: { elevation: { min: 5 }, dangerLevel: { min: 6 }, chance: 0.05 } 
         },
         { 
             data: structureDefinitions['Đảo Bay'],
-            conditions: { elevation: { min: 10 }, magicAffinity: { min: 8 }, chance: 0.02 } 
+            conditions: { elevation: { min: 10 }, magicAffinity: { min: 8 }, chance: 0.01 } 
         },
     ],
     enemies: [

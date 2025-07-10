@@ -16,11 +16,11 @@ export const grassland_vi = {
     NPCs: [
         { 
             data: { name: 'Người du mục', description: 'Một người phụ nữ với làn da rám nắng, mặc trang phục làm từ nhiều mảnh da khác nhau.', dialogueSeed: 'Một người từng trải, nói về những vùng đất xa xôi và những cơn gió.' },
-            conditions: { humanPresence: { min: 4 }, chance: 0.15 } 
+            conditions: { humanPresence: { min: 4 }, chance: 0.1 } 
         },
         { 
             data: { name: 'Nông dân', description: 'Một người đàn ông có đôi tay chai sạn, đang lo lắng nhìn về phía cánh đồng của mình.', dialogueSeed: 'Một nông dân hiền lành, luôn lo lắng về thời tiết và mùa màng.' },
-            conditions: { humanPresence: { min: 5 }, soilType: ['loamy'], chance: 0.2 } 
+            conditions: { humanPresence: { min: 5 }, soilType: ['loamy'], chance: 0.15 } 
         },
     ],
     items: [
@@ -34,12 +34,13 @@ export const grassland_vi = {
         { name: 'Cỏ Khô', conditions: { moisture: { max: 3 }, chance: 0.3 } },
         { name: 'Hạt Giống Hoa Dại', conditions: { chance: 0.2 } },
         { name: 'Mảnh Vải Rách', conditions: { humanPresence: { min: 3 }, chance: 0.1 } },
+        { name: 'Cành Cây Chắc Chắn', conditions: { chance: 0.2 } },
     ],
     structures: [
         { 
             data: structureDefinitions['Tàn tích tháp canh'], 
             loot: [{ name: 'Mũi Tên Cũ', chance: 0.2, quantity: { min: 1, max: 3 } }, {name: 'Chìa Khóa Rỉ Sét', chance: 0.05, quantity: {min: 1, max: 1}}],
-            conditions: { humanPresence: { min: 2 }, elevation: { min: 2 }, chance: 0.1 } 
+            conditions: { humanPresence: { min: 2 }, elevation: { min: 2 }, chance: 0.05 } 
         },
     ],
     enemies: [
@@ -64,11 +65,11 @@ export const grassland_en = {
     NPCs: [
         { 
             data: { name: 'Nomad', description: 'A woman with sun-tanned skin, dressed in clothes made from various pieces of leather.', dialogueSeed: 'An experienced traveler who speaks of distant lands and the winds.' },
-            conditions: { humanPresence: { min: 4 }, chance: 0.15 } 
+            conditions: { humanPresence: { min: 4 }, chance: 0.1 } 
         },
         { 
             data: { name: 'Farmer', description: 'A man with calloused hands, looking worriedly at his fields.', dialogueSeed: 'A gentle farmer, always worried about the weather and his crops.' },
-            conditions: { humanPresence: { min: 5 }, soilType: ['loamy'], chance: 0.2 } 
+            conditions: { humanPresence: { min: 5 }, soilType: ['loamy'], chance: 0.15 } 
         },
     ],
     items: grassland_vi.items,

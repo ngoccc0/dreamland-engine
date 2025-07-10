@@ -25,27 +25,27 @@ export const forest_vi = {
                 questItem: { name: 'Nanh Sói', quantity: 5 },
                 rewardItems: [{ name: 'Da Gấu', quantity: 1, tier: 4, emoji: '🐻' }]
             },
-            conditions: { humanPresence: { min: 2 }, chance: 0.1 } 
+            conditions: { humanPresence: { min: 2 }, chance: 0.05 } 
         },
         { 
             data: { name: 'Linh hồn cây', description: 'Một thực thể được tạo thành từ cành và lá cây, đôi mắt phát ra ánh sáng xanh dịu.', dialogueSeed: 'Một linh hồn cổ xưa, nói chuyện chậm rãi và uyên thâm, quan tâm đến sự cân bằng của khu rừng.' },
-            conditions: { magicAffinity: { min: 6 }, chance: 0.05 } 
+            conditions: { magicAffinity: { min: 6 }, chance: 0.02 } 
         },
         { 
             data: { name: 'Ẩn sĩ', description: 'Một ông lão có bộ râu dài, sống một mình trong rừng.', dialogueSeed: 'Một người sống ẩn dật, nói chuyện có vẻ điên rồ nhưng đôi khi lại chứa đựng những sự thật sâu sắc.' },
-            conditions: { humanPresence: { min: 1, max: 3 }, chance: 0.05 } 
+            conditions: { humanPresence: { min: 1, max: 3 }, chance: 0.03 } 
         },
     ],
     items: [
         { name: 'Quả Mọng Ăn Được', conditions: { dangerLevel: { max: 4 }, chance: 0.3 } },
         { name: 'Nấm Độc', conditions: { dangerLevel: { min: 5 }, moisture: { min: 6 }, chance: 0.25 } },
         { name: 'Thảo Dược Chữa Lành', conditions: { vegetationDensity: { min: 8 }, chance: 0.2 } },
-        { name: 'Cành Cây Chắc Chắn', conditions: { chance: 0.4 } },
-        { name: 'Mũi Tên Cũ', conditions: { humanPresence: { min: 2 }, chance: 0.1 } },
-        { name: 'Hoa Tinh Linh', conditions: { magicAffinity: { min: 7 }, chance: 0.1 } },
-        { name: 'Vỏ Cây Cổ Thụ', conditions: { vegetationDensity: { min: 9 }, chance: 0.05 } },
+        { name: 'Cành Cây Chắc Chắn', conditions: { chance: 0.6 } },
+        { name: 'Mũi Tên Cũ', conditions: { humanPresence: { min: 2 }, chance: 0.05 } },
+        { name: 'Hoa Tinh Linh', conditions: { magicAffinity: { min: 7 }, chance: 0.05 } },
+        { name: 'Vỏ Cây Cổ Thụ', conditions: { vegetationDensity: { min: 9 }, chance: 0.02 } },
         { name: 'Nhựa Cây Dính', conditions: { chance: 0.15 } },
-        { name: 'Mật Ong Hoang', conditions: { vegetationDensity: { min: 6 }, chance: 0.1 } },
+        { name: 'Mật Ong Hoang', conditions: { vegetationDensity: { min: 6 }, chance: 0.05 } },
         { name: 'Sỏi', conditions: { chance: 0.3 } },
         { name: 'Tổ Chim Rỗng', conditions: { chance: 0.1 } },
         { name: 'Dây Gai', conditions: { vegetationDensity: { min: 5 }, chance: 0.2 } },
@@ -55,7 +55,7 @@ export const forest_vi = {
          { 
             data: structureDefinitions['Bàn thờ bị bỏ hoang'], 
             loot: [{ name: 'Mảnh Tinh Thể', chance: 0.1, quantity: { min: 1, max: 1 } }],
-            conditions: { magicAffinity: { min: 6 }, chance: 0.05 } 
+            conditions: { magicAffinity: { min: 6 }, chance: 0.02 } 
         },
     ],
     enemies: [

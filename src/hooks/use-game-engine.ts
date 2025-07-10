@@ -421,8 +421,9 @@ export function useGameEngine(props: GameEngineProps) {
             else if (nextPlayerStats.bodyTemperature > 40) { nextPlayerStats.stamina = Math.max(0, nextPlayerStats.stamina - 1); addNarrativeEntry(t('tempWarningHot'), 'system'); }
 
             if (currentPlayerBaseChunk.enemy?.behavior === 'aggressive') {
-                addNarrativeEntry(t('enemyAttacks', { enemy: t(currentPlayerBaseChunk.enemy.type as TranslationKey) }), 'system');
-                nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - currentPlayerBaseChunk.enemy.damage);
+                const enemyDamage = currentPlayerBaseChunk.enemy.damage;
+                addNarrativeEntry(t('enemyAttacks', { enemy: t(currentPlayerBaseChunk.enemy.type as TranslationKey), damage: enemyDamage }), 'system');
+                nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - enemyDamage);
             }
         }
         

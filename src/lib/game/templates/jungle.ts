@@ -16,11 +16,11 @@ export const jungle_vi = {
     NPCs: [
         { 
             data: { name: 'Thầy mo của bộ lạc', description: 'Một người đàn ông lớn tuổi với khuôn mặt được sơn vẽ kỳ dị, đeo nhiều loại bùa hộ mệnh.', dialogueSeed: 'Một người thông thái và bí ẩn, nói về các linh hồn và những lời tiên tri cổ xưa.' },
-            conditions: { humanPresence: { min: 3 }, magicAffinity: { min: 5 }, chance: 0.1 } 
+            conditions: { humanPresence: { min: 3 }, magicAffinity: { min: 5 }, chance: 0.05 } 
         },
         { 
             data: { name: 'Nhà thực vật học', description: 'Một nhà khoa học với cặp kính dày, đang cẩn thận ghi chép vào một cuốn sổ tay.', dialogueSeed: 'Một người đam mê, hào hứng nói về các loài thực vật quý hiếm và đặc tính của chúng.' },
-            conditions: { humanPresence: { min: 1, max: 3 }, vegetationDensity: { min: 9 }, chance: 0.15 } 
+            conditions: { humanPresence: { min: 1, max: 3 }, vegetationDensity: { min: 9 }, chance: 0.1 } 
         }
     ],
     items: [
@@ -30,6 +30,7 @@ export const jungle_vi = {
         { name: 'Lông Vẹt Sặc Sỡ', conditions: { chance: 0.3 } },
         { name: 'Quả Lạ', conditions: { chance: 0.25 } },
         { name: 'Lá cây lớn', conditions: { vegetationDensity: { min: 8 }, chance: 0.4 } },
+        { name: 'Cành Cây Chắc Chắn', conditions: { chance: 0.4 } },
     ],
     structures: [],
     enemies: [
@@ -53,11 +54,11 @@ export const jungle_en = {
     NPCs: [
         { 
             data: { name: 'Tribal Shaman', description: 'An old man with a strangely painted face, wearing many amulets.', dialogueSeed: 'A wise and mysterious person who speaks of spirits and ancient prophecies.' },
-            conditions: { humanPresence: { min: 3 }, magicAffinity: { min: 5 }, chance: 0.1 } 
+            conditions: { humanPresence: { min: 3 }, magicAffinity: { min: 5 }, chance: 0.05 } 
         },
         { 
             data: { name: 'Botanist', description: 'A scientist with thick glasses, carefully taking notes in a notebook.', dialogueSeed: 'An enthusiast who excitedly talks about rare plants and their properties.' },
-            conditions: { humanPresence: { min: 1, max: 3 }, vegetationDensity: { min: 9 }, chance: 0.15 } 
+            conditions: { humanPresence: { min: 1, max: 3 }, vegetationDensity: { min: 9 }, chance: 0.1 } 
         }
     ],
     items: jungle_vi.items,

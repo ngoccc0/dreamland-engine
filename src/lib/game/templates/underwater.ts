@@ -1,4 +1,5 @@
 
+
 export const underwater_vi = {
     descriptionTemplates: {
         short: [
@@ -23,6 +24,7 @@ export const underwater_vi = {
     items: [],
     structures: [],
     enemies: [],
+    creatures: [],
 };
 
 export const underwater_en = {
@@ -49,4 +51,5 @@ export const underwater_en = {
     items: [],
     structures: [],
     enemies: [],
+    creatures: [],
 };

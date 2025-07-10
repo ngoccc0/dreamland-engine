@@ -1,4 +1,5 @@
 
+
 export const city_vi = {
     descriptionTemplates: {
         short: [
@@ -23,6 +24,7 @@ export const city_vi = {
     items: [],
     structures: [],
     enemies: [],
+    creatures: [],
 };
 
 export const city_en = {
@@ -49,4 +51,5 @@ export const city_en = {
     items: [],
     structures: [],
     enemies: [],
+    creatures: [],
 };

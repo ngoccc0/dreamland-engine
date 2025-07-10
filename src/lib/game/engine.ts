@@ -83,11 +83,14 @@ export const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 
  * @returns An array of selected entity names.
  */
 const selectEntities = <T extends {name: string, conditions: SpawnConditions} | {data: any, conditions: SpawnConditions, loot?: any}>(
-    possibleEntities: T[],
+    possibleEntities: T[] | undefined,
     chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored' | 'structures' | 'lastVisited'>,
     allItemDefinitions: Record<string, ItemDefinition>, // Pass in all definitions
     maxCount: number = 3
 ): any[] => {
+    if (!possibleEntities) {
+        return []; // Safety check for undefined arrays
+    }
     const validEntities = possibleEntities.filter(entity => checkConditions(entity.conditions, chunk));
     
     const selected: any[] = [];
@@ -280,7 +283,7 @@ function generateChunkContent(
             if (finalQuantity > 0) {
                 spawnedItems.push({
                     name: itemRef.name,
-                    description: itemDef.description,
+                    description: itemDef.description as TranslationKey,
                     tier: itemDef.tier,
                     quantity: finalQuantity,
                     emoji: itemDef.emoji,
@@ -312,7 +315,7 @@ function generateChunkContent(
                             } else {
                                 spawnedItems.push({
                                     name: lootItem.name,
-                                    description: definition.description,
+                                    description: definition.description as TranslationKey,
                                     tier: definition.tier,
                                     quantity: quantity,
                                     emoji: definition.emoji,
@@ -620,7 +623,7 @@ export const handleSearchAction = (
                 if (quantity > 0) {
                     foundItems.push({
                         name: itemTemplate.name,
-                        description: itemDef.description,
+                        description: itemDef.description as TranslationKey,
                         tier: itemDef.tier,
                         quantity,
                         emoji: itemDef.emoji,

@@ -1,4 +1,5 @@
 
+
 export const space_station_vi = {
     descriptionTemplates: {
         short: [
@@ -23,6 +24,7 @@ export const space_station_vi = {
     items: [],
     structures: [],
     enemies: [],
+    creatures: [],
 };
 
 export const space_station_en = {
@@ -49,4 +51,5 @@ export const space_station_en = {
     items: [],
     structures: [],
     enemies: [],
+    creatures: [],
 };

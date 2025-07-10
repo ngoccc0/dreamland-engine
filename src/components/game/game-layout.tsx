@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -153,9 +154,9 @@ export default function GameLayout(props: GameLayoutProps) {
         <TooltipProvider>
             <div className="flex flex-col md:flex-row h-dvh bg-background text-foreground font-body">
                 {/* Left Panel: Narrative */}
-                <div className="w-full md:flex-1 flex flex-col">
+                <div className="w-full md:flex-1 flex flex-col h-full overflow-hidden">
                     <header className="p-4 border-b flex-shrink-0 flex justify-between items-center">
-                        <h1 className="text-2xl font-bold font-headline">{finalWorldSetup.worldName}</h1>
+                        <h1 className="text-2xl font-bold font-headline">{t(finalWorldSetup.worldName as TranslationKey)}</h1>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon">
@@ -203,186 +204,116 @@ export default function GameLayout(props: GameLayoutProps) {
 
                 {/* Right Panel: Controls & Actions */}
                 <aside className="w-full md:w-[420px] md:flex-shrink-0 bg-card border-l p-4 md:p-6 flex flex-col gap-6 overflow-hidden">
-                    {/* HUD - Always visible stats */}
-                    <div className="space-y-3 flex-shrink-0">
-                        <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
-                            <div className="space-y-1">
-                                <label className="flex items-center gap-1.5 text-muted-foreground"><Heart /> {t('hudHealth')}</label>
-                                <Progress value={playerStats.hp} className="h-2" indicatorClassName="bg-destructive" />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="flex items-center gap-1.5 text-muted-foreground"><Zap /> {t('hudMana')}</label>
-                                <Progress value={(playerStats.mana / 50) * 100} className="h-2" indicatorClassName="bg-gradient-to-r from-blue-500 to-purple-600" />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="flex items-center gap-1.5 text-muted-foreground"><Footprints /> {t('hudStamina')}</label>
-                                <Progress value={playerStats.stamina} className="h-2" indicatorClassName="bg-gradient-to-r from-yellow-400 to-orange-500" />
-                            </div>
-                        </div>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                            <span>{playerStats.hp} / 100</span>
-                            <span>{playerStats.mana} / 50</span>
-                            <span>{playerStats.stamina.toFixed(0)} / 100</span>
-                        </div>
-                    </div>
-
-                    <div className="flex-shrink-0">
-                        <div className="flex flex-col items-center gap-2 mb-4">
-                            <h3 
-                                className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors"
-                                onClick={() => setIsFullMapOpen(true)}
-                            >
-                                {t('minimap')}
-                            </h3>
-                            <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <div className="flex items-center gap-1 cursor-default">
-                                            <Thermometer className="h-4 w-4 text-orange-500" />
-                                            <span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span>
-                                        </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>{t('environmentTempTooltip')}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <div className="flex items-center gap-1 cursor-default">
-                                            <Thermometer className="h-4 w-4 text-rose-500" />
-                                            <span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span>
-                                        </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>{t('bodyTempDesc')}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </div>
-                        </div>
-                        <Minimap grid={generateMapGrid()} playerPosition={playerPosition} turn={turn} />
-                    </div>
-                    
-                    {/* Combined Controls and Skills for larger screens */}
-                    <div className="flex flex-col md:flex-row md:justify-around md:items-start md:gap-x-6 gap-y-4 flex-shrink-0">
-                        <Controls onMove={handleMove} onAttack={handleAttack} />
-                        <div className="flex flex-col space-y-2 w-full md:max-w-xs">
-                            <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('skills')}</h3>
-                            <div className="grid grid-cols-2 gap-2">
-                                {playerStats.skills?.map((skill) => (
-                                    <Tooltip key={skill.name}>
-                                        <TooltipTrigger asChild>
-                                            <Button 
-                                                variant="secondary" 
-                                                className="w-full justify-center text-xs" 
-                                                onClick={() => handleUseSkill(skill.name)} 
-                                                disabled={isLoading || playerStats.mana < skill.manaCost}
-                                            >
-                                                <WandSparkles className="mr-2 h-3 w-3" />
-                                                {t(skill.name as TranslationKey)} ({skill.manaCost} MP)
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>{t(skill.description as TranslationKey)}</p>
-                                            <p className="text-muted-foreground">{t('manaCost')}: {skill.manaCost}</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="space-y-2 flex-shrink-0">
-                        <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('mainActions')}</h3>
-                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                            <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setStatusOpen(true)}><Shield /></Button></TooltipTrigger><TooltipContent><p>{t('statusTooltip')}</p></TooltipContent></Tooltip>
-                            <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setInventoryOpen(true)}><Backpack /></Button></TooltipTrigger><TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent></Tooltip>
-                            <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setCraftingOpen(true)}><Hammer /></Button></TooltipTrigger><TooltipContent><p>{t('craftingTooltip')}</p></TooltipContent></Tooltip>
-                            <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setBuildingOpen(true)}><Home /></Button></TooltipTrigger><TooltipContent><p>{t('buildingTooltip')}</p></TooltipContent></Tooltip>
-                            <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setFusionOpen(true)}><FlaskConical /></Button></TooltipTrigger><TooltipContent><p>{t('fusionTooltip')}</p></TooltipContent></Tooltip>
-                        </div>
-                    </div>
-                    
-                    <Separator className="flex-shrink-0" />
-                    
-                    <div className="space-y-4 flex-grow flex flex-col overflow-y-auto pr-2 -mr-2">
-                        {restingPlace && (
-                            <>
-                                <div className="space-y-2 flex-shrink-0">
-                                    <h2 className="font-headline text-lg font-semibold text-center text-foreground/80 flex-shrink-0">{t('structureActions')}</h2>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button variant="secondary" className="w-full justify-center" onClick={handleRest} disabled={isLoading}>
-                                                <BedDouble className="mr-2 h-4 w-4" />
-                                                {t('rest')}
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent><p>{t('restTooltip', { shelterName: t(restingPlace.name as TranslationKey), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent>
-                                    </Tooltip>
+                    {/* Top fixed section */}
+                    <div className="flex-shrink-0 flex flex-col gap-6">
+                        {/* HUD */}
+                        <div className="space-y-3">
+                            <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
+                                <div className="space-y-1">
+                                    <label className="flex items-center gap-1.5 text-muted-foreground"><Heart /> {t('hudHealth')}</label>
+                                    <Progress value={playerStats.hp} className="h-2" indicatorClassName="bg-destructive" />
                                 </div>
-                                <Separator />
-                            </>
+                                <div className="space-y-1">
+                                    <label className="flex items-center gap-1.5 text-muted-foreground"><Zap /> {t('hudMana')}</label>
+                                    <Progress value={(playerStats.mana / 50) * 100} className="h-2" indicatorClassName="bg-gradient-to-r from-blue-500 to-purple-600" />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="flex items-center gap-1.5 text-muted-foreground"><Footprints /> {t('hudStamina')}</label>
+                                    <Progress value={playerStats.stamina} className="h-2" indicatorClassName="bg-gradient-to-r from-yellow-400 to-orange-500" />
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                <span>{playerStats.hp} / 100</span>
+                                <span>{playerStats.mana} / 50</span>
+                                <span>{playerStats.stamina.toFixed(0)} / 100</span>
+                            </div>
+                        </div>
+
+                        {/* Minimap */}
+                        <div>
+                            <div className="flex flex-col items-center gap-2 mb-4">
+                                <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => setIsFullMapOpen(true)}>{t('minimap')}</h3>
+                                <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
+                                    <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
+                                    <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
+                                </div>
+                            </div>
+                            <Minimap grid={generateMapGrid()} playerPosition={playerPosition} turn={turn} />
+                        </div>
+                    </div>
+                    
+                    {/* Scrollable Section */}
+                    <div className="flex-grow flex flex-col gap-4 overflow-y-auto -mr-2 pr-2">
+                        {/* Controls and Skills */}
+                        <div className="flex flex-col md:flex-row md:justify-around md:items-start md:gap-x-6 gap-y-4">
+                            <Controls onMove={handleMove} onAttack={handleAttack} />
+                             <div className="flex flex-col space-y-2 w-full md:max-w-xs">
+                                <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('skills')}</h3>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {playerStats.skills?.map((skill) => (
+                                        <Tooltip key={skill.name}>
+                                            <TooltipTrigger asChild>
+                                                <Button variant="secondary" className="w-full justify-center text-xs" onClick={() => handleUseSkill(skill.name)} disabled={isLoading || playerStats.mana < skill.manaCost}>
+                                                    <WandSparkles className="mr-2 h-3 w-3" />
+                                                    {t(skill.name as TranslationKey)} ({skill.manaCost} MP)
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>{t(skill.description as TranslationKey)}</p><p className="text-muted-foreground">{t('manaCost')}: {skill.manaCost}</p></TooltipContent>
+                                        </Tooltip>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Main Action Buttons */}
+                        <div className="space-y-2">
+                            <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('mainActions')}</h3>
+                            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setStatusOpen(true)}><Shield /></Button></TooltipTrigger><TooltipContent><p>{t('statusTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setInventoryOpen(true)}><Backpack /></Button></TooltipTrigger><TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setCraftingOpen(true)}><Hammer /></Button></TooltipTrigger><TooltipContent><p>{t('craftingTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setBuildingOpen(true)}><Home /></Button></TooltipTrigger><TooltipContent><p>{t('buildingTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setFusionOpen(true)}><FlaskConical /></Button></TooltipTrigger><TooltipContent><p>{t('fusionTooltip')}</p></TooltipContent></Tooltip>
+                            </div>
+                        </div>
+                        
+                        <Separator />
+                        
+                        {/* Contextual and Custom Actions */}
+                        {restingPlace && (
+                            <><div className="space-y-2">
+                                <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('structureActions')}</h2>
+                                <Tooltip><TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={handleRest} disabled={isLoading}><BedDouble className="mr-2 h-4 w-4" />{t('rest')}</Button></TooltipTrigger><TooltipContent><p>{t('restTooltip', { shelterName: t(restingPlace.name as TranslationKey), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent></Tooltip>
+                            </div><Separator /></>
                         )}
                         
-                        <h2 className="font-headline text-lg font-semibold text-center text-foreground/80 flex-shrink-0">{t('availableActions')}</h2>
-                        <div className="grid grid-cols-2 gap-2">
-                            {currentChunk?.actions.map(action => {
-                                const actionText = t(action.textKey, action.params as any);
-                                return (
-                                    <Tooltip key={action.id}>
-                                        <TooltipTrigger asChild>
-                                            <Button variant="secondary" className="w-full justify-center" onClick={() => handleAction(action.id)} disabled={isLoading}>
-                                                {actionText}
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent><p>{actionText}</p></TooltipContent>
-                                    </Tooltip>
-                                );
-                            })}
+                        <div className="space-y-2">
+                            <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('availableActions')}</h2>
+                            <div className="grid grid-cols-2 gap-2">
+                                {currentChunk?.actions.map(action => {
+                                    const actionText = t(action.textKey, action.params as any);
+                                    return (
+                                        <Tooltip key={action.id}>
+                                            <TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => handleAction(action.id)} disabled={isLoading}>{actionText}</Button></TooltipTrigger>
+                                            <TooltipContent><p>{actionText}</p></TooltipContent>
+                                        </Tooltip>
+                                    );
+                                })}
+                            </div>
                         </div>
-                        <div className="flex flex-col gap-2 mt-auto pt-4 flex-shrink-0">
-                            <Input 
-                                placeholder={t('customActionPlaceholder')}
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                disabled={isLoading}
-                            />
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="accent" onClick={onCustomActionSubmit} disabled={isLoading}>{t('submit')}</Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>{t('submitTooltip')}</p></TooltipContent>
-                            </Tooltip>
+                        
+                        <div className="flex flex-col gap-2 mt-auto pt-4">
+                            <Input placeholder={t('customActionPlaceholder')} value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={handleKeyDown} disabled={isLoading} />
+                            <Tooltip><TooltipTrigger asChild><Button variant="accent" onClick={onCustomActionSubmit} disabled={isLoading}>{t('submit')}</Button></TooltipTrigger><TooltipContent><p>{t('submitTooltip')}</p></TooltipContent></Tooltip>
                         </div>
                     </div>
                 </aside>
                 
-                <StatusPopup 
-                    open={isStatusOpen} 
-                    onOpenChange={setStatusOpen} 
-                    stats={playerStats} 
-                    onRequestHint={handleRequestQuestHint}
-                    onUnequipItem={handleUnequipItem}
-                />
-                <InventoryPopup 
-                    open={isInventoryOpen} 
-                    onOpenChange={setInventoryOpen} 
-                    items={playerStats.items} 
-                    itemDefinitions={customItemDefinitions}
-                    enemy={currentChunk?.enemy || null}
-                    onUseItem={handleItemUsed}
-                    onEquipItem={handleEquipItem}
-                />
+                <StatusPopup open={isStatusOpen} onOpenChange={setStatusOpen} stats={playerStats} onRequestHint={handleRequestQuestHint} onUnequipItem={handleUnequipItem} />
+                <InventoryPopup open={isInventoryOpen} onOpenChange={setInventoryOpen} items={playerStats.items} itemDefinitions={customItemDefinitions} enemy={currentChunk?.enemy || null} onUseItem={handleItemUsed} onEquipItem={handleEquipItem} />
                 <CraftingPopup open={isCraftingOpen} onOpenChange={setCraftingOpen} playerItems={playerStats.items} recipes={recipes} onCraft={handleCraft} itemDefinitions={customItemDefinitions} />
                 <BuildingPopup open={isBuildingOpen} onOpenChange={setBuildingOpen} playerItems={playerStats.items} buildableStructures={buildableStructures} onBuild={handleBuild} />
-                <FusionPopup 
-                    open={isFusionOpen} 
-                    onOpenChange={setFusionOpen} 
-                    playerItems={playerStats.items} 
-                    itemDefinitions={customItemDefinitions}
-                    onFuse={handleFuseItems}
-                    isLoading={isLoading}
-                />
+                <FusionPopup open={isFusionOpen} onOpenChange={setFusionOpen} playerItems={playerStats.items} itemDefinitions={customItemDefinitions} onFuse={handleFuseItems} isLoading={isLoading} />
                 <FullMapPopup open={isFullMapOpen} onOpenChange={setIsFullMapOpen} world={world} playerPosition={playerPosition} turn={turn} />
                 <TutorialPopup open={isTutorialOpen} onOpenChange={setTutorialOpen} />
                 <SettingsPopup open={isSettingsOpen} onOpenChange={setSettingsOpen} isInGame={true} />
@@ -410,3 +341,4 @@ export default function GameLayout(props: GameLayoutProps) {
         </TooltipProvider>
     );
 }
+

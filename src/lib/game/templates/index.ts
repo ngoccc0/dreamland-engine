@@ -1,6 +1,6 @@
 
-
 import type { Language, Terrain } from "../types";
+import { creatures } from '../data/creatures';
 import { forest_vi, forest_en } from './forest';
 import { grassland_vi, grassland_en } from './grassland';
 import { desert_vi, desert_en } from './desert';
@@ -20,7 +20,7 @@ import { city_vi, city_en } from "./city";
 import { space_station_vi, space_station_en } from "./space_station";
 import { underwater_vi, underwater_en } from "./underwater";
 
-const templates_vi: Record<Terrain, any> = {
+const baseTemplates = {
     forest: forest_vi,
     grassland: grassland_vi,
     desert: desert_vi,
@@ -41,30 +41,33 @@ const templates_vi: Record<Terrain, any> = {
     underwater: underwater_vi,
 };
 
-const templates_en: Record<Terrain, any> = {
-    forest: forest_en,
-    grassland: grassland_en,
-    desert: desert_en,
-    swamp: swamp_en,
-    mountain: mountain_en,
-    cave: cave_en,
-    jungle: jungle_en,
-    volcanic: volcanic_en,
-    wall: wall_en,
-    floptropica: floptropica_en,
-    tundra: tundra_en,
-    beach: beach_en,
-    mesa: mesa_en,
-    mushroom_forest: mushroom_forest_en,
-    ocean: ocean_en,
-    city: city_en,
-    space_station: space_station_en,
-    underwater: underwater_en,
-};
+const templates_vi: Record<Terrain, any> = JSON.parse(JSON.stringify(baseTemplates));
+const templates_en: Record<Terrain, any> = JSON.parse(JSON.stringify(baseTemplates));
+
+// This function dynamically populates the templates with multilingual data.
+// It's a bit of a hack but avoids manual duplication.
+function populateLanguage(templateObj: Record<Terrain, any>, lang: 'vi' | 'en') {
+    Object.keys(templateObj).forEach(biomeKey => {
+        const biome = templateObj[biomeKey as Terrain];
+        if (biome.creatures) {
+            biome.creatures = biome.creatures.map((c: any) => {
+                const creatureDef = creatures[c.type];
+                if (creatureDef) {
+                    c.data.name = creatureDef.name[lang];
+                    c.data.description = creatureDef.description[lang];
+                }
+                return c;
+            });
+        }
+    });
+}
+
+// populateLanguage(templates_vi, 'vi');
+// populateLanguage(templates_en, 'en');
+
 
 export const getTemplates = (lang: Language): Record<Terrain, any> => {
-  if (lang === 'vi') {
-    return templates_vi;
-  }
-  return templates_en;
+  const base = lang === 'vi' ? templates_vi : templates_en;
+  // Add master creature definitions to the returned object
+  return { ...base, creatures };
 };

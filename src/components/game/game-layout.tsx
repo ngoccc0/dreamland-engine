@@ -147,7 +147,7 @@ export default function GameLayout(props: GameLayoutProps) {
 
     return (
         <TooltipProvider>
-            <div className="flex flex-col md:flex-row min-h-dvh bg-background text-foreground font-body">
+            <div className="flex flex-col md:flex-row h-dvh bg-background text-foreground font-body">
                 {/* Left Panel: Narrative */}
                 <div className="w-full md:flex-1 flex flex-col">
                     <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10 flex justify-between items-center">
@@ -300,11 +300,11 @@ export default function GameLayout(props: GameLayoutProps) {
                     
                     <Separator className="flex-shrink-0" />
                     
-                    <div className="space-y-4 flex-grow flex flex-col">
+                    <div className="space-y-4 flex-grow flex flex-col overflow-hidden">
                         {restingPlace && (
                             <>
-                                <div className="space-y-2">
-                                    <h2 className="font-headline text-lg font-semibold text-center text-foreground/80 flex-shrink-0">{t('structureActions')}</h2>
+                                <div className="space-y-2 flex-shrink-0">
+                                    <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('structureActions')}</h2>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                             <Button variant="secondary" className="w-full justify-center" onClick={handleRest} disabled={isLoading}>
@@ -319,23 +319,26 @@ export default function GameLayout(props: GameLayoutProps) {
                             </>
                         )}
                         
-                        <h2 className="font-headline text-lg font-semibold text-center text-foreground/80 flex-shrink-0">{t('availableActions')}</h2>
-                        <div className="grid grid-cols-2 gap-2 overflow-y-auto flex-grow content-start">
-                            {currentChunk?.actions.map(action => {
-                                const actionText = t(action.textKey, action.params);
-                                return (
-                                    <Tooltip key={action.id}>
-                                        <TooltipTrigger asChild>
-                                            <Button variant="secondary" className="w-full justify-center" onClick={() => handleAction(action.id)} disabled={isLoading}>
-                                                {actionText}
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent><p>{actionText}</p></TooltipContent>
-                                    </Tooltip>
-                                );
-                            })}
+                        <div className="flex-grow flex flex-col space-y-4">
+                            <h2 className="font-headline text-lg font-semibold text-center text-foreground/80 flex-shrink-0">{t('availableActions')}</h2>
+                            <div className="grid grid-cols-2 gap-2 overflow-y-auto flex-grow content-start pr-2 -mr-2">
+                                {currentChunk?.actions.map(action => {
+                                    const actionText = t(action.textKey, action.params);
+                                    return (
+                                        <Tooltip key={action.id}>
+                                            <TooltipTrigger asChild>
+                                                <Button variant="secondary" className="w-full justify-center text-xs" onClick={() => handleAction(action.id)} disabled={isLoading}>
+                                                    {actionText}
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>{actionText}</p></TooltipContent>
+                                        </Tooltip>
+                                    );
+                                })}
+                            </div>
                         </div>
-                        <div className="flex flex-col gap-2 mt-4 flex-shrink-0">
+
+                        <div className="flex flex-col gap-2 mt-auto flex-shrink-0">
                             <Input 
                                 placeholder={t('customActionPlaceholder')}
                                 value={inputValue}
@@ -369,7 +372,7 @@ export default function GameLayout(props: GameLayoutProps) {
                     onUseItem={handleItemUsed}
                     onEquipItem={handleEquipItem}
                 />
-                <CraftingPopup open={isCraftingOpen} onOpenChange={setCraftingOpen} playerItems={playerStats.items} recipes={recipes} onCraft={handleCraft} />
+                <CraftingPopup open={isCraftingOpen} onOpenChange={setCraftingOpen} playerItems={playerStats.items} recipes={recipes} onCraft={handleCraft} itemDefinitions={customItemDefinitions} />
                 <BuildingPopup open={isBuildingOpen} onOpenChange={setBuildingOpen} playerItems={playerStats.items} buildableStructures={buildableStructures} onBuild={handleBuild} />
                 <FusionPopup 
                     open={isFusionOpen} 
@@ -406,5 +409,3 @@ export default function GameLayout(props: GameLayoutProps) {
         </TooltipProvider>
     );
 }
-
-    

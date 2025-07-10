@@ -247,9 +247,9 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                 <div className="text-sm text-muted-foreground">
                     <h4 className="font-semibold mb-2">{t('tryTheseIdeas')}</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {examplePrompts.map((prompt) => (
+                        {examplePrompts.map((prompt, index) => (
                             <button
-                                key={prompt.text}
+                                key={`${prompt.text}-${index}`}
                                 type="button"
                                 onClick={() => handleExampleClick(prompt)}
                                 className="text-left p-2 rounded-md hover:bg-muted transition-colors text-accent text-sm flex items-center gap-2"

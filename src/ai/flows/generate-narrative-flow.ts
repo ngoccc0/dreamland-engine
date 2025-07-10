@@ -15,7 +15,8 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
-import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema, GeneratedItemSchema, NpcSchema } from '@/ai/schemas';
+import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, GeneratedItemSchema, NpcSchema } from '@/ai/schemas';
+import type { ItemDefinition } from '@/lib/game/types';
 import { playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool, completeQuestTool, startQuestTool } from '@/ai/tools/game-actions';
 import { generateNewQuest } from './generate-new-quest';
 import { generateLegendaryQuest } from './generate-legendary-quest-flow';
@@ -359,5 +360,3 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
 
   return finalOutput;
 }
-
-    

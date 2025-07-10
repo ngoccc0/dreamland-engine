@@ -207,7 +207,7 @@ const items: Record<string, ItemDefinition> = {
     description: 'Một chiếc vảy cứng như thép, lấp lánh màu đỏ.', // Mô tả trong game, hỗ trợ đa ngôn ngữ qua key
     tier: 5,                                             // Cấp độ vật phẩm (1-6), ảnh hưởng đến độ hiếm và sức mạnh
     category: 'Material',                                // Danh mục chính (xem ItemCategory trong types.ts)
-    emoji: '🐉',                                             // Emoji đại diện
+    emoji: '🐉',                                          // Emoji đại diện
     effects: [],                                         // Hiệu ứng khi sử dụng (ví dụ: [{ type: 'HEAL', amount: 20 }])
     baseQuantity: { min: 1, max: 3 },                    // Số lượng rơi ra mặc định
 
@@ -225,6 +225,7 @@ const items: Record<string, ItemDefinition> = {
     function: 'A key crafting material for dragon armor.', // Mô tả chức năng
     weight: 0.5,                                         // Trọng lượng
     stackable: 20,                                       // Số lượng tối đa trong một ô đồ
+    senseEffect: { keywords: ['shimmering', 'hard', 'warm'] }, // Hiệu ứng cảm quan để AI mô tả
 
     // === Mối quan hệ Vật phẩm (Tùy chọn) ===
     relationship: {
@@ -281,7 +282,8 @@ const enemies: Partial<Record<"forest" | "mountain", EnemySpawn[]>> = {
         maxSatiation: 2,                                 // Mức độ no tối đa
         loot: [                                          // Bảng vật phẩm rơi ra
           { name: 'Dragon Scale', chance: 0.5, quantity: { min: 1, max: 2 } },
-        ]
+        ],
+        senseEffect: { keywords: ['leathery', 'screeching'] }, // Hiệu ứng cảm quan cho sinh vật
       },
       // === Điều kiện Xuất hiện (Bắt buộc) ===
       conditions: {
@@ -309,6 +311,7 @@ const items: Record<string, ItemDefinition> = {
     emoji: '🐉',
     effects: [],
     baseQuantity: { min: 1, max: 3 },
+    senseEffect: { keywords: ['shimmering', 'hard', 'warm'] },
   },
   'Dragon Tooth': {
     description: 'Một chiếc răng sắc như dao găm.',
@@ -359,7 +362,8 @@ const enemies: Partial<Record<"forest" | "mountain", EnemySpawn[]>> = {
         maxSatiation: 2,
         loot: [
           { name: 'Dragon Scale', chance: 0.5, quantity: { min: 1, max: 2 } },
-        ]
+        ],
+        senseEffect: { keywords: ['leathery', 'screeching'] },
       },
       conditions: { elevation: { min: 8 }, windLevel: { min: 6 }, chance: 0.15 }
     }
@@ -418,5 +422,3 @@ export const mod: ModDefinition = {
 - **🐛 [Sửa lỗi] Cải thiện Logic Game:**
   - Sửa lỗi thuật toán tạo thế giới, đảm bảo các quần xã sinh vật (biome) được tạo ra một cách logic và tuân thủ các quy tắc về "hàng xóm" (ví dụ: tuyết không thể nằm cạnh bãi biển).
   - Khắc phục lỗi `ChunkLoadError` bằng cách thay đổi chiến lược lưu cache, đảm bảo người chơi luôn nhận được phiên bản mới nhất của ứng dụng.
-
-    

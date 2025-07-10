@@ -10,8 +10,6 @@ import { doc, getDoc, setDoc, collection, getDocs, deleteDoc } from "firebase/fi
 import { db } from "@/lib/firebase-config";
 
 import { generateNarrative, type GenerateNarrativeInput } from "@/ai/flows/generate-narrative-flow";
-import { generateNewRecipe } from "@/ai/flows/generate-new-recipe";
-import { generateJournalEntry } from "@/ai/flows/generate-journal-entry";
 import { fuseItems } from "@/ai/flows/fuse-items-flow";
 import { provideQuestHint } from "@/ai/flows/provide-quest-hint";
 
@@ -41,7 +39,8 @@ interface GameEngineProps {
 
 export function useGameEngine(props: GameEngineProps) {
     const { t, language } = useLanguage();
-    const { settings } = useSettings();
+    const { settings, setSettings } = useSettings();
+    const { toast } = useToast();
     
     const {
         isLoaded,
@@ -608,6 +607,7 @@ export function useGameEngine(props: GameEngineProps) {
     // EFFECT: Auto-saving
     useEffect(() => {
         if (!isLoaded || isSaving || isGameOver) return;
+        const { user } = auth;
 
         const gameState: GameState = {
             worldProfile, currentSeason, world, recipes, buildableStructures,
@@ -639,7 +639,7 @@ export function useGameEngine(props: GameEngineProps) {
     }, [
         worldProfile, currentSeason, world, recipes, buildableStructures, regions, regionCounter,
         playerPosition, playerBehaviorProfile, playerStats, narrativeLog, finalWorldSetup,
-        customItemDefinitions, customItemCatalog, customStructures, weatherZones, gameTime, day, user, isSaving, toast, isGameOver,
+        customItemDefinitions, customItemCatalog, customStructures, weatherZones, gameTime, day, auth.user, isSaving, toast, isGameOver,
         turn, props.gameSlot, isLoaded, setIsSaving,
     ]);
     
@@ -698,22 +698,20 @@ export function useGameEngine(props: GameEngineProps) {
                 return newWorld;
             });
             
-            if (result.newlyGeneratedItem && !customItemDefinitions[result.newlyGeneratedItem.name]) {
-                const newItem = result.newlyGeneratedItem;
-                setCustomItemCatalog(prev => [...prev, newItem]);
-                setCustomItemDefinitions(prev => ({ ...prev, [newItem.name]: { ...newItem } }));
-                if (db) {
-                    await setDoc(doc(db, "world-catalog", "items", "generated", newItem.name), newItem);
-                }
-            }
             advanceGameTime(finalPlayerStats);
-        } catch (error) {
-            console.error("AI narrative generation failed:", error);
-            toast({ title: t('offlineModeActive'), description: t('offlineToastDesc'), variant: "destructive" });
+        } catch (error: any) {
+            if (error.message === 'AI_OFFLINE_FALLBACK') {
+                toast({ title: t('offlineModeActive'), description: t('offlineToastDesc'), variant: "destructive" });
+                setSettings({ gameMode: 'offline' });
+                // Let the existing offline logic handle the action after the state update
+            } else {
+                 console.error("AI narrative generation failed:", error);
+                 toast({ title: t('error'), description: 'An unexpected error occurred with the AI storyteller.', variant: "destructive" });
+            }
         } finally {
             setIsLoading(false);
         }
-    }, [settings.diceType, settings.aiModel, settings.narrativeLength, addNarrativeEntry, getEffectiveChunk, narrativeLog, language, customItemDefinitions, toast, advanceGameTime, finalWorldSetup, setIsLoading, setWorld, setCustomItemCatalog, setCustomItemDefinitions, t, setPlayerStats]);
+    }, [settings.diceType, settings.aiModel, settings.narrativeLength, addNarrativeEntry, getEffectiveChunk, narrativeLog, language, customItemDefinitions, toast, advanceGameTime, finalWorldSetup, setIsLoading, setWorld, setPlayerStats, t, setSettings]);
     
     const handleOfflineAttack = useCallback(() => {
         const key = `${playerPosition.x},${playerPosition.y}`;
@@ -1571,3 +1569,5 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
         handleReturnToMenu,
     };
 }
+
+    

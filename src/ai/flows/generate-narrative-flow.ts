@@ -179,7 +179,8 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
   
     if (!llmResponse) {
       console.error("All AI models failed for narrative generation.", lastError);
-      throw lastError || new Error("All models for narrative generation failed to generate a response.");
+      // Throw an error with a specific message that the game engine can catch.
+      throw new Error("AI_OFFLINE_FALLBACK");
     }
   
   const toolCalls = llmResponse.usage?.toolCalls;
@@ -358,3 +359,5 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
 
   return finalOutput;
 }
+
+    

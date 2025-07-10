@@ -289,7 +289,7 @@ export function useGameEngine(props: GameEngineProps) {
             if (applyChange) newPlayerStats.stamina = clamp(newPlayerStats.stamina + effects.staminaChange, 0, 100);
         }
         if (effects.manaChange) {
-            newPlayerStats.mana = clamp(newPlayerStats.mana + effects.manaChange, 0, 50);
+            newPlayerStats.mana = clamp(newPlayerStats.mana + 50, 0, 50);
         }
     
         if (effects.items) {
@@ -371,6 +371,27 @@ export function useGameEngine(props: GameEngineProps) {
                 addNarrativeEntry(t(chosenSentenceKey, { enemyType: chunk.enemy ? t(chunk.enemy.type as TranslationKey) : '' }), 'narrative');
             }
         }
+
+        // --- Tracked Enemy Update ---
+        if (nextPlayerStats.trackedEnemy && (turn - nextPlayerStats.trackedEnemy.lastSeen < 20)) {
+            const trackedChunk = newWorldState[nextPlayerStats.trackedEnemy.chunkKey];
+            if (trackedChunk?.enemy && trackedChunk.enemy.type === nextPlayerStats.trackedEnemy.type) {
+                if (Math.random() < 0.25) { // 25% chance per turn to get an update
+                    const enemyName = t(trackedChunk.enemy.type as TranslationKey);
+                    let updateKey: TranslationKey = 'trackedEnemyGeneric';
+                    if (trackedChunk.enemy.satiation < trackedChunk.enemy.maxSatiation / 2) {
+                        updateKey = 'trackedEnemyHunting';
+                    }
+                    addNarrativeEntry(t(updateKey, { enemyName }), 'system');
+                }
+            } else {
+                // The enemy is gone, stop tracking
+                const enemyName = t(nextPlayerStats.trackedEnemy.type as TranslationKey);
+                addNarrativeEntry(t('trackedEnemyLost', { enemyName }), 'system');
+                delete nextPlayerStats.trackedEnemy;
+            }
+        }
+
 
         if (newDay > day) {
             addNarrativeEntry(t('newDay'), 'system');
@@ -949,7 +970,18 @@ export function useGameEngine(props: GameEngineProps) {
 
         const { textKey } = action;
 
-        if (textKey === 'talkToAction_npc') {
+        if (textKey === 'observeAction_enemy') {
+            const enemy = currentChunk.enemy;
+            if (enemy) {
+                const enemyName = t(enemy.type as TranslationKey);
+                newPlayerStats.trackedEnemy = {
+                    chunkKey: `${currentChunk.x},${currentChunk.y}`,
+                    type: enemy.type,
+                    lastSeen: turn,
+                };
+                addNarrativeEntry(t('observeSuccess', { enemyName }), 'system');
+            }
+        } else if (textKey === 'talkToAction_npc') {
             const npcName = t(action.params!.npcName as TranslationKey);
             const npc = currentChunk.NPCs.find(n => t(n.name as TranslationKey) === npcName);
             if (npc) {
@@ -1038,10 +1070,10 @@ export function useGameEngine(props: GameEngineProps) {
                 return newWorld;
             });
         } else if (textKey === 'listenToSurroundingsAction') {
-            const directions = [{ x: 0, y: 1, dir: 'North' }, { x: 0, y: -1, dir: 'South' }, { x: 1, y: 0, dir: 'East' }, { x: -1, y: 0, dir: 'West' }];
+            const directions = [{ dx: 0, dy: 1, dir: 'North' }, { dx: 0, dy: -1, dir: 'South' }, { dx: 1, dy: 0, dir: 'East' }, { dx: -1, dy: 0, dir: 'West' }];
             let heardSomething = false;
             for (const dir of directions) {
-                const checkPos = { x: playerPosition.x + dir.x, y: playerPosition.y + dir.y };
+                const checkPos = { x: playerPosition.x + dir.dx, y: playerPosition.y + dir.dy };
                 const chunkKey = `${checkPos.x},${checkPos.y}`;
                 if (world[chunkKey] && world[chunkKey].enemy) {
                     addNarrativeEntry(t('listenHearSomething', { direction: t(`direction${dir.dir}` as TranslationKey), sound: t('enemySoundGeneric') }), 'narrative');
@@ -1049,8 +1081,27 @@ export function useGameEngine(props: GameEngineProps) {
                     break;
                 }
             }
-            if (!heardSomething) {
-                addNarrativeEntry(t('listenHearNothing'), 'narrative');
+             if (!heardSomething) {
+                // Biome hinting logic
+                let hintGiven = false;
+                for (const dir of directions) {
+                    // Check a bit further away for biome hints
+                    const biomeCheckPos = { x: playerPosition.x + dir.dx * 3, y: playerPosition.y + dir.dy * 3 };
+                    const biomeKey = `${biomeCheckPos.x},${biomeCheckPos.y}`;
+                    const adjacentChunk = world[biomeKey];
+                    if (adjacentChunk && adjacentChunk.terrain !== currentChunk.terrain) {
+                        const biomeSoundKey = `biomeSound_${adjacentChunk.terrain}` as TranslationKey;
+                        const sound = t(biomeSoundKey);
+                        if (sound !== biomeSoundKey) { // Check if translation exists
+                             addNarrativeEntry(t('listenHearBiome', { direction: t(`direction${dir.dir}` as TranslationKey), sound: sound }), 'narrative');
+                             hintGiven = true;
+                             break;
+                        }
+                    }
+                }
+                 if (!hintGiven) {
+                    addNarrativeEntry(t('listenHearNothing'), 'narrative');
+                }
             }
         } else if (textKey === 'analyzeAction') {
             const chunk = getEffectiveChunk(currentChunk);
@@ -1075,7 +1126,7 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
         }
 
         advanceGameTime(newPlayerStats);
-    }, [addNarrativeEntry, playerStats, t, world, playerPosition, language, toast, advanceGameTime, customItemDefinitions, setWorld, getEffectiveChunk]);
+    }, [addNarrativeEntry, playerStats, t, world, playerPosition, language, toast, advanceGameTime, customItemDefinitions, setWorld, getEffectiveChunk, turn]);
     
     const handleMove = useCallback((direction: "north" | "south" | "east" | "west") => {
         if (isLoading || isGameOver || !isLoaded) return;
@@ -1123,43 +1174,38 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
 
         const newTurn = turn + 1;
 
-        const visionRadius = 1;
-        for (let dy = -visionRadius; dy <= visionRadius; dy++) {
-            for (let dx = -visionRadius; dx <= visionRadius; dx++) {
-                const revealPos = { x: newPos.x + dx, y: newPos.y + dy };
-                if (!worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
-                    const result = ensureChunkExists(revealPos, worldSnapshot, regionsSnapshot, regionCounterSnapshot);
-                    worldSnapshot = result.worldWithChunk;
-                    regionsSnapshot = result.newRegions;
-                    regionCounterSnapshot = result.newRegionCounter;
-                }
-                if (worldSnapshot[`${revealPos.x},${revealPos.y}`]) {
-                    worldSnapshot[`${revealPos.x},${revealPos.y}`].explored = true;
+        const visionRadius = 7;
+        const loadDelay = 1500; // 1.5 seconds
+
+        // Use a timeout to defer the chunk loading, making UI feel more responsive.
+        setTimeout(() => {
+            let currentWorld = { ...world }; // Get the latest world state
+            let currentRegions = { ...regions };
+            let currentRegionCounter = regionCounter;
+
+            for (let dy = -visionRadius; dy <= visionRadius; dy++) {
+                for (let dx = -visionRadius; dx <= visionRadius; dx++) {
+                    const revealPos = { x: newPos.x + dx, y: newPos.y + dy };
+                    if (!currentWorld[`${revealPos.x},${revealPos.y}`]) {
+                        const result = ensureChunkExists(revealPos, currentWorld, currentRegions, currentRegionCounter);
+                        currentWorld = result.worldWithChunk;
+                        currentRegions = result.newRegions;
+                        currentRegionCounter = result.newRegionCounter;
+                    }
                 }
             }
-        }
-
+            // Batch update state after loading all chunks for this move
+            setWorld(currentWorld);
+            setRegions(currentRegions);
+            setRegionCounter(currentRegionCounter);
+        }, loadDelay);
+        
+        // Immediate updates
         const destChunkKey = `${newPos.x},${newPos.y}`;
-        worldSnapshot[destChunkKey] = { ...worldSnapshot[destChunkKey], lastVisited: newTurn };
-
-        const wasNewRegionCreated = regionCounterSnapshot > regionCounter;
-        if (wasNewRegionCreated) {
-            const newWeatherZones = { ...weatherZones };
-            const currentRegions = regionsSnapshot || {};
-            Object.keys(currentRegions).filter(id => !newWeatherZones[id]).forEach(regionId => {
-                const region = currentRegions[Number(regionId)];
-                if (region) {
-                    const initialWeather = generateWeatherForZone(region.terrain, currentSeason);
-                    newWeatherZones[regionId] = { id: regionId, terrain: region.terrain, currentWeather: initialWeather, nextChangeTime: gameTime + getRandomInRange({ min: initialWeather.duration_range[0], max: initialWeather.duration_range[1] }) * 10 };
-                }
-            });
-            setWeatherZones(newWeatherZones);
-        }
+        worldSnapshot[destChunkKey] = { ...worldSnapshot[destChunkKey], lastVisited: newTurn, explored: true };
         
         setTurn(newTurn);
         setWorld(worldSnapshot);
-        setRegions(regionsSnapshot);
-        setRegionCounter(regionCounterSnapshot);
         setPlayerPosition(newPos);
 
         const newPlayerStats = { ...playerStats, stamina: playerStats.stamina - travelCost, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText], unlockProgress: { ...playerStats.unlockProgress, moves: playerStats.unlockProgress.moves + 1 } };

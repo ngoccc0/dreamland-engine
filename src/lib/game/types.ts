@@ -175,12 +175,18 @@ export interface Chunk {
         type: string;
         hp: number;
         damage: number;
-        behavior: 'aggressive' | 'passive' | 'defensive' | 'territorial';
+        behavior: 'aggressive' | 'passive' | 'defensive' | 'territorial' | 'immobile';
         size: 'small' | 'medium' | 'large';
         diet: string[]; // e.g., ['Thỏ hoang hung dữ', 'Quả Mọng Ăn Được']
         satiation: number; // Current food level
         maxSatiation: number; // How much food it needs to be "full"
         emoji: string;
+        harvestable?: { // For resources like trees
+            difficulty: number;
+            requiredTool: string;
+            loot: { name: string; chance: number; quantity: { min: number; max: number } }[];
+        };
+        senseEffect?: { keywords: string[] };
     } | null;
     actions: Action[];
     regionId: number;
@@ -234,6 +240,11 @@ export interface PlayerStatus {
     journal?: Record<number, string>;
     dailyActionLog?: string[];
     questHints?: Record<string, string>;
+    trackedEnemy?: {
+        chunkKey: string;
+        type: string;
+        lastSeen: number; // turn
+    };
 }
 
 export interface PlayerBehaviorProfile {
@@ -281,12 +292,14 @@ export interface WorldConcept {
 export interface CraftingOutcome {
     canCraft: boolean;
     chance: number;
+    hasRequiredTool: boolean;
     ingredientsToConsume: { name: string; quantity: number }[];
     resolvedIngredients: {
         requirement: import('./definitions/recipe').RecipeIngredient;
         usedItem: { name: string; tier: number } | null; // which item was chosen
         isSubstitute: boolean;
         hasEnough: boolean; // if enough of *any* valid item is available for this slot
+        playerQuantity: number;
     }[];
 }
 

@@ -202,7 +202,7 @@ export default function GameLayout(props: GameLayoutProps) {
                 </div>
 
                 {/* Right Panel: Controls & Actions */}
-                <aside className="w-full md:w-[420px] md:max-w-[420px] md:flex-shrink-0 bg-card border-l p-4 flex flex-col gap-4 h-full overflow-hidden">
+                <aside className="w-full md:w-[420px] md:flex-shrink-0 bg-card border-l p-4 flex flex-col gap-4 h-full overflow-hidden">
                     
                     {/* --- FIXED TOP PART --- */}
                     <div className="flex-shrink-0 space-y-4">

@@ -1,6 +1,7 @@
 
 
 import { naturePlusSwampEnemies } from "./modded/nature_plus";
+import type { TranslationKey } from "@/lib/i18n";
 
 export const swamp_vi = {
     descriptionTemplates: {
@@ -15,11 +16,11 @@ export const swamp_vi = {
     sky: [],
     NPCs: [
         { 
-            data: { name: 'Phù thủy đầm lầy', description: 'Một bà lão với nụ cười bí hiểm, sống trong một túp lều tạm bợ.', dialogueSeed: 'Một phù thủy lập dị, nói chuyện bằng những câu đố và có thể giúp đỡ nếu được trả công xứng đáng.' },
+            data: { name: 'Phù thủy đầm lầy' as TranslationKey, description: 'Một bà lão với nụ cười bí hiểm, sống trong một túp lều tạm bợ.' as TranslationKey, dialogueSeed: 'Một phù thủy lập dị, nói chuyện bằng những câu đố và có thể giúp đỡ nếu được trả công xứng đáng.' as TranslationKey },
             conditions: { humanPresence: { min: 1, max: 2 }, magicAffinity: { min: 5 }, chance: 0.05 } 
         },
         { 
-            data: { name: 'Thợ săn cá sấu', description: 'Một người đàn ông lực lưỡng, trên người có nhiều vết sẹo, mang theo một cây lao lớn.', dialogueSeed: 'Một người thợ săn dũng cảm, chỉ nói về con mồi lớn nhất mà ông ta đang theo đuổi.' },
+            data: { name: 'Thợ săn cá sấu' as TranslationKey, description: 'Một người đàn ông lực lưỡng, trên người có nhiều vết sẹo, mang theo một cây lao lớn.' as TranslationKey, dialogueSeed: 'Một người thợ săn dũng cảm, chỉ nói về con mồi lớn nhất mà ông ta đang theo đuổi.' as TranslationKey },
             conditions: { humanPresence: { min: 2 }, predatorPresence: { min: 8 }, chance: 0.1 } 
         },
     ],

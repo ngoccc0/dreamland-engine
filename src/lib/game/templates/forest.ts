@@ -1,4 +1,5 @@
 
+
 import { structureDefinitions } from "../structures";
 import type { TranslationKey } from "@/lib/i18n";
 import { naturePlusForestEnemies } from "./modded/nature_plus";
@@ -18,10 +19,10 @@ export const forest_vi = {
     NPCs: [
         { 
             data: { 
-                name: {en: "Mysterious Hunter", vi: "Thợ săn bí ẩn"},
-                description: {en: "A man with sharp eyes and old leather clothes, always carrying a longbow.", vi: "Một người đàn ông với ánh mắt sắc lẹm và bộ quần áo bằng da cũ kỹ, luôn mang theo cây cung dài."}, 
-                dialogueSeed: {en: "A seasoned hunter, weary but watchful, who speaks in short, clipped sentences.", vi: "Một thợ săn dày dạn kinh nghiệm, mệt mỏi nhưng cảnh giác, nói những câu ngắn gọn, dứt khoát."},
-                quest: {en: "Bring me 5 Wolf Fangs to prove your mettle.", vi: "Mang cho ta 5 Nanh Sói để chứng tỏ bản lĩnh của ngươi."},
+                name: 'Thợ săn bí ẩn' as TranslationKey, 
+                description: 'Một người đàn ông với ánh mắt sắc lẹm và bộ quần áo bằng da cũ kỹ, luôn mang theo cây cung dài.' as TranslationKey, 
+                dialogueSeed: 'Một thợ săn dày dạn kinh nghiệm, mệt mỏi nhưng cảnh giác, nói những câu ngắn gọn, dứt khoát.' as TranslationKey,
+                quest: 'Mang cho ta 5 Nanh Sói để chứng tỏ bản lĩnh của ngươi.' as TranslationKey,
                 questItem: { name: 'Nanh Sói', quantity: 5 },
                 rewardItems: [{ name: 'Da Gấu', quantity: 1, tier: 4, emoji: '🐻' }]
             },

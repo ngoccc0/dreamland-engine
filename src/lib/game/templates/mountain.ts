@@ -2,6 +2,7 @@
 
 import { structureDefinitions } from "../structures";
 import { naturePlusMountainEnemies } from "./modded/nature_plus";
+import type { TranslationKey } from "@/lib/i18n";
 
 export const mountain_vi = {
     descriptionTemplates: {
@@ -16,11 +17,11 @@ export const mountain_vi = {
     sky: ['xanh thẳm', 'xám xịt', 'trong vắt'],
     NPCs: [
         { 
-            data: { name: 'Thợ mỏ già', description: 'Một người lùn gân guốc với bộ râu được tết gọn gàng, tay cầm chiếc cuốc chim.', dialogueSeed: 'Một người thợ mỏ càu nhàu, phàn nàn về việc các mạch khoáng sản ngày càng khó tìm.' },
+            data: { name: 'Thợ mỏ già' as TranslationKey, description: 'Một người lùn gân guốc với bộ râu được tết gọn gàng, tay cầm chiếc cuốc chim.' as TranslationKey, dialogueSeed: 'Một người thợ mỏ càu nhàu, phàn nàn về việc các mạch khoáng sản ngày càng khó tìm.' as TranslationKey },
             conditions: { humanPresence: { min: 3 }, elevation: { min: 7 }, chance: 0.1 } 
         },
         { 
-            data: { name: 'Người cưỡi griffon', description: 'Một chiến binh mặc áo giáp sáng bóng, đứng cạnh một sinh vật griffon uy nghi.', dialogueSeed: 'Một hiệp sĩ cao ngạo, chỉ nói chuyện với những người mà họ cho là xứng đáng.' },
+            data: { name: 'Người cưỡi griffon' as TranslationKey, description: 'Một chiến binh mặc áo giáp sáng bóng, đứng cạnh một sinh vật griffon uy nghi.' as TranslationKey, dialogueSeed: 'Một hiệp sĩ cao ngạo, chỉ nói chuyện với những người mà họ cho là xứng đáng.' as TranslationKey },
             conditions: { magicAffinity: { min: 6 }, elevation: { min: 9 }, chance: 0.02 } 
         },
     ],

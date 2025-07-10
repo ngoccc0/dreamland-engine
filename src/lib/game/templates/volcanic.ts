@@ -1,6 +1,7 @@
 
 
 import { structureDefinitions } from "../structures";
+import type { TranslationKey } from "@/lib/i18n";
 
 export const volcanic_vi = {
     descriptionTemplates: {
@@ -15,11 +16,11 @@ export const volcanic_vi = {
     sky: ['đỏ rực', 'xám xịt tro bụi'],
     NPCs: [
         { 
-            data: { name: 'Thợ rèn dung nham', description: 'Một người lùn với làn da đỏ như đồng, đang dùng một chiếc búa lớn để rèn trên một tảng đá nóng chảy.', dialogueSeed: 'Một thợ rèn bậc thầy, ít nói, chỉ quan tâm đến việc tạo ra những vũ khí huyền thoại từ vật liệu núi lửa.' },
+            data: { name: 'Thợ rèn dung nham' as TranslationKey, description: 'Một người lùn với làn da đỏ như đồng, đang dùng một chiếc búa lớn để rèn trên một tảng đá nóng chảy.' as TranslationKey, dialogueSeed: 'Một thợ rèn bậc thầy, ít nói, chỉ quan tâm đến việc tạo ra những vũ khí huyền thoại từ vật liệu núi lửa.' as TranslationKey },
             conditions: { humanPresence: { min: 1 }, temperature: { min: 9 }, chance: 0.1 } 
         },
         { 
-            data: { name: 'Hỏa tinh bị mắc kẹt', description: 'Một thực thể bằng lửa bị mắc kẹt trong một tảng obsidian.', dialogueSeed: 'Một sinh vật nguyên tố mạnh mẽ nhưng đang yếu dần, hứa hẹn sức mạnh nếu được giải thoát.' },
+            data: { name: 'Hỏa tinh bị mắc kẹt' as TranslationKey, description: 'Một thực thể bằng lửa bị mắc kẹt trong một tảng obsidian.' as TranslationKey, dialogueSeed: 'Một sinh vật nguyên tố mạnh mẽ nhưng đang yếu dần, hứa hẹn sức mạnh nếu được giải thoát.' as TranslationKey },
             conditions: { magicAffinity: { min: 8 }, chance: 0.05 } 
         }
     ],
@@ -53,11 +54,11 @@ export const volcanic_en = {
     sky: ['fiery red', 'ashy gray'],
     NPCs: [
         { 
-            data: { name: 'Lava Blacksmith', description: 'A dwarf with skin as red as copper, using a large hammer to forge on a molten rock.', dialogueSeed: 'A master blacksmith, taciturn, only interested in creating legendary weapons from volcanic materials.' },
+            data: { name: 'Lava Blacksmith' as TranslationKey, description: 'A dwarf with skin as red as copper, using a large hammer to forge on a molten rock.' as TranslationKey, dialogueSeed: 'A master blacksmith, taciturn, only interested in creating legendary weapons from volcanic materials.' as TranslationKey },
             conditions: { humanPresence: { min: 1 }, temperature: { min: 9 }, chance: 0.1 } 
         },
         { 
-            data: { name: 'Trapped Fire Elemental', description: 'A fire entity trapped in a block of obsidian.', dialogueSeed: 'A powerful but weakening elemental being, promising power if freed.' },
+            data: { name: 'Trapped Fire Elemental' as TranslationKey, description: 'A fire entity trapped in a block of obsidian.' as TranslationKey, dialogueSeed: 'A powerful but weakening elemental being, promising power if freed.' as TranslationKey },
             conditions: { magicAffinity: { min: 8 }, chance: 0.05 } 
         }
     ],

@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, PlayerAttributes, ItemEffect, Terrain, ModDefinition, EnemySpawn } from "@/lib/game/types";
+import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, PlayerAttributes, ItemEffect, Terrain, ModDefinition, EnemySpawn, Action, TranslationKey } from "@/lib/game/types";
 import { recipes as staticRecipes } from '@/lib/game/data/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/data/items';
@@ -12,6 +12,7 @@ import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase-config";
 import { allMods } from "@/lib/game/mods";
 import { getTemplates } from "../lib/game/templates";
+import { translations } from "../lib/i18n";
 
 
 // --- MOD VALIDATION HELPER ---
@@ -69,6 +70,26 @@ function validateAndMergeMods(initialItems: Record<string, ItemDefinition>, init
     return { finalItems, finalRecipes, finalEnemies };
 }
 
+const regenerateChunkActions = (chunk: Chunk, t: (key: TranslationKey, params?: any) => string): Action[] => {
+    const actions: Action[] = [];
+    let actionIdCounter = 1;
+
+    if (chunk.enemy) {
+        actions.push({ id: actionIdCounter++, textKey: 'observeAction_enemy', params: { enemyType: t(chunk.enemy.type as TranslationKey) as TranslationKey } });
+    }
+    if (chunk.NPCs.length > 0) {
+        actions.push({ id: actionIdCounter++, textKey: 'talkToAction_npc', params: { npcName: t(chunk.NPCs[0].name as TranslationKey) as TranslationKey } });
+    }
+
+    chunk.items.forEach(item => {
+        actions.push({ id: actionIdCounter++, textKey: 'pickUpAction_item', params: { itemName: t(item.name as TranslationKey) as TranslationKey } });
+    });
+    
+    actions.push({ id: actionIdCounter++, textKey: 'exploreAction' });
+    actions.push({ id: actionIdCounter++, textKey: 'listenToSurroundingsAction' });
+
+    return actions;
+};
 
 interface GameStateProps {
     gameSlot: number;
@@ -181,7 +202,16 @@ export function useGameState({ gameSlot, worldSetup: propsWorldSetup, customItem
                 setDay(loadedState.day);
                 setTurn(loadedState.turn || 1);
                 setWeatherZones(loadedState.weatherZones || {});
-                setWorld(loadedState.world || {});
+                
+                // Regenerate actions on load
+                const worldWithActions = loadedState.world;
+                const lang = loadedState.playerStats.language || 'en';
+                const t = (key: TranslationKey, params?: any) => (translations[lang] as any)[key] || (translations.en as any)[key] || key;
+                for (const key in worldWithActions) {
+                    worldWithActions[key].actions = regenerateChunkActions(worldWithActions[key], t);
+                }
+                setWorld(worldWithActions || {});
+                
                 setRegions(loadedState.regions || {});
                 setRegionCounter(loadedState.regionCounter || 0);
                 setPlayerPosition(loadedState.playerPosition || { x: 0, y: 0 });
@@ -231,7 +261,7 @@ export function useGameState({ gameSlot, worldSetup: propsWorldSetup, customItem
                     finalMergedDefs[item.name] = {
                         description: item.description, tier: item.tier, category: item.category,
                         emoji: item.emoji, effects: item.effects as ItemEffect[], baseQuantity: item.baseQuantity,
-                        growthConditions: item.growthConditions, equipmentSlot: item.equipmentSlot,
+                        naturalSpawn: item.naturalSpawn, equipmentSlot: item.equipmentSlot,
                         attributes: item.attributes,
                     };
                 }

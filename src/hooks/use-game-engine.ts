@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useCallback, useRef } from "react";
@@ -39,10 +40,7 @@ interface GameEngineProps {
 }
 
 export function useGameEngine(props: GameEngineProps) {
-    const { t, language } = useLanguage();
-    const { settings } = useSettings();
-    const { user } = useAuth();
-    const { toast } = useToast();
+    const { t } = useLanguage();
     
     const {
         isLoaded,
@@ -447,26 +445,20 @@ export function useGameEngine(props: GameEngineProps) {
             if (!chunk) continue;
             
             // --- Resource Growth Simulation ---
-            for (const itemDefName in customItemDefinitions) {
-                const itemDef = customItemDefinitions[itemDefName];
-                if (itemDef.growthConditions) {
-                    const effectiveChunkForGrowth = getEffectiveChunk(chunk); 
-                    const existingItem = chunk.items.find(i => i.name === itemDefName);
-                    
-                    let growthChance = 0;
-                    if (checkConditions(itemDef.growthConditions.optimal, effectiveChunkForGrowth)) {
-                        growthChance = 0.2; // 20% chance in optimal conditions
-                    } else if (checkConditions(itemDef.growthConditions.subOptimal, effectiveChunkForGrowth)) {
-                        growthChance = 0.05; // 5% chance in sub-optimal conditions
-                    }
+            if (chunk.terrain !== 'wall' && chunk.terrain !== 'ocean') { // Exclude non-growing terrains
+                const itemDefsToSimulate = Object.values(customItemDefinitions).filter(def => def.naturalSpawn && def.naturalSpawn.some(s => s.biome === chunk.terrain));
+                for (const itemDef of itemDefsToSimulate) {
+                    const spawnRule = itemDef.naturalSpawn!.find(s => s.biome === chunk.terrain)!;
+                    const existingItem = chunk.items.find(i => i.name === itemDef.name);
+                    const growthChance = spawnRule.chance / 5; // Slower regrowth
 
-                    if (Math.random() < growthChance) {
+                    if (Math.random() < growthChance && checkConditions(spawnRule.conditions || {}, getEffectiveChunk(chunk))) {
                         worldWasModified = true;
                         if (existingItem) {
                             existingItem.quantity = Math.min(existingItem.quantity + 1, itemDef.baseQuantity.max * 2);
                         } else {
                             chunk.items.push({
-                                name: itemDefName,
+                                name: itemDef.name,
                                 description: itemDef.description,
                                 tier: itemDef.tier,
                                 quantity: itemDef.baseQuantity.min,
@@ -491,7 +483,7 @@ export function useGameEngine(props: GameEngineProps) {
                         chunk.enemy.satiation = Math.min(chunk.enemy.maxSatiation, chunk.enemy.satiation + 2);
                         
                         const foodDef = customItemDefinitions[foodSource.name];
-                        if (foodDef && (foodDef.category === 'Food' || foodDef.growthConditions)) {
+                        if (foodDef && (foodDef.category === 'Food' || foodDef.naturalSpawn)) {
                             chunk.vegetationDensity = clamp(chunk.vegetationDensity - 0.1, 0, 10);
                         }
 
@@ -1228,23 +1220,43 @@ Structures: ${chunk.structures.map(s => t(s.name as TranslationKey)).join(', ') 
                 if (!def) return `[${t(item.name as TranslationKey)}]: ${t('noData')}`;
                 
                 let report = `[${t(item.name as TranslationKey)}] (x${item.quantity})\n`;
-                report += `${t(def.description as TranslationKey)}\n`;
+                report += `"${t(def.description as TranslationKey)}"\n`;
                 report += ` - ${t('category')}: ${t(def.category as TranslationKey)}`;
                 if (def.subCategory) report += ` (${t(def.subCategory as TranslationKey)})`;
-                report += `\n - ${t('tier')}: ${def.tier}\n`;
-                if (def.equipmentSlot) report += ` - ${t('equipmentSlot')}: ${t(def.equipmentSlot as TranslationKey)}\n`;
-                
-                if (def.attributes) {
-                    const attrs = Object.entries(def.attributes)
-                        .map(([key, val]) => `${t(key as TranslationKey)}: ${val}`)
-                        .join(', ');
-                    if(attrs) report += ` - ${t('attributes')}: ${attrs}\n`;
+                report += ` | ${t('tier', { tier: def.tier })}\n`;
+                if(def.weight) report += ` - Weight: ${def.weight} | Stack: ${def.stackable || 1}\n`;
+
+                if (def.equipmentSlot) {
+                    report += ` - Slot: ${t(def.equipmentSlot as TranslationKey)}\n`;
+                    if (def.attributes) {
+                        const attrs = Object.entries(def.attributes).map(([key, val]) => val !== 0 ? `${t(key as TranslationKey)}: ${val}`: null).filter(Boolean).join(', ');
+                        if(attrs) report += ` - ${t('attributes')}: ${attrs}\n`;
+                    }
                 }
 
                 if(def.effects && def.effects.length > 0) {
                     const effects = def.effects.map(e => `${t(e.type)} ${e.amount}`).join(', ');
                      if(effects) report += ` - ${t('effects')}: ${effects}\n`;
                 }
+
+                if (def.durability) {
+                    report += ` - Durability: ${def.durability.max} (${def.durability.decayType})\n`;
+                }
+
+                if (def.function) {
+                    report += ` - Function: ${t(def.function as TranslationKey)}\n`;
+                }
+
+                if (def.naturalSpawn) {
+                    const spawns = def.naturalSpawn.map(s => `${t(s.biome as TranslationKey)} (${(s.chance*100).toFixed(0)}%)`).join(', ');
+                    report += ` - Spawns In: ${spawns}\n`;
+                }
+
+                if (def.droppedBy) {
+                    const drops = def.droppedBy.map(d => `${t(d.creature as TranslationKey)} (${(d.chance*100).toFixed(0)}%)`).join(', ');
+                    report += ` - Dropped By: ${drops}\n`;
+                }
+                
                 return report;
             }).join('\n\n');
 

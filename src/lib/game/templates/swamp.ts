@@ -1,5 +1,7 @@
 
 
+import { naturePlusSwampEnemies } from "./modded/nature_plus";
+
 export const swamp_vi = {
     descriptionTemplates: {
         short: ["Bạn đang lội qua một đầm lầy [adjective]."],
@@ -30,43 +32,40 @@ export const swamp_vi = {
         { name: 'Hoa Độc', conditions: { vegetationDensity: { min: 6 }, chance: 0.15 } },
         { name: 'Cây Sậy', conditions: { moisture: { min: 7 }, chance: 0.2 } },
         { name: 'Lá cây lớn', conditions: { vegetationDensity: { min: 6 }, chance: 0.3 } },
+        { name: 'Lõi Gỗ Rỗng', conditions: { chance: 0.2, humidity: { min: 6 } } },
     ],
     structures: [],
     enemies: [
+        {
+            data: {
+                type: 'Cây Đầm Lầy',
+                emoji: '🌿',
+                hp: 25,
+                damage: 0,
+                behavior: 'immobile',
+                size: 'medium',
+                diet: [],
+                satiation: 0,
+                maxSatiation: 0,
+                harvestable: {
+                    difficulty: 1,
+                    requiredTool: 'Rìu Đá Đơn Giản',
+                    loot: [
+                        { name: 'Lõi Gỗ', chance: 1.0, quantity: { min: 1, max: 3 } },
+                        { name: 'Sợi Thực Vật', chance: 0.3, quantity: { min: 1, max: 2 } }
+                    ]
+                },
+            },
+            conditions: { chance: 0.6, humidity: { min: 7 } }
+        },
         { data: { type: 'Đỉa khổng lồ', emoji: '🩸', hp: 40, damage: 5, behavior: 'aggressive', size: 'small', diet: ['Trứng Bò Sát'], satiation: 0, maxSatiation: 3, loot: [{name: 'Chất nhờn của Đỉa', chance: 0.5, quantity: {min: 1, max: 2}}] }, conditions: { moisture: { min: 9 }, chance: 0.4 } },
         { data: { type: 'Ma trơi', emoji: '💡', hp: 25, damage: 20, behavior: 'territorial', size: 'small', diet: ['Hoa Tinh Linh'], satiation: 0, maxSatiation: 1, loot: [{name: 'Tinh chất Ma trơi', chance: 0.2, quantity: {min: 1, max: 1}}] }, conditions: { magicAffinity: { min: 7 }, lightLevel: { max: -5 }, chance: 0.2 } },
         { data: { type: 'Cá sấu', emoji: '🐊', hp: 70, damage: 25, behavior: 'territorial', size: 'large', diet: ['Heo Rừng', 'Dê núi hung hãn'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Cá Sấu', chance: 0.4, quantity: {min: 1, max: 1}}, {name: 'Răng Cá Sấu', chance: 0.3, quantity: {min: 1, max: 4}}] }, conditions: { predatorPresence: { min: 8 }, moisture: { min: 8 }, chance: 0.25 } },
         { data: { type: 'Muỗi khổng lồ', emoji: '🦟', hp: 15, damage: 5, behavior: 'aggressive', size: 'small', diet: [], satiation: 0, maxSatiation: 1, loot: [{name: 'Cánh Muỗi', chance: 0.7, quantity: {min: 2, max: 6}}] }, conditions: { chance: 0.5 } },
+        ...naturePlusSwampEnemies
     ],
 };
 
 export const swamp_en = {
-    descriptionTemplates: {
-        short: ["You are wading through an [adjective] swamp."],
-        medium: ["An [adjective] swamp. The air is thick with the smell of [smell] and you hear a chilling [sound] from within the fog. {sensory_details} {entity_report}"],
-        long: ["A thick, [adjective] fog covers the swamp, obscuring your vision. The air is thick with the smell of [smell]. The [feature] water is knee-deep, and the incessant [sound] of hidden life makes the place even more terrifying. {sensory_details} {entity_report} {surrounding_peek}"]
-    },
-    adjectives: ['stinking', 'gloomy', 'deadly', 'foggy', 'waterlogged', 'muddy'],
-    features: ['mangroves', 'vines', 'toxic gas', 'mud bubbles', 'insects', 'animal carcasses'],
-    sounds: ['frogs croaking', 'water bubbling', 'mosquitoes buzzing', 'squelching sounds', 'whispers'],
-    smells: ['decaying plants', 'mud', 'methane gas', 'rotting flowers', 'death'],
-    sky: [],
-    NPCs: [
-        { 
-            data: { name: 'Swamp Witch', description: 'An old woman with a mysterious smile, living in a makeshift hut.', dialogueSeed: 'An eccentric witch who speaks in riddles and might help for the right price.' },
-            conditions: { humanPresence: { min: 1, max: 2 }, magicAffinity: { min: 5 }, chance: 0.05 } 
-        },
-        { 
-            data: { name: 'Alligator Hunter', description: 'A sturdy man covered in scars, carrying a large harpoon.', dialogueSeed: 'A brave hunter who only talks about the biggest prey he is tracking.' },
-            conditions: { humanPresence: { min: 2 }, predatorPresence: { min: 8 }, chance: 0.1 } 
-        },
-    ],
-    items: swamp_vi.items,
-    structures: [],
-    enemies: [
-        { data: { type: 'Giant Leech', emoji: '🩸', hp: 40, damage: 5, behavior: 'aggressive', size: 'small', diet: ['Trứng Bò Sát'], satiation: 0, maxSatiation: 3, loot: [{name: 'Chất nhờn của Đỉa', chance: 0.5, quantity: {min: 1, max: 2}}] }, conditions: { moisture: { min: 9 }, chance: 0.4 } },
-        { data: { type: 'Will-o-Wisp', emoji: '💡', hp: 25, damage: 20, behavior: 'territorial', size: 'small', diet: ['Hoa Tinh Linh'], satiation: 0, maxSatiation: 1, loot: [{name: 'Tinh chất Ma trơi', chance: 0.2, quantity: {min: 1, max: 1}}] }, conditions: { magicAffinity: { min: 7 }, lightLevel: { max: -5 }, chance: 0.2 } },
-        { data: { type: 'Alligator', emoji: '🐊', hp: 70, damage: 25, behavior: 'territorial', size: 'large', diet: ['Wild Boar', 'Aggressive Mountain Goat'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Cá Sấu', chance: 0.4, quantity: {min: 1, max: 1}}, {name: 'Răng Cá Sấu', chance: 0.3, quantity: {min: 1, max: 4}}] }, conditions: { predatorPresence: { min: 8 }, moisture: { min: 8 }, chance: 0.25 } },
-        { data: { type: 'Giant Mosquito', emoji: '🦟', hp: 15, damage: 5, behavior: 'aggressive', size: 'small', diet: [], satiation: 0, maxSatiation: 1, loot: [{name: 'Cánh Muỗi', chance: 0.7, quantity: {min: 2, max: 6}}] }, conditions: { chance: 0.5 } },
-    ],
+    ...swamp_vi,
 };

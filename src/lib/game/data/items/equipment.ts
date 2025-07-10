@@ -19,7 +19,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'accessory',
-        attributes: { physicalAttack: 0, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 }, // Placeholder for future defense stat
+        attributes: { physicalAttack: 0, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0, physicalDefense: 5 },
     },
     'Giáo Xương': {
         description: 'item_bone_spear_desc',
@@ -100,4 +100,84 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         equipmentSlot: 'weapon',
         attributes: { physicalAttack: 15, magicalAttack: 0, critChance: 10, attackSpeed: -0.2, cooldownReduction: 0 },
     },
+    'Áo Khoác Trench': { 
+        description: 'item_trench_coat_desc', 
+        emoji: '🧥', 
+        category: 'Equipment', 
+        tier: 2, 
+        effects: [], 
+        baseQuantity: { min: 1, max: 1 }, 
+        equipmentSlot: 'armor', 
+        attributes: { physicalDefense: 3, magicalDefense: 1 } 
+    },
+    'Khẩu Súng Lục Cũ': { 
+        description: 'item_old_revolver_desc', 
+        emoji: '🔫', 
+        category: 'Weapon', 
+        tier: 2, 
+        effects: [], 
+        baseQuantity: { min: 1, max: 1 }, 
+        equipmentSlot: 'weapon', 
+        attributes: { physicalAttack: 6, critChance: 3 } 
+    },
+    'Rìu Băng Tự Chế': { 
+        description: 'item_makeshift_ice_axe_desc', 
+        emoji: '⛏️', 
+        category: 'Weapon', 
+        tier: 1, 
+        effects: [], 
+        baseQuantity: { min: 1, max: 1 }, 
+        attributes: { physicalAttack: 4, critChance: 1 }, 
+        equipmentSlot: 'weapon' 
+    },
+    'Đũa Phép Của Học Viên': { 
+        description: 'item_student_wand_desc', 
+        emoji: '🪄', 
+        category: 'Weapon', 
+        tier: 2, 
+        effects: [], 
+        baseQuantity: { min: 1, max: 1 }, 
+        equipmentSlot: 'weapon', 
+        attributes: { magicalAttack: 5 } 
+    },
+    'Áo Choàng Học Viện': { 
+        description: 'item_academy_robe_desc', 
+        emoji: '🥋', 
+        category: 'Equipment', 
+        tier: 2, 
+        effects: [], 
+        baseQuantity: { min: 1, max: 1 }, 
+        equipmentSlot: 'armor', 
+        attributes: { cooldownReduction: 5 } 
+    },
+    'Súng lục Laser': { 
+        description: 'item_laser_revolver_desc', 
+        emoji: '🔫', 
+        category: 'Weapon', 
+        tier: 3, 
+        effects: [], 
+        baseQuantity: { min: 1, max: 1 }, 
+        equipmentSlot: 'weapon', 
+        attributes: { physicalAttack: 8, critChance: 5 } 
+    },
+    'Giáo San hô': { 
+        description: 'item_coral_spear_desc', 
+        emoji: '🔱', 
+        category: 'Weapon', 
+        tier: 2, 
+        effects: [], 
+        baseQuantity: { min: 1, max: 1 }, 
+        equipmentSlot: 'weapon', 
+        attributes: { physicalAttack: 5 } 
+    },
+    'Chảo của Jiafei': {
+        description: 'item_jiafei_pan_desc',
+        emoji: '🍳',
+        category: 'Weapon',
+        tier: 2,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 },
+        attributes: { physicalAttack: 5, critChance: 2 },
+        equipmentSlot: 'weapon',
+    }
 };

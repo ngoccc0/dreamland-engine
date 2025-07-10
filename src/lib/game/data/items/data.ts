@@ -17,14 +17,6 @@ export const dataItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
-    'Mũi Tên Cũ': {
-        description: 'item_mui_ten_cu_desc',
-        tier: 1,
-        category: 'Material',
-        emoji: '🏹',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
-    },
     'Mảnh Gốm Cổ': {
         description: 'item_manh_gom_co_desc',
         tier: 2,
@@ -50,13 +42,76 @@ export const dataItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
-    'Túi Trứng Nhện': {
-        description: 'item_tui_trung_nhen_desc',
-        tier: 3,
-        category: 'Material',
-        subCategory: 'Misc',
-        emoji: '🥚',
+    'Hồ Sơ Vụ Án': {
+        description: 'item_case_file_desc',
+        emoji: '📂',
+        category: 'Data',
+        tier: 1,
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+    },
+    'Nhật ký Kỹ sư': {
+        description: 'item_engineer_log_desc',
+        emoji: '📋',
+        category: 'Data',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 },
+    },
+    'Trang Nhật ký Bị xé': {
+        description: 'item_torn_diary_page_desc',
+        emoji: '📄',
+        category: 'Data',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 },
+    },
+    'Chip Tiền thưởng': {
+        description: 'item_bounty_puck_desc',
+        emoji: '💿',
+        category: 'Data',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 },
+    },
+    'Mảnh Bia đá Cổ': {
+        description: 'item_ancient_tablet_fragment_desc',
+        emoji: '📜',
+        category: 'Data',
+        tier: 3,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 },
+    },
+    'Nhật Ký Của Người Sống Sót': {
+        description: 'item_survivor_diary_desc',
+        emoji: '📔',
+        category: 'Data',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 },
+    },
+    'Sách Phép Cơ Bản': {
+        description: 'item_tome_of_cantrips_desc',
+        emoji: '📕',
+        category: 'Data',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 },
+    },
+    'Chủ đề Stan Twitter': {
+        description: 'item_stan_twitter_thread_desc',
+        emoji: '📜',
+        category: 'Data',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 },
+    },
+    'Phiếu giảm giá Onika Burger': {
+        description: 'item_onika_burger_coupon_desc',
+        emoji: '🎟️',
+        category: 'Data',
+        tier: 1,
+        effects: [],
+        baseQuantity: { min: 1, max: 1 },
     },
 };

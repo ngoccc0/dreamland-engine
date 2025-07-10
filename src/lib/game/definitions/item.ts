@@ -4,8 +4,9 @@ import type { EquipmentSlot, ItemCategory, PlayerAttributes, SpawnConditions, Te
 
 // The effect an item can have when used.
 export const ItemEffectSchema = z.object({
-    type: z.enum(['HEAL', 'RESTORE_STAMINA', 'RESTORE_MANA']),
+    type: z.enum(['HEAL', 'RESTORE_STAMINA', 'RESTORE_MANA', 'REDUCE_HEAT', 'MANA_REGEN_BOOST', 'PROVIDE_LIGHT', 'CURE_POISON', 'POISON_RESISTANCE', 'REST_BOOST', 'COLD_RESISTANCE', 'HEAT_RESISTANCE', 'STEALTH_BOOST', 'INVENTORY_SLOTS', 'TEMPERATURE_STABILITY_BOOST', 'FOOD_PRESERVATION_BOOST', 'EXPLORATION_ASSIST']),
     amount: z.number(),
+    duration: z.number().optional().describe("Duration of the effect in game turns, if applicable."),
 });
 export type ItemEffect = z.infer<typeof ItemEffectSchema>;
 

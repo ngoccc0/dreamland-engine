@@ -2,6 +2,7 @@
 
 import { structureDefinitions } from "../structures";
 import type { TranslationKey } from "@/lib/i18n";
+import { naturePlusForestEnemies } from "./modded/nature_plus";
 
 export const forest_vi = {
     descriptionTemplates: {
@@ -50,6 +51,9 @@ export const forest_vi = {
         { name: 'Dây Gai', conditions: { vegetationDensity: { min: 5 }, chance: 0.3 } },
         { name: 'Lá cây lớn', conditions: { vegetationDensity: { min: 6 }, chance: 0.4 } },
         { name: 'Cành Cây Chắc Chắn', conditions: { chance: 0.5 } },
+        { name: 'Lõi Gỗ Rỗng', conditions: { chance: 0.15, humidity: { min: 4 } } },
+        { name: 'Rễ Cây Ma Thuật', conditions: { chance: 0.05, humidity: { min: 6 }, timeOfDay: 'night' } },
+
     ],
     structures: [
          { 
@@ -78,7 +82,6 @@ export const forest_vi = {
                         { name: 'Cành Cây Chắc Chắn', chance: 1.0, quantity: { min: 3, max: 6 } },
                     ]
                 },
-                senseEffect: { keywords: ['woody', 'tall', 'rustling'] },
             },
             conditions: { chance: 0.7, vegetationDensity: { min: 3 } }
         },
@@ -87,38 +90,10 @@ export const forest_vi = {
         { data: { type: 'Heo Rừng', emoji: '🐗', hp: 50, damage: 8, behavior: 'defensive', size: 'medium', diet: ['Quả Mọng Ăn Được', 'Rễ Cây Hiếm'], satiation: 0, maxSatiation: 3, loot: [{name: 'Thịt Heo Rừng', chance: 0.8, quantity: {min: 1, max: 2}}, {name: 'Da Heo Rừng', chance: 0.2, quantity: {min: 1, max: 1}}] }, conditions: { predatorPresence: { min: 4 }, chance: 0.25 } },
         { data: { type: 'Yêu Tinh Rừng', emoji: '👺', hp: 25, damage: 8, behavior: 'territorial', size: 'small', diet: ['Thịt Thỏ', 'Nấm Độc'], satiation: 0, maxSatiation: 3, loot: [{name: 'Tai Yêu Tinh', chance: 0.5, quantity: {min: 1, max: 1}}, {name: 'Mũi Tên Cũ', chance: 0.05, quantity: {min: 1, max: 1}}, {name: 'Sỏi', chance: 0.2, quantity: {min: 1, max: 3}}] }, conditions: { dangerLevel: { min: 5 }, humanPresence: { min: 1 }, chance: 0.2 } },
         { data: { type: 'Gấu', emoji: '🐻', hp: 80, damage: 20, behavior: 'territorial', size: 'large', diet: ['Heo Rừng', 'Cá sấu'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Gấu', chance: 0.5, quantity: {min: 1, max: 1}}, {name: 'Móng Vuốt Gấu', chance: 0.3, quantity: {min: 2, max: 4}}] }, conditions: { predatorPresence: { min: 8 }, dangerLevel: { min: 7 }, chance: 0.08 } },
-        { 
-            data: { 
-                type: 'Sói Bóng Đêm',
-                emoji: '🐺🌑',
-                hp: 45,
-                damage: 15,
-                behavior: 'aggressive',
-                size: 'medium',
-                diet: ['Heo Rừng', 'Thỏ hoang hung dữ'],
-                satiation: 0,
-                maxSatiation: 2,
-                loot: [
-                    { name: 'Lông Sói Đen', chance: 0.6, quantity: { min: 1, max: 2 } },
-                    { name: 'Thịt Sói Sống', chance: 0.8, quantity: { min: 1, max: 1 } }
-                ],
-                senseEffect: { keywords: ['silent', 'swift', 'dark'] },
-            },
-            conditions: { chance: 0.15, lightLevel: { max: -3 } }
-        },
+        ...naturePlusForestEnemies,
     ],
 };
 
 export const forest_en = {
     ...forest_vi,
-    NPCs: forest_vi.NPCs.map(npc => ({
-        ...npc,
-        data: {
-            ...npc.data,
-            name: (npc.data.name.charAt(0).toUpperCase() + npc.data.name.slice(1)).replace(/_/g, ' ') as TranslationKey
-        }
-    })),
-    items: forest_vi.items,
-    structures: forest_vi.structures,
-    enemies: forest_vi.enemies,
 };

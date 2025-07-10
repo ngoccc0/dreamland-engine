@@ -1,4 +1,5 @@
-import type { Recipe } from "./types";
+import type { Recipe } from "./definitions/recipe";
+import { naturePlusRecipes } from "./data/recipes/nature_plus";
 
 export const recipes: Record<string, Recipe> = {
     'Rìu Đá Đơn Giản': {
@@ -7,28 +8,17 @@ export const recipes: Record<string, Recipe> = {
             { 
                 name: 'Cành Cây Chắc Chắn', 
                 quantity: 1, 
-                alternatives: [
-                    { name: 'Lõi Gỗ', tier: 1 },
-                    { name: 'Mảnh Xương', tier: 3 },
-                ] 
+                relationship: { substituteFor: 'Cành Cây Chắc Chắn', quality: 1 },
             },
             { 
                 name: 'Đá Cuội', 
                 quantity: 1, 
-                alternatives: [
-                    { name: 'Đá Lửa', tier: 1 }, 
-                    { name: 'Đá Granit', tier: 1 },
-                    { name: 'Đá Sa Thạch', tier: 2 },
-                ] 
+                relationship: { substituteFor: 'Đá Cuội', quality: 1 },
             },
             { 
                 name: 'Dây Gai', 
                 quantity: 1, 
-                alternatives: [
-                    { name: 'Tơ Nhện Khổng lồ', tier: 1 },
-                    { name: 'Da Thú Nhỏ', tier: 2 },
-                    { name: 'Mảnh Vải Rách', tier: 3 },
-                ] 
+                relationship: { substituteFor: 'Dây Gai', quality: 1 },
             }
         ],
         description: 'recipe_simple_stone_axe_desc',
@@ -39,16 +29,10 @@ export const recipes: Record<string, Recipe> = {
             { 
                 name: 'Thảo Dược Chữa Lành', 
                 quantity: 1,
-                alternatives: [
-                    { name: 'Hoa Dại', tier: 3 }
-                ]
             },
             { 
                 name: 'Nước Ngầm', 
                 quantity: 1, 
-                alternatives: [
-                    { name: 'Nước Bùn', tier: 2 }
-                ] 
             }
         ],
         description: 'recipe_weak_health_potion_desc',
@@ -60,10 +44,6 @@ export const recipes: Record<string, Recipe> = {
             { 
                 name: 'Mảnh Vải Rách', 
                 quantity: 1,
-                alternatives: [
-                    { name: 'Cỏ Khô', tier: 2 },
-                    { name: 'Da Thú Nhỏ', tier: 3 },
-                ]
             },
             { name: 'Nhựa Cây Dính', quantity: 1 }
         ],
@@ -72,9 +52,9 @@ export const recipes: Record<string, Recipe> = {
     'Thuyền Phao': {
         result: { name: 'Thuyền Phao', quantity: 1, emoji: '🛶' },
         ingredients: [
-            { name: 'Da Gấu', quantity: 1, alternatives: [{name: 'Da Cá Sấu', tier: 1}] },
+            { name: 'Da Gấu', quantity: 1 },
             { name: 'Lõi Gỗ', quantity: 5 },
-            { name: 'Dây Gai', quantity: 10, alternatives: [{name: 'Tơ Nhện Khổng lồ', tier: 1}] }
+            { name: 'Dây Gai', quantity: 10 }
         ],
         description: 'recipe_inflatable_raft_desc',
     },
@@ -90,7 +70,7 @@ export const recipes: Record<string, Recipe> = {
         result: { name: 'Khiên Gỗ', quantity: 1, emoji: '🛡️' },
         ingredients: [
             { name: 'Lõi Gỗ', quantity: 4 },
-            { name: 'Da Heo Rừng', quantity: 1, alternatives: [{ name: 'Da Gấu', tier: 1 }] }
+            { name: 'Da Heo Rừng', quantity: 1 }
         ],
         description: 'recipe_wooden_shield_desc',
     },
@@ -115,7 +95,7 @@ export const recipes: Record<string, Recipe> = {
         result: { name: 'Giáo Xương', quantity: 1, emoji: '🔱' },
         ingredients: [
             { name: 'Lõi Gỗ', quantity: 1 },
-            { name: 'Nanh Sói', quantity: 1, alternatives: [{ name: 'Móng Vuốt Gấu', tier: 1 }, { name: 'Răng Cá Sấu', tier: 2 }] },
+            { name: 'Nanh Sói', quantity: 1 },
             { name: 'Dây Gai', quantity: 2 }
         ],
         description: 'recipe_bone_spear_desc',
@@ -182,4 +162,5 @@ export const recipes: Record<string, Recipe> = {
         ],
         description: 'recipe_dwarven_hammer_desc',
     },
+    ...naturePlusRecipes,
 };

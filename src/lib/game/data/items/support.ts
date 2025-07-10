@@ -126,4 +126,20 @@ export const supportItems: Record<string, ItemDefinition> = {
         effects: [{ type: 'RESTORE_STAMINA', amount: 50 }, { type: 'RESTORE_MANA', amount: 15 }], 
         baseQuantity: { min: 1, max: 1 } 
     },
+    'Thuốc Giải Độc Thảo Mộc': {
+        description: 'item_herbal_antidote_desc',
+        tier: 4,
+        category: 'Support',
+        emoji: '💉🌿',
+        effects: [{ type: 'CURE_POISON', amount: 100 }],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Thuốc Hồi Phục Mạnh': {
+        description: 'item_strong_recovery_potion_desc',
+        tier: 5,
+        category: 'Support',
+        emoji: '🧪❤️‍🩹',
+        effects: [{ type: 'HEAL', amount: 75 }, { type: 'RESTORE_STAMINA', amount: 75 }],
+        baseQuantity: { min: 1, max: 1 }
+    },
 };

@@ -69,4 +69,20 @@ export const magicItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
+    'Bụi Sao': {
+        description: 'item_stardust_desc',
+        tier: 4,
+        category: 'Magic',
+        emoji: '✨',
+        effects: [],
+        baseQuantity: { min: 1, max: 2 },
+    },
+    'Ectoplasm': {
+        description: 'item_ectoplasm_desc',
+        emoji: '👻',
+        category: 'Material',
+        tier: 3,
+        effects: [],
+        baseQuantity: { min: 1, max: 2 },
+    },
 };

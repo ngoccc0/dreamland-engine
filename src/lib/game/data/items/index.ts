@@ -5,6 +5,8 @@ import { materialItems } from './materials';
 import { toolItems } from './tools';
 import { equipmentItems } from './equipment';
 import { magicItems } from './magic';
+import { dataItems } from "./data";
+import { naturePlusItems } from "./modded/nature_plus";
 
 // The description field now holds a key for the i18n system.
 export const itemDefinitions: Record<string, ItemDefinition> = {
@@ -14,4 +16,6 @@ export const itemDefinitions: Record<string, ItemDefinition> = {
     ...toolItems,
     ...equipmentItems,
     ...magicItems,
+    ...dataItems,
+    ...naturePlusItems,
 };

@@ -54,6 +54,14 @@ export const foodItems: Record<string, ItemDefinition> = {
         effects: [{ type: 'RESTORE_STAMINA', amount: 20 }, { type: 'RESTORE_MANA', amount: 5 }], 
         baseQuantity: { min: 2, max: 4 } 
     },
+    'Thịt Cá Nướng': {
+        description: 'item_grilled_fish_desc',
+        tier: 2,
+        category: 'Food',
+        emoji: '🐟🔥',
+        effects: [{ type: 'HEAL', amount: 10 }, {type: 'RESTORE_STAMINA', amount: 30}],
+        baseQuantity: { min: 1, max: 1 },
+    },
 
     // --- COOKED FOODS (Higher recovery) ---
     'Thịt Nướng': {

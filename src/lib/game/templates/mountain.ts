@@ -1,6 +1,7 @@
 
 
 import { structureDefinitions } from "../structures";
+import { naturePlusMountainEnemies } from "./modded/nature_plus";
 
 export const mountain_vi = {
     descriptionTemplates: {
@@ -50,53 +51,35 @@ export const mountain_vi = {
         },
     ],
     enemies: [
+        {
+            data: {
+                type: 'Cây Gỗ Núi',
+                emoji: '🌲',
+                hp: 40,
+                damage: 0,
+                behavior: 'immobile',
+                size: 'large',
+                diet: [],
+                satiation: 0,
+                maxSatiation: 0,
+                harvestable: {
+                    difficulty: 2,
+                    requiredTool: 'Rìu Đá Đơn Giản',
+                    loot: [
+                        { name: 'Lõi Gỗ', chance: 1.0, quantity: { min: 3, max: 5 } },
+                    ]
+                },
+            },
+            conditions: { chance: 0.6, elevation: { min: 4 } }
+        },
         { data: { type: 'Dê núi hung hãn', emoji: '🐐', hp: 50, damage: 15, behavior: 'defensive', size: 'medium', diet: ['Cây Thuốc Núi', 'Hoa Dại'], satiation: 0, maxSatiation: 3, loot: [{name: 'Sừng Dê Núi', chance: 0.4, quantity: {min: 1, max: 2}}, {name: 'Thịt Dê Núi', chance: 0.7, quantity: {min: 1, max: 2}}] }, conditions: { elevation: { min: 7 }, chance: 0.4 } },
         { data: { type: 'Người đá', emoji: '🗿', hp: 80, damage: 10, behavior: 'defensive', size: 'large', diet: ['Quặng Sắt', 'Pha Lê Núi'], satiation: 0, maxSatiation: 1, loot: [{name: 'Lõi Người Đá', chance: 0.1, quantity: {min: 1, max: 1}}, {name: 'Đá Cuội', chance: 0.25, quantity: {min: 2, max: 3}}] }, conditions: { magicAffinity: { min: 6 }, elevation: { min: 8 }, chance: 0.2 } },
         { data: { type: 'Harpie', emoji: '🦅', hp: 45, damage: 18, behavior: 'aggressive', size: 'medium', diet: ['Dê núi hung hãn', 'Thỏ hoang hung dữ'], satiation: 0, maxSatiation: 2, loot: [{name: 'Lông Harpie', chance: 0.5, quantity: {min: 3, max: 6}}] }, conditions: { elevation: { min: 9 }, windLevel: { min: 7 }, chance: 0.25 } },
         { data: { type: 'Báo tuyết', emoji: '🐆', hp: 60, damage: 20, behavior: 'aggressive', size: 'large', diet: ['Dê núi hung hãn'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Báo Tuyết', chance: 0.3, quantity: {min: 1, max: 1}}, {name: 'Thịt Báo Tuyết', chance: 0.6, quantity: {min: 1, max: 2}}] }, conditions: { predatorPresence: { min: 7 }, temperature: { max: 3 }, chance: 0.15 } },
+        ...naturePlusMountainEnemies
     ],
 };
 
 export const mountain_en = {
-    descriptionTemplates: {
-        short: ["You are climbing an [adjective] mountainside."],
-        medium: ["You are climbing an [adjective] mountainside. The [sound] wind is strong and chilling, and the air thins. {sensory_details} {entity_report}"],
-        long: ["The sharp, [adjective] peaks pierce the [sky] sky. You smell the [smell] of cold stone and hear the wind [sound]. A [feature] flows down from above, creating a majestic but dangerous spectacle. {sensory_details} {entity_report} {surrounding_peek}"]
-    },
-    adjectives: ['treacherous', 'windswept', 'majestic', 'snow-capped', 'barren', 'lonely'],
-    features: ['cliffs', 'snowdrifts', 'caves', 'glaciers', 'outcrops', 'frozen waterfalls'],
-    sounds: ['howling', 'rockslides', 'eagle cries', 'silence', 'a distant avalanche'],
-    smells: ['cold air', 'damp rock', 'snow', 'minerals', 'crispness'],
-    sky: ['deep blue', 'grey', 'crystal clear'],
-    NPCs: [
-        { 
-            data: { name: 'Old Miner', description: 'A sturdy dwarf with a neatly braided beard, holding a pickaxe.', dialogueSeed: 'A grumpy miner who complains that ore veins are getting harder to find.' },
-            conditions: { humanPresence: { min: 3 }, elevation: { min: 7 }, chance: 0.1 } 
-        },
-        { 
-            data: { name: 'Griffon Rider', description: 'A warrior in shining armor, standing next to a majestic griffon creature.', dialogueSeed: 'An arrogant knight who only speaks to those they deem worthy.' },
-            conditions: { magicAffinity: { min: 6 }, elevation: { min: 9 }, chance: 0.02 } 
-        },
-    ],
-    items: mountain_vi.items,
-    structures: [
-        { 
-            data: structureDefinitions['Cửa hầm mỏ bỏ hoang'], 
-            loot: [
-                { name: 'Quặng Sắt', chance: 0.3, quantity: { min: 1, max: 2 } }, 
-                { name: 'Chìa Khóa Rỉ Sét', chance: 0.1, quantity: { min: 1, max: 1 } }
-            ],
-            conditions: { elevation: { min: 5 }, dangerLevel: { min: 6 }, chance: 0.05 } 
-        },
-        { 
-            data: structureDefinitions['Đảo Bay'],
-            conditions: { elevation: { min: 10 }, magicAffinity: { min: 8 }, chance: 0.01 } 
-        },
-    ],
-    enemies: [
-        { data: { type: 'Aggressive Mountain Goat', emoji: '🐐', hp: 50, damage: 15, behavior: 'defensive', size: 'medium', diet: ['Cây Thuốc Núi', 'Hoa Dại'], satiation: 0, maxSatiation: 3, loot: [{name: 'Sừng Dê Núi', chance: 0.4, quantity: {min: 1, max: 2}}, {name: 'Thịt Dê Núi', chance: 0.7, quantity: {min: 1, max: 2}}] }, conditions: { elevation: { min: 7 }, chance: 0.4 } },
-        { data: { type: 'Stone Golem', emoji: '🗿', hp: 80, damage: 10, behavior: 'defensive', size: 'large', diet: ['Quặng Sắt', 'Pha Lê Núi'], satiation: 0, maxSatiation: 1, loot: [{name: 'Lõi Người Đá', chance: 0.1, quantity: {min: 1, max: 1}}, {name: 'Đá Cuội', chance: 0.25, quantity: {min: 2, max: 3}}] }, conditions: { magicAffinity: { min: 6 }, elevation: { min: 8 }, chance: 0.2 } },
-        { data: { type: 'Harpy', emoji: '🦅', hp: 45, damage: 18, behavior: 'aggressive', size: 'medium', diet: ['Aggressive Mountain Goat', 'Aggressive Rabbit'], satiation: 0, maxSatiation: 2, loot: [{name: 'Lông Harpie', chance: 0.5, quantity: {min: 3, max: 6}}] }, conditions: { elevation: { min: 9 }, windLevel: { min: 7 }, chance: 0.25 } },
-        { data: { type: 'Snow Leopard', emoji: '🐆', hp: 60, damage: 20, behavior: 'aggressive', size: 'large', diet: ['Aggressive Mountain Goat'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Báo Tuyết', chance: 0.3, quantity: {min: 1, max: 1}}, {name: 'Thịt Báo Tuyết', chance: 0.6, quantity: {min: 1, max: 2}}] }, conditions: { predatorPresence: { min: 7 }, temperature: { max: 3 }, chance: 0.15 } },
-    ],
+    ...mountain_vi,
 };

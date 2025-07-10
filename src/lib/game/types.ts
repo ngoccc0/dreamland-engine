@@ -14,7 +14,7 @@ export interface Region {
 export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave" | "jungle" | "volcanic" | "wall" | "floptropica" | "tundra" | "beach" | "mesa" | "mushroom_forest" | "ocean" | "city" | "space_station" | "underwater";
 export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky' | 'metal';
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
-export type ItemCategory = 'Weapon' | 'Material' | 'Energy Source' | 'Food' | 'Data' | 'Tool' | 'Equipment' | 'Support' | 'Magic' | 'Fusion';
+export type ItemCategory = 'Weapon' | 'Material' | 'Energy Source' | 'Food' | 'Data' | 'Tool' | 'Equipment' | 'Support' | 'Magic' | 'Fusion' | 'Consumable' | 'Utility' | 'Armor';
 export type PlayerPersona = 'none' | 'explorer' | 'warrior' | 'artisan';
 export type GameMode = 'ai' | 'offline';
 export type DiceType = 'd20' | 'd12' | '2d6';
@@ -112,6 +112,8 @@ export interface PlayerAttributes {
     critChance: number;
     attackSpeed: number;
     cooldownReduction: number;
+    physicalDefense?: number;
+    magicalDefense?: number;
 }
 
 export interface Npc {
@@ -175,7 +177,7 @@ export interface Chunk {
         type: string;
         hp: number;
         damage: number;
-        behavior: 'aggressive' | 'passive' | 'defensive' | 'territorial' | 'immobile';
+        behavior: 'aggressive' | 'passive' | 'defensive' | 'territorial' | 'immobile' | 'ambush';
         size: 'small' | 'medium' | 'large';
         diet: string[]; // e.g., ['Thỏ hoang hung dữ', 'Quả Mọng Ăn Được']
         satiation: number; // Current food level
@@ -267,6 +269,9 @@ export type SpawnConditions = {
     lightLevel?: { min?: number, max?: number };
     temperature?: { min?: number, max?: number };
     soilType?: SoilType[];
+    timeOfDay?: 'day' | 'night';
+    visibility?: { min?: number, max?: number };
+    humidity?: { min?: number, max?: number };
 };
 
 export type NarrativeEntry = {
@@ -330,7 +335,7 @@ export interface GameState {
 // --- RANDOM EVENT SYSTEM ---
 
 export interface EventOutcome {
-  descriptionKey: import('./i18n').TranslationKey;
+  descriptionKey: import('../i18n').TranslationKey;
   effects: {
     hpChange?: number;
     staminaChange?: number;
@@ -342,7 +347,7 @@ export interface EventOutcome {
 }
 
 export interface RandomEvent {
-  id: import('./i18n').TranslationKey; // The ID is also the translation key for the event name
+  id: import('../i18n').TranslationKey; // The ID is also the translation key for the event name
   theme: GameTheme;
   difficulty: 'easy' | 'medium' | 'hard';
   chance?: number;
@@ -351,4 +356,16 @@ export interface RandomEvent {
   outcomes: {
     [key in import('./dice').SuccessLevel]?: EventOutcome;
   };
+}
+
+// --- MODDING ---
+export interface EnemySpawn {
+    data: Chunk['enemy'];
+    conditions: SpawnConditions;
+}
+
+export interface ModDefinition {
+    items: Record<string, ItemDefinition>;
+    recipes: Record<string, Recipe>;
+    enemies: Partial<Record<Terrain, EnemySpawn[]>>;
 }

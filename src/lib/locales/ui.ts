@@ -51,6 +51,9 @@ export const uiTranslations = {
     mainMenu: "Main Menu",
     returnToMenu: "Return to Main Menu",
     returnToMenuDesc: "Save your progress and return to the world selection screen.",
+    hudHealth: "Health",
+    hudMana: "Mana",
+    hudStamina: "Stamina",
 
     // Status Popup
     playerStatus: "Player Status",
@@ -264,6 +267,9 @@ export const uiTranslations = {
     mainMenu: "Menu chính",
     returnToMenu: "Quay lại Menu chính",
     returnToMenuDesc: "Lưu tiến trình của bạn và quay lại màn hình chọn thế giới.",
+    hudHealth: "Máu",
+    hudMana: "Mana",
+    hudStamina: "Thể lực",
 
     // Status Popup
     playerStatus: "Trạng thái người chơi",
@@ -407,7 +413,7 @@ export const uiTranslations = {
   - **Bản đồ nhỏ:** Hiển thị môi trường xung quanh bạn. Nhấp vào nó để xem bản đồ thế giới lớn hơn.
   - **Trạng thái (Biểu tượng Khiên):** Kiểm tra chỉ số, kỹ năng, trang bị, nhiệm vụ và đọc nhật ký của bạn.
   - **Hành trang (Biểu tượng Ba lô):** Quản lý vật phẩm của bạn. Nhấp vào một vật phẩm để xem bạn có thể làm gì với nó.
-  - **Chế tạo (Biểu tượng Búa):** Kết hợp các vật liệu để tạo ra các công cụ, vũ khí và vật tư mới. Hệ thống sẽ tự động sử dụng các nguyên liệu thay thế tốt nhất nếu bạn có.
+  - **Chế tạo (Biểu tượng Búa):** Kết hợp các vật liệu để tạo ra các công cụ, vũ khí và vật tư mới. Hệ thống sẽ tự động sử dụng các nguyên liệu thay thế tốt nhất mà bạn có.
   - **Xây dựng (Biểu tượng Ngôi nhà):** Xây dựng nơi trú ẩn và các công trình khác để hỗ trợ sự sinh tồn của bạn.
   - **Hợp nhất (Biểu tượng Bình thí nghiệm):** Thử nghiệm bằng cách hợp nhất 2-3 vật phẩm. Bạn có thể tạo ra thứ gì đó mạnh mẽ... hoặc chỉ là một đống rác.`,
     combatTitle: "Chiến đấu & Kỹ năng",

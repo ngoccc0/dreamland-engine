@@ -160,3 +160,123 @@ Dreamland Engine là một Progressive Web App (PWA). Bạn có thể "cài đ�
 
 Đăng nhập bằng tài khoản Google của bạn để tự động lưu tiến trình chơi game lên đám mây. Bạn có thể tiếp tục cuộc phiêu lưu của mình trên bất kỳ thiết bị nào.
 
+---
+
+## 🛠️ Hướng Dẫn Tạo Mod
+
+Hệ thống mod của Dreamland Engine được thiết kế theo hướng dữ liệu (data-driven), cho phép bạn dễ dàng thêm nội dung mới như vật phẩm, công thức, và sinh vật mà không cần sửa mã nguồn logic của game.
+
+### 1. Kiến trúc Mod
+- **Ngôn ngữ:** Tất cả các mod đều được viết bằng **TypeScript** để đảm bảo tính nhất quán và an toàn về kiểu dữ liệu.
+- **Thư mục:** Tất cả các tệp mod phải được đặt trong thư mục: `src/lib/game/mods/`.
+- **Tự động nạp:** Game engine sẽ tự động quét và nạp tất cả các mod được đăng ký trong tệp `src/lib/game/mods/index.ts`.
+
+### 2. Cách Tạo một Mod Mới
+#### Bước 1: Tạo Tệp Mod
+Tạo một tệp mới trong thư mục `src/lib/game/mods/`, ví dụ: `my_epic_mod.ts`.
+
+#### Bước 2: Định nghĩa Nội dung
+Bên trong tệp mới, bạn sẽ định nghĩa các đối tượng chứa vật phẩm, công thức, và sinh vật mới. Cấu trúc phải tuân thủ kiểu `ModDefinition`.
+
+**Ví dụ `my_epic_mod.ts`:**
+```typescript
+import type { ModDefinition, ItemDefinition, Recipe, EnemySpawn } from '@/lib/game/types';
+
+// Định nghĩa các vật phẩm mới. Bắt buộc phải có đủ các trường.
+const items: Record<string, ItemDefinition> = {
+  'Vảy Rồng': {
+    description: 'Một chiếc vảy cứng như thép, lấp lánh màu đỏ.',
+    tier: 5,
+    category: 'Material',
+    emoji: '🐉',
+    effects: [],
+    baseQuantity: { min: 1, max: 3 },
+  },
+};
+
+// Định nghĩa các công thức chế tạo mới
+const recipes: Record<string, Recipe> = {
+  'Giáo Răng Rồng': {
+    result: { name: 'Giáo Răng Rồng', quantity: 1, emoji: '🔱' },
+    ingredients: [
+      { name: 'Răng Rồng', quantity: 1 }, // Giả sử 'Răng Rồng' đã tồn tại
+      { name: 'Lõi Gỗ', quantity: 2 },
+    ],
+    description: 'Chế tạo một ngọn giáo mạnh mẽ từ Răng Rồng.',
+  }
+};
+
+// Định nghĩa các sinh vật mới và điều kiện xuất hiện của chúng
+const enemies: Partial<Record<"forest" | "mountain", EnemySpawn[]>> = {
+  'mountain': [
+    {
+      data: {
+        type: 'Wyvern',
+        emoji: '🐉',
+        hp: 120,
+        damage: 25,
+        behavior: 'territorial',
+        size: 'large',
+        diet: ['Dê núi hung hãn'],
+        satiation: 0,
+        maxSatiation: 2,
+        loot: [
+          { name: 'Vảy Rồng', chance: 0.5, quantity: { min: 1, max: 2 } },
+        ]
+      },
+      // Điều kiện xuất hiện: chỉ ở những ngọn núi cao và lộng gió.
+      conditions: { elevation: { min: 8 }, windLevel: { min: 6 }, chance: 0.15 }
+    }
+  ]
+};
+
+// Xuất tất cả các định nghĩa trong một đối tượng mod duy nhất
+export const mod: ModDefinition = {
+  items,
+  recipes,
+  enemies,
+};
+```
+
+#### Bước 3: Đăng ký Mod
+Mở tệp `src/lib/game/mods/index.ts` và thêm mod của bạn vào mảng `allMods`.
+
+```typescript
+import type { ModDefinition } from '@/lib/game/types';
+import { mod as exampleMod } from './example_mod';
+import { mod as myEpicMod } from './my_epic_mod'; // <- Nhập mod của bạn
+
+// Thêm mod của bạn vào mảng này
+export const allMods: ModDefinition[] = [
+  exampleMod,
+  myEpicMod, // <- Thêm vào đây
+];
+```
+
+### 3. Xác thực Dữ liệu
+Hệ thống sẽ tự động kiểm tra các tệp mod của bạn. Nếu có bất kỳ trường dữ liệu bắt buộc nào bị thiếu (ví dụ: `description`, `tier`, `category` cho vật phẩm), game sẽ không khởi động và sẽ hiển thị một thông báo lỗi chi tiết trên console của trình duyệt, chỉ rõ mod nào và trường dữ liệu nào đang bị thiếu. Điều này giúp bạn dễ dàng gỡ lỗi và đảm bảo các mod luôn ổn định.
+
+---
+
+## 📜 Nhật Ký Cập Nhật
+
+### Phiên bản 0.1.1 (10/07/2025, 9:04 SA)
+
+- **✨ [Tính năng] Hệ thống Modding:** Triển khai một kiến trúc modding hoàn toàn mới, dựa trên dữ liệu.
+  - Người dùng có thể dễ dàng thêm vật phẩm, công thức, và sinh vật mới bằng cách tạo các tệp TypeScript trong thư mục `src/lib/game/mods/` mà không cần sửa mã nguồn logic của game.
+  - Tích hợp hệ thống xác thực (validation) để kiểm tra các tệp mod, đảm bảo tính ổn định và cung cấp thông báo lỗi rõ ràng nếu có dữ liệu bị thiếu.
+- **✨ [Tính năng] Tùy chỉnh Giao diện Nâng cao:**
+  - **Chế độ Sáng/Tối:** Thêm tùy chọn chuyển đổi giữa giao diện sáng và tối trong menu Cài đặt.
+  - **Tùy chỉnh Phông chữ:** Người chơi có thể chọn giữa các phông chữ khác nhau (Literata, Inter, Monospace) và điều chỉnh kích thước chữ (Nhỏ, Vừa, Lớn) để có trải nghiệm đọc thoải mái nhất.
+- **✨ [Tính năng] Khôi phục màn hình "Mix-and-Match":** Giao diện khởi tạo thế giới đã được khôi phục lại như thiết kế ban đầu, cho phép người chơi tùy chọn và kết hợp từng yếu tố (cốt truyện, vật phẩm, nhiệm vụ...) từ 3 phương án do AI tạo ra.
+- **🎨 [Cải tiến] Giao diện Người dùng:**
+  - Tối ưu hóa bố cục màn hình chọn game và trong game trên các màn hình lớn để hiển thị thông tin một cách hợp lý và chuyên nghiệp hơn.
+  - Luồng tạo thế giới được làm nhất quán hơn, các thế giới tạo sẵn giờ cũng sẽ đi qua màn hình xác nhận lựa chọn.
+- **🐛 [Sửa lỗi] Khắc phục các lỗi nghiêm trọng:**
+  - Sửa lỗi treo game khi tải một game đã lưu do vòng lặp khởi tạo vô tận.
+  - Sửa lỗi treo game sau khi sử dụng vật phẩm do quản lý trạng thái không đúng cách.
+  - Khắc phục lỗi logic khiến game không phản hồi sau khi đánh quái hoặc thực hiện một số hành động.
+- **🐛 [Sửa lỗi] Cải thiện Logic Game:**
+  - Sửa lỗi thuật toán tạo thế giới, đảm bảo các quần xã sinh vật (biome) được tạo ra một cách logic và tuân thủ các quy tắc về "hàng xóm" (ví dụ: tuyết không thể nằm cạnh bãi biển).
+  - Khắc phục lỗi `ChunkLoadError` bằng cách thay đổi chiến lược lưu cache, đảm bảo người chơi luôn nhận được phiên bản mới nhất của ứng dụng.
+

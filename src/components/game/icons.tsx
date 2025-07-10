@@ -37,6 +37,7 @@ export {
   Menu,
   Palette,
   Type,
+  ChevronRight,
 } from 'lucide-react';
 
 

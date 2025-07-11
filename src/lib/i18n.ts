@@ -13,6 +13,7 @@ import { structureTranslations } from './locales/structures';
 import { weatherTranslations } from './locales/weather';
 import { eventTranslations } from './locales/events';
 import { skillTranslations } from './locales/skills';
+import { narrativeTranslations } from './locales/narrative';
 
 // Helper function to merge nested objects
 const mergeDeep = (target: any, source: any) => {
@@ -51,6 +52,7 @@ const modules = [
   weatherTranslations,
   eventTranslations,
   skillTranslations,
+  narrativeTranslations,
 ];
 
 let translations_en = {};
@@ -68,4 +70,4 @@ export const translations = {
 
 export type Language = keyof typeof translations;
 // This creates a union of all possible keys from both languages, ensuring type safety.
-export type TranslationKey = keyof (typeof translations)['en'] & keyof (typeof translations)['vi'];
+export type TranslationKey = keyof (typeof translations)['en'] | keyof (typeof translations)['vi'];

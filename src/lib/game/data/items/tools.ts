@@ -33,4 +33,28 @@ export const toolItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 }
     },
+    'Kính Lúp': {
+        description: 'item_magnifying_glass_desc',
+        tier: 1,
+        category: 'Tool',
+        emoji: '🔎',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+     'Máy cắt Laser': {
+        description: 'item_laser_cutter_desc',
+        tier: 3,
+        category: 'Tool',
+        emoji: '✨',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
+    'Đèn lồng Gỉ sét': {
+        description: 'item_rusty_lantern_desc',
+        tier: 1,
+        category: 'Tool',
+        emoji: '🏮',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 }
+    },
 };

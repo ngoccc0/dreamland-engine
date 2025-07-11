@@ -108,7 +108,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [], 
         baseQuantity: { min: 1, max: 1 }, 
         equipmentSlot: 'armor', 
-        attributes: { physicalDefense: 3, magicalDefense: 1 } 
+        attributes: { physicalDefense: 3 } 
     },
     'Khẩu Súng Lục Cũ': { 
         description: 'item_old_revolver_desc', 

@@ -1,6 +1,6 @@
 
 import {z} from 'zod';
-import { ItemCategorySchema, PlayerAttributesSchema, SpawnConditionsSchema } from './base';
+import { ItemCategorySchema, PlayerAttributesSchema, SpawnConditionsSchema, MultilingualTextSchema } from './base';
 
 // The effect an item can have when used.
 export const ItemEffectSchema = z.object({
@@ -27,8 +27,7 @@ export type ItemRelationship = z.infer<typeof ItemRelationshipSchema>;
 // The full definition of an item, containing all its properties.
 export const ItemDefinitionSchema = z.object({
   id: z.string().optional().describe("Unique identifier for the item, e.g., 'healingHerb'. If not provided, the key from the record will be used."),
-  name: z.object({ en: z.string(), vi: z.string() }).describe("The multilingual display name of the item."),
-  description: z.object({ en: z.string(), vi: z.string() }).describe("The multilingual description of the item."),
+  description: z.string().describe("The translation key for the item's description."),
   tier: z.number(),
   category: ItemCategorySchema,
   subCategory: z.string().optional().describe("A more specific category like 'Meat', 'Fruit', 'Potion'."),

@@ -1,20 +1,20 @@
 
 import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
-import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
+import type { GeneratedItem, Structure, Skill, WorldConcept, ItemDefinition } from '@/lib/game/types';
 
-const floptropicaItems: GeneratedItem[] = [
-    { name: { en: "Jiafei's Pan", vi: 'Chảo của Jiafei' }, description: { en: "A versatile pan, perfect for cooking up... products.", vi: "Một chiếc chảo đa năng, hoàn hảo để nấu... các sản phẩm." }, emoji: '🍳', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['floptropica'], attributes: { physicalAttack: 5, critChance: 2 } },
-    { name: { en: 'Stan Twitter Thread', vi: 'Chủ đề Stan Twitter' }, description: { en: "A printout of a legendary thread. The arguments are incomprehensible, but the passion is palpable.", vi: "Một bản in của một chủ đề huyền thoại. Các lập luận không thể hiểu được, nhưng niềm đam mê thì có thể cảm nhận được." }, emoji: '📜', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['floptropica'] },
-    { name: { en: "CupcakKe's Remix", vi: 'Bản Remix của CupcakKe' }, description: { en: "An MP3 player containing a powerful bass-boosted remix. Restores fighting spirit.", vi: "Một máy nghe nhạc MP3 chứa một bản remix tăng cường âm trầm mạnh mẽ. Phục hồi tinh thần chiến đấu." }, emoji: '🎶', category: 'Support', tier: 3, effects: [{ type: 'RESTORE_STAMINA', amount: 50 }], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['floptropica'] },
-    { name: { en: 'Yass Pill', vi: 'Viên Yass' }, description: { en: "A mysterious, glittery pill that makes you feel fabulous and restores some health.", vi: "Một viên thuốc bí ẩn, lấp lánh giúp bạn cảm thấy tuyệt vời và phục hồi một ít máu." }, emoji: '💊', category: 'Support', tier: 2, effects: [{ type: 'HEAL', amount: 30 }], baseQuantity: { min: 2, max: 2 }, spawnBiomes: ['floptropica'] },
-    { name: { en: 'Gusher', vi: 'Gusher' }, description: { en: 'A fruit snack with a liquid center. A delicacy on the island.', vi: "Một món ăn nhẹ trái cây có nhân lỏng. Một món ngon trên đảo." }, emoji: '🥤', category: 'Food', tier: 1, effects: [{ type: 'RESTORE_STAMINA', amount: 30 }], baseQuantity: { min: 1, max: 2 }, spawnBiomes: ['floptropica'] },
-    { name: { en: 'Onika Burger Coupon', vi: 'Phiếu giảm giá Onika Burger' }, description: { en: 'A coupon for a free burger at the most exclusive restaurant chain on the island.', vi: "Một phiếu giảm giá cho một chiếc bánh mì kẹp thịt miễn phí tại chuỗi nhà hàng độc quyền nhất trên đảo." }, emoji: '🎟️', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['floptropica'] },
+const floptropicaItems: ItemDefinition[] = [
+    { name: { en: "Jiafei's Pan", vi: 'Chảo của Jiafei' }, description: 'item_jiafei_pan_desc', emoji: '🍳', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, attributes: { physicalAttack: 5, critChance: 2 }, equipmentSlot: 'weapon' },
+    { name: { en: 'Stan Twitter Thread', vi: 'Chủ đề Stan Twitter' }, description: 'item_stan_twitter_thread_desc', emoji: '📜', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 } },
+    { name: { en: "CupcakKe's Remix", vi: 'Bản Remix của CupcakKe' }, description: 'item_cupcakke_remix_desc', emoji: '🎶', category: 'Support', tier: 3, effects: [{ type: 'RESTORE_STAMINA', amount: 50 }], baseQuantity: { min: 1, max: 1 } },
+    { name: { en: 'Yass Pill', vi: 'Viên Yass' }, description: 'item_yass_pill_desc', emoji: '💊', category: 'Support', tier: 2, effects: [{ type: 'HEAL', amount: 30 }], baseQuantity: { min: 2, max: 2 } },
+    { name: { en: 'Gusher', vi: 'Gusher' }, description: 'item_gusher_desc', emoji: '🥤', category: 'Food', tier: 1, effects: [{ type: 'RESTORE_STAMINA', amount: 30 }], baseQuantity: { min: 1, max: 2 } },
+    { name: { en: 'Onika Burger Coupon', vi: 'Phiếu giảm giá Onika Burger' }, description: 'item_onika_burger_coupon_desc', emoji: '🎟️', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 } },
 ];
 
 const floptropicaStructures: Structure[] = [
-    { name: { en: "Deborah's C.V.N.T. University", vi: 'Đại học C.V.N.T. của Deborah' }, description: { en: "A prestigious institution where one learns to serve and slay.", vi: "Một học viện danh tiếng nơi người ta học cách phục vụ và 'slay'." }, emoji: '🎓', providesShelter: true, buildable: false, buildCost: [], restEffect: { hp: 30, stamina: 30 }, heatValue: 1 },
-    { name: { en: "Nicki's Barbz Hospital", vi: 'Bệnh viện Barbz của Nicki' }, description: { en: "A place for when you've slayed too close to the sun.", vi: "Một nơi dành cho khi bạn đã 'slay' quá gần mặt trời." }, emoji: '🏥', providesShelter: true, buildable: false, buildCost: [], restEffect: { hp: 100, stamina: 50 }, heatValue: 0 },
-    { name: { en: "Onika Burgers", vi: "Onika Burgers" }, description: { en: "A fast food joint that only plays Nicki Minaj. The burgers are... questionable.", vi: "Một quán ăn nhanh chỉ chơi nhạc của Nicki Minaj. Bánh mì kẹp thịt... có vấn đề." }, emoji: '🍔', providesShelter: true, buildable: false, buildCost: [], restEffect: { hp: 15, stamina: 40 }, heatValue: 1 },
+    { name: { en: "Deborah's C.V.N.T. University", vi: 'Đại học C.V.N.T. của Deborah' }, description: 'structure_deborah_university_desc', emoji: '🎓', providesShelter: true, buildable: false, buildCost: [], restEffect: { hp: 30, stamina: 30 }, heatValue: 1 },
+    { name: { en: "Nicki's Barbz Hospital", vi: 'Bệnh viện Barbz của Nicki' }, description: 'structure_nicki_hospital_desc', emoji: '🏥', providesShelter: true, buildable: false, buildCost: [], restEffect: { hp: 100, stamina: 50 }, heatValue: 0 },
+    { name: { en: "Onika Burgers", vi: "Onika Burgers" }, description: 'structure_onika_burgers_desc', emoji: '🍔', providesShelter: true, buildable: false, buildCost: [], restEffect: { hp: 15, stamina: 40 }, heatValue: 1 },
 ];
 
 const skill1: Skill = { name: 'skillFireballName', description: 'skillFireballDesc', tier: 1, manaCost: 15, effect: { type: 'DAMAGE', amount: 15, target: 'ENEMY' } };
@@ -40,7 +40,7 @@ const floptropicaConcepts: WorldConcept[] = [
 ];
 
 export const floptropicaWorld: GenerateWorldSetupOutput = {
-    customItemCatalog: floptropicaItems as any,
-    customStructures: floptropicaStructures as any,
-    concepts: floptropicaConcepts as any,
+    customItemCatalog: floptropicaItems,
+    customStructures: floptropicaStructures,
+    concepts: floptropicaConcepts,
 };

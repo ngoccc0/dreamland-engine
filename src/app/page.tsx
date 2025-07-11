@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import GameLayout from '@/components/game/game-layout';
 import { WorldSetup } from '@/components/game/world-setup';
 import { SettingsPopup } from '@/components/game/settings-popup';
-import type { GameState, PlayerStatus } from '@/lib/game/types';
+import type { GameState, PlayerStatus, ItemDefinition } from '@/lib/game/types';
 import type { GenerateWorldSetupOutput } from "@/ai/flows/generate-world-setup";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -130,25 +130,29 @@ export default function Home() {
     const allCustomItems = worldSetupData.customItemCatalog || [];
 
     const customDefs = allCustomItems.reduce((acc, item) => {
-      const itemName = typeof item.name === 'object' ? item.name[language] : item.name;
-      acc[itemName] = {
-        description: typeof item.description === 'object' ? item.description[language] : item.description,
-        tier: item.tier, category: item.category, emoji: item.emoji, effects: item.effects,
-        baseQuantity: item.baseQuantity, growthConditions: item.growthConditions, equipmentSlot: item.equipmentSlot, attributes: item.attributes,
-      };
-      return acc;
-    }, {} as Record<string, any>);
+        const itemName = typeof item.name === 'object' ? item.name[language] : item.name;
+        const itemDesc = typeof item.description === 'object' ? item.description[language] : item.description;
+        acc[itemName] = {
+            description: itemDesc,
+            tier: item.tier, category: item.category, emoji: item.emoji, effects: item.effects,
+            baseQuantity: item.baseQuantity, growthConditions: item.growthConditions, equipmentSlot: item.equipmentSlot, attributes: item.attributes,
+        };
+        return acc;
+    }, {} as Record<string, Omit<ItemDefinition, 'name'>>);
 
     const initialPlayerInventory = selectedConcept.playerInventory.map(item => {
-      const def = allCustomItems.find(def => {
-          const defName = typeof def.name === 'object' ? def.name[language] : def.name;
-          return defName === item.name;
-      });
-      return {
-        ...item,
-        tier: def?.tier || 1,
-        emoji: def?.emoji || '❓'
-      };
+        const def = allCustomItems.find(def => {
+            const defName = typeof def.name === 'object' ? def.name[language] : def.name;
+            const itemName = typeof item.name === 'object' ? item.name[language] : item.name;
+            return defName === itemName;
+        });
+        const itemName = typeof item.name === 'object' ? item.name[language] : item.name;
+        return {
+            name: itemName,
+            quantity: item.quantity,
+            tier: def?.tier || 1,
+            emoji: def?.emoji || '❓'
+        };
     });
 
     const worldConceptForState: GameState['worldSetup'] = {

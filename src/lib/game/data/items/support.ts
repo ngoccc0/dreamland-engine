@@ -83,14 +83,6 @@ export const supportItems: Record<string, ItemDefinition> = {
         effects: [{ type: 'HEAL', amount: 5 }, { type: 'RESTORE_STAMINA', amount: 10 }, { type: 'RESTORE_MANA', amount: 2 }],
         baseQuantity: { min: 1, max: 1 }
     },
-    'Nước Bùn': {
-        description: 'item_nuoc_bun_desc',
-        tier: 1,
-        category: 'Material',
-        emoji: '💧',
-        effects: [],
-        baseQuantity: { min: 1, max: 1 }
-    },
     'Rượu Synth-Whiskey': { 
         description: 'item_synth_whiskey_desc', 
         emoji: '🥃', 

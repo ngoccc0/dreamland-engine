@@ -2,9 +2,9 @@
 
 import type { TranslationKey } from "../i18n";
 import type { 
-    ItemDefinition, 
+    ItemDefinition as ItemDefZod, 
     ItemEffect, 
-    Recipe, 
+    Recipe as RecipeDefZod, 
     StructureDefinition,
     BiomeDefinition,
     WeatherDefinition,
@@ -18,9 +18,7 @@ import type {
 
 // Re-export for easier access elsewhere
 export type { 
-    ItemDefinition, 
     ItemEffect, 
-    Recipe, 
     StructureDefinition,
     BiomeDefinition,
     WeatherDefinition,
@@ -30,6 +28,11 @@ export type {
     SpawnConditions,
     PlayerAttributes,
 };
+
+export const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic", "wall", "floptropica", "tundra", "beach", "mesa", "mushroom_forest", "ocean", "city", "space_station", "underwater"];
+
+export type ItemDefinition = Omit<ItemDefZod, 'spawnBiomes'> & { spawnBiomes?: Terrain[] };
+export type Recipe = Omit<RecipeDefZod, 'ingredients'> & { ingredients: RecipeIngredient[] };
 
 // Represents a contiguous region of a single biome.
 export interface Region {
@@ -280,6 +283,11 @@ export interface WorldConcept {
   playerInventory: { name: string; quantity: number }[];
   initialQuests: string[];
   startingSkill: Skill;
+}
+
+export interface RecipeIngredient {
+    name: string;
+    quantity: number;
 }
 
 // Represents the detailed result of checking a recipe, for use in the UI.

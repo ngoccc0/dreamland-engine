@@ -263,7 +263,7 @@ function generateChunkContent(
     
     const staticSpawnCandidates = template.items || [];
     const customSpawnCandidates = customItemCatalog
-        .filter(item => item.spawnBiomes.includes(chunkData.terrain as Terrain))
+        .filter(item => item.spawnBiomes && item.spawnBiomes.includes(chunkData.terrain as Terrain))
         .map(item => ({ name: item.name, conditions: { chance: 0.15 } })); 
     
     const allSpawnCandidates = [...staticSpawnCandidates, ...customSpawnCandidates];

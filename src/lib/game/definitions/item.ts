@@ -1,6 +1,7 @@
 
 import {z} from 'zod';
 import { ItemCategorySchema, PlayerAttributesSchema, SpawnConditionsSchema, MultilingualTextSchema } from './base';
+import { allTerrains } from '../types';
 
 // The effect an item can have when used.
 export const ItemEffectSchema = z.object({
@@ -54,5 +55,6 @@ export const ItemDefinitionSchema = z.object({
       chance: z.number(),
   })).optional(),
   function: z.string().optional().describe("A brief description of the item's primary purpose or function in the game."),
+  spawnBiomes: z.array(z.enum(allTerrains)).optional().describe("An array of one or more biomes where this item can naturally be found."),
 });
 export type ItemDefinition = z.infer<typeof ItemDefinitionSchema>;

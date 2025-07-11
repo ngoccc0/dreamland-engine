@@ -7,10 +7,9 @@
 
 import {z} from 'genkit';
 import type { Terrain, Language } from '@/lib/game/types';
+import { allTerrains } from '@/lib/game/types';
 
-export const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic", "wall", "floptropica", "tundra", "beach", "mesa", "mushroom_forest", "ocean", "city", "space_station", "underwater"];
-
-export const ItemCategorySchema = z.enum(['Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion']).describe("The category of the item.");
+export const ItemCategorySchema = z.enum(['Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion', 'Armor', 'Accessory', 'Consumable', 'Potion', 'Utility', 'Misc']).describe("The category of the item.");
 
 export const ItemEffectSchema = z.object({
     type: z.enum(['HEAL', 'RESTORE_STAMINA']),
@@ -193,7 +192,7 @@ export const GeneratedItemSchema = z.object({
         min: z.number().int().min(1),
         max: z.number().int().min(1)
     }).describe("The typical quantity range this item is found in."),
-    spawnBiomes: z.array(z.enum(allTerrains)).min(1).describe("An array of one or more biomes where this item can naturally be found."),
+    spawnBiomes: z.array(z.enum(allTerrains)).min(1).optional().describe("An array of one or more biomes where this item can naturally be found."),
     growthConditions: z.object({
       optimal: SpawnConditionsSchema.describe("The ideal conditions for the resource to thrive and reproduce."),
       subOptimal: SpawnConditionsSchema.describe("Conditions where the resource can survive and reproduce slowly."),
@@ -228,8 +227,9 @@ export const RecipeResultSchema = z.object({
 
 export const RecipeSchema = z.object({
     result: RecipeResultSchema,
-    ingredients: z.array(RecipeIngredientSchema).min(2).max(4).describe("A list of 2 to 4 ingredients required for the recipe."),
+    ingredients: z.array(RecipeIngredientSchema).min(1).max(5).describe("A list of 1 to 5 ingredients required for the recipe."),
     description: z.string().describe("A brief, flavorful description of what this recipe creates."),
+    requiredTool: z.string().optional().describe("The name of the tool item required to be in the player's inventory to perform this craft."),
 });
 export type Recipe = z.infer<typeof RecipeSchema>;
 

@@ -75,6 +75,8 @@ export function useGameState({ gameSlot }: GameStateProps) {
 
     useEffect(() => {
         const loadGame = async () => {
+            if (hasLoaded.current) return;
+
             // --- 1. Load persistent GLOBAL data from Firestore ---
             const firestoreItems = new Map<string, GeneratedItem>();
             const firestoreRecipes = new Map<string, Recipe>();

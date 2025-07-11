@@ -39,10 +39,13 @@ const biomeColors: Record<Terrain | 'empty', string> = {
   mesa: "bg-map-mesa",
   mushroom_forest: "bg-map-mushroom_forest",
   ocean: "bg-map-ocean",
+  city: "bg-map-city",
+  space_station: "bg-map-space_station",
+  underwater: "bg-map-underwater",
   empty: "bg-black/20",
 };
 
-const biomeIcons: Record<Exclude<Terrain, 'empty'>, React.ReactNode> = {
+const biomeIcons: Record<Exclude<Terrain, 'empty' | 'wall' | 'ocean' | 'city' | 'space_station' | 'underwater'>, React.ReactNode> = {
     forest: <span role="img" aria-label="forest">🌳</span>,
     grassland: <span role="img" aria-label="grassland">🌾</span>,
     desert: <span role="img" aria-label="desert">🏜️</span>,
@@ -52,12 +55,10 @@ const biomeIcons: Record<Exclude<Terrain, 'empty'>, React.ReactNode> = {
     jungle: <span role="img" aria-label="jungle">🦜</span>,
     volcanic: <span role="img" aria-label="volcanic">🌋</span>,
     floptropica: <span role="img" aria-label="floptropica">💅</span>,
-    wall: <span role="img" aria-label="wall">🧱</span>,
     tundra: <span role="img" aria-label="tundra">❄️</span>,
     beach: <span role="img" aria-label="beach">🏖️</span>,
     mesa: <span role="img" aria-label="mesa">🏞️</span>,
     mushroom_forest: <span role="img" aria-label="mushroom forest">🍄</span>,
-    ocean: <span role="img" aria-label="ocean">🌊</span>,
 };
 
 const MIN_ZOOM = 1;
@@ -141,7 +142,7 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
                                 
                                 const mainIcon = (chunk.structures && chunk.structures.length > 0)
                                     ? <span className={cn(currentBiomeIconSize, 'opacity-90 drop-shadow-lg')} role="img" aria-label={chunk.structures[0].name}>{chunk.structures[0].emoji}</span>
-                                    : biomeIcons[chunk.terrain as Exclude<Terrain, 'empty'>];
+                                    : (biomeIcons[chunk.terrain as keyof typeof biomeIcons] || null);
                                 
                                 return (
                                     <Popover key={chunkKey}>

@@ -84,10 +84,13 @@ const biomeColors: Record<Terrain | 'empty', string> = {
   mesa: "bg-map-mesa",
   mushroom_forest: "bg-map-mushroom_forest",
   ocean: "bg-map-ocean",
+  city: "bg-map-city",
+  space_station: "bg-map-space_station",
+  underwater: "bg-map-underwater",
   empty: "bg-map-empty",
 };
 
-const biomeIcons: Record<Exclude<Terrain, 'empty'>, React.ReactNode> = {
+const biomeIcons: Record<Exclude<Terrain, 'empty' | 'wall' | 'ocean' | 'city' | 'space_station' | 'underwater'>, React.ReactNode> = {
     forest: <span className="text-3xl opacity-80" role="img" aria-label="forest">🌳</span>,
     grassland: <span className="text-3xl opacity-80" role="img" aria-label="grassland">🌾</span>,
     desert: <span className="text-3xl opacity-80" role="img" aria-label="desert">🏜️</span>,
@@ -97,12 +100,10 @@ const biomeIcons: Record<Exclude<Terrain, 'empty'>, React.ReactNode> = {
     jungle: <span className="text-3xl opacity-80" role="img" aria-label="jungle">🦜</span>,
     volcanic: <span className="text-3xl opacity-80" role="img" aria-label="volcanic">🌋</span>,
     floptropica: <span className="text-3xl opacity-80" role="img" aria-label="floptropica">💅</span>,
-    wall: <span className="text-3xl opacity-80" role="img" aria-label="wall">🧱</span>,
     tundra: <span className="text-3xl opacity-80" role="img" aria-label="tundra">❄️</span>,
     beach: <span className="text-3xl opacity-80" role="img" aria-label="beach">🏖️</span>,
     mesa: <span className="text-3xl opacity-80" role="img" aria-label="mesa">🏞️</span>,
     mushroom_forest: <span className="text-3xl opacity-80" role="img" aria-label="mushroom forest">🍄</span>,
-    ocean: <span className="text-3xl opacity-80" role="img" aria-label="ocean">🌊</span>,
 };
 
 
@@ -135,7 +136,7 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
 
               const mainIcon = (cell.structures && cell.structures.length > 0)
                 ? <span className="text-3xl opacity-90 drop-shadow-lg" role="img" aria-label={cell.structures[0].name}>{cell.structures[0].emoji}</span>
-                : (cell.terrain !== 'empty' ? biomeIcons[cell.terrain as Exclude<Terrain, 'empty'>] : null);
+                : (biomeIcons[cell.terrain as keyof typeof biomeIcons] || null);
 
               return (
                  <Popover key={key}>

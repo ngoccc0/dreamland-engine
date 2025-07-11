@@ -302,7 +302,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_reu_xanh_desc',
         tier: 1,
         category: 'Material',
-        emoji: ' moss ',
+        emoji: '🌿',
         effects: [],
         baseQuantity: { min: 1, max: 3 }
     },

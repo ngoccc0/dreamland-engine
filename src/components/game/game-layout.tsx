@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -91,6 +90,15 @@ export default function GameLayout(props: GameLayoutProps) {
         scrollToBottom();
         focusCustomActionInput();
     };
+
+    const onCustomActionSubmit = () => {
+        if (inputValue.trim()) {
+            handleCustomAction(inputValue);
+            setInputValue("");
+        }
+        scrollToBottom();
+        focusCustomActionInput();
+    };
     
     useEffect(() => {
         scrollToBottom();
@@ -119,7 +127,12 @@ export default function GameLayout(props: GameLayoutProps) {
                 const chunk = world[chunkKey];
     
                 if (chunk) { 
-                    row.push(chunk);
+                    const isFoggy = (turn - chunk.lastVisited) > 50 && chunk.lastVisited !== 0;
+                    if (!chunk.explored || (isFoggy && !(chunk.x === playerPosition.x && chunk.y === playerPosition.y))) {
+                         row.push({ ...chunk, description: 'fog' }); // Use a special marker for fog
+                    } else {
+                        row.push(chunk);
+                    }
                 } else {
                     row.push(null);
                 }
@@ -127,7 +140,7 @@ export default function GameLayout(props: GameLayoutProps) {
             grid.push(row);
         }
         return grid;
-    }, [world, playerPosition.x, playerPosition.y, finalWorldSetup]);
+    }, [world, playerPosition.x, playerPosition.y, finalWorldSetup, turn]);
     
     const restingPlace = currentChunk?.structures?.find(s => s.restEffect);
     
@@ -141,14 +154,6 @@ export default function GameLayout(props: GameLayoutProps) {
             </div>
         );
     }
-    
-    const onCustomActionSubmit = () => {
-        if (inputValue.trim()) {
-            handleCustomAction(inputValue);
-            setInputValue("");
-            scrollToBottom();
-        }
-    };
     
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {

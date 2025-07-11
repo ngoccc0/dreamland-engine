@@ -1,5 +1,4 @@
 
-
 // src/lib/locales/gameplay.ts
 
 export const gameplayTranslations = {

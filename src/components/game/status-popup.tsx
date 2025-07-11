@@ -124,10 +124,10 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequi
                 <div className="space-y-2 text-sm bg-muted p-2 rounded-md">
                     {stats.equipment && Object.entries(stats.equipment).map(([slot, item]) => (
                     <div key={slot} className="flex justify-between items-center">
-                        <span className="capitalize text-muted-foreground">{t(slot as TranslationKey)}:</span>
+                        <span className="capitalize text-muted-foreground">{t(slot)}:</span>
                         {item ? (
                         <div className="flex items-center gap-2">
-                            <span className="font-semibold text-foreground">{item.emoji} {t(item.name as TranslationKey)}</span>
+                            <span className="font-semibold text-foreground">{item.emoji} {t(item.name)}</span>
                             <Button variant="ghost" size="sm" onClick={() => onUnequipItem(slot as EquipmentSlot)}>
                             {t('unequipItem')}
                             </Button>
@@ -179,8 +179,8 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequi
                         <div className="space-y-1">
                             {nextUnlockableSkills.map(skill => (
                                 <div key={skill.name}>
-                                    <p className="text-xs text-accent-foreground font-semibold">{t(skill.name as TranslationKey)}</p>
-                                    <p className="text-xs text-muted-foreground">({t('unlockCondition')}: {skill.unlockCondition!.count} {t(skill.unlockCondition!.type as TranslationKey)})</p>
+                                    <p className="text-xs text-accent-foreground font-semibold">{t(skill.name)}</p>
+                                    <p className="text-xs text-muted-foreground">({t('unlockCondition')}: {skill.unlockCondition!.count} {t(skill.unlockCondition!.type)})</p>
                                 </div>
                             ))}
                         </div>
@@ -197,8 +197,8 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequi
               <ul className="space-y-2">
                 {pets.map((pet, index) => (
                   <li key={index} className="p-2 bg-muted rounded-md text-muted-foreground">
-                    <div className="font-semibold text-foreground">{pet.name || t(pet.type as TranslationKey)}</div>
-                    <div className="text-xs">{t('levelLabel')} {pet.level} {t(pet.type as TranslationKey)}</div>
+                    <div className="font-semibold text-foreground">{pet.name || t(pet.type)}</div>
+                    <div className="text-xs">{t('levelLabel')} {pet.level} {t(pet.type)}</div>
                   </li>
                 ))}
               </ul>

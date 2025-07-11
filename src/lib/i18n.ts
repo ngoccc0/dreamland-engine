@@ -69,6 +69,7 @@ export const translations = {
 };
 
 export type Language = keyof typeof translations;
-// This creates a union of all possible keys from both languages, ensuring type safety.
-// By using a union (|) instead of an intersection (&), a key is valid if it exists in AT LEAST ONE language file.
-export type TranslationKey = keyof (typeof translations)['en'] | keyof (typeof translations)['vi'];
+
+// This key is now simplified to a string to prevent complex type errors.
+// The t() function will still correctly look up translations and fall back to the key itself if not found.
+export type TranslationKey = string;

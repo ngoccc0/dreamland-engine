@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -302,7 +303,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                 options={generatedData.concepts.map(c => c.worldName)}
                                 selectedIndex={selection.worldName}
                                 onSelect={(index) => setSelection(s => ({...s, worldName: index}))}
-                                renderOption={(option) => <p className="text-xl font-bold font-headline">{t(option as TranslationKey)}</p>}
+                                renderOption={(option) => <p className="text-xl font-bold font-headline">{t(option)}</p>}
                             />
                         </div>
                         <SelectionCard
@@ -311,7 +312,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                             options={generatedData.concepts.map(c => c.initialNarrative)}
                             selectedIndex={selection.initialNarrative}
                             onSelect={(index) => setSelection(s => ({...s, initialNarrative: index}))}
-                            renderOption={(option) => <ScrollArea className="h-24"><p className="text-sm italic text-muted-foreground">{t(option as TranslationKey)}</p></ScrollArea>}
+                            renderOption={(option) => <ScrollArea className="h-24"><p className="text-sm italic text-muted-foreground">{t(option)}</p></ScrollArea>}
                         />
                         <SelectionCard
                             label={t('startingBiome')}
@@ -319,7 +320,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                             options={generatedData.concepts.map(c => c.startingBiome)}
                             selectedIndex={selection.startingBiome}
                             onSelect={(index) => setSelection(s => ({...s, startingBiome: index}))}
-                            renderOption={(option) => <p className="font-semibold text-lg">{t(option as TranslationKey)}</p>}
+                            renderOption={(option) => <p className="font-semibold text-lg">{t(option)}</p>}
                         />
                          <SelectionCard
                             label={t('startingSkill')}
@@ -329,8 +330,8 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                             onSelect={(index) => setSelection(s => ({...s, startingSkill: index}))}
                             renderOption={(option: Skill) => 
                                 <div>
-                                    <p className="font-semibold">{t(option.name as TranslationKey)}</p>
-                                    <p className="text-xs text-muted-foreground">{t(option.description as TranslationKey)}</p>
+                                    <p className="font-semibold">{t(option.name)}</p>
+                                    <p className="text-xs text-muted-foreground">{t(option.description)}</p>
                                 </div>
                             }
                         />
@@ -345,7 +346,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                     {option.map((item, i) => {
                                         const allItems = [...(premadeWorlds[userInput.toLowerCase()]?.customItemCatalog || []), ...(generatedData?.customItemCatalog || [])];
                                         const def = allItems.find(d => d.name === item.name);
-                                        return <span key={i} className="flex items-center gap-1">{def?.emoji} {t(item.name as TranslationKey)} x{item.quantity}</span>
+                                        return <span key={i} className="flex items-center gap-1">{def?.emoji} {t(item.name)} x{item.quantity}</span>
                                     })}
                                 </div>
                             }
@@ -359,7 +360,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                               onSelect={(index) => setSelection(s => ({...s, initialQuests: index}))}
                               renderOption={(option: string[]) => 
                                   <ul className="space-y-1 text-sm text-muted-foreground list-disc list-inside">
-                                      {option.map((q, i) => <li key={i}>{t(q as TranslationKey)}</li>)}
+                                      {option.map((q, i) => <li key={i}>{t(q)}</li>)}
                                   </ul>
                               }
                           />

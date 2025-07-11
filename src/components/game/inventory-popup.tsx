@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -77,7 +78,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                   {items.map((item, index) => {
                     const definition = itemDefinitions[item.name];
                     const isUsableOnSelf = definition && definition.effects.length > 0;
-                    const isUsableOnEnemy = enemy && definition && t(enemy.type as TranslationKey) && enemy.diet.includes(item.name);
+                    const isUsableOnEnemy = enemy && definition && enemy.diet.includes(item.name);
                     const isEquippable = definition && definition.equipmentSlot;
                     const isInteractable = isUsableOnSelf || isUsableOnEnemy || isEquippable;
 
@@ -97,10 +98,10 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <span className="text-2xl mr-2">{item.emoji}</span>
                                         <div className="flex flex-col items-start">
-                                            <span className="text-foreground">{t(item.name as TranslationKey)}</span>
+                                            <span className="text-foreground">{t(item.name)}</span>
                                             <div className="flex items-center gap-2">
                                               <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary/10 text-primary-foreground font-semibold">{t('tier', { tier: item.tier })}</span>
-                                              {definition && definition.category && <span title={t(definition.category as TranslationKey)} className="text-xs px-1.5 py-0.5 rounded-full bg-accent/80 text-accent-foreground flex items-center gap-1">{categoryEmoji}</span>}
+                                              {definition && definition.category && <span title={t(definition.category)} className="text-xs px-1.5 py-0.5 rounded-full bg-accent/80 text-accent-foreground flex items-center gap-1">{categoryEmoji}</span>}
                                             </div>
                                         </div>
                                     </div>
@@ -110,8 +111,8 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                             
                             <DropdownMenuContent className="w-64">
                                 <DropdownMenuLabel className="font-normal">
-                                    <p className="font-bold">{item.emoji} {t(item.name as TranslationKey)}</p>
-                                    <p className="text-xs text-muted-foreground whitespace-normal">{t(definition?.description as TranslationKey)}</p>
+                                    <p className="font-bold">{item.emoji} {t(item.name)}</p>
+                                    <p className="text-xs text-muted-foreground whitespace-normal">{t(definition?.description)}</p>
                                 </DropdownMenuLabel>
                                 
                                 {isInteractable && (
@@ -147,7 +148,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
 
                                     <DropdownMenuSeparator />
                                     {isUsableOnSelf && <DropdownMenuItem onClick={() => handleAction(() => onUseItem(item.name, 'player'))}>{t('useOnSelf')}</DropdownMenuItem>}
-                                    {isUsableOnEnemy && <DropdownMenuItem onClick={() => handleAction(() => onUseItem(item.name, enemy!.type))}>{t('useOnTarget', { target: t(enemy!.type as TranslationKey) })}</DropdownMenuItem>}
+                                    {isUsableOnEnemy && <DropdownMenuItem onClick={() => handleAction(() => onUseItem(item.name, enemy!.type))}>{t('useOnTarget', { target: t(enemy!.type) })}</DropdownMenuItem>}
                                     {isEquippable && <DropdownMenuItem onClick={() => handleAction(() => onEquipItem(item.name))}>{t('equipItem')}</DropdownMenuItem>}
                                   </>
                                 )}

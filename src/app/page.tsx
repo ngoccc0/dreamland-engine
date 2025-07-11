@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -283,7 +284,7 @@ export default function Home() {
                    {slot ? (
                      <>
                         <div className="flex-grow space-y-4">
-                            <CardTitle className="truncate">{t(slot.worldSetup.worldName as TranslationKey)}</CardTitle>
+                            <CardTitle className="truncate">{t(slot.worldSetup.worldName)}</CardTitle>
                             <CardDescription>{t('dayX_time', { day: slot.day, time: getGameTimeAsString(slot.gameTime ?? 360) })}</CardDescription>
 
                             <Separator />
@@ -295,7 +296,7 @@ export default function Home() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <User className="h-4 w-4 text-primary" />
-                                    <span>{t(slot.playerStats.persona as TranslationKey)}</span>
+                                    <span>{t(slot.playerStats.persona)}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Backpack className="h-4 w-4 text-primary" />
@@ -324,7 +325,7 @@ export default function Home() {
                                  <AlertDialogTitle>{t('confirmDeleteTitle')}</AlertDialogTitle>
                                  <AlertDialogDescription>
                                    {slot.worldSetup?.worldName
-                                     ? t('confirmDeleteDesc', { worldName: t(slot.worldSetup.worldName as TranslationKey) })
+                                     ? t('confirmDeleteDesc', { worldName: t(slot.worldSetup.worldName) })
                                      : t('confirmDeleteDescGeneric')
                                    }
                                  </AlertDialogDescription>

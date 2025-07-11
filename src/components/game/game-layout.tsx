@@ -64,7 +64,6 @@ export default function GameLayout(props: GameLayoutProps) {
         handleUnequipItem,
         handleReturnToMenu,
         handleHarvest,
-        handleAttack,
         narrativeContainerRef,
     } = useGameEngine(props);
 
@@ -162,7 +161,7 @@ export default function GameLayout(props: GameLayoutProps) {
                 {/* Left Panel: Narrative */}
                 <div className="w-full md:flex-1 flex flex-col md:overflow-hidden">
                     <header className="p-4 border-b flex-shrink-0 flex justify-between items-center">
-                        <h1 className="text-2xl font-bold font-headline">{t(finalWorldSetup.worldName as TranslationKey)}</h1>
+                        <h1 className="text-2xl font-bold font-headline">{t(finalWorldSetup.worldName)}</h1>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon">
@@ -258,12 +257,12 @@ export default function GameLayout(props: GameLayoutProps) {
                                     {playerStats.skills?.map((skill) => (
                                         <Tooltip key={skill.name}>
                                             <TooltipTrigger asChild>
-                                                <Button variant="secondary" className="w-full justify-center text-xs" onClick={() => { handleUseSkill(t(skill.name as TranslationKey)); focusCustomActionInput(); }} disabled={isLoading || playerStats.mana < skill.manaCost}>
+                                                <Button variant="secondary" className="w-full justify-center text-xs" onClick={() => { handleUseSkill(t(skill.name)); focusCustomActionInput(); }} disabled={isLoading || playerStats.mana < skill.manaCost}>
                                                     <WandSparkles className="mr-2 h-3 w-3" />
-                                                    {t(skill.name as TranslationKey)} ({skill.manaCost} MP)
+                                                    {t(skill.name)} ({skill.manaCost} MP)
                                                 </Button>
                                             </TooltipTrigger>
-                                            <TooltipContent><p>{t(skill.description as TranslationKey)}</p><p className="text-muted-foreground">{t('manaCost')}: {skill.manaCost}</p></TooltipContent>
+                                            <TooltipContent><p>{t(skill.description)}</p><p className="text-muted-foreground">{t('manaCost')}: {skill.manaCost}</p></TooltipContent>
                                         </Tooltip>
                                     ))}
                                 </div>
@@ -288,7 +287,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         {restingPlace && (
                             <><div className="space-y-2">
                                 <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('structureActions')}</h2>
-                                <Tooltip><TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => { handleRest(); focusCustomActionInput(); }} disabled={isLoading}><BedDouble className="mr-2 h-4 w-4" />{t('rest')}</Button></TooltipTrigger><TooltipContent><p>{t('restTooltip', { shelterName: t(restingPlace.name as TranslationKey), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => { handleRest(); focusCustomActionInput(); }} disabled={isLoading}><BedDouble className="mr-2 h-4 w-4" />{t('rest')}</Button></TooltipTrigger><TooltipContent><p>{t('restTooltip', { shelterName: t(restingPlace.name), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent></Tooltip>
                             </div><Separator /></>
                         )}
                         

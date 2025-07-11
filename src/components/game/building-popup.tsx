@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -52,9 +53,9 @@ export function BuildingPopup({ open, onOpenChange, playerItems, buildableStruct
                   <div className="flex-grow">
                     <h4 className="font-bold text-lg text-foreground flex items-center gap-2">
                       <span className="text-2xl">{structure.emoji}</span>
-                      {t(structure.name as TranslationKey)}
+                      {t(structure.name)}
                     </h4>
-                    <p className="text-sm text-muted-foreground italic mb-2">{t(structure.description as TranslationKey)}</p>
+                    <p className="text-sm text-muted-foreground italic mb-2">{t(structure.description)}</p>
                     <div className="text-sm">
                       <span className="font-semibold">{t('materialsNeeded')}:</span>
                       {structure.buildCost && structure.buildCost.length > 0 ? (
@@ -64,7 +65,7 @@ export function BuildingPopup({ open, onOpenChange, playerItems, buildableStruct
                             const hasEnough = playerQty >= cost.quantity;
                             return (
                               <li key={cost.name} className={hasEnough ? 'text-green-400' : 'text-red-400'}>
-                                {t(cost.name as TranslationKey)} ({playerQty}/{cost.quantity})
+                                {t(cost.name)} ({playerQty}/{cost.quantity})
                               </li>
                             );
                           })}
@@ -84,7 +85,7 @@ export function BuildingPopup({ open, onOpenChange, playerItems, buildableStruct
                         </div>
                       </TooltipTrigger>
                       <TooltipContent>
-                        {buildable ? <p>{t('buildStructure', { structureName: t(structure.name as TranslationKey) })}</p> : <p>{t('notEnoughIngredients')}</p>}
+                        {buildable ? <p>{t('buildStructure', { structureName: t(structure.name) })}</p> : <p>{t('notEnoughIngredients')}</p>}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

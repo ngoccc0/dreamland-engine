@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogPortal } from "@/components/ui/dialog";
@@ -47,7 +48,7 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
                   <div className="flex-grow">
                     <h4 className="font-bold text-lg text-foreground flex items-center gap-2">
                       <span className="text-2xl">{recipe.result.emoji}</span>
-                      {t(recipe.result.name as TranslationKey)}
+                      {t(recipe.result.name)}
                     </h4>
                     <p className="text-sm text-muted-foreground italic mb-2">{t(recipe.description as TranslationKey)}</p>
                     <div className="text-sm space-y-1">
@@ -69,11 +70,11 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <li className={itemClass}>
-                                      {itemToShow ? t(itemToShow.name as TranslationKey) : t(requirement.name as TranslationKey)} ({playerQty}/{requirement.quantity})
+                                      {itemToShow ? t(itemToShow.name) : t(requirement.name)} ({playerQty}/{requirement.quantity})
                                     </li>
                                   </TooltipTrigger>
                                   <TooltipContent>
-                                    <p>{t(itemDefinitions[requirement.name]?.description as TranslationKey)}</p>
+                                    <p>{t(itemDefinitions[requirement.name]?.description)}</p>
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
@@ -84,7 +85,7 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
                        {recipe.requiredTool && (
                         <div>
                            <span className={cn("font-semibold", hasRequiredTool ? 'text-green-400' : 'text-red-400')}>
-                             {t('requiredTool')}: {t(recipe.requiredTool as TranslationKey)}
+                             {t('requiredTool')}: {t(recipe.requiredTool)}
                            </span>
                         </div>
                        )}

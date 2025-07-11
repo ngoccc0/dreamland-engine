@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -65,7 +66,6 @@ export default function GameLayout(props: GameLayoutProps) {
         handleHarvest,
         handleAttack,
         narrativeContainerRef,
-        scrollToBottom
     } = useGameEngine(props);
 
     const [isStatusOpen, setStatusOpen] = useState(false);
@@ -87,7 +87,6 @@ export default function GameLayout(props: GameLayoutProps) {
 
     const handleActionClick = (actionId: number) => {
         handleAction(actionId);
-        scrollToBottom();
         focusCustomActionInput();
     };
 
@@ -96,14 +95,9 @@ export default function GameLayout(props: GameLayoutProps) {
             handleCustomAction(inputValue);
             setInputValue("");
         }
-        scrollToBottom();
         focusCustomActionInput();
     };
     
-    useEffect(() => {
-        scrollToBottom();
-    }, [narrativeLog, scrollToBottom]);
-
     useEffect(() => {
         const promptShown = localStorage.getItem('pwaInstallPromptShown');
         if (!promptShown) {
@@ -176,11 +170,11 @@ export default function GameLayout(props: GameLayoutProps) {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => { setTutorialOpen(true); scrollToBottom(); focusCustomActionInput(); }}>
+                                <DropdownMenuItem onClick={() => { setTutorialOpen(true); focusCustomActionInput(); }}>
                                     <LifeBuoy className="mr-2 h-4 w-4" />
                                     <span>{t('tutorialTitle')}</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => { setSettingsOpen(true); scrollToBottom(); focusCustomActionInput(); }}>
+                                <DropdownMenuItem onClick={() => { setSettingsOpen(true); focusCustomActionInput(); }}>
                                     <Settings className="mr-2 h-4 w-4" />
                                     <span>{t('gameSettings')}</span>
                                 </DropdownMenuItem>
@@ -243,7 +237,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         {/* Minimap */}
                         <div>
                             <div className="flex flex-col items-center gap-2 mb-4">
-                                <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); scrollToBottom(); focusCustomActionInput(); }}>{t('minimap')}</h3>
+                                <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); focusCustomActionInput(); }}>{t('minimap')}</h3>
                                 <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
                                     <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
                                     <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
@@ -257,14 +251,14 @@ export default function GameLayout(props: GameLayoutProps) {
                     <div className="flex flex-col gap-4 flex-grow">
                         {/* Controls and Skills */}
                         <div className="flex flex-col md:flex-row md:justify-around md:items-start md:gap-x-6 gap-y-4">
-                            <Controls onMove={(dir) => { handleMove(dir); scrollToBottom(); focusCustomActionInput(); }} onAttack={() => { handleAttack(); scrollToBottom(); focusCustomActionInput(); }} />
+                            <Controls onMove={(dir) => { handleMove(dir); focusCustomActionInput(); }} onAttack={() => { handleAttack(); focusCustomActionInput(); }} />
                              <div className="flex flex-col space-y-2 w-full md:max-w-xs">
                                 <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('skills')}</h3>
                                 <div className="grid grid-cols-2 gap-2">
                                     {playerStats.skills?.map((skill) => (
                                         <Tooltip key={skill.name}>
                                             <TooltipTrigger asChild>
-                                                <Button variant="secondary" className="w-full justify-center text-xs" onClick={() => { handleUseSkill(t(skill.name as TranslationKey)); scrollToBottom(); focusCustomActionInput(); }} disabled={isLoading || playerStats.mana < skill.manaCost}>
+                                                <Button variant="secondary" className="w-full justify-center text-xs" onClick={() => { handleUseSkill(t(skill.name as TranslationKey)); focusCustomActionInput(); }} disabled={isLoading || playerStats.mana < skill.manaCost}>
                                                     <WandSparkles className="mr-2 h-3 w-3" />
                                                     {t(skill.name as TranslationKey)} ({skill.manaCost} MP)
                                                 </Button>
@@ -280,11 +274,11 @@ export default function GameLayout(props: GameLayoutProps) {
                         <div className="space-y-2">
                             <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('mainActions')}</h3>
                             <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setStatusOpen(true); scrollToBottom(); focusCustomActionInput(); }}><Shield /></Button></TooltipTrigger><TooltipContent><p>{t('statusTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setInventoryOpen(true); scrollToBottom(); focusCustomActionInput(); }}><Backpack /></Button></TooltipTrigger><TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setCraftingOpen(true); scrollToBottom(); focusCustomActionInput(); }}><Hammer /></Button></TooltipTrigger><TooltipContent><p>{t('craftingTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setBuildingOpen(true); scrollToBottom(); focusCustomActionInput(); }}><Home /></Button></TooltipTrigger><TooltipContent><p>{t('buildingTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setFusionOpen(true); scrollToBottom(); focusCustomActionInput(); }}><FlaskConical /></Button></TooltipTrigger><TooltipContent><p>{t('fusionTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setStatusOpen(true); focusCustomActionInput(); }}><Shield /></Button></TooltipTrigger><TooltipContent><p>{t('statusTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setInventoryOpen(true); focusCustomActionInput(); }}><Backpack /></Button></TooltipTrigger><TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setCraftingOpen(true); focusCustomActionInput(); }}><Hammer /></Button></TooltipTrigger><TooltipContent><p>{t('craftingTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setBuildingOpen(true); focusCustomActionInput(); }}><Home /></Button></TooltipTrigger><TooltipContent><p>{t('buildingTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setFusionOpen(true); focusCustomActionInput(); }}><FlaskConical /></Button></TooltipTrigger><TooltipContent><p>{t('fusionTooltip')}</p></TooltipContent></Tooltip>
                             </div>
                         </div>
                         
@@ -294,7 +288,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         {restingPlace && (
                             <><div className="space-y-2">
                                 <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('structureActions')}</h2>
-                                <Tooltip><TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => { handleRest(); scrollToBottom(); focusCustomActionInput(); }} disabled={isLoading}><BedDouble className="mr-2 h-4 w-4" />{t('rest')}</Button></TooltipTrigger><TooltipContent><p>{t('restTooltip', { shelterName: t(restingPlace.name as TranslationKey), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => { handleRest(); focusCustomActionInput(); }} disabled={isLoading}><BedDouble className="mr-2 h-4 w-4" />{t('rest')}</Button></TooltipTrigger><TooltipContent><p>{t('restTooltip', { shelterName: t(restingPlace.name as TranslationKey), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent></Tooltip>
                             </div><Separator /></>
                         )}
                         

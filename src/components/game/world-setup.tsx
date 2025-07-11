@@ -164,7 +164,14 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         setIsPremade(false);
 
         try {
-            const result = await generateWorldSetup({ userInput, language });
+            const timeoutPromise = new Promise<GenerateWorldSetupOutput>((_, reject) =>
+                setTimeout(() => reject(new Error("AI generation timed out after 30 seconds.")), 30000)
+            );
+
+            const generationPromise = generateWorldSetup({ userInput, language });
+            
+            const result = await Promise.race([generationPromise, timeoutPromise]);
+            
             setGeneratedData(result);
         } catch (error) {
             console.error("Failed to generate world:", error);

@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -47,6 +48,7 @@ export default function GameLayout(props: GameLayoutProps) {
         customItemDefinitions,
         currentChunk,
         turn,
+        isLoaded, // <-- Added isLoaded state
         handleMove,
         handleAction,
         handleCustomAction,
@@ -121,33 +123,13 @@ export default function GameLayout(props: GameLayoutProps) {
     }, [world, playerPosition.x, playerPosition.y, finalWorldSetup]);
     
     const restingPlace = currentChunk?.structures?.find(s => s.restEffect);
-
-    // Fallback UI and error logging if world setup or chunk is missing
-    const [loadError, setLoadError] = useState<string | null>(null);
-    useEffect(() => {
-        if (!finalWorldSetup) {
-            setLoadError('World setup data is missing.');
-            console.error('World setup data is missing.');
-        } else if (!currentChunk) {
-            setLoadError('Current chunk could not be loaded.');
-            console.error('Current chunk could not be loaded. Player position:', playerPosition, 'World keys:', Object.keys(world));
-        } else {
-            setLoadError(null);
-        }
-    }, [finalWorldSetup, currentChunk, playerPosition, world]);
-
-    if (!finalWorldSetup || !currentChunk) {
+    
+    if (!isLoaded || !finalWorldSetup || !currentChunk) {
         return (
             <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
                 <div className="flex flex-col items-center gap-2 mt-4 text-muted-foreground">
                     <Loader2 className="h-5 w-5 animate-spin" />
                     <p>{t('loadingAdventure')}</p>
-                    {loadError && (
-                        <div className="mt-4 p-2 bg-destructive/10 text-destructive rounded">
-                            <span>{loadError}</span>
-                            <button className="ml-4 underline" onClick={() => window.location.reload()}>Reload</button>
-                        </div>
-                    )}
                 </div>
             </div>
         );

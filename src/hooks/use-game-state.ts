@@ -7,8 +7,8 @@ import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, Wor
 
 // Temporary type for generated items if not exported from types
 type GeneratedItem = {
-  name: { en: string; vi: string };
-  description: { en: string; vi: string };
+  name: { en: string; vi: string } | string;
+  description: { en: string; vi: string } | string;
   tier: number;
   category: string;
   emoji: string;
@@ -158,7 +158,10 @@ export function useGameState({ gameSlot }: GameStateProps) {
             }
             // --- 4. MERGE global data into the session data before setting state ---
             const finalCatalogMap = new Map<string, GeneratedItem>();
-            sessionCatalog.forEach(item => finalCatalogMap.set(item.name, item));
+            sessionCatalog.forEach(item => {
+                const nameKey = typeof item.name === 'string' ? item.name : item.name.en;
+                finalCatalogMap.set(nameKey, item);
+            });
             firestoreItems.forEach((item, name) => finalCatalogMap.set(name, item));
             const finalCatalogArray = Array.from(finalCatalogMap.values());
             
@@ -168,13 +171,22 @@ export function useGameState({ gameSlot }: GameStateProps) {
             });
 
             const finalDefs = { ...staticItemDefinitions, ...sessionDefs };
+            
             finalCatalogArray.forEach((item) => {
-                // Ensure the key is a string (en) and value is a valid ItemDefinition
                 const key = typeof item.name === 'string' ? item.name : item.name.en;
                 if (!finalDefs[key]) {
+                     // Convert multilingual description to a key if it's an object
+                    let descriptionKey: string;
+                    if (typeof item.description === 'string') {
+                        descriptionKey = item.description;
+                    } else {
+                        // Create a pseudo-key from the English description
+                        descriptionKey = `item_${item.description.en.toLowerCase().replace(/ /g, '_')}_desc`;
+                    }
+                    
                     finalDefs[key] = {
                         name: typeof item.name === 'string' ? { en: item.name, vi: item.name } : item.name,
-                        description: item.description,
+                        description: descriptionKey,
                         tier: item.tier,
                         category: item.category,
                         emoji: item.emoji,
@@ -192,19 +204,15 @@ export function useGameState({ gameSlot }: GameStateProps) {
             setCustomItemCatalog(finalCatalogArray);
             setCustomItemDefinitions(finalDefs);
             setCustomStructures(sessionStructures);
-            setBuildableStructures(staticBuildableStructures); // This was missing, ensure it's always set.
+            setBuildableStructures(staticBuildableStructures);
 
-            // IMPORTANT: Set loaded to true ONLY after all state has been set.
+            // Fallback: If no data loaded at all, still set loaded to true to avoid infinite loading
             if (!hasLoaded.current) {
                 setIsLoaded(true);
                 hasLoaded.current = true;
-            }
-
-            // Fallback: If no data loaded at all, still set loaded to true to avoid infinite loading
-            if (!loadedState && !hasLoaded.current) {
-                setIsLoaded(true);
-                hasLoaded.current = true;
-                console.warn('No game state loaded, starting with empty state.');
+                if (!loadedState) {
+                  console.warn('No game state loaded, starting with empty state.');
+                }
             }
         };
 

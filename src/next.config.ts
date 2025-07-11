@@ -14,6 +14,8 @@ const withPWA = withPWAInit({
         /^\/index\.html$/, // Exclude index.html
         /^\/manifest\.json$/, // Exclude manifest
     ],
+    // Add a 30-second timeout for network requests for debugging
+    networkTimeoutSeconds: 30,
   },
   runtimeCaching: [
     // Cache Google Fonts

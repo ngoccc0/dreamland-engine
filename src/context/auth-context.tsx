@@ -18,7 +18,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const isFirebaseConfigured = !!(auth && auth.app);
+  const isFirebaseConfigured = !!auth;
 
   useEffect(() => {
     if (!isFirebaseConfigured) {
@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [isFirebaseConfigured]);
 
   const login = async () => {
-    if (!isFirebaseConfigured) {
+    if (!isFirebaseConfigured || !auth || !googleProvider) {
         console.error("Firebase is not configured. Cannot log in.");
         return;
     }
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
-    if (!isFirebaseConfigured) {
+    if (!isFirebaseConfigured || !auth) {
         console.error("Firebase is not configured. Cannot log out.");
         return;
     }

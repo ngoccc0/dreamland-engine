@@ -9,13 +9,12 @@ import { generateNarrative, type GenerateNarrativeInput } from '@/ai/flows/gener
 import { fuseItems } from '@/ai/flows/fuse-items-flow';
 import { provideQuestHint } from '@/ai/flows/provide-quest-hint';
 import { rollDice, getSuccessLevel, successLevelToTranslationKey } from '@/lib/game/dice';
-import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchAction, ensureChunkExists } from '@/lib/game/engine';
+import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchAction, ensureChunkExists, getEffectiveChunk } from '@/lib/game/engine';
 import { getTemplates } from '@/lib/game/templates';
 import { clamp } from '@/lib/utils';
 import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem, NarrativeEntry } from '@/lib/game/types';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-config';
-import { getEffectiveChunk } from '../lib/game/engine/generation';
 import { translations } from '@/lib/i18n';
 
 type ActionHandlerDeps = {
@@ -36,7 +35,7 @@ type ActionHandlerDeps = {
   addNarrativeEntry: (text: string, type: NarrativeEntry['type']) => void;
   advanceGameTime: (stats?: PlayerStatus) => void;
   setPlayerBehaviorProfile: (fn: (prev: any) => any) => void;
-  playerPosition: { x: number; y: number };
+  playerPosition: { x: number, y: number };
   setPlayerPosition: (pos: { x: number, y: number }) => void;
   weatherZones: Record<string, any>;
   turn: number;
@@ -49,6 +48,7 @@ type ActionHandlerDeps = {
   currentSeason: GameState['currentSeason'];
   customItemCatalog: GameState['customItemCatalog'];
   customStructures: GameState['customStructures'];
+  narrativeLog: NarrativeEntry[];
 };
 
 export function useActionHandlers(deps: ActionHandlerDeps) {
@@ -56,7 +56,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     isLoaded, isLoading, isGameOver, setIsLoading, playerStats, setPlayerStats, world, setWorld, recipes, buildableStructures,
     customItemDefinitions, setCustomItemCatalog, setCustomItemDefinitions, finalWorldSetup, addNarrativeEntry, advanceGameTime,
     setPlayerBehaviorProfile, playerPosition, setPlayerPosition, weatherZones, turn, gameTime, regions, setRegions, regionCounter, setRegionCounter,
-    worldProfile, currentSeason, customItemCatalog, customStructures
+    worldProfile, currentSeason, customItemCatalog, customStructures, narrativeLog
   } = deps;
 
   const { t, language } = useLanguage();
@@ -92,8 +92,8 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     try {
         const recentNarrative = (await (async () => {
             const log = [];
-            for (let i = deps.narrativeLog.length - 1; i >= 0 && log.length < 5; i--) {
-                log.unshift(deps.narrativeLog[i].text);
+            for (let i = narrativeLog.length - 1; i >= 0 && log.length < 5; i--) {
+                log.unshift(narrativeLog[i].text);
             }
             return log;
         })());
@@ -142,7 +142,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     } finally {
         setIsLoading(false);
     }
-  }, [settings.diceType, settings.aiModel, settings.narrativeLength, addNarrativeEntry, deps.narrativeLog, language, customItemDefinitions, toast, advanceGameTime, finalWorldSetup, setIsLoading, setWorld, setCustomItemCatalog, setCustomItemDefinitions, t, setPlayerStats, weatherZones, gameTime]);
+  }, [settings.diceType, settings.aiModel, settings.narrativeLength, addNarrativeEntry, narrativeLog, language, customItemDefinitions, toast, advanceGameTime, finalWorldSetup, setIsLoading, setWorld, setCustomItemCatalog, setCustomItemDefinitions, t, weatherZones, gameTime]);
 
   const handleOfflineAttack = useCallback(() => {
     const key = `${playerPosition.x},${playerPosition.y}`;
@@ -934,7 +934,8 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     if (direction === "west") x -= 1;
     
     const nextChunkKey = `${x},${y}`;
-    const nextChunk = world[nextChunkKey];
+    let worldSnapshot = { ...world };
+    const nextChunk = worldSnapshot[nextChunkKey];
 
     if (nextChunk?.terrain === 'wall') {
         addNarrativeEntry(t('wallBlock'), 'system');
@@ -950,14 +951,15 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const actionText = t('wentDirection', { direction: t(`direction${direction}` as TranslationKey) });
     addNarrativeEntry(actionText, 'action');
     
-    let worldSnapshot = { ...world };
     let regionsSnapshot = { ...regions };
     let regionCounterSnapshot = regionCounter;
 
-    const result = ensureChunkExists({ x, y }, worldSnapshot, regionsSnapshot, regionCounterSnapshot, worldProfile, currentSeason, customItemDefinitions, customItemCatalog, customStructures, language);
-    worldSnapshot = result.worldWithChunk;
-    regionsSnapshot = result.newRegions;
-    regionCounterSnapshot = result.newRegionCounter;
+    if (!nextChunk) {
+        const result = ensureChunkExists({ x, y }, worldSnapshot, regionsSnapshot, regionCounterSnapshot, worldProfile, currentSeason, customItemDefinitions, customItemCatalog, customStructures, language);
+        worldSnapshot = result.worldWithChunk;
+        regionsSnapshot = result.newRegions;
+        regionCounterSnapshot = result.newRegionCounter;
+    }
 
     setWorld(worldSnapshot);
     setRegions(regionsSnapshot);
@@ -977,7 +979,13 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     
     advanceGameTime(newPlayerStats);
 
-  }, [isLoading, isGameOver, playerPosition, world, addNarrativeEntry, t, playerStats, setPlayerBehaviorProfile, setPlayerPosition, setWorld, setRegions, setRegionCounter, regions, regionCounter, worldProfile, currentSeason, customItemDefinitions, customItemCatalog, customStructures, language, advanceGameTime]);
+    const finalChunk = worldSnapshot[`${x},${y}`];
+    if (finalChunk) {
+      const narrative = generateOfflineNarrative(finalChunk, settings.narrativeLength, worldSnapshot, {x, y}, t);
+      addNarrativeEntry(narrative, 'narrative');
+    }
+
+  }, [isLoading, isGameOver, playerPosition, world, addNarrativeEntry, t, playerStats, setPlayerBehaviorProfile, setPlayerPosition, setWorld, setRegions, setRegionCounter, regions, regionCounter, worldProfile, currentSeason, customItemDefinitions, customItemCatalog, customStructures, language, advanceGameTime, settings.narrativeLength]);
 
   return {
     handleMove,

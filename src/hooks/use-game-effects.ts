@@ -186,13 +186,7 @@ export function useGameEffects(deps: GameEffectsDeps) {
 
   // EFFECT 1: Game Initialization (runs only once when isLoaded becomes true).
   useEffect(() => {
-    // Guard against running before the game state is fully loaded and hydrated.
-    if (!isLoaded || !finalWorldSetup) {
-        return;
-    }
-
-    // Add another guard to ensure world object is populated before proceeding.
-    if (Object.keys(world).length === 0) {
+    if (!isLoaded || !finalWorldSetup || Object.keys(world).length === 0) {
         return;
     }
 
@@ -258,19 +252,6 @@ export function useGameEffects(deps: GameEffectsDeps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, finalWorldSetup, world]);
   
-  // This effect runs after a move to describe the new location.
-  useEffect(() => {
-    if (!isLoaded || turn === 1) return; // Don't run on initial load
-
-    const currentChunk = world[ `${playerPosition.x},${playerPosition.y}`];
-    if (currentChunk) {
-        const narrative = generateOfflineNarrative(currentChunk, settings.narrativeLength, world, playerPosition, t);
-        addNarrativeEntry(narrative, 'narrative');
-    }
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playerPosition, turn]);
-
 
   // EFFECT: Check for game over.
   useEffect(() => {

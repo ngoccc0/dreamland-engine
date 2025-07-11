@@ -28,47 +28,55 @@ export function FusionPopup({ open, onOpenChange, playerItems, itemDefinitions, 
 
   const handleSelectItem = (item: PlayerItem) => {
     if (selectedItems.length >= 3) return;
-    
     // Check if we can select one more of this item
     const countInSelection = selectedItems.filter(i => i.name === item.name).length;
     if (item.quantity > countInSelection) {
-        setSelectedItems(prev => [...prev, { ...item, quantity: 1 }]);
+      setSelectedItems(prev => [...prev, { ...item, quantity: 1 }]);
     }
   };
 
   const handleRemoveItem = (index: number) => {
     setSelectedItems(prev => prev.filter((_, i) => i !== index));
   };
-  
+
   const handleFuseClick = () => {
     if (!canFuse()) return;
     onFuse(selectedItems);
     setSelectedItems([]);
     onOpenChange(false);
-  }
-  
+  };
+
   const getAvailablePlayerItems = (): PlayerItem[] => {
-      const availableMap = new Map<string, PlayerItem>();
-      playerItems.forEach(item => {
-          const selectedCount = selectedItems.filter(sel => sel.name === item.name).length;
-          if(item.quantity - selectedCount > 0) {
-              availableMap.set(item.name, { ...item, quantity: item.quantity - selectedCount });
-          }
-      });
-      return Array.from(availableMap.values());
-  }
+    const availableMap = new Map<string, PlayerItem>();
+    playerItems.forEach(item => {
+      const selectedCount = selectedItems.filter(sel => sel.name === item.name).length;
+      if (item.quantity - selectedCount > 0) {
+        availableMap.set(item.name, { ...item, quantity: item.quantity - selectedCount });
+      }
+    });
+    return Array.from(availableMap.values());
+  };
 
   const canFuse = (): boolean => {
     if (selectedItems.length < 2 || selectedItems.length > 3) return false;
     const hasTool = selectedItems.some(item => {
-        const def = itemDefinitions[item.name];
-        return def?.category === 'Tool';
+      const def = itemDefinitions[item.name];
+      return def?.category === 'Tool';
     });
     return hasTool;
   };
 
+  // Memoize the onOpenChange handler to avoid infinite update loops
+  const handleDialogOpenChange = React.useCallback(
+    (isOpen: boolean) => {
+      if (!isOpen) setSelectedItems([]);
+      onOpenChange(isOpen);
+    },
+    [onOpenChange]
+  );
+
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => { if(!isOpen) setSelectedItems([]); onOpenChange(isOpen); }}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="font-headline flex items-center gap-2">

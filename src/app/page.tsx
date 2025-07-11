@@ -124,69 +124,63 @@ export default function Home() {
   };
 
   const onWorldCreated = async (worldSetupData: GenerateWorldSetupOutput) => {
-      if (activeSlot === null) return;
-      
-      const conceptIndex = Math.floor(Math.random() * worldSetupData.concepts.length);
-      const selectedConcept = worldSetupData.concepts[conceptIndex];
-      
-      const allCustomItems = worldSetupData.customItemCatalog || [];
-      const customDefs = allCustomItems.reduce((acc, item) => {
-            acc[item.name] = {
-                description: item.description, tier: item.tier, category: item.category, emoji: item.emoji, effects: item.effects,
-                baseQuantity: item.baseQuantity, growthConditions: item.growthConditions, equipmentSlot: item.equipmentSlot, attributes: item.attributes,
-            };
-            return acc;
-        }, {} as Record<string, any>);
-        
-      const initialPlayerInventory = selectedConcept.playerInventory.map(item => ({
-          ...item,
-          tier: allCustomItems.find(def => def.name === item.name)?.tier || 1,
-          emoji: allCustomItems.find(def => def.name === item.name)?.emoji || '❓'
-      }));
-
-      const worldConceptForState: GameState['worldSetup'] = {
-        worldName: selectedConcept.worldName,
-        initialNarrative: selectedConcept.initialNarrative,
-        startingBiome: selectedConcept.startingBiome,
-        initialQuests: selectedConcept.initialQuests,
-        startingSkill: selectedConcept.startingSkill,
-        customStructures: worldSetupData.customStructures || [],
-        playerInventory: initialPlayerInventory,
+    if (activeSlot === null) return;
+    const conceptIndex = Math.floor(Math.random() * worldSetupData.concepts.length);
+    const selectedConcept = worldSetupData.concepts[conceptIndex];
+    const allCustomItems = worldSetupData.customItemCatalog || [];
+    const customDefs = allCustomItems.reduce((acc, item) => {
+      acc[item.name] = {
+        description: item.description, tier: item.tier, category: item.category, emoji: item.emoji, effects: item.effects,
+        baseQuantity: item.baseQuantity, growthConditions: item.growthConditions, equipmentSlot: item.equipmentSlot, attributes: item.attributes,
       };
-
-      const newGameState: GameState = {
-          worldSetup: worldConceptForState,
-          playerStats: {
-              hp: 100, mana: 50, stamina: 100, bodyTemperature: 37, items: initialPlayerInventory, equipment: { weapon: null, armor: null, accessory: null },
-              quests: selectedConcept.initialQuests, questsCompleted: 0, skills: selectedConcept.startingSkill ? [selectedConcept.startingSkill] : [], pets: [], persona: 'none',
-              attributes: { physicalAttack: 10, magicalAttack: 5, critChance: 5, attackSpeed: 1.0, cooldownReduction: 0 },
-              unlockProgress: { kills: 0, damageSpells: 0, moves: 0 }, journal: {}, dailyActionLog: [], questHints: {},
-          },
-          customItemCatalog: allCustomItems,
-          customItemDefinitions: customDefs,
-          customStructures: worldSetupData.customStructures || [],
-          day: 1, turn: 1, narrativeLog: [], worldProfile: { climateBase: 'temperate', magicLevel: 5, mutationFactor: 2, sunIntensity: 7, weatherTypesAllowed: ['clear', 'rain', 'fog'], moistureBias: 0, tempBias: 0, resourceDensity: 5, theme: 'Normal', },
-          currentSeason: 'spring', gameTime: 360, weatherZones: {}, world: {}, recipes: {}, buildableStructures: {}, regions: {}, regionCounter: 0,
-          playerPosition: { x: 0, y: 0 }, playerBehaviorProfile: { moves: 0, attacks: 0, crafts: 0, customActions: 0 },
-      };
-
+      return acc;
+    }, {} as Record<string, any>);
+    const initialPlayerInventory = selectedConcept.playerInventory.map(item => ({
+      ...item,
+      tier: allCustomItems.find(def => def.name === item.name)?.tier || 1,
+      emoji: allCustomItems.find(def => def.name === item.name)?.emoji || '❓'
+    }));
+    const worldConceptForState: GameState['worldSetup'] = {
+      worldName: selectedConcept.worldName,
+      initialNarrative: selectedConcept.initialNarrative,
+      startingBiome: selectedConcept.startingBiome,
+      initialQuests: selectedConcept.initialQuests,
+      startingSkill: selectedConcept.startingSkill,
+      customStructures: worldSetupData.customStructures || [],
+      playerInventory: initialPlayerInventory,
+    };
+    const newGameState: GameState = {
+      worldSetup: worldConceptForState,
+      playerStats: {
+        hp: 100, mana: 50, stamina: 100, bodyTemperature: 37, items: initialPlayerInventory, equipment: { weapon: null, armor: null, accessory: null },
+        quests: selectedConcept.initialQuests, questsCompleted: 0, skills: selectedConcept.startingSkill ? [selectedConcept.startingSkill] : [], pets: [], persona: 'none',
+        attributes: { physicalAttack: 10, magicalAttack: 5, critChance: 5, attackSpeed: 1.0, cooldownReduction: 0 },
+        unlockProgress: { kills: 0, damageSpells: 0, moves: 0 }, journal: {}, dailyActionLog: [], questHints: {},
+      },
+      customItemCatalog: allCustomItems,
+      customItemDefinitions: customDefs,
+      customStructures: worldSetupData.customStructures || [],
+      day: 1, turn: 1, narrativeLog: [], worldProfile: { climateBase: 'temperate', magicLevel: 5, mutationFactor: 2, sunIntensity: 7, weatherTypesAllowed: ['clear', 'rain', 'fog'], moistureBias: 0, tempBias: 0, resourceDensity: 5, theme: 'Normal', },
+      currentSeason: 'spring', gameTime: 360, weatherZones: {}, world: {}, recipes: {}, buildableStructures: {}, regions: {}, regionCounter: 0,
+      playerPosition: { x: 0, y: 0 }, playerBehaviorProfile: { moves: 0, attacks: 0, crafts: 0, customActions: 0 },
+    };
     try {
-        if (user && db) {
-            await setDoc(doc(db, "users", user.uid, "games", `slot_${activeSlot}`), newGameState);
-        } else {
-            localStorage.setItem(`gameState_${activeSlot}`, JSON.stringify(newGameState));
-        }
-
-        setSaveSlots(prev => {
-            const newSlots = [...prev];
-            newSlots[activeSlot!] = { worldSetup: newGameState.worldSetup, day: newGameState.day, gameTime: newGameState.gameTime, playerStats: newGameState.playerStats };
-            return newSlots;
-        });
-
-        setLoadState('continue_game');
+      // Debug: log before saving
+      console.log('Saving new game state to localStorage:', newGameState);
+      if (user && db) {
+        await setDoc(doc(db, "users", user.uid, "games", `slot_${activeSlot}`), newGameState);
+      } else {
+        localStorage.setItem(`gameState_${activeSlot}`, JSON.stringify(newGameState));
+      }
+      setSaveSlots(prev => {
+        const newSlots = [...prev];
+        newSlots[activeSlot!] = { worldSetup: newGameState.worldSetup, day: newGameState.day, gameTime: newGameState.gameTime, playerStats: newGameState.playerStats };
+        return newSlots;
+      });
+      setLoadState('continue_game');
     } catch (error) {
-        console.error("Failed to save new game state:", error);
-        toast({ title: t('worldGenError'), description: "Could not save the new world. Please try again.", variant: "destructive" });
+      console.error("Failed to save new game state:", error);
+      toast({ title: t('worldGenError'), description: "Could not save the new world. Please try again.", variant: "destructive" });
     }
   };
 

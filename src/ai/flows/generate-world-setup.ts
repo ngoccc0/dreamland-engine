@@ -30,7 +30,7 @@
 import Handlebars from 'handlebars';
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
-import type { Terrain, Skill, Structure, GeneratedItem } from '@/lib/game/types';
+import type { Terrain, Skill } from '@/lib/game/types';
 import { GeneratedItemSchema, SkillSchema, NarrativeConceptArraySchema, ItemCategorySchema, StructureSchema, allTerrains as allTerrainsSchema } from '@/ai/schemas';
 import { skillDefinitions } from '@/lib/game/skills';
 import { getEmojiForItem } from '@/lib/utils';
@@ -200,20 +200,30 @@ const generateWorldSetupFlow = ai.defineFlow(
         for (const modelName of modelsToTry) {
             try {
                 console.log(`[Task A] Attempting item catalog generation with model: ${modelName}`);
+                console.log(`[Task A] Prompt sent to model ${modelName}:`, renderedPrompt);
                 const result = await ai.generate({
                     model: modelName,
                     prompt: renderedPrompt,
                     output: { schema: ItemCatalogCreativeOutputSchema },
                 });
-                console.log(`[Task A] SUCCESS with ${modelName}. Raw AI Output:`, result.output);
+                console.log(`[Task A] SUCCESS with ${modelName}. Full AI result object:`, result);
+                if (result && result.raw) {
+                  console.log(`[Task A] Raw AI response from ${modelName}:`, result.raw);
+                }
+                if (result && result.output) {
+                  console.log(`[Task A] Parsed AI output from ${modelName}:`, result.output);
+                }
                 return result;
             } catch (error: any) {
                 const errorMessage = `Model ${modelName} failed. Reason: ${error.message || error}`;
                 console.warn(errorMessage);
+                if (error && error.raw) {
+                  console.warn(`[Task A] Raw error response from ${modelName}:`, error.raw);
+                }
                 errorLogs.push(errorMessage);
             }
         }
-        
+
         const detailedError = `All AI models failed for item catalog generation. \n\nThis is often due to an invalid API key, insufficient balance on a paid account (like OpenAI or Deepseek), or network problems. Please check your .env file and billing settings for your AI providers. \n\nIndividual model errors:\n- ${errorLogs.join('\n- ')}`;
         throw new Error(detailedError);
     })();
@@ -226,15 +236,25 @@ const generateWorldSetupFlow = ai.defineFlow(
         for (const modelName of modelsToTry) {
             try {
                 console.log(`[Task B] Attempting world name generation with model: ${modelName}`);
+                console.log(`[Task B] Prompt sent to model ${modelName}:`, renderedPrompt);
                 const result = await ai.generate({
                     model: modelName,
                     prompt: renderedPrompt,
                     output: { schema: WorldNamesOutputSchema },
                 });
-                console.log(`[Task B] SUCCESS with ${modelName}.`);
+                console.log(`[Task B] SUCCESS with ${modelName}. Full AI result object:`, result);
+                if (result && result.raw) {
+                  console.log(`[Task B] Raw AI response from ${modelName}:`, result.raw);
+                }
+                if (result && result.output) {
+                  console.log(`[Task B] Parsed AI output from ${modelName}:`, result.output);
+                }
                 return result;
             } catch (error: any) {
                 console.warn(`[Task B] Model ${modelName} failed. Reason: ${error.message || error}. Trying next...`);
+                if (error && error.raw) {
+                  console.warn(`[Task B] Raw error response from ${modelName}:`, error.raw);
+                }
             }
         }
         throw new Error("All models failed for world name generation.");
@@ -248,15 +268,25 @@ const generateWorldSetupFlow = ai.defineFlow(
         for (const modelName of modelsToTry) {
             try {
                 console.log(`[Task C] Attempting narrative concepts generation with model: ${modelName}`);
+                console.log(`[Task C] Prompt sent to model ${modelName}:`, renderedPrompt);
                 const result = await ai.generate({
                     model: modelName,
                     prompt: renderedPrompt,
                     output: { schema: NarrativeConceptsOutputSchema },
                 });
-                console.log(`[Task C] SUCCESS with ${modelName}.`);
+                console.log(`[Task C] SUCCESS with ${modelName}. Full AI result object:`, result);
+                if (result && result.raw) {
+                  console.log(`[Task C] Raw AI response from ${modelName}:`, result.raw);
+                }
+                if (result && result.output) {
+                  console.log(`[Task C] Parsed AI output from ${modelName}:`, result.output);
+                }
                 return result;
             } catch (error: any) {
                 console.warn(`[Task C] Model ${modelName} failed. Reason: ${error.message || error}. Trying next...`);
+                if (error && error.raw) {
+                  console.warn(`[Task C] Raw error response from ${modelName}:`, error.raw);
+                }
             }
         }
         throw new Error("All models failed for narrative concepts generation.");
@@ -270,15 +300,25 @@ const generateWorldSetupFlow = ai.defineFlow(
         for (const modelName of modelsToTry) {
             try {
                 console.log(`[Task D] Attempting structure catalog generation with model: ${modelName}`);
+                console.log(`[Task D] Prompt sent to model ${modelName}:`, renderedPrompt);
                 const result = await ai.generate({
                     model: modelName,
                     prompt: renderedPrompt,
                     output: { schema: StructureCatalogCreativeOutputSchema },
                 });
-                console.log(`[Task D] SUCCESS with ${modelName}.`);
+                console.log(`[Task D] SUCCESS with ${modelName}. Full AI result object:`, result);
+                if (result && result.raw) {
+                  console.log(`[Task D] Raw AI response from ${modelName}:`, result.raw);
+                }
+                if (result && result.output) {
+                  console.log(`[Task D] Parsed AI output from ${modelName}:`, result.output);
+                }
                 return result;
             } catch (error: any) {
                 console.warn(`[Task D] Model ${modelName} failed. Reason: ${error.message || error}. Trying next...`);
+                if (error && error.raw) {
+                  console.warn(`[Task D] Raw error response from ${modelName}:`, error.raw);
+                }
             }
         }
         console.warn("[Task D] All models failed. Proceeding without custom structures.");
@@ -334,8 +374,12 @@ const generateWorldSetupFlow = ai.defineFlow(
     }
     
     const creativeStructures = structureCatalogResult.output?.customStructures || [];
-    const customStructures: Structure[] = creativeStructures.map(struct => ({
-        ...struct,
+    // The Structure type expects name/description/emoji to be string, not object. We'll keep the AI output as-is.
+    // If your Structure type expects localized fields, you need to map here. Otherwise, just use the AI output directly.
+    const customStructures = creativeStructures.map(struct => ({
+        name: struct.name,
+        description: struct.description,
+        emoji: struct.emoji,
         providesShelter: Math.random() > 0.6, // 40% chance of providing shelter
         buildable: false, // AI-generated structures aren't buildable by default
         buildCost: [],
@@ -386,9 +430,10 @@ const generateWorldSetupFlow = ai.defineFlow(
         };
     });
 
+    // For output, only pass the fields required by the schema (customStructures: StructureSchema[] expects only name, description, emoji)
     const finalOutput: GenerateWorldSetupOutput = {
         customItemCatalog,
-        customStructures,
+        customStructures: customStructures.map(({name, description, emoji}) => ({name, description, emoji})),
         concepts: finalConcepts as any, // Cast to bypass strict type check for biome
     };
     

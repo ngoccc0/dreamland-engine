@@ -3,7 +3,21 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, PlayerAttributes, ItemEffect } from "@/lib/game/types";
+import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ItemDefinition, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, PlayerAttributes, ItemEffect } from "@/lib/game/types";
+
+// Temporary type for generated items if not exported from types
+type GeneratedItem = {
+  name: { en: string; vi: string };
+  description: { en: string; vi: string };
+  tier: number;
+  category: string;
+  emoji: string;
+  effects: ItemEffect[];
+  baseQuantity: { min: number; max: number };
+  growthConditions?: any;
+  equipmentSlot?: 'weapon' | 'armor' | 'accessory';
+  attributes?: any;
+};
 import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
@@ -94,19 +108,23 @@ export function useGameState({ gameSlot }: GameStateProps) {
             
             // --- 2. Load the specific game slot data ---
             let loadedState: GameState | null = null;
-            if (user) {
-                const docRef = doc(db, "users", user.uid, "games", `slot_${gameSlot}`);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    loadedState = docSnap.data() as GameState;
+            try {
+                if (user) {
+                    const docRef = doc(db, "users", user.uid, "games", `slot_${gameSlot}`);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        loadedState = docSnap.data() as GameState;
+                    }
+                } else {
+                    const localData = localStorage.getItem(`gameState_${gameSlot}`);
+                    if (localData) {
+                        try {
+                            loadedState = JSON.parse(localData);
+                        } catch (e) { console.error("Failed to parse local save data", e); }
+                    }
                 }
-            } else {
-                const localData = localStorage.getItem(`gameState_${gameSlot}`);
-                if (localData) {
-                    try {
-                        loadedState = JSON.parse(localData);
-                    } catch (e) { console.error("Failed to parse local save data", e); }
-                }
+            } catch (err) {
+                console.error('Error loading game state:', err);
             }
             
             // --- 3. Prepare session-specific data from save or props ---
@@ -151,13 +169,21 @@ export function useGameState({ gameSlot }: GameStateProps) {
 
             const finalDefs = { ...staticItemDefinitions, ...sessionDefs };
             finalCatalogArray.forEach((item) => {
-                if (!finalDefs[item.name]) {
-                    finalDefs[item.name] = {
-                        description: item.description, tier: item.tier, category: item.category,
-                        emoji: item.emoji, effects: item.effects as ItemEffect[], baseQuantity: item.baseQuantity,
-                        growthConditions: item.growthConditions, equipmentSlot: item.equipmentSlot,
+                // Ensure the key is a string (en) and value is a valid ItemDefinition
+                const key = typeof item.name === 'string' ? item.name : item.name.en;
+                if (!finalDefs[key]) {
+                    finalDefs[key] = {
+                        name: typeof item.name === 'string' ? { en: item.name, vi: item.name } : item.name,
+                        description: item.description,
+                        tier: item.tier,
+                        category: item.category,
+                        emoji: item.emoji,
+                        effects: item.effects as ItemEffect[],
+                        baseQuantity: item.baseQuantity,
+                        growthConditions: item.growthConditions,
+                        equipmentSlot: item.equipmentSlot,
                         attributes: item.attributes,
-                    };
+                    } as ItemDefinition;
                 }
             });
 
@@ -167,11 +193,18 @@ export function useGameState({ gameSlot }: GameStateProps) {
             setCustomItemDefinitions(finalDefs);
             setCustomStructures(sessionStructures);
             setBuildableStructures(staticBuildableStructures); // This was missing, ensure it's always set.
-            
+
             // IMPORTANT: Set loaded to true ONLY after all state has been set.
             if (!hasLoaded.current) {
                 setIsLoaded(true);
                 hasLoaded.current = true;
+            }
+
+            // Fallback: If no data loaded at all, still set loaded to true to avoid infinite loading
+            if (!loadedState && !hasLoaded.current) {
+                setIsLoaded(true);
+                hasLoaded.current = true;
+                console.warn('No game state loaded, starting with empty state.');
             }
         };
 

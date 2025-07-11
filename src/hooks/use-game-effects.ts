@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useCallback } from 'react';
@@ -188,7 +189,6 @@ export function useGameEffects(deps: GameEffectsDeps) {
     if (!isLoaded || !finalWorldSetup) return;
 
     const initializeFirstChunk = () => {
-        if (!world) return; // Guard clause to prevent error
         let worldSnapshot = { ...world };
         let regionsSnapshot = { ...regions };
         let regionCounterSnapshot = regionCounter;

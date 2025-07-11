@@ -165,6 +165,7 @@ export function useGameState({ gameSlot }: GameStateProps) {
             setCustomStructures(sessionStructures);
             setBuildableStructures(staticBuildableStructures); // This was missing, ensure it's always set.
             
+            // IMPORTANT: Set loaded to true ONLY after all state has been set.
             setIsLoaded(true);
         };
 

@@ -34,6 +34,9 @@ export const errorTranslations = {
     firebaseNotConfigured: "Firebase is not configured. Cloud sync is disabled. Please add your Firebase config to the .env file to enable this feature.",
     actionNotAvailableTitle: "Action Not Available",
     actionNotAvailableDesc: "This action can no longer be performed.",
+    itemPickedUpTitle: 'Item Picked Up',
+    harvestFail_noTool: 'Harvesting Failed!',
+    harvestFail_noTool_desc: "You need a {tool} to harvest the {target}.",
   },
   vi: {
     error: "Lỗi",
@@ -68,5 +71,8 @@ export const errorTranslations = {
     firebaseNotConfigured: "Firebase chưa được định cấu hình. Đồng bộ hóa đám mây bị tắt. Vui lòng thêm cấu hình Firebase của bạn vào tệp .env để bật tính năng này.",
     actionNotAvailableTitle: "Hành động không khả dụng",
     actionNotAvailableDesc: "Hành động này không thể thực hiện được nữa.",
+    itemPickedUpTitle: 'Đã nhặt vật phẩm',
+    harvestFail_noTool: 'Thu hoạch thất bại!',
+    harvestFail_noTool_desc: "Bạn cần một {tool} để thu hoạch {target}.",
   }
 };

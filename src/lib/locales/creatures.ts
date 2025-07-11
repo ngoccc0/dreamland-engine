@@ -44,6 +44,7 @@ export const creatureTranslations = {
     'Rắn Độc Rừng Rậm': 'Poisonous Jungle Snake',
     'Sói Bóng Đêm': 'Shadow Wolf',
     'Cá Sấu Đầm Lầy Cổ Đại': 'Ancient Swamp Alligator',
+    'Sâu Bò Khổng Lồ': 'Giant Crawler',
 
     // NPC Names
     'Thợ săn bí ẩn': 'Mysterious Hunter',
@@ -112,6 +113,7 @@ export const creatureTranslations = {
     'Rắn Độc Rừng Rậm': 'Rắn Độc Rừng Rậm',
     'Sói Bóng Đêm': 'Sói Bóng Đêm',
     'Cá Sấu Đầm Lầy Cổ Đại': 'Cá Sấu Đầm Lầy Cổ Đại',
+    'Sâu Bò Khổng Lồ': 'Sâu Bò Khổng Lồ',
 
     // NPC Names
     'Thợ săn bí ẩn': 'Thợ săn bí ẩn',

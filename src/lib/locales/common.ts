@@ -1,4 +1,3 @@
-
 // src/lib/locales/common.ts
 
 export const commonTranslations = {

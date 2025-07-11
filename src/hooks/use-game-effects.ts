@@ -186,7 +186,10 @@ export function useGameEffects(deps: GameEffectsDeps) {
 
   // EFFECT 1: Game Initialization (runs only once when isLoaded becomes true).
   useEffect(() => {
-    if (!isLoaded || !finalWorldSetup) return;
+    // Guard against running before the game state is fully loaded and hydrated.
+    if (!isLoaded || !finalWorldSetup || !world || Object.keys(world).length === 0) {
+        return;
+    }
 
     const initializeFirstChunk = () => {
         let worldSnapshot = { ...world };
@@ -248,7 +251,7 @@ export function useGameEffects(deps: GameEffectsDeps) {
 
     initializeFirstChunk();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded, finalWorldSetup]);
+  }, [isLoaded, finalWorldSetup, world]);
   
   // This effect runs after a move to describe the new location.
   useEffect(() => {

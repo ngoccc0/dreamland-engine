@@ -77,20 +77,17 @@ export default function GameLayout(props: GameLayoutProps) {
     const [showInstallPopup, setShowInstallPopup] = useState(false);
     const [inputValue, setInputValue] = useState("");
     
-    const narrativeContainerRef = useRef<HTMLDivElement>(null);
     const customActionInputRef = useRef<HTMLInputElement>(null);
 
-    const scrollToBottom = useCallback(() => {
+    const scrollToLastEntry = useCallback(() => {
         setTimeout(() => {
-            if (narrativeContainerRef.current) {
-                const { scrollHeight, clientHeight } = narrativeContainerRef.current;
-                narrativeContainerRef.current.scrollTo({
-                    top: scrollHeight - clientHeight,
-                    behavior: 'smooth'
-                });
+            const lastEntry = narrativeLog[narrativeLog.length - 1];
+            if (lastEntry) {
+                const element = document.getElementById(lastEntry.id);
+                element?.scrollIntoView({ behavior: 'smooth', block: 'end' });
             }
         }, 100); // Small delay to allow DOM to update
-    }, []);
+    }, [narrativeLog]);
 
     const focusCustomActionInput = useCallback(() => {
         setTimeout(() => customActionInputRef.current?.focus(), 0);
@@ -98,13 +95,13 @@ export default function GameLayout(props: GameLayoutProps) {
 
     const handleActionClick = (actionId: number) => {
         handleAction(actionId);
-        scrollToBottom();
+        scrollToLastEntry();
         focusCustomActionInput();
     };
     
     useEffect(() => {
-        scrollToBottom();
-    }, [narrativeLog, scrollToBottom]);
+        scrollToLastEntry();
+    }, [narrativeLog, scrollToLastEntry]);
 
     useEffect(() => {
         const promptShown = localStorage.getItem('pwaInstallPromptShown');
@@ -156,7 +153,7 @@ export default function GameLayout(props: GameLayoutProps) {
         if (inputValue.trim()) {
             handleCustomAction(inputValue);
             setInputValue("");
-            scrollToBottom();
+            scrollToLastEntry();
         }
     };
     
@@ -181,11 +178,11 @@ export default function GameLayout(props: GameLayoutProps) {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => { setTutorialOpen(true); scrollToBottom(); focusCustomActionInput(); }}>
+                                <DropdownMenuItem onClick={() => { setTutorialOpen(true); scrollToLastEntry(); focusCustomActionInput(); }}>
                                     <LifeBuoy className="mr-2 h-4 w-4" />
                                     <span>{t('tutorialTitle')}</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => { setSettingsOpen(true); scrollToBottom(); focusCustomActionInput(); }}>
+                                <DropdownMenuItem onClick={() => { setSettingsOpen(true); scrollToLastEntry(); focusCustomActionInput(); }}>
                                     <Settings className="mr-2 h-4 w-4" />
                                     <span>{t('gameSettings')}</span>
                                 </DropdownMenuItem>
@@ -198,10 +195,10 @@ export default function GameLayout(props: GameLayoutProps) {
                         </DropdownMenu>
                     </header>
 
-                    <main ref={narrativeContainerRef} className="flex-grow p-4 md:p-6 overflow-y-auto max-h-[50dvh] md:max-h-full hide-scrollbar">
+                    <main className="flex-grow p-4 md:p-6 overflow-y-auto max-h-[50dvh] md:max-h-full hide-scrollbar">
                         <div className="prose prose-stone dark:prose-invert max-w-4xl mx-auto">
                             {narrativeLog.map((entry) => (
-                                <p key={entry.id} className={cn("animate-in fade-in duration-500 whitespace-pre-line",
+                                <p key={entry.id} id={entry.id} className={cn("animate-in fade-in duration-500 whitespace-pre-line",
                                     entry.type === 'action' ? 'italic text-muted-foreground' : '',
                                     entry.type === 'system' ? 'font-semibold text-accent' : ''
                                 )}>
@@ -248,7 +245,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         {/* Minimap */}
                         <div>
                             <div className="flex flex-col items-center gap-2 mb-4">
-                                <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); scrollToBottom(); focusCustomActionInput(); }}>{t('minimap')}</h3>
+                                <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); scrollToLastEntry(); focusCustomActionInput(); }}>{t('minimap')}</h3>
                                 <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
                                     <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
                                     <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
@@ -262,14 +259,14 @@ export default function GameLayout(props: GameLayoutProps) {
                     <div className="flex flex-col gap-4 flex-grow">
                         {/* Controls and Skills */}
                         <div className="flex flex-col md:flex-row md:justify-around md:items-start md:gap-x-6 gap-y-4">
-                            <Controls onMove={(dir) => { handleMove(dir); scrollToBottom(); focusCustomActionInput(); }} onAttack={() => { handleAttack(); scrollToBottom(); focusCustomActionInput(); }} />
+                            <Controls onMove={(dir) => { handleMove(dir); scrollToLastEntry(); focusCustomActionInput(); }} onAttack={() => { handleAttack(); scrollToLastEntry(); focusCustomActionInput(); }} />
                              <div className="flex flex-col space-y-2 w-full md:max-w-xs">
                                 <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('skills')}</h3>
                                 <div className="grid grid-cols-2 gap-2">
                                     {playerStats.skills?.map((skill) => (
                                         <Tooltip key={skill.name}>
                                             <TooltipTrigger asChild>
-                                                <Button variant="secondary" className="w-full justify-center text-xs" onClick={() => { handleUseSkill(t(skill.name as TranslationKey)); scrollToBottom(); focusCustomActionInput(); }} disabled={isLoading || playerStats.mana < skill.manaCost}>
+                                                <Button variant="secondary" className="w-full justify-center text-xs" onClick={() => { handleUseSkill(t(skill.name as TranslationKey)); scrollToLastEntry(); focusCustomActionInput(); }} disabled={isLoading || playerStats.mana < skill.manaCost}>
                                                     <WandSparkles className="mr-2 h-3 w-3" />
                                                     {t(skill.name as TranslationKey)} ({skill.manaCost} MP)
                                                 </Button>
@@ -285,11 +282,11 @@ export default function GameLayout(props: GameLayoutProps) {
                         <div className="space-y-2">
                             <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('mainActions')}</h3>
                             <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setStatusOpen(true); scrollToBottom(); focusCustomActionInput(); }}><Shield /></Button></TooltipTrigger><TooltipContent><p>{t('statusTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setInventoryOpen(true); scrollToBottom(); focusCustomActionInput(); }}><Backpack /></Button></TooltipTrigger><TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setCraftingOpen(true); scrollToBottom(); focusCustomActionInput(); }}><Hammer /></Button></TooltipTrigger><TooltipContent><p>{t('craftingTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setBuildingOpen(true); scrollToBottom(); focusCustomActionInput(); }}><Home /></Button></TooltipTrigger><TooltipContent><p>{t('buildingTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setFusionOpen(true); scrollToBottom(); focusCustomActionInput(); }}><FlaskConical /></Button></TooltipTrigger><TooltipContent><p>{t('fusionTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setStatusOpen(true); scrollToLastEntry(); focusCustomActionInput(); }}><Shield /></Button></TooltipTrigger><TooltipContent><p>{t('statusTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setInventoryOpen(true); scrollToLastEntry(); focusCustomActionInput(); }}><Backpack /></Button></TooltipTrigger><TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setCraftingOpen(true); scrollToLastEntry(); focusCustomActionInput(); }}><Hammer /></Button></TooltipTrigger><TooltipContent><p>{t('craftingTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setBuildingOpen(true); scrollToLastEntry(); focusCustomActionInput(); }}><Home /></Button></TooltipTrigger><TooltipContent><p>{t('buildingTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setFusionOpen(true); scrollToLastEntry(); focusCustomActionInput(); }}><FlaskConical /></Button></TooltipTrigger><TooltipContent><p>{t('fusionTooltip')}</p></TooltipContent></Tooltip>
                             </div>
                         </div>
                         
@@ -299,7 +296,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         {restingPlace && (
                             <><div className="space-y-2">
                                 <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('structureActions')}</h2>
-                                <Tooltip><TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => { handleRest(); scrollToBottom(); focusCustomActionInput(); }} disabled={isLoading}><BedDouble className="mr-2 h-4 w-4" />{t('rest')}</Button></TooltipTrigger><TooltipContent><p>{t('restTooltip', { shelterName: t(restingPlace.name as TranslationKey), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => { handleRest(); scrollToLastEntry(); focusCustomActionInput(); }} disabled={isLoading}><BedDouble className="mr-2 h-4 w-4" />{t('rest')}</Button></TooltipTrigger><TooltipContent><p>{t('restTooltip', { shelterName: t(restingPlace.name as TranslationKey), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent></Tooltip>
                             </div><Separator /></>
                         )}
                         

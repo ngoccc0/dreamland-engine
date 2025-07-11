@@ -1,3 +1,4 @@
+
 // src/lib/locales/gameplay.ts
 
 export const gameplayTranslations = {
@@ -13,6 +14,7 @@ export const gameplayTranslations = {
     // Time & Events
     timeUpdate: "🕖 The time is now {time}.",
     newDay: "A new day has begun.",
+    dynamicDay: "The sun rises on a new day.",
     journalUpdated: "Your journal has been updated.",
     eventTriggered: 'A random event occurs: {eventName}!',
 
@@ -83,7 +85,6 @@ export const gameplayTranslations = {
     harvestFail_noLoot: "You harvest the {target}, but find nothing useful.",
     questCompletedTitle: 'Quest Completed!',
     enemyDropped: 'The enemy dropped: {items}',
-    dynamicDay: "The sun rises on a new day.",
   },
   vi: {
     // Dice Rolls
@@ -97,6 +98,7 @@ export const gameplayTranslations = {
     // Time & Events
     timeUpdate: "🕖 Bây giờ là {time}.",
     newDay: "Một ngày mới đã bắt đầu.",
+    dynamicDay: "Mặt trời mọc, bắt đầu một ngày mới.",
     journalUpdated: "Nhật ký của bạn đã được cập nhật.",
     eventTriggered: 'Một sự kiện ngẫu nhiên xảy ra: {eventName}!',
 
@@ -167,6 +169,5 @@ export const gameplayTranslations = {
     harvestFail_noLoot: "Bạn thu hoạch {target}, nhưng không tìm thấy gì hữu ích.",
     questCompletedTitle: 'Đã hoàn thành Nhiệm vụ!',
     enemyDropped: 'Kẻ địch làm rơi: {items}',
-    dynamicDay: "Mặt trời mọc, bắt đầu một ngày mới.",
   }
 };

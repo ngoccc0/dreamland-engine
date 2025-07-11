@@ -1,3 +1,4 @@
+
 // src/lib/locales/narrative.ts
 
 export const narrativeTranslations = {

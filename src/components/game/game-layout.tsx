@@ -34,7 +34,7 @@ interface GameLayoutProps {
 }
 
 export default function GameLayout(props: GameLayoutProps) {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     
     const {
         world,
@@ -51,6 +51,7 @@ export default function GameLayout(props: GameLayoutProps) {
         turn,
         isLoaded,
         handleMove,
+        handleAttack,
         handleAction,
         handleCustomAction,
         handleCraft,
@@ -154,6 +155,11 @@ export default function GameLayout(props: GameLayoutProps) {
           onCustomActionSubmit();
         }
     };
+    
+    const worldNameText = typeof finalWorldSetup.worldName === 'object' 
+        ? finalWorldSetup.worldName[language] 
+        : finalWorldSetup.worldName;
+
 
     return (
         <TooltipProvider>
@@ -161,7 +167,7 @@ export default function GameLayout(props: GameLayoutProps) {
                 {/* Left Panel: Narrative */}
                 <div className="w-full md:flex-1 flex flex-col md:overflow-hidden">
                     <header className="p-4 border-b flex-shrink-0 flex justify-between items-center">
-                        <h1 className="text-2xl font-bold font-headline">{t(finalWorldSetup.worldName)}</h1>
+                        <h1 className="text-2xl font-bold font-headline">{t(worldNameText)}</h1>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon">

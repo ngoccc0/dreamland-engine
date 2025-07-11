@@ -63,7 +63,6 @@ type GameEffectsDeps = {
   recipes: Record<string, Recipe>;
   buildableStructures: Record<string, Structure>;
   gameSlot: number;
-  handleOnlineNarrative: (action: string, worldCtx: GameState['world'], playerPosCtx: {x: number, y: number}, playerStatsCtx: PlayerStatus) => Promise<void>;
   advanceGameTime: (stats?: PlayerStatus) => void;
 };
 
@@ -79,7 +78,7 @@ export function useGameEffects(deps: GameEffectsDeps) {
     regions, setRegions, regionCounter, setRegionCounter,
     setCurrentChunk, customItemDefinitions, customItemCatalog, customStructures,
     recipes, buildableStructures, gameSlot,
-    handleOnlineNarrative, advanceGameTime
+    advanceGameTime
   } = deps;
 
   const { t, language } = useLanguage();
@@ -107,7 +106,7 @@ export function useGameEffects(deps: GameEffectsDeps) {
 
     const event = triggeredEvents[Math.floor(Math.random() * triggeredEvents.length)];
 
-    const eventName = t(event.name[language] as TranslationKey);
+    const eventName = t(event.name as TranslationKey);
     addNarrativeEntry(t('eventTriggered', { eventName }), 'system');
 
     const { roll } = rollDice('d20');
@@ -116,7 +115,7 @@ export function useGameEffects(deps: GameEffectsDeps) {
     const outcome = event.outcomes[successLevel] || event.outcomes['Success'];
     if (!outcome) return;
 
-    addNarrativeEntry(t(outcome.description[language] as TranslationKey), 'narrative');
+    addNarrativeEntry(t(outcome.descriptionKey as TranslationKey), 'narrative');
 
     const effects = outcome.effects;
 
@@ -247,7 +246,22 @@ export function useGameEffects(deps: GameEffectsDeps) {
     };
 
     initializeFirstChunk();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, finalWorldSetup]);
+  
+  // This effect runs after a move to describe the new location.
+  useEffect(() => {
+    if (!isLoaded || turn === 1) return; // Don't run on initial load
+
+    const currentChunk = world[ `${playerPosition.x},${playerPosition.y}`];
+    if (currentChunk) {
+        const narrative = generateOfflineNarrative(currentChunk, settings.narrativeLength, world, playerPosition, t);
+        addNarrativeEntry(narrative, 'narrative');
+    }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playerPosition, turn]);
+
 
   // EFFECT: Check for game over.
   useEffect(() => {

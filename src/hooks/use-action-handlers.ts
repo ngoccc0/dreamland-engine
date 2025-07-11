@@ -9,13 +9,14 @@ import { generateNarrative, type GenerateNarrativeInput } from '@/ai/flows/gener
 import { fuseItems } from '@/ai/flows/fuse-items-flow';
 import { provideQuestHint } from '@/ai/flows/provide-quest-hint';
 import { rollDice, getSuccessLevel, successLevelToTranslationKey } from '@/lib/game/dice';
-import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchAction } from '@/lib/game/engine/offline';
+import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchAction, ensureChunkExists } from '@/lib/game/engine';
 import { getTemplates } from '@/lib/game/templates';
 import { clamp } from '@/lib/utils';
-import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem } from '@/lib/game/types';
+import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem, NarrativeEntry } from '@/lib/game/types';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-config';
 import { getEffectiveChunk } from '../lib/game/engine/generation';
+import { translations } from '@/lib/i18n';
 
 type ActionHandlerDeps = {
   isLoaded: boolean;
@@ -32,21 +33,30 @@ type ActionHandlerDeps = {
   setCustomItemCatalog: (fn: (prev: any[]) => any[]) => void;
   setCustomItemDefinitions: (fn: (prev: Record<string, any>) => Record<string, any>) => void;
   finalWorldSetup: GameState['worldSetup'] | null;
-  narrativeLog: any[];
-  addNarrativeEntry: (text: string, type: 'narrative' | 'action' | 'system') => void;
+  addNarrativeEntry: (text: string, type: NarrativeEntry['type']) => void;
   advanceGameTime: (stats?: PlayerStatus) => void;
   setPlayerBehaviorProfile: (fn: (prev: any) => any) => void;
   playerPosition: { x: number; y: number };
+  setPlayerPosition: (pos: { x: number, y: number }) => void;
   weatherZones: Record<string, any>;
   turn: number;
   gameTime: number;
+  regions: GameState['regions'];
+  setRegions: (regions: GameState['regions']) => void;
+  regionCounter: number;
+  setRegionCounter: (counter: number) => void;
+  worldProfile: GameState['worldProfile'];
+  currentSeason: GameState['currentSeason'];
+  customItemCatalog: GameState['customItemCatalog'];
+  customStructures: GameState['customStructures'];
 };
 
 export function useActionHandlers(deps: ActionHandlerDeps) {
   const {
     isLoaded, isLoading, isGameOver, setIsLoading, playerStats, setPlayerStats, world, setWorld, recipes, buildableStructures,
-    customItemDefinitions, setCustomItemCatalog, setCustomItemDefinitions, finalWorldSetup, narrativeLog, addNarrativeEntry, advanceGameTime,
-    setPlayerBehaviorProfile, playerPosition, weatherZones, turn, gameTime
+    customItemDefinitions, setCustomItemCatalog, setCustomItemDefinitions, finalWorldSetup, addNarrativeEntry, advanceGameTime,
+    setPlayerBehaviorProfile, playerPosition, setPlayerPosition, weatherZones, turn, gameTime, regions, setRegions, regionCounter, setRegionCounter,
+    worldProfile, currentSeason, customItemCatalog, customStructures
   } = deps;
 
   const { t, language } = useLanguage();
@@ -80,11 +90,19 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     }
     
     try {
+        const recentNarrative = (await (async () => {
+            const log = [];
+            for (let i = deps.narrativeLog.length - 1; i >= 0 && log.length < 5; i--) {
+                log.unshift(deps.narrativeLog[i].text);
+            }
+            return log;
+        })());
+
         const input: GenerateNarrativeInput = {
             worldName: finalWorldSetup.worldName, playerAction: action, playerStatus: playerStatsCtx,
             currentChunk,
             surroundingChunks: surroundingChunks.length > 0 ? surroundingChunks : undefined,
-            recentNarrative: narrativeLog.slice(-5).map(e => e.text), language, customItemDefinitions,
+            recentNarrative, language, customItemDefinitions,
             diceRoll: roll, diceType: settings.diceType, diceRange: range, successLevel,
             aiModel: settings.aiModel, narrativeLength: settings.narrativeLength,
         };
@@ -124,7 +142,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     } finally {
         setIsLoading(false);
     }
-  }, [settings.diceType, settings.aiModel, settings.narrativeLength, addNarrativeEntry, narrativeLog, language, customItemDefinitions, toast, advanceGameTime, finalWorldSetup, setIsLoading, setWorld, setCustomItemCatalog, setCustomItemDefinitions, t, setPlayerStats, weatherZones, gameTime]);
+  }, [settings.diceType, settings.aiModel, settings.narrativeLength, addNarrativeEntry, deps.narrativeLog, language, customItemDefinitions, toast, advanceGameTime, finalWorldSetup, setIsLoading, setWorld, setCustomItemCatalog, setCustomItemDefinitions, t, setPlayerStats, weatherZones, gameTime]);
 
   const handleOfflineAttack = useCallback(() => {
     const key = `${playerPosition.x},${playerPosition.y}`;
@@ -907,10 +925,59 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
   }, [isLoading, isGameOver, isLoaded, world, playerPosition, playerStats, toast, t, addNarrativeEntry, customItemDefinitions, advanceGameTime, setWorld]);
 
   const handleMove = useCallback((direction: "north" | "south" | "east" | "west") => {
-    // This function is now defined inside useGameEffects.
-    // This stub is here to satisfy the return type.
-    // In a real scenario, you'd likely lift this state up or use a more advanced state manager.
-  }, []);
+    if (isLoading || isGameOver) return;
+
+    let { x, y } = playerPosition;
+    if (direction === "north") y += 1;
+    if (direction === "south") y -= 1;
+    if (direction === "east") x += 1;
+    if (direction === "west") x -= 1;
+    
+    const nextChunkKey = `${x},${y}`;
+    const nextChunk = world[nextChunkKey];
+
+    if (nextChunk?.terrain === 'wall') {
+        addNarrativeEntry(t('wallBlock'), 'system');
+        return;
+    }
+     if (nextChunk?.terrain === 'ocean' && !playerStats.items.some(item => item.name === 'Thuyền Phao')) {
+        addNarrativeEntry(t('oceanTravelBlocked'), 'system');
+        return;
+    }
+    
+    setPlayerBehaviorProfile(prev => ({ ...prev, moves: prev.moves + 1 }));
+    
+    const actionText = t('wentDirection', { direction: t(`direction${direction}` as TranslationKey) });
+    addNarrativeEntry(actionText, 'action');
+    
+    let worldSnapshot = { ...world };
+    let regionsSnapshot = { ...regions };
+    let regionCounterSnapshot = regionCounter;
+
+    const result = ensureChunkExists({ x, y }, worldSnapshot, regionsSnapshot, regionCounterSnapshot, worldProfile, currentSeason, customItemDefinitions, customItemCatalog, customStructures, language);
+    worldSnapshot = result.worldWithChunk;
+    regionsSnapshot = result.newRegions;
+    regionCounterSnapshot = result.newRegionCounter;
+
+    setWorld(worldSnapshot);
+    setRegions(regionsSnapshot);
+    setRegionCounter(regionCounterSnapshot);
+    setPlayerPosition({ x, y });
+    
+    const staminaCost = worldSnapshot[nextChunkKey]?.travelCost ?? 1;
+    
+    let newPlayerStats = { ...playerStats };
+    if (playerStats.stamina > staminaCost) {
+        newPlayerStats.stamina -= staminaCost;
+    } else {
+        newPlayerStats.stamina = 0;
+        newPlayerStats.hp -= 5;
+    }
+    newPlayerStats.dailyActionLog = [...(playerStats.dailyActionLog || []), actionText];
+    
+    advanceGameTime(newPlayerStats);
+
+  }, [isLoading, isGameOver, playerPosition, world, addNarrativeEntry, t, playerStats, setPlayerBehaviorProfile, setPlayerPosition, setWorld, setRegions, setRegionCounter, regions, regionCounter, worldProfile, currentSeason, customItemDefinitions, customItemCatalog, customStructures, language, advanceGameTime]);
 
   return {
     handleMove,

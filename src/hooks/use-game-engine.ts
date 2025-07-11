@@ -9,11 +9,6 @@ import type { GameState, WorldConcept, PlayerItem, ItemDefinition, GeneratedItem
 
 interface GameEngineProps {
     gameSlot: number;
-    worldSetup?: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog' | 'customStructures'> & { playerInventory: PlayerItem[] };
-    initialGameState?: GameState;
-    customItemDefinitions?: Record<string, ItemDefinition>;
-    customItemCatalog?: GeneratedItem[];
-    customStructures?: Structure[];
 }
 
 export function useGameEngine(props: GameEngineProps) {
@@ -25,7 +20,6 @@ export function useGameEngine(props: GameEngineProps) {
 
     useGameEffects({
         ...gameState,
-        ...actionHandlers,
     });
     
     return {

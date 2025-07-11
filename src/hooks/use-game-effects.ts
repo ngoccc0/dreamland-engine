@@ -128,14 +128,50 @@ export function useGameEffects(deps: GameEffectsDeps) {
         }
 
         if (!isMounted) return;
-
-        if (!loadedState) {
-            console.error('CRITICAL: No game state found to initialize game layout.');
-            // This case should ideally not happen if the user comes from the setup screen.
+        
+        // This is the CRITICAL part: we need a valid state to initialize from.
+        // If loadedState is null, it means it's a new game, and `finalWorldSetup` should have been passed from the setup screen.
+        // However, the `useGameEngine` flow might not guarantee `finalWorldSetup` is set when this effect runs.
+        // The most robust way is to ensure we have a valid GameState object, either from loading or from scratch.
+        let stateToInitialize = loadedState;
+        
+        // If there's no loaded state, AND we don't have a finalWorldSetup yet, it's too early to run.
+        if (!stateToInitialize && !finalWorldSetup) {
+             // This can happen on the very first render. We wait for the state to catch up.
             return;
         }
 
-        const stateToInitialize = loadedState;
+        if (!stateToInitialize) {
+            // This is a NEW GAME. We construct the initial state from `finalWorldSetup`.
+            if (!finalWorldSetup) {
+                console.error("CRITICAL: New game started but no world setup data is available.");
+                return;
+            }
+            stateToInitialize = {
+                worldSetup: finalWorldSetup,
+                playerStats: {
+                    hp: 100, mana: 50, stamina: 100, bodyTemperature: 37, items: finalWorldSetup.playerInventory,
+                    equipment: { weapon: null, armor: null, accessory: null },
+                    quests: finalWorldSetup.initialQuests, questsCompleted: 0,
+                    skills: finalWorldSetup.startingSkill ? [finalWorldSetup.startingSkill] : [],
+                    pets: [], persona: 'none',
+                    attributes: { physicalAttack: 10, magicalAttack: 5, critChance: 5, attackSpeed: 1.0, cooldownReduction: 0 },
+                    unlockProgress: { kills: 0, damageSpells: 0, moves: 0 },
+                    journal: {}, dailyActionLog: [], questHints: {},
+                },
+                customItemCatalog: customItemCatalog, // This should be set from WorldSetup
+                customItemDefinitions: customItemDefinitions,
+                customStructures: finalWorldSetup.customStructures,
+                day: 1, turn: 1, narrativeLog: [],
+                worldProfile: { climateBase: 'temperate', magicLevel: 5, mutationFactor: 2, sunIntensity: 7, weatherTypesAllowed: ['clear', 'rain', 'fog'], moistureBias: 0, tempBias: 0, resourceDensity: 5, theme: 'Normal' },
+                currentSeason: 'spring', gameTime: 360,
+                weatherZones: {}, world: {}, recipes: {}, buildableStructures: {},
+                regions: {}, regionCounter: 0,
+                playerPosition: { x: 0, y: 0 },
+                playerBehaviorProfile: { moves: 0, attacks: 0, crafts: 0, customActions: 0 },
+            };
+        }
+
 
         // --- Load persistent GLOBAL data from Firestore ---
         const firestoreItems = new Map<string, GeneratedItem>();
@@ -195,12 +231,22 @@ export function useGameEffects(deps: GameEffectsDeps) {
         let weatherZonesSnapshot = stateToInitialize.weatherZones || {};
 
         const initialPosKey = `${stateToInitialize.playerPosition.x},${stateToInitialize.playerPosition.y}`;
-        if (!worldSnapshot[initialPosKey]) {
-            const result = ensureChunkExists(stateToInitialize.playerPosition, worldSnapshot, regionsSnapshot, regionCounterSnapshot, stateToInitialize.worldProfile, stateToInitialize.currentSeason, finalDefs, finalCatalogArray, stateToInitialize.customStructures || [], language);
-            worldSnapshot = result.worldWithChunk;
-            regionsSnapshot = result.newRegions;
-            regionCounterSnapshot = result.newRegionCounter;
-        }
+        
+        const chunkGenResult = ensureChunkExists(
+            stateToInitialize.playerPosition, 
+            worldSnapshot, 
+            regionsSnapshot, 
+            regionCounterSnapshot, 
+            stateToInitialize.worldProfile, 
+            stateToInitialize.currentSeason, 
+            finalDefs, 
+            finalCatalogArray, 
+            stateToInitialize.customStructures || [], 
+            language
+        );
+        worldSnapshot = chunkGenResult.worldWithChunk;
+        regionsSnapshot = chunkGenResult.newRegions;
+        regionCounterSnapshot = chunkGenResult.newRegionCounter;
         
         Object.keys(regionsSnapshot).filter(id => !weatherZonesSnapshot[id]).forEach(regionId => {
             const region = regionsSnapshot[Number(regionId)];
@@ -234,7 +280,7 @@ export function useGameEffects(deps: GameEffectsDeps) {
     return () => {
       isMounted = false;
     };
-  }, [gameSlot, user, language]); // Rerun if user or language changes
+  }, [gameSlot, user, language, finalWorldSetup]); // Rerun if user or language changes. Added finalWorldSetup to re-trigger on new game.
 
 
   const triggerRandomEvent = useCallback(() => {

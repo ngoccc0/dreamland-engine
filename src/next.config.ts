@@ -7,6 +7,52 @@ const withPWA = withPWAInit({
   disable: process.env.NODE_ENV === 'development',
   register: true,
   skipWaiting: true,
+  workboxOptions: {
+    // Exclude navigation routes from precaching
+    exclude: [
+        /^\/$/, // Exclude root route
+        /^\/index\.html$/, // Exclude index.html
+        /^\/manifest\.json$/, // Exclude manifest
+    ],
+  },
+  runtimeCaching: [
+    // Cache Google Fonts
+    {
+      urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'google-fonts',
+        expiration: {
+          maxEntries: 4,
+          maxAgeSeconds: 365 * 24 * 60 * 60, // 365 days
+        },
+      },
+    },
+    // Cache Images, including SVGs and the logo
+    {
+      urlPattern: /\.(?:png|gif|jpg|jpeg|svg)$/i,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'images',
+        expiration: {
+          maxEntries: 60,
+          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
+        },
+      },
+    },
+    // Cache JS and CSS files
+    {
+      urlPattern: /\.(?:js|css)$/i,
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'static-resources',
+        expiration: {
+          maxEntries: 60,
+          maxAgeSeconds: 24 * 60 * 60, // 1 day
+        },
+      },
+    },
+  ],
 });
 
 

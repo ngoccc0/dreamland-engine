@@ -35,7 +35,7 @@ type GameEffectsDeps = {
   playerStats: PlayerStatus;
   setPlayerStats: (fn: (prev: PlayerStatus) => PlayerStatus) => void;
   playerBehaviorProfile: PlayerBehaviorProfile;
-  setPlayerBehaviorProfile: (fn: (prev: PlayerBehaviorProfile) => PlayerBehaviorProfile) => void;
+  setPlayerBehaviorProfile: (fn: (prev: any) => any) => void;
   world: GameState['world'];
   setWorld: (fn: (prev: GameState['world']) => GameState['world']) => void;
   playerPosition: GameState['playerPosition'];

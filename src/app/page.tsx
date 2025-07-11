@@ -128,18 +128,29 @@ export default function Home() {
     const conceptIndex = Math.floor(Math.random() * worldSetupData.concepts.length);
     const selectedConcept = worldSetupData.concepts[conceptIndex];
     const allCustomItems = worldSetupData.customItemCatalog || [];
+
     const customDefs = allCustomItems.reduce((acc, item) => {
-      acc[item.name] = {
-        description: item.description, tier: item.tier, category: item.category, emoji: item.emoji, effects: item.effects,
+      const itemName = typeof item.name === 'object' ? item.name[language] : item.name;
+      acc[itemName] = {
+        description: typeof item.description === 'object' ? item.description[language] : item.description,
+        tier: item.tier, category: item.category, emoji: item.emoji, effects: item.effects,
         baseQuantity: item.baseQuantity, growthConditions: item.growthConditions, equipmentSlot: item.equipmentSlot, attributes: item.attributes,
       };
       return acc;
     }, {} as Record<string, any>);
-    const initialPlayerInventory = selectedConcept.playerInventory.map(item => ({
-      ...item,
-      tier: allCustomItems.find(def => def.name === item.name)?.tier || 1,
-      emoji: allCustomItems.find(def => def.name === item.name)?.emoji || '❓'
-    }));
+
+    const initialPlayerInventory = selectedConcept.playerInventory.map(item => {
+      const def = allCustomItems.find(def => {
+          const defName = typeof def.name === 'object' ? def.name[language] : def.name;
+          return defName === item.name;
+      });
+      return {
+        ...item,
+        tier: def?.tier || 1,
+        emoji: def?.emoji || '❓'
+      };
+    });
+
     const worldConceptForState: GameState['worldSetup'] = {
       worldName: selectedConcept.worldName,
       initialNarrative: selectedConcept.initialNarrative,
@@ -280,7 +291,7 @@ export default function Home() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <User className="h-4 w-4 text-primary" />
-                                    <span>{t('personaLabel')}: {t(slot.playerStats.persona as TranslationKey)}</span>
+                                    <span>{t(slot.playerStats.persona as TranslationKey)}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Backpack className="h-4 w-4 text-primary" />

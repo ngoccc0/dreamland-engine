@@ -13,6 +13,7 @@ import { db } from "@/lib/firebase-config";
 import type { Language } from "@/lib/i18n";
 import { translations } from "@/lib/i18n";
 import { ensureChunkExists, generateOfflineNarrative, generateWeatherForZone } from "@/lib/game/engine";
+import { useLanguage } from "@/context/language-context";
 
 
 interface GameStateProps {
@@ -21,6 +22,7 @@ interface GameStateProps {
 
 export function useGameState({ gameSlot }: GameStateProps) {
     const { user } = useAuth();
+    const { language } = useLanguage();
     const [isLoaded, setIsLoaded] = useState(false);
     const hasLoaded = useRef(false);
 
@@ -56,6 +58,7 @@ export function useGameState({ gameSlot }: GameStateProps) {
     const [isSaving, setIsSaving] = useState(false);
     const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>([]);
     const [currentChunk, setCurrentChunk] = useState<Chunk | null>(null);
+    const narrativeContainerRef = useRef<HTMLDivElement>(null);
 
      const addNarrativeEntry = useCallback((text: string, type: NarrativeEntry['type']) => {
         const uniqueId = `${Date.now()}-${Math.random()}`;
@@ -147,45 +150,47 @@ export function useGameState({ gameSlot }: GameStateProps) {
             }
             // --- 4. MERGE global data into the session data before setting state ---
             const finalCatalogMap = new Map<string, GeneratedItem>();
-
-            // Add static items first
+            
+            // Add static items first, ensuring the 'name' property is added.
             Object.entries(staticItemDefinitions).forEach(([name, def]) => {
                 finalCatalogMap.set(name, { name, ...def } as unknown as GeneratedItem);
             });
+            
             // Add items from saved session
             sessionCatalog.forEach(item => {
                 const nameKey = typeof item.name === 'string' ? item.name : (item.name as any).en;
                 finalCatalogMap.set(nameKey, item);
             });
+            
             // Add items from firestore
             firestoreItems.forEach((item, name) => finalCatalogMap.set(name, item));
             
             const finalCatalogArray: GeneratedItem[] = Array.from(finalCatalogMap.values());
-            
+
             const finalRecipes = { ...staticRecipes, ...sessionRecipes };
             firestoreRecipes.forEach((value, key) => {
                 if (!finalRecipes[key]) finalRecipes[key] = value;
             });
 
             const finalDefs = { ...staticItemDefinitions, ...sessionDefs };
-            
+
             finalCatalogArray.forEach((item) => {
-                const language = (localStorage.getItem('gameLanguage') || 'en') as Language;
-                const nameKey = typeof item.name === 'string' ? item.name : (item.name as any)[language] || (item.name as any).en;
+                const lang = (localStorage.getItem('gameLanguage') || 'en') as Language;
+                const nameKey = typeof item.name === 'string' ? item.name : (item.name as any)[lang] || (item.name as any).en;
                 let descriptionKey: string;
-                if(typeof item.description === 'string') {
+            
+                if (typeof item.description === 'string') {
                     descriptionKey = item.description;
                 } else if (item.description) {
                     descriptionKey = `item_${((item.description as any).en || '').toLowerCase().replace(/[^a-z0-9]/g, '_')}_desc`;
-                     if(!translations.en[descriptionKey as any]){
+                    if (!translations[lang][descriptionKey as any]) {
                         (translations.en as any)[descriptionKey] = (item.description as any).en;
                         (translations.vi as any)[descriptionKey] = (item.description as any).vi;
                     }
                 } else {
-                    descriptionKey = `item_no_desc`;
+                    descriptionKey = `item_no_desc_${nameKey.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
                 }
-
-
+            
                 if (!finalDefs[nameKey]) {
                     finalDefs[nameKey] = {
                         description: descriptionKey,
@@ -269,7 +274,7 @@ export function useGameState({ gameSlot }: GameStateProps) {
         loadGame();
     // The dependency array is intentionally kept minimal to run this only once on initial load.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [gameSlot, user, addNarrativeEntry]);
+    }, [gameSlot, user, language]); // Added language
 
 
     return {
@@ -295,6 +300,7 @@ export function useGameState({ gameSlot }: GameStateProps) {
         isGameOver, setIsGameOver,
         isSaving, setIsSaving,
         narrativeLog, addNarrativeEntry,
+        narrativeContainerRef,
         currentChunk, setCurrentChunk,
         finalWorldSetup,
         advanceGameTime,

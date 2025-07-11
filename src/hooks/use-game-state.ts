@@ -58,9 +58,8 @@ export function useGameState({ gameSlot }: GameStateProps) {
     const [isSaving, setIsSaving] = useState(false);
     const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>([]);
     const [currentChunk, setCurrentChunk] = useState<Chunk | null>(null);
-    const narrativeContainerRef = useRef<HTMLDivElement>(null);
 
-     const addNarrativeEntry = useCallback((text: string, type: NarrativeEntry['type']) => {
+    const addNarrativeEntry = useCallback((text: string, type: NarrativeEntry['type']) => {
         const uniqueId = `${Date.now()}-${Math.random()}`;
         setNarrativeLog(prev => {
             const newLog = [...prev, { id: uniqueId, text, type }];
@@ -85,7 +84,7 @@ export function useGameState({ gameSlot }: GameStateProps) {
         // Update stats after advancing time. If new stats are passed, use them.
         setPlayerStats(finalStats);
 
-    }, [gameTime, playerStats, setTurn, setGameTime, setDay, setPlayerStats]);
+    }, [gameTime, playerStats]);
 
     useEffect(() => {
         const loadGame = async () => {
@@ -248,7 +247,12 @@ export function useGameState({ gameSlot }: GameStateProps) {
                 if (!stateToInitialize) {
                     const localData = localStorage.getItem(`gameState_${gameSlot}`);
                     if (localData) {
-                        stateToInitialize = JSON.parse(localData);
+                        try {
+                           stateToInitialize = JSON.parse(localData);
+                        } catch (e) {
+                             console.error("Critical: Failed to parse new game state from local storage during initialization.", e);
+                             return; // Exit if we can't get a valid state
+                        }
                     }
                 }
 
@@ -310,7 +314,7 @@ export function useGameState({ gameSlot }: GameStateProps) {
         loadGame();
     // The dependency array is intentionally kept minimal to run this only once on initial load.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [gameSlot, user, language]); // Added language
+    }, [gameSlot, user, language]);
 
 
     return {
@@ -336,11 +340,8 @@ export function useGameState({ gameSlot }: GameStateProps) {
         isGameOver, setIsGameOver,
         isSaving, setIsSaving,
         narrativeLog, addNarrativeEntry,
-        narrativeContainerRef,
         currentChunk, setCurrentChunk,
         finalWorldSetup,
         advanceGameTime,
     };
 }
-
-    

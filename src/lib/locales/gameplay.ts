@@ -1,4 +1,5 @@
 
+
 // src/lib/locales/gameplay.ts
 
 export const gameplayTranslations = {
@@ -33,6 +34,7 @@ export const gameplayTranslations = {
     listenHearSomething: "You hear a strange {sound} coming from the {direction}.",
     listenHearBiome: "You hear the faint {sound} coming from the {direction}.",
     enemySoundGeneric: "rustling",
+    analyzeAction: "Analyze surroundings",
     talkToAction_npc: "talk to {npcName}",
     pickUpAction_item: "pick up {itemName}",
     exploreAction: "Search Area",
@@ -117,6 +119,7 @@ export const gameplayTranslations = {
     listenHearSomething: "Bạn nghe thấy một tiếng {sound} lạ phát ra từ phía {direction}.",
     listenHearBiome: "Bạn nghe thấy tiếng {sound} mờ ảo từ phía {direction}.",
     enemySoundGeneric: "xào xạc",
+    analyzeAction: "Phân tích xung quanh",
     talkToAction_npc: "nói chuyện với {npcName}",
     pickUpAction_item: "nhặt {itemName}",
     exploreAction: "Tìm kiếm khu vực",

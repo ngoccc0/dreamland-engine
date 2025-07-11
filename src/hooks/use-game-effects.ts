@@ -5,7 +5,7 @@
 import { useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase-config';
 import { useAuth } from '@/context/auth-context';
 import { useSettings } from '@/context/settings-context';
@@ -20,6 +20,10 @@ import { seasonConfig } from '@/lib/game/world-config';
 import { rollDice, getSuccessLevel, type SuccessLevel } from '@/lib/game/dice';
 import type { GameState, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, ItemEffect, Terrain, PlayerPersona, EquipmentSlot, NarrativeLength, Action } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
+import { recipes as staticRecipes } from '@/lib/game/recipes';
+import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
+import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
+import { translations } from '@/lib/i18n';
 
 
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
@@ -40,9 +44,10 @@ type GameEffectsDeps = {
   setWorld: (fn: (prev: GameState['world']) => GameState['world']) => void;
   playerPosition: GameState['playerPosition'];
   setPlayerPosition: (pos: GameState['playerPosition']) => void;
-  narrativeLog: NarrativeEntry[];
+  narrativeLogRef: React.RefObject<NarrativeEntry[]>;
   addNarrativeEntry: (text: string, type: NarrativeEntry['type']) => void;
   finalWorldSetup: GameState['worldSetup'] | null;
+  setFinalWorldSetup: (setup: GameState['worldSetup']) => void;
   turn: number;
   setTurn: (turn: number) => void;
   day: number;
@@ -50,7 +55,9 @@ type GameEffectsDeps = {
   gameTime: number;
   setGameTime: (time: number) => void;
   currentSeason: Season;
+  setCurrentSeason: (season: Season) => void;
   worldProfile: WorldProfile;
+  setWorldProfile: (profile: WorldProfile) => void;
   weatherZones: GameState['weatherZones'];
   setWeatherZones: (zones: GameState['weatherZones']) => void;
   regions: GameState['regions'];
@@ -59,27 +66,34 @@ type GameEffectsDeps = {
   setRegionCounter: (counter: number) => void;
   setCurrentChunk: (chunk: Chunk | null) => void;
   customItemDefinitions: Record<string, ItemDefinition>;
+  setCustomItemDefinitions: (defs: Record<string, ItemDefinition>) => void;
   customItemCatalog: GeneratedItem[];
+  setCustomItemCatalog: (catalog: GeneratedItem[]) => void;
   customStructures: Structure[];
+  setCustomStructures: (structures: Structure[]) => void;
   recipes: Record<string, Recipe>;
+  setRecipes: (recipes: Record<string, Recipe>) => void;
   buildableStructures: Record<string, Structure>;
+  setBuildableStructures: (structures: Record<string, Structure>) => void;
   gameSlot: number;
   advanceGameTime: (stats?: PlayerStatus) => void;
+  narrativeContainerRef: React.RefObject<HTMLDivElement>;
 };
 
 
 export function useGameEffects(deps: GameEffectsDeps) {
   const {
-    isLoaded, isGameOver, isSaving, setIsGameOver, setIsSaving,
+    isLoaded, isGameOver, isSaving, setIsLoaded, setIsGameOver, setIsSaving,
     playerStats, setPlayerStats, playerBehaviorProfile, setPlayerBehaviorProfile,
     world, setWorld, playerPosition, setPlayerPosition,
-    narrativeLog, addNarrativeEntry, finalWorldSetup,
+    narrativeLogRef, addNarrativeEntry, finalWorldSetup, setFinalWorldSetup,
     turn, setTurn, day, setDay, gameTime, setGameTime,
-    currentSeason, worldProfile, weatherZones, setWeatherZones,
-    regions, setRegions, regionCounter, setRegionCounter,
-    setCurrentChunk, customItemDefinitions, customItemCatalog, customStructures,
-    recipes, buildableStructures, gameSlot,
-    advanceGameTime
+    currentSeason, setCurrentSeason, worldProfile, setWorldProfile, 
+    weatherZones, setWeatherZones, regions, setRegions, regionCounter, setRegionCounter,
+    setCurrentChunk, customItemDefinitions, setCustomItemDefinitions,
+    customItemCatalog, setCustomItemCatalog, customStructures, setCustomStructures,
+    recipes, setRecipes, buildableStructures, setBuildableStructures, gameSlot,
+    advanceGameTime, narrativeContainerRef
   } = deps;
 
   const { t, language } = useLanguage();
@@ -87,6 +101,153 @@ export function useGameEffects(deps: GameEffectsDeps) {
   const { toast } = useToast();
   const { settings } = useSettings();
   const isOnline = settings.gameMode === 'ai';
+
+  // Master Game Initialization Effect
+  useEffect(() => {
+    let isMounted = true;
+    const loadGame = async () => {
+        // --- 1. Load persistent GLOBAL data from Firestore ---
+        const firestoreItems = new Map<string, GeneratedItem>();
+        const firestoreRecipes = new Map<string, Recipe>();
+        if (db) {
+            try {
+                const itemsSnap = await getDocs(collection(db, 'world-catalog', 'items', 'generated'));
+                itemsSnap.forEach(doc => firestoreItems.set(doc.id, doc.data() as GeneratedItem));
+                
+                const recipesSnap = await getDocs(collection(db, 'world-catalog', 'recipes', 'generated'));
+                recipesSnap.forEach(doc => firestoreRecipes.set(doc.id, doc.data() as Recipe));
+            } catch (error) {
+                console.warn("Could not load world catalog from Firestore.", error);
+            }
+        }
+        
+        // --- 2. Load the specific game slot data ---
+        let loadedState: GameState | null = null;
+        try {
+            if (user) {
+                const docRef = doc(db, "users", user.uid, "games", `slot_${gameSlot}`);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    loadedState = docSnap.data() as GameState;
+                }
+            } else {
+                const localData = localStorage.getItem(`gameState_${gameSlot}`);
+                if (localData) {
+                    try {
+                        loadedState = JSON.parse(localData);
+                    } catch (e) { console.error("Failed to parse local save data", e); }
+                }
+            }
+        } catch (err) {
+            console.error('Error loading game state:', err);
+        }
+
+        if (!isMounted) return;
+
+        // If no saved game, try to get new game state from localStorage again
+        if (!loadedState) {
+            const localData = localStorage.getItem(`gameState_${gameSlot}`);
+            if (localData) {
+                try {
+                    loadedState = JSON.parse(localData);
+                } catch (e) {
+                    console.error("Critical: Failed to parse new game state from local storage during initialization.", e);
+                    return; // Exit if we can't get a valid state
+                }
+            }
+        }
+
+        if (!loadedState) {
+            console.error('CRITICAL: No game state found to initialize game layout.');
+            // Potentially redirect or show an error screen
+            return;
+        }
+
+        // --- 3. Set up all game data based on the loaded state ---
+        
+        const finalCatalogMap = new Map<string, GeneratedItem>();
+        Object.entries(staticItemDefinitions).forEach(([name, def]) => {
+            finalCatalogMap.set(name, { name, ...def } as unknown as GeneratedItem);
+        });
+        (loadedState.customItemCatalog || []).forEach(item => {
+            const nameKey = typeof item.name === 'string' ? item.name : (item.name as any).en;
+            finalCatalogMap.set(nameKey, item);
+        });
+        firestoreItems.forEach((item, name) => finalCatalogMap.set(name, item));
+        
+        const finalCatalogArray: GeneratedItem[] = Array.from(finalCatalogMap.values());
+        const finalRecipes = { ...staticRecipes, ...(loadedState.recipes || {}) };
+        firestoreRecipes.forEach((value, key) => {
+            if (!finalRecipes[key]) finalRecipes[key] = value;
+        });
+
+        const finalDefs = { ...staticItemDefinitions, ...(loadedState.customItemDefinitions || {}) };
+        
+        // --- 4. Apply the state to React ---
+        setWorldProfile(loadedState.worldProfile);
+        setCurrentSeason(loadedState.currentSeason);
+        setGameTime(loadedState.gameTime || 360);
+        setDay(loadedState.day);
+        setTurn(loadedState.turn || 1);
+        setWeatherZones(loadedState.weatherZones || {});
+        setRecipes(finalRecipes);
+        setCustomItemCatalog(finalCatalogArray);
+        setCustomItemDefinitions(finalDefs);
+        setCustomStructures(loadedState.customStructures || []);
+        setBuildableStructures(staticBuildableStructures);
+        setPlayerStats(loadedState.playerStats);
+        setFinalWorldSetup(loadedState.worldSetup);
+        setPlayerPosition(loadedState.playerPosition || { x: 0, y: 0 });
+        setPlayerBehaviorProfile(loadedState.playerBehaviorProfile || { moves: 0, attacks: 0, crafts: 0, customActions: 0 });
+
+        // --- 5. Initialize the world and first narrative ---
+        let worldSnapshot = loadedState.world || {};
+        let regionsSnapshot = loadedState.regions || {};
+        let regionCounterSnapshot = loadedState.regionCounter || 0;
+        let weatherZonesSnapshot = loadedState.weatherZones || {};
+
+        const initialPosKey = `${loadedState.playerPosition.x},${loadedState.playerPosition.y}`;
+        if (!worldSnapshot[initialPosKey]) {
+            const result = ensureChunkExists(loadedState.playerPosition, worldSnapshot, regionsSnapshot, regionCounterSnapshot, loadedState.worldProfile, loadedState.currentSeason, finalDefs, finalCatalogArray, loadedState.customStructures || [], language);
+            worldSnapshot = result.worldWithChunk;
+            regionsSnapshot = result.newRegions;
+            regionCounterSnapshot = result.newRegionCounter;
+        }
+        
+        Object.keys(regionsSnapshot).filter(id => !weatherZonesSnapshot[id]).forEach(regionId => {
+            const region = regionsSnapshot[Number(regionId)];
+            if (region) {
+                const initialWeather = generateWeatherForZone(region.terrain, loadedState!.currentSeason);
+                weatherZonesSnapshot[regionId] = { id: regionId, terrain: region.terrain, currentWeather: initialWeather, nextChangeTime: (loadedState!.gameTime || 360) + Math.floor(Math.random() * (initialWeather.duration_range[1] - initialWeather.duration_range[0] + 1)) + initialWeather.duration_range[0] * 10 };
+            }
+        });
+
+        setWorld(worldSnapshot);
+        setRegions(regionsSnapshot);
+        setRegionCounter(regionCounterSnapshot);
+        setWeatherZones(weatherZonesSnapshot);
+
+        if ((loadedState.narrativeLog || []).length <= 1) {
+             const startingChunk = worldSnapshot[initialPosKey];
+             if (startingChunk) {
+                const chunkDescription = generateOfflineNarrative(startingChunk, 'long', worldSnapshot, loadedState.playerPosition, t);
+                const fullIntro = `${t(loadedState.worldSetup.initialNarrative as any)}\n\n${chunkDescription}`;
+                addNarrativeEntry(fullIntro, 'narrative');
+            }
+        } else {
+             setNarrativeLog(loadedState.narrativeLog);
+        }
+
+        setIsLoaded(true);
+    };
+
+    loadGame();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [gameSlot, user, language]); // Rerun if user or language changes
+
 
   const triggerRandomEvent = useCallback(() => {
     const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
@@ -265,7 +426,7 @@ export function useGameEffects(deps: GameEffectsDeps) {
     const gameState: GameState = {
         worldProfile, currentSeason, world, recipes, buildableStructures,
         regions, regionCounter, playerPosition, playerBehaviorProfile,
-        playerStats, narrativeLog, worldSetup: finalWorldSetup!,
+        playerStats, narrativeLog: narrativeLogRef.current!, worldSetup: finalWorldSetup!,
         customItemDefinitions, customItemCatalog, customStructures, weatherZones, gameTime, day,
         turn,
     };
@@ -291,7 +452,7 @@ export function useGameEffects(deps: GameEffectsDeps) {
 
   }, [
     worldProfile, currentSeason, world, recipes, buildableStructures, regions, regionCounter,
-    playerPosition, playerBehaviorProfile, playerStats, narrativeLog, finalWorldSetup,
+    playerPosition, playerBehaviorProfile, playerStats, narrativeLogRef, finalWorldSetup,
     customItemDefinitions, customItemCatalog, customStructures, weatherZones, gameTime, day, user, isSaving, toast, isGameOver,
     turn, gameSlot, isLoaded, setIsSaving,
   ]);

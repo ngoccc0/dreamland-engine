@@ -1,4 +1,5 @@
 
+
 // src/lib/locales/narrative.ts
 
 export const narrativeTranslations = {
@@ -50,6 +51,14 @@ export const narrativeTranslations = {
         exploreFoundItems: "Found Items: {items}",
         exploreFoundItemsNarrative: "After a careful search, you find: {items}!",
         exploreSuccessTitle: "Search Successful",
+        itemNotFoundNarrative: "You rummage through your pack, but the {itemName} is nowhere to be found.",
+        craftSuccess1: "With deft hands, you assemble the materials. Success! You've crafted a {itemName}.",
+        craftSuccess2: "The components click into place perfectly. You hold up your newly crafted {itemName}.",
+        craftSuccess3: "After a bit of work, you've successfully created a {itemName}.",
+        craftFail1: "The materials smoke and spark, then crumble to dust. The crafting attempt failed.",
+        craftFail2: "You misjudge a crucial step, and the pieces break apart. Your {itemName} was not meant to be.",
+        craftFail3: "Despite your best efforts, the components refuse to combine correctly. The crafting fails.",
+
     },
     vi: {
         itemUsePlayerSuccessNarrative: "Bạn sử dụng {item}. {effect}. {sensory_feedback}",
@@ -99,5 +108,12 @@ export const narrativeTranslations = {
         exploreFoundItems: "Vật phẩm tìm thấy: {items}",
         exploreFoundItemsNarrative: "Sau khi tìm kiếm cẩn thận, bạn tìm thấy: {items}!",
         exploreSuccessTitle: "Tìm kiếm thành công",
+        itemNotFoundNarrative: "Bạn lục lọi trong túi nhưng không tìm thấy {itemName} đâu cả.",
+        craftSuccess1: "Với đôi tay khéo léo, bạn lắp ráp các vật liệu. Thành công! Bạn đã chế tạo được một {itemName}.",
+        craftSuccess2: "Các thành phần khớp vào nhau một cách hoàn hảo. Bạn giơ cao {itemName} mới chế tạo của mình.",
+        craftSuccess3: "Sau một hồi làm việc, bạn đã tạo ra thành công một {itemName}.",
+        craftFail1: "Các vật liệu bốc khói và tóe lửa, rồi vỡ vụn thành cát bụi. Nỗ lực chế tạo đã thất bại.",
+        craftFail2: "Bạn đánh giá sai một bước quan trọng, và các mảnh vỡ ra. {itemName} của bạn đã không thể thành hình.",
+        craftFail3: "Mặc dù đã cố gắng hết sức, các thành phần từ chối kết hợp một cách chính xác. Việc chế tạo thất bại.",
     }
 };

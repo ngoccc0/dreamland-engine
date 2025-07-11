@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useCallback } from 'react';
@@ -15,7 +16,6 @@ import { clamp } from '@/lib/utils';
 import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem, NarrativeEntry } from '@/lib/game/types';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-config';
-import { translations } from '@/lib/i18n';
 
 type ActionHandlerDeps = {
   isLoaded: boolean;
@@ -48,7 +48,8 @@ type ActionHandlerDeps = {
   currentSeason: GameState['currentSeason'];
   customItemCatalog: GameState['customItemCatalog'];
   customStructures: GameState['customStructures'];
-  narrativeLog: NarrativeEntry[];
+  narrativeLogRef: React.RefObject<NarrativeEntry[]>;
+  scrollToBottom: () => void;
 };
 
 export function useActionHandlers(deps: ActionHandlerDeps) {
@@ -56,7 +57,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     isLoaded, isLoading, isGameOver, setIsLoading, playerStats, setPlayerStats, world, setWorld, recipes, buildableStructures,
     customItemDefinitions, setCustomItemCatalog, setCustomItemDefinitions, finalWorldSetup, addNarrativeEntry, advanceGameTime,
     setPlayerBehaviorProfile, playerPosition, setPlayerPosition, weatherZones, turn, gameTime, regions, setRegions, regionCounter, setRegionCounter,
-    worldProfile, currentSeason, customItemCatalog, customStructures, narrativeLog
+    worldProfile, currentSeason, customItemCatalog, customStructures, narrativeLogRef, scrollToBottom
   } = deps;
 
   const { t, language } = useLanguage();
@@ -66,6 +67,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
   const handleOnlineNarrative = useCallback(async (action: string, worldCtx: World, playerPosCtx: { x: number, y: number }, playerStatsCtx: PlayerStatus) => {
     setIsLoading(true);
+    scrollToBottom();
     const baseChunk = worldCtx[`${playerPosCtx.x},${playerPosCtx.y}`];
     if (!baseChunk || !finalWorldSetup) { setIsLoading(false); return; }
 
@@ -90,13 +92,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     }
     
     try {
-        const recentNarrative = (await (async () => {
-            const log = [];
-            for (let i = narrativeLog.length - 1; i >= 0 && log.length < 5; i--) {
-                log.unshift(narrativeLog[i].text);
-            }
-            return log;
-        })());
+        const recentNarrative = narrativeLogRef.current?.slice(-5).map(e => e.text) || [];
 
         const input: GenerateNarrativeInput = {
             worldName: finalWorldSetup.worldName, playerAction: action, playerStatus: playerStatsCtx,
@@ -141,8 +137,9 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         toast({ title: t('offlineModeActive'), description: t('offlineToastDesc'), variant: "destructive" });
     } finally {
         setIsLoading(false);
+        scrollToBottom();
     }
-  }, [settings.diceType, settings.aiModel, settings.narrativeLength, addNarrativeEntry, narrativeLog, language, customItemDefinitions, toast, advanceGameTime, finalWorldSetup, setIsLoading, setWorld, setCustomItemCatalog, setCustomItemDefinitions, t, weatherZones, gameTime]);
+  }, [settings.diceType, settings.aiModel, settings.narrativeLength, addNarrativeEntry, narrativeLogRef, language, customItemDefinitions, toast, advanceGameTime, finalWorldSetup, setIsLoading, setWorld, setCustomItemCatalog, setCustomItemDefinitions, t, weatherZones, gameTime, scrollToBottom]);
 
   const handleOfflineAttack = useCallback(() => {
     const key = `${playerPosition.x},${playerPosition.y}`;
@@ -948,7 +945,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     
     setPlayerBehaviorProfile(prev => ({ ...prev, moves: prev.moves + 1 }));
     
-    const actionText = t('wentDirection', { direction: t(`direction${direction}` as TranslationKey) });
+    const actionText = t('wentDirection', { direction: t(`direction${direction.charAt(0).toUpperCase() + direction.slice(1)}` as TranslationKey) });
     addNarrativeEntry(actionText, 'action');
     
     let regionsSnapshot = { ...regions };

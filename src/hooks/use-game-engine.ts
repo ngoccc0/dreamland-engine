@@ -1,6 +1,8 @@
 
+
 "use client";
 
+import { useRef } from 'react';
 import { useGameState } from "./use-game-state";
 import { useActionHandlers } from "./use-action-handlers";
 import { useGameEffects } from "./use-game-effects";
@@ -13,17 +15,31 @@ interface GameEngineProps {
 
 export function useGameEngine(props: GameEngineProps) {
     const gameState = useGameState(props);
+    const narrativeContainerRef = useRef<HTMLDivElement>(null);
     
+    const scrollToBottom = () => {
+        const container = narrativeContainerRef.current;
+        if (container) {
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 0);
+        }
+    };
+
     const actionHandlers = useActionHandlers({
-        ...gameState
+        ...gameState,
+        scrollToBottom
     });
 
     useGameEffects({
         ...gameState,
+        narrativeContainerRef
     });
     
     return {
         ...gameState,
         ...actionHandlers,
+        narrativeContainerRef,
+        scrollToBottom,
     };
 }

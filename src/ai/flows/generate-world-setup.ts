@@ -185,18 +185,8 @@ const generateWorldSetupFlow = ai.defineFlow(
     
     // --- Step 1: Define four independent AI tasks to run in parallel ---
     
-    // --- NEW: Fetch all existing item names to prevent duplicates ---
-    const existingItemNames = new Set<string>();
-    Object.keys(staticItemDefinitions).forEach(name => existingItemNames.add(name));
-    if (db) {
-        try {
-            const itemsSnap = await getDocs(collection(db, 'world-catalog', 'items', 'generated'));
-            itemsSnap.forEach(doc => existingItemNames.add(doc.id));
-        } catch (e) {
-            console.warn("Could not fetch existing items from Firestore for world-gen.", e);
-        }
-    }
-    const itemNamesList = Array.from(existingItemNames);
+    // Get existing item names ONLY from the static, code-based definitions.
+    const itemNamesList = Object.keys(staticItemDefinitions);
 
     // Task A: Generate the item catalog.
     const itemCatalogTask = (async () => {
@@ -407,3 +397,5 @@ const generateWorldSetupFlow = ai.defineFlow(
     return finalOutput;
   }
 );
+
+    

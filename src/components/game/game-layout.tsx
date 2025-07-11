@@ -21,7 +21,7 @@ import { Progress } from "@/components/ui/progress";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/context/language-context";
 import { useGameEngine } from "@/hooks/use-game-engine";
-import type { ItemDefinition, GeneratedItem, WorldConcept, PlayerItem, GameState, Structure, Chunk, EquipmentSlot, Action } from "@/lib/game/types";
+import type { ItemDefinition, WorldConcept, PlayerItem, GameState, Structure, Chunk, EquipmentSlot, Action } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
 import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Heart, Zap, Footprints, Loader2, Menu, LogOut } from "./icons";
@@ -141,7 +141,7 @@ export default function GameLayout(props: GameLayoutProps) {
             <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
                 <div className="flex flex-col items-center gap-2 mt-4 text-muted-foreground">
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    <p>{t('loadingAdventure')}</p>
+                    <p>{t('loadingAdventure' as TranslationKey)}</p>
                     {loadError && (
                         <div className="mt-4 p-2 bg-destructive/10 text-destructive rounded">
                             <span>{loadError}</span>
@@ -183,16 +183,16 @@ export default function GameLayout(props: GameLayoutProps) {
                             <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => setTutorialOpen(true)}>
                                     <LifeBuoy className="mr-2 h-4 w-4" />
-                                    <span>{t('tutorialTitle')}</span>
+                                    <span>{t('tutorialTitle' as TranslationKey)}</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
                                     <Settings className="mr-2 h-4 w-4" />
-                                    <span>{t('gameSettings')}</span>
+                                    <span>{t('gameSettings' as TranslationKey)}</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={handleReturnToMenu}>
                                     <LogOut className="mr-2 h-4 w-4" />
-                                    <span>{t('returnToMenu')}</span>
+                                    <span>{t('returnToMenu' as TranslationKey)}</span>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -226,15 +226,15 @@ export default function GameLayout(props: GameLayoutProps) {
                         <div className="space-y-3">
                             <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
                                 <div className="space-y-1">
-                                    <label className="flex items-center gap-1.5 text-muted-foreground"><Heart /> {t('hudHealth')}</label>
+                                    <label className="flex items-center gap-1.5 text-muted-foreground"><Heart /> {t('hudHealth' as TranslationKey)}</label>
                                     <Progress value={playerStats.hp} className="h-2" indicatorClassName="bg-destructive" />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="flex items-center gap-1.5 text-muted-foreground"><Zap /> {t('hudMana')}</label>
+                                    <label className="flex items-center gap-1.5 text-muted-foreground"><Zap /> {t('hudMana' as TranslationKey)}</label>
                                     <Progress value={(playerStats.mana / 50) * 100} className="h-2" indicatorClassName="bg-gradient-to-r from-blue-500 to-purple-600" />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="flex items-center gap-1.5 text-muted-foreground"><Footprints /> {t('hudStamina')}</label>
+                                    <label className="flex items-center gap-1.5 text-muted-foreground"><Footprints /> {t('hudStamina' as TranslationKey)}</label>
                                     <Progress value={playerStats.stamina} className="h-2" indicatorClassName="bg-gradient-to-r from-yellow-400 to-orange-500" />
                                 </div>
                             </div>
@@ -248,10 +248,10 @@ export default function GameLayout(props: GameLayoutProps) {
                         {/* Minimap */}
                         <div>
                             <div className="flex flex-col items-center gap-2 mb-4">
-                                <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => setIsFullMapOpen(true)}>{t('minimap')}</h3>
+                                <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => setIsFullMapOpen(true)}>{t('minimap' as TranslationKey)}</h3>
                                 <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
-                                    <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
-                                    <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
+                                    <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature' as TranslationKey, { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip' as TranslationKey)}</p></TooltipContent></Tooltip>
+                                    <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp' as TranslationKey, { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc' as TranslationKey)}</p></TooltipContent></Tooltip>
                                 </div>
                             </div>
                             <Minimap grid={generateMapGrid()} playerPosition={playerPosition} turn={turn} />
@@ -264,32 +264,45 @@ export default function GameLayout(props: GameLayoutProps) {
                         <div className="flex flex-col md:flex-row md:justify-around md:items-start md:gap-x-6 gap-y-4">
                             <Controls onMove={handleMove} onAttack={handleAttack} />
                              <div className="flex flex-col space-y-2 w-full md:max-w-xs">
-                                <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('skills')}</h3>
+                                <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('skills' as TranslationKey)}</h3>
                                 <div className="grid grid-cols-2 gap-2">
-                                    {playerStats.skills?.map((skill) => (
-                                        <Tooltip key={skill.name}>
-                                            <TooltipTrigger asChild>
-                                                <Button variant="secondary" className="w-full justify-center text-xs" onClick={() => handleUseSkill(t(skill.name as TranslationKey))} disabled={isLoading || playerStats.mana < skill.manaCost}>
-                                                    <WandSparkles className="mr-2 h-3 w-3" />
-                                                    {t(skill.name as TranslationKey)} ({skill.manaCost} MP)
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent><p>{t(skill.description as TranslationKey)}</p><p className="text-muted-foreground">{t('manaCost')}: {skill.manaCost}</p></TooltipContent>
-                                        </Tooltip>
-                                    ))}
+                                    {playerStats.skills?.map((skill) => {
+                                        // Use skill.nameKey and skill.descriptionKey if available, fallback to skill.name/description if they are strings
+                                        const nameKey = typeof skill.name === "string" ? skill.name : skill.nameKey;
+                                        const descriptionKey = typeof skill.description === "string" ? skill.description : skill.descriptionKey;
+                                        return (
+                                            <Tooltip key={nameKey}>
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        variant="secondary"
+                                                        className="w-full justify-center text-xs"
+                                                        onClick={() => handleUseSkill(nameKey)}
+                                                        disabled={isLoading || playerStats.mana < skill.manaCost}
+                                                    >
+                                                        <WandSparkles className="mr-2 h-3 w-3" />
+                                                        {t(nameKey as TranslationKey)} ({skill.manaCost} MP)
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>{t(descriptionKey as TranslationKey)}</p>
+                                                    <p className="text-muted-foreground">{t('manaCost' as TranslationKey)}: {skill.manaCost}</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>
 
                         {/* Main Action Buttons */}
                         <div className="space-y-2">
-                            <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('mainActions')}</h3>
+                            <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('mainActions' as TranslationKey)}</h3>
                             <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setStatusOpen(true)}><Shield /></Button></TooltipTrigger><TooltipContent><p>{t('statusTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setInventoryOpen(true)}><Backpack /></Button></TooltipTrigger><TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setCraftingOpen(true)}><Hammer /></Button></TooltipTrigger><TooltipContent><p>{t('craftingTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setBuildingOpen(true)}><Home /></Button></TooltipTrigger><TooltipContent><p>{t('buildingTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setFusionOpen(true)}><FlaskConical /></Button></TooltipTrigger><TooltipContent><p>{t('fusionTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setStatusOpen(true)}><Shield /></Button></TooltipTrigger><TooltipContent><p>{t('statusTooltip' as TranslationKey)}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setInventoryOpen(true)}><Backpack /></Button></TooltipTrigger><TooltipContent><p>{t('inventoryTooltip' as TranslationKey)}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setCraftingOpen(true)}><Hammer /></Button></TooltipTrigger><TooltipContent><p>{t('craftingTooltip' as TranslationKey)}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setBuildingOpen(true)}><Home /></Button></TooltipTrigger><TooltipContent><p>{t('buildingTooltip' as TranslationKey)}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setFusionOpen(true)}><FlaskConical /></Button></TooltipTrigger><TooltipContent><p>{t('fusionTooltip' as TranslationKey)}</p></TooltipContent></Tooltip>
                             </div>
                         </div>
                         
@@ -298,13 +311,13 @@ export default function GameLayout(props: GameLayoutProps) {
                         {/* Contextual and Custom Actions */}
                         {restingPlace && (
                             <><div className="space-y-2">
-                                <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('structureActions')}</h2>
-                                <Tooltip><TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={handleRest} disabled={isLoading}><BedDouble className="mr-2 h-4 w-4" />{t('rest')}</Button></TooltipTrigger><TooltipContent><p>{t('restTooltip', { shelterName: t(restingPlace.name as TranslationKey), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent></Tooltip>
+                                <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('structureActions' as TranslationKey)}</h2>
+                                <Tooltip><TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={handleRest} disabled={isLoading}><BedDouble className="mr-2 h-4 w-4" />{t('rest' as TranslationKey)}</Button></TooltipTrigger><TooltipContent><p>{t('restTooltip' as TranslationKey, { shelterName: t(restingPlace.name as TranslationKey), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent></Tooltip>
                             </div><Separator /></>
                         )}
                         
                         <div className="space-y-2">
-                            <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('availableActions')}</h2>
+                            <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('availableActions' as TranslationKey)}</h2>
                             <div className="grid grid-cols-2 gap-2">
                                 {currentChunk?.actions.map(action => {
                                     const actionText = t(action.textKey, action.params as any);
@@ -319,8 +332,8 @@ export default function GameLayout(props: GameLayoutProps) {
                         </div>
                         
                         <div className="flex flex-col gap-2 mt-auto pt-4">
-                            <Input placeholder={t('customActionPlaceholder')} value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={handleKeyDown} disabled={isLoading} />
-                            <Tooltip><TooltipTrigger asChild><Button variant="accent" onClick={onCustomActionSubmit} disabled={isLoading}>{t('submit')}</Button></TooltipTrigger><TooltipContent><p>{t('submitTooltip')}</p></TooltipContent></Tooltip>
+                            <Input placeholder={t('customActionPlaceholder' as TranslationKey)} value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={handleKeyDown} disabled={isLoading} />
+                            <Tooltip><TooltipTrigger asChild><Button variant="accent" onClick={onCustomActionSubmit} disabled={isLoading}>{t('submit' as TranslationKey)}</Button></TooltipTrigger><TooltipContent><p>{t('submitTooltip' as TranslationKey)}</p></TooltipContent></Tooltip>
                         </div>
                     </div>
                 </aside>
@@ -338,9 +351,9 @@ export default function GameLayout(props: GameLayoutProps) {
                 <AlertDialog open={isGameOver}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
-                        <AlertDialogTitle>{t('gameOverTitle')}</AlertDialogTitle>
+                        <AlertDialogTitle>{t('gameOverTitle' as TranslationKey)}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            {t('gameOverDesc')}
+                            {t('gameOverDesc' as TranslationKey)}
                         </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -348,7 +361,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                 localStorage.removeItem(`gameState_${props.gameSlot}`);
                                 window.location.reload();
                             }}>
-                                {t('startNewAdventure')}
+                                {t('startNewAdventure' as TranslationKey)}
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>

@@ -1,9 +1,9 @@
 
 import 'dotenv/config';
-import {genkit, Plugin} from 'genkit';
+import { genkit } from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 import {openAI} from 'genkitx-openai';
-import {deepseekPlugin} from './plugins/deepseek';
+import { deepseekPlugin } from './plugins/deepseek';
 
 /**
  * This file configures the Genkit AI object.
@@ -18,7 +18,7 @@ import {deepseekPlugin} from './plugins/deepseek';
  * - DEEPSEEK_API_KEY
  */
 
-const plugins: Plugin[] = [];
+const plugins: any[] = [];
 
 // This explicit check helps in debugging by confirming if the keys are loaded.
 // The logs will appear in the terminal where you run your Next.js app.
@@ -31,8 +31,8 @@ const geminiApiKeys = [
 
 if (geminiApiKeys.length > 0) {
   console.log(`Found ${geminiApiKeys.length} Gemini API key(s). Initializing Google AI plugin.`);
-  // Pass all found keys to the plugin. Genkit will manage them.
-  plugins.push(googleAI({apiKey: geminiApiKeys}));
+  // Chỉ truyền 1 key đầu tiên, đúng kiểu string
+  plugins.push(googleAI({ apiKey: geminiApiKeys[0] }));
 } else {
   console.warn(
     'GEMINI_API_KEY_PRIMARY or GEMINI_API_KEY_SECONDARY not found. Google AI plugin will not be available.'
@@ -49,8 +49,13 @@ if (process.env.OPENAI_API_KEY) {
   );
 }
 
-// The deepseek plugin is now called as a function, which is the standard pattern.
-plugins.push(deepseekPlugin());
+
+// Đảm bảo deepseekPlugin là function trước khi gọi
+if (typeof deepseekPlugin === 'function') {
+  plugins.push(deepseekPlugin());
+} else {
+  console.warn('deepseekPlugin is not a function. Kiểm tra lại export/import của deepseekPlugin.');
+}
 
 
 export const ai = genkit({

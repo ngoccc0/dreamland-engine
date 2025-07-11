@@ -83,6 +83,7 @@ export const gameplayTranslations = {
     harvestFail_noLoot: "You harvest the {target}, but find nothing useful.",
     questCompletedTitle: 'Quest Completed!',
     enemyDropped: 'The enemy dropped: {items}',
+    dynamicDay: "The sun rises on a new day.",
   },
   vi: {
     // Dice Rolls
@@ -166,5 +167,6 @@ export const gameplayTranslations = {
     harvestFail_noLoot: "Bạn thu hoạch {target}, nhưng không tìm thấy gì hữu ích.",
     questCompletedTitle: 'Đã hoàn thành Nhiệm vụ!',
     enemyDropped: 'Kẻ địch làm rơi: {items}',
+    dynamicDay: "Mặt trời mọc, bắt đầu một ngày mới.",
   }
 };

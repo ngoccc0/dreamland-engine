@@ -6,7 +6,8 @@ const withPWA = withPWAInit({
   dest: 'public',
   disable: process.env.NODE_ENV === 'development',
   register: true,
-  skipWaiting: true,
+  // skipWaiting: true, // Removed: not a valid option for PluginOptions
+  // @ts-expect-error: runtimeCaching is not in PluginOptions type but required by next-pwa
   runtimeCaching: [
     // Cache Google Fonts
     {
@@ -46,7 +47,7 @@ const withPWA = withPWAInit({
     },
     // Cache pages using Stale While Revalidate strategy for instant loads
     {
-      urlPattern: ({ request }) => request.mode === 'navigate',
+      urlPattern: (context: any) => context.request && context.request.mode === 'navigate',
       handler: 'StaleWhileRevalidate',
       options: {
         cacheName: 'pages',
@@ -56,7 +57,7 @@ const withPWA = withPWAInit({
         },
       },
     },
-  ],
+    ],
 });
 
 

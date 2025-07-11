@@ -48,7 +48,7 @@ export default function GameLayout(props: GameLayoutProps) {
         customItemDefinitions,
         currentChunk,
         turn,
-        isLoaded, // <-- Added isLoaded state
+        isLoaded,
         handleMove,
         handleAction,
         handleCustomAction,
@@ -78,6 +78,16 @@ export default function GameLayout(props: GameLayoutProps) {
     const [inputValue, setInputValue] = useState("");
     
     const narrativeContainerRef = useRef<HTMLDivElement>(null);
+    const customActionInputRef = useRef<HTMLInputElement>(null);
+
+    const focusCustomActionInput = () => {
+        setTimeout(() => customActionInputRef.current?.focus(), 0);
+    };
+
+    const handleActionClick = (actionId: number) => {
+        handleAction(actionId);
+        focusCustomActionInput();
+    };
     
     useEffect(() => {
         if (narrativeContainerRef.current) {
@@ -292,7 +302,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                     const actionText = t(action.textKey, action.params as any);
                                     return (
                                         <Tooltip key={action.id}>
-                                            <TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => handleAction(action.id)} disabled={isLoading}>{actionText}</Button></TooltipTrigger>
+                                            <TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => handleActionClick(action.id)} disabled={isLoading}>{actionText}</Button></TooltipTrigger>
                                             <TooltipContent><p>{actionText}</p></TooltipContent>
                                         </Tooltip>
                                     );
@@ -301,7 +311,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         </div>
                         
                         <div className="flex flex-col gap-2 mt-auto pt-4">
-                            <Input placeholder={t('customActionPlaceholder')} value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={handleKeyDown} disabled={isLoading} />
+                            <Input ref={customActionInputRef} placeholder={t('customActionPlaceholder')} value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={handleKeyDown} disabled={isLoading} />
                             <Tooltip><TooltipTrigger asChild><Button variant="accent" onClick={onCustomActionSubmit} disabled={isLoading}>{t('submit')}</Button></TooltipTrigger><TooltipContent><p>{t('submitTooltip')}</p></TooltipContent></Tooltip>
                         </div>
                     </div>

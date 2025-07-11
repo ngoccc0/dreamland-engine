@@ -1,3 +1,4 @@
+
 import type { ItemDefinition } from "../../definitions/item";
 
 export const materialItems: Record<string, ItemDefinition> = {
@@ -69,7 +70,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: 'item_manh_vai_rach_desc',
         tier: 1,
         category: 'Material',
-        emoji: ' rags ',
+        emoji: '🧣',
         effects: [],
         baseQuantity: { min: 1, max: 2 }
     },

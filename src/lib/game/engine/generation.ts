@@ -1,4 +1,3 @@
-
 import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient, Structure, Language, Npc, CraftingOutcome, Action, ItemCategory, Skill, WeatherDefinition } from "../types";
 import { seasonConfig, worldConfig } from "../world-config";
 import { getTemplates } from "../templates";
@@ -6,6 +5,8 @@ import { weatherPresets } from "../weatherPresets";
 import { translations } from "../../i18n";
 import type { TranslationKey } from "../../i18n";
 import { clamp } from "../../utils";
+import { naturePlusForestEnemies, naturePlusJungleEnemies, naturePlusMountainEnemies, naturePlusSwampEnemies } from "../templates/modded/nature_plus";
+
 
 // --- HELPER FUNCTIONS ---
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
@@ -280,7 +281,7 @@ function generateChunkContent(
             if (finalQuantity > 0) {
                 spawnedItems.push({
                     name: itemRef.name,
-                    description: itemDef.description,
+                    description: t(itemDef.description as TranslationKey),
                     tier: itemDef.tier,
                     quantity: finalQuantity,
                     emoji: itemDef.emoji,
@@ -290,7 +291,15 @@ function generateChunkContent(
     }
     
     const spawnedNPCs: Npc[] = selectEntities(template.NPCs, chunkData, allItemDefinitions, 1).map(ref => ref.data);
-    const spawnedEnemies = selectEntities(template.enemies, chunkData, allItemDefinitions, 1);
+
+    // Combine base enemies with modded enemies
+    let allEnemyCandidates = [...(template.enemies || [])];
+    if (chunkData.terrain === 'swamp') allEnemyCandidates = [...allEnemyCandidates, ...naturePlusSwampEnemies];
+    if (chunkData.terrain === 'jungle') allEnemyCandidates = [...allEnemyCandidates, ...naturePlusJungleEnemies];
+    if (chunkData.terrain === 'forest') allEnemyCandidates = [...allEnemyCandidates, ...naturePlusForestEnemies];
+    if (chunkData.terrain === 'mountain') allEnemyCandidates = [...allEnemyCandidates, ...naturePlusMountainEnemies];
+
+    const spawnedEnemies = selectEntities(allEnemyCandidates, chunkData, allItemDefinitions, 1);
     
     let spawnedStructures: Structure[] = [];
     if (Math.random() < 0.05 && customStructures && customStructures.length > 0) { // Reduced chance
@@ -312,7 +321,7 @@ function generateChunkContent(
                             } else {
                                 spawnedItems.push({
                                     name: lootItem.name,
-                                    description: definition.description,
+                                    description: t(definition.description as TranslationKey),
                                     tier: definition.tier,
                                     quantity: quantity,
                                     emoji: definition.emoji,
@@ -499,6 +508,31 @@ export const generateRegion = (
 
     return { newWorld, newRegions, newRegionCounter };
 };
+
+export function ensureChunkExists(
+    pos: { x: number; y: number },
+    currentWorld: World,
+    currentRegions: { [id: number]: Region },
+    currentRegionCounter: number,
+    worldProfile: WorldProfile,
+    currentSeason: Season,
+    allItemDefinitions: Record<string, ItemDefinition>,
+    customItemCatalog: GeneratedItem[],
+    customStructures: Structure[],
+    language: Language
+) {
+    const key = `${pos.x},${pos.y}`;
+    if (currentWorld[key]) {
+        return { worldWithChunk: currentWorld, newRegions: currentRegions, newRegionCounter: currentRegionCounter };
+    }
+
+    const validTerrains = getValidAdjacentTerrains(pos, currentWorld);
+    const terrainWeights = validTerrains.map(t => [t, worldConfig[t].spreadWeight] as [Terrain, number]);
+    const newTerrain = weightedRandom(terrainWeights);
+
+    return generateRegion(pos, newTerrain, currentWorld, currentRegions, currentRegionCounter, worldProfile, currentSeason, allItemDefinitions, customItemCatalog, customStructures, language);
+}
+
 
 export const getEffectiveChunk = (baseChunk: Chunk, weatherZones: { [key: string]: WeatherZone }, gameTime: number): Chunk => {
     if (!baseChunk) return baseChunk;

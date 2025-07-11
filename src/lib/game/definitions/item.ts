@@ -56,5 +56,6 @@ export const ItemDefinitionSchema = z.object({
   })).optional(),
   function: z.string().optional().describe("A brief description of the item's primary purpose or function in the game."),
   spawnBiomes: z.array(z.enum(allTerrains)).optional().describe("An array of one or more biomes where this item can naturally be found."),
+  spawnEnabled: z.boolean().optional().default(true).describe("Whether this item can spawn naturally in the world. Defaults to true. Set to false for crafted-only items."),
 });
 export type ItemDefinition = z.infer<typeof ItemDefinitionSchema>;

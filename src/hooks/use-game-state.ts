@@ -62,7 +62,14 @@ export function useGameState({ gameSlot }: GameStateProps) {
 
      const addNarrativeEntry = useCallback((text: string, type: NarrativeEntry['type']) => {
         const uniqueId = `${Date.now()}-${Math.random()}`;
-        setNarrativeLog(prev => [...prev, { id: uniqueId, text, type }]);
+        setNarrativeLog(prev => {
+            const newLog = [...prev, { id: uniqueId, text, type }];
+             setTimeout(() => {
+                const element = document.getElementById(uniqueId);
+                element?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }, 100);
+            return newLog;
+        });
     }, []);
 
     const advanceGameTime = useCallback((newPlayerStats?: PlayerStatus) => {
@@ -147,7 +154,26 @@ export function useGameState({ gameSlot }: GameStateProps) {
                 sessionDefs = loadedState.customItemDefinitions || {};
                 sessionRecipes = loadedState.recipes || {};
                 sessionStructures = loadedState.customStructures || [];
+            } else {
+                // This is a new game, state comes from `finalWorldSetup` which should be populated from the setup screen.
+                // We'll rely on the `finalWorldSetup` state which should be set before GameLayout is even rendered.
+                // However, the initial state load from local storage might be null.
+                const localData = localStorage.getItem(`gameState_${gameSlot}`);
+                 if (localData) {
+                    try {
+                        const newGameState = JSON.parse(localData) as GameState;
+                        setFinalWorldSetup(newGameState.worldSetup);
+                        setPlayerStats(newGameState.playerStats);
+                        setCustomItemCatalog(newGameState.customItemCatalog || []);
+                        setCustomItemDefinitions(newGameState.customItemDefinitions || {});
+                        setCustomStructures(newGameState.customStructures || []);
+                        loadedState = newGameState; // Treat it as a loaded state
+                    } catch {
+                         console.error("Failed to parse new game state from local storage");
+                    }
+                 }
             }
+            
             // --- 4. MERGE global data into the session data before setting state ---
             const finalCatalogMap = new Map<string, GeneratedItem>();
             
@@ -202,6 +228,7 @@ export function useGameState({ gameSlot }: GameStateProps) {
                         growthConditions: item.growthConditions,
                         equipmentSlot: item.equipmentSlot,
                         attributes: item.attributes,
+                        spawnEnabled: item.spawnEnabled,
                     } as ItemDefinition;
                 }
             });
@@ -215,16 +242,26 @@ export function useGameState({ gameSlot }: GameStateProps) {
 
             // This should only run ONCE.
             if (!hasLoaded.current) {
-                // Initialize first chunk right after loading state
-                if (loadedState) {
-                    let worldSnapshot = loadedState.world || {};
-                    let regionsSnapshot = loadedState.regions || {};
-                    let regionCounterSnapshot = loadedState.regionCounter || 0;
-                    let weatherZonesSnapshot = loadedState.weatherZones || {};
+                // This block now robustly handles both new and loaded games.
+                let stateToInitialize = loadedState;
 
-                    const initialPosKey = `${loadedState.playerPosition.x},${loadedState.playerPosition.y}`;
+                // If loadedState is null, it's a new game. We must get the state from localStorage again.
+                if (!stateToInitialize) {
+                    const localData = localStorage.getItem(`gameState_${gameSlot}`);
+                    if (localData) {
+                        stateToInitialize = JSON.parse(localData);
+                    }
+                }
+
+                if (stateToInitialize) {
+                    let worldSnapshot = stateToInitialize.world || {};
+                    let regionsSnapshot = stateToInitialize.regions || {};
+                    let regionCounterSnapshot = stateToInitialize.regionCounter || 0;
+                    let weatherZonesSnapshot = stateToInitialize.weatherZones || {};
+
+                    const initialPosKey = `${stateToInitialize.playerPosition.x},${stateToInitialize.playerPosition.y}`;
                     if (!worldSnapshot[initialPosKey]) {
-                        const result = ensureChunkExists(loadedState.playerPosition, worldSnapshot, regionsSnapshot, regionCounterSnapshot, loadedState.worldProfile, loadedState.currentSeason, finalDefs, finalCatalogArray, sessionStructures, language);
+                        const result = ensureChunkExists(stateToInitialize.playerPosition, worldSnapshot, regionsSnapshot, regionCounterSnapshot, stateToInitialize.worldProfile, stateToInitialize.currentSeason, finalDefs, finalCatalogArray, sessionStructures, language);
                         worldSnapshot = result.worldWithChunk;
                         regionsSnapshot = result.newRegions;
                         regionCounterSnapshot = result.newRegionCounter;
@@ -233,8 +270,8 @@ export function useGameState({ gameSlot }: GameStateProps) {
                     Object.keys(regionsSnapshot).filter(id => !weatherZonesSnapshot[id]).forEach(regionId => {
                         const region = regionsSnapshot[Number(regionId)];
                         if (region) {
-                            const initialWeather = generateWeatherForZone(region.terrain, loadedState.currentSeason);
-                            weatherZonesSnapshot[regionId] = { id: regionId, terrain: region.terrain, currentWeather: initialWeather, nextChangeTime: (loadedState.gameTime || 360) + Math.floor(Math.random() * (initialWeather.duration_range[1] - initialWeather.duration_range[0] + 1)) + initialWeather.duration_range[0] * 10 };
+                            const initialWeather = generateWeatherForZone(region.terrain, stateToInitialize!.currentSeason);
+                            weatherZonesSnapshot[regionId] = { id: regionId, terrain: region.terrain, currentWeather: initialWeather, nextChangeTime: (stateToInitialize!.gameTime || 360) + Math.floor(Math.random() * (initialWeather.duration_range[1] - initialWeather.duration_range[0] + 1)) + initialWeather.duration_range[0] * 10 };
                         }
                     });
                     
@@ -242,8 +279,8 @@ export function useGameState({ gameSlot }: GameStateProps) {
                     setRegions(regionsSnapshot);
                     setRegionCounter(regionCounterSnapshot);
                     setWeatherZones(weatherZonesSnapshot);
-
-                    if ((loadedState.narrativeLog || []).length <= 1) {
+                    
+                    if ((stateToInitialize.narrativeLog || []).length <= 1) {
                          const t = (key: any, replacements?: any) => {
                             let textPool = (translations[language] as any)[key] || (translations.en as any)[key] || key;
                             let text = Array.isArray(textPool) ? textPool[Math.floor(Math.random() * textPool.length)] : textPool;
@@ -256,8 +293,8 @@ export function useGameState({ gameSlot }: GameStateProps) {
                         };
                         const startingChunk = worldSnapshot[initialPosKey];
                         if (startingChunk) {
-                            const chunkDescription = generateOfflineNarrative(startingChunk, 'long', worldSnapshot, loadedState.playerPosition, t);
-                            const fullIntro = `${t(loadedState.worldSetup.initialNarrative as any)}\n\n${chunkDescription}`;
+                            const chunkDescription = generateOfflineNarrative(startingChunk, 'long', worldSnapshot, stateToInitialize.playerPosition, t);
+                            const fullIntro = `${t(stateToInitialize.worldSetup.initialNarrative as any)}\n\n${chunkDescription}`;
                             addNarrativeEntry(fullIntro, 'narrative');
                         }
                     }
@@ -265,8 +302,8 @@ export function useGameState({ gameSlot }: GameStateProps) {
 
                 setIsLoaded(true);
                 hasLoaded.current = true;
-                if (!loadedState) {
-                  console.warn('No game state loaded, starting with empty state.');
+                if (!stateToInitialize) {
+                  console.error('CRITICAL: No game state found to initialize game layout.');
                 }
             }
         };

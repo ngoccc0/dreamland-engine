@@ -1,6 +1,4 @@
-
-// This file is currently empty, but can be used to store narrative-specific phrases
-// that don't fit into other categories, such as combat descriptions or dynamic environmental text.
+// src/lib/locales/narrative.ts
 
 export const narrativeTranslations = {
     en: {

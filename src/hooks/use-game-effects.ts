@@ -187,7 +187,12 @@ export function useGameEffects(deps: GameEffectsDeps) {
   // EFFECT 1: Game Initialization (runs only once when isLoaded becomes true).
   useEffect(() => {
     // Guard against running before the game state is fully loaded and hydrated.
-    if (!isLoaded || !finalWorldSetup || !world || Object.keys(world).length === 0) {
+    if (!isLoaded || !finalWorldSetup) {
+        return;
+    }
+
+    // Add another guard to ensure world object is populated before proceeding.
+    if (Object.keys(world).length === 0) {
         return;
     }
 

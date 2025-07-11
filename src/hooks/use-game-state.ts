@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ItemDefinition, GeneratedItem, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, PlayerAttributes, ItemEffect } from "@/lib/game/types";
 import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
@@ -18,6 +18,7 @@ interface GameStateProps {
 export function useGameState({ gameSlot }: GameStateProps) {
     const { user } = useAuth();
     const [isLoaded, setIsLoaded] = useState(false);
+    const hasLoaded = useRef(false);
 
     const [worldProfile, setWorldProfile] = useState<WorldProfile>({
         climateBase: 'temperate', magicLevel: 5, mutationFactor: 2, sunIntensity: 7, weatherTypesAllowed: ['clear', 'rain', 'fog'],
@@ -166,7 +167,10 @@ export function useGameState({ gameSlot }: GameStateProps) {
             setBuildableStructures(staticBuildableStructures); // This was missing, ensure it's always set.
             
             // IMPORTANT: Set loaded to true ONLY after all state has been set.
-            setIsLoaded(true);
+            if (!hasLoaded.current) {
+                setIsLoaded(true);
+                hasLoaded.current = true;
+            }
         };
 
         loadGame();

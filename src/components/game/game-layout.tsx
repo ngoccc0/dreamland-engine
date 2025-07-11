@@ -80,24 +80,31 @@ export default function GameLayout(props: GameLayoutProps) {
     const narrativeContainerRef = useRef<HTMLDivElement>(null);
     const customActionInputRef = useRef<HTMLInputElement>(null);
 
-    const focusCustomActionInput = () => {
+    const scrollToBottom = useCallback(() => {
+        setTimeout(() => {
+            if (narrativeContainerRef.current) {
+                const { scrollHeight, clientHeight } = narrativeContainerRef.current;
+                narrativeContainerRef.current.scrollTo({
+                    top: scrollHeight - clientHeight,
+                    behavior: 'smooth'
+                });
+            }
+        }, 100); // Small delay to allow DOM to update
+    }, []);
+
+    const focusCustomActionInput = useCallback(() => {
         setTimeout(() => customActionInputRef.current?.focus(), 0);
-    };
+    }, []);
 
     const handleActionClick = (actionId: number) => {
         handleAction(actionId);
         focusCustomActionInput();
+        scrollToBottom();
     };
     
     useEffect(() => {
-        if (narrativeContainerRef.current) {
-            const { scrollHeight, clientHeight } = narrativeContainerRef.current;
-            narrativeContainerRef.current.scrollTo({
-                top: scrollHeight - clientHeight,
-                behavior: 'smooth'
-            });
-        }
-    }, [narrativeLog]);
+        scrollToBottom();
+    }, [narrativeLog, scrollToBottom]);
 
     useEffect(() => {
         const promptShown = localStorage.getItem('pwaInstallPromptShown');
@@ -149,6 +156,7 @@ export default function GameLayout(props: GameLayoutProps) {
         if (inputValue.trim()) {
             handleCustomAction(inputValue);
             setInputValue("");
+            scrollToBottom();
         }
     };
     
@@ -173,11 +181,11 @@ export default function GameLayout(props: GameLayoutProps) {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => setTutorialOpen(true)}>
+                                <DropdownMenuItem onClick={() => { setTutorialOpen(true); scrollToBottom(); }}>
                                     <LifeBuoy className="mr-2 h-4 w-4" />
                                     <span>{t('tutorialTitle')}</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
+                                <DropdownMenuItem onClick={() => { setSettingsOpen(true); scrollToBottom(); }}>
                                     <Settings className="mr-2 h-4 w-4" />
                                     <span>{t('gameSettings')}</span>
                                 </DropdownMenuItem>
@@ -254,7 +262,7 @@ export default function GameLayout(props: GameLayoutProps) {
                     <div className="flex flex-col gap-4 flex-grow">
                         {/* Controls and Skills */}
                         <div className="flex flex-col md:flex-row md:justify-around md:items-start md:gap-x-6 gap-y-4">
-                            <Controls onMove={handleMove} onAttack={handleAttack} />
+                            <Controls onMove={(dir) => { handleMove(dir); scrollToBottom(); }} onAttack={() => { handleAttack(); scrollToBottom(); }} />
                              <div className="flex flex-col space-y-2 w-full md:max-w-xs">
                                 <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('skills')}</h3>
                                 <div className="grid grid-cols-2 gap-2">
@@ -277,11 +285,11 @@ export default function GameLayout(props: GameLayoutProps) {
                         <div className="space-y-2">
                             <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('mainActions')}</h3>
                             <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setStatusOpen(true)}><Shield /></Button></TooltipTrigger><TooltipContent><p>{t('statusTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setInventoryOpen(true)}><Backpack /></Button></TooltipTrigger><TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setCraftingOpen(true)}><Hammer /></Button></TooltipTrigger><TooltipContent><p>{t('craftingTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setBuildingOpen(true)}><Home /></Button></TooltipTrigger><TooltipContent><p>{t('buildingTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => setFusionOpen(true)}><FlaskConical /></Button></TooltipTrigger><TooltipContent><p>{t('fusionTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setStatusOpen(true); scrollToBottom(); }}><Shield /></Button></TooltipTrigger><TooltipContent><p>{t('statusTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setInventoryOpen(true); scrollToBottom(); }}><Backpack /></Button></TooltipTrigger><TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setCraftingOpen(true); scrollToBottom(); }}><Hammer /></Button></TooltipTrigger><TooltipContent><p>{t('craftingTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setBuildingOpen(true); scrollToBottom(); }}><Home /></Button></TooltipTrigger><TooltipContent><p>{t('buildingTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setFusionOpen(true); scrollToBottom(); }}><FlaskConical /></Button></TooltipTrigger><TooltipContent><p>{t('fusionTooltip')}</p></TooltipContent></Tooltip>
                             </div>
                         </div>
                         
@@ -291,7 +299,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         {restingPlace && (
                             <><div className="space-y-2">
                                 <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('structureActions')}</h2>
-                                <Tooltip><TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={handleRest} disabled={isLoading}><BedDouble className="mr-2 h-4 w-4" />{t('rest')}</Button></TooltipTrigger><TooltipContent><p>{t('restTooltip', { shelterName: t(restingPlace.name as TranslationKey), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => { handleRest(); scrollToBottom(); }} disabled={isLoading}><BedDouble className="mr-2 h-4 w-4" />{t('rest')}</Button></TooltipTrigger><TooltipContent><p>{t('restTooltip', { shelterName: t(restingPlace.name as TranslationKey), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent></Tooltip>
                             </div><Separator /></>
                         )}
                         

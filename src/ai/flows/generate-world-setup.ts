@@ -37,6 +37,7 @@ import { getEmojiForItem } from '@/lib/utils';
 import { db } from '@/lib/firebase-config';
 import { collection, getDocs } from 'firebase/firestore';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
+import { logger } from '@/lib/logger';
 
 
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
@@ -110,6 +111,7 @@ export type GenerateWorldSetupOutput = z.infer<typeof GenerateWorldSetupOutputSc
  * This is the primary function that the application's frontend will call.
  */
 export async function generateWorldSetup(input: GenerateWorldSetupInput): Promise<GenerateWorldSetupOutput> {
+  logger.info('Starting generateWorldSetup flow');
   return generateWorldSetupFlow(input);
 }
 
@@ -179,9 +181,7 @@ const generateWorldSetupFlow = ai.defineFlow(
   },
   async (input) => {
 
-    console.log('--- STARTING WORLD GENERATION ---');
-    console.log('User Input:', input.userInput);
-    console.log('Language:', input.language);
+    logger.info('--- STARTING WORLD GENERATION ---', { userInput: input.userInput, language: input.language });
     
     // --- Step 1: Define four independent AI tasks to run in parallel ---
     
@@ -199,32 +199,24 @@ const generateWorldSetupFlow = ai.defineFlow(
 
         for (const modelName of modelsToTry) {
             try {
-                console.log(`[Task A] Attempting item catalog generation with model: ${modelName}`);
-                console.log(`[Task A] Prompt sent to model ${modelName}:`, renderedPrompt);
+                logger.debug(`[Task A] Attempting item catalog generation with model: ${modelName}`, { prompt: renderedPrompt });
                 const result = await ai.generate({
                     model: modelName,
                     prompt: renderedPrompt,
                     output: { schema: ItemCatalogCreativeOutputSchema },
                 });
-                console.log(`[Task A] SUCCESS with ${modelName}. Full AI result object:`, result);
-                if (result && result.raw) {
-                  console.log(`[Task A] Raw AI response from ${modelName}:`, result.raw);
-                }
-                if (result && result.output) {
-                  console.log(`[Task A] Parsed AI output from ${modelName}:`, result.output);
-                }
+                logger.info(`[Task A] SUCCESS with ${modelName}.`);
+                logger.debug(`[Task A] Parsed AI output from ${modelName}:`, result.output);
                 return result;
             } catch (error: any) {
                 const errorMessage = `Model ${modelName} failed. Reason: ${error.message || error}`;
-                console.warn(errorMessage);
-                if (error && error.raw) {
-                  console.warn(`[Task A] Raw error response from ${modelName}:`, error.raw);
-                }
+                logger.warn(`[Task A] ${errorMessage}`);
                 errorLogs.push(errorMessage);
             }
         }
-
+        
         const detailedError = `All AI models failed for item catalog generation. \n\nThis is often due to an invalid API key, insufficient balance on a paid account (like OpenAI or Deepseek), or network problems. Please check your .env file and billing settings for your AI providers. \n\nIndividual model errors:\n- ${errorLogs.join('\n- ')}`;
+        logger.error(detailedError);
         throw new Error(detailedError);
     })();
     
@@ -235,28 +227,19 @@ const generateWorldSetupFlow = ai.defineFlow(
         const modelsToTry = ['googleai/gemini-2.0-flash', 'deepseek/deepseek-chat'];
         for (const modelName of modelsToTry) {
             try {
-                console.log(`[Task B] Attempting world name generation with model: ${modelName}`);
-                console.log(`[Task B] Prompt sent to model ${modelName}:`, renderedPrompt);
+                logger.debug(`[Task B] Attempting world name generation with model: ${modelName}`, { prompt: renderedPrompt });
                 const result = await ai.generate({
                     model: modelName,
                     prompt: renderedPrompt,
                     output: { schema: WorldNamesOutputSchema },
                 });
-                console.log(`[Task B] SUCCESS with ${modelName}. Full AI result object:`, result);
-                if (result && result.raw) {
-                  console.log(`[Task B] Raw AI response from ${modelName}:`, result.raw);
-                }
-                if (result && result.output) {
-                  console.log(`[Task B] Parsed AI output from ${modelName}:`, result.output);
-                }
+                logger.info(`[Task B] SUCCESS with ${modelName}.`);
                 return result;
             } catch (error: any) {
-                console.warn(`[Task B] Model ${modelName} failed. Reason: ${error.message || error}. Trying next...`);
-                if (error && error.raw) {
-                  console.warn(`[Task B] Raw error response from ${modelName}:`, error.raw);
-                }
+                logger.warn(`[Task B] Model ${modelName} failed. Reason: ${error.message || error}. Trying next...`);
             }
         }
+        logger.error("All models failed for world name generation.");
         throw new Error("All models failed for world name generation.");
     })();
 
@@ -267,28 +250,19 @@ const generateWorldSetupFlow = ai.defineFlow(
         const modelsToTry = ['deepseek/deepseek-chat', 'googleai/gemini-2.0-flash', 'openai/gpt-4o'];
         for (const modelName of modelsToTry) {
             try {
-                console.log(`[Task C] Attempting narrative concepts generation with model: ${modelName}`);
-                console.log(`[Task C] Prompt sent to model ${modelName}:`, renderedPrompt);
+                logger.debug(`[Task C] Attempting narrative concepts generation with model: ${modelName}`, { prompt: renderedPrompt });
                 const result = await ai.generate({
                     model: modelName,
                     prompt: renderedPrompt,
                     output: { schema: NarrativeConceptsOutputSchema },
                 });
-                console.log(`[Task C] SUCCESS with ${modelName}. Full AI result object:`, result);
-                if (result && result.raw) {
-                  console.log(`[Task C] Raw AI response from ${modelName}:`, result.raw);
-                }
-                if (result && result.output) {
-                  console.log(`[Task C] Parsed AI output from ${modelName}:`, result.output);
-                }
+                logger.info(`[Task C] SUCCESS with ${modelName}.`);
                 return result;
             } catch (error: any) {
-                console.warn(`[Task C] Model ${modelName} failed. Reason: ${error.message || error}. Trying next...`);
-                if (error && error.raw) {
-                  console.warn(`[Task C] Raw error response from ${modelName}:`, error.raw);
-                }
+                logger.warn(`[Task C] Model ${modelName} failed. Reason: ${error.message || error}. Trying next...`);
             }
         }
+        logger.error("All models failed for narrative concepts generation.");
         throw new Error("All models failed for narrative concepts generation.");
     })();
     
@@ -299,29 +273,19 @@ const generateWorldSetupFlow = ai.defineFlow(
         const modelsToTry = ['openai/gpt-4o', 'googleai/gemini-1.5-pro'];
         for (const modelName of modelsToTry) {
             try {
-                console.log(`[Task D] Attempting structure catalog generation with model: ${modelName}`);
-                console.log(`[Task D] Prompt sent to model ${modelName}:`, renderedPrompt);
+                logger.debug(`[Task D] Attempting structure catalog generation with model: ${modelName}`, { prompt: renderedPrompt });
                 const result = await ai.generate({
                     model: modelName,
                     prompt: renderedPrompt,
                     output: { schema: StructureCatalogCreativeOutputSchema },
                 });
-                console.log(`[Task D] SUCCESS with ${modelName}. Full AI result object:`, result);
-                if (result && result.raw) {
-                  console.log(`[Task D] Raw AI response from ${modelName}:`, result.raw);
-                }
-                if (result && result.output) {
-                  console.log(`[Task D] Parsed AI output from ${modelName}:`, result.output);
-                }
+                logger.info(`[Task D] SUCCESS with ${modelName}.`);
                 return result;
             } catch (error: any) {
-                console.warn(`[Task D] Model ${modelName} failed. Reason: ${error.message || error}. Trying next...`);
-                if (error && error.raw) {
-                  console.warn(`[Task D] Raw error response from ${modelName}:`, error.raw);
-                }
+                logger.warn(`[Task D] Model ${modelName} failed. Reason: ${error.message || error}. Trying next...`);
             }
         }
-        console.warn("[Task D] All models failed. Proceeding without custom structures.");
+        logger.warn("[Task D] All models failed. Proceeding without custom structures.");
         // Return a valid empty structure to prevent crashes
         return { output: { customStructures: [] } };
     })();
@@ -335,11 +299,12 @@ const generateWorldSetupFlow = ai.defineFlow(
         structureCatalogTask,
     ]);
 
-    console.log('--- AI TASKS COMPLETE. PROCESSING AND COMBINING RESULTS... ---');
+    logger.info('--- AI TASKS COMPLETE. PROCESSING AND COMBINING RESULTS... ---');
     
     // --- Step 3: Process the AI results and combine them ---
     const creativeItems = itemCatalogResult.output?.customItemCatalog;
     if (!creativeItems || creativeItems.length === 0) {
+        logger.error("Failed to generate a valid item catalog from the AI.");
         throw new Error("Failed to generate a valid item catalog from the AI.");
     }
 
@@ -357,6 +322,7 @@ const generateWorldSetupFlow = ai.defineFlow(
             effects: [], // Start with no effects for AI-generated items
             baseQuantity: { min: 1, max: getRandomInRange({ min: 1, max: 5 }) },
             spawnBiomes: validBiomes,
+            spawnEnabled: true,
             growthConditions: undefined,
             subCategory: undefined,
             emoji: getEmojiForItem(item.name, item.category),
@@ -365,11 +331,13 @@ const generateWorldSetupFlow = ai.defineFlow(
     
     const worldNames = worldNamesResult.output?.worldNames;
     if (!worldNames || worldNames.length !== 3) {
+        logger.error("Failed to generate valid world names from the AI.");
         throw new Error("Failed to generate valid world names from the AI.");
     }
 
     const narrativeConcepts = narrativeConceptsResult.output?.narrativeConcepts;
     if (!narrativeConcepts || narrativeConcepts.length !== 3) {
+        logger.error("Failed to generate valid narrative concepts from the AI.");
         throw new Error("Failed to generate valid narrative concepts from the AI.");
     }
     
@@ -437,7 +405,7 @@ const generateWorldSetupFlow = ai.defineFlow(
         concepts: finalConcepts as any, // Cast to bypass strict type check for biome
     };
     
-    console.log('--- FINAL WORLD SETUP DATA ---', finalOutput);
+    logger.info('--- FINAL WORLD SETUP DATA ---', finalOutput);
 
     return finalOutput;
   }

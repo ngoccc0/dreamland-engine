@@ -52,9 +52,8 @@ export function useGameState({ gameSlot }: GameStateProps) {
     const narrativeLogRef = useRef(narrativeLog);
     narrativeLogRef.current = narrativeLog;
 
-    const addNarrativeEntry = useCallback((text: string, type: NarrativeEntry['type']) => {
-        const uniqueId = `${Date.now()}-${Math.random()}`;
-        setNarrativeLog(prev => [...prev, { id: uniqueId, text, type }]);
+    const addNarrativeEntry = useCallback((text: string, type: NarrativeEntry['type'], entryId: string) => {
+        setNarrativeLog(prev => [...prev, { id: entryId, text, type }]);
     }, []);
 
     const advanceGameTime = useCallback((newPlayerStats?: PlayerStatus) => {

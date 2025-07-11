@@ -17,12 +17,14 @@ import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { FuseItemsInputSchema, FuseItemsOutputSchema, GeneratedItemSchema } from '@/ai/schemas';
 import { clamp, getEmojiForItem } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 export type FuseItemsInput = z.infer<typeof FuseItemsInputSchema>;
 export type FuseItemsOutput = z.infer<typeof FuseItemsOutputSchema>;
 
 // --- The Exported Function ---
 export async function fuseItems(input: FuseItemsInput): Promise<FuseItemsOutput> {
+  logger.info('Starting fuseItems flow');
   return fuseItemsFlow(input);
 }
 
@@ -82,6 +84,7 @@ const fuseItemsFlow = ai.defineFlow(
         outputSchema: FuseItemsOutputSchema,
     },
     async (input) => {
+        logger.info('Executing fuseItemsFlow with input', { items: input.itemsToFuse, persona: input.playerPersona });
         // --- LOGIC MOVED FROM PROMPT TO CODE ---
 
         // 1. Check for a 'Tool' item. This is a hard rule.
@@ -91,7 +94,7 @@ const fuseItemsFlow = ai.defineFlow(
         });
 
         if (!hasTool) {
-            // If no tool, return a hardcoded failure response without calling the AI.
+            logger.warn('Fuse attempt failed: No tool provided.');
             const narrative = input.language === 'vi' 
                 ? 'Bạn cần một công cụ để có thể gia công và kết hợp các vật liệu đúng cách. Thử nghiệm của bạn thất bại.'
                 : 'You need a tool to properly work and combine the materials. Your attempt fails.';
@@ -110,6 +113,8 @@ const fuseItemsFlow = ai.defineFlow(
         const finalChance = clamp(baseChance + bonus, 5, 95);
         const roll = Math.random() * 100;
         
+        logger.debug('Fusion chance calculation', { baseChance, bonus, finalChance, roll });
+
         // 3. Determine the final outcome and the resulting item tier.
         let determinedOutcome: 'success' | 'degraded' | 'totalLoss';
         let finalTier: number | undefined = undefined;
@@ -131,6 +136,8 @@ const fuseItemsFlow = ai.defineFlow(
             }
         }
         
+        logger.info('Fusion outcome determined', { outcome: determinedOutcome, tier: finalTier });
+
         // 4. Call the AI with the determined outcome for creative narration and item invention.
         const promptInput = {
             ...input,
@@ -149,29 +156,34 @@ const fuseItemsFlow = ai.defineFlow(
 
         for (const model of modelsToTry) {
             try {
+                logger.info(`Attempting fusion narrative generation with model: ${model}`);
                 llmResponse = await ai.generate({
                     model: model,
                     prompt: fuseItemsPromptText,
                     input: promptInput,
                     output: { schema: AIPromptOutputSchema },
                 });
+                logger.info(`SUCCESS with ${model}`);
                 break; // Success
             } catch (error) {
                 lastError = error;
-                console.warn(`[fuseItemsFlow] Model '${model}' failed. Trying next... Error: ${error}`);
+                logger.warn(`Model '${model}' failed during item fusion. Trying next...`, error);
             }
         }
         
         if (!llmResponse) {
-            console.error("All AI models failed for item fusion.", lastError);
+            logger.error("All AI models failed for item fusion.", lastError);
             throw lastError || new Error("AI failed to generate a fusion narrative.");
         }
 
         const aiOutput = llmResponse.output;
 
         if (!aiOutput) {
+            logger.error("AI model returned an empty or invalid output for fusion.");
             throw new Error("The ethereal currents of possibility did not align, leaving the outcome shrouded in mystery.");
         }
+        
+        logger.debug('AI fusion output received', { aiOutput });
 
         // 5. Construct the final, structured output, combining AI creativity with code-driven logic.
         const finalOutput: FuseItemsOutput = {
@@ -189,6 +201,7 @@ const fuseItemsFlow = ai.defineFlow(
                 spawnBiomes: [], // Fusion items don't spawn naturally.
                 baseQuantity: { min: 1, max: 1 }, // Fusion always produces 1 item.
             };
+             logger.info('New fused item created', { item: finalOutput.resultItem });
         }
 
         return finalOutput;

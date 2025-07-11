@@ -1,6 +1,6 @@
 
 
-"use client";
+'use client';
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ItemDefinition, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, PlayerAttributes, ItemEffect, Terrain, GeneratedItem } from "@/lib/game/types";
@@ -12,6 +12,7 @@ import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase-config";
 import type { Language } from "@/lib/i18n";
 import { translations } from "@/lib/i18n";
+import { ensureChunkExists, generateOfflineNarrative, generateWeatherForZone } from "@/lib/game/engine";
 
 
 interface GameStateProps {
@@ -149,11 +150,11 @@ export function useGameState({ gameSlot }: GameStateProps) {
 
             // Add static items first
             Object.entries(staticItemDefinitions).forEach(([name, def]) => {
-                finalCatalogMap.set(name, { name, ...def } as GeneratedItem);
+                finalCatalogMap.set(name, { name, ...def } as unknown as GeneratedItem);
             });
             // Add items from saved session
             sessionCatalog.forEach(item => {
-                const nameKey = typeof item.name === 'string' ? item.name : item.name.en;
+                const nameKey = typeof item.name === 'string' ? item.name : (item.name as any).en;
                 finalCatalogMap.set(nameKey, item);
             });
             // Add items from firestore
@@ -170,22 +171,22 @@ export function useGameState({ gameSlot }: GameStateProps) {
             
             finalCatalogArray.forEach((item) => {
                 const language = (localStorage.getItem('gameLanguage') || 'en') as Language;
-                const nameKey = typeof item.name === 'string' ? item.name : item.name[language] || item.name.en;
+                const nameKey = typeof item.name === 'string' ? item.name : (item.name as any)[language] || (item.name as any).en;
+                let descriptionKey: string;
+                if(typeof item.description === 'string') {
+                    descriptionKey = item.description;
+                } else if (item.description) {
+                    descriptionKey = `item_${((item.description as any).en || '').toLowerCase().replace(/[^a-z0-9]/g, '_')}_desc`;
+                     if(!translations.en[descriptionKey as any]){
+                        (translations.en as any)[descriptionKey] = (item.description as any).en;
+                        (translations.vi as any)[descriptionKey] = (item.description as any).vi;
+                    }
+                } else {
+                    descriptionKey = `item_no_desc`;
+                }
+
 
                 if (!finalDefs[nameKey]) {
-                    let descriptionKey: string;
-                    if (typeof item.description === 'string') {
-                        descriptionKey = item.description;
-                    } else {
-                         // Create a pseudo-key from the English description if it's an object
-                        descriptionKey = `item_${(item.description.en || '').toLowerCase().replace(/[^a-z0-9]/g, '_')}_desc`;
-                        // Make sure the translation exists
-                        if(!translations.en[descriptionKey as keyof typeof translations.en]){
-                            (translations.en as any)[descriptionKey] = item.description.en;
-                            (translations.vi as any)[descriptionKey] = item.description.vi;
-                        }
-                    }
-                    
                     finalDefs[nameKey] = {
                         description: descriptionKey,
                         tier: item.tier,
@@ -209,6 +210,54 @@ export function useGameState({ gameSlot }: GameStateProps) {
 
             // This should only run ONCE.
             if (!hasLoaded.current) {
+                // Initialize first chunk right after loading state
+                if (loadedState) {
+                    let worldSnapshot = loadedState.world || {};
+                    let regionsSnapshot = loadedState.regions || {};
+                    let regionCounterSnapshot = loadedState.regionCounter || 0;
+                    let weatherZonesSnapshot = loadedState.weatherZones || {};
+
+                    const initialPosKey = `${loadedState.playerPosition.x},${loadedState.playerPosition.y}`;
+                    if (!worldSnapshot[initialPosKey]) {
+                        const result = ensureChunkExists(loadedState.playerPosition, worldSnapshot, regionsSnapshot, regionCounterSnapshot, loadedState.worldProfile, loadedState.currentSeason, finalDefs, finalCatalogArray, sessionStructures, language);
+                        worldSnapshot = result.worldWithChunk;
+                        regionsSnapshot = result.newRegions;
+                        regionCounterSnapshot = result.newRegionCounter;
+                    }
+
+                    Object.keys(regionsSnapshot).filter(id => !weatherZonesSnapshot[id]).forEach(regionId => {
+                        const region = regionsSnapshot[Number(regionId)];
+                        if (region) {
+                            const initialWeather = generateWeatherForZone(region.terrain, loadedState.currentSeason);
+                            weatherZonesSnapshot[regionId] = { id: regionId, terrain: region.terrain, currentWeather: initialWeather, nextChangeTime: (loadedState.gameTime || 360) + Math.floor(Math.random() * (initialWeather.duration_range[1] - initialWeather.duration_range[0] + 1)) + initialWeather.duration_range[0] * 10 };
+                        }
+                    });
+                    
+                    setWorld(worldSnapshot);
+                    setRegions(regionsSnapshot);
+                    setRegionCounter(regionCounterSnapshot);
+                    setWeatherZones(weatherZonesSnapshot);
+
+                    if ((loadedState.narrativeLog || []).length <= 1) {
+                         const t = (key: any, replacements?: any) => {
+                            let textPool = (translations[language] as any)[key] || (translations.en as any)[key] || key;
+                            let text = Array.isArray(textPool) ? textPool[Math.floor(Math.random() * textPool.length)] : textPool;
+                            if (replacements && typeof text === 'string') {
+                                for (const [replaceKey, value] of Object.entries(replacements)) {
+                                    text = text.replace(`{${replaceKey}}`, String(value));
+                                }
+                            }
+                            return text;
+                        };
+                        const startingChunk = worldSnapshot[initialPosKey];
+                        if (startingChunk) {
+                            const chunkDescription = generateOfflineNarrative(startingChunk, 'long', worldSnapshot, loadedState.playerPosition, t);
+                            const fullIntro = `${t(loadedState.worldSetup.initialNarrative as any)}\n\n${chunkDescription}`;
+                            addNarrativeEntry(fullIntro, 'narrative');
+                        }
+                    }
+                }
+
                 setIsLoaded(true);
                 hasLoaded.current = true;
                 if (!loadedState) {
@@ -220,7 +269,7 @@ export function useGameState({ gameSlot }: GameStateProps) {
         loadGame();
     // The dependency array is intentionally kept minimal to run this only once on initial load.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [gameSlot, user]);
+    }, [gameSlot, user, addNarrativeEntry]);
 
 
     return {

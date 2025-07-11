@@ -156,7 +156,6 @@ export function useGameState({ gameSlot }: GameStateProps) {
                 sessionStructures = loadedState.customStructures || [];
             } else {
                 // This is a new game, state comes from `finalWorldSetup` which should be populated from the setup screen.
-                // We'll rely on the `finalWorldSetup` state which should be set before GameLayout is even rendered.
                 // However, the initial state load from local storage might be null.
                 const localData = localStorage.getItem(`gameState_${gameSlot}`);
                  if (localData) {
@@ -343,3 +342,5 @@ export function useGameState({ gameSlot }: GameStateProps) {
         advanceGameTime,
     };
 }
+
+    

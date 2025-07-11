@@ -40,7 +40,7 @@ export interface Region {
 export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave" | "jungle" | "volcanic" | "wall" | "floptropica" | "tundra" | "beach" | "mesa" | "mushroom_forest" | "ocean" | "city" | "space_station" | "underwater";
 export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky' | 'metal';
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
-export type ItemCategory = 'Weapon' | 'Material' | 'Energy Source' | 'Food' | 'Data' | 'Tool' | 'Equipment' | 'Support' | 'Magic' | 'Fusion' | 'Consumable' | 'Utility' | 'Armor' | 'Potion' | 'Misc';
+export type ItemCategory = 'Weapon' | 'Armor' | 'Accessory' | 'Material' | 'Energy Source' | 'Food' | 'Consumable' | 'Potion' | 'Data' | 'Tool' | 'Utility' | 'Magic' | 'Fusion' | 'Misc';
 export type PlayerPersona = 'none' | 'explorer' | 'warrior' | 'artisan';
 export type GameMode = 'ai' | 'offline';
 export type DiceType = 'd20' | 'd12' | '2d6';
@@ -66,6 +66,12 @@ export interface WeatherZone {
 
 
 // --- WORLD & GAME STATE TYPES ---
+
+// Represents the structure of items loaded from Firestore/premade worlds.
+export type GeneratedItem = Omit<ItemDefinition, 'name' | 'description'> & {
+  name: string | { en: string; vi: string };
+  description: string | { en: string; vi: string };
+};
 
 // 1. WorldProfile: Global settings for the world, affecting all biomes.
 export interface WorldProfile {
@@ -307,7 +313,7 @@ export interface GameState {
     narrativeLog: NarrativeEntry[];
     worldSetup: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog' | 'customStructures'> & { playerInventory: PlayerItem[], startingSkill: Skill, customStructures: Structure[] };
     customItemDefinitions: Record<string, ItemDefinition>;
-    customItemCatalog: ItemDefinition[];
+    customItemCatalog: GeneratedItem[];
     customStructures: StructureDefinition[];
     weatherZones: { [zoneId: string]: WeatherZone };
     gameTime: number; // In-game minutes from 0 to 1439

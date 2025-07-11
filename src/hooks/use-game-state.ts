@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ItemDefinition, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, PlayerAttributes, ItemEffect } from "@/lib/game/types";
+import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ItemDefinition, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, PlayerAttributes, ItemEffect, Terrain, GeneratedItem } from "@/lib/game/types";
 import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
@@ -12,28 +12,6 @@ import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase-config";
 import type { Language } from "@/lib/i18n";
 import { translations } from "@/lib/i18n";
-
-
-// This is a type used internally for merging data, which can have either a string or multilingual name/desc
-type MergedItem = Omit<ItemDefinition, 'name' | 'description'> & {
-    name: string | { en: string; vi: string };
-    description: string | { en: string; vi: string };
-};
-
-// Represents the structure of items loaded from Firestore/premade worlds.
-type GeneratedItem = {
-  name: { en: string; vi: string } | string;
-  description: { en: string; vi: string } | string;
-  tier: number;
-  category: string;
-  emoji: string;
-  effects: ItemEffect[];
-  baseQuantity: { min: number; max: number };
-  growthConditions?: any;
-  equipmentSlot?: 'weapon' | 'armor' | 'accessory';
-  attributes?: any;
-  spawnBiomes?: Terrain[];
-};
 
 
 interface GameStateProps {
@@ -167,11 +145,11 @@ export function useGameState({ gameSlot }: GameStateProps) {
                 sessionStructures = loadedState.customStructures || [];
             }
             // --- 4. MERGE global data into the session data before setting state ---
-            const finalCatalogMap = new Map<string, MergedItem>();
+            const finalCatalogMap = new Map<string, GeneratedItem>();
 
             // Add static items first
             Object.entries(staticItemDefinitions).forEach(([name, def]) => {
-                finalCatalogMap.set(name, { name, ...def });
+                finalCatalogMap.set(name, { name, ...def } as GeneratedItem);
             });
             // Add items from saved session
             sessionCatalog.forEach(item => {
@@ -192,15 +170,15 @@ export function useGameState({ gameSlot }: GameStateProps) {
             
             finalCatalogArray.forEach((item) => {
                 const language = (localStorage.getItem('gameLanguage') || 'en') as Language;
-                const key = typeof item.name === 'string' ? item.name : item.name[language];
+                const nameKey = typeof item.name === 'string' ? item.name : item.name[language] || item.name.en;
 
-                if (!finalDefs[key]) {
+                if (!finalDefs[nameKey]) {
                     let descriptionKey: string;
                     if (typeof item.description === 'string') {
                         descriptionKey = item.description;
                     } else {
-                        // Create a pseudo-key from the English description
-                        descriptionKey = `item_${item.description.en.toLowerCase().replace(/[^a-z0-9]/g, '_')}_desc`;
+                         // Create a pseudo-key from the English description if it's an object
+                        descriptionKey = `item_${(item.description.en || '').toLowerCase().replace(/[^a-z0-9]/g, '_')}_desc`;
                         // Make sure the translation exists
                         if(!translations.en[descriptionKey as keyof typeof translations.en]){
                             (translations.en as any)[descriptionKey] = item.description.en;
@@ -208,7 +186,7 @@ export function useGameState({ gameSlot }: GameStateProps) {
                         }
                     }
                     
-                    finalDefs[key] = {
+                    finalDefs[nameKey] = {
                         description: descriptionKey,
                         tier: item.tier,
                         category: item.category,

@@ -1,3 +1,4 @@
+
 import type { ItemDefinition, EquipmentSlot } from '@/lib/game/types';
 
 export const naturePlusItems: Record<string, ItemDefinition> = {

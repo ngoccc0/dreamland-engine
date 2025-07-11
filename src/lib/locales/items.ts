@@ -1,3 +1,4 @@
+
 // src/lib/locales/items.ts
 
 export const itemTranslations = {
@@ -407,6 +408,7 @@ export const itemTranslations = {
     item_portable_camping_tent_desc: 'A lightweight tent that offers good protection from the elements.',
     item_repair_kit_desc: 'A kit with basic tools and materials for repairing equipment.',
     item_fishing_hook_desc: 'A simple fishing hook to catch fish.',
+    item_grilled_fish_meat_desc: 'Grill fish over a fire for a nutritious meal.',
     item_fishing_net_desc: 'A net woven to catch multiple fish at once.',
     item_camouflage_cloak_desc: 'A cloak with leaves sewn on for better stealth in forests.',
     item_sun_rain_hat_desc: 'A wide-brimmed hat for protection against sun and rain.',
@@ -799,7 +801,6 @@ export const itemTranslations = {
     item_clay_pot_desc: 'Một cái nồi đất sét đơn giản, hữu ích để đựng nước hoặc nấu ăn.',
     item_crude_copper_tool_desc: 'Một công cụ cơ bản làm từ đồng, tốt hơn đá nhưng không bền bằng sắt.',
     item_mortar_desc: 'Một hỗn hợp sền sệt dùng để kết dính các khối xây dựng như đá, gạch và các khối xây bê tông.',
-    item_plant_fiber_desc: 'Các sợi cơ bản được thu hoạch từ thực vật, được sử dụng để dệt và chế tạo.',
     item_firefly_lantern_desc: 'Một nguồn sáng nhẹ nhàng, liên tục được tạo ra từ những con đom đóm bị bắt trong một khúc gỗ rỗng.',
     item_wolf_pelt_armor_desc: 'Một bộ áo giáp ấm áp và đáng sợ được chế tác từ da sói.',
     item_survival_knife_desc: 'Một con dao đa năng vừa là công cụ vừa là vũ khí đáng tin cậy.',

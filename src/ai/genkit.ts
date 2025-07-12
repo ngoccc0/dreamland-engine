@@ -20,9 +20,6 @@ import {deepseekPlugin} from './plugins/deepseek';
 
 const plugins: Plugin[] = [];
 
-// This explicit check helps in debugging by confirming if the keys are loaded.
-// The logs will appear in the terminal where you run your Next.js app.
-
 // Collect all provided Gemini API keys from environment variables.
 const geminiApiKeys = [
   process.env.GEMINI_API_KEY_PRIMARY,
@@ -50,8 +47,15 @@ if (process.env.OPENAI_API_KEY) {
   );
 }
 
-// The deepseek plugin is now called as a function, which is the standard pattern.
-plugins.push(deepseekPlugin());
+if (process.env.DEEPSEEK_API_KEY) {
+  console.log('Found DEEPSEEK_API_KEY. Initializing Deepseek plugin.');
+  // The deepseek plugin is now called as a function, which is the standard pattern.
+  plugins.push(deepseekPlugin());
+} else {
+    console.warn(
+        'DEEPSEEK_API_KEY not found. Deepseek models will not be available.'
+    );
+}
 
 
 export const ai = genkit({

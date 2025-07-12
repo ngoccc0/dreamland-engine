@@ -30,5 +30,3 @@ export interface IGameStateRepository {
    */
   listSaveSummaries(): Promise<Array<Pick<GameState, 'worldSetup' | 'day' | 'gameTime' | 'playerStats'> | null>>;
 }
-
-    

@@ -23,6 +23,7 @@ import { Separator } from '@/components/ui/separator';
 import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
 import { LocalStorageGameStateRepository } from '@/infrastructure/persistence/local-storage.repository';
 import { FirebaseGameStateRepository } from '@/infrastructure/persistence/firebase.repository';
+import { IndexedDbGameStateRepository } from '@/infrastructure/persistence/indexed-db.repository';
 
 
 type SaveSlotSummary = Pick<GameState, 'worldSetup' | 'day' | 'gameTime' | 'playerStats'> | null;
@@ -40,29 +41,28 @@ export default function Home() {
 
   const [isSettingsOpen, setSettingsOpen] = useState(false);
 
-  // Determine which repository to use based on auth state
+  // Determine which repository to use based on auth state and browser capabilities
   useEffect(() => {
+    let repo: IGameStateRepository;
     if (user) {
-      setGameStateRepository(new FirebaseGameStateRepository(user.uid));
+      repo = new FirebaseGameStateRepository(user.uid);
+    } else if (typeof window !== 'undefined' && 'indexedDB' in window) {
+      repo = new IndexedDbGameStateRepository();
     } else {
-      setGameStateRepository(new LocalStorageGameStateRepository());
+      repo = new LocalStorageGameStateRepository();
     }
+    setGameStateRepository(repo);
   }, [user]);
 
   const loadSaveSlots = useCallback(async () => {
     setLoadState('loading');
     try {
       const summaries = await gameStateRepository.listSaveSummaries();
-      const slots: SaveSlotSummary[] = [null, null, null];
-      summaries.forEach((summary, index) => {
-        if (index < 3) {
-          slots[index] = summary;
-        }
-      });
-      setSaveSlots(slots);
+      setSaveSlots(summaries);
     } catch (error) {
       console.error("Failed to load save slots:", error);
       toast({ title: "Error", description: "Failed to load save data.", variant: "destructive" });
+      setSaveSlots([null, null, null]); // Fallback to empty slots on error
     } finally {
       setLoadState('slot_selection');
     }
@@ -360,5 +360,3 @@ export default function Home() {
 
   return null;
 }
-
-    

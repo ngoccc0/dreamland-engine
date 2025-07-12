@@ -25,6 +25,7 @@ import { translations } from '@/lib/i18n';
 import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
 import { FirebaseGameStateRepository } from '@/infrastructure/persistence/firebase.repository';
 import { LocalStorageGameStateRepository } from '@/infrastructure/persistence/local-storage.repository';
+import { IndexedDbGameStateRepository } from '@/infrastructure/persistence/indexed-db.repository';
 
 
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
@@ -76,7 +77,7 @@ type GameEffectsDeps = {
   recipes: Record<string, Recipe>;
   setRecipes: (recipes: Record<string, Recipe>) => void;
   buildableStructures: Record<string, Structure>;
-  setBuildableStructures: (structures: Record<string, Structure>) => void;
+  setBuildableStructures: (structures: Structure[]) => void;
   gameSlot: number;
   advanceGameTime: (stats?: PlayerStatus) => void;
 };
@@ -105,13 +106,17 @@ export function useGameEffects(deps: GameEffectsDeps) {
 
   const [gameStateRepository, setGameStateRepository] = useState<IGameStateRepository>(new LocalStorageGameStateRepository());
 
-  // Determine which repository to use based on auth state
+  // Determine which repository to use based on auth state and browser capabilities
   useEffect(() => {
+    let repo: IGameStateRepository;
     if (user) {
-      setGameStateRepository(new FirebaseGameStateRepository(user.uid));
+      repo = new FirebaseGameStateRepository(user.uid);
+    } else if (typeof window !== 'undefined' && 'indexedDB' in window) {
+      repo = new IndexedDbGameStateRepository();
     } else {
-      setGameStateRepository(new LocalStorageGameStateRepository());
+      repo = new LocalStorageGameStateRepository();
     }
+    setGameStateRepository(repo);
   }, [user]);
 
   // Master Game Initialization Effect
@@ -124,7 +129,6 @@ export function useGameEffects(deps: GameEffectsDeps) {
         
         if (!isMounted) return;
         
-        // This is the CRITICAL part: we need a valid state to initialize from.
         if (!loadedState && !finalWorldSetup) {
             return;
         }
@@ -453,5 +457,3 @@ export function useGameEffects(deps: GameEffectsDeps) {
     turn, gameSlot, isLoaded, setIsSaving, gameStateRepository
   ]);
 }
-
-    

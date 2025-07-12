@@ -8,11 +8,19 @@ export class LocalStorageGameStateRepository implements IGameStateRepository {
 
   async load(slotId: string): Promise<GameState | null> {
     if (typeof window === 'undefined') return null;
+    const key = this.getKey(slotId);
+    const data = localStorage.getItem(key);
+
+    if (!data) {
+      return null;
+    }
+
     try {
-      const data = localStorage.getItem(this.getKey(slotId));
-      return data ? JSON.parse(data) : null;
+      return JSON.parse(data);
     } catch (error) {
-      console.error('Error loading game state from localStorage:', error);
+      console.error(`Error parsing JSON from localStorage for key "${key}":`, error);
+      // Optional: Corrupted data could be removed to prevent future errors
+      // localStorage.removeItem(key);
       return null;
     }
   }
@@ -54,5 +62,3 @@ export class LocalStorageGameStateRepository implements IGameStateRepository {
     return summaries;
   }
 }
-
-    

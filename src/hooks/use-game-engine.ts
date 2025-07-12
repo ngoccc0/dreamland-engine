@@ -13,6 +13,19 @@ interface GameEngineProps {
     gameSlot: number;
 }
 
+/**
+ * The main Game Engine hook.
+ * This hook acts as the primary "Manager" or "Orchestrator" in our architecture.
+ * Its main responsibility is to assemble all the specialized "workers" (other hooks)
+ * and provide a single, clean interface for the UI (the GameLayout component) to interact with.
+ *
+ * It follows the "separation of concerns" principle:
+ * - `useGameState`: Manages all the raw state of the game.
+ * - `useActionHandlers`: Contains the logic for *how* to execute player actions (the "How").
+ * - `useGameEffects`: Manages all side effects that react to state changes (saving, game over checks, etc.).
+ * - `GameLayout`: The UI layer, which only knows *what* action it wants to perform (the "What"),
+ *   and calls the appropriate function provided by this engine.
+ */
 export function useGameEngine(props: GameEngineProps) {
     const gameState = useGameState(props);
     const narrativeContainerRef = useRef<HTMLDivElement>(null);

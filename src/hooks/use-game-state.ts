@@ -13,6 +13,12 @@ interface GameStateProps {
     gameSlot: number;
 }
 
+/**
+ * This hook is the single source of truth for the game's state.
+ * It encapsulates all the `useState` calls for every piece of game data.
+ * Its only job is to hold and update the state. It contains no complex logic.
+ * This adheres to the principle of separating state management from logic.
+ */
 export function useGameState({ gameSlot }: GameStateProps) {
     const [isLoaded, setIsLoaded] = useState(false);
     

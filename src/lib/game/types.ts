@@ -255,6 +255,7 @@ export interface PlayerStatus {
         type: string;
         lastSeen: number; // turn
     };
+    language?: Language;
 }
 
 export interface PlayerBehaviorProfile {
@@ -276,7 +277,6 @@ export interface WorldConcept {
   worldName: string;
   initialNarrative: string;
   startingBiome: Terrain;
-  customItemCatalog: ItemDefinition[];
   customStructures: StructureDefinition[];
   playerInventory: { name: string; quantity: number }[];
   initialQuests: string[];
@@ -317,7 +317,7 @@ export interface GameState {
     playerBehaviorProfile: PlayerBehaviorProfile;
     playerStats: PlayerStatus;
     narrativeLog: NarrativeEntry[];
-    worldSetup: Omit<WorldConcept, 'playerInventory' | 'customItemCatalog' | 'customStructures'> & { playerInventory: PlayerItem[], startingSkill: Skill, customStructures: Structure[] };
+    worldSetup: Omit<WorldConcept, 'playerInventory' | 'customStructures'> & { playerInventory: PlayerItem[], startingSkill: Skill, customStructures: Structure[] };
     customItemDefinitions: Record<string, ItemDefinition>;
     customItemCatalog: GeneratedItem[];
     customStructures: StructureDefinition[];

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useCallback } from 'react';
@@ -45,7 +46,7 @@ type GameEffectsDeps = {
   setPlayerPosition: (pos: GameState['playerPosition']) => void;
   narrativeLogRef: React.RefObject<NarrativeEntry[]>;
   setNarrativeLog: (log: NarrativeEntry[]) => void;
-  addNarrativeEntry: (text: string, type: NarrativeEntry['type']) => void;
+  addNarrativeEntry: (text: string, type: NarrativeEntry['type'], entryId?: string) => void;
   finalWorldSetup: GameState['worldSetup'] | null;
   setFinalWorldSetup: (setup: GameState['worldSetup']) => void;
   turn: number;

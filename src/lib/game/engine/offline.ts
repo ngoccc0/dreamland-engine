@@ -1,12 +1,16 @@
 
+
 import type { Chunk, ChunkItem, Action, Language, ItemDefinition } from "../types";
 import { getTemplates } from "../templates";
 import { translations } from "../../i18n";
 import type { TranslationKey } from "../../i18n";
 import { clamp } from "../../utils";
 import type { SuccessLevel } from "../dice";
+import { getEffectiveChunk, ensureChunkExists } from "./generation";
 
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+
+export { getEffectiveChunk, ensureChunkExists };
 
 export const handleSearchAction = (
     currentChunk: Chunk,

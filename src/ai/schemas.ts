@@ -22,6 +22,7 @@ import {
     CreatureDefinitionSchema,
     allTerrains,
 } from '@/lib/game/definitions';
+import { Language } from '@/lib/i18n';
 
 // --- Re-exporting core schemas for AI use ---
 export { 
@@ -163,7 +164,7 @@ export const GenerateNewQuestInputSchema = z.object({
     playerStatus: PlayerStatusSchema.describe("The player's current status (HP, items, skills, etc.)."),
     currentChunk: ChunkSchema.describe("The detailed attributes of the map tile the player is on."),
     existingQuests: z.array(z.string()).describe("A list of quests the player already has, to avoid duplicates."),
-    language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
+    language: z.nativeEnum(Language).describe("The language for the generated content (e.g., 'en', 'vi')."),
 });
 
 // Output for generate-new-quest flow
@@ -176,13 +177,13 @@ export const GenerateNewItemInputSchema = z.object({
     existingItemNames: z.array(z.string()).describe("A list of the names of ALL items that already exist in the world, to avoid generating duplicates."),
     worldName: z.string().describe("The name of the game world for thematic consistency."),
     playerPersona: PlayerStatusSchema.shape.persona,
-    language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
+    language: z.nativeEnum(Language).describe("The language for the generated content (e.g., 'en', 'vi')."),
 });
 
 // Input for provide-quest-hint flow
 export const ProvideQuestHintInputSchema = z.object({
     questText: z.string().describe("The full text of the quest for which a hint is needed."),
-    language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
+    language: z.nativeEnum(Language).describe("The language for the generated content (e.g., 'en', 'vi')."),
 });
 
 // Output for provide-quest-hint flow
@@ -206,7 +207,7 @@ export const FuseItemsInputSchema = z.object({
       weather: z.string(),
   }).describe("Simple environmental context for narrative flavor."),
   environmentalModifiers: EnvironmentalModifiersSchema.describe("Pre-calculated modifiers that should guide the fusion's outcome."),
-  language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
+  language: z.nativeEnum(Language).describe("The language for the generated content (e.g., 'en', 'vi')."),
   customItemDefinitions: z.record(ItemDefinitionSchema).describe("A map of all item definitions available in the world, for looking up categories."),
 });
 
@@ -222,7 +223,7 @@ export const GenerateJournalEntryInputSchema = z.object({
   dailyActionLog: z.array(z.string()).describe("A list of actions the player took today."),
   playerPersona: PlayerStatusSchema.shape.persona,
   worldName: z.string().describe("The name of the world for thematic context."),
-  language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
+  language: z.nativeEnum(Language).describe("The language for the generated content (e.g., 'en', 'vi')."),
 });
 
 // Output for generate-journal-entry flow

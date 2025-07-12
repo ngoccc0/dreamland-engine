@@ -1,4 +1,3 @@
-
 import type { DiceType } from "./types";
 import type { TranslationKey } from "../i18n";
 

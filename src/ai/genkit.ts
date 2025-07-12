@@ -32,7 +32,8 @@ const geminiApiKeys = [
 if (geminiApiKeys.length > 0) {
   console.log(`Found ${geminiApiKeys.length} Gemini API key(s). Initializing Google AI plugin.`);
   // Pass all found keys to the plugin. Genkit will manage them.
-  plugins.push(googleAI({apiKey: geminiApiKeys}));
+  // Disable context caching to prevent 'fs' module errors on the client.
+  plugins.push(googleAI({apiKey: geminiApiKeys, cache: {}}));
 } else {
   console.warn(
     'GEMINI_API_KEY_PRIMARY or GEMINI_API_KEY_SECONDARY not found. Google AI plugin will not be available.'

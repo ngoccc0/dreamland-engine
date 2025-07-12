@@ -7,16 +7,6 @@ const withPWA = withPWAInit({
   disable: process.env.NODE_ENV === 'development',
   register: true,
   skipWaiting: true,
-  workboxOptions: {
-    // Exclude navigation routes from precaching
-    exclude: [
-        /^\/$/, // Exclude root route
-        /^\/index\.html$/, // Exclude index.html
-        /^\/manifest\.json$/, // Exclude manifest
-    ],
-    // Add a 30-second timeout for network requests for debugging
-    networkTimeoutSeconds: 30,
-  },
   runtimeCaching: [
     // Cache Google Fonts
     {
@@ -54,6 +44,18 @@ const withPWA = withPWAInit({
         },
       },
     },
+    // Use NetworkFirst for navigation requests to prevent stale HTML and ChunkLoadErrors.
+    {
+      urlPattern: ({ request }) => request.mode === 'navigate',
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'pages',
+        expiration: {
+          maxEntries: 50,
+          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
+        },
+      },
+    },
   ],
 });
 
@@ -79,5 +81,3 @@ const nextConfig: NextConfig = {
 };
 
 export default withPWA(nextConfig);
-
-    

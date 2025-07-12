@@ -7,12 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { generateWorldSetup, type GenerateWorldSetupOutput } from "@/ai/flows/generate-world-setup";
 import { suggestKeywords } from "@/ai/flows/suggest-keywords";
 import { Skeleton } from "../ui/skeleton";
 import { Separator } from "../ui/separator";
 import { useLanguage } from "@/context/language-context";
-import type { WorldConcept, Skill, PlayerItem, GeneratedItem, Terrain } from "@/lib/game/types";
+import type { WorldConcept, Skill, PlayerItem, GeneratedItem, Terrain, GenerateWorldSetupOutput } from "@/lib/game/types";
 import { premadeWorlds } from "@/lib/game/data/premade-worlds";
 import type { TranslationKey } from "@/lib/i18n";
 import { SettingsPopup } from "./settings-popup";
@@ -165,14 +164,20 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         setIsPremade(false);
 
         try {
-            const timeoutPromise = new Promise<GenerateWorldSetupOutput>((_, reject) =>
-                setTimeout(() => reject(new Error("AI generation timed out after 30 seconds.")), 30000)
-            );
+            const response = await fetch('/api/generate-world', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userInput, language }),
+            });
 
-            const generationPromise = generateWorldSetup({ userInput, language });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to generate world');
+            }
             
-            const result = await Promise.race([generationPromise, timeoutPromise]);
-            
+            const result: GenerateWorldSetupOutput = await response.json();
             setGeneratedData(result);
         } catch (error) {
             console.error("Failed to generate world:", error);

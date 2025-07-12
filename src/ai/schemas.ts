@@ -3,65 +3,25 @@
  *
  * This file centralizes the data structures used for communication with the AI,
  * ensuring consistency between narrative generation, tools, and game state.
+ * It IMPORTS schemas from the core game definitions in `src/lib/game/definitions`.
  */
 
 import {z} from 'genkit';
-import type { Language } from '@/lib/game/types';
 import { allTerrains } from '@/lib/game/types';
-
-export const ItemCategorySchema = z.enum(['Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion', 'Armor', 'Accessory', 'Consumable', 'Potion', 'Utility', 'Misc']).describe("The category of the item.");
-export type ItemCategory = z.infer<typeof ItemCategorySchema>;
-
-export const ItemEffectSchema = z.object({
-    type: z.enum(['HEAL', 'RESTORE_STAMINA']),
-    amount: z.number(),
-});
-
-const ConditionRangeSchema = z.object({
-    min: z.number().optional(),
-    max: z.number().optional()
-});
-
-export const SpawnConditionsSchema = z.object({
-  chance: z.number().optional(),
-  vegetationDensity: ConditionRangeSchema.optional(),
-  moisture: ConditionRangeSchema.optional(),
-  elevation: ConditionRangeSchema.optional(),
-  dangerLevel: ConditionRangeSchema.optional(),
-  magicAffinity: ConditionRangeSchema.optional(),
-  humanPresence: ConditionRangeSchema.optional(),
-  predatorPresence: ConditionRangeSchema.optional(),
-  lightLevel: ConditionRangeSchema.optional(),
-  temperature: ConditionRangeSchema.optional(),
-  soilType: z.array(z.string()).optional(),
-}).describe("A set of environmental conditions.");
+import { 
+    ItemCategorySchema, 
+    ItemEffectSchema, 
+    PlayerAttributesSchema, 
+    SpawnConditionsSchema,
+    ItemDefinitionSchema as CoreItemDefinitionSchema // Renaming to avoid conflict
+} from '@/lib/game/definitions';
 
 
-export const PlayerAttributesSchema = z.object({
-    physicalAttack: z.number().describe("Player's base physical damage."),
-    magicalAttack: z.number().describe("Player's base magical damage."),
-    critChance: z.number().describe("Player's chance to land a critical hit (percentage)."),
-    attackSpeed: z.number().describe("Player's attack speed modifier."),
-    cooldownReduction: z.number().describe("Player's cooldown reduction (percentage)."),
-});
+export { ItemCategorySchema, ItemEffectSchema, PlayerAttributesSchema, SpawnConditionsSchema };
 
-
-export const ItemDefinitionSchema = z.object({
-    description: z.string(),
-    tier: z.number(),
-    category: ItemCategorySchema,
-    subCategory: z.string().optional().describe("A more specific category like 'Meat', 'Fruit', 'Potion'."),
-    emoji: z.string().describe("A single emoji that represents the item."),
-    effects: z.array(ItemEffectSchema),
-    baseQuantity: z.object({ min: z.number(), max: z.number() }),
-    growthConditions: z.object({
-      optimal: SpawnConditionsSchema.describe("The ideal conditions for the resource to thrive and reproduce."),
-      subOptimal: SpawnConditionsSchema.describe("Conditions where the resource can survive and reproduce slowly."),
-    }).optional().describe("For living resources like plants or fungi, define the conditions under which they grow. If not provided, the item will be static."),
-    equipmentSlot: z.enum(['weapon', 'armor', 'accessory']).optional().describe("If the item is equippable, which slot it goes into."),
-    attributes: PlayerAttributesSchema.optional().describe("The combat attributes this item provides when equipped."),
-});
-
+// We define a separate ItemDefinitionSchema here for AI-specific needs,
+// but it REUSES the core schemas (ItemCategory, PlayerAttributes, etc.)
+export const ItemDefinitionSchema = CoreItemDefinitionSchema;
 
 export const PlayerItemSchema = z.object({
     name: z.string(),

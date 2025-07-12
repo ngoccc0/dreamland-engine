@@ -1,5 +1,5 @@
 
-import {z} from 'zod';
+import {z} from 'genkit';
 import { ItemCategorySchema, PlayerAttributesSchema, SpawnConditionsSchema, MultilingualTextSchema } from './base';
 import { allTerrains } from '../types';
 

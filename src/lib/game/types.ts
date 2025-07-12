@@ -11,10 +11,8 @@ import type {
     LootDrop,
     SpawnConditions,
     PlayerAttributes,
-    ItemCategorySchema // Import the schema directly
+    ItemCategory, // Now importing the derived type
 } from "./definitions";
-import { z } from 'zod';
-
 
 // Re-export for easier access elsewhere
 export type { 
@@ -27,10 +25,8 @@ export type {
     LootDrop,
     SpawnConditions,
     PlayerAttributes,
+    ItemCategory,
 };
-
-// Use z.infer to derive the type from the single source of truth
-export type ItemCategory = z.infer<typeof ItemCategorySchema>;
 
 export const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic", "wall", "floptropica", "tundra", "beach", "mesa", "mushroom_forest", "ocean", "city", "space_station", "underwater"];
 

@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 import { MultilingualTextSchema, LootDropSchema } from './base';
 
@@ -34,6 +33,8 @@ export const CreatureDefinitionSchema = z.object({
   senseEffect: z.object({
       keywords: z.array(z.string()),
   }).optional().describe("Keywords for sensory descriptions during gameplay."),
+  // --- Legacy field to be removed ---
+  type: z.string().optional(),
 });
 
 export type CreatureDefinition = z.infer<typeof CreatureDefinitionSchema>;

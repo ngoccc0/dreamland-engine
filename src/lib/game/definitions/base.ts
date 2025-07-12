@@ -1,7 +1,5 @@
 
 import {z} from 'genkit';
-import type { ZodType } from 'zod';
-import type { Terrain, Season } from '../types'; // Import types for validation
 
 // Defines a range for environmental conditions, e.g., moisture: { min: 5, max: 8 }.
 const ConditionRangeSchema = z.object({
@@ -48,6 +46,7 @@ export const ItemCategorySchema = z.enum([
     'Data', 'Tool', 'Utility',
     'Magic', 'Fusion', 'Misc'
 ]).describe("The primary category of the item.");
+export type ItemCategory = z.infer<typeof ItemCategorySchema>;
 
 
 // Defines a multilingual string object.

@@ -17,11 +17,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Loader2, Settings, Download, Trash2, Play, PlusCircle, Star, User, Backpack, Swords } from 'lucide-react';
 import type { TranslationKey, Language } from '@/lib/i18n';
 import { LanguageSelector } from '@/components/game/language-selector';
-import { doc, setDoc, deleteDoc, getDocs, collection } from "firebase/firestore";
-import { db } from "@/lib/firebase-config";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from '@/components/ui/separator';
+import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
+import { LocalStorageGameStateRepository } from '@/infrastructure/persistence/local-storage.repository';
+import { FirebaseGameStateRepository } from '@/infrastructure/persistence/firebase.repository';
+
 
 type SaveSlotSummary = Pick<GameState, 'worldSetup' | 'day' | 'gameTime' | 'playerStats'> | null;
 
@@ -31,47 +33,40 @@ export default function Home() {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
 
+  const [gameStateRepository, setGameStateRepository] = useState<IGameStateRepository>(new LocalStorageGameStateRepository());
   const [loadState, setLoadState] = useState<'loading' | 'language_select' | 'slot_selection' | 'new_game' | 'continue_game'>('loading');
   const [saveSlots, setSaveSlots] = useState<SaveSlotSummary[]>([null, null, null]);
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
 
   const [isSettingsOpen, setSettingsOpen] = useState(false);
 
+  // Determine which repository to use based on auth state
+  useEffect(() => {
+    if (user) {
+      setGameStateRepository(new FirebaseGameStateRepository(user.uid));
+    } else {
+      setGameStateRepository(new LocalStorageGameStateRepository());
+    }
+  }, [user]);
+
   const loadSaveSlots = useCallback(async () => {
     setLoadState('loading');
-    let slots: SaveSlotSummary[] = [null, null, null];
-    if (user && db) { // Load from Firebase
-      try {
-        const gamesColRef = collection(db, "users", user.uid, "games");
-        const querySnapshot = await getDocs(gamesColRef);
-        querySnapshot.forEach(doc => {
-          const docId = doc.id; // e.g., "slot_0"
-          const slotIndex = parseInt(docId.split('_')[1], 10);
-          if (slotIndex >= 0 && slotIndex < 3) {
-            const data = doc.data() as GameState;
-            slots[slotIndex] = { worldSetup: data.worldSetup, day: data.day, gameTime: data.gameTime, playerStats: data.playerStats };
-          }
-        });
-      } catch (error) {
-        console.error("Failed to load save slots from Firebase:", error);
-      }
-    } else { // Load from localStorage
-      slots = [0, 1, 2].map(i => {
-        try {
-          const savedData = localStorage.getItem(`gameState_${i}`);
-          if (savedData) {
-            const gameState: GameState = JSON.parse(savedData);
-            return { worldSetup: gameState.worldSetup, day: gameState.day, gameTime: gameState.gameTime, playerStats: gameState.playerStats };
-          }
-          return null;
-        } catch {
-          return null;
+    try {
+      const summaries = await gameStateRepository.listSaveSummaries();
+      const slots: SaveSlotSummary[] = [null, null, null];
+      summaries.forEach((summary, index) => {
+        if (index < 3) {
+          slots[index] = summary;
         }
       });
+      setSaveSlots(slots);
+    } catch (error) {
+      console.error("Failed to load save slots:", error);
+      toast({ title: "Error", description: "Failed to load save data.", variant: "destructive" });
+    } finally {
+      setLoadState('slot_selection');
     }
-    setSaveSlots(slots);
-    setLoadState('slot_selection');
-  }, [user]);
+  }, [gameStateRepository, toast]);
 
   // Main effect to drive the initial state of the application
   useEffect(() => {
@@ -106,21 +101,17 @@ export default function Home() {
   };
 
   const handleDelete = async (slotIndex: number) => {
-    if (user && db) {
-        try {
-            await deleteDoc(doc(db, "users", user.uid, "games", `slot_${slotIndex}`));
-        } catch (error) {
-            console.error("Failed to delete from Firebase:", error);
-            toast({ title: "Error", description: "Failed to delete cloud save.", variant: "destructive" });
-        }
-    } else {
-        localStorage.removeItem(`gameState_${slotIndex}`);
+    try {
+        await gameStateRepository.delete(`slot_${slotIndex}`);
+        setSaveSlots(prev => {
+            const newSlots = [...prev];
+            newSlots[slotIndex] = null;
+            return newSlots;
+        });
+    } catch (error) {
+        console.error("Failed to delete save slot:", error);
+        toast({ title: "Error", description: "Failed to delete save.", variant: "destructive" });
     }
-    setSaveSlots(prev => {
-        const newSlots = [...prev];
-        newSlots[slotIndex] = null;
-        return newSlots;
-    });
   };
 
   const onWorldCreated = async (worldSetupData: GenerateWorldSetupOutput) => {
@@ -179,14 +170,10 @@ export default function Home() {
       currentSeason: 'spring', gameTime: 360, weatherZones: {}, world: {}, recipes: {}, buildableStructures: {}, regions: {}, regionCounter: 0,
       playerPosition: { x: 0, y: 0 }, playerBehaviorProfile: { moves: 0, attacks: 0, crafts: 0, customActions: 0 },
     };
+    
     try {
-      // Debug: log before saving
-      console.log('Saving new game state to localStorage:', newGameState);
-      if (user && db) {
-        await setDoc(doc(db, "users", user.uid, "games", `slot_${activeSlot}`), newGameState);
-      } else {
-        localStorage.setItem(`gameState_${activeSlot}`, JSON.stringify(newGameState));
-      }
+      await gameStateRepository.save(`slot_${activeSlot}`, newGameState);
+      
       setSaveSlots(prev => {
         const newSlots = [...prev];
         newSlots[activeSlot!] = { worldSetup: newGameState.worldSetup, day: newGameState.day, gameTime: newGameState.gameTime, playerStats: newGameState.playerStats };
@@ -373,3 +360,5 @@ export default function Home() {
 
   return null;
 }
+
+    

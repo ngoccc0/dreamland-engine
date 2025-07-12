@@ -1,3 +1,4 @@
+
 // src/infrastructure/persistence/indexed-db.config.ts
 import Dexie, { type Table } from 'dexie';
 import type { GameState } from '@/lib/game/types';

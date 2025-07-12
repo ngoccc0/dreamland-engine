@@ -6,10 +6,11 @@
  */
 
 import {z} from 'genkit';
-import type { Terrain, Language } from '@/lib/game/types';
+import type { Language } from '@/lib/game/types';
 import { allTerrains } from '@/lib/game/types';
 
 export const ItemCategorySchema = z.enum(['Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion', 'Armor', 'Accessory', 'Consumable', 'Potion', 'Utility', 'Misc']).describe("The category of the item.");
+export type ItemCategory = z.infer<typeof ItemCategorySchema>;
 
 export const ItemEffectSchema = z.object({
     type: z.enum(['HEAL', 'RESTORE_STAMINA']),

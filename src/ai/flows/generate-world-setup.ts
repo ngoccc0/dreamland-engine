@@ -128,7 +128,7 @@ Based on the user's idea, your task is to generate **a small, initial catalog of
 **Rules:**
 1.  The "customItemCatalog" array in your JSON output MUST contain between 5 and 10 items.
 2.  For each item, you MUST define only the following fields: 'name', 'description', 'category', and 'spawnBiomes'.
-3.  The 'category' must be one of the allowed values: 'Weapon', 'Material', 'Energy Source', 'Food', 'Data', 'Tool', 'Equipment', 'Support', 'Magic', 'Fusion'.
+3.  The 'category' must be one of the allowed values: {{json validCategories}}.
 4.  The 'spawnBiomes' must be an array of biome names from this list: ${allTerrainsSchema.join(', ')}.
 5.  DO NOT create items that are already on this list: {{json existingItemNames}}.
 6.  DO NOT include 'tier', 'effects', 'baseQuantity', or any other fields.`;
@@ -191,7 +191,7 @@ const generateWorldSetupFlow = ai.defineFlow(
     // Task A: Generate the item catalog.
     const itemCatalogTask = (async () => {
         const template = Handlebars.compile(itemCatalogPromptTemplate);
-        const promptInput = { ...input, existingItemNames: itemNamesList };
+        const promptInput = { ...input, existingItemNames: itemNamesList, validCategories: ItemCategorySchema.options };
         const renderedPrompt = template(promptInput);
 
         const modelsToTry = ['openai/gpt-4o', 'googleai/gemini-1.5-pro', 'deepseek/deepseek-chat', 'googleai/gemini-2.0-flash'];
@@ -410,5 +410,3 @@ const generateWorldSetupFlow = ai.defineFlow(
     return finalOutput;
   }
 );
-
-    

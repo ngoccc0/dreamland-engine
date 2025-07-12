@@ -27,7 +27,7 @@ interface InventoryPopupProps {
   onEquipItem: (itemName: string) => void;
 }
 
-const categoryEmojis: Record<string, string> = {
+const categoryEmojis: Record<ItemCategory, string> = {
   Weapon: '⚔️',
   Tool: '🛠️',
   Material: '🧱',
@@ -38,10 +38,12 @@ const categoryEmojis: Record<string, string> = {
   'Energy Source': '⚡',
   Data: '📜',
   Fusion: '🌀',
-  Meat: '🥩',
-  Fruit: '🍎',
-  Vegetable: '🥬',
+  Armor: '🛡️',
+  Accessory: '💍',
+  Consumable: '😋',
   Potion: '🧪',
+  Utility: '⚙️',
+  Misc: '❓',
 };
 
 const attributeLabels: Record<keyof PlayerAttributes, TranslationKey> = {
@@ -83,8 +85,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                     const isInteractable = isUsableOnSelf || isUsableOnEnemy || isEquippable;
 
                     const itemCategory = definition?.category;
-                    const itemSubCategory = definition?.subCategory;
-                    const categoryEmoji = itemSubCategory ? categoryEmojis[itemSubCategory] : (itemCategory ? categoryEmojis[itemCategory] : '❓');
+                    const categoryEmoji = itemCategory ? categoryEmojis[itemCategory] : '❓';
 
                     return (
                       <li key={index}>

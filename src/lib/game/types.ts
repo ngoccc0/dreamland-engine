@@ -1,5 +1,3 @@
-
-
 import type { TranslationKey } from "../i18n";
 import type { 
     ItemDefinition as ItemDefZod, 
@@ -12,8 +10,9 @@ import type {
     CreatureDefinition,
     LootDrop,
     SpawnConditions,
-    PlayerAttributes
-} from "./definitions";
+    PlayerAttributes,
+    ItemCategory
+} from "../ai/schemas";
 
 
 // Re-export for easier access elsewhere
@@ -27,6 +26,7 @@ export type {
     LootDrop,
     SpawnConditions,
     PlayerAttributes,
+    ItemCategory,
 };
 
 export const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic", "wall", "floptropica", "tundra", "beach", "mesa", "mushroom_forest", "ocean", "city", "space_station", "underwater"];
@@ -43,7 +43,6 @@ export interface Region {
 export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave" | "jungle" | "volcanic" | "wall" | "floptropica" | "tundra" | "beach" | "mesa" | "mushroom_forest" | "ocean" | "city" | "space_station" | "underwater";
 export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky' | 'metal';
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
-export type ItemCategory = 'Weapon' | 'Armor' | 'Accessory' | 'Material' | 'Energy Source' | 'Food' | 'Consumable' | 'Potion' | 'Data' | 'Tool' | 'Utility' | 'Magic' | 'Fusion' | 'Misc';
 export type PlayerPersona = 'none' | 'explorer' | 'warrior' | 'artisan';
 export type GameMode = 'ai' | 'offline';
 export type DiceType = 'd20' | 'd12' | '2d6';

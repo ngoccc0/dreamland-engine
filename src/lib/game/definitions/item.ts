@@ -1,7 +1,17 @@
 
 import {z} from 'genkit';
-import { ItemCategorySchema, PlayerAttributesSchema, SpawnConditionsSchema, MultilingualTextSchema } from './base';
+import { PlayerAttributesSchema, SpawnConditionsSchema } from './base';
 import { allTerrains } from '../types';
+
+// The single source of truth for all item categories.
+export const ItemCategorySchema = z.enum([
+    'Weapon', 'Armor', 'Accessory',
+    'Material', 'Energy Source',
+    'Food', 'Consumable', 'Potion',
+    'Data', 'Tool', 'Utility',
+    'Magic', 'Fusion', 'Misc'
+]).describe("The primary category of the item.");
+
 
 // The effect an item can have when used.
 export const ItemEffectSchema = z.object({

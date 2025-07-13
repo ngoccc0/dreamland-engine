@@ -1,10 +1,9 @@
 
 
-import type { Chunk, ChunkItem, Action, Language, ItemDefinition } from "../types";
+import type { Chunk, ChunkItem, Action, Language, ItemDefinition, World, PlayerItem, Skill, TranslationKey } from "../types";
 import { getTemplates } from "../templates";
 import { translations } from "../../i18n";
-import type { TranslationKey } from "../../i18n";
-import { clamp } from "../../utils";
+import { clamp, getTranslatedText } from "../../utils";
 import type { SuccessLevel } from "../dice";
 import { getEffectiveChunk, ensureChunkExists } from "./generation";
 
@@ -56,7 +55,7 @@ export const handleSearchAction = (
                 if (quantity > 0) {
                     foundItems.push({
                         name: itemTemplate.name,
-                        description: t(itemDef.description as TranslationKey),
+                        description: getTranslatedText(itemDef.description, language, t),
                         tier: itemDef.tier,
                         quantity,
                         emoji: itemDef.emoji,
@@ -67,7 +66,7 @@ export const handleSearchAction = (
     }
     
     if (foundItems.length > 0) {
-        const foundItemsText = foundItems.map(item => `${item.quantity} ${t(item.name as TranslationKey)}`).join(', ');
+        const foundItemsText = foundItems.map(item => `${item.quantity} ${getTranslatedText(item.name, language, t)}`).join(', ');
         
         const toastInfo = {
             title: 'exploreSuccessTitle' as TranslationKey,
@@ -110,11 +109,11 @@ export const generateOfflineNarrative = (
     narrativeLength: "short" | "medium" | "long",
     world: { [key: string]: Chunk },
     playerPosition: { x: number; y: number; },
-    t: (key: TranslationKey, replacements?: any) => string
+    t: (key: TranslationKey, replacements?: any) => string,
+    language: Language
 ): string => {
     const chunk = baseChunk;
-    const lang = (Object.keys(translations).find(key => (translations as any)[key].langIdentifier === t('langIdentifier')) || 'en') as Language;
-    const templates = getTemplates(lang);
+    const templates = getTemplates(language);
     const biomeTemplateData = templates[chunk.terrain];
 
     if (!biomeTemplateData?.descriptionTemplates) {
@@ -142,17 +141,17 @@ export const generateOfflineNarrative = (
     // Build {entity_report}
     const entityReportParts: string[] = [];
     if (chunk.items.length > 0) {
-        const itemsHere = chunk.items.map(i => `${i.quantity} ${t(i.name as TranslationKey)}`).join(', ');
+        const itemsHere = chunk.items.map(i => `${i.quantity} ${getTranslatedText(i.name, language, t)}`).join(', ');
         entityReportParts.push(t('offlineNarrativeItems', { items: itemsHere }));
     }
     if (chunk.enemy) {
-        entityReportParts.push(t('offlineNarrativeEnemy', { enemy: t(chunk.enemy.type as TranslationKey) }));
+        entityReportParts.push(t('offlineNarrativeEnemy', { enemy: getTranslatedText(chunk.enemy.type, language, t) }));
     }
     if (chunk.NPCs.length > 0) {
-        entityReportParts.push(t('offlineNarrativeNPC', { npc: t(chunk.NPCs[0].name as TranslationKey) }));
+        entityReportParts.push(t('offlineNarrativeNPC', { npc: getTranslatedText(chunk.NPCs[0].name, language, t) }));
     }
     if (chunk.structures.length > 0) {
-        entityReportParts.push(t('offlineNarrativeStructure', { structure: t(chunk.structures[0].name as TranslationKey) }));
+        entityReportParts.push(t('offlineNarrativeStructure', { structure: getTranslatedText(chunk.structures[0].name, language, t) }));
     }
     const entityReportText = entityReportParts.join(' ');
     
@@ -165,9 +164,9 @@ export const generateOfflineNarrative = (
             const adjacentChunk = world[key];
             if (adjacentChunk && adjacentChunk.explored && ((chunk.lastVisited - adjacentChunk.lastVisited) < 50)) {
                 if (adjacentChunk.enemy) {
-                    surroundingPeekParts.push(t('surrounding_peek_enemy', { direction: t(`direction${dir.dir}` as TranslationKey), enemy: t(adjacentChunk.enemy.type as TranslationKey) }));
+                    surroundingPeekParts.push(t('surrounding_peek_enemy', { direction: t(`direction${dir.dir}` as TranslationKey), enemy: getTranslatedText(adjacentChunk.enemy.type, language, t) }));
                 } else if (adjacentChunk.structures.length > 0) {
-                    surroundingPeekParts.push(t('surrounding_peek_structure', { direction: t(`direction${dir.dir}` as TranslationKey), structure: t(adjacentChunk.structures[0].name as TranslationKey) }));
+                    surroundingPeekParts.push(t('surrounding_peek_structure', { direction: t(`direction${dir.dir}` as TranslationKey), structure: getTranslatedText(adjacentChunk.structures[0].name, language, t) }));
                 }
             }
         }
@@ -205,7 +204,8 @@ export const generateOfflineActionNarrative = (
     actionType: 'attack' | 'useSkill' | 'useItem',
     result: any,
     chunk: Chunk,
-    t: (key: TranslationKey, replacements?: any) => string
+    t: (key: TranslationKey, replacements?: any) => string,
+    language: Language
 ): string => {
     let narrativeParts: string[] = [];
     const sensoryFeedbackParts: string[] = [];
@@ -223,7 +223,7 @@ export const generateOfflineActionNarrative = (
     switch (actionType) {
         case 'attack':
             const { successLevel, playerDamage, enemyDamage, enemyDefeated, fled, enemyType } = result;
-            const enemyName = t(enemyType as TranslationKey);
+            const enemyName = getTranslatedText(enemyType, language, t);
 
             if (successLevel === 'CriticalSuccess') {
                 templateKey = 'actionNarrative_attack_critSuccess';
@@ -250,13 +250,13 @@ export const generateOfflineActionNarrative = (
         
         case 'useItem': {
             const { itemName, target, wasUsed, effectDescription, wasTamed, itemConsumed } = result;
-            const translatedItemName = t(itemName as TranslationKey);
+            const translatedItemName = getTranslatedText(itemName, language, t);
 
             if (target === 'player') {
                 if(wasUsed) return t('itemUsePlayerSuccessNarrative', { item: translatedItemName, effect: effectDescription, sensory_feedback });
                 else return t('itemUsePlayerFailNarrative', { item: translatedItemName, sensory_feedback });
             } else {
-                const translatedTarget = t(target as TranslationKey);
+                const translatedTarget = getTranslatedText(target, language, t);
                 if(itemConsumed) {
                     if(wasTamed) return t('itemTameSuccessNarrative', { item: translatedItemName, target: translatedTarget, sensory_feedback });
                     else return t('itemTameFailNarrative', { item: translatedItemName, target: translatedTarget, sensory_feedback });
@@ -267,8 +267,8 @@ export const generateOfflineActionNarrative = (
 
         case 'useSkill': {
             const { skill, successLevel, backfireDamage, healedAmount, finalDamage, siphonedAmount, enemy } = result as { skill: Skill, successLevel: SuccessLevel, backfireDamage?: number, healedAmount?: number, finalDamage?: number, siphonedAmount?: number, enemy: Chunk['enemy'] };
-            const skillName = t(skill.name as TranslationKey);
-            const enemyName = enemy ? t(enemy.type as TranslationKey) : '';
+            const skillName = getTranslatedText(skill.name, language, t);
+            const enemyName = enemy ? getTranslatedText(enemy.type, language, t) : '';
 
             if (successLevel === 'CriticalFailure') {
                 return t('skillCritFailNarrative', { skillName, damage: backfireDamage, sensory_feedback });

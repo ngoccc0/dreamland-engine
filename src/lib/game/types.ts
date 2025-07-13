@@ -1,4 +1,4 @@
-import type { TranslationKey } from "../i18n";
+import type { TranslationKey, Language } from "../i18n";
 import type { 
     ItemDefinition as ItemDefZod, 
     ItemEffect, 
@@ -28,6 +28,7 @@ export type {
     PlayerAttributes,
     ItemCategory,
     MultilingualText,
+    Language,
 };
 
 export const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic", "wall", "floptropica", "tundra", "beach", "mesa", "mushroom_forest", "ocean", "city", "space_station", "underwater"];
@@ -119,7 +120,7 @@ export interface GameSettings {
 }
 
 export interface ChunkItem {
-    name: string;
+    name: TranslatableString;
     description: TranslatableString; // Can be a key or an object
     quantity: number;
     tier: number;
@@ -127,14 +128,14 @@ export interface ChunkItem {
 }
 
 export interface PlayerItem {
-    name: string;
+    name: TranslatableString;
     quantity: number;
     tier: number;
     emoji: string;
 }
 
 export interface Pet {
-    type: string;
+    type: TranslatableString;
     name?: string;
     level: number;
 }
@@ -194,7 +195,7 @@ export interface Chunk {
     explored: boolean;
     lastVisited: number; // The turn number this chunk was last part of the player's view
     enemy: {
-        type: string;
+        type: TranslatableString;
         hp: number;
         damage: number;
         behavior: 'aggressive' | 'passive' | 'defensive' | 'territorial' | 'immobile' | 'ambush';

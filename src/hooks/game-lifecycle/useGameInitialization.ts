@@ -11,6 +11,7 @@ import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
 import type { GameState, GeneratedItem, Recipe } from "@/lib/game/types";
 import { logger } from '@/lib/logger';
+import { getTranslatedText } from '@/lib/utils';
 
 type GameInitializationDeps = {
   setIsLoaded: (loaded: boolean) => void;
@@ -109,7 +110,7 @@ export function useGameInitialization(deps: GameInitializationDeps) {
           finalCatalogMap.set(name, { name, ...def } as unknown as GeneratedItem);
       });
       (stateToInitialize.customItemCatalog || []).forEach(item => {
-          const nameKey = typeof item.name === 'string' ? item.name : (item.name as any).en;
+          const nameKey = typeof item.name === 'string' ? item.name : getTranslatedText(item.name, 'en', t);
           finalCatalogMap.set(nameKey, item);
       });
       
@@ -173,8 +174,8 @@ export function useGameInitialization(deps: GameInitializationDeps) {
       if ((stateToInitialize.narrativeLog || []).length === 0) {
            const startingChunk = worldSnapshot[initialPosKey];
            if (startingChunk) {
-              const chunkDescription = generateOfflineNarrative(startingChunk, 'long', worldSnapshot, stateToInitialize.playerPosition, t);
-              const fullIntro = `${t(stateToInitialize.worldSetup.initialNarrative as any)}\n\n${chunkDescription}`;
+              const chunkDescription = generateOfflineNarrative(startingChunk, 'long', worldSnapshot, stateToInitialize.playerPosition, t, language);
+              const fullIntro = `${getTranslatedText(stateToInitialize.worldSetup.initialNarrative, language, t)}\n\n${chunkDescription}`;
               addNarrativeEntry(fullIntro, 'narrative');
           }
       } else {

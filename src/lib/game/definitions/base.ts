@@ -21,7 +21,7 @@ export const SpawnConditionsSchema = z.object({
   temperature: ConditionRangeSchema.optional(),
   soilType: z.array(z.string()).optional(),
   timeOfDay: z.enum(['day', 'night']).optional(),
-  visibility: ConditionRange_schema.optional(),
+  visibility: ConditionRangeSchema.optional(),
   humidity: ConditionRangeSchema.optional(),
 }).describe("A set of environmental conditions that must be met for spawning.");
 export type SpawnConditions = z.infer<typeof SpawnConditionsSchema>;

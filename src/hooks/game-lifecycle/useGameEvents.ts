@@ -8,7 +8,7 @@ import { randomEvents } from '@/lib/game/events';
 import { getTemplates } from '@/lib/game/templates';
 import { clamp, getTranslatedText } from '@/lib/utils';
 import { rollDice, getSuccessLevel, type SuccessLevel } from '@/lib/game/dice';
-import type { GameState, PlayerStatus, Chunk, Season, WorldProfile, ItemDefinition, GeneratedItem, TranslatableString } from "@/lib/game/types";
+import type { GameState, PlayerStatus, Chunk, Season, WorldProfile, ItemDefinition, GeneratedItem, TranslatableString, Language } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 
 type GameEventsDeps = {
@@ -24,7 +24,7 @@ type GameEventsDeps = {
   currentSeason: Season;
   worldProfile: WorldProfile;
   customItemDefinitions: Record<string, ItemDefinition>;
-  language: 'en' | 'vi';
+  language: Language;
   turn: number;
 };
 
@@ -101,9 +101,9 @@ export function useGameEvents(deps: GameEventsDeps) {
       if (effects.items) {
         const newItems = [...newPlayerStats.items];
         effects.items.forEach(itemToAdd => {
-            const existing = newItems.find(i => i.name === itemToAdd.name);
-            if (existing) {
-                existing.quantity += itemToAdd.quantity;
+            const existingItem = newItems.find(i => getTranslatedText(i.name, language, t) === itemToAdd.name);
+            if (existingItem) {
+                existingItem.quantity += itemToAdd.quantity;
             } else {
                 const def = customItemDefinitions[itemToAdd.name];
                 if (def) {

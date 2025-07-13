@@ -68,10 +68,7 @@ export const translations = {
   vi: translations_vi,
 };
 
-export enum Language {
-    EN = 'en',
-    VI = 'vi',
-}
+export type Language = 'en' | 'vi';
 
 // This key is now simplified to a string to prevent complex type errors.
 // The t() function will still correctly look up translations and fall back to the key itself if not found.

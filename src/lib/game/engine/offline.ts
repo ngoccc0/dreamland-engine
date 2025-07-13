@@ -1,8 +1,8 @@
-import type { Chunk, ChunkItem, World, PlayerStatus, Action, ItemDefinition, Skill, MoodTag, NarrativeLength, NarrativeTemplate, ConditionType, BiomeAdjectiveCategory, Language } from "../types";
-import { getTemplates } from "../templates";
+import type { Chunk, MoodTag, NarrativeLength, NarrativeTemplate, ConditionType, BiomeAdjectiveCategory, Language, PlayerStatus, World, ChunkItem, Action, ItemDefinition, Skill } from "../types";
+import { getTranslatedText, SmartJoinSentences } from "../../utils"; 
+import { getTemplates } from '../templates';
 import { translations } from "../../i18n";
 import type { TranslationKey } from "../../i18n";
-import { clamp, getTranslatedText, SmartJoinSentences } from "../../utils";
 import type { SuccessLevel } from "../dice";
 
 /**
@@ -15,53 +15,53 @@ const analyze_chunk_mood = (chunk: Chunk): MoodTag[] => {
     const moods: MoodTag[] = [];
 
     // 1. Mức độ Nguy hiểm (dangerLevel) - Dải 0-100
-    if (chunk.dangerLevel >= 70) { // Rất nguy hiểm
+    if (chunk.dangerLevel >= 70) { 
         moods.push("Danger", "Foreboding", "Threatening");
-    } else if (chunk.dangerLevel >= 40) { // Có thể nguy hiểm
+    } else if (chunk.dangerLevel >= 40) { 
         moods.push("Threatening");
     }
 
-    // 2. Mức độ Ánh sáng (lightLevel) - Dải 0-100 (0: pitch black, 100: bright sun)
-    if (chunk.lightLevel <= 10) { // Tối hoàn toàn (ví dụ, trong hang động hoặc đêm tối)
+    // 2. Mức độ Ánh sáng (lightLevel) - Dải -100 đến 100
+    if (chunk.lightLevel <= 0) { 
         moods.push("Dark", "Gloomy", "Mysterious");
-    } else if (chunk.lightLevel < 50) { // Mờ ảo, thiếu sáng (ví dụ, hoàng hôn, rừng rậm)
+    } else if (chunk.lightLevel < 50) { 
         moods.push("Mysterious", "Gloomy");
-    } else if (chunk.lightLevel >= 80) { // Rất sáng (ban ngày, khu vực trống trải)
-        moods.push("Vibrant", "Peaceful");
+    } else if (chunk.lightLevel >= 80) { 
+        moods.push("Vibrant", "Peaceful"); 
     }
 
     // 3. Độ ẩm (moisture) - Dải 0-100
-    if (chunk.moisture >= 80) { // Rất ẩm ướt, đầm lầy, rừng rậm
+    if (chunk.moisture >= 80) { 
         moods.push("Lush", "Wet", "Vibrant");
-    } else if (chunk.moisture <= 20) { // Khô hạn (sa mạc, khu vực nứt nẻ)
+    } else if (chunk.moisture <= 20) { 
         moods.push("Arid", "Desolate");
     }
 
     // 4. Sự hiện diện của kẻ săn mồi (predatorPresence) - Dải 0-100
-    if (chunk.predatorPresence >= 60) { // Nhiều kẻ săn mồi
+    if (chunk.predatorPresence >= 60) { 
         moods.push("Danger", "Wild");
     }
 
     // 5. Liên kết ma thuật (magicAffinity) - Dải 0-100
-    if (chunk.magicAffinity >= 70) { // Năng lượng ma thuật mạnh
+    if (chunk.magicAffinity >= 70) { 
         moods.push("Magic", "Mysterious", "Ethereal");
-    } else if (chunk.magicAffinity >= 40) { // Có dấu hiệu ma thuật
+    } else if (chunk.magicAffinity >= 40) { 
         moods.push("Mysterious");
     }
 
     // 6. Sự hiện diện của con người (humanPresence) - Dải 0-100
-    if (chunk.humanPresence >= 60) { // Có dấu hiệu con người đáng kể (làng mạc, tàn tích)
-        moods.push("Civilized", "Historic");
-    } else if (chunk.humanPresence > 0) { // Có chút dấu hiệu nhưng không đáng kể
+    if (chunk.humanPresence >= 60) { 
+        moods.push("Civilized", "Historic"); 
+    } else if (chunk.humanPresence > 0) { 
         moods.push("Abandoned");
     }
 
-    // 7. Nhiệt độ (temperature) - Dải 0-100 (0: đóng băng, 100: cực nóng, 50: dễ chịu)
-    if (chunk.temperature && chunk.temperature >= 80) { // Rất nóng
+    // 7. Nhiệt độ (temperature) - Dải 0-100
+    if (chunk.temperature >= 80) { 
         moods.push("Hot", "Harsh");
-    } else if (chunk.temperature && chunk.temperature <= 20) { // Rất lạnh
+    } else if (chunk.temperature <= 20) { 
         moods.push("Cold", "Harsh");
-    } else if (chunk.temperature && chunk.temperature > 35 && chunk.temperature < 65) { // Nhiệt độ dễ chịu
+    } else if (chunk.temperature > 35 && chunk.temperature < 65) { 
         moods.push("Peaceful");
     }
 
@@ -82,7 +82,7 @@ const analyze_chunk_mood = (chunk: Chunk): MoodTag[] => {
         case "cave":
             moods.push("Dark", "Mysterious", "Foreboding", "Confined");
             break;
-        case "jungle":
+        case "jungle": 
             moods.push("Lush", "Vibrant", "Mysterious", "Wild");
             break;
         case "volcanic":
@@ -114,7 +114,7 @@ const get_sentence_limits = (narrativeLength: NarrativeLength): { min_s: number;
         case "detailed":
             return { min_s: 4, max_s: 7 };
         default:
-            return { min_s: 1, max_s: 2 };
+            return { min_s: 1, max_s: 2 }; 
     }
 };
 
@@ -128,93 +128,46 @@ const get_sentence_limits = (narrativeLength: NarrativeLength): { min_s: number;
 const check_conditions = (template_conditions: ConditionType | undefined, chunk: Chunk, playerState?: PlayerStatus): boolean => {
     if (!template_conditions) return true; // Không có điều kiện nào, luôn đúng
 
-    if (template_conditions.vegetationDensity) {
-        if (chunk.vegetationDensity < (template_conditions.vegetationDensity.min ?? 0) ||
-            chunk.vegetationDensity > (template_conditions.vegetationDensity.max ?? 100)) return false;
-    }
-    if (template_conditions.moisture) {
-        if (chunk.moisture < (template_conditions.moisture.min ?? 0) ||
-            chunk.moisture > (template_conditions.moisture.max ?? 100)) return false;
-    }
-    if (template_conditions.elevation) {
-        if (chunk.elevation < (template_conditions.elevation.min ?? -100) ||
-            chunk.elevation > (template_conditions.elevation.max ?? 100)) return false;
-    }
-    if (template_conditions.dangerLevel) {
-        if (chunk.dangerLevel < (template_conditions.dangerLevel.min ?? 0) ||
-            chunk.dangerLevel > (template_conditions.dangerLevel.max ?? 100)) return false;
-    }
-    if (template_conditions.magicAffinity) {
-        if (chunk.magicAffinity < (template_conditions.magicAffinity.min ?? 0) ||
-            chunk.magicAffinity > (template_conditions.magicAffinity.max ?? 100)) return false;
-    }
-    if (template_conditions.humanPresence) {
-        if (chunk.humanPresence < (template_conditions.humanPresence.min ?? 0) ||
-            chunk.humanPresence > (template_conditions.humanPresence.max ?? 100)) return false;
-    }
-    if (template_conditions.predatorPresence) {
-        if (chunk.predatorPresence < (template_conditions.predatorPresence.min ?? 0) ||
-            chunk.predatorPresence > (template_conditions.predatorPresence.max ?? 100)) return false;
-    }
-    if (template_conditions.lightLevel) {
-        if (chunk.lightLevel < (template_conditions.lightLevel.min ?? -100) ||
-            chunk.lightLevel > (template_conditions.lightLevel.max ?? 100)) return false;
-    }
-    if (chunk.temperature && template_conditions.temperature) {
-        if (chunk.temperature < (template_conditions.temperature.min ?? 0) ||
-            chunk.temperature > (template_conditions.temperature.max ?? 100)) return false;
-    }
-    if (template_conditions.visibility && (chunk as any).visibility) {
-        if ((chunk as any).visibility < (template_conditions.visibility.min ?? 0) ||
-            (chunk as any).visibility > (template_conditions.visibility.max ?? 100)) return false;
-    }
-    if (template_conditions.humidity && (chunk as any).humidity) {
-        if ((chunk as any).humidity < (template_conditions.humidity.min ?? 0) ||
-            (chunk as any).humidity > (template_conditions.humidity.max ?? 100)) return false;
-    }
+    const chunkAny = chunk as any;
 
-    if (template_conditions.soilType && template_conditions.soilType.length > 0) {
-        if (!template_conditions.soilType.includes(chunk.soilType)) return false;
-    }
-    
-    // This logic assumes time of day is calculated and attached to the chunk object dynamically.
-    // if (template_conditions.timeOfDay && (chunk as any).timeOfDay !== template_conditions.timeOfDay) {
-    //     return false;
-    // }
+    for (const key in template_conditions) {
+        const conditionValue = (template_conditions as any)[key];
+        const chunkValue = chunkAny[key];
 
-    if (playerState) {
-        if (template_conditions.playerHealth) {
-            if (playerState.hp < (template_conditions.playerHealth.min ?? 0) ||
-                playerState.hp > (template_conditions.playerHealth.max ?? 100)) return false;
-        }
-        if (template_conditions.playerStamina) {
-            if (playerState.stamina < (template_conditions.playerStamina.min ?? 0) ||
-                playerState.stamina > (template_conditions.playerStamina.max ?? 100)) return false;
-        }
-    }
+        if (key === 'soilType') {
+            if (!conditionValue.includes(chunk.soilType)) return false;
+        } else if (key === 'timeOfDay') {
+            if (chunkAny.timeOfDay !== conditionValue) return false;
+        } else if (key === 'playerHealth' || key === 'playerStamina') {
+            if (!playerState) return false; // Cần playerState để kiểm tra
+            const playerValue = key === 'playerHealth' ? playerState.hp : playerState.stamina;
+            if (playerValue < (conditionValue.min ?? 0) || playerValue > (conditionValue.max ?? 100)) return false;
+        } else if (key === 'requiredEntities') {
+            const { enemyType, itemType } = conditionValue;
+            let entityFound = false;
 
-    if (template_conditions.requiredEntities) {
-        const { enemyType, itemType } = template_conditions.requiredEntities;
-        let entityFound = false;
-
-        if (enemyType) {
-            if (chunk.enemy && getTranslatedText(chunk.enemy.type, 'en') === enemyType) {
-                entityFound = true;
+            if (enemyType) {
+                if (chunk.enemy && getTranslatedText(chunk.enemy.type, Language.Vietnamese) === enemyType) {
+                    entityFound = true;
+                }
             }
-        }
-        if (itemType && !entityFound) {
-            if (chunk.items.some(item => getTranslatedText(item.name, 'en') === itemType)) {
-                entityFound = true;
+            if (itemType && !entityFound) {
+                if (chunk.items.some(item => getTranslatedText(item.name, Language.Vietnamese) === itemType)) {
+                    entityFound = true;
+                }
             }
+            if (!entityFound && (enemyType || itemType)) return false;
+        } else if (typeof chunkValue === 'number' && typeof conditionValue === 'object' && conditionValue !== null) {
+            const range = conditionValue as { min?: number, max?: number };
+            if (chunkValue < (range.min ?? -Infinity) || chunkValue > (range.max ?? Infinity)) return false;
         }
-        if (!entityFound && (enemyType || itemType)) return false;
     }
 
-    return true;
+    return true; // Tất cả điều kiện đều được đáp ứng
 };
 
 const has_mood_overlap = (template_moods: MoodTag[], current_moods: MoodTag[]): boolean => {
-    if (!template_moods || template_moods.length === 0) return true;
+    if (!template_moods || template_moods.length === 0) return true; 
     if (!current_moods || current_moods.length === 0) return false;
 
     return template_moods.some(mood => current_moods.includes(mood));
@@ -251,59 +204,57 @@ const fill_template = (
     filled_template = filled_template.replace(/{{(.*?)}}/g, (match, p1) => {
         const key = p1.trim();
         const category =
-            biomeTemplateData.adjectives[key] ||
-            biomeTemplateData.features[key] ||
-            biomeTemplateData.smells[key] ||
-            biomeTemplateData.sounds[key] ||
-            (biomeTemplateData.sky ? biomeTemplateData.sky[key] : undefined);
+            (biomeTemplateData.adjectives as any)[key] ||
+            (biomeTemplateData.features as any)[key] ||
+            (biomeTemplateData.smells as any)[key] ||
+            (biomeTemplateData.sounds as any)[key] ||
+            (biomeTemplateData.sky ? (biomeTemplateData.sky as any)[key] : undefined);
 
         if (category && category.length > 0) {
             return category[Math.floor(Math.random() * category.length)];
         }
-        console.warn(`Placeholder category not found: ${key}`);
-        return match;
+        console.warn(`Placeholder category not found: ${key}`); 
+        return match; 
     });
+    
+    filled_template = filled_template.replace(/{light_level_detail}/g, (() => {
+        if (chunk.lightLevel <= 10) return t('light_level_dark');
+        if (chunk.lightLevel < 50) return t('light_level_dim');
+        return t('light_level_normal');
+    })());
 
-    if (filled_template.includes('{light_level_detail}')) {
-        filled_template = filled_template.replace('{light_level_detail}', (() => {
-            if (chunk.lightLevel <= 10) return t('light_level_dark');
-            if (chunk.lightLevel < 50) return t('light_level_dim');
-            return t('light_level_normal');
-        })());
-    }
+    filled_template = filled_template.replace(/{temp_detail}/g, (() => {
+        if (chunk.temperature <= 20) return t('temp_cold');
+        if (chunk.temperature >= 80) return t('temp_hot');
+        return t('temp_mild');
+    })());
 
-    if (filled_template.includes('{temp_detail}')) {
-        filled_template = filled_template.replace('{temp_detail}', (() => {
-            if (chunk.temperature && chunk.temperature <= 20) return t('temp_cold');
-            if (chunk.temperature && chunk.temperature >= 80) return t('temp_hot');
-            return t('temp_mild');
-        })());
-    }
+    filled_template = filled_template.replace(/{moisture_detail}/g, (() => {
+        if (chunk.moisture >= 80) return t('moisture_humid');
+        if (chunk.moisture <= 20) return t('moisture_dry');
+        return t('moisture_normal');
+    })());
 
-    if (filled_template.includes('{moisture_detail}')) {
-        filled_template = filled_template.replace('{moisture_detail}', (() => {
-            if (chunk.moisture >= 80) return t('moisture_humid');
-            if (chunk.moisture <= 20) return t('moisture_dry');
-            return t('moisture_normal');
-        })());
-    }
-
-    if (filled_template.includes('{jungle_feeling_dark_phrase}')) {
-        filled_template = filled_template.replace('{jungle_feeling_dark_phrase}', t('jungle_feeling_dark_phrase'));
-    }
+    filled_template = filled_template.replace(/{jungle_feeling_dark_phrase}/g, t('jungle_feeling_dark_phrase'));
 
     if (chunk.enemy) {
-        filled_template = filled_template.replace('{enemy_name}', getTranslatedText(chunk.enemy.type, language, t));
+        filled_template = filled_template.replace(/{enemy_name}/g, getTranslatedText(chunk.enemy.type, language, t));
     } else {
         filled_template = filled_template.replace(/{enemy_name}/g, t('no_enemy_found'));
     }
 
     if (chunk.items && chunk.items.length > 0) {
         const randomItem = chunk.items[Math.floor(Math.random() * chunk.items.length)];
-        filled_template = filled_template.replace('{item_found}', getTranslatedText(randomItem.name, language, t));
+        filled_template = filled_template.replace(/{item_found}/g, getTranslatedText(randomItem.name, language, t));
     } else {
-        filled_template = filled_template.replace(/{item_found}/g, t('no_item_found'));
+        filled_template = filled_template.replace(/{item_found}/g, t('no_item_found')); 
     }
+
+    if (playerState) {
+        filled_template = filled_template.replace(/{player_health_status}/g, playerState.hp < 30 ? t('player_health_low') : t('player_health_normal'));
+        filled_template = filled_template.replace(/{player_stamina_status}/g, playerState.stamina < 30 ? t('player_stamina_low') : t('player_stamina_normal'));
+    }
+
 
     return filled_template;
 };
@@ -374,7 +325,7 @@ export const handleSearchAction = (
 
         const narrative = t('exploreFoundItemsNarrative', { items: foundItemsText });
 
-        const newItemsMap = new Map((newChunk.items || []).map((item: ChunkItem) => [item.name as string, { ...item }]));
+        const newItemsMap = new Map((newChunk.items || []).map((item: ChunkItem) => [getTranslatedText(item.name, 'en', t), { ...item }]));
         foundItems.forEach(foundItem => {
             const foundItemName = getTranslatedText(foundItem.name, 'en', t);
             const existing = newItemsMap.get(foundItemName);
@@ -392,7 +343,7 @@ export const handleSearchAction = (
         const pickUpActions = newChunk.items.map((item: ChunkItem) => ({
             id: actionIdCounter++,
             textKey: 'pickUpAction_item' as TranslationKey,
-            params: { itemName: item.name as TranslationKey }
+            params: { itemName: getTranslatedText(item.name, language, t) as TranslationKey }
         }));
         newChunk.actions = [...otherActions, ...pickUpActions];
 
@@ -444,9 +395,10 @@ export const generateOfflineActionNarrative = (
     actionType: 'attack' | 'useSkill' | 'useItem',
     result: any,
     chunk: Chunk,
-    t: (key: TranslationKey, replacements?: any) => string
+    t: (key: TranslationKey, replacements?: any) => string,
+    language?: Language
 ): string => {
-    const language = 'en'; // Fallback
+    const resolvedLanguage = language || 'en'; 
     let narrativeParts: string[] = [];
     const sensoryFeedbackParts: string[] = [];
 
@@ -463,7 +415,7 @@ export const generateOfflineActionNarrative = (
     switch (actionType) {
         case 'attack':
             const { successLevel, playerDamage, enemyDamage, enemyDefeated, fled, enemyType } = result;
-            const enemyName = getTranslatedText(enemyType, language, t);
+            const enemyName = getTranslatedText(enemyType, resolvedLanguage, t);
 
             if (successLevel === 'CriticalSuccess') {
                 templateKey = 'actionNarrative_attack_critSuccess';
@@ -490,13 +442,13 @@ export const generateOfflineActionNarrative = (
         
         case 'useItem': {
             const { itemName, target, wasUsed, effectDescription, wasTamed, itemConsumed } = result;
-            const translatedItemName = getTranslatedText(itemName, language, t);
+            const translatedItemName = getTranslatedText(itemName, resolvedLanguage, t);
 
             if (target === 'player') {
                 if(wasUsed) return t('itemUsePlayerSuccessNarrative', { item: translatedItemName, effect: effectDescription, sensory_feedback });
                 else return t('itemUsePlayerFailNarrative', { item: translatedItemName, sensory_feedback });
             } else {
-                const translatedTarget = getTranslatedText(target, language, t);
+                const translatedTarget = getTranslatedText(target, resolvedLanguage, t);
                 if(itemConsumed) {
                     if(wasTamed) return t('itemTameSuccessNarrative', { item: translatedItemName, target: translatedTarget, sensory_feedback });
                     else return t('itemTameFailNarrative', { item: translatedItemName, target: translatedTarget, sensory_feedback });
@@ -507,8 +459,8 @@ export const generateOfflineActionNarrative = (
 
         case 'useSkill': {
             const { skill, successLevel, backfireDamage, healedAmount, finalDamage, siphonedAmount, enemy } = result as { skill: Skill, successLevel: SuccessLevel, backfireDamage?: number, healedAmount?: number, finalDamage?: number, siphonedAmount?: number, enemy: Chunk['enemy'] };
-            const skillName = getTranslatedText(skill.name, language, t);
-            const enemyName = enemy ? getTranslatedText(enemy.type, language, t) : '';
+            const skillName = getTranslatedText(skill.name, resolvedLanguage, t);
+            const enemyName = enemy ? getTranslatedText(enemy.type, resolvedLanguage, t) : '';
 
             if (successLevel === 'CriticalFailure') {
                 return t('skillCritFailNarrative', { skillName, damage: backfireDamage, sensory_feedback });

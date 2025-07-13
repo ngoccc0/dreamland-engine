@@ -1,4 +1,3 @@
-
 import {
     analyze_chunk_mood,
     get_sentence_limits,
@@ -28,10 +27,13 @@ const mockT = (key: string, replacements?: any) => {
         'jungle_feeling_dark_phrase': 'cảm giác rùng rợn của rừng sâu',
         'no_enemy_found': 'không có kẻ địch nào',
         'no_item_found': 'không có vật phẩm nào',
-        'Goblin': 'Goblin', // Ví dụ về tên kẻ địch
-        'Healing Potion': 'Bình Hồi Phục', // Ví dụ về tên vật phẩm
-        'Bình Hồi Phục': 'Bình Hồi Phục',
+        'Goblin': 'Goblin',
+        'Healing Potion': 'Bình Hồi Phục',
         'Kiếm Thần': 'Kiếm Thần',
+        'player_health_low': 'sức khỏe yếu',
+        'player_health_normal': 'sức khỏe tốt',
+        'player_stamina_low': 'thể lực cạn kiệt',
+        'player_stamina_normal': 'thể lực dồi dào',
     };
     let text = translations[key] || `MISSING_TRANSLATION:${key}`;
     if (replacements) {
@@ -44,11 +46,12 @@ const mockT = (key: string, replacements?: any) => {
 
 // Mock getTranslatedText function for consistency with fill_template
 const mockGetTranslatedText = (translatable: any, lang: Language): string => {
+    const actualLang = lang === Language.Vietnamese ? 'vi' : 'en'; // Ánh xạ Language enum sang string
     if (typeof translatable === 'string') {
         return mockT(translatable);
     }
     if (typeof translatable === 'object' && translatable !== null) {
-        return translatable[lang] || translatable['en'] || 'MISSING_TRANSLATION';
+        return translatable[actualLang] || translatable['en'] || 'MISSING_TRANSLATION';
     }
     return 'INVALID_TRANSLATABLE';
 };
@@ -62,8 +65,8 @@ describe('analyze_chunk_mood', () => {
         const chunk: Chunk = {
             x: 0, y: 0, terrain: 'swamp', description: '', NPCs: [], items: [], structures: [], explored: false,
             lastVisited: 0, enemy: null, actions: [], regionId: 1, travelCost: 1, vegetationDensity: 70,
-            moisture: 90, elevation: 50, lightLevel: 5, dangerLevel: 80, magicAffinity: 20, humanPresence: 0,
-            explorability: 50, soilType: 'loamy', predatorPresence: 70, temperature: 60, windLevel: 0
+            moisture: 90, elevation: 5, lightLevel: 5, dangerLevel: 80, magicAffinity: 20, humanPresence: 0,
+            explorability: 50, soilType: 'loamy', predatorPresence: 70, temperature: 30, windLevel: 0
         };
         const moods = analyze_chunk_mood(chunk);
         expect(moods).toEqual(expect.arrayContaining(["Danger", "Foreboding", "Threatening", "Dark", "Gloomy", "Mysterious", "Lush", "Wet", "Vibrant", "Wild"]));
@@ -111,6 +114,28 @@ describe('analyze_chunk_mood', () => {
         const moods = analyze_chunk_mood(neutralChunk);
         expect(moods).toEqual(expect.arrayContaining(["Peaceful", "Abandoned"]));
     });
+
+    it('should handle all values at min/max (0/100) correctly', () => {
+        const minChunk: Chunk = {
+            x: 0, y: 0, terrain: 'cave', description: '', NPCs: [], items: [], structures: [], explored: false,
+            lastVisited: 0, enemy: null, actions: [], regionId: 1, travelCost: 1, vegetationDensity: 0,
+            moisture: 0, elevation: 0, lightLevel: 0, dangerLevel: 0, magicAffinity: 0, humanPresence: 0,
+            explorability: 0, soilType: 'rocky', predatorPresence: 0, temperature: 0, windLevel: 0
+        };
+         expect(analyze_chunk_mood(minChunk)).toEqual(expect.arrayContaining([
+            "Dark", "Gloomy", "Mysterious", "Arid", "Desolate", "Cold", "Harsh", "Foreboding", "Confined"
+        ]));
+        
+        const maxChunk: Chunk = {
+            x: 0, y: 0, terrain: 'volcanic', description: '', NPCs: [], items: [], structures: [], explored: false,
+            lastVisited: 0, enemy: null, actions: [], regionId: 1, travelCost: 1, vegetationDensity: 100,
+            moisture: 100, elevation: 100, lightLevel: 100, dangerLevel: 100, magicAffinity: 100, humanPresence: 100,
+            explorability: 100, soilType: 'rocky', predatorPresence: 100, temperature: 100, windLevel: 100
+        };
+        expect(analyze_chunk_mood(maxChunk)).toEqual(expect.arrayContaining([
+            "Danger", "Foreboding", "Threatening", "Vibrant", "Peaceful", "Lush", "Wet", "Wild", "Magic", "Mysterious", "Ethereal", "Civilized", "Historic", "Hot", "Harsh", "Elevated", "Smoldering"
+        ]));
+    });
 });
 
 // Test get_sentence_limits
@@ -144,7 +169,8 @@ describe('check_conditions', () => {
     };
     const basePlayerState: PlayerStatus = {
         hp: 75, mana: 50, stamina: 80, bodyTemperature: 37, items: [], equipment: { weapon: null, armor: null, accessory: null },
-        quests: [], questsCompleted: 0, skills: [], persona: 'explorer', attributes: {physicalAttack: 0, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0}, unlockProgress: { kills: 0, damageSpells: 0, moves: 0 }
+        quests: [], questsCompleted: 0, skills: [], persona: 'explorer', attributes: {physicalAttack: 0, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0}, unlockProgress: { kills: 0, damageSpells: 0, moves: 0 },
+        language: 'en', journal: {}, dailyActionLog: [], questHints: {}, trackedEnemy: undefined
     };
 
     it('should return true if no conditions are provided', () => {
@@ -196,7 +222,7 @@ describe('check_conditions', () => {
     });
 
     it('should handle requiredEntities (item)', () => {
-        const itemChunk: Chunk = { ...baseChunk, items: [{ name: { en: 'Healing Potion', vi: 'Bình Hồi Phục' }, description: { en: '', vi: '' }, quantity: 1, tier: 1, emoji: '🧪' }] };
+        const itemChunk: Chunk = { ...baseChunk, items: [{ name: { en: 'Healing Potion', vi: 'Bình Hồi Phục' }, description: {en: '', vi: ''}, quantity: 1, tier: 1, emoji: '🧪' }] };
         const conditions = { requiredEntities: { itemType: 'Bình Hồi Phục' } };
         expect(check_conditions(conditions, itemChunk, basePlayerState)).toBe(true);
         const noItemConditions = { requiredEntities: { itemType: 'Kiếm Thần' } };
@@ -289,6 +315,11 @@ describe('fill_template', () => {
         },
         features: {}, smells: {}, sounds: {}, sky: {}
     };
+     const basePlayerState: PlayerStatus = {
+        hp: 75, mana: 50, stamina: 80, bodyTemperature: 37, items: [], equipment: { weapon: null, armor: null, accessory: null },
+        quests: [], questsCompleted: 0, skills: [], persona: 'explorer', attributes: {physicalAttack: 0, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0}, unlockProgress: { kills: 0, damageSpells: 0, moves: 0 },
+        language: 'en', journal: {}, dailyActionLog: [], questHints: {}, trackedEnemy: undefined
+    };
 
     it('should fill static placeholders correctly', () => {
         const template = "Đây là một khu rừng {{jungle_adjective_lush}} và {{jungle_adjective_mysterious}}.";
@@ -323,14 +354,15 @@ describe('fill_template', () => {
         expect(result).toContain('Đây là một điều {{non_existent_adjective}}.');
     });
 
-    it('should handle playerState related placeholders if implemented', () => {
-        const template = "Bạn cảm thấy {player_health_status} và sẵn sàng cho cuộc chiến.";
-        const mockPlayerStatus: any = {
+    it('should replace playerState related placeholders', () => {
+        const template = "Bạn cảm thấy {player_health_status} và {player_stamina_status}.";
+        const mockPlayerStatus: PlayerStatus = {
+            ...basePlayerState,
             hp: 25,
-            stamina: 10
+            stamina: 10 
         };
         const result = fill_template(template, mockChunk, mockWorld, mockPlayerPosition, mockT, 'vi' as Language, mockBiomeTemplateData, mockPlayerStatus);
-        expect(result).toContain('{player_health_status}');
+        expect(result).toContain('Bạn cảm thấy sức khỏe yếu và thể lực cạn kiệt.');
     });
 });
 
@@ -357,13 +389,15 @@ describe('SmartJoinSentences', () => {
     });
 
     it('should join long/detailed sentences with rich connectors', () => {
+        const longConnectorsRegex = "(?:,\\s*thêm vào đó\\s*|\\.\\s*Hơn thế nữa,\\s*|\\.\\s*Không chỉ vậy,\\s*|\\.\\s*Đáng chú ý là,\\s*|\\.\\s*Trong khi đó,\\s*|\\.\\s*Tuy nhiên,\\s*)";
         const sentences = [
             'Dưới ánh trăng mờ nhạt, khu rừng hiện ra đầy bí ẩn.',
             'Những cái cây cổ thụ vươn mình như những ngón tay gầy guộc.',
             'Tiếng côn trùng rỉ rả không ngừng, tạo nên một bản giao hưởng kinh dị.'
         ];
         const result = SmartJoinSentences(sentences, 'long');
-        expect(result).toMatch(/(Dưới ánh trăng mờ nhạt, khu rừng hiện ra đầy bí ẩn(,\s*thêm vào đó\s*|\.\s*Hơn thế nữa,\s*|\.\s*Không chỉ vậy,\s*|\.\s*Đáng chú ý là,\s*|\.\s*Trong khi đó,\s*|\.\s*Tuy nhiên,\s*)Những cái cây cổ thụ vươn mình như những ngón tay gầy guộc(,\s*thêm vào đó\s*|\.\s*Hơn thế nữa,\s*|\.\s*Không chỉ vậy,\s*|\.\s*Đáng chú ý là,\s*|\.\s*Trong khi đó,\s*|\.\s*Tuy nhiên,\s*)Tiếng côn trùng rỉ rả không ngừng, tạo nên một bản giao hưởng kinh dị\.)/);
+        const regex = new RegExp(`Dưới ánh trăng mờ nhạt, khu rừng hiện ra đầy bí ẩn${longConnectorsRegex}Những cái cây cổ thụ vươn mình như những ngón tay gầy guộc${longConnectorsRegex}Tiếng côn trùng rỉ rả không ngừng, tạo nên một bản giao hưởng kinh dị.`);
+        expect(result).toMatch(regex);
     });
 
     it('should handle sentences with existing punctuation', () => {
@@ -376,7 +410,7 @@ describe('SmartJoinSentences', () => {
         const result = SmartJoinSentences(sentences, 'medium');
         expect(result.trim()).not.toMatch(/\s{2,}/);
         expect(result).not.toMatch(/\.\./);
-        expect(result).toMatch(/\.$/);
+        expect(result).toMatch(/\.$/); 
     });
 
     it('should handle sentences with quotes', () => {

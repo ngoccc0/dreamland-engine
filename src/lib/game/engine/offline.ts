@@ -1,13 +1,11 @@
-
-import type { Chunk, MoodTag, NarrativeLength, NarrativeTemplate, ConditionType, Language, PlayerStatus, World, ChunkItem, Action, BiomeTemplateData } from "../types";
+import type { Chunk, MoodTag, NarrativeLength, NarrativeTemplate, ConditionType, Language, PlayerStatus, World } from "../types";
 import { getTranslatedText, SmartJoinSentences } from "../../utils"; 
 import { getTemplates } from '../templates';
 import { translations } from "../../i18n";
 import type { TranslationKey } from "../../i18n";
-import type { SuccessLevel } from "../dice";
 import { logger } from "@/lib/logger";
-import { clamp } from "@/lib/utils";
 import type { ItemDefinition } from "../types";
+import { clamp } from "@/lib/utils";
 
 /**
  * Phân tích các thuộc tính của chunk để xác định các MoodTag chủ đạo.
@@ -19,53 +17,53 @@ export const analyze_chunk_mood = (chunk: Chunk): MoodTag[] => {
     const moods: MoodTag[] = [];
 
     // 1. Mức độ Nguy hiểm (dangerLevel) - Dải 0-100
-    if (chunk.dangerLevel >= 70) { 
+    if (chunk.dangerLevel >= 70) { // Rất nguy hiểm
         moods.push("Danger", "Foreboding", "Threatening");
-    } else if (chunk.dangerLevel >= 40) { 
+    } else if (chunk.dangerLevel >= 40) { // Có thể nguy hiểm
         moods.push("Threatening");
     }
 
     // 2. Mức độ Ánh sáng (lightLevel) - Dải -100 đến 100
-    if (chunk.lightLevel <= 10) { 
+    if (chunk.lightLevel <= 10) { // Tối hoàn toàn (ví dụ, trong hang động hoặc đêm tối)
         moods.push("Dark", "Gloomy", "Mysterious");
-    } else if (chunk.lightLevel < 50) { 
+    } else if (chunk.lightLevel < 50) { // Mờ ảo, thiếu sáng (ví dụ, hoàng hôn, rừng rậm)
         moods.push("Mysterious", "Gloomy");
-    } else if (chunk.lightLevel >= 80) { 
-        moods.push("Vibrant", "Peaceful"); 
+    } else if (chunk.lightLevel >= 80) { // Rất sáng (ban ngày, khu vực trống trải)
+        moods.push("Vibrant", "Peaceful");
     }
 
     // 3. Độ ẩm (moisture) - Dải 0-100
-    if (chunk.moisture >= 80) { 
+    if (chunk.moisture >= 80) { // Rất ẩm ướt (đầm lầy, rừng mưa nhiệt đới)
         moods.push("Lush", "Wet", "Vibrant");
-    } else if (chunk.moisture <= 20) { 
+    } else if (chunk.moisture <= 20) { // Khô hạn (sa mạc, khu vực nứt nẻ)
         moods.push("Arid", "Desolate");
     }
 
     // 4. Sự hiện diện của kẻ săn mồi (predatorPresence) - Dải 0-100
-    if (chunk.predatorPresence >= 60) { 
+    if (chunk.predatorPresence >= 60) { // Nhiều kẻ săn mồi
         moods.push("Danger", "Wild");
     }
 
     // 5. Liên kết ma thuật (magicAffinity) - Dải 0-100
-    if (chunk.magicAffinity >= 70) { 
+    if (chunk.magicAffinity >= 70) { // Năng lượng ma thuật mạnh
         moods.push("Magic", "Mysterious", "Ethereal");
-    } else if (chunk.magicAffinity >= 40) { 
+    } else if (chunk.magicAffinity >= 40) { // Có dấu hiệu ma thuật
         moods.push("Mysterious");
     }
 
     // 6. Sự hiện diện của con người (humanPresence) - Dải 0-100
-    if (chunk.humanPresence >= 60) { 
-        moods.push("Civilized", "Historic"); 
-    } else if (chunk.humanPresence > 0) { 
+    if (chunk.humanPresence >= 60) { // Có dấu hiệu con người đáng kể (làng mạc, tàn tích)
+        moods.push("Civilized", "Historic"); // Có thể thêm "Ruined" nếu thấp hơn
+    } else if (chunk.humanPresence > 0) { // Có chút dấu hiệu nhưng không đáng kể
         moods.push("Abandoned");
     }
 
     // 7. Nhiệt độ (temperature) - Dải 0-100 (0: đóng băng, 100: cực nóng, 50: dễ chịu)
-    if (chunk.temperature && chunk.temperature >= 80) { 
+    if (chunk.temperature && chunk.temperature >= 80) { // Rất nóng
         moods.push("Hot", "Harsh");
-    } else if (chunk.temperature && chunk.temperature <= 20) { 
+    } else if (chunk.temperature && chunk.temperature <= 20) { // Rất lạnh
         moods.push("Cold", "Harsh");
-    } else if (chunk.temperature && chunk.temperature > 35 && chunk.temperature < 65) { 
+    } else if (chunk.temperature && chunk.temperature > 35 && chunk.temperature < 65) { // Nhiệt độ dễ chịu
         moods.push("Peaceful");
     }
 
@@ -78,19 +76,19 @@ export const analyze_chunk_mood = (chunk: Chunk): MoodTag[] => {
             moods.push("Arid", "Desolate", "Harsh");
             break;
         case "mountain":
-            moods.push("Harsh", "Rugged", "Elevated"); 
+            moods.push("Harsh", "Rugged", "Elevated"); // Thêm Elevated
             break;
         case "forest":
             moods.push("Lush", "Peaceful");
             break;
         case "cave":
-            moods.push("Dark", "Mysterious", "Foreboding", "Confined"); 
+            moods.push("Dark", "Mysterious", "Foreboding", "Confined"); // Thêm Confined
             break;
-        case "jungle": 
+        case "jungle": // Bạn có biome Jungle trong template, nên thêm vào đây
             moods.push("Lush", "Vibrant", "Mysterious", "Wild");
             break;
         case "volcanic":
-            moods.push("Danger", "Harsh", "Smoldering"); 
+            moods.push("Danger", "Harsh", "Smoldering"); // Thêm Smoldering
             break;
         case "ocean":
         case "underwater":
@@ -103,6 +101,7 @@ export const analyze_chunk_mood = (chunk: Chunk): MoodTag[] => {
         case "tundra":
             moods.push("Cold", "Desolate", "Barren");
             break;
+        // ... (thêm các terrain khác nếu cần)
     }
 
     return Array.from(new Set(moods));
@@ -118,79 +117,86 @@ export const get_sentence_limits = (narrativeLength: NarrativeLength): { min_s: 
         case "detailed":
             return { min_s: 4, max_s: 7 };
         default:
-            return { min_s: 1, max_s: 2 }; 
+            return { min_s: 1, max_s: 2 }; // Fallback an toàn
     }
 };
 
 export const check_conditions = (template_conditions: ConditionType | undefined, chunk: Chunk, playerState?: PlayerStatus): boolean => {
     if (!template_conditions) return true; // Không có điều kiện nào, luôn đúng
 
-    const chunkAny = chunk as any;
-
+    // This is a comprehensive check that iterates over all possible condition keys.
     for (const key in template_conditions) {
         if (!Object.prototype.hasOwnProperty.call(template_conditions, key)) continue;
-        
-        const conditionValue = (template_conditions as any)[key];
 
-        if (key === 'soilType') {
-            if (!conditionValue.includes(chunk.soilType)) return false;
-        } else if (key === 'timeOfDay') {
+        const conditionValue = (template_conditions as any)[key];
+        const chunkValue = (chunk as any)[key];
+
+        // Handle special string-based conditions
+        if (key === 'timeOfDay') {
             const gameTime = (chunk as any).gameTime;
             if (gameTime === undefined) continue;
             const isDay = gameTime >= 360 && gameTime < 1080;
             if (conditionValue === 'day' && !isDay) return false;
             if (conditionValue === 'night' && isDay) return false;
-        } else if (key === 'playerHealth' || key === 'playerStamina') {
-            if (!playerState) return false;
-            const playerValue = key === 'playerHealth' ? playerState.hp : playerState.stamina;
-            if (playerValue < (conditionValue.min ?? 0) || playerValue > (conditionValue.max ?? 100)) return false;
-        } else if (key === 'requiredEntities') {
+            continue;
+        }
+
+        if (key === 'soilType') {
+            if (Array.isArray(conditionValue) && !conditionValue.includes(chunk.soilType)) return false;
+            continue;
+        }
+
+        // Handle player-based conditions
+        if (key === 'playerHealth' && playerState) {
+            if (playerState.hp < (conditionValue.min ?? 0) || playerState.hp > (conditionValue.max ?? 100)) return false;
+            continue;
+        }
+
+        if (key === 'playerStamina' && playerState) {
+            if (playerState.stamina < (conditionValue.min ?? 0) || playerState.stamina > (conditionValue.max ?? 100)) return false;
+            continue;
+        }
+        
+        // Handle entity presence checks
+        if (key === 'requiredEntities') {
             const { enemyType, itemType } = conditionValue;
             let entityFound = false;
-
-            if (enemyType) {
-                 if (chunk.enemy && getTranslatedText(chunk.enemy.type, 'vi') === enemyType) {
-                    entityFound = true;
-                }
+            if (enemyType && chunk.enemy && getTranslatedText(chunk.enemy.type, Language.Vietnamese) === enemyType) {
+                entityFound = true;
             }
             if (itemType && !entityFound) {
-                if (chunk.items.some(item => getTranslatedText(item.name, 'vi') === itemType)) {
+                if (chunk.items.some(item => getTranslatedText(item.name, Language.Vietnamese) === itemType)) {
                     entityFound = true;
                 }
             }
             if (!entityFound && (enemyType || itemType)) return false;
-        } else {
-            const chunkValue = chunkAny[key];
-            if (typeof chunkValue === 'number' && typeof conditionValue === 'object' && conditionValue !== null) {
-                const range = conditionValue as { min?: number, max?: number };
-                if (chunkValue < (range.min ?? -Infinity) || chunkValue > (range.max ?? Infinity)) return false;
-            }
+            continue;
+        }
+
+        // Handle generic numerical range conditions
+        if (typeof chunkValue === 'number' && typeof conditionValue === 'object' && conditionValue !== null) {
+            if (chunkValue < (conditionValue.min ?? -Infinity) || chunkValue > (conditionValue.max ?? Infinity)) return false;
         }
     }
 
-    return true;
+    return true; // Tất cả điều kiện đều được đáp ứng
 };
 
 export const has_mood_overlap = (template_moods: MoodTag[], current_moods: MoodTag[]): boolean => {
     if (!template_moods || template_moods.length === 0) return true; 
     if (!current_moods || current_moods.length === 0) return false;
-
     return template_moods.some(mood => current_moods.includes(mood));
 };
 
 export const select_template_by_weight = (templates: NarrativeTemplate[]): NarrativeTemplate => {
     if (templates.length === 0) throw new Error("No templates provided for weighted selection.");
-
     const totalWeight = templates.reduce((sum, tmpl) => sum + (tmpl.weight || 0.5), 0);
     let randomNum = Math.random() * totalWeight;
 
     for (const tmpl of templates) {
         randomNum -= (tmpl.weight || 0.5);
-        if (randomNum <= 0) {
-            return tmpl;
-        }
+        if (randomNum <= 0) return tmpl;
     }
-    
     return templates[0];
 };
 
@@ -205,8 +211,10 @@ export const fill_template = (
 ): string => {
     let filled_template = template_string;
     const biomeTemplateData = getTemplates()[chunk.terrain];
-    if (!biomeTemplateData) return "Error: Biome template data not found for " + chunk.terrain;
-
+    if (!biomeTemplateData) {
+        logger.warn(`Biome template data not found for ${chunk.terrain}`);
+        return template_string;
+    }
 
     filled_template = filled_template.replace(/{{(.*?)}}/g, (match, p1) => {
         const key = p1.trim();
@@ -216,7 +224,6 @@ export const fill_template = (
             (biomeTemplateData.smells as any)[key] ||
             (biomeTemplateData.sounds as any)[key] ||
             (biomeTemplateData.sky ? (biomeTemplateData.sky as any)[key] : undefined);
-
         if (category && Array.isArray(category) && category.length > 0) {
             return category[Math.floor(Math.random() * category.length)];
         }
@@ -224,38 +231,12 @@ export const fill_template = (
         return match; 
     });
     
-    filled_template = filled_template.replace(/{light_level_detail}/g, (() => {
-        if (chunk.lightLevel <= 10) return t('light_level_dark');
-        if (chunk.lightLevel < 50) return t('light_level_dim');
-        return t('light_level_normal');
-    })());
-
-    filled_template = filled_template.replace(/{temp_detail}/g, (() => {
-        if (chunk.temperature && chunk.temperature <= 20) return t('temp_cold');
-        if (chunk.temperature && chunk.temperature >= 80) return t('temp_hot');
-        return t('temp_mild');
-    })());
-
-    filled_template = filled_template.replace(/{moisture_detail}/g, (() => {
-        if (chunk.moisture >= 80) return t('moisture_humid');
-        if (chunk.moisture <= 20) return t('moisture_dry');
-        return t('moisture_normal');
-    })());
-
-    filled_template = filled_template.replace(/{jungle_feeling_dark_phrase}/g, t('jungle_feeling_dark_phrase'));
-
-    if (chunk.enemy) {
-        filled_template = filled_template.replace(/{enemy_name}/g, getTranslatedText(chunk.enemy.type, language, t));
-    } else {
-        filled_template = filled_template.replace(/{enemy_name}/g, t('no_enemy_found'));
-    }
-
-    if (chunk.items && chunk.items.length > 0) {
-        const randomItem = chunk.items[Math.floor(Math.random() * chunk.items.length)];
-        filled_template = filled_template.replace(/{item_found}/g, getTranslatedText(randomItem.name, language, t));
-    } else {
-        filled_template = filled_template.replace(/{item_found}/g, t('no_item_found')); 
-    }
+    filled_template = filled_template.replace('{light_level_detail}', () => chunk.lightLevel <= 10 ? t('light_level_dark') : chunk.lightLevel < 50 ? t('light_level_dim') : t('light_level_normal'));
+    filled_template = filled_template.replace('{temp_detail}', () => chunk.temperature && chunk.temperature <= 20 ? t('temp_cold') : chunk.temperature && chunk.temperature >= 80 ? t('temp_hot') : t('temp_mild'));
+    filled_template = filled_template.replace('{moisture_detail}', () => chunk.moisture >= 80 ? t('moisture_humid') : chunk.moisture <= 20 ? t('moisture_dry') : t('moisture_normal'));
+    filled_template = filled_template.replace('{jungle_feeling_dark}', t('jungle_feeling_dark_phrase'));
+    filled_template = filled_template.replace(/{enemy_name}/g, chunk.enemy ? getTranslatedText(chunk.enemy.type, language, t) : t('no_enemy_found'));
+    filled_template = filled_template.replace(/{item_found}/g, chunk.items && chunk.items.length > 0 ? getTranslatedText(chunk.items[Math.floor(Math.random() * chunk.items.length)].name, language, t) : t('no_item_found'));
 
     if (playerState) {
         filled_template = filled_template.replace('{player_health_status}', playerState.hp < 30 ? t('player_health_low') : t('player_health_normal'));
@@ -265,183 +246,176 @@ export const fill_template = (
     return filled_template;
 };
 
+// --- CORE OFFLINE NARRATIVE FUNCTIONS ---
 
 export const generateOfflineNarrative = (
-    baseChunk: Chunk,
-    narrativeLength: "short" | "medium" | "long",
-    world: { [key: string]: Chunk },
+    currentChunk: Chunk,
+    narrativeLength: NarrativeLength,
+    world: World,
     playerPosition: { x: number; y: number; },
     t: (key: TranslationKey, replacements?: any) => string,
-    language?: Language,
-    playerStatus?: PlayerStatus,
+    language: Language,
+    playerState?: PlayerStatus
 ): string => {
-    const chunk = baseChunk;
-    const resolvedLanguage = language || 'en';
-    const templates = getTemplates();
-    const biomeTemplateData = templates[chunk.terrain];
+    const biomeTemplates = getTemplates()[currentChunk.terrain];
+    if (!biomeTemplates) return currentChunk.description || "An unknown area.";
 
-    if (!biomeTemplateData?.descriptionTemplates) {
-        return getTranslatedText(chunk.description, resolvedLanguage, t) || "You are in an unknown area.";
-    }
-    
-    const moods = analyze_chunk_mood(chunk);
+    const currentMoods = analyze_chunk_mood(currentChunk);
 
-    const validTemplates = biomeTemplateData.descriptionTemplates.filter(template => {
-        const lengthMatch = template.length === narrativeLength || (narrativeLength === 'long' && template.length === 'medium');
-        const moodMatch = has_mood_overlap(template.mood, moods);
-        const conditionsMatch = check_conditions(template.conditions, chunk, playerStatus);
-        return lengthMatch && moodMatch && conditionsMatch;
+    let candidateTemplates = biomeTemplates.descriptionTemplates.filter((tmpl: NarrativeTemplate) => {
+        return has_mood_overlap(tmpl.mood, currentMoods) && check_conditions(tmpl.conditions, currentChunk, playerState);
     });
-
-    if (validTemplates.length === 0) {
-        return getTranslatedText(chunk.description, resolvedLanguage, t) || "A sense of quiet stillness pervades the area.";
+    
+    if (candidateTemplates.length === 0) {
+        candidateTemplates = biomeTemplates.descriptionTemplates.filter((tmpl: NarrativeTemplate) => tmpl.mood.length === 0);
     }
-    
-    const selectedTemplate = select_template_by_weight(validTemplates);
-    
-    const narrative = fill_template(selectedTemplate.template, chunk, world, playerPosition, t, resolvedLanguage, playerStatus);
-    
-    return narrative;
+    if (candidateTemplates.length === 0) return currentChunk.description;
+
+    const { min_s, max_s } = get_sentence_limits(narrativeLength);
+    let finalSentences: string[] = [];
+    let sentenceCount = 0;
+
+    const openingTemplates = candidateTemplates.filter(t => t.type === 'Opening');
+    if (openingTemplates.length > 0) {
+        const chosen = select_template_by_weight(openingTemplates);
+        finalSentences.push(fill_template(chosen.template, currentChunk, world, playerPosition, t, language, playerState));
+        sentenceCount++;
+    }
+
+    const detailTemplates = candidateTemplates.filter(t => t.type === 'EnvironmentDetail' || t.type === 'SensoryDetail');
+    while (sentenceCount < max_s && detailTemplates.length > 0) {
+        const chosen = select_template_by_weight(detailTemplates);
+        finalSentences.push(fill_template(chosen.template, currentChunk, world, playerPosition, t, language, playerState));
+        sentenceCount++;
+        const index = detailTemplates.indexOf(chosen);
+        if (index > -1) detailTemplates.splice(index, 1);
+    }
+
+    return SmartJoinSentences(finalSentences, narrativeLength);
 };
+
 
 export const generateOfflineActionNarrative = (
-    actionType: 'attack' | 'useSkill' | 'useItem',
-    result: any,
-    chunk: Chunk,
+    actionType: string,
+    actionResult: any,
+    currentChunk: Chunk,
     t: (key: TranslationKey, replacements?: any) => string,
-    language?: Language
-): string => {
-    const resolvedLanguage = language || 'en'; 
-    let narrativeParts: string[] = [];
-    const sensoryFeedbackParts: string[] = [];
+    language: Language,
+) => {
+    let narrativeKey: TranslationKey = '';
+    let replacements: any = {};
+    const enemyType = currentChunk.enemy ? getTranslatedText(currentChunk.enemy.type, language, t) : ' существо';
+    const sensoryFeedbackOptions = [
+        `sensoryFeedback_${currentChunk.temperature && currentChunk.temperature > 80 ? 'hot' : 'cold'}`,
+        `sensoryFeedback_${currentChunk.lightLevel < 20 ? 'dark' : 'normal'}`,
+        `sensoryFeedback_${currentChunk.moisture > 70 ? 'rain' : 'normal'}`
+    ];
+    const sensory_feedback = t(sensoryFeedbackOptions[Math.floor(Math.random() * sensoryFeedbackOptions.length)]);
 
-    if (chunk.temperature && chunk.temperature >= 80) sensoryFeedbackParts.push(t('sensoryFeedback_hot'));
-    if (chunk.temperature && chunk.temperature <= 20) sensoryFeedbackParts.push(t('sensoryFeedback_cold'));
-    if (chunk.lightLevel && chunk.lightLevel <= 10) sensoryFeedbackParts.push(t('sensoryFeedback_dark'));
-    if (chunk.moisture && chunk.moisture >= 80) sensoryFeedbackParts.push(t('sensoryFeedback_rain'));
-    
-    const sensory_feedback = sensoryFeedbackParts.join(' ');
-    
-    let templateKey: TranslationKey = 'exploreAction';
-    const replacements: any = { sensory_feedback };
-    
     switch (actionType) {
         case 'attack':
-            const { successLevel, playerDamage, enemyDamage, enemyDefeated, fled, enemyType } = result;
-            const enemyName = getTranslatedText(enemyType, resolvedLanguage, t);
-
-            if (successLevel === 'CriticalSuccess') {
-                templateKey = 'actionNarrative_attack_critSuccess';
-                replacements.attack_description = t('attackNarrative_critSuccess', { enemyType: enemyName });
-            } else if (successLevel === 'Success' || successLevel === 'GreatSuccess') {
-                templateKey = 'actionNarrative_attack_success';
-                replacements.attack_description = t('attackNarrative_success', { enemyType: enemyName });
-            } else if (successLevel === 'Failure') {
-                templateKey = 'actionNarrative_attack_fail';
-                replacements.attack_description = t('attackNarrative_fail', { enemyType: enemyName });
-            } else if (successLevel === 'CriticalFailure') {
-                templateKey = 'actionNarrative_attack_critFail';
-                replacements.attack_description = t('attackNarrative_critFail', { enemyType: enemyName });
-            }
-
-            replacements.damage_report = t('attackDamageDealt', { damage: playerDamage });
-            
-            if (enemyDefeated) replacements.enemy_reaction = t('enemyDefeatedNarrative', { enemyType: enemyName });
-            else if (fled) replacements.enemy_reaction = t('enemyFledNarrative', { enemyType: enemyName });
-            else if (enemyDamage > 0) replacements.enemy_reaction = t('enemyRetaliationNarrative', { enemyType: enemyName, damage: enemyDamage });
-            else replacements.enemy_reaction = t('enemyPreparesNarrative', { enemyType: enemyName });
-            
-            break;
-        
-        case 'useItem': {
-            const { itemName, target, wasUsed, effectDescription, wasTamed, itemConsumed } = result;
-            const translatedItemName = getTranslatedText(itemName, resolvedLanguage, t);
-
-            if (target === 'player') {
-                if(wasUsed) return t('itemUsePlayerSuccessNarrative', { item: translatedItemName, effect: effectDescription, sensory_feedback });
-                else return t('itemUsePlayerFailNarrative', { item: translatedItemName, sensory_feedback });
+            narrativeKey = `actionNarrative_attack_${actionResult.successLevel.toLowerCase()}`;
+            let attack_description = t(`attackNarrative_${actionResult.successLevel.toLowerCase()}`, { enemyType });
+            let damage_report = actionResult.playerDamage > 0 ? t('attackDamageDealt', { damage: actionResult.playerDamage }) : '';
+            let enemy_reaction = '';
+            if (actionResult.enemyDefeated) {
+                enemy_reaction = t('enemyDefeatedNarrative', { enemyType });
+            } else if (actionResult.fled) {
+                enemy_reaction = t('enemyFledNarrative', { enemyType });
+            } else if (actionResult.enemyDamage > 0) {
+                enemy_reaction = t('enemyRetaliationNarrative', { enemyType, damage: actionResult.enemyDamage });
             } else {
-                const translatedTarget = getTranslatedText(target, resolvedLanguage, t);
-                if(itemConsumed) {
-                    if(wasTamed) return t('itemTameSuccessNarrative', { item: translatedItemName, target: translatedTarget, sensory_feedback });
-                    else return t('itemTameFailNarrative', { item: translatedItemName, target: translatedTarget, sensory_feedback });
+                enemy_reaction = t('enemyPreparesNarrative', { enemyType });
+            }
+            replacements = { attack_description, damage_report, sensory_feedback, enemy_reaction };
+            break;
+        case 'useItem':
+            if (actionResult.target === 'player') {
+                narrativeKey = actionResult.wasUsed ? 'itemUsePlayerSuccessNarrative' : 'itemUsePlayerFailNarrative';
+                replacements = { item: getTranslatedText(actionResult.itemName, language, t), effect: actionResult.effectDescription, sensory_feedback };
+            } else {
+                narrativeKey = actionResult.wasTamed ? 'itemTameSuccessNarrative' : 'itemTameFailNarrative';
+                replacements = { item: getTranslatedText(actionResult.itemName, language, t), target: getTranslatedText(actionResult.target, language, t), sensory_feedback };
+            }
+            break;
+        case 'useSkill':
+            const skillName = getTranslatedText(actionResult.skill.name, language, t);
+            if (actionResult.successLevel === 'CriticalFailure') {
+                narrativeKey = 'skillCritFailNarrative';
+                replacements = { skillName, damage: actionResult.backfireDamage, sensory_feedback };
+            } else if (actionResult.successLevel === 'Failure') {
+                narrativeKey = 'skillFailNarrative';
+                replacements = { skillName, sensory_feedback };
+            } else {
+                if (actionResult.skill.effect.type === 'HEAL') {
+                    narrativeKey = 'skillHealSuccessNarrative';
+                    replacements = { skillName, amount: actionResult.healedAmount, sensory_feedback };
+                } else if (actionResult.skill.effect.type === 'DAMAGE') {
+                    let narrative = t('skillDamageSuccessNarrative', { skillName, enemy: enemyType, damage: actionResult.finalDamage, sensory_feedback });
+                    if (actionResult.siphonedAmount) {
+                        narrative += ' ' + t('skillSiphonNarrative', { amount: actionResult.siphonedAmount });
+                    }
+                    return narrative;
                 }
             }
             break;
-        }
-
-        case 'useSkill': {
-            const { skill, successLevel, backfireDamage, healedAmount, finalDamage, siphonedAmount, enemy } = result;
-            const skillName = getTranslatedText(skill.name, resolvedLanguage, t);
-            const enemyName = enemy ? getTranslatedText(enemy.type, resolvedLanguage, t) : '';
-
-            if (successLevel === 'CriticalFailure') {
-                return t('skillCritFailNarrative', { skillName, damage: backfireDamage, sensory_feedback });
-            } else if (successLevel === 'Failure') {
-                return t('skillFailNarrative', { skillName, sensory_feedback });
-            } else {
-                if (skill.effect.type === 'HEAL') {
-                    return t('skillHealSuccessNarrative', { skillName, amount: healedAmount, sensory_feedback });
-                } else if (skill.effect.type === 'DAMAGE' && enemy) {
-                    let text = t('skillDamageSuccessNarrative', { skillName, enemy: enemyName, damage: finalDamage, sensory_feedback });
-                    if (siphonedAmount) text += ' ' + t('skillSiphonNarrative', { amount: siphonedAmount });
-                    if (!result.enemy) text += ' ' + t('enemyDefeatedNarrative', { enemyType: enemyName });
-                    return text;
-                }
-            }
-            break;
-        }
     }
-    
-    if (templateKey === 'exploreAction') return t('customActionFail');
-    
-    return t(templateKey, replacements);
+
+    if (!narrativeKey) return "An unknown action occurred.";
+    return t(narrativeKey, replacements);
 };
 
+
 export const handleSearchAction = (
-    chunk: Chunk,
+    currentChunk: Chunk,
     actionId: number,
     language: Language,
     t: (key: TranslationKey, replacements?: any) => string,
     allItemDefinitions: Record<string, ItemDefinition>,
-    getRandomInRange: (range: { min: number, max: number }) => number
-): { newChunk: Chunk, narrative: string, toastInfo?: { title: TranslationKey, description: TranslationKey, params: any } } => {
-    
-    const newChunk = { ...chunk, actions: chunk.actions.filter(a => a.id !== actionId) };
-    const templates = getTemplates();
-    const template = templates[chunk.terrain];
-    let toastInfo;
-    let narrative = "";
+    rng: (range: { min: number, max: number }) => number
+) => {
+    let newChunk = { ...currentChunk, items: [...currentChunk.items] };
+    newChunk.actions = newChunk.actions.filter(a => a.id !== actionId);
 
-    const itemCandidates = template.items || [];
-    const foundItems: ChunkItem[] = [];
-
-    itemCandidates.forEach((itemCandidate: { name: string, conditions: any }) => {
-        if (check_conditions(itemCandidate.conditions, chunk)) {
-            const itemDefKey = getTranslatedText(itemCandidate.name, 'en', t);
-            const itemDef = allItemDefinitions[itemDefKey];
-            if(itemDef) {
-                 const quantity = getRandomInRange(itemDef.baseQuantity);
-                 foundItems.push({ 
-                    name: itemDef.name, 
-                    description: itemDef.description,
-                    quantity: quantity, 
-                    tier: itemDef.tier, 
-                    emoji: itemDef.emoji
-                });
-            }
-        }
-    });
-
-    if (foundItems.length > 0) {
-        newChunk.items = [...newChunk.items, ...foundItems];
-        const foundItemsText = foundItems.map(item => `${item.quantity} ${getTranslatedText(item.name, language, t)}`).join(', ');
-        narrative = t('exploreFoundItemsNarrative', { items: foundItemsText });
-        toastInfo = { title: 'exploreSuccessTitle', description: 'exploreFoundItems', params: { items: foundItemsText } };
-    } else {
-        const nothingMessages = t('exploreFoundNothing');
-        narrative = Array.isArray(nothingMessages) ? nothingMessages[Math.floor(Math.random() * nothingMessages.length)] : nothingMessages;
+    const templates = getTemplates()[currentChunk.terrain];
+    if (!templates || !templates.items) {
+        return { newChunk, narrative: t('exploreFoundNothing'), toastInfo: null };
     }
 
-    return { newChunk, narrative, toastInfo };
+    const possibleItems = templates.items.filter((itemTmpl: any) => {
+        const itemDef = allItemDefinitions[itemTmpl.name];
+        return itemDef && check_conditions(itemTmpl.conditions, currentChunk);
+    });
+
+    if (possibleItems.length > 0 && Math.random() < 0.5) { // 50% chance to find something if possible
+        const foundItemTemplate = possibleItems[Math.floor(Math.random() * possibleItems.length)];
+        const itemDef = allItemDefinitions[foundItemTemplate.name];
+        const quantity = rng(itemDef.baseQuantity);
+        
+        const existingItem = newChunk.items.find(i => getTranslatedText(i.name, 'en', t) === foundItemTemplate.name);
+        if (existingItem) {
+            existingItem.quantity += quantity;
+        } else {
+            newChunk.items.push({
+                name: foundItemTemplate.name,
+                description: t(itemDef.description as TranslationKey),
+                quantity,
+                tier: itemDef.tier,
+                emoji: itemDef.emoji,
+            });
+        }
+        
+        const itemName = getTranslatedText(foundItemTemplate.name, language, t);
+        return {
+            newChunk,
+            narrative: t('exploreFoundItemsNarrative', { items: `${quantity} ${itemName}` }),
+            toastInfo: {
+                title: 'exploreSuccessTitle',
+                description: 'exploreFoundItems',
+                params: { items: `${quantity} ${itemName}` }
+            }
+        };
+    }
+
+    return { newChunk, narrative: t('exploreFoundNothing'), toastInfo: null };
 };

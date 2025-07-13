@@ -281,6 +281,7 @@ export interface WorldConcept {
   playerInventory: { name: string; quantity: number }[];
   initialQuests: string[];
   startingSkill: Skill;
+  customItemCatalog?: GeneratedItem[];
 }
 
 export interface RecipeIngredient {

@@ -530,7 +530,8 @@ export function ensureChunkExists(
     const terrainWeights = validTerrains.map(t => [t, worldConfig[t].spreadWeight] as [Terrain, number]);
     const newTerrain = weightedRandom(terrainWeights);
 
-    return generateRegion(pos, newTerrain, currentWorld, currentRegions, currentRegionCounter, worldProfile, currentSeason, allItemDefinitions, customItemCatalog, customStructures, language);
+    const { newWorld, newRegions, newRegionCounter } = generateRegion(pos, newTerrain, currentWorld, currentRegions, currentRegionCounter, worldProfile, currentSeason, allItemDefinitions, customItemCatalog, customStructures, language);
+    return { worldWithChunk: newWorld, newRegions, newRegionCounter };
 }
 
 

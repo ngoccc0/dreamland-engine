@@ -3,7 +3,8 @@
 
 import { useEffect } from 'react';
 import { useLanguage } from '@/context/language-context';
-import { ensureChunkExists, generateWeatherForZone, generateOfflineNarrative } from '@/lib/game/engine/generation';
+import { ensureChunkExists, generateWeatherForZone } from '@/lib/game/engine/generation';
+import { generateOfflineNarrative } from '@/lib/game/engine/offline';
 import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';

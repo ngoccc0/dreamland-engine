@@ -4,6 +4,30 @@ Chào mừng các Đội trưởng và những người đồng hành đến v�
 
 ---
 
+## **Bản cập nhật v0.2.1 - "La Bàn Của Người Kể Chuyện" (13/07 - 23:22)**
+
+*Tên mã: The Storyteller's Compass*
+
+### 🌟 **Giới thiệu chung**
+
+Đây là một bản vá nhỏ nhưng cực kỳ quan trọng, tập trung vào việc "chỉnh đốn" lại cấu trúc nội bộ của engine. Giống như việc hiệu chỉnh lại la bàn, bản cập nhật này đảm bảo các "luồng thông tin" tường thuật của chúng ta đi đúng hướng, giải quyết các lỗi nghiêm trọng và giúp hệ thống hoạt động ổn định hơn.
+
+### ✨ **Thay đổi chính & Phân tích**
+
+#### 1. **Tái cấu trúc và sửa lỗi Import Engine Tường thuật Offline**
+*   **Thay đổi:** Di chuyển các hàm cốt lõi của engine tường thuật offline (`generateOfflineNarrative`, `generateOfflineActionNarrative`, `handleSearchAction`) từ `generation.ts` về đúng "nhà" của chúng trong `offline.ts`. Đồng thời, tất cả các lệnh `import` trong `use-action-handlers.ts` đã được cập nhật để trỏ đến vị trí mới chính xác.
+*   **Phân tích:**
+    *   **Nguyên nhân:** Các hàm logic tường thuật bị đặt sai chỗ, dẫn đến lỗi runtime nghiêm trọng (`... is not a function`) do `use-action-handlers` không thể tìm thấy chúng.
+    *   **Giải pháp:** Bằng việc di chuyển và sửa các đường dẫn import, chúng ta đã thực thi một sự "phân tách vai trò" (separation of concerns) rõ ràng hơn: `generation.ts` chỉ chịu trách nhiệm tạo ra cấu trúc thế giới, trong khi `offline.ts` quản lý logic về cách thế giới đó được mô tả và tương tác khi không có AI.
+*   **Insight:** Đây là một bài học kinh điển về kiến trúc phần mềm. Một cấu trúc module rõ ràng không chỉ giúp code dễ đọc hơn mà còn là yếu tố sống còn để ngăn ngừa các lỗi logic khó tìm. "La bàn" của chúng ta giờ đã chỉ đúng hướng.
+
+### 🎮 **Ảnh hưởng đến Trải nghiệm & Tương lai**
+
+*   **Trải nghiệm người chơi:** Người chơi sẽ không còn gặp phải lỗi game bị "đứng hình" hoặc không phản hồi khi thực hiện các hành động trong chế độ offline. Trải nghiệm giờ đây sẽ liền mạch và ổn định hơn.
+*   **Hướng phát triển:** Với cấu trúc đã được dọn dẹp, việc mở rộng engine tường thuật offline (ví dụ: thêm các hành động offline phức tạp hơn) sẽ trở nên dễ dàng và an toàn hơn rất nhiều.
+
+---
+
 ## **Bản cập nhật lớn - Version 0.2: "The Architect's Blueprint"**
 
 *Tên mã: Kiến trúc sư Tái cấu trúc*

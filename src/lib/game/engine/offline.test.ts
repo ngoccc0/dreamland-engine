@@ -46,7 +46,7 @@ const mockT = (key: string, replacements?: any) => {
 
 // Mock getTranslatedText function for consistency with fill_template
 const mockGetTranslatedText = (translatable: any, lang: Language): string => {
-    const actualLang = lang === Language.Vietnamese ? 'vi' : 'en'; // Ánh xạ Language enum sang string
+    const actualLang = lang === 'vi' ? 'vi' : 'en'; // Handle enum properly
     if (typeof translatable === 'string') {
         return mockT(translatable);
     }
@@ -69,7 +69,7 @@ describe('analyze_chunk_mood', () => {
             explorability: 50, soilType: 'loamy', predatorPresence: 70, temperature: 30, windLevel: 0
         };
         const moods = analyze_chunk_mood(chunk);
-        expect(moods).toEqual(expect.arrayContaining(["Danger", "Foreboding", "Threatening", "Dark", "Gloomy", "Mysterious", "Lush", "Wet", "Vibrant", "Wild"]));
+        expect(moods).toEqual(expect.arrayContaining(["Danger", "Foreboding", "Threatening", "Dark", "Gloomy", "Mysterious", "Lush", "Wet", "Vibrant", "Wild", "Cold", "Harsh"]));
         // Kiểm tra không có mood trùng lặp
         expect(new Set(moods).size).toBe(moods.length);
     });
@@ -101,7 +101,7 @@ describe('analyze_chunk_mood', () => {
             moisture: 5, elevation: 10, lightLevel: 95, dangerLevel: 45, magicAffinity: 5, humanPresence: 15,
             explorability: 40, soilType: 'sandy', predatorPresence: 25, temperature: 90, windLevel: 0
         };
-        expect(analyze_chunk_mood(hotChunk)).toEqual(expect.arrayContaining(["Hot", "Harsh", "Arid", "Desolate", "Threatening", "Vibrant", "Abandoned"]));
+        expect(analyze_chunk_mood(hotChunk)).toEqual(expect.arrayContaining(["Hot", "Harsh", "Arid", "Desolate", "Threatening", "Vibrant", "Peaceful", "Abandoned"]));
     });
 
     it('should return default terrain moods if other stats are neutral', () => {
@@ -164,8 +164,7 @@ describe('check_conditions', () => {
         lastVisited: 0, enemy: null, actions: [], regionId: 1, travelCost: 1, vegetationDensity: 60,
         moisture: 50, elevation: 50, lightLevel: 70, dangerLevel: 30, magicAffinity: 20, humanPresence: 10,
         explorability: 70, soilType: 'loamy', predatorPresence: 15, temperature: 50, windLevel: 0,
-        timeOfDay: 'day', // Thêm timeOfDay vào chunk
-        visibility: 80, humidity: 40 // Thêm visibility, humidity
+        gameTime: 540, // 9 AM
     };
     const basePlayerState: PlayerStatus = {
         hp: 75, mana: 50, stamina: 80, bodyTemperature: 37, items: [], equipment: { weapon: null, armor: null, accessory: null },
@@ -196,6 +195,7 @@ describe('check_conditions', () => {
         const dayConditions = { timeOfDay: 'day' as 'day' | 'night' };
         expect(check_conditions(dayConditions, baseChunk)).toBe(true); // Chunk is day
         const nightConditions = { timeOfDay: 'night' as 'day' | 'night' };
+        expect(check_conditions(nightConditions, { ...baseChunk, gameTime: 1200 })).toBe(true); // 8 PM is night
         expect(check_conditions(nightConditions, baseChunk)).toBe(false); // Chunk is day, condition is night
     });
 
@@ -296,7 +296,7 @@ describe('select_template_by_weight', () => {
 
 // Test fill_template (basic functionality)
 describe('fill_template', () => {
-    const mockChunk: any = {
+    const mockChunk: Chunk = {
         x: 0, y: 0, terrain: 'jungle', description: '', NPCs: [], items: [
             { name: { en: 'Healing Potion', vi: 'Bình Hồi Phục' }, description: {en: '', vi: ''}, quantity: 1, tier: 1, emoji: '🧪' }
         ], structures: [], explored: false,
@@ -304,7 +304,7 @@ describe('fill_template', () => {
         moisture: 90, elevation: 30, lightLevel: 5, dangerLevel: 60, magicAffinity: 75, humanPresence: 0,
         explorability: 40, soilType: 'loamy', predatorPresence: 70, temperature: 85, windLevel: 0
     };
-    const mockWorld: any = {};
+    const mockWorld: any = {}; // Mock rỗng vì fill_template chưa dùng đến
     const mockPlayerPosition = { x: 0, y: 0 };
     const mockBiomeTemplateData: BiomeTemplateData = {
         terrain: 'jungle',
@@ -323,13 +323,13 @@ describe('fill_template', () => {
 
     it('should fill static placeholders correctly', () => {
         const template = "Đây là một khu rừng {{jungle_adjective_lush}} và {{jungle_adjective_mysterious}}.";
-        const result = fill_template(template, mockChunk, mockWorld, mockPlayerPosition, mockT, 'vi' as Language, mockBiomeTemplateData, undefined);
+        const result = fill_template(template, mockChunk, mockWorld, mockPlayerPosition, mockT, 'vi', mockBiomeTemplateData, undefined);
         expect(result).toMatch(/Đây là một khu rừng (rậm rạp|xanh tươi) và (bí ẩn|huyền bí)\./);
     });
 
     it('should replace dynamic chunk-based placeholders (0-100 scale)', () => {
         const template = "Ánh sáng: {light_level_detail}. Nhiệt độ: {temp_detail}. Độ ẩm: {moisture_detail}.";
-        const result = fill_template(template, mockChunk, mockWorld, mockPlayerPosition, mockT, 'vi' as Language, mockBiomeTemplateData, undefined);
+        const result = fill_template(template, mockChunk, mockWorld, mockPlayerPosition, mockT, 'vi', mockBiomeTemplateData, undefined);
         expect(result).toContain('Ánh sáng: một màn đêm u tối.');
         expect(result).toContain('Nhiệt độ: nóng như thiêu đốt.');
         expect(result).toContain('Độ ẩm: ẩm ướt.');
@@ -337,20 +337,20 @@ describe('fill_template', () => {
 
     it('should replace enemy and item placeholders', () => {
         const template = "Bạn nhìn thấy {enemy_name} và một {item_found}.";
-        const result = fill_template(template, mockChunk, mockWorld, mockPlayerPosition, mockT, 'vi' as Language, mockBiomeTemplateData, undefined);
+        const result = fill_template(template, mockChunk, mockWorld, mockPlayerPosition, mockT, 'vi', mockBiomeTemplateData, undefined);
         expect(result).toContain('Bạn nhìn thấy Goblin và một Bình Hồi Phục.');
     });
 
     it('should handle missing enemy/item gracefully', () => {
         const noEnemyNoItemChunk: Chunk = { ...mockChunk, enemy: null, items: [] };
         const template = "Bạn nhìn thấy {enemy_name} và một {item_found}.";
-        const result = fill_template(template, noEnemyNoItemChunk, mockWorld, mockPlayerPosition, mockT, 'vi' as Language, mockBiomeTemplateData, undefined);
+        const result = fill_template(template, noEnemyNoItemChunk, mockWorld, mockPlayerPosition, mockT, 'vi', mockBiomeTemplateData, undefined);
         expect(result).toContain('Bạn nhìn thấy không có kẻ địch nào và một không có vật phẩm nào.');
     });
 
     it('should return original placeholder if category not found', () => {
         const template = "Đây là một điều {{non_existent_adjective}}.";
-        const result = fill_template(template, mockChunk, mockWorld, mockPlayerPosition, mockT, 'vi' as Language, mockBiomeTemplateData, undefined);
+        const result = fill_template(template, mockChunk, mockWorld, mockPlayerPosition, mockT, 'vi', mockBiomeTemplateData, undefined);
         expect(result).toContain('Đây là một điều {{non_existent_adjective}}.');
     });
 
@@ -361,7 +361,7 @@ describe('fill_template', () => {
             hp: 25,
             stamina: 10 
         };
-        const result = fill_template(template, mockChunk, mockWorld, mockPlayerPosition, mockT, 'vi' as Language, mockBiomeTemplateData, mockPlayerStatus);
+        const result = fill_template(template, mockChunk, mockWorld, mockPlayerPosition, mockT, 'vi', mockBiomeTemplateData, mockPlayerStatus);
         expect(result).toContain('Bạn cảm thấy sức khỏe yếu và thể lực cạn kiệt.');
     });
 });
@@ -402,7 +402,7 @@ describe('SmartJoinSentences', () => {
 
     it('should handle sentences with existing punctuation', () => {
         const sentences = ['Đã xảy ra chuyện gì đó!', 'Có tiếng động lạ?'];
-        expect(SmartJoinSentences(sentences, 'short')).toMatch(/Đã xảy ra chuyện gì đó! và Có tiếng động lạ\?/);
+        expect(SmartJoinSentences(sentences, 'short')).toBe('Đã xảy ra chuyện gì đó và Có tiếng động lạ?');
     });
 
     it('should remove redundant spaces and punctuation', () => {

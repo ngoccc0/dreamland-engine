@@ -33,7 +33,7 @@ export type {
 
 export const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic", "wall", "floptropica", "tundra", "beach", "mesa", "mushroom_forest", "ocean", "city", "space_station", "underwater"];
 
-export type TranslatableString = TranslationKey | MultilingualText;
+export type TranslatableString = TranslationKey | { [lang: string]: string; };
 
 export type ItemDefinition = Omit<ItemDefZod, 'name' | 'description' | 'spawnBiomes'> & { 
     name: TranslatableString,
@@ -58,12 +58,72 @@ export type PlayerPersona = 'none' | 'explorer' | 'warrior' | 'artisan';
 export type GameMode = 'ai' | 'offline';
 export type DiceType = 'd20' | 'd12' | '2d6';
 export type AiModel = 'balanced' | 'creative' | 'fast' | 'quality';
-export type NarrativeLength = 'short' | 'medium' | 'long';
-export type GameTheme = 'Magic' | 'Technology' | 'Post-Apocalypse' | 'Cyberpunk' | 'Normal';
+
 export type EquipmentSlot = 'weapon' | 'armor' | 'accessory';
 export type FontFamily = 'literata' | 'inter' | 'source_code_pro';
 export type FontSize = 'sm' | 'base' | 'lg';
 export type Theme = 'light' | 'dark';
+
+// --- NARRATIVE ENGINE TYPES (NEW) ---
+
+export type ConditionRange = {
+    min?: number;
+    max?: number;
+};
+
+export type ConditionType = {
+    vegetationDensity?: ConditionRange;
+    moisture?: ConditionRange;
+    elevation?: ConditionRange;
+    dangerLevel?: ConditionRange;
+    magicAffinity?: ConditionRange;
+    humanPresence?: ConditionRange;
+    predatorPresence?: ConditionRange;
+    lightLevel?: ConditionRange;
+    temperature?: ConditionRange;
+    soilType?: string[];
+    timeOfDay?: 'day' | 'night';
+    visibility?: ConditionRange;
+    humidity?: ConditionRange;
+    playerHealth?: ConditionRange;
+    playerStamina?: ConditionRange;
+    requiredEntities?: {
+        enemyType?: string;
+        itemType?: string;
+    };
+};
+
+export type NarrativeTemplateType = 'Opening' | 'EnvironmentDetail' | 'SensoryDetail' | 'EntityReport' | 'SurroundingPeek' | 'Closing' | 'Filler';
+export type NarrativeLength = 'short' | 'medium' | 'long' | 'detailed';
+export type MoodTag = 'Danger' | 'Peaceful' | 'Magic' | 'Foreboding' | 'Resourceful' | 'Lush' | 'Gloomy' | 'Dark' | 'Serene' | 'Vibrant' | 'Mysterious' | 'Desolate';
+
+export type NarrativeTemplate = {
+    id: string;
+    type: NarrativeTemplateType;
+    mood: MoodTag[];
+    length: NarrativeLength;
+    conditions?: ConditionType;
+    weight: number;
+    template: string;
+};
+
+export type BiomeAdjectiveCategory = {
+    [key: string]: string[];
+};
+
+export type BiomeTemplateData = {
+    terrain: string;
+    descriptionTemplates: NarrativeTemplate[];
+    adjectives: BiomeAdjectiveCategory;
+    features: BiomeAdjectiveCategory;
+    smells: BiomeAdjectiveCategory;
+    sounds: BiomeAdjectiveCategory;
+    sky?: BiomeAdjectiveCategory;
+};
+
+export type GameTemplates = {
+    [key: string]: BiomeTemplateData;
+};
 
 
 // --- WEATHER SYSTEM TYPES ---

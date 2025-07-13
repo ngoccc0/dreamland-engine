@@ -2,8 +2,18 @@ import type { DiceType } from "./types";
 import type { TranslationKey } from "../i18n";
 
 // --- DICE ROLL HELPERS ---
+/**
+ * @typedef {'CriticalFailure' | 'Failure' | 'Success' | 'GreatSuccess' | 'CriticalSuccess'} SuccessLevel
+ * @description Represents the qualitative outcome of a dice roll.
+ */
 export type SuccessLevel = 'CriticalFailure' | 'Failure' | 'Success' | 'GreatSuccess' | 'CriticalSuccess';
 
+/**
+ * @description Categorizes a numerical dice roll into a qualitative success level based on the type of dice used.
+ * @param {number} roll - The numerical result of the dice roll.
+ * @param {DiceType} diceType - The type of dice used ('d20', 'd12', '2d6').
+ * @returns {SuccessLevel} The corresponding success level.
+ */
 export function getSuccessLevel(roll: number, diceType: DiceType): SuccessLevel {
     if (diceType === 'd20') {
         if (roll === 1) return 'CriticalFailure';
@@ -30,6 +40,11 @@ export function getSuccessLevel(roll: number, diceType: DiceType): SuccessLevel 
     return 'Success'; // fallback
 }
 
+/**
+ * @description Simulates rolling a game die.
+ * @param {DiceType} diceType - The type of dice to roll.
+ * @returns {{ roll: number; range: string }} An object containing the numerical result and a string representing the dice range.
+ */
 export const rollDice = (diceType: DiceType): { roll: number; range: string } => {
     switch (diceType) {
         case 'd12':
@@ -44,6 +59,10 @@ export const rollDice = (diceType: DiceType): { roll: number; range: string } =>
     }
 };
 
+/**
+ * @description A mapping from SuccessLevel enums to their corresponding translation keys.
+ * @type {Record<SuccessLevel, TranslationKey>}
+ */
 export const successLevelToTranslationKey: Record<SuccessLevel, TranslationKey> = {
     CriticalFailure: 'criticalFailure',
     Failure: 'failure',

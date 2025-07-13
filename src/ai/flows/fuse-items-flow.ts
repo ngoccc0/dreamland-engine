@@ -8,9 +8,9 @@
  * The AI's role is purely creative: to narrate the outcome and invent the name,
  * and description for the resulting item.
  *
- * - fuseItems - The main function called by the game engine.
- * - FuseItemsInput - The Zod schema for the input data.
- * - FuseItemsOutput - The Zod schema for the structured output.
+ * @export fuseItems - The main function called by the game engine.
+ * @export FuseItemsInput - The Zod schema for the input data.
+ * @export FuseItemsOutput - The Zod schema for the structured output.
  */
 
 import { ai } from '@/ai/genkit';
@@ -23,6 +23,20 @@ export type FuseItemsInput = z.infer<typeof FuseItemsInputSchema>;
 export type FuseItemsOutput = z.infer<typeof FuseItemsOutputSchema>;
 
 // --- The Exported Function ---
+
+/**
+ * Orchestrates the item fusion process. It determines the outcome logically and then
+ * calls an AI flow to generate the creative narrative and item details.
+ * @param {FuseItemsInput} input - The input containing items to fuse, player status, and environmental context.
+ * @returns {Promise<FuseItemsOutput>} A promise that resolves to the fusion result, including narrative and a potential new item.
+ * @example
+ * const result = await fuseItems({
+ *   itemsToFuse: [{ name: 'Sharp Rock', ... }, { name: 'Sturdy Branch', ... }, { name: 'Flint', ...}],
+ *   playerPersona: 'artisan',
+ *   // ... other context
+ * });
+ * console.log(result.narrative);
+ */
 export async function fuseItems(input: FuseItemsInput): Promise<FuseItemsOutput> {
   logger.info('Starting fuseItems flow');
   return fuseItemsFlow(input);

@@ -3,19 +3,37 @@ import { twMerge } from "tailwind-merge"
 import type { Language, NarrativeLength, TranslatableString } from "./game/types";
 import type { TranslationKey } from "./i18n";
 
+/**
+ * @description A utility function to merge Tailwind CSS classes conditionally.
+ * It intelligently combines class strings, handling conflicts and removing duplicates.
+ * @param {...ClassValue[]} inputs - A list of class names or conditional class objects.
+ * @returns {string} The final, merged class string.
+ * @example
+ * cn("p-4", "font-bold", { "bg-red-500": isError });
+ */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * @description Clamps a number between a minimum and maximum value.
+ * @param {number} num - The number to clamp.
+ * @param {number} min - The minimum value.
+ * @param {number} max - The maximum value.
+ * @returns {number} The clamped number.
+ */
 export const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
 
 /**
- * A helper function to get the correct text string based on the current language.
+ * @description A helper function to get the correct text string based on the current language.
  * It handles both Translation Keys (strings) and direct multilingual objects.
- * @param translatable - The string or object to translate.
- * @param language - The current language ('en' or 'vi').
- * @param t - The translation function from the i18n library.
- * @returns The translated string.
+ * @param {TranslatableString} translatable - The string or object to translate.
+ * @param {Language} language - The current language ('en' or 'vi').
+ * @param {Function} [t] - The translation function from the i18n library.
+ * @returns {string} The translated string.
+ * @example
+ * getTranslatedText({ en: 'Hello', vi: 'Xin chào' }, 'vi'); // "Xin chào"
+ * getTranslatedText('some_translation_key', 'en', t); // Looks up the key in the English translations
  */
 export function getTranslatedText(
     translatable: TranslatableString,
@@ -33,13 +51,16 @@ export function getTranslatedText(
 
 
 /**
- * Determines an appropriate emoji for a game item based on its name and category.
+ * @description Determines an appropriate emoji for a game item based on its name and category.
  * It uses a mapping of keywords to emojis for specific matches and falls back to
  * a category-based map for more general cases.
  *
- * @param name The name of the item.
- * @param category The category of the item (e.g., 'Weapon', 'Food').
- * @returns A string containing a single emoji.
+ * @param {string} name - The name of the item.
+ * @param {string} category - The category of the item (e.g., 'Weapon', 'Food').
+ * @returns {string} A string containing a single emoji.
+ * @example
+ * getEmojiForItem("Healing Potion", "Support"); // "🧪"
+ * getEmojiForItem("Iron Sword", "Weapon"); // "⚔️"
  */
 export function getEmojiForItem(name: string, category: string): string {
     const lowerName = name.toLowerCase();
@@ -95,10 +116,14 @@ export function getEmojiForItem(name: string, category: string): string {
 }
 
 /**
- * Nối các câu lại với nhau một cách thông minh, thêm từ nối tùy theo độ dài narrative.
- * @param sentences Mảng các chuỗi câu.
- * @param narrativeLength Độ dài narrative để quyết định kiểu từ nối.
- * @returns Chuỗi narrative hoàn chỉnh.
+ * @description Intelligently joins an array of sentences into a single narrative string.
+ * It adds appropriate connectors based on the desired narrative length and cleans up punctuation.
+ * @param {string[]} sentences - An array of sentences to join.
+ * @param {NarrativeLength} narrativeLength - The desired length, which influences the choice of connectors.
+ * @returns {string} A single, grammatically coherent narrative string.
+ * @example
+ * const sentences = ["It's getting dark.", "You should find shelter."];
+ * SmartJoinSentences(sentences, 'medium'); // "It's getting dark. Suddenly, you should find shelter."
  */
 export const SmartJoinSentences = (sentences: string[], narrativeLength: NarrativeLength): string => {
     if (!sentences || sentences.length === 0) return "";

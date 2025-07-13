@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useCallback, useRef } from "react";
@@ -14,10 +13,13 @@ interface GameStateProps {
 }
 
 /**
- * This hook is the single source of truth for the game's state.
- * It encapsulates all the `useState` calls for every piece of game data.
- * Its only job is to hold and update the state. It contains no complex logic.
- * This adheres to the principle of separating state management from logic.
+ * @fileOverview This hook is the single source of truth for the game's state.
+ * @description It encapsulates all `useState` calls for every piece of game data.
+ * Its only job is to hold and update the state. It contains no complex game logic,
+ * adhering to the principle of separating state management from business logic.
+ *
+ * @param {GameStateProps} props - The properties for initializing the game state, specifically the game slot.
+ * @returns An object containing all state variables and their updater functions.
  */
 export function useGameState({ gameSlot }: GameStateProps) {
     const [isLoaded, setIsLoaded] = useState(false);
@@ -59,11 +61,22 @@ export function useGameState({ gameSlot }: GameStateProps) {
     const narrativeLogRef = useRef(narrativeLog);
     narrativeLogRef.current = narrativeLog;
 
+    /**
+     * @description Appends a new entry to the narrative log.
+     * @param {string} text - The text content of the narrative entry.
+     * @param {NarrativeEntry['type']} type - The type of entry ('narrative', 'action', 'system').
+     * @param {string} [entryId] - An optional unique ID for the entry, useful for targeting with DOM selectors.
+     */
     const addNarrativeEntry = useCallback((text: string, type: NarrativeEntry['type'], entryId?: string) => {
         const id = entryId || `${Date.now()}-${Math.random()}`;
         setNarrativeLog(prev => [...prev, { id, text, type }]);
     }, []);
 
+    /**
+     * @description Advances the game's internal clock and turn counter.
+     * Also responsible for updating player stats that might have changed during the turn.
+     * @param {PlayerStatus} [newPlayerStats] - The player's updated status after an action. If not provided, the existing stats are used.
+     */
     const advanceGameTime = useCallback((newPlayerStats?: PlayerStatus) => {
         setTurn(prev => prev + 1);
         const finalStats = newPlayerStats || playerStats;

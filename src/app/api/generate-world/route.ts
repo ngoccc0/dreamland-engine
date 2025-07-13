@@ -2,6 +2,15 @@
 import { generateWorldSetup } from '@/ai/flows/generate-world-setup';
 import { NextRequest, NextResponse } from 'next/server';
 
+/**
+ * @description API route handler for the POST request to generate a new game world.
+ * This function is called by the frontend when a user submits their world idea.
+ * It securely calls the server-side Genkit flow `generateWorldSetup`.
+ *
+ * @param {NextRequest} req - The incoming Next.js request object.
+ * @returns {Promise<NextResponse>} A promise that resolves to a Next.js response object.
+ * It returns the generated world setup data on success, or an error message on failure.
+ */
 export async function POST(req: NextRequest) {
   try {
     const { userInput, language } = await req.json();

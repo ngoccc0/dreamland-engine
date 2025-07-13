@@ -4,7 +4,7 @@ import { getTemplates } from "../templates";
 import { weatherPresets } from "../weatherPresets";
 import { translations } from "../../i18n";
 import type { TranslationKey } from "../../i18n";
-import { clamp } from "../../utils";
+import { clamp, getTranslatedText } from "../../utils";
 import { naturePlusForestEnemies, naturePlusJungleEnemies, naturePlusMountainEnemies, naturePlusSwampEnemies } from "../templates/modded/nature_plus";
 
 
@@ -28,7 +28,6 @@ export const generateWeatherForZone = (terrain: Terrain, season: Season, previou
     }
     
     if (candidateWeather.length === 0) {
-        // Fallback to clear weather if no valid weather is found after filtering
         return weatherPresets.find(w => w.id === 'clear')!;
     }
 
@@ -42,19 +41,17 @@ export const generateWeatherForZone = (terrain: Terrain, season: Season, previou
         }
     }
     
-    return candidateWeather[0]; // Should not be reached, but as a fallback
+    return candidateWeather[0]; 
 };
 
 
 // --- ENTITY SPAWNING LOGIC ---
 
-// Helper function to check if a chunk meets the spawn conditions for an entity
 export const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored' | 'structures' | 'lastVisited'>): boolean => {
     for (const key in conditions) {
         if (key === 'chance') continue;
         const condition = conditions[key as keyof typeof conditions];
         
-        // This handles the new optional `chunk` parameter in the type
         const chunkValue = chunk[key as keyof typeof chunk];
 
         if (key === 'soilType') {
@@ -72,22 +69,14 @@ export const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 
     return true;
 };
 
-
-/**
- * Selects entities based on conditions and chance.
- * @param possibleEntities - An array of potential entities with their spawn conditions.
- * @param chunk - The chunk data to check conditions against.
- * @param maxCount - The maximum number of entity types to select.
- * @returns An array of selected entity names.
- */
 const selectEntities = <T extends {name: string, conditions: SpawnConditions} | {data: any, conditions: SpawnConditions, loot?: any}>(
     possibleEntities: T[] | undefined,
     chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored' | 'structures' | 'lastVisited'>,
-    allItemDefinitions: Record<string, ItemDefinition>, // Pass in all definitions
+    allItemDefinitions: Record<string, ItemDefinition>, 
     maxCount: number = 3
 ): any[] => {
     if (!possibleEntities) {
-        return []; // Safety check for undefined arrays
+        return [];
     }
     const validEntities = possibleEntities.filter(entity => checkConditions(entity.conditions, chunk));
     
@@ -99,16 +88,12 @@ const selectEntities = <T extends {name: string, conditions: SpawnConditions} | 
 
         let spawnChance = entity.conditions.chance ?? 1.0;
         
-        // This handles both the old format {data: {type: '...'}, ...} for enemies/NPCs
-        // and the new format {name: '...', ...} for items.
         const entityData = 'data' in entity ? entity.data : entity;
         const itemName = entityData.name || entityData.type || entityData;
 
-        // For items, check the definition catalog for the tier
         const itemDef = allItemDefinitions[itemName];
         if (itemDef) {
             const tier = itemDef.tier;
-            // Reduce spawn chance by 50% for each tier above 1.
             const tierMultiplier = Math.pow(0.5, tier - 1);
             spawnChance *= tierMultiplier;
         }
@@ -120,10 +105,8 @@ const selectEntities = <T extends {name: string, conditions: SpawnConditions} | 
     return selected;
 };
 
-
 // --- WORLD GENERATION LOGIC ---
 
-// Selects a random terrain type based on weighted probabilities from worldConfig.
 export const weightedRandom = (options: [Terrain, number][]): Terrain => {
     const total = options.reduce((sum, [, prob]) => sum + prob, 0);
     const r = Math.random() * total;
@@ -132,10 +115,9 @@ export const weightedRandom = (options: [Terrain, number][]): Terrain => {
         current += prob;
         if (r <= current) return option;
     }
-    return options[0][0]; // Fallback
+    return options[0][0]; 
 }
 
-// Determines which terrain types can be generated at a new position
 export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentWorld: World): Terrain[] => {
     const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }];
     const adjacentTerrains = new Set<Terrain>();
@@ -163,7 +145,6 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
         const config = worldConfig[terrain];
         if (!config) return false;
 
-        // A potential new terrain is valid if it's allowed to be a neighbor of ALL existing adjacent terrains.
         for(const adjTerrain of adjacentTerrains) {
             const adjConfig = worldConfig[adjTerrain];
             if (!adjConfig.allowedNeighbors.includes(terrain)) {
@@ -176,20 +157,11 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
     return validTerrains.length > 0 ? validTerrains : Object.keys(worldConfig).filter(t => t !== 'wall') as Terrain[];
 };
 
-/**
- * Calculates attributes of a chunk that are dependent on other values
- * (e.g., world profile, season, base attributes).
- * @param terrain The terrain type of the chunk.
- * @param baseAttributes The randomly generated base attributes for the chunk.
- * @param worldProfile The global profile of the world.
- * @param currentSeason The current season.
- * @returns An object containing all calculated attributes.
- */
 function calculateDependentChunkAttributes(
     terrain: Terrain,
     baseAttributes: {
         vegetationDensity: number;
-        moisture: number; // This is the base moisture before seasonal/world mods
+        moisture: number; 
         dangerLevel: number;
         temperature: number;
     },
@@ -199,21 +171,20 @@ function calculateDependentChunkAttributes(
     const biomeDef = worldConfig[terrain];
     const seasonMods = seasonConfig[currentSeason];
 
-    const temperature = clamp(baseAttributes.temperature + seasonMods.temperatureMod + worldProfile.tempBias, 0, 10);
-    const finalMoisture = clamp(baseAttributes.moisture + seasonMods.moistureMod + worldProfile.moistureBias, 0, 10);
-    const windLevel = clamp(getRandomInRange({min: 2, max: 8}) + seasonMods.windMod, 0, 10);
+    const temperature = clamp(baseAttributes.temperature + (seasonMods.temperatureMod * 10) + worldProfile.tempBias, 0, 100);
+    const finalMoisture = clamp(baseAttributes.moisture + (seasonMods.moistureMod * 10) + worldProfile.moistureBias, 0, 100);
+    const windLevel = clamp(getRandomInRange({min: 20, max: 80}) + (seasonMods.windMod * 10), 0, 100);
     
     let lightLevel: number;
     if (terrain === 'cave') {
-        lightLevel = getRandomInRange({ min: -8, max: -5 });
+        lightLevel = getRandomInRange({ min: -80, max: -50 });
     } else {
-        // Base light from sun, modified by season, reduced by vegetation density
-        let baseLight = worldProfile.sunIntensity + seasonMods.sunExposureMod - baseAttributes.vegetationDensity;
-        lightLevel = baseLight + getRandomInRange({ min: -1, max: 1 });
+        let baseLight = (worldProfile.sunIntensity * 10) + (seasonMods.sunExposureMod * 10) - baseAttributes.vegetationDensity;
+        lightLevel = baseLight + getRandomInRange({ min: -10, max: 10 });
     }
-    lightLevel = clamp(lightLevel, -10, 10);
+    lightLevel = clamp(lightLevel, -100, 100);
 
-    const explorability = clamp(10 - (baseAttributes.vegetationDensity / 2) - (baseAttributes.dangerLevel / 2), 0, 10);
+    const explorability = clamp(100 - (baseAttributes.vegetationDensity / 2) - (baseAttributes.dangerLevel / 2), 0, 100);
     const soilType = biomeDef.soilType[Math.floor(Math.random() * biomeDef.soilType.length)];
     const travelCost = biomeDef.travelCost;
     
@@ -228,13 +199,6 @@ function calculateDependentChunkAttributes(
     };
 }
 
-/**
- * Generates the "content" of a chunk (description, NPCs, items, enemies, actions)
- * based on its final physical attributes.
- * @param chunkData The complete physical data of the chunk.
- * @param worldProfile The global settings for the world.
- * @returns An object containing the generated content.
- */
 function generateChunkContent(
     chunkData: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'explored' | 'structures' | 'terrain' | 'lastVisited'> & { terrain: Terrain },
     worldProfile: WorldProfile,
@@ -264,7 +228,7 @@ function generateChunkContent(
     const staticSpawnCandidates = template.items || [];
     const customSpawnCandidates = customItemCatalog
         .filter(item => item.spawnEnabled !== false && item.spawnBiomes && item.spawnBiomes.includes(chunkData.terrain as Terrain))
-        .map(item => ({ name: item.name, conditions: { chance: 0.15 } })); 
+        .map(item => ({ name: getTranslatedText(item.name, 'en', t), conditions: { chance: 0.15 } })); // Use english name as key
     
     const allSpawnCandidates = [...staticSpawnCandidates, ...customSpawnCandidates];
 
@@ -275,13 +239,13 @@ function generateChunkContent(
         const itemDef = allItemDefinitions[itemRef.name];
         if (itemDef) {
             const baseQuantity = getRandomInRange(itemDef.baseQuantity);
-            const multiplier = worldProfile.resourceDensity / 5.0;
+            const multiplier = worldProfile.resourceDensity / 50;
             const finalQuantity = Math.round(baseQuantity * multiplier);
 
             if (finalQuantity > 0) {
                 spawnedItems.push({
                     name: itemRef.name,
-                    description: t(itemDef.description as TranslationKey),
+                    description: itemDef.description,
                     tier: itemDef.tier,
                     quantity: finalQuantity,
                     emoji: itemDef.emoji,
@@ -292,7 +256,6 @@ function generateChunkContent(
     
     const spawnedNPCs: Npc[] = selectEntities(template.NPCs, chunkData, allItemDefinitions, 1).map(ref => ref.data);
 
-    // Combine base enemies with modded enemies
     let allEnemyCandidates = [...(template.enemies || [])];
     if (chunkData.terrain === 'swamp') allEnemyCandidates = [...allEnemyCandidates, ...naturePlusSwampEnemies];
     if (chunkData.terrain === 'jungle') allEnemyCandidates = [...allEnemyCandidates, ...naturePlusJungleEnemies];
@@ -302,7 +265,7 @@ function generateChunkContent(
     const spawnedEnemies = selectEntities(allEnemyCandidates, chunkData, allItemDefinitions, 1);
     
     let spawnedStructures: Structure[] = [];
-    if (Math.random() < 0.05 && customStructures && customStructures.length > 0) { // Reduced chance
+    if (Math.random() < 0.05 && customStructures && customStructures.length > 0) {
         const uniqueStructure = customStructures[Math.floor(Math.random() * customStructures.length)];
         spawnedStructures.push(uniqueStructure);
     } else {
@@ -321,7 +284,7 @@ function generateChunkContent(
                             } else {
                                 spawnedItems.push({
                                     name: lootItem.name,
-                                    description: t(definition.description as TranslationKey),
+                                    description: definition.description,
                                     tier: definition.tier,
                                     quantity: quantity,
                                     emoji: definition.emoji,
@@ -364,7 +327,6 @@ function generateChunkContent(
     };
 }
 
-
 function createWallChunk(pos: { x: number; y: number }): Chunk {
     const biomeDef = worldConfig['wall'];
     return {
@@ -375,15 +337,15 @@ function createWallChunk(pos: { x: number; y: number }): Chunk {
         NPCs: [],
         items: [],
         structures: [],
-        explored: true, // Walls are always visible
+        explored: true, 
         lastVisited: 0,
         enemy: null,
         actions: [],
-        regionId: -1, // Walls don't belong to a region
+        regionId: -1, 
         travelCost: biomeDef.travelCost,
         vegetationDensity: 0,
         moisture: 0,
-        elevation: 5,
+        elevation: 50,
         lightLevel: 0,
         dangerLevel: 0,
         magicAffinity: 0,
@@ -391,7 +353,7 @@ function createWallChunk(pos: { x: number; y: number }): Chunk {
         explorability: 0,
         soilType: 'rocky',
         predatorPresence: 0,
-        temperature: 5,
+        temperature: 50,
     };
 }
 
@@ -505,7 +467,6 @@ export const generateRegion = (
         }
     }
 
-
     return { newWorld, newRegions, newRegionCounter };
 };
 
@@ -543,25 +504,25 @@ export const getEffectiveChunk = (baseChunk: Chunk, weatherZones: { [key: string
     let structureHeat = effectiveChunk.structures?.reduce((sum, s) => sum + (s.heatValue || 0), 0) || 0;
 
     if (!weatherZones[effectiveChunk.regionId]) {
-        effectiveChunk.temperature = (baseChunk.temperature ?? 15) + structureHeat;
+        effectiveChunk.temperature = (baseChunk.temperature ?? 50) + (structureHeat * 10);
         return effectiveChunk;
     }
 
     const weatherZone = weatherZones[baseChunk.regionId];
     const weather = weatherZone.currentWeather;
     
-    const baseCelsius = (baseChunk.temperature ?? 5) * 4;
-    const weatherCelsiusMod = weather.temperature_delta * 2;
-    effectiveChunk.temperature = baseCelsius + weatherCelsiusMod + structureHeat;
+    const baseCelsius = (baseChunk.temperature ?? 50);
+    const weatherCelsiusMod = weather.temperature_delta * 10;
+    effectiveChunk.temperature = baseCelsius + weatherCelsiusMod + (structureHeat * 10);
 
-    effectiveChunk.moisture = clamp(baseChunk.moisture + weather.moisture_delta, 0, 10);
-    effectiveChunk.windLevel = clamp((baseChunk.windLevel ?? 3) + weather.wind_delta, 0, 10);
+    effectiveChunk.moisture = clamp((baseChunk.moisture ?? 50) + (weather.moisture_delta * 10), 0, 100);
+    effectiveChunk.windLevel = clamp((baseChunk.windLevel ?? 30) + (weather.wind_delta * 10), 0, 100);
     
     let timeLightMod = 0;
-    if (gameTime >= 1320 || gameTime < 300) timeLightMod = -8;
-    else if ((gameTime >= 300 && gameTime < 420) || (gameTime >= 1080 && gameTime < 1200)) timeLightMod = -3;
+    if (gameTime >= 1320 || gameTime < 300) timeLightMod = -80;
+    else if ((gameTime >= 300 && gameTime < 420) || (gameTime >= 1080 && gameTime < 1200)) timeLightMod = -30;
     
-    effectiveChunk.lightLevel = clamp(baseChunk.lightLevel + weather.light_delta + timeLightMod, -10, 10);
+    effectiveChunk.lightLevel = clamp(baseChunk.lightLevel + (weather.light_delta * 10) + timeLightMod, -100, 100);
 
     return effectiveChunk;
 };

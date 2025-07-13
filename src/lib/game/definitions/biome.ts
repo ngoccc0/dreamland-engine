@@ -1,7 +1,6 @@
-
 import { z } from 'zod';
 import { MultilingualTextSchema, SpawnConditionsSchema } from './base';
-import type { Terrain } from '../types';
+import type { Terrain, BiomeTemplateData } from '../types';
 
 // Defines a template for generating descriptive text.
 const DescriptionTemplatesSchema = z.object({
@@ -50,18 +49,7 @@ export const BiomeDefinitionSchema = z.object({
     temperature: z.object({ min: z.number(), max: z.number() }),
   }).describe("The base random values for generating chunk attributes."),
   soilType: z.array(z.string()).describe("An array of possible soil types for this biome."),
-  templates: z.object({
-    descriptionTemplates: DescriptionTemplatesSchema,
-    adjectives: z.array(z.string()),
-    features: z.array(z.string()),
-    smells: z.array(z.string()),
-    sounds: z.array(z.string()),
-    sky: z.array(z.string()).optional(),
-    NPCs: z.array(NpcSpawnTemplateSchema),
-    items: z.array(EntitySpawnTemplateSchema),
-    structures: z.array(z.any()), // Can be simplified as well if needed
-    creatures: z.array(EntitySpawnTemplateSchema),
-  }).describe("The templates used to procedurally generate the content of a chunk within this biome."),
+  templates: z.custom<BiomeTemplateData>().optional().describe("The templates used to procedurally generate the content of a chunk within this biome."),
 });
 
 export type BiomeDefinition = z.infer<typeof BiomeDefinitionSchema>;

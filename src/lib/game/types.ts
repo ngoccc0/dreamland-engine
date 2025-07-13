@@ -4,14 +4,14 @@ import type {
     ItemEffect, 
     Recipe as RecipeDefZod, 
     StructureDefinition,
-    BiomeDefinition,
+    BiomeDefinition as BiomeDefZod,
     WeatherDefinition,
     RandomEventDefinition,
     CreatureDefinition,
     LootDrop,
     SpawnConditions,
     PlayerAttributes,
-    ItemCategory, // Now importing the derived type
+    ItemCategory, 
     MultilingualText,
 } from "./definitions";
 
@@ -19,7 +19,6 @@ import type {
 export type { 
     ItemEffect, 
     StructureDefinition,
-    BiomeDefinition,
     WeatherDefinition,
     RandomEventDefinition,
     CreatureDefinition,
@@ -40,6 +39,7 @@ export type ItemDefinition = Omit<ItemDefZod, 'name' | 'description' | 'spawnBio
     description: TranslatableString,
     spawnBiomes?: Terrain[] 
 };
+export type BiomeDefinition = Omit<BiomeDefZod, 'id'>;
 export type Recipe = Omit<RecipeDefZod, 'ingredients' | 'description'> & { 
     ingredients: RecipeIngredient[],
     description: MultilingualText,
@@ -64,8 +64,6 @@ export type FontFamily = 'literata' | 'inter' | 'source_code_pro';
 export type FontSize = 'sm' | 'base' | 'lg';
 export type Theme = 'light' | 'dark';
 
-// --- NARRATIVE ENGINE TYPES (NEW) ---
-
 export type ConditionRange = {
     min?: number;
     max?: number;
@@ -81,100 +79,84 @@ export type ConditionType = {
     predatorPresence?: ConditionRange;
     lightLevel?: ConditionRange;
     temperature?: ConditionRange;
-    soilType?: string[]; // Giữ nguyên array of string
+    soilType?: string[]; 
     timeOfDay?: 'day' | 'night';
     visibility?: ConditionRange;
     humidity?: ConditionRange;
-    // Thêm các conditions khác nếu cần, ví dụ:
-    playerHealth?: ConditionRange; // required_player_state_conditions
+    playerHealth?: ConditionRange; 
     playerStamina?: ConditionRange;
     requiredEntities?: {
-        enemyType?: string; // Tên enemy ID
-        itemType?: string; // Tên item ID
-        // ...
+        enemyType?: string; 
+        itemType?: string; 
     };
 };
 
-// Định nghĩa loại template narrative
 export type NarrativeTemplateType = 'Opening' | 'EnvironmentDetail' | 'SensoryDetail' | 'EntityReport' | 'SurroundingPeek' | 'Closing' | 'Filler';
-export type NarrativeLength = 'short' | 'medium' | 'long' | 'detailed'; // Thêm 'detailed' nếu bạn muốn một cấp độ chi tiết siêu cao
+export type NarrativeLength = 'short' | 'medium' | 'long' | 'detailed'; 
 export type MoodTag = 'Danger' | 'Peaceful' | 'Magic' | 'Foreboding' | 'Resourceful' | 'Lush' | 'Gloomy' | 'Dark' | 'Serene' | 'Vibrant' | 'Mysterious' | 'Desolate' | 'Threatening' | 'Wet' | 'Arid' | 'Wild' | 'Ethereal' | 'Civilized' | 'Historic' | 'Hot' | 'Cold' | 'Harsh' | 'Rugged';
-// Mở rộng thêm các MoodTag theo ý tưởng game của bạn
 
 export type NarrativeTemplate = {
     id: string;
     type: NarrativeTemplateType;
-    mood: MoodTag[]; // Array of mood tags
+    mood: MoodTag[]; 
     length: NarrativeLength;
-    conditions?: ConditionType; // Conditions to be met by the chunk/player
-    weight: number; // For weighted random selection
-    template: string; // The actual template string with placeholders
+    conditions?: ConditionType;
+    weight: number; 
+    template: string; 
 };
 
 export type BiomeAdjectiveCategory = {
-    [key: string]: string[]; // e.g., "adjective_dark": ["âm u", "u ám"]
+    [key: string]: string[]; 
 };
 
-// Cập nhật BiomeTemplateData để chứa các NarrativeTemplate mới
 export type BiomeTemplateData = {
     terrain: string;
-    descriptionTemplates: NarrativeTemplate[]; // Danh sách các template narrative chi tiết
-    adjectives: BiomeAdjectiveCategory; // Các loại tính từ theo mood/context
-    features: BiomeAdjectiveCategory; // Các loại đặc điểm địa hình
-    smells: BiomeAdjectiveCategory; // Các loại mùi
-    sounds: BiomeAdjectiveCategory; // Các loại âm thanh
-    sky?: BiomeAdjectiveCategory; // Các loại bầu trời
-    // Có thể thêm các category khác như verbs, adverbs, objects...
+    descriptionTemplates: NarrativeTemplate[]; 
+    adjectives: BiomeAdjectiveCategory; 
+    features: BiomeAdjectiveCategory; 
+    smells: BiomeAdjectiveCategory; 
+    sounds: BiomeAdjectiveCategory; 
+    sky?: BiomeAdjectiveCategory; 
 };
 
-// Cập nhật hàm getTemplates để trả về cấu trúc mới
-// (Lưu ý: BiomeTemplate ở đây chỉ là một ví dụ, bạn có thể đã có cấu trúc này rồi)
 export type GameTemplates = {
     [key: string]: BiomeTemplateData;
 };
 
-
-
 // --- WEATHER SYSTEM TYPES ---
-// WeatherState is now an instance of a WeatherDefinition
 export type WeatherState = WeatherDefinition;
 
 export interface WeatherZone {
-  id: string; // Typically the regionId
+  id: string; 
   terrain: Terrain;
   currentWeather: WeatherState;
-  nextChangeTime: number; // The game time when the weather will change
+  nextChangeTime: number; 
 }
 
-
 // --- WORLD & GAME STATE TYPES ---
-
-// Represents the structure of items loaded from Firestore/premade worlds.
 export type GeneratedItem = Omit<ItemDefinition, 'name' | 'description'> & {
   name: TranslatableString;
   description: TranslatableString;
 };
 
-// 1. WorldProfile: Global settings for the world, affecting all biomes.
 export interface WorldProfile {
     climateBase: 'temperate' | 'arid' | 'tropical';
-    magicLevel: number; // 0-10, how magical the world is
-    mutationFactor: number; // 0-10, chance for strange things to happen
-    sunIntensity: number; // 0-10, base sunlight level
+    magicLevel: number; 
+    mutationFactor: number; 
+    sunIntensity: number; 
     weatherTypesAllowed: ('clear' | 'rain' | 'fog' | 'snow')[];
-    moistureBias: number; // -5 to +5, global moisture offset
-    tempBias: number; // -5 to +5, global temperature offset
-    resourceDensity: number; // 0-10, affects amount of spawned resources
+    moistureBias: number; 
+    tempBias: number; 
+    resourceDensity: number; 
     theme: GameTheme;
 }
 
-// 2. Season: Global modifiers based on the time of year.
 export interface SeasonModifiers {
     temperatureMod: number;
     moistureMod: number;
     sunExposureMod: number;
     windMod: number;
-    eventChance: number; // Base chance for seasonal events
+    eventChance: number; 
 }
 
 export type GameTheme = 'Normal' | 'Magic' | 'Horror' | 'SciFi';
@@ -192,7 +174,7 @@ export interface GameSettings {
 
 export interface ChunkItem {
     name: TranslatableString;
-    description: TranslatableString; // Can be a key or an object
+    description: TranslatableString; 
     quantity: number;
     tier: number;
     emoji: string;
@@ -220,7 +202,6 @@ export interface Npc {
     rewardItems?: PlayerItem[];
 }
 
-// Represents a skill the player can use.
 export interface Skill {
     name: TranslatableString;
     description: TranslatableString;
@@ -238,23 +219,17 @@ export interface Skill {
     };
 }
 
-// Represents a structure in the world (natural or player-built)
-// This is now an instance of a StructureDefinition
 export interface Structure extends Omit<StructureDefinition, 'name' | 'description'> {
     name: TranslatableString;
     description: TranslatableString;
 }
 
-
-// Represents a contextual action available in a chunk
 export interface Action {
   id: number;
   textKey: TranslationKey;
   params?: Record<string, string | number>;
 }
 
-
-// This represents the detailed properties of a single tile/chunk in the world.
 export interface Chunk {
     x: number;
     y: number;
@@ -264,18 +239,18 @@ export interface Chunk {
     items: ChunkItem[];
     structures: Structure[];
     explored: boolean;
-    lastVisited: number; // The turn number this chunk was last part of the player's view
+    lastVisited: number; 
     enemy: {
         type: TranslatableString;
         hp: number;
         damage: number;
         behavior: 'aggressive' | 'passive' | 'defensive' | 'territorial' | 'immobile' | 'ambush';
         size: 'small' | 'medium' | 'large';
-        diet: string[]; // e.g., ['Thịt hoang hung dữ', 'Quả Mọng Ăn Được']
-        satiation: number; // Current food level
-        maxSatiation: number; // How much food it needs to be "full"
+        diet: string[]; 
+        satiation: number; 
+        maxSatiation: number; 
         emoji: string;
-        harvestable?: { // For resources like trees
+        harvestable?: { 
             difficulty: number;
             requiredTool: string;
             loot: LootDrop[];
@@ -284,31 +259,25 @@ export interface Chunk {
     } | null;
     actions: Action[];
     regionId: number;
-
-    // --- Detailed Tile Attributes ---
-    travelCost: number;          // How many turns/energy it costs to cross this tile.
-    vegetationDensity: number;   // 0-10, density of plants, affects visibility.
-    moisture: number;            // 0-10, affects fungi, swamps, slipperiness.
-    elevation: number;           // -10 to 10, height, creates slopes, hills.
-    lightLevel: number;          // -10 (pitch black) to 10 (bright sun), affects visibility, enemy spawning.
-    dangerLevel: number;         // 0-10, probability of traps, enemies.
-    magicAffinity: number;       // 0-10, presence of magical energy.
-    humanPresence: number;       // 0-10, signs of human activity (camps, ruins).
-    explorability: number;       // 0-10, ease of exploration.
-    soilType: SoilType;          // Type of ground, affects what can grow.
-    predatorPresence: number;    // 0-10, likelihood of predator encounters.
-
-    // Optional because they are dynamically calculated by applying weather to a base value
+    travelCost: number;          
+    vegetationDensity: number;   
+    moisture: number;            
+    elevation: number;           
+    lightLevel: number;          
+    dangerLevel: number;         
+    magicAffinity: number;       
+    humanPresence: number;       
+    explorability: number;       
+    soilType: SoilType;          
+    predatorPresence: number;    
     windLevel?: number;
     temperature?: number;
 }
 
-// Represents the entire game world as a collection of chunks.
 export interface World {
     [key: string]: Chunk;
 }
 
-// Represents the player's current status.
 export interface PlayerStatus {
     hp: number;
     mana: number;
@@ -355,8 +324,6 @@ export type NarrativeEntry = {
     type: 'narrative' | 'action' | 'system';
 }
 
-// This defines the final, assembled world concept object that the game uses.
-// It's constructed in the WorldSetup component from the AI's generated data.
 export interface WorldConcept {
   worldName: TranslatableString;
   initialNarrative: TranslatableString;
@@ -373,7 +340,6 @@ export interface RecipeIngredient {
     quantity: number;
 }
 
-// Represents the detailed result of checking a recipe, for use in the UI.
 export interface CraftingOutcome {
     canCraft: boolean;
     chance: number;
@@ -381,15 +347,13 @@ export interface CraftingOutcome {
     ingredientsToConsume: { name: string; quantity: number }[];
     resolvedIngredients: {
         requirement: {name: string, quantity: number};
-        usedItem: { name: string; tier: number } | null; // which item was chosen
+        usedItem: { name: string; tier: number } | null; 
         isSubstitute: boolean;
-        hasEnough: boolean; // if enough of *any* valid item is available for this slot
+        hasEnough: boolean; 
         playerQuantity: number;
     }[];
 }
 
-
-// Represents the entire savable state of the game
 export interface GameState {
     worldProfile: WorldProfile;
     currentSeason: Season;
@@ -413,17 +377,13 @@ export interface GameState {
     customItemCatalog: GeneratedItem[];
     customStructures: StructureDefinition[];
     weatherZones: { [zoneId: string]: WeatherZone };
-    gameTime: number; // In-game minutes from 0 to 1439
+    gameTime: number; 
     day: number;
     turn: number;
 }
 
-// --- RANDOM EVENT SYSTEM ---
-// This is an instance of a RandomEventDefinition
 export type RandomEvent = RandomEventDefinition;
 
-// --- MODDING ---
-// This is now the definitive structure for a mod file.
 export interface ModBundle {
     id: string;
     items?: Record<string, ItemDefinition>;

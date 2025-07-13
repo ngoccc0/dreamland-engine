@@ -1,15 +1,9 @@
-
-
-import type { Chunk, ChunkItem, Action, Language, ItemDefinition, World, PlayerItem, Skill, TranslationKey, MoodTag, NarrativeLength, NarrativeTemplate, ConditionType, BiomeAdjectiveCategory, PlayerStatus } from "../types";
+import type { Chunk, MoodTag, PlayerStatus } from "../types";
+import { getTranslatedText } from "../../utils";
+import type { TranslationKey, Language } from "../../i18n";
 import { getTemplates } from "../templates";
-import { translations } from "../../i18n";
-import { clamp, getTranslatedText } from "../../utils";
 import type { SuccessLevel } from "../dice";
 import { getEffectiveChunk, ensureChunkExists } from "./generation";
-
-const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
-
-export { getEffectiveChunk, ensureChunkExists };
 
 /**
  * Phân tích các thuộc tính của chunk để xác định các MoodTag chủ đạo.
@@ -20,55 +14,54 @@ export { getEffectiveChunk, ensureChunkExists };
 const analyze_chunk_mood = (chunk: Chunk): MoodTag[] => {
     const moods: MoodTag[] = [];
 
-    // 1. Mức độ Nguy hiểm (dangerLevel)
-    if (chunk.dangerLevel >= 7) { // Rất nguy hiểm
-        moods.push("Danger", "Foreboding");
-    } else if (chunk.dangerLevel >= 4) { // Có thể nguy hiểm
-        moods.push("Danger");
+    // 1. Mức độ Nguy hiểm (dangerLevel) - Thang điểm 0-100
+    if (chunk.dangerLevel >= 70) { // Rất nguy hiểm
+        moods.push("Danger", "Foreboding", "Threatening");
+    } else if (chunk.dangerLevel >= 40) { // Có thể nguy hiểm
+        moods.push("Threatening");
     }
 
-    // 2. Mức độ Ánh sáng (lightLevel)
+    // 2. Mức độ Ánh sáng (lightLevel) - Thang điểm -100 đến 100
     if (chunk.lightLevel <= 0) { // Tối hoàn toàn
         moods.push("Dark", "Gloomy", "Mysterious");
-    } else if (chunk.lightLevel < 5) { // Mờ ảo, thiếu sáng
+    } else if (chunk.lightLevel < 50) { // Mờ ảo, thiếu sáng
         moods.push("Mysterious", "Gloomy");
-    } else if (chunk.lightLevel >= 8) { // Rất sáng
-        moods.push("Vibrant", "Peaceful"); // Nếu ánh sáng tốt có thể liên quan đến sự sống động
+    } else if (chunk.lightLevel >= 80) { // Rất sáng
+        moods.push("Vibrant", "Peaceful"); 
     }
 
-    // 3. Độ ẩm (moisture)
-    if (chunk.moisture >= 8) { // Rất ẩm ướt, đầm lầy, rừng rậm
+    // 3. Độ ẩm (moisture) - Thang điểm 0-100
+    if (chunk.moisture >= 80) { // Rất ẩm ướt
         moods.push("Lush", "Wet", "Vibrant");
-    } else if (chunk.moisture <= 2) { // Khô hạn
+    } else if (chunk.moisture <= 20) { // Khô hạn
         moods.push("Arid", "Desolate");
     }
 
-    // 4. Sự hiện diện của kẻ săn mồi (predatorPresence)
-    if (chunk.predatorPresence >= 6) { // Nhiều kẻ săn mồi
+    // 4. Sự hiện diện của kẻ săn mồi (predatorPresence) - Thang điểm 0-100
+    if (chunk.predatorPresence >= 60) { // Nhiều kẻ săn mồi
         moods.push("Danger", "Wild");
     }
 
-    // 5. Liên kết ma thuật (magicAffinity)
-    if (chunk.magicAffinity >= 7) { // Năng lượng ma thuật mạnh
-        moods.push("Magic", "Mysterious", "Ethereal"); // Thêm "Ethereal" nếu muốn
-    } else if (chunk.magicAffinity >= 4) { // Có dấu hiệu ma thuật
+    // 5. Liên kết ma thuật (magicAffinity) - Thang điểm 0-100
+    if (chunk.magicAffinity >= 70) { // Năng lượng ma thuật mạnh
+        moods.push("Magic", "Mysterious", "Ethereal"); 
+    } else if (chunk.magicAffinity >= 40) { // Có dấu hiệu ma thuật
         moods.push("Mysterious");
     }
 
-    // 6. Sự hiện diện của con người (humanPresence)
-    if (chunk.humanPresence >= 6) { // Có dấu hiệu con người đáng kể
-        moods.push("Civilized", "Historic"); // Hoặc "Abandoned", "Ruined" tùy ngữ cảnh
+    // 6. Sự hiện diện của con người (humanPresence) - Thang điểm 0-100
+    if (chunk.humanPresence >= 60) { // Có dấu hiệu con người đáng kể
+        moods.push("Civilized", "Historic");
     }
 
-    // 7. Nhiệt độ (temperature)
-    if (chunk.temperature && chunk.temperature >= 8) { // Rất nóng
+    // 7. Nhiệt độ (temperature) - Thang điểm 0-100
+    if (chunk.temperature >= 80) { // Rất nóng
         moods.push("Hot", "Harsh");
-    } else if (chunk.temperature && chunk.temperature <= 2) { // Rất lạnh
+    } else if (chunk.temperature <= 20) { // Rất lạnh
         moods.push("Cold", "Harsh");
     }
 
-    // 8. Địa hình (terrain) - Gán mood dựa trên loại địa hình cơ bản
-    // Đây là cách bạn có thể ánh xạ terrain trực tiếp sang mood tag
+    // 8. Địa hình (terrain)
     switch (chunk.terrain) {
         case "swamp":
             moods.push("Gloomy", "Wet", "Mysterious");
@@ -88,11 +81,8 @@ const analyze_chunk_mood = (chunk: Chunk): MoodTag[] => {
         case "volcanic":
             moods.push("Danger", "Harsh");
             break;
-        // Thêm các terrain khác nếu cần
     }
 
-
-    // Loại bỏ các mood trùng lặp và trả về
     return Array.from(new Set(moods));
 };
 
@@ -116,7 +106,7 @@ export const handleSearchAction = (
         return { narrative: t('exploreFoundNothing'), newChunk };
     }
 
-    const successChance = 0.8 * (newChunk.explorability / 10);
+    const successChance = 0.8 * (newChunk.explorability / 100);
 
     if (Math.random() > successChance) {
         return { narrative: t('exploreFoundNothing'), newChunk };
@@ -202,7 +192,7 @@ export const generateOfflineNarrative = (
     const biomeTemplateData = templates[chunk.terrain];
 
     if (!biomeTemplateData?.descriptionTemplates) {
-        return chunk.description || "You are in an unknown area.";
+        return getTranslatedText(chunk.description, language, t) || "You are in an unknown area.";
     }
     
     const templateSet = (biomeTemplateData as any).descriptionTemplates[narrativeLength] || (biomeTemplateData as any).descriptionTemplates.medium || (biomeTemplateData as any).descriptionTemplates.short;
@@ -210,20 +200,18 @@ export const generateOfflineNarrative = (
 
     // --- 1. PRE-BUILD CONTENT FOR PLACEHOLDERS ---
 
-    // Build {sensory_details}
     const sensoryDetailsParts: string[] = [];
-    if (chunk.explorability < 3) sensoryDetailsParts.push(t('offline_explorability_low'));
-    if (chunk.dangerLevel > 8) sensoryDetailsParts.push(t('offline_danger_high'));
-    if (chunk.magicAffinity > 7) sensoryDetailsParts.push(t('offline_magic_high'));
-    if (chunk.temperature && chunk.temperature >= 9) sensoryDetailsParts.push(t('sensoryFeedback_hot'));
-    if (chunk.temperature && chunk.temperature <= 2) sensoryDetailsParts.push(t('sensoryFeedback_cold'));
-    if (chunk.moisture && chunk.moisture >= 8) sensoryDetailsParts.push(t('offline_moisture_high'));
-    if (chunk.lightLevel && chunk.lightLevel <= -5) sensoryDetailsParts.push(t('sensoryFeedback_dark'));
-    if (chunk.humanPresence > 5) sensoryDetailsParts.push(t('offline_human_presence'));
-    if (chunk.predatorPresence > 7) sensoryDetailsParts.push(t('offline_predator_presence'));
+    if (chunk.explorability < 30) sensoryDetailsParts.push(t('offline_explorability_low'));
+    if (chunk.dangerLevel > 80) sensoryDetailsParts.push(t('offline_danger_high'));
+    if (chunk.magicAffinity > 70) sensoryDetailsParts.push(t('offline_magic_high'));
+    if (chunk.temperature && chunk.temperature >= 90) sensoryDetailsParts.push(t('sensoryFeedback_hot'));
+    if (chunk.temperature && chunk.temperature <= 20) sensoryDetailsParts.push(t('sensoryFeedback_cold'));
+    if (chunk.moisture && chunk.moisture >= 80) sensoryDetailsParts.push(t('offline_moisture_high'));
+    if (chunk.lightLevel && chunk.lightLevel <= 0) sensoryDetailsParts.push(t('sensoryFeedback_dark'));
+    if (chunk.humanPresence > 50) sensoryDetailsParts.push(t('offline_human_presence'));
+    if (chunk.predatorPresence > 70) sensoryDetailsParts.push(t('offline_predator_presence'));
     const sensoryDetailsText = sensoryDetailsParts.join(' ');
 
-    // Build {entity_report}
     const entityReportParts: string[] = [];
     if (chunk.items.length > 0) {
         const itemsHere = chunk.items.map(i => `${i.quantity} ${getTranslatedText(i.name, language, t)}`).join(', ');
@@ -240,7 +228,6 @@ export const generateOfflineNarrative = (
     }
     const entityReportText = entityReportParts.join(' ');
     
-    // Build {surrounding_peek}
     const surroundingPeekParts: string[] = [];
     if (narrativeLength !== 'short') {
         const directions = [{ x: 0, y: 1, dir: 'North' }, { x: 0, y: -1, dir: 'South' }, { x: 1, y: 0, dir: 'East' }, { x: -1, y: 0, dir: 'West' }];
@@ -258,8 +245,6 @@ export const generateOfflineNarrative = (
     }
     const surroundingPeekText = surroundingPeekParts.length > 0 ? t('offlineNarrativeSurroundings') + ' ' + surroundingPeekParts.join(' ') : '';
     
-    // --- 2. PERFORM REPLACEMENTS ---
-    
     baseTemplate = baseTemplate
         .replace(/\[adjective\]/g, () => biomeTemplateData.adjectives[Math.floor(Math.random() * biomeTemplateData.adjectives.length)])
         .replace(/\[feature\]/g, () => biomeTemplateData.features[Math.floor(Math.random() * biomeTemplateData.features.length)])
@@ -272,10 +257,7 @@ export const generateOfflineNarrative = (
         .replace('{entity_report}', entityReportText)
         .replace('{surrounding_peek}', surroundingPeekText);
         
-    // --- 3. CLEAN UP ---
-    // Remove any extra whitespace that might result from empty replacements
     finalNarrative = finalNarrative.replace(/\s{2,}/g, ' ').trim();
-    // Remove dangling sentences or sentence fragments that might end with a period followed by nothing.
     finalNarrative = finalNarrative.replace(/\. \./g, '.');
     finalNarrative = finalNarrative.replace(/ \./g, '.');
     finalNarrative = finalNarrative.replace(/\s,/g, ',');
@@ -283,7 +265,6 @@ export const generateOfflineNarrative = (
 
     return finalNarrative;
 };
-
 
 export const generateOfflineActionNarrative = (
     actionType: 'attack' | 'useSkill' | 'useItem',
@@ -295,10 +276,10 @@ export const generateOfflineActionNarrative = (
     let narrativeParts: string[] = [];
     const sensoryFeedbackParts: string[] = [];
 
-    if (chunk.temperature && chunk.temperature >= 9) sensoryFeedbackParts.push(t('sensoryFeedback_hot'));
-    if (chunk.temperature && chunk.temperature <= 2) sensoryFeedbackParts.push(t('sensoryFeedback_cold'));
-    if (chunk.lightLevel && chunk.lightLevel <= -5) sensoryFeedbackParts.push(t('sensoryFeedback_dark'));
-    if (chunk.moisture && chunk.moisture >= 8) sensoryFeedbackParts.push(t('sensoryFeedback_rain'));
+    if (chunk.temperature && chunk.temperature >= 90) sensoryFeedbackParts.push(t('sensoryFeedback_hot'));
+    if (chunk.temperature && chunk.temperature <= 20) sensoryFeedbackParts.push(t('sensoryFeedback_cold'));
+    if (chunk.lightLevel && chunk.lightLevel <= 0) sensoryFeedbackParts.push(t('sensoryFeedback_dark'));
+    if (chunk.moisture && chunk.moisture >= 80) sensoryFeedbackParts.push(t('sensoryFeedback_rain'));
     
     const sensory_feedback = sensoryFeedbackParts.join(' ');
     
@@ -373,7 +354,6 @@ export const generateOfflineActionNarrative = (
         }
     }
     
-    // Fallback if templateKey wasn't set correctly
     if (templateKey === 'exploreAction') return t('customActionFail');
     
     return t(templateKey, replacements);

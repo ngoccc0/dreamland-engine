@@ -11,6 +11,7 @@ import { rollDice, getSuccessLevel, type SuccessLevel } from '@/lib/game/dice';
 import type { GameState, PlayerStatus, Chunk, Season, WorldProfile, ItemDefinition, GeneratedItem, TranslatableString, Language } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 import { generateChunksInRadius } from '@/lib/game/engine/generation';
+import { logger } from '@/lib/logger';
 
 type GameEventsDeps = {
   isLoaded: boolean;
@@ -160,23 +161,26 @@ export function useGameEvents(deps: GameEventsDeps) {
     // Proactive Chunk Generation
     const nextProactiveTurnCount = turnsSinceLastProactiveGen + 1;
     if (nextProactiveTurnCount >= PROACTIVE_GEN_INTERVAL) {
-      const { world: newWorld, regions: newRegions, regionCounter: newRegionCounter } = generateChunksInRadius(
-        world,
-        regions,
-        regionCounter,
-        playerPosition.x,
-        playerPosition.y,
-        PROACTIVE_GEN_RADIUS,
-        worldProfile,
-        currentSeason,
-        customItemDefinitions,
-        customItemCatalog,
-        customStructures,
-        language
-      );
-      setWorld(newWorld);
-      setRegions(newRegions);
-      setRegionCounter(newRegionCounter);
+      setTimeout(() => {
+        const { world: newWorld, regions: newRegions, regionCounter: newRegionCounter } = generateChunksInRadius(
+          world,
+          regions,
+          regionCounter,
+          playerPosition.x,
+          playerPosition.y,
+          PROACTIVE_GEN_RADIUS,
+          worldProfile,
+          currentSeason,
+          customItemDefinitions,
+          customItemCatalog,
+          customStructures,
+          language
+        );
+        setWorld(newWorld);
+        setRegions(newRegions);
+        setRegionCounter(newRegionCounter);
+        logger.info('Proactive chunk generation completed in background.');
+      }, 300);
       setTurnsSinceLastProactiveGen(0); // Reset counter
     } else {
       setTurnsSinceLastProactiveGen(nextProactiveTurnCount);
@@ -185,5 +189,6 @@ export function useGameEvents(deps: GameEventsDeps) {
     // Random Event Trigger
     triggerRandomEvent();
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turn, isLoaded, isGameOver]);
 }

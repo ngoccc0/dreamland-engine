@@ -63,7 +63,7 @@ export function useGameEvents(deps: GameEventsDeps) {
 
     const event = triggeredEvents[Math.floor(Math.random() * triggeredEvents.length)];
 
-    const eventName = t(event.name as TranslationKey);
+    const eventName = t(event.nameKey);
     addNarrativeEntry(t('eventTriggered', { eventName }), 'system');
 
     const { roll } = rollDice('d20');
@@ -72,7 +72,7 @@ export function useGameEvents(deps: GameEventsDeps) {
     const outcome = event.outcomes[successLevel] || event.outcomes['Success'];
     if (!outcome) return;
 
-    addNarrativeEntry(t(outcome.descriptionKey as TranslationKey), 'narrative');
+    addNarrativeEntry(t(outcome.descriptionKey), 'narrative');
 
     const effects = outcome.effects;
 
@@ -127,8 +127,8 @@ export function useGameEvents(deps: GameEventsDeps) {
                 if (enemyTemplate) {
                     chunkToUpdate.enemy = {
                         ...enemyTemplate,
-                        hp: effects.spawnEnemy.hp,
-                        damage: effects.spawnEnemy.damage,
+                        hp: effects.spawnEnemy!.hp,
+                        damage: effects.spawnEnemy!.damage,
                         satiation: 0,
                     };
                 }

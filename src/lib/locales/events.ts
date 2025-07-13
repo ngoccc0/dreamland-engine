@@ -1,3 +1,4 @@
+
 // src/lib/locales/events.ts
 
 export const eventTranslations = {

@@ -4,6 +4,7 @@ export const randomEvents: RandomEvent[] = [
     // --- MAGIC EVENTS ---
     {
         id: 'mysticFog',
+        nameKey: 'mysticFog',
         theme: 'Magic',
         difficulty: 'easy',
         canTrigger: (chunk) => !['desert', 'volcanic', 'cave'].includes(chunk.terrain),
@@ -18,6 +19,7 @@ export const randomEvents: RandomEvent[] = [
     },
     {
         id: 'magicRain',
+        nameKey: 'magicRain',
         theme: 'Magic',
         difficulty: 'medium',
         canTrigger: (chunk) => !['desert', 'volcanic', 'cave'].includes(chunk.terrain),
@@ -39,6 +41,7 @@ export const randomEvents: RandomEvent[] = [
     },
     {
         id: 'magicStorm',
+        nameKey: 'magicStorm',
         theme: 'Magic',
         difficulty: 'hard',
         canTrigger: (chunk) => !['desert', 'cave'].includes(chunk.terrain),
@@ -81,6 +84,7 @@ export const randomEvents: RandomEvent[] = [
     // --- NORMAL EVENTS ---
     {
         id: 'lightRain',
+        nameKey: 'lightRain',
         theme: 'Normal',
         difficulty: 'easy',
         canTrigger: (chunk) => !['desert', 'volcanic', 'cave'].includes(chunk.terrain),
@@ -102,6 +106,7 @@ export const randomEvents: RandomEvent[] = [
     },
     {
         id: 'blizzard',
+        nameKey: 'blizzard',
         theme: 'Normal',
         difficulty: 'hard',
         canTrigger: (chunk, player, season) => ['mountain', 'forest'].includes(chunk.terrain) && (season === 'winter' || chunk.temperature < 2),
@@ -131,6 +136,7 @@ export const randomEvents: RandomEvent[] = [
     // --- RARE EVENTS ---
     {
         id: 'fallenStar',
+        nameKey: 'fallenStar',
         theme: 'Magic',
         difficulty: 'hard',
         chance: 0.1,
@@ -160,6 +166,7 @@ export const randomEvents: RandomEvent[] = [
     },
     {
         id: 'abandonedCaravan',
+        nameKey: 'abandonedCaravan',
         theme: 'Normal',
         difficulty: 'medium',
         chance: 0.2,
@@ -185,6 +192,7 @@ export const randomEvents: RandomEvent[] = [
     },
     {
         id: 'ghostlyProcession',
+        nameKey: 'ghostlyProcession',
         theme: 'Magic',
         difficulty: 'easy',
         chance: 0.15,

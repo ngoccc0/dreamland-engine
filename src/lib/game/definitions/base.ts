@@ -1,3 +1,4 @@
+
 import {z} from 'genkit';
 
 // Defines a range for environmental conditions, e.g., moisture: { min: 5, max: 8 }.
@@ -20,7 +21,7 @@ export const SpawnConditionsSchema = z.object({
   temperature: ConditionRangeSchema.optional(),
   soilType: z.array(z.string()).optional(),
   timeOfDay: z.enum(['day', 'night']).optional(),
-  visibility: ConditionRangeSchema.optional(),
+  visibility: ConditionRange_schema.optional(),
   humidity: ConditionRangeSchema.optional(),
 }).describe("A set of environmental conditions that must be met for spawning.");
 export type SpawnConditions = z.infer<typeof SpawnConditionsSchema>;

@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import type { Language, TranslatableString } from "./game/types";
+import type { Language, NarrativeLength, TranslatableString } from "./game/types";
 import type { TranslationKey } from "./i18n";
 
 export function cn(...inputs: ClassValue[]) {
@@ -20,10 +20,10 @@ export const clamp = (num: number, min: number, max: number) => Math.min(Math.ma
 export function getTranslatedText(
     translatable: TranslatableString,
     language: Language,
-    t: (key: TranslationKey, options?: any) => string
+    t?: (key: TranslationKey, options?: any) => string
 ): string {
     if (typeof translatable === 'string') {
-        return t(translatable);
+        return t ? t(translatable) : translatable;
     }
     if (typeof translatable === 'object' && translatable !== null) {
         return translatable[language] || translatable['en'] || '';
@@ -93,3 +93,75 @@ export function getEmojiForItem(name: string, category: string): string {
     // Return a default emoji if no specific or category match is found.
     return '❓';
 }
+
+/**
+ * Nối các câu lại với nhau một cách thông minh, thêm từ nối tùy theo độ dài narrative.
+ * @param sentences Mảng các chuỗi câu.
+ * @param narrativeLength Độ dài narrative để quyết định kiểu từ nối.
+ * @returns Chuỗi narrative hoàn chỉnh.
+ */
+export const SmartJoinSentences = (sentences: string[], narrativeLength: NarrativeLength): string => {
+    if (!sentences || sentences.length === 0) return "";
+    if (sentences.length === 1) return sentences[0];
+
+    let result = sentences[0].trim();
+
+    for (let i = 1; i < sentences.length; i++) {
+        const currentSentence = sentences[i].trim();
+        if (!currentSentence) continue;
+
+        // Xóa dấu câu cuối câu trước đó để nối mượt hơn
+        const lastCharOfPrev = result[result.length - 1];
+        if (lastCharOfPrev === '.' || lastCharOfPrev === ',' || lastCharOfPrev === '!' || lastCharOfPrev === '?') {
+            result = result.slice(0, -1);
+        }
+
+        let connector = "";
+        switch (narrativeLength) {
+            case "short":
+                connector = " và "; // Ít từ nối, đơn giản
+                break;
+            case "medium":
+                const mediumConnectors = [" và ", ". Bỗng nhiên, ", ". Ngoài ra, ", "."];
+                connector = mediumConnectors[Math.floor(Math.random() * mediumConnectors.length)];
+                break;
+            case "long":
+            case "detailed":
+                const longConnectors = [
+                    ", thêm vào đó ", ". Hơn thế nữa, ", ". Không chỉ vậy, ", ". Đáng chú ý là, ",
+                    ". Trong khi đó, ", ". Tuy nhiên, "
+                ];
+                connector = longConnectors[Math.floor(Math.random() * longConnectors.length)];
+                break;
+            default:
+                connector = ". ";
+                break;
+        }
+
+        // Đảm bảo có khoảng trắng sau dấu câu nếu nối
+        if (result.length > 0 && ['.', '!', '?'].includes(result[result.length - 1]) && !connector.startsWith(' ')) {
+            result += ' ';
+        }
+        // Nếu câu hiện tại bắt đầu bằng dấu câu hoặc từ nối đã có dấu câu, chỉ thêm khoảng trắng
+        if (currentSentence.startsWith('.') || currentSentence.startsWith(',') || currentSentence.startsWith('!') || currentSentence.startsWith('?')) {
+             result += ' ';
+        } else {
+            result += connector;
+        }
+
+        result += currentSentence;
+    }
+
+    // Dọn dẹp cuối cùng
+    result = result.replace(/\s{2,}/g, ' ').trim(); // Xóa khoảng trắng thừa
+    result = result.replace(/\s+([.,!?;:])/g, '$1'); // Xóa khoảng trắng trước dấu câu
+    result = result.replace(/([.,!?;:]){2,}/g, '$1'); // Xóa dấu câu lặp (ví dụ: ".." thành ".")
+    result = result.replace(/([.,])([A-Z])/g, '$1 $2'); // Đảm bảo có khoảng trắng sau dấu chấm/phẩy nếu theo sau là chữ hoa
+
+    // Đảm bảo câu kết thúc bằng dấu chấm (nếu có nội dung và chưa kết thúc bằng dấu câu)
+    if (result.length > 0 && !result.endsWith('.') && !result.endsWith('!') && !result.endsWith('?')) {
+        result += '.';
+    }
+
+    return result;
+};

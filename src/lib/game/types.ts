@@ -79,44 +79,44 @@ export type ConditionType = {
     predatorPresence?: ConditionRange;
     lightLevel?: ConditionRange;
     temperature?: ConditionRange;
-    soilType?: string[]; 
+    soilType?: string[];
     timeOfDay?: 'day' | 'night';
     visibility?: ConditionRange;
     humidity?: ConditionRange;
-    playerHealth?: ConditionRange; 
+    playerHealth?: ConditionRange;
     playerStamina?: ConditionRange;
     requiredEntities?: {
-        enemyType?: string; 
-        itemType?: string; 
+        enemyType?: string;
+        itemType?: string;
     };
 };
 
 export type NarrativeTemplateType = 'Opening' | 'EnvironmentDetail' | 'SensoryDetail' | 'EntityReport' | 'SurroundingPeek' | 'Closing' | 'Filler';
-export type NarrativeLength = 'short' | 'medium' | 'long' | 'detailed'; 
-export type MoodTag = 'Danger' | 'Peaceful' | 'Magic' | 'Foreboding' | 'Resourceful' | 'Lush' | 'Gloomy' | 'Dark' | 'Serene' | 'Vibrant' | 'Mysterious' | 'Desolate' | 'Threatening' | 'Wet' | 'Arid' | 'Wild' | 'Ethereal' | 'Civilized' | 'Historic' | 'Hot' | 'Cold' | 'Harsh' | 'Rugged';
+export type NarrativeLength = 'short' | 'medium' | 'long' | 'detailed';
+export type MoodTag = 'Danger' | 'Peaceful' | 'Magic' | 'Foreboding' | 'Resourceful' | 'Lush' | 'Gloomy' | 'Dark' | 'Serene' | 'Vibrant' | 'Mysterious' | 'Desolate' | 'Threatening' | 'Wet' | 'Arid' | 'Wild' | 'Ethereal' | 'Civilized' | 'Historic' | 'Hot' | 'Cold' | 'Harsh' | 'Rugged' | 'Elevated' | 'Confined' | 'Smoldering' | 'Vast' | 'Structured' | 'Barren' | 'Abandoned';
 
 export type NarrativeTemplate = {
     id: string;
     type: NarrativeTemplateType;
-    mood: MoodTag[]; 
+    mood: MoodTag[];
     length: NarrativeLength;
     conditions?: ConditionType;
-    weight: number; 
-    template: string; 
+    weight: number;
+    template: string;
 };
 
 export type BiomeAdjectiveCategory = {
-    [key: string]: string[]; 
+    [key: string]: string[];
 };
 
 export type BiomeTemplateData = {
     terrain: string;
-    descriptionTemplates: NarrativeTemplate[]; 
-    adjectives: BiomeAdjectiveCategory; 
-    features: BiomeAdjectiveCategory; 
-    smells: BiomeAdjectiveCategory; 
-    sounds: BiomeAdjectiveCategory; 
-    sky?: BiomeAdjectiveCategory; 
+    descriptionTemplates: NarrativeTemplate[];
+    adjectives: BiomeAdjectiveCategory;
+    features: BiomeAdjectiveCategory;
+    smells: BiomeAdjectiveCategory;
+    sounds: BiomeAdjectiveCategory;
+    sky?: BiomeAdjectiveCategory;
 };
 
 export type GameTemplates = {

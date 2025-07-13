@@ -1,67 +1,71 @@
-import type { Chunk, MoodTag, PlayerStatus } from "../types";
-import { getTranslatedText } from "../../utils";
-import type { TranslationKey, Language } from "../../i18n";
+import type { Chunk, ChunkItem, World, PlayerStatus, Action, ItemDefinition, Skill, MoodTag, NarrativeLength, NarrativeTemplate, ConditionType, BiomeAdjectiveCategory, Language } from "../types";
 import { getTemplates } from "../templates";
+import { translations } from "../../i18n";
+import type { TranslationKey } from "../../i18n";
+import { clamp, getTranslatedText, SmartJoinSentences } from "../../utils";
 import type { SuccessLevel } from "../dice";
-import { getEffectiveChunk, ensureChunkExists } from "./generation";
 
 /**
  * Phân tích các thuộc tính của chunk để xác định các MoodTag chủ đạo.
- * Hàm này đọc các giá trị số và gán các nhãn tâm trạng dựa trên ngưỡng đã định.
+ * Hàm này đọc các giá trị số và gán các nhãn tâm trạng dựa trên ngưỡng đã định (dải 0-100).
  * @param chunk Dữ liệu chunk hiện tại.
  * @returns Mảng các MoodTag mô tả tâm trạng của chunk.
  */
 const analyze_chunk_mood = (chunk: Chunk): MoodTag[] => {
     const moods: MoodTag[] = [];
 
-    // 1. Mức độ Nguy hiểm (dangerLevel) - Thang điểm 0-100
+    // 1. Mức độ Nguy hiểm (dangerLevel) - Dải 0-100
     if (chunk.dangerLevel >= 70) { // Rất nguy hiểm
         moods.push("Danger", "Foreboding", "Threatening");
     } else if (chunk.dangerLevel >= 40) { // Có thể nguy hiểm
         moods.push("Threatening");
     }
 
-    // 2. Mức độ Ánh sáng (lightLevel) - Thang điểm -100 đến 100
-    if (chunk.lightLevel <= 0) { // Tối hoàn toàn
+    // 2. Mức độ Ánh sáng (lightLevel) - Dải 0-100 (0: pitch black, 100: bright sun)
+    if (chunk.lightLevel <= 10) { // Tối hoàn toàn (ví dụ, trong hang động hoặc đêm tối)
         moods.push("Dark", "Gloomy", "Mysterious");
-    } else if (chunk.lightLevel < 50) { // Mờ ảo, thiếu sáng
+    } else if (chunk.lightLevel < 50) { // Mờ ảo, thiếu sáng (ví dụ, hoàng hôn, rừng rậm)
         moods.push("Mysterious", "Gloomy");
-    } else if (chunk.lightLevel >= 80) { // Rất sáng
-        moods.push("Vibrant", "Peaceful"); 
+    } else if (chunk.lightLevel >= 80) { // Rất sáng (ban ngày, khu vực trống trải)
+        moods.push("Vibrant", "Peaceful");
     }
 
-    // 3. Độ ẩm (moisture) - Thang điểm 0-100
-    if (chunk.moisture >= 80) { // Rất ẩm ướt
+    // 3. Độ ẩm (moisture) - Dải 0-100
+    if (chunk.moisture >= 80) { // Rất ẩm ướt, đầm lầy, rừng rậm
         moods.push("Lush", "Wet", "Vibrant");
-    } else if (chunk.moisture <= 20) { // Khô hạn
+    } else if (chunk.moisture <= 20) { // Khô hạn (sa mạc, khu vực nứt nẻ)
         moods.push("Arid", "Desolate");
     }
 
-    // 4. Sự hiện diện của kẻ săn mồi (predatorPresence) - Thang điểm 0-100
+    // 4. Sự hiện diện của kẻ săn mồi (predatorPresence) - Dải 0-100
     if (chunk.predatorPresence >= 60) { // Nhiều kẻ săn mồi
         moods.push("Danger", "Wild");
     }
 
-    // 5. Liên kết ma thuật (magicAffinity) - Thang điểm 0-100
+    // 5. Liên kết ma thuật (magicAffinity) - Dải 0-100
     if (chunk.magicAffinity >= 70) { // Năng lượng ma thuật mạnh
-        moods.push("Magic", "Mysterious", "Ethereal"); 
+        moods.push("Magic", "Mysterious", "Ethereal");
     } else if (chunk.magicAffinity >= 40) { // Có dấu hiệu ma thuật
         moods.push("Mysterious");
     }
 
-    // 6. Sự hiện diện của con người (humanPresence) - Thang điểm 0-100
-    if (chunk.humanPresence >= 60) { // Có dấu hiệu con người đáng kể
+    // 6. Sự hiện diện của con người (humanPresence) - Dải 0-100
+    if (chunk.humanPresence >= 60) { // Có dấu hiệu con người đáng kể (làng mạc, tàn tích)
         moods.push("Civilized", "Historic");
+    } else if (chunk.humanPresence > 0) { // Có chút dấu hiệu nhưng không đáng kể
+        moods.push("Abandoned");
     }
 
-    // 7. Nhiệt độ (temperature) - Thang điểm 0-100
-    if (chunk.temperature >= 80) { // Rất nóng
+    // 7. Nhiệt độ (temperature) - Dải 0-100 (0: đóng băng, 100: cực nóng, 50: dễ chịu)
+    if (chunk.temperature && chunk.temperature >= 80) { // Rất nóng
         moods.push("Hot", "Harsh");
-    } else if (chunk.temperature <= 20) { // Rất lạnh
+    } else if (chunk.temperature && chunk.temperature <= 20) { // Rất lạnh
         moods.push("Cold", "Harsh");
+    } else if (chunk.temperature && chunk.temperature > 35 && chunk.temperature < 65) { // Nhiệt độ dễ chịu
+        moods.push("Peaceful");
     }
 
-    // 8. Địa hình (terrain)
+    // 8. Địa hình (terrain) - Gán mood dựa trên loại địa hình cơ bản
     switch (chunk.terrain) {
         case "swamp":
             moods.push("Gloomy", "Wet", "Mysterious");
@@ -70,21 +74,240 @@ const analyze_chunk_mood = (chunk: Chunk): MoodTag[] => {
             moods.push("Arid", "Desolate", "Harsh");
             break;
         case "mountain":
-            moods.push("Harsh", "Rugged");
+            moods.push("Harsh", "Rugged", "Elevated");
             break;
         case "forest":
             moods.push("Lush", "Peaceful");
             break;
         case "cave":
-            moods.push("Dark", "Mysterious", "Foreboding");
+            moods.push("Dark", "Mysterious", "Foreboding", "Confined");
+            break;
+        case "jungle":
+            moods.push("Lush", "Vibrant", "Mysterious", "Wild");
             break;
         case "volcanic":
-            moods.push("Danger", "Harsh");
+            moods.push("Danger", "Harsh", "Smoldering");
+            break;
+        case "ocean":
+        case "underwater":
+            moods.push("Serene", "Mysterious", "Vast");
+            break;
+        case "city":
+        case "space_station":
+            moods.push("Civilized", "Structured");
+            break;
+        case "tundra":
+            moods.push("Cold", "Desolate", "Barren");
             break;
     }
 
     return Array.from(new Set(moods));
 };
+
+const get_sentence_limits = (narrativeLength: NarrativeLength): { min_s: number; max_s: number; } => {
+    switch (narrativeLength) {
+        case "short":
+            return { min_s: 1, max_s: 2 };
+        case "medium":
+            return { min_s: 2, max_s: 4 };
+        case "long":
+        case "detailed":
+            return { min_s: 4, max_s: 7 };
+        default:
+            return { min_s: 1, max_s: 2 };
+    }
+};
+
+/**
+ * Kiểm tra xem chunk và playerState có đáp ứng tất cả các điều kiện của template hay không.
+ * @param template_conditions Các điều kiện được định nghĩa trong template.
+ * @param chunk Dữ liệu chunk hiện tại.
+ * @param playerState Trạng thái hiện tại của người chơi (tùy chọn).
+ * @returns true nếu tất cả điều kiện được đáp ứng, ngược lại false.
+ */
+const check_conditions = (template_conditions: ConditionType | undefined, chunk: Chunk, playerState?: PlayerStatus): boolean => {
+    if (!template_conditions) return true; // Không có điều kiện nào, luôn đúng
+
+    if (template_conditions.vegetationDensity) {
+        if (chunk.vegetationDensity < (template_conditions.vegetationDensity.min ?? 0) ||
+            chunk.vegetationDensity > (template_conditions.vegetationDensity.max ?? 100)) return false;
+    }
+    if (template_conditions.moisture) {
+        if (chunk.moisture < (template_conditions.moisture.min ?? 0) ||
+            chunk.moisture > (template_conditions.moisture.max ?? 100)) return false;
+    }
+    if (template_conditions.elevation) {
+        if (chunk.elevation < (template_conditions.elevation.min ?? -100) ||
+            chunk.elevation > (template_conditions.elevation.max ?? 100)) return false;
+    }
+    if (template_conditions.dangerLevel) {
+        if (chunk.dangerLevel < (template_conditions.dangerLevel.min ?? 0) ||
+            chunk.dangerLevel > (template_conditions.dangerLevel.max ?? 100)) return false;
+    }
+    if (template_conditions.magicAffinity) {
+        if (chunk.magicAffinity < (template_conditions.magicAffinity.min ?? 0) ||
+            chunk.magicAffinity > (template_conditions.magicAffinity.max ?? 100)) return false;
+    }
+    if (template_conditions.humanPresence) {
+        if (chunk.humanPresence < (template_conditions.humanPresence.min ?? 0) ||
+            chunk.humanPresence > (template_conditions.humanPresence.max ?? 100)) return false;
+    }
+    if (template_conditions.predatorPresence) {
+        if (chunk.predatorPresence < (template_conditions.predatorPresence.min ?? 0) ||
+            chunk.predatorPresence > (template_conditions.predatorPresence.max ?? 100)) return false;
+    }
+    if (template_conditions.lightLevel) {
+        if (chunk.lightLevel < (template_conditions.lightLevel.min ?? -100) ||
+            chunk.lightLevel > (template_conditions.lightLevel.max ?? 100)) return false;
+    }
+    if (chunk.temperature && template_conditions.temperature) {
+        if (chunk.temperature < (template_conditions.temperature.min ?? 0) ||
+            chunk.temperature > (template_conditions.temperature.max ?? 100)) return false;
+    }
+    if (template_conditions.visibility && (chunk as any).visibility) {
+        if ((chunk as any).visibility < (template_conditions.visibility.min ?? 0) ||
+            (chunk as any).visibility > (template_conditions.visibility.max ?? 100)) return false;
+    }
+    if (template_conditions.humidity && (chunk as any).humidity) {
+        if ((chunk as any).humidity < (template_conditions.humidity.min ?? 0) ||
+            (chunk as any).humidity > (template_conditions.humidity.max ?? 100)) return false;
+    }
+
+    if (template_conditions.soilType && template_conditions.soilType.length > 0) {
+        if (!template_conditions.soilType.includes(chunk.soilType)) return false;
+    }
+    
+    // This logic assumes time of day is calculated and attached to the chunk object dynamically.
+    // if (template_conditions.timeOfDay && (chunk as any).timeOfDay !== template_conditions.timeOfDay) {
+    //     return false;
+    // }
+
+    if (playerState) {
+        if (template_conditions.playerHealth) {
+            if (playerState.hp < (template_conditions.playerHealth.min ?? 0) ||
+                playerState.hp > (template_conditions.playerHealth.max ?? 100)) return false;
+        }
+        if (template_conditions.playerStamina) {
+            if (playerState.stamina < (template_conditions.playerStamina.min ?? 0) ||
+                playerState.stamina > (template_conditions.playerStamina.max ?? 100)) return false;
+        }
+    }
+
+    if (template_conditions.requiredEntities) {
+        const { enemyType, itemType } = template_conditions.requiredEntities;
+        let entityFound = false;
+
+        if (enemyType) {
+            if (chunk.enemy && getTranslatedText(chunk.enemy.type, 'en') === enemyType) {
+                entityFound = true;
+            }
+        }
+        if (itemType && !entityFound) {
+            if (chunk.items.some(item => getTranslatedText(item.name, 'en') === itemType)) {
+                entityFound = true;
+            }
+        }
+        if (!entityFound && (enemyType || itemType)) return false;
+    }
+
+    return true;
+};
+
+const has_mood_overlap = (template_moods: MoodTag[], current_moods: MoodTag[]): boolean => {
+    if (!template_moods || template_moods.length === 0) return true;
+    if (!current_moods || current_moods.length === 0) return false;
+
+    return template_moods.some(mood => current_moods.includes(mood));
+};
+
+const select_template_by_weight = (templates: NarrativeTemplate[]): NarrativeTemplate => {
+    if (templates.length === 0) throw new Error("No templates provided for weighted selection.");
+
+    const totalWeight = templates.reduce((sum, tmpl) => sum + tmpl.weight, 0);
+    let randomNum = Math.random() * totalWeight;
+
+    for (const tmpl of templates) {
+        randomNum -= tmpl.weight;
+        if (randomNum <= 0) {
+            return tmpl;
+        }
+    }
+    
+    return templates[0];
+};
+
+const fill_template = (
+    template_string: string,
+    chunk: Chunk,
+    world: World,
+    playerPosition: { x: number; y: number; },
+    t: (key: TranslationKey, replacements?: any) => string,
+    language: Language,
+    biomeTemplateData: BiomeTemplateData,
+    playerState?: PlayerStatus
+): string => {
+    let filled_template = template_string;
+
+    filled_template = filled_template.replace(/{{(.*?)}}/g, (match, p1) => {
+        const key = p1.trim();
+        const category =
+            biomeTemplateData.adjectives[key] ||
+            biomeTemplateData.features[key] ||
+            biomeTemplateData.smells[key] ||
+            biomeTemplateData.sounds[key] ||
+            (biomeTemplateData.sky ? biomeTemplateData.sky[key] : undefined);
+
+        if (category && category.length > 0) {
+            return category[Math.floor(Math.random() * category.length)];
+        }
+        console.warn(`Placeholder category not found: ${key}`);
+        return match;
+    });
+
+    if (filled_template.includes('{light_level_detail}')) {
+        filled_template = filled_template.replace('{light_level_detail}', (() => {
+            if (chunk.lightLevel <= 10) return t('light_level_dark');
+            if (chunk.lightLevel < 50) return t('light_level_dim');
+            return t('light_level_normal');
+        })());
+    }
+
+    if (filled_template.includes('{temp_detail}')) {
+        filled_template = filled_template.replace('{temp_detail}', (() => {
+            if (chunk.temperature && chunk.temperature <= 20) return t('temp_cold');
+            if (chunk.temperature && chunk.temperature >= 80) return t('temp_hot');
+            return t('temp_mild');
+        })());
+    }
+
+    if (filled_template.includes('{moisture_detail}')) {
+        filled_template = filled_template.replace('{moisture_detail}', (() => {
+            if (chunk.moisture >= 80) return t('moisture_humid');
+            if (chunk.moisture <= 20) return t('moisture_dry');
+            return t('moisture_normal');
+        })());
+    }
+
+    if (filled_template.includes('{jungle_feeling_dark_phrase}')) {
+        filled_template = filled_template.replace('{jungle_feeling_dark_phrase}', t('jungle_feeling_dark_phrase'));
+    }
+
+    if (chunk.enemy) {
+        filled_template = filled_template.replace('{enemy_name}', getTranslatedText(chunk.enemy.type, language, t));
+    } else {
+        filled_template = filled_template.replace(/{enemy_name}/g, t('no_enemy_found'));
+    }
+
+    if (chunk.items && chunk.items.length > 0) {
+        const randomItem = chunk.items[Math.floor(Math.random() * chunk.items.length)];
+        filled_template = filled_template.replace('{item_found}', getTranslatedText(randomItem.name, language, t));
+    } else {
+        filled_template = filled_template.replace(/{item_found}/g, t('no_item_found'));
+    }
+
+    return filled_template;
+};
+
 
 export const handleSearchAction = (
     currentChunk: Chunk,
@@ -151,13 +374,14 @@ export const handleSearchAction = (
 
         const narrative = t('exploreFoundItemsNarrative', { items: foundItemsText });
 
-        const newItemsMap = new Map((newChunk.items || []).map((item: ChunkItem) => [item.name, { ...item }]));
+        const newItemsMap = new Map((newChunk.items || []).map((item: ChunkItem) => [item.name as string, { ...item }]));
         foundItems.forEach(foundItem => {
-            const existing = newItemsMap.get(foundItem.name as string);
+            const foundItemName = getTranslatedText(foundItem.name, 'en', t);
+            const existing = newItemsMap.get(foundItemName);
             if (existing) {
                 existing.quantity += foundItem.quantity;
             } else {
-                newItemsMap.set(foundItem.name as string, foundItem);
+                newItemsMap.set(foundItemName, foundItem);
             }
         });
         newChunk.items = Array.from(newItemsMap.values());
@@ -185,94 +409,44 @@ export const generateOfflineNarrative = (
     world: { [key: string]: Chunk },
     playerPosition: { x: number; y: number; },
     t: (key: TranslationKey, replacements?: any) => string,
-    language: Language
+    language?: Language
 ): string => {
     const chunk = baseChunk;
+    const resolvedLanguage = language || 'en';
     const templates = getTemplates();
     const biomeTemplateData = templates[chunk.terrain];
 
     if (!biomeTemplateData?.descriptionTemplates) {
-        return getTranslatedText(chunk.description, language, t) || "You are in an unknown area.";
+        return getTranslatedText(chunk.description, resolvedLanguage, t) || "You are in an unknown area.";
     }
     
-    const templateSet = (biomeTemplateData as any).descriptionTemplates[narrativeLength] || (biomeTemplateData as any).descriptionTemplates.medium || (biomeTemplateData as any).descriptionTemplates.short;
-    let baseTemplate = Array.isArray(templateSet) ? templateSet[Math.floor(Math.random() * templateSet.length)] : templateSet;
+    const moods = analyze_chunk_mood(chunk);
 
-    // --- 1. PRE-BUILD CONTENT FOR PLACEHOLDERS ---
+    const validTemplates = biomeTemplateData.descriptionTemplates.filter(template => {
+        const lengthMatch = template.length === narrativeLength || (narrativeLength === 'detailed' && template.length === 'long');
+        const moodMatch = has_mood_overlap(template.mood, moods);
+        const conditionsMatch = check_conditions(template.conditions, chunk);
+        return lengthMatch && moodMatch && conditionsMatch;
+    });
 
-    const sensoryDetailsParts: string[] = [];
-    if (chunk.explorability < 30) sensoryDetailsParts.push(t('offline_explorability_low'));
-    if (chunk.dangerLevel > 80) sensoryDetailsParts.push(t('offline_danger_high'));
-    if (chunk.magicAffinity > 70) sensoryDetailsParts.push(t('offline_magic_high'));
-    if (chunk.temperature && chunk.temperature >= 90) sensoryDetailsParts.push(t('sensoryFeedback_hot'));
-    if (chunk.temperature && chunk.temperature <= 20) sensoryDetailsParts.push(t('sensoryFeedback_cold'));
-    if (chunk.moisture && chunk.moisture >= 80) sensoryDetailsParts.push(t('offline_moisture_high'));
-    if (chunk.lightLevel && chunk.lightLevel <= 0) sensoryDetailsParts.push(t('sensoryFeedback_dark'));
-    if (chunk.humanPresence > 50) sensoryDetailsParts.push(t('offline_human_presence'));
-    if (chunk.predatorPresence > 70) sensoryDetailsParts.push(t('offline_predator_presence'));
-    const sensoryDetailsText = sensoryDetailsParts.join(' ');
-
-    const entityReportParts: string[] = [];
-    if (chunk.items.length > 0) {
-        const itemsHere = chunk.items.map(i => `${i.quantity} ${getTranslatedText(i.name, language, t)}`).join(', ');
-        entityReportParts.push(t('offlineNarrativeItems', { items: itemsHere }));
+    if (validTemplates.length === 0) {
+        return getTranslatedText(chunk.description, resolvedLanguage, t);
     }
-    if (chunk.enemy) {
-        entityReportParts.push(t('offlineNarrativeEnemy', { enemy: getTranslatedText(chunk.enemy.type, language, t) }));
-    }
-    if (chunk.NPCs.length > 0) {
-        entityReportParts.push(t('offlineNarrativeNPC', { npc: getTranslatedText(chunk.NPCs[0].name, language, t) }));
-    }
-    if (chunk.structures.length > 0) {
-        entityReportParts.push(t('offlineNarrativeStructure', { structure: getTranslatedText(chunk.structures[0].name, language, t) }));
-    }
-    const entityReportText = entityReportParts.join(' ');
     
-    const surroundingPeekParts: string[] = [];
-    if (narrativeLength !== 'short') {
-        const directions = [{ x: 0, y: 1, dir: 'North' }, { x: 0, y: -1, dir: 'South' }, { x: 1, y: 0, dir: 'East' }, { x: -1, y: 0, dir: 'West' }];
-        for (const dir of directions) {
-            const key = `${playerPosition.x + dir.x},${playerPosition.y + dir.y}`;
-            const adjacentChunk = world[key];
-            if (adjacentChunk && adjacentChunk.explored && ((chunk.lastVisited - adjacentChunk.lastVisited) < 50)) {
-                if (adjacentChunk.enemy) {
-                    surroundingPeekParts.push(t('surrounding_peek_enemy', { direction: t(`direction${dir.dir}` as TranslationKey), enemy: getTranslatedText(adjacentChunk.enemy.type, language, t) }));
-                } else if (adjacentChunk.structures.length > 0) {
-                    surroundingPeekParts.push(t('surrounding_peek_structure', { direction: t(`direction${dir.dir}` as TranslationKey), structure: getTranslatedText(adjacentChunk.structures[0].name, language, t) }));
-                }
-            }
-        }
-    }
-    const surroundingPeekText = surroundingPeekParts.length > 0 ? t('offlineNarrativeSurroundings') + ' ' + surroundingPeekParts.join(' ') : '';
+    const selectedTemplate = select_template_by_weight(validTemplates);
     
-    baseTemplate = baseTemplate
-        .replace(/\[adjective\]/g, () => biomeTemplateData.adjectives[Math.floor(Math.random() * biomeTemplateData.adjectives.length)])
-        .replace(/\[feature\]/g, () => biomeTemplateData.features[Math.floor(Math.random() * biomeTemplateData.features.length)])
-        .replace(/\[smell\]/g, () => biomeTemplateData.smells[Math.floor(Math.random() * biomeTemplateData.smells.length)])
-        .replace(/\[sound\]/g, () => biomeTemplateData.sounds[Math.floor(Math.random() * biomeTemplateData.sounds.length)])
-        .replace(/\[sky\]/g, () => biomeTemplateData.sky ? biomeTemplateData.sky[Math.floor(Math.random() * biomeTemplateData.sky.length)] : '');
-
-    let finalNarrative = baseTemplate
-        .replace('{sensory_details}', sensoryDetailsText)
-        .replace('{entity_report}', entityReportText)
-        .replace('{surrounding_peek}', surroundingPeekText);
-        
-    finalNarrative = finalNarrative.replace(/\s{2,}/g, ' ').trim();
-    finalNarrative = finalNarrative.replace(/\. \./g, '.');
-    finalNarrative = finalNarrative.replace(/ \./g, '.');
-    finalNarrative = finalNarrative.replace(/\s,/g, ',');
-
-
-    return finalNarrative;
+    const narrative = fill_template(selectedTemplate.template, chunk, world, playerPosition, t, resolvedLanguage, biomeTemplateData);
+    
+    return narrative;
 };
 
 export const generateOfflineActionNarrative = (
     actionType: 'attack' | 'useSkill' | 'useItem',
     result: any,
     chunk: Chunk,
-    t: (key: TranslationKey, replacements?: any) => string,
-    language: Language
+    t: (key: TranslationKey, replacements?: any) => string
 ): string => {
+    const language = 'en'; // Fallback
     let narrativeParts: string[] = [];
     const sensoryFeedbackParts: string[] = [];
 
@@ -283,7 +457,7 @@ export const generateOfflineActionNarrative = (
     
     const sensory_feedback = sensoryFeedbackParts.join(' ');
     
-    let templateKey: TranslationKey = 'exploreAction'; // Fallback
+    let templateKey: TranslationKey = 'exploreAction';
     const replacements: any = { sensory_feedback };
     
     switch (actionType) {

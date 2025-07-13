@@ -1,6 +1,6 @@
 
 
-import type { Chunk, ChunkItem, Action, Language, ItemDefinition, World, PlayerItem, Skill, TranslationKey } from "../types";
+import type { Chunk, ChunkItem, Action, Language, ItemDefinition, World, PlayerItem, Skill, TranslationKey, MoodTag, NarrativeLength, NarrativeTemplate, ConditionType, BiomeAdjectiveCategory, PlayerStatus } from "../types";
 import { getTemplates } from "../templates";
 import { translations } from "../../i18n";
 import { clamp, getTranslatedText } from "../../utils";
@@ -11,6 +11,91 @@ const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Mat
 
 export { getEffectiveChunk, ensureChunkExists };
 
+/**
+ * Phân tích các thuộc tính của chunk để xác định các MoodTag chủ đạo.
+ * Hàm này đọc các giá trị số và gán các nhãn tâm trạng dựa trên ngưỡng đã định.
+ * @param chunk Dữ liệu chunk hiện tại.
+ * @returns Mảng các MoodTag mô tả tâm trạng của chunk.
+ */
+const analyze_chunk_mood = (chunk: Chunk): MoodTag[] => {
+    const moods: MoodTag[] = [];
+
+    // 1. Mức độ Nguy hiểm (dangerLevel)
+    if (chunk.dangerLevel >= 7) { // Rất nguy hiểm
+        moods.push("Danger", "Foreboding");
+    } else if (chunk.dangerLevel >= 4) { // Có thể nguy hiểm
+        moods.push("Danger");
+    }
+
+    // 2. Mức độ Ánh sáng (lightLevel)
+    if (chunk.lightLevel <= 0) { // Tối hoàn toàn
+        moods.push("Dark", "Gloomy", "Mysterious");
+    } else if (chunk.lightLevel < 5) { // Mờ ảo, thiếu sáng
+        moods.push("Mysterious", "Gloomy");
+    } else if (chunk.lightLevel >= 8) { // Rất sáng
+        moods.push("Vibrant", "Peaceful"); // Nếu ánh sáng tốt có thể liên quan đến sự sống động
+    }
+
+    // 3. Độ ẩm (moisture)
+    if (chunk.moisture >= 8) { // Rất ẩm ướt, đầm lầy, rừng rậm
+        moods.push("Lush", "Wet", "Vibrant");
+    } else if (chunk.moisture <= 2) { // Khô hạn
+        moods.push("Arid", "Desolate");
+    }
+
+    // 4. Sự hiện diện của kẻ săn mồi (predatorPresence)
+    if (chunk.predatorPresence >= 6) { // Nhiều kẻ săn mồi
+        moods.push("Danger", "Wild");
+    }
+
+    // 5. Liên kết ma thuật (magicAffinity)
+    if (chunk.magicAffinity >= 7) { // Năng lượng ma thuật mạnh
+        moods.push("Magic", "Mysterious", "Ethereal"); // Thêm "Ethereal" nếu muốn
+    } else if (chunk.magicAffinity >= 4) { // Có dấu hiệu ma thuật
+        moods.push("Mysterious");
+    }
+
+    // 6. Sự hiện diện của con người (humanPresence)
+    if (chunk.humanPresence >= 6) { // Có dấu hiệu con người đáng kể
+        moods.push("Civilized", "Historic"); // Hoặc "Abandoned", "Ruined" tùy ngữ cảnh
+    }
+
+    // 7. Nhiệt độ (temperature)
+    if (chunk.temperature && chunk.temperature >= 8) { // Rất nóng
+        moods.push("Hot", "Harsh");
+    } else if (chunk.temperature && chunk.temperature <= 2) { // Rất lạnh
+        moods.push("Cold", "Harsh");
+    }
+
+    // 8. Địa hình (terrain) - Gán mood dựa trên loại địa hình cơ bản
+    // Đây là cách bạn có thể ánh xạ terrain trực tiếp sang mood tag
+    switch (chunk.terrain) {
+        case "swamp":
+            moods.push("Gloomy", "Wet", "Mysterious");
+            break;
+        case "desert":
+            moods.push("Arid", "Desolate", "Harsh");
+            break;
+        case "mountain":
+            moods.push("Harsh", "Rugged");
+            break;
+        case "forest":
+            moods.push("Lush", "Peaceful");
+            break;
+        case "cave":
+            moods.push("Dark", "Mysterious", "Foreboding");
+            break;
+        case "volcanic":
+            moods.push("Danger", "Harsh");
+            break;
+        // Thêm các terrain khác nếu cần
+    }
+
+
+    // Loại bỏ các mood trùng lặp và trả về
+    return Array.from(new Set(moods));
+};
+
 export const handleSearchAction = (
     currentChunk: Chunk,
     actionId: number,
@@ -20,7 +105,7 @@ export const handleSearchAction = (
     getRandomInRange: (range: { min: number, max: number }) => number
 ): { narrative: string, newChunk: Chunk, toastInfo?: { title: TranslationKey, description: TranslationKey, params: any } } => {
     
-    const templates = getTemplates(language);
+    const templates = getTemplates();
     const biomeTemplate = templates[currentChunk.terrain];
 
     const newChunk: Chunk = JSON.parse(JSON.stringify(currentChunk));
@@ -78,11 +163,11 @@ export const handleSearchAction = (
 
         const newItemsMap = new Map((newChunk.items || []).map((item: ChunkItem) => [item.name, { ...item }]));
         foundItems.forEach(foundItem => {
-            const existing = newItemsMap.get(foundItem.name);
+            const existing = newItemsMap.get(foundItem.name as string);
             if (existing) {
                 existing.quantity += foundItem.quantity;
             } else {
-                newItemsMap.set(foundItem.name, foundItem);
+                newItemsMap.set(foundItem.name as string, foundItem);
             }
         });
         newChunk.items = Array.from(newItemsMap.values());
@@ -113,14 +198,14 @@ export const generateOfflineNarrative = (
     language: Language
 ): string => {
     const chunk = baseChunk;
-    const templates = getTemplates(language);
+    const templates = getTemplates();
     const biomeTemplateData = templates[chunk.terrain];
 
     if (!biomeTemplateData?.descriptionTemplates) {
         return chunk.description || "You are in an unknown area.";
     }
     
-    const templateSet = biomeTemplateData.descriptionTemplates[narrativeLength] || biomeTemplateData.descriptionTemplates.medium || biomeTemplateData.descriptionTemplates.short;
+    const templateSet = (biomeTemplateData as any).descriptionTemplates[narrativeLength] || (biomeTemplateData as any).descriptionTemplates.medium || (biomeTemplateData as any).descriptionTemplates.short;
     let baseTemplate = Array.isArray(templateSet) ? templateSet[Math.floor(Math.random() * templateSet.length)] : templateSet;
 
     // --- 1. PRE-BUILD CONTENT FOR PLACEHOLDERS ---

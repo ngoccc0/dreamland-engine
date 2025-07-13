@@ -81,49 +81,58 @@ export type ConditionType = {
     predatorPresence?: ConditionRange;
     lightLevel?: ConditionRange;
     temperature?: ConditionRange;
-    soilType?: string[];
+    soilType?: string[]; // Giữ nguyên array of string
     timeOfDay?: 'day' | 'night';
     visibility?: ConditionRange;
     humidity?: ConditionRange;
-    playerHealth?: ConditionRange;
+    // Thêm các conditions khác nếu cần, ví dụ:
+    playerHealth?: ConditionRange; // required_player_state_conditions
     playerStamina?: ConditionRange;
     requiredEntities?: {
-        enemyType?: string;
-        itemType?: string;
+        enemyType?: string; // Tên enemy ID
+        itemType?: string; // Tên item ID
+        // ...
     };
 };
 
+// Định nghĩa loại template narrative
 export type NarrativeTemplateType = 'Opening' | 'EnvironmentDetail' | 'SensoryDetail' | 'EntityReport' | 'SurroundingPeek' | 'Closing' | 'Filler';
-export type NarrativeLength = 'short' | 'medium' | 'long' | 'detailed';
-export type MoodTag = 'Danger' | 'Peaceful' | 'Magic' | 'Foreboding' | 'Resourceful' | 'Lush' | 'Gloomy' | 'Dark' | 'Serene' | 'Vibrant' | 'Mysterious' | 'Desolate';
+export type NarrativeLength = 'short' | 'medium' | 'long' | 'detailed'; // Thêm 'detailed' nếu bạn muốn một cấp độ chi tiết siêu cao
+export type MoodTag = 'Danger' | 'Peaceful' | 'Magic' | 'Foreboding' | 'Resourceful' | 'Lush' | 'Gloomy' | 'Dark' | 'Serene' | 'Vibrant' | 'Mysterious' | 'Desolate' | 'Threatening' | 'Wet' | 'Arid' | 'Wild' | 'Ethereal' | 'Civilized' | 'Historic' | 'Hot' | 'Cold' | 'Harsh' | 'Rugged';
+// Mở rộng thêm các MoodTag theo ý tưởng game của bạn
 
 export type NarrativeTemplate = {
     id: string;
     type: NarrativeTemplateType;
-    mood: MoodTag[];
+    mood: MoodTag[]; // Array of mood tags
     length: NarrativeLength;
-    conditions?: ConditionType;
-    weight: number;
-    template: string;
+    conditions?: ConditionType; // Conditions to be met by the chunk/player
+    weight: number; // For weighted random selection
+    template: string; // The actual template string with placeholders
 };
 
 export type BiomeAdjectiveCategory = {
-    [key: string]: string[];
+    [key: string]: string[]; // e.g., "adjective_dark": ["âm u", "u ám"]
 };
 
+// Cập nhật BiomeTemplateData để chứa các NarrativeTemplate mới
 export type BiomeTemplateData = {
     terrain: string;
-    descriptionTemplates: NarrativeTemplate[];
-    adjectives: BiomeAdjectiveCategory;
-    features: BiomeAdjectiveCategory;
-    smells: BiomeAdjectiveCategory;
-    sounds: BiomeAdjectiveCategory;
-    sky?: BiomeAdjectiveCategory;
+    descriptionTemplates: NarrativeTemplate[]; // Danh sách các template narrative chi tiết
+    adjectives: BiomeAdjectiveCategory; // Các loại tính từ theo mood/context
+    features: BiomeAdjectiveCategory; // Các loại đặc điểm địa hình
+    smells: BiomeAdjectiveCategory; // Các loại mùi
+    sounds: BiomeAdjectiveCategory; // Các loại âm thanh
+    sky?: BiomeAdjectiveCategory; // Các loại bầu trời
+    // Có thể thêm các category khác như verbs, adverbs, objects...
 };
 
+// Cập nhật hàm getTemplates để trả về cấu trúc mới
+// (Lưu ý: BiomeTemplate ở đây chỉ là một ví dụ, bạn có thể đã có cấu trúc này rồi)
 export type GameTemplates = {
     [key: string]: BiomeTemplateData;
 };
+
 
 
 // --- WEATHER SYSTEM TYPES ---
@@ -167,6 +176,8 @@ export interface SeasonModifiers {
     windMod: number;
     eventChance: number; // Base chance for seasonal events
 }
+
+export type GameTheme = 'Normal' | 'Magic' | 'Horror' | 'SciFi';
 
 export interface GameSettings {
   gameMode: GameMode;

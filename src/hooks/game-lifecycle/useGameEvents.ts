@@ -40,10 +40,10 @@ export function useGameEvents(deps: GameEventsDeps) {
   const { settings } = useSettings();
 
   const triggerRandomEvent = useCallback(() => {
-    if (!isLoaded || isGameOver) return;
+    if (!isLoaded || isGameOver || turn <= 1) return;
     
-    // Check if it's time for a random event based on turn number
-    if (turn % 20 !== 0 && turn > 1) { // Trigger every 20 turns
+    // 5% chance to trigger an event each turn
+    if (Math.random() > 0.05) {
       return;
     }
 

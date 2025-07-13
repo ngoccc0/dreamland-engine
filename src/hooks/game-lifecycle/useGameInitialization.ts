@@ -3,7 +3,7 @@
 
 import { useEffect } from 'react';
 import { useLanguage } from '@/context/language-context';
-import { ensureChunkExists, generateWeatherForZone } from '@/lib/game/engine/generation';
+import { generateWeatherForZone, generateChunksInRadius } from '@/lib/game/engine/generation';
 import { generateOfflineNarrative } from '@/lib/game/engine/offline';
 import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
@@ -116,7 +116,6 @@ export function useGameInitialization(deps: GameInitializationDeps) {
       
       const finalCatalogArray: GeneratedItem[] = Array.from(finalCatalogMap.values());
       const finalRecipes = { ...staticRecipes, ...(stateToInitialize.recipes || {}) };
-      
       const finalDefs = { ...staticItemDefinitions, ...(stateToInitialize.customItemDefinitions || {}) };
       
       setWorldProfile(stateToInitialize.worldProfile);
@@ -142,21 +141,25 @@ export function useGameInitialization(deps: GameInitializationDeps) {
 
       const initialPosKey = `${stateToInitialize.playerPosition.x},${stateToInitialize.playerPosition.y}`;
       
-      const chunkGenResult = ensureChunkExists(
-          stateToInitialize.playerPosition, 
-          worldSnapshot, 
-          regionsSnapshot, 
-          regionCounterSnapshot, 
-          stateToInitialize.worldProfile, 
-          stateToInitialize.currentSeason, 
-          finalDefs, 
-          finalCatalogArray, 
-          stateToInitialize.customStructures || [], 
+      if (Object.keys(worldSnapshot).length === 0) {
+        const { world: newWorld, regions: newRegions, regionCounter: newRegionCounter } = generateChunksInRadius(
+          {},
+          {},
+          0,
+          stateToInitialize.playerPosition.x,
+          stateToInitialize.playerPosition.y,
+          7, // Initial radius
+          stateToInitialize.worldProfile,
+          stateToInitialize.currentSeason,
+          finalDefs,
+          finalCatalogArray,
+          stateToInitialize.customStructures || [],
           language
-      );
-      worldSnapshot = chunkGenResult.worldWithChunk;
-      regionsSnapshot = chunkGenResult.newRegions;
-      regionCounterSnapshot = chunkGenResult.newRegionCounter;
+        );
+        worldSnapshot = newWorld;
+        regionsSnapshot = newRegions;
+        regionCounterSnapshot = newRegionCounter;
+      }
       
       Object.keys(regionsSnapshot).filter(id => !weatherZonesSnapshot[id]).forEach(regionId => {
           const region = regionsSnapshot[Number(regionId)];

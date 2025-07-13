@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useLanguage } from '@/context/language-context';
 import { useSettings } from '@/context/settings-context';
 import { randomEvents } from '@/lib/game/events';
@@ -10,6 +10,7 @@ import { clamp, getTranslatedText } from '@/lib/utils';
 import { rollDice, getSuccessLevel, type SuccessLevel } from '@/lib/game/dice';
 import type { GameState, PlayerStatus, Chunk, Season, WorldProfile, ItemDefinition, GeneratedItem, TranslatableString, Language } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
+import { generateChunksInRadius } from '@/lib/game/engine/generation';
 
 type GameEventsDeps = {
   isLoaded: boolean;
@@ -19,30 +20,39 @@ type GameEventsDeps = {
   setPlayerStats: (fn: (prev: PlayerStatus) => PlayerStatus) => void;
   world: GameState['world'];
   setWorld: (fn: (prev: GameState['world']) => GameState['world']) => void;
+  regions: GameState['regions'];
+  setRegions: (regions: GameState['regions']) => void;
+  regionCounter: number;
+  setRegionCounter: (counter: number) => void;
   playerPosition: GameState['playerPosition'];
   addNarrativeEntry: (text: string, type: 'narrative' | 'action' | 'system', entryId?: string) => void;
   currentSeason: Season;
   worldProfile: WorldProfile;
   customItemDefinitions: Record<string, ItemDefinition>;
+  customItemCatalog: GeneratedItem[];
+  customStructures: GameState['customStructures'];
   language: Language;
   turn: number;
 };
 
+const PROACTIVE_GEN_INTERVAL = 5; // Generate new chunks every 5 turns
+const PROACTIVE_GEN_RADIUS = 7;   // Generate in a 15x15 radius
+
 export function useGameEvents(deps: GameEventsDeps) {
   const {
     isLoaded, isGameOver, setIsGameOver, playerStats, setPlayerStats,
-    world, setWorld, playerPosition, addNarrativeEntry, currentSeason,
-    worldProfile, customItemDefinitions, language, turn
+    world, setWorld, regions, setRegions, regionCounter, setRegionCounter, 
+    playerPosition, addNarrativeEntry, currentSeason, worldProfile, 
+    customItemDefinitions, customItemCatalog, customStructures, language, turn
   } = deps;
 
   const { t } = useLanguage();
   const { settings } = useSettings();
+  const [turnsSinceLastProactiveGen, setTurnsSinceLastProactiveGen] = useState(0);
 
   const triggerRandomEvent = useCallback(() => {
-    if (!isLoaded || isGameOver || turn <= 1) return;
-    
-    // 5% chance to trigger an event each turn
-    if (Math.random() > 0.05) {
+    // 5% chance to trigger an event each turn after the first
+    if (turn <= 1 || Math.random() > 0.05) {
       return;
     }
 
@@ -56,11 +66,7 @@ export function useGameEvents(deps: GameEventsDeps) {
 
     if (possibleEvents.length === 0) return;
 
-    const triggeredEvents = possibleEvents.filter(event => Math.random() < (event.chance ?? 1.0));
-
-    if (triggeredEvents.length === 0) return;
-
-    const event = triggeredEvents[Math.floor(Math.random() * triggeredEvents.length)];
+    const event = possibleEvents[Math.floor(Math.random() * possibleEvents.length)];
 
     const eventName = getTranslatedText(event.name, language, t);
     addNarrativeEntry(t('eventTriggered', { eventName }), 'system');
@@ -127,8 +133,8 @@ export function useGameEvents(deps: GameEventsDeps) {
                 if (enemyTemplate) {
                     chunkToUpdate.enemy = {
                         ...enemyTemplate,
-                        hp: effects.spawnEnemy.hp,
-                        damage: effects.spawnEnemy.damage,
+                        hp: effects.spawnEnemy!.hp,
+                        damage: effects.spawnEnemy!.damage,
                         satiation: 0,
                     };
                 }
@@ -137,7 +143,7 @@ export function useGameEvents(deps: GameEventsDeps) {
         });
     }
 
-  }, [isLoaded, isGameOver, turn, world, playerPosition, worldProfile.theme, playerStats, currentSeason, addNarrativeEntry, t, customItemDefinitions, language, setPlayerStats, setWorld]);
+  }, [turn, world, playerPosition, worldProfile.theme, playerStats, currentSeason, addNarrativeEntry, t, customItemDefinitions, language, setPlayerStats, setWorld]);
 
   // EFFECT: Check for game over.
   useEffect(() => {
@@ -147,8 +153,37 @@ export function useGameEvents(deps: GameEventsDeps) {
     }
   }, [playerStats.hp, isGameOver, isLoaded, addNarrativeEntry, t, setIsGameOver]);
 
-  // EFFECT: Trigger random events periodically.
+  // EFFECT: Proactive chunk generation and random events trigger on each turn.
   useEffect(() => {
+    if (!isLoaded || isGameOver || turn === 0) return;
+
+    // Proactive Chunk Generation
+    const nextProactiveTurnCount = turnsSinceLastProactiveGen + 1;
+    if (nextProactiveTurnCount >= PROACTIVE_GEN_INTERVAL) {
+      const { world: newWorld, regions: newRegions, regionCounter: newRegionCounter } = generateChunksInRadius(
+        world,
+        regions,
+        regionCounter,
+        playerPosition.x,
+        playerPosition.y,
+        PROACTIVE_GEN_RADIUS,
+        worldProfile,
+        currentSeason,
+        customItemDefinitions,
+        customItemCatalog,
+        customStructures,
+        language
+      );
+      setWorld(newWorld);
+      setRegions(newRegions);
+      setRegionCounter(newRegionCounter);
+      setTurnsSinceLastProactiveGen(0); // Reset counter
+    } else {
+      setTurnsSinceLastProactiveGen(nextProactiveTurnCount);
+    }
+    
+    // Random Event Trigger
     triggerRandomEvent();
-  }, [turn, triggerRandomEvent]);
+
+  }, [turn, isLoaded, isGameOver]);
 }

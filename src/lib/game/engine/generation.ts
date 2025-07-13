@@ -218,7 +218,7 @@ function generateChunkContent(
         return text;
     };
 
-    const templates = getTemplates(language);
+    const templates = getTemplates();
     const template = templates[chunkData.terrain];
     
     const finalDescription = template.descriptionTemplates.short[0]
@@ -354,6 +354,7 @@ function createWallChunk(pos: { x: number; y: number }): Chunk {
         soilType: 'rocky',
         predatorPresence: 0,
         temperature: 50,
+        windLevel: 0,
     };
 }
 
@@ -525,4 +526,65 @@ export const getEffectiveChunk = (baseChunk: Chunk, weatherZones: { [key: string
     effectiveChunk.lightLevel = clamp(baseChunk.lightLevel + (weather.light_delta * 10) + timeLightMod, -100, 100);
 
     return effectiveChunk;
+};
+
+
+/**
+ * Creates chunks in a specified radius around a central point if they do not already exist.
+ * @param currentWorld The current state of the World object.
+ * @param center_x The central X coordinate.
+ * @param center_y The central Y coordinate.
+ * @param radius The radius of chunks to generate (e.g., radius 7 creates a 15x15 area).
+ * @param worldProfile The world profile for generating attributes.
+ * @param currentSeason The current season.
+ * @param allItemDefinitions A record of all item definitions.
+ * @param customItemCatalog A list of custom AI-generated items.
+ * @param customStructures A list of custom AI-generated structures.
+ * @param language The current language.
+ * @returns An object containing the updated world, regions, and region counter.
+ */
+export const generateChunksInRadius = (
+    currentWorld: World,
+    currentRegions: { [id: number]: Region },
+    currentRegionCounter: number,
+    center_x: number,
+    center_y: number,
+    radius: number,
+    worldProfile: WorldProfile,
+    currentSeason: Season,
+    allItemDefinitions: Record<string, ItemDefinition>,
+    customItemCatalog: GeneratedItem[],
+    customStructures: Structure[],
+    language: Language
+): { world: World, regions: { [id: number]: Region }, regionCounter: number } => {
+    let newWorld = { ...currentWorld };
+    let newRegions = { ...currentRegions };
+    let newRegionCounter = currentRegionCounter;
+
+    for (let dx = -radius; dx <= radius; dx++) {
+        for (let dy = -radius; dy <= radius; dy++) {
+            const chunk_x = center_x + dx;
+            const chunk_y = center_y + dy;
+            const chunkKey = `${chunk_x},${chunk_y}`;
+
+            if (!newWorld[chunkKey]) {
+                const result = ensureChunkExists(
+                    { x: chunk_x, y: chunk_y },
+                    newWorld,
+                    newRegions,
+                    newRegionCounter,
+                    worldProfile,
+                    currentSeason,
+                    allItemDefinitions,
+                    customItemCatalog,
+                    customStructures,
+                    language
+                );
+                newWorld = result.worldWithChunk;
+                newRegions = result.newRegions;
+                newRegionCounter = result.newRegionCounter;
+            }
+        }
+    }
+    return { world: newWorld, regions: newRegions, regionCounter: newRegionCounter };
 };

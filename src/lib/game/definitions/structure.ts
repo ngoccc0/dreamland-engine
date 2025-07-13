@@ -1,9 +1,9 @@
-
 import {z} from 'zod';
+import { TranslatableStringSchema } from './base';
 
 export const StructureDefinitionSchema = z.object({
-    name: z.object({ en: z.string(), vi: z.string() }).describe("The multilingual name of the structure."),
-    description: z.object({ en: z.string(), vi: z.string() }).describe("The multilingual description of the structure."),
+    name: TranslatableStringSchema.describe("The name of the structure, either a key or a multilingual object."),
+    description: TranslatableStringSchema.describe("The description of the structure, either a key or a multilingual object."),
     emoji: z.string().describe("An emoji representing the structure."),
     providesShelter: z.boolean().optional(),
     buildable: z.boolean().optional(),

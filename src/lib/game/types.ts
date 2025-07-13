@@ -12,6 +12,7 @@ import type {
     SpawnConditions,
     PlayerAttributes,
     ItemCategory, // Now importing the derived type
+    MultilingualText,
 } from "./definitions";
 
 // Re-export for easier access elsewhere
@@ -26,12 +27,22 @@ export type {
     SpawnConditions,
     PlayerAttributes,
     ItemCategory,
+    MultilingualText,
 };
 
 export const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic", "wall", "floptropica", "tundra", "beach", "mesa", "mushroom_forest", "ocean", "city", "space_station", "underwater"];
 
-export type ItemDefinition = Omit<ItemDefZod, 'spawnBiomes'> & { spawnBiomes?: Terrain[] };
-export type Recipe = Omit<RecipeDefZod, 'ingredients'> & { ingredients: RecipeIngredient[] };
+export type TranslatableString = TranslationKey | MultilingualText;
+
+export type ItemDefinition = Omit<ItemDefZod, 'name' | 'description' | 'spawnBiomes'> & { 
+    name: TranslatableString,
+    description: TranslatableString,
+    spawnBiomes?: Terrain[] 
+};
+export type Recipe = Omit<RecipeDefZod, 'ingredients' | 'description'> & { 
+    ingredients: RecipeIngredient[],
+    description: MultilingualText,
+};
 
 // Represents a contiguous region of a single biome.
 export interface Region {
@@ -70,8 +81,8 @@ export interface WeatherZone {
 
 // Represents the structure of items loaded from Firestore/premade worlds.
 export type GeneratedItem = Omit<ItemDefinition, 'name' | 'description'> & {
-  name: string | { en: string; vi: string };
-  description: string | { en: string; vi: string };
+  name: TranslatableString;
+  description: TranslatableString;
 };
 
 // 1. WorldProfile: Global settings for the world, affecting all biomes.
@@ -109,7 +120,7 @@ export interface GameSettings {
 
 export interface ChunkItem {
     name: string;
-    description: TranslationKey; // Now a key
+    description: TranslatableString; // Can be a key or an object
     quantity: number;
     tier: number;
     emoji: string;
@@ -129,18 +140,18 @@ export interface Pet {
 }
 
 export interface Npc {
-    name: { en: string; vi: string };
-    description: { en: string; vi: string };
-    dialogueSeed: { en: string; vi: string };
-    quest?: { en: string; vi: string };
+    name: TranslatableString;
+    description: TranslatableString;
+    dialogueSeed: TranslatableString;
+    quest?: TranslatableString;
     questItem?: { name: string; quantity: number };
     rewardItems?: PlayerItem[];
 }
 
 // Represents a skill the player can use.
 export interface Skill {
-    name: TranslationKey;
-    description: TranslationKey;
+    name: TranslatableString;
+    description: TranslatableString;
     tier: number;
     manaCost: number;
     effect: {
@@ -157,8 +168,9 @@ export interface Skill {
 
 // Represents a structure in the world (natural or player-built)
 // This is now an instance of a StructureDefinition
-export interface Structure extends StructureDefinition {
-    // any instance-specific state could go here in the future
+export interface Structure extends Omit<StructureDefinition, 'name' | 'description'> {
+    name: TranslatableString;
+    description: TranslatableString;
 }
 
 
@@ -274,12 +286,12 @@ export type NarrativeEntry = {
 // This defines the final, assembled world concept object that the game uses.
 // It's constructed in the WorldSetup component from the AI's generated data.
 export interface WorldConcept {
-  worldName: string;
-  initialNarrative: string;
+  worldName: TranslatableString;
+  initialNarrative: TranslatableString;
   startingBiome: Terrain;
   customStructures: StructureDefinition[];
   playerInventory: { name: string; quantity: number }[];
-  initialQuests: string[];
+  initialQuests: TranslatableString[];
   startingSkill: Skill;
   customItemCatalog?: GeneratedItem[];
 }
@@ -318,7 +330,13 @@ export interface GameState {
     playerBehaviorProfile: PlayerBehaviorProfile;
     playerStats: PlayerStatus;
     narrativeLog: NarrativeEntry[];
-    worldSetup: Omit<WorldConcept, 'playerInventory' | 'customStructures'> & { playerInventory: PlayerItem[], startingSkill: Skill, customStructures: Structure[] };
+    worldSetup: Omit<WorldConcept, 'playerInventory' | 'customStructures' | 'customItemCatalog' | 'initialQuests' > & { 
+        playerInventory: PlayerItem[], 
+        startingSkill: Skill, 
+        customStructures: Structure[],
+        customItemCatalog: GeneratedItem[],
+        initialQuests: string[],
+    };
     customItemDefinitions: Record<string, ItemDefinition>;
     customItemCatalog: GeneratedItem[];
     customStructures: StructureDefinition[];

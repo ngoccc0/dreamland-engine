@@ -1,4 +1,3 @@
-
 import {z} from 'genkit';
 
 // Defines a range for environmental conditions, e.g., moisture: { min: 5, max: 8 }.
@@ -55,6 +54,9 @@ export const MultilingualTextSchema = z.object({
   vi: z.string(),
 });
 export type MultilingualText = z.infer<typeof MultilingualTextSchema>;
+
+// A schema that can be either a translation key (string) or a direct multilingual object.
+export const TranslatableStringSchema = z.union([z.string(), MultilingualTextSchema]);
 
 
 // Defines the loot dropped by an entity (creature, harvestable node, etc.).

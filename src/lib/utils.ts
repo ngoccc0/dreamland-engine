@@ -1,11 +1,36 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import type { Language, TranslatableString } from "./game/types";
+import type { TranslationKey } from "./i18n";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
 export const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
+
+/**
+ * A helper function to get the correct text string based on the current language.
+ * It handles both Translation Keys (strings) and direct multilingual objects.
+ * @param translatable - The string or object to translate.
+ * @param language - The current language ('en' or 'vi').
+ * @param t - The translation function from the i18n library.
+ * @returns The translated string.
+ */
+export function getTranslatedText(
+    translatable: TranslatableString,
+    language: Language,
+    t: (key: TranslationKey, options?: any) => string
+): string {
+    if (typeof translatable === 'string') {
+        return t(translatable);
+    }
+    if (typeof translatable === 'object' && translatable !== null) {
+        return translatable[language] || translatable['en'] || '';
+    }
+    return '';
+}
+
 
 /**
  * Determines an appropriate emoji for a game item based on its name and category.

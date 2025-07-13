@@ -1,7 +1,6 @@
-
 import { z } from 'zod';
 import type { Chunk, PlayerStatus, Season, TranslationKey } from '../types';
-import { MultilingualTextSchema, LootDropSchema } from './base';
+import { TranslatableStringSchema } from './base';
 import type { SuccessLevel } from '../dice';
 
 // Defines the effects of a random event's outcome.
@@ -23,7 +22,7 @@ const EventEffectsSchema = z.object({
 
 // Defines a single possible outcome for an event, tied to a success level.
 const EventOutcomeSchema = z.object({
-  descriptionKey: z.string().describe("The translation key for the event's outcome description."),
+  description: TranslatableStringSchema.describe("The event's outcome description, either a key or a direct multilingual object."),
   effects: EventEffectsSchema,
 });
 export type EventOutcome = z.infer<typeof EventOutcomeSchema>;
@@ -32,7 +31,7 @@ export type EventOutcome = z.infer<typeof EventOutcomeSchema>;
 // The main schema for defining a random event.
 export const RandomEventDefinitionSchema = z.object({
   id: z.string().describe("Unique identifier for the event."),
-  nameKey: z.string().describe("The translation key for the display name of the event."),
+  name: TranslatableStringSchema.describe("The display name of the event, either a key or a multilingual object."),
   theme: z.string().describe("The theme of the event (e.g., 'Normal', 'Magic'). Affects spawn checks."),
   difficulty: z.enum(['easy', 'medium', 'hard']),
   chance: z.number().min(0).max(1).optional().describe("Base chance of this event triggering if conditions are met."),

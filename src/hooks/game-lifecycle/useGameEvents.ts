@@ -2,14 +2,13 @@
 'use client';
 
 import { useEffect, useCallback } from 'react';
-import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
 import { useSettings } from '@/context/settings-context';
 import { randomEvents } from '@/lib/game/events';
 import { getTemplates } from '@/lib/game/templates';
-import { clamp } from '@/lib/utils';
+import { clamp, getTranslatedText } from '@/lib/utils';
 import { rollDice, getSuccessLevel, type SuccessLevel } from '@/lib/game/dice';
-import type { GameState, PlayerStatus, Chunk, Season, WorldProfile, ItemDefinition, GeneratedItem } from "@/lib/game/types";
+import type { GameState, PlayerStatus, Chunk, Season, WorldProfile, ItemDefinition, GeneratedItem, TranslatableString } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 
 type GameEventsDeps = {
@@ -63,7 +62,7 @@ export function useGameEvents(deps: GameEventsDeps) {
 
     const event = triggeredEvents[Math.floor(Math.random() * triggeredEvents.length)];
 
-    const eventName = t(event.nameKey);
+    const eventName = getTranslatedText(event.name, language, t);
     addNarrativeEntry(t('eventTriggered', { eventName }), 'system');
 
     const { roll } = rollDice('d20');
@@ -72,7 +71,8 @@ export function useGameEvents(deps: GameEventsDeps) {
     const outcome = event.outcomes[successLevel] || event.outcomes['Success'];
     if (!outcome) return;
 
-    addNarrativeEntry(t(outcome.descriptionKey), 'narrative');
+    const outcomeDescription = getTranslatedText(outcome.description, language, t);
+    addNarrativeEntry(outcomeDescription, 'narrative');
 
     const effects = outcome.effects;
 
@@ -127,8 +127,8 @@ export function useGameEvents(deps: GameEventsDeps) {
                 if (enemyTemplate) {
                     chunkToUpdate.enemy = {
                         ...enemyTemplate,
-                        hp: effects.spawnEnemy!.hp,
-                        damage: effects.spawnEnemy!.damage,
+                        hp: effects.spawnEnemy.hp,
+                        damage: effects.spawnEnemy.damage,
                         satiation: 0,
                     };
                 }

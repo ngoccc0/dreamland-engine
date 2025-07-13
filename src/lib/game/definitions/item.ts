@@ -1,6 +1,5 @@
-
 import {z} from 'genkit';
-import { PlayerAttributesSchema, SpawnConditionsSchema, ItemCategorySchema } from './base';
+import { PlayerAttributesSchema, SpawnConditionsSchema, ItemCategorySchema, TranslatableStringSchema } from './base';
 import { allTerrains } from '../types';
 
 // The effect an item can have when used.
@@ -28,7 +27,8 @@ export type ItemRelationship = z.infer<typeof ItemRelationshipSchema>;
 // The full definition of an item, containing all its properties.
 export const ItemDefinitionSchema = z.object({
   id: z.string().optional().describe("Unique identifier for the item, e.g., 'healingHerb'. If not provided, the key from the record will be used."),
-  description: z.string().describe("The translation key for the item's description."),
+  name: TranslatableStringSchema.describe("The name of the item, either a translation key or a multilingual object."),
+  description: TranslatableStringSchema.describe("The item's description, either a translation key or a multilingual object."),
   tier: z.number(),
   category: ItemCategorySchema,
   subCategory: z.string().optional().describe("A more specific category like 'Meat', 'Fruit', 'Potion'."),

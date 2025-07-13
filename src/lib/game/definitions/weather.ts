@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 import { MultilingualTextSchema } from './base';
 import type { Terrain, Season } from '../types';

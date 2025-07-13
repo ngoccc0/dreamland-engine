@@ -1,10 +1,13 @@
-import type { Chunk, MoodTag, NarrativeLength, NarrativeTemplate, ConditionType, BiomeTemplateData, Language, PlayerStatus, World, ChunkItem, Action } from "../types";
+
+import type { Chunk, MoodTag, NarrativeLength, NarrativeTemplate, ConditionType, Language, PlayerStatus, World, ChunkItem, Action } from "../types";
 import { getTranslatedText, SmartJoinSentences } from "../../utils"; 
 import { getTemplates } from '../templates';
 import { translations } from "../../i18n";
 import type { TranslationKey } from "../../i18n";
 import type { SuccessLevel } from "../dice";
 import { logger } from "@/lib/logger";
+import { clamp } from "@/lib/utils";
+import type { ItemDefinition } from "../types";
 
 /**
  * Phân tích các thuộc tính của chunk để xác định các MoodTag chủ đạo.
@@ -119,15 +122,8 @@ export const get_sentence_limits = (narrativeLength: NarrativeLength): { min_s: 
     }
 };
 
-/**
- * Kiểm tra xem chunk và playerState có đáp ứng tất cả các điều kiện của template hay không.
- * @param template_conditions Các điều kiện được định nghĩa trong template.
- * @param chunk Dữ liệu chunk hiện tại.
- * @param playerState Trạng thái hiện tại của người chơi (tùy chọn).
- * @returns true nếu tất cả điều kiện được đáp ứng, ngược lại false.
- */
 export const check_conditions = (template_conditions: ConditionType | undefined, chunk: Chunk, playerState?: PlayerStatus): boolean => {
-    if (!template_conditions) return true; // Không có điều kiện nào, luôn đúng
+    if (!template_conditions) return true;
 
     const chunkAny = chunk as any;
 
@@ -138,12 +134,12 @@ export const check_conditions = (template_conditions: ConditionType | undefined,
         if (key === 'soilType') {
             if (!conditionValue.includes(chunk.soilType)) return false;
         } else if (key === 'timeOfDay') {
-            const gameTime = chunkAny.gameTime; // Assuming gameTime is passed within the chunk for this check
+            const gameTime = chunkAny.gameTime;
             const isDay = gameTime >= 360 && gameTime < 1080;
             if (conditionValue === 'day' && !isDay) return false;
             if (conditionValue === 'night' && isDay) return false;
         } else if (key === 'playerHealth' || key === 'playerStamina') {
-            if (!playerState) return false; // Cần playerState để kiểm tra
+            if (!playerState) return false;
             const playerValue = key === 'playerHealth' ? playerState.hp : playerState.stamina;
             if (playerValue < (conditionValue.min ?? 0) || playerValue > (conditionValue.max ?? 100)) return false;
         } else if (key === 'requiredEntities') {
@@ -167,7 +163,7 @@ export const check_conditions = (template_conditions: ConditionType | undefined,
         }
     }
 
-    return true; // Tất cả điều kiện đều được đáp ứng
+    return true;
 };
 
 export const has_mood_overlap = (template_moods: MoodTag[], current_moods: MoodTag[]): boolean => {
@@ -200,13 +196,13 @@ export const fill_template = (
     playerPosition: { x: number; y: number; },
     t: (key: TranslationKey, replacements?: any) => string,
     language: Language,
-    biomeTemplateData: BiomeTemplateData,
     playerState?: PlayerStatus
 ): string => {
     let filled_template = template_string;
+    const biomeTemplateData = getTemplates()[chunk.terrain];
 
     filled_template = filled_template.replace(/{{(.*?)}}/g, (match, p1) => {
-        const key = p1.trim() as keyof BiomeAdjectiveCategory;
+        const key = p1.trim();
         const category =
             (biomeTemplateData.adjectives as any)[key] ||
             (biomeTemplateData.features as any)[key] ||
@@ -295,7 +291,7 @@ export const generateOfflineNarrative = (
     
     const selectedTemplate = select_template_by_weight(validTemplates);
     
-    const narrative = fill_template(selectedTemplate.template, chunk, world, playerPosition, t, resolvedLanguage, biomeTemplateData);
+    const narrative = fill_template(selectedTemplate.template, chunk, world, playerPosition, t, resolvedLanguage);
     
     return narrative;
 };
@@ -392,4 +388,50 @@ export const generateOfflineActionNarrative = (
     if (templateKey === 'exploreAction') return t('customActionFail');
     
     return t(templateKey, replacements);
+};
+
+export const handleSearchAction = (
+    chunk: Chunk,
+    actionId: number,
+    language: Language,
+    t: (key: TranslationKey, replacements?: any) => string,
+    allItemDefinitions: Record<string, ItemDefinition>,
+    getRandomInRange: (range: { min: number, max: number }) => number
+): { newChunk: Chunk, toastInfo?: { title: TranslationKey, description: TranslationKey, params: any } } => {
+    
+    const newChunk = { ...chunk, actions: chunk.actions.filter(a => a.id !== actionId) };
+    const templates = getTemplates();
+    const template = templates[chunk.terrain];
+    let toastInfo;
+    let narrative = "";
+
+    const itemCandidates = template.items || [];
+    const foundItems: ChunkItem[] = [];
+
+    itemCandidates.forEach((itemCandidate: { name: string, conditions: any }) => {
+        if (check_conditions(itemCandidate.conditions, chunk)) {
+            const itemDef = allItemDefinitions[itemCandidate.name];
+            if(itemDef) {
+                 const quantity = getRandomInRange(itemDef.baseQuantity);
+                 foundItems.push({ 
+                    name: itemDef.name, 
+                    description: itemDef.description,
+                    quantity: quantity, 
+                    tier: itemDef.tier, 
+                    emoji: itemDef.emoji
+                });
+            }
+        }
+    });
+
+    if (foundItems.length > 0) {
+        newChunk.items = [...newChunk.items, ...foundItems];
+        const foundItemsText = foundItems.map(item => `${item.quantity} ${getTranslatedText(item.name, language, t)}`).join(', ');
+        narrative = t('exploreFoundItemsNarrative', { items: foundItemsText });
+        toastInfo = { title: 'exploreSuccessTitle', description: 'exploreFoundItems', params: { items: foundItemsText } };
+    } else {
+        narrative = t('exploreFoundNothing')[Math.floor(Math.random() * t('exploreFoundNothing').length)];
+    }
+
+    return { newChunk, toastInfo, narrative };
 };

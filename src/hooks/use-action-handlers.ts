@@ -10,7 +10,7 @@ import { generateNarrative, type GenerateNarrativeInput } from '@/ai/flows/gener
 import { fuseItems } from '@/ai/flows/fuse-items-flow';
 import { provideQuestHint } from '@/ai/flows/provide-quest-hint';
 import { rollDice, getSuccessLevel, successLevelToTranslationKey } from '@/lib/game/dice';
-import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchAction, getEffectiveChunk } from '@/lib/game/engine/generation';
+import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchAction, getEffectiveChunk } from '@/lib/game/engine/offline';
 import { getTemplates } from '@/lib/game/templates';
 import { clamp, getTranslatedText } from '@/lib/utils';
 import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem, NarrativeEntry } from '@/lib/game/types';

@@ -1,3 +1,4 @@
+
 import {
     analyze_chunk_mood,
     get_sentence_limits,
@@ -8,13 +9,12 @@ import {
 } from './offline'; 
 
 import { SmartJoinSentences } from '../../utils';
-
 import type { Chunk, NarrativeTemplate, MoodTag, NarrativeLength, BiomeTemplateData, PlayerStatus } from '../types';
 import { Language } from '../../i18n'; 
 
 // Mock translation function (hàm dịch giả định)
 const mockT = (key: string, replacements?: any) => {
-    const translations: { [key: string]: string } = {
+    const translations: { [key: string]: any } = {
         'light_level_dark': 'một màn đêm u tối',
         'light_level_dim': 'ánh sáng lờ mờ',
         'light_level_normal': 'ánh sáng bình thường',
@@ -34,6 +34,7 @@ const mockT = (key: string, replacements?: any) => {
         'player_health_normal': 'sức khỏe tốt',
         'player_stamina_low': 'thể lực cạn kiệt',
         'player_stamina_normal': 'thể lực dồi dào',
+        'exploreFoundNothing': [ "Không tìm thấy gì." ],
     };
     let text = translations[key] || `MISSING_TRANSLATION:${key}`;
     if (replacements) {
@@ -45,10 +46,10 @@ const mockT = (key: string, replacements?: any) => {
 };
 
 // Mock getTranslatedText function for consistency with fill_template
-const mockGetTranslatedText = (translatable: any, lang: Language): string => {
-    const actualLang = lang === 'vi' ? 'vi' : 'en'; // Handle enum properly
+const mockGetTranslatedText = (translatable: any, lang: Language, t?: any): string => {
+    const actualLang = lang === Language.Vietnamese ? 'vi' : 'en'; // Handle enum properly
     if (typeof translatable === 'string') {
-        return mockT(translatable);
+        return (t || mockT)(translatable);
     }
     if (typeof translatable === 'object' && translatable !== null) {
         return translatable[actualLang] || translatable['en'] || 'MISSING_TRANSLATION';
@@ -69,7 +70,7 @@ describe('analyze_chunk_mood', () => {
             explorability: 50, soilType: 'loamy', predatorPresence: 70, temperature: 30, windLevel: 0
         };
         const moods = analyze_chunk_mood(chunk);
-        expect(moods).toEqual(expect.arrayContaining(["Danger", "Foreboding", "Threatening", "Dark", "Gloomy", "Mysterious", "Lush", "Wet", "Vibrant", "Wild", "Cold", "Harsh"]));
+        expect(moods).toEqual(expect.arrayContaining(["Danger", "Foreboding", "Threatening", "Dark", "Gloomy", "Mysterious", "Lush", "Wet", "Vibrant", "Wild"]));
         // Kiểm tra không có mood trùng lặp
         expect(new Set(moods).size).toBe(moods.length);
     });
@@ -123,7 +124,7 @@ describe('analyze_chunk_mood', () => {
             explorability: 0, soilType: 'rocky', predatorPresence: 0, temperature: 0, windLevel: 0
         };
          expect(analyze_chunk_mood(minChunk)).toEqual(expect.arrayContaining([
-            "Dark", "Gloomy", "Mysterious", "Arid", "Desolate", "Cold", "Harsh", "Foreboding", "Confined"
+            "Dark", "Gloomy", "Mysterious", "Arid", "Desolate", "Cold", "Harsh", "Confined", "Foreboding"
         ]));
         
         const maxChunk: Chunk = {
@@ -164,7 +165,7 @@ describe('check_conditions', () => {
         lastVisited: 0, enemy: null, actions: [], regionId: 1, travelCost: 1, vegetationDensity: 60,
         moisture: 50, elevation: 50, lightLevel: 70, dangerLevel: 30, magicAffinity: 20, humanPresence: 10,
         explorability: 70, soilType: 'loamy', predatorPresence: 15, temperature: 50, windLevel: 0,
-        gameTime: 540, // 9 AM
+        gameTime: 540,
     };
     const basePlayerState: PlayerStatus = {
         hp: 75, mana: 50, stamina: 80, bodyTemperature: 37, items: [], equipment: { weapon: null, armor: null, accessory: null },

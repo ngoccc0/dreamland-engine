@@ -1,5 +1,5 @@
 
-import type { Chunk, MoodTag, NarrativeLength, NarrativeTemplate, ConditionType, Language, PlayerStatus, World, ChunkItem, Action } from "../types";
+import type { Chunk, MoodTag, NarrativeLength, NarrativeTemplate, ConditionType, Language, PlayerStatus, World, ChunkItem, Action, BiomeTemplateData } from "../types";
 import { getTranslatedText, SmartJoinSentences } from "../../utils"; 
 import { getTemplates } from '../templates';
 import { translations } from "../../i18n";
@@ -60,7 +60,7 @@ export const analyze_chunk_mood = (chunk: Chunk): MoodTag[] => {
         moods.push("Abandoned");
     }
 
-    // 7. Nhiệt độ (temperature) - Dải 0-100
+    // 7. Nhiệt độ (temperature) - Dải 0-100 (0: đóng băng, 100: cực nóng, 50: dễ chịu)
     if (chunk.temperature && chunk.temperature >= 80) { 
         moods.push("Hot", "Harsh");
     } else if (chunk.temperature && chunk.temperature <= 20) { 
@@ -78,19 +78,19 @@ export const analyze_chunk_mood = (chunk: Chunk): MoodTag[] => {
             moods.push("Arid", "Desolate", "Harsh");
             break;
         case "mountain":
-            moods.push("Harsh", "Rugged", "Elevated");
+            moods.push("Harsh", "Rugged", "Elevated"); 
             break;
         case "forest":
             moods.push("Lush", "Peaceful");
             break;
         case "cave":
-            moods.push("Dark", "Mysterious", "Foreboding", "Confined");
+            moods.push("Dark", "Mysterious", "Foreboding", "Confined"); 
             break;
         case "jungle": 
             moods.push("Lush", "Vibrant", "Mysterious", "Wild");
             break;
         case "volcanic":
-            moods.push("Danger", "Harsh", "Smoldering");
+            moods.push("Danger", "Harsh", "Smoldering"); 
             break;
         case "ocean":
         case "underwater":
@@ -123,18 +123,20 @@ export const get_sentence_limits = (narrativeLength: NarrativeLength): { min_s: 
 };
 
 export const check_conditions = (template_conditions: ConditionType | undefined, chunk: Chunk, playerState?: PlayerStatus): boolean => {
-    if (!template_conditions) return true;
+    if (!template_conditions) return true; // Không có điều kiện nào, luôn đúng
 
     const chunkAny = chunk as any;
 
     for (const key in template_conditions) {
+        if (!Object.prototype.hasOwnProperty.call(template_conditions, key)) continue;
+        
         const conditionValue = (template_conditions as any)[key];
-        const chunkValue = chunkAny[key];
 
         if (key === 'soilType') {
             if (!conditionValue.includes(chunk.soilType)) return false;
         } else if (key === 'timeOfDay') {
-            const gameTime = chunkAny.gameTime;
+            const gameTime = (chunk as any).gameTime;
+            if (gameTime === undefined) continue;
             const isDay = gameTime >= 360 && gameTime < 1080;
             if (conditionValue === 'day' && !isDay) return false;
             if (conditionValue === 'night' && isDay) return false;
@@ -147,7 +149,7 @@ export const check_conditions = (template_conditions: ConditionType | undefined,
             let entityFound = false;
 
             if (enemyType) {
-                if (chunk.enemy && getTranslatedText(chunk.enemy.type, 'vi') === enemyType) {
+                 if (chunk.enemy && getTranslatedText(chunk.enemy.type, 'vi') === enemyType) {
                     entityFound = true;
                 }
             }
@@ -157,9 +159,12 @@ export const check_conditions = (template_conditions: ConditionType | undefined,
                 }
             }
             if (!entityFound && (enemyType || itemType)) return false;
-        } else if (typeof chunkValue === 'number' && typeof conditionValue === 'object' && conditionValue !== null) {
-            const range = conditionValue as { min?: number, max?: number };
-            if (chunkValue < (range.min ?? -Infinity) || chunkValue > (range.max ?? Infinity)) return false;
+        } else {
+            const chunkValue = chunkAny[key];
+            if (typeof chunkValue === 'number' && typeof conditionValue === 'object' && conditionValue !== null) {
+                const range = conditionValue as { min?: number, max?: number };
+                if (chunkValue < (range.min ?? -Infinity) || chunkValue > (range.max ?? Infinity)) return false;
+            }
         }
     }
 
@@ -176,11 +181,11 @@ export const has_mood_overlap = (template_moods: MoodTag[], current_moods: MoodT
 export const select_template_by_weight = (templates: NarrativeTemplate[]): NarrativeTemplate => {
     if (templates.length === 0) throw new Error("No templates provided for weighted selection.");
 
-    const totalWeight = templates.reduce((sum, tmpl) => sum + tmpl.weight, 0);
+    const totalWeight = templates.reduce((sum, tmpl) => sum + (tmpl.weight || 0.5), 0);
     let randomNum = Math.random() * totalWeight;
 
     for (const tmpl of templates) {
-        randomNum -= tmpl.weight;
+        randomNum -= (tmpl.weight || 0.5);
         if (randomNum <= 0) {
             return tmpl;
         }
@@ -200,6 +205,8 @@ export const fill_template = (
 ): string => {
     let filled_template = template_string;
     const biomeTemplateData = getTemplates()[chunk.terrain];
+    if (!biomeTemplateData) return "Error: Biome template data not found for " + chunk.terrain;
+
 
     filled_template = filled_template.replace(/{{(.*?)}}/g, (match, p1) => {
         const key = p1.trim();
@@ -265,7 +272,8 @@ export const generateOfflineNarrative = (
     world: { [key: string]: Chunk },
     playerPosition: { x: number; y: number; },
     t: (key: TranslationKey, replacements?: any) => string,
-    language?: Language
+    language?: Language,
+    playerStatus?: PlayerStatus,
 ): string => {
     const chunk = baseChunk;
     const resolvedLanguage = language || 'en';
@@ -281,17 +289,17 @@ export const generateOfflineNarrative = (
     const validTemplates = biomeTemplateData.descriptionTemplates.filter(template => {
         const lengthMatch = template.length === narrativeLength || (narrativeLength === 'long' && template.length === 'medium');
         const moodMatch = has_mood_overlap(template.mood, moods);
-        const conditionsMatch = check_conditions(template.conditions, chunk);
+        const conditionsMatch = check_conditions(template.conditions, chunk, playerStatus);
         return lengthMatch && moodMatch && conditionsMatch;
     });
 
     if (validTemplates.length === 0) {
-        return getTranslatedText(chunk.description, resolvedLanguage, t);
+        return getTranslatedText(chunk.description, resolvedLanguage, t) || "A sense of quiet stillness pervades the area.";
     }
     
     const selectedTemplate = select_template_by_weight(validTemplates);
     
-    const narrative = fill_template(selectedTemplate.template, chunk, world, playerPosition, t, resolvedLanguage);
+    const narrative = fill_template(selectedTemplate.template, chunk, world, playerPosition, t, resolvedLanguage, playerStatus);
     
     return narrative;
 };
@@ -307,9 +315,9 @@ export const generateOfflineActionNarrative = (
     let narrativeParts: string[] = [];
     const sensoryFeedbackParts: string[] = [];
 
-    if (chunk.temperature && chunk.temperature >= 90) sensoryFeedbackParts.push(t('sensoryFeedback_hot'));
+    if (chunk.temperature && chunk.temperature >= 80) sensoryFeedbackParts.push(t('sensoryFeedback_hot'));
     if (chunk.temperature && chunk.temperature <= 20) sensoryFeedbackParts.push(t('sensoryFeedback_cold'));
-    if (chunk.lightLevel && chunk.lightLevel <= 0) sensoryFeedbackParts.push(t('sensoryFeedback_dark'));
+    if (chunk.lightLevel && chunk.lightLevel <= 10) sensoryFeedbackParts.push(t('sensoryFeedback_dark'));
     if (chunk.moisture && chunk.moisture >= 80) sensoryFeedbackParts.push(t('sensoryFeedback_rain'));
     
     const sensory_feedback = sensoryFeedbackParts.join(' ');
@@ -397,7 +405,7 @@ export const handleSearchAction = (
     t: (key: TranslationKey, replacements?: any) => string,
     allItemDefinitions: Record<string, ItemDefinition>,
     getRandomInRange: (range: { min: number, max: number }) => number
-): { newChunk: Chunk, toastInfo?: { title: TranslationKey, description: TranslationKey, params: any } } => {
+): { newChunk: Chunk, narrative: string, toastInfo?: { title: TranslationKey, description: TranslationKey, params: any } } => {
     
     const newChunk = { ...chunk, actions: chunk.actions.filter(a => a.id !== actionId) };
     const templates = getTemplates();
@@ -410,7 +418,8 @@ export const handleSearchAction = (
 
     itemCandidates.forEach((itemCandidate: { name: string, conditions: any }) => {
         if (check_conditions(itemCandidate.conditions, chunk)) {
-            const itemDef = allItemDefinitions[itemCandidate.name];
+            const itemDefKey = getTranslatedText(itemCandidate.name, 'en', t);
+            const itemDef = allItemDefinitions[itemDefKey];
             if(itemDef) {
                  const quantity = getRandomInRange(itemDef.baseQuantity);
                  foundItems.push({ 
@@ -430,8 +439,9 @@ export const handleSearchAction = (
         narrative = t('exploreFoundItemsNarrative', { items: foundItemsText });
         toastInfo = { title: 'exploreSuccessTitle', description: 'exploreFoundItems', params: { items: foundItemsText } };
     } else {
-        narrative = t('exploreFoundNothing')[Math.floor(Math.random() * t('exploreFoundNothing').length)];
+        const nothingMessages = t('exploreFoundNothing');
+        narrative = Array.isArray(nothingMessages) ? nothingMessages[Math.floor(Math.random() * nothingMessages.length)] : nothingMessages;
     }
 
-    return { newChunk, toastInfo, narrative };
+    return { newChunk, narrative, toastInfo };
 };

@@ -1,8 +1,9 @@
+
 import type { Recipe } from '@/lib/game/definitions/recipe';
 
 export const naturePlusRecipes: Record<string, Recipe> = {
     'plant_fiber': {
-        result: { name: 'Sợi Thực Vật', quantity: 2, emoji: '🌾' },
+        result: { name: 'plant_fiber', quantity: 2, emoji: '🌾' },
         ingredients: [
             { name: 'dry_grass', quantity: 2 },
             { name: 'large_leaf', quantity: 1 }
@@ -10,18 +11,18 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         description: {en: 'Weave together dried grass and leaves to create basic plant fibers.', vi: 'Dệt cỏ khô và lá cây lại với nhau để tạo ra sợi thực vật cơ bản.'},
     },
     'durable_cloth': {
-        result: { name: 'Vải Bền', quantity: 1, emoji: '👕💪' },
+        result: { name: 'durable_cloth', quantity: 1, emoji: '👕💪' },
         ingredients: [
             { name: 'thorny_vine', quantity: 2 },
-            { name: 'Sợi Thực Vật', quantity: 3 }
+            { name: 'plant_fiber', quantity: 3 }
         ],
         description: {en: 'Weave together vines and fibers to create a strong cloth.', vi: 'Dệt các sợi dây leo và sợi thực vật lại với nhau để tạo ra một loại vải chắc chắn.'},
         requiredTool: 'whetstone',
     },
     'camouflage_cloak': {
-        result: { name: 'Áo Choàng Ngụy Trang', quantity: 1, emoji: '🌿🧥' },
+        result: { name: 'camouflage_cloak', quantity: 1, emoji: '🌿🧥' },
         ingredients: [
-            { name: 'Vải Bền', quantity: 2 },
+            { name: 'durable_cloth', quantity: 2 },
             { name: 'large_leaf', quantity: 5 },
             { name: 'thorny_vine', quantity: 2 }
         ],
@@ -29,7 +30,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'whetstone',
     },
     'charcoal': {
-        result: { name: 'Than Củi', quantity: 1, emoji: '⚫🔥' },
+        result: { name: 'charcoal', quantity: 1, emoji: '⚫🔥' },
         ingredients: [
             { name: 'wood_core', quantity: 1 }
         ],
@@ -37,16 +38,16 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'flint',
     },
     'wrought_iron': {
-        result: { name: 'Thép Rèn', quantity: 1, emoji: '🔗⚔️' },
+        result: { name: 'wrought_iron', quantity: 1, emoji: '🔗⚔️' },
         ingredients: [
             { name: 'iron_ore', quantity: 2 },
-            { name: 'Than Củi', quantity: 1 }
+            { name: 'charcoal', quantity: 1 }
         ],
         description: {en: 'Smelt iron ore into a usable metal.', vi: 'Nung chảy quặng sắt thành một kim loại có thể sử dụng được.'},
-        requiredTool: 'Lò Rèn',
+        requiredTool: 'forge',
     },
     'thick_fur': {
-        result: { name: 'Lông Thú Dày', quantity: 1, emoji: '🐻‍❄️🧶' },
+        result: { name: 'thick_fur', quantity: 1, emoji: '🐻‍❄️🧶' },
         ingredients: [
             { name: 'black_wolf_pelt', quantity: 2 }
         ],
@@ -54,88 +55,88 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'whetstone',
     },
     'optical_glass': {
-        result: { name: 'Kính Quang Học', quantity: 1, emoji: '🔍💡' },
+        result: { name: 'optical_glass', quantity: 1, emoji: '🔍💡' },
         ingredients: [
             { name: 'plain_sand', quantity: 3 },
-            { name: 'Than Củi', quantity: 1 }
+            { name: 'charcoal', quantity: 1 }
         ],
         description: {en: 'Melt sand at high temperatures to create clear glass.', vi: 'Nung chảy cát ở nhiệt độ cao để tạo ra thủy tinh trong suốt.'},
-        requiredTool: 'Lò Nung',
+        requiredTool: 'kiln',
     },
     'activated_charcoal': {
-        result: { name: 'Than Hoạt Tính', quantity: 1, emoji: '⚫💧' },
+        result: { name: 'activated_charcoal', quantity: 1, emoji: '⚫💧' },
         ingredients: [
-            { name: 'Than Củi', quantity: 2 }
+            { name: 'charcoal', quantity: 2 }
         ],
         description: {en: 'Purify charcoal to create a filter.', vi: 'Tinh chế than củi để tạo ra một bộ lọc.'},
-        requiredTool: 'Lò Nung',
+        requiredTool: 'kiln',
     },
     'clean_water': {
-        result: { name: 'Nước Sạch', quantity: 1, emoji: '💧✅' },
+        result: { name: 'clean_water', quantity: 1, emoji: '💧✅' },
         ingredients: [
             { name: 'old_canteen', quantity: 1 },
             { name: 'muddy_water', quantity: 1 },
-            { name: 'Than Hoạt Tính', quantity: 1 }
+            { name: 'activated_charcoal', quantity: 1 }
         ],
         description: {en: 'Filter muddy water to make it safe to drink.', vi: 'Lọc nước bùn để làm cho nó an toàn để uống.'},
         requiredTool: 'whetstone',
     },
     'strong_stamina_potion': {
-        result: { name: 'Thuốc Hồi Phục Thể Lực Mạnh', quantity: 1, emoji: '🧪🏃' },
+        result: { name: 'strong_stamina_potion', quantity: 1, emoji: '🧪🏃' },
         ingredients: [
             { name: 'healing_herb', quantity: 2 },
             { name: 'magic_root', quantity: 1 },
-            { name: 'Nước Sạch', quantity: 1 }
+            { name: 'clean_water', quantity: 1 }
         ],
         description: {en: 'Brew a powerful potion to restore a large amount of stamina.', vi: 'Pha một lọ thuốc mạnh để phục hồi một lượng lớn thể lực.'},
         requiredTool: 'whetstone',
     },
     'sturdy_rope': {
-        result: { name: 'Dây Thừng Chắc Chắn', quantity: 1, emoji: '🔗🧵' },
+        result: { name: 'sturdy_rope', quantity: 1, emoji: '🔗🧵' },
         ingredients: [
             { name: 'thorny_vine', quantity: 2 },
-            { name: 'Sợi Thực Vật', quantity: 3 }
+            { name: 'plant_fiber', quantity: 3 }
         ],
         description: {en: 'Twist together plant fibers to make a strong rope.', vi: 'Xoắn các sợi thực vật lại với nhau để làm một sợi dây thừng chắc chắn.'},
         requiredTool: 'whetstone',
     },
     'tree_sap_glue': {
-        result: { name: 'Keo Nhựa Cây', quantity: 1, emoji: '🍯🌳' },
+        result: { name: 'tree_sap_glue', quantity: 1, emoji: '🍯🌳' },
         ingredients: [
             { name: 'wood_core', quantity: 2 },
-            { name: 'Than Củi', quantity: 1 }
+            { name: 'charcoal', quantity: 1 }
         ],
         description: {en: 'Boil down tree sap to create a sticky adhesive.', vi: 'Đun sôi nhựa cây để tạo ra một chất kết dính.'},
-        requiredTool: 'Lò Nung',
+        requiredTool: 'kiln',
     },
     'tanned_leather': {
-        result: { name: 'Da Thuộc', quantity: 1, emoji: '🧷🐻' },
+        result: { name: 'tanned_leather', quantity: 1, emoji: '🧷🐻' },
         ingredients: [
             { name: 'bear_hide', quantity: 1 },
-            { name: 'Than Củi', quantity: 1 }
+            { name: 'charcoal', quantity: 1 }
         ],
         description: {en: 'Treat animal hides to make them more durable and flexible.', vi: 'Xử lý da động vật để làm cho chúng bền hơn và linh hoạt hơn.'},
         requiredTool: 'whetstone',
     },
     'steel_alloy': {
-        result: { name: 'Thép Hợp Kim', quantity: 1, emoji: '💎⚔️' },
+        result: { name: 'alloy_steel', quantity: 1, emoji: '💎⚔️' },
         ingredients: [
             { name: 'wrought_iron', quantity: 2 },
             { name: 'iron_ore', quantity: 1 }
         ],
         description: {en: 'Forge wrought iron with other minerals to create a stronger steel alloy.', vi: 'Rèn sắt rèn với các khoáng chất khác để tạo ra một hợp kim thép mạnh hơn.'},
-        requiredTool: 'Lò Rèn',
+        requiredTool: 'forge',
     },
     'clay_pot': {
-        result: { name: 'Bình Đất Sét', quantity: 1, emoji: '🏺💧' },
+        result: { name: 'clay_pot', quantity: 1, emoji: '🏺💧' },
         ingredients: [
             { name: 'clay', quantity: 3 },
         ],
         description: {en: 'Fire clay in a kiln to create a sturdy pot for carrying water or cooking.', vi: 'Nung đất sét trong lò để tạo ra một cái nồi chắc chắn để đựng nước hoặc nấu ăn.'},
-        requiredTool: 'Lò Nung',
+        requiredTool: 'kiln',
     },
     'mortar': {
-        result: { name: 'Vữa Xây Dựng', quantity: 1, emoji: '🧱💧' },
+        result: { name: 'mortar', quantity: 1, emoji: '🧱💧' },
         ingredients: [
             { name: 'clay', quantity: 2 },
             { name: 'plain_sand', quantity: 1 },
@@ -145,7 +146,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'whetstone',
     },
     'firefly_lantern': {
-        result: { name: 'Đèn Lồng Đom Đóm', quantity: 1, emoji: '💡✨' },
+        result: { name: 'firefly_lantern', quantity: 1, emoji: '💡✨' },
         ingredients: [
             { name: 'hollow_wood_core', quantity: 1 },
             { name: 'glowing_firefly', quantity: 5 },
@@ -155,7 +156,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'simple_stone_axe',
     },
     'herbal_antidote': {
-        result: { name: 'Thuốc Giải Độc Thảo Mộc', quantity: 1, emoji: '💉🌿' },
+        result: { name: 'herbal_antidote', quantity: 1, emoji: '💉🌿' },
         ingredients: [
             { name: 'snake_venom', quantity: 1 },
             { name: 'healing_herb', quantity: 3 },
@@ -165,7 +166,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'whetstone',
     },
     'wolf_pelt_armor': {
-        result: { name: 'Áo Giáp Lông Sói', quantity: 1, emoji: '🧥🐺' },
+        result: { name: 'wolf_pelt_armor', quantity: 1, emoji: '🧥🐺' },
         ingredients: [
             { name: 'black_wolf_pelt', quantity: 5 },
             { name: 'bear_hide', quantity: 2 },
@@ -175,7 +176,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'whetstone',
     },
     'tanned_leather_armor': {
-        result: { name: 'Áo Giáp Da Thuộc', quantity: 1, emoji: '🛡️🐻' },
+        result: { name: 'tanned_leather_armor', quantity: 1, emoji: '🛡️🐻' },
         ingredients: [
             { name: 'tanned_leather', quantity: 3 },
             { name: 'durable_cloth', quantity: 2 },
@@ -185,17 +186,17 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'whetstone',
     },
     'survival_knife': {
-        result: { name: 'Dao Sinh Tồn Đa Năng', quantity: 1, emoji: '🔪🛠️' },
+        result: { name: 'survival_knife', quantity: 1, emoji: '🔪🛠️' },
         ingredients: [
             { name: 'wrought_iron', quantity: 2 },
             { name: 'wood_core', quantity: 1 },
             { name: 'thorny_vine', quantity: 1 }
         ],
         description: {en: 'Forge a versatile knife that is both a tool and a reliable weapon.', vi: 'Rèn một con dao đa năng vừa là công cụ vừa là vũ khí đáng tin cậy.'},
-        requiredTool: 'Lò Rèn',
+        requiredTool: 'forge',
     },
     'water_filter_canteen': {
-        result: { name: 'Bình Lọc Nước Cầm Tay', quantity: 1, emoji: '🥤💧' },
+        result: { name: 'water_filter_canteen', quantity: 1, emoji: '🥤💧' },
         ingredients: [
             { name: 'hollow_wood_core', quantity: 1 },
             { name: 'durable_cloth', quantity: 1 },
@@ -205,7 +206,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'whetstone',
     },
     'insulated_sleeping_bag': {
-        result: { name: 'Túi Ngủ Giữ Nhiệt', quantity: 1, emoji: '🛌🌡️' },
+        result: { name: 'insulated_sleeping_bag', quantity: 1, emoji: '🛌🌡️' },
         ingredients: [
             { name: 'durable_cloth', quantity: 3 },
             { name: 'thick_fur', quantity: 2 },
@@ -215,7 +216,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'whetstone',
     },
     'large_animal_trap': {
-        result: { name: 'Bẫy Động Vật Lớn', quantity: 1, emoji: '🪤🐻' },
+        result: { name: 'large_animal_trap', quantity: 1, emoji: '🪤🐻' },
         ingredients: [
             { name: 'wood_core', quantity: 5 },
             { name: 'thorny_vine', quantity: 3 },
@@ -225,17 +226,17 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'simple_stone_axe',
     },
     'food_preservation_box': {
-        result: { name: 'Hộp Bảo Quản Thực Phẩm', quantity: 1, emoji: '📦🍎' },
+        result: { name: 'food_preservation_box', quantity: 1, emoji: '📦🍎' },
         ingredients: [
             { name: 'wood_core', quantity: 4 },
             { name: 'pebbles', quantity: 2 },
-            { name: 'condensed_water_crystal', quantity: 1 }
+            { name: 'crystal_water', quantity: 1 }
         ],
         description: {en: 'Construct an insulated box to keep food fresh for longer.', vi: 'Xây dựng một cái hộp cách nhiệt để giữ thức ăn tươi lâu hơn.'},
         requiredTool: 'whetstone',
     },
     'exquisite_compass': {
-        result: { name: 'La Bàn Tinh Xảo', quantity: 1, emoji: '🧭✨' },
+        result: { name: 'exquisite_compass', quantity: 1, emoji: '🧭✨' },
         ingredients: [
             { name: 'wrought_iron', quantity: 1 },
             { name: 'optical_glass', quantity: 1 }
@@ -244,7 +245,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'whetstone',
     },
     'improved_wooden_bow': {
-        result: { name: 'Cung Gỗ Cải Tiến', quantity: 1, emoji: '🏹🌳' },
+        result: { name: 'improved_wooden_bow', quantity: 1, emoji: '🏹🌳' },
         ingredients: [
             { name: 'wood_core', quantity: 3 },
             { name: 'sturdy_rope', quantity: 1 },
@@ -254,16 +255,16 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'whetstone',
     },
     'heavy_iron_axe': {
-        result: { name: 'Rìu Sắt Nặng', quantity: 1, emoji: '🪓💪' },
+        result: { name: 'heavy_iron_axe', quantity: 1, emoji: '🪓💪' },
         ingredients: [
-            { name: 'steel_alloy', quantity: 2 },
+            { name: 'alloy_steel', quantity: 2 },
             { name: 'wood_core', quantity: 2 }
         ],
         description: {en: 'Forge a heavy axe, excellent for felling large trees or as a powerful weapon.', vi: 'Rèn một chiếc rìu nặng, tuyệt vời để đốn hạ những cây lớn hoặc làm vũ khí mạnh mẽ.'},
-        requiredTool: 'Lò Rèn',
+        requiredTool: 'forge',
     },
     'large_bag': {
-        result: { name: 'Túi Đồ Lớn', quantity: 1, emoji: '🎒🎒' },
+        result: { name: 'large_bag', quantity: 1, emoji: '🎒🎒' },
         ingredients: [
             { name: 'durable_cloth', quantity: 3 },
             { name: 'tanned_leather', quantity: 2 },
@@ -273,37 +274,37 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'whetstone',
     },
     'handheld_flashlight': {
-        result: { name: 'Đèn Pin Cầm Tay', quantity: 1, emoji: '🔦✨' },
+        result: { name: 'handheld_flashlight', quantity: 1, emoji: '🔦✨' },
         ingredients: [
-            { name: 'steel_alloy', quantity: 1 },
+            { name: 'alloy_steel', quantity: 1 },
             { name: 'optical_glass', quantity: 1 },
-            { name: 'condensed_water_crystal', quantity: 2 }
+            { name: 'crystal_water', quantity: 2 }
         ],
         description: {en: 'Construct a powerful, focused light source using advanced materials.', vi: 'Chế tạo một nguồn sáng mạnh, tập trung bằng cách sử dụng các vật liệu tiên tiến.'},
-        requiredTool: 'Lò Rèn',
+        requiredTool: 'forge',
     },
     'steel_alloy_armor_set': {
-        result: { name: 'Bộ Giáp Thép Hợp Kim', quantity: 1, emoji: '🪖🛡️' },
+        result: { name: 'steel_alloy_armor', quantity: 1, emoji: '🪖🛡️' },
         ingredients: [
-            { name: 'steel_alloy', quantity: 5 },
+            { name: 'alloy_steel', quantity: 5 },
             { name: 'tanned_leather', quantity: 2 },
             { name: 'wood_core', quantity: 3 }
         ],
         description: {en: 'Forge a complete set of formidable steel alloy armor.', vi: 'Rèn một bộ áo giáp hợp kim thép hoàn chỉnh, đáng gờm.'},
-        requiredTool: 'Lò Rèn',
+        requiredTool: 'forge',
     },
     'steel_alloy_sword': {
-        result: { name: 'Kiếm Thép Hợp Kim', quantity: 1, emoji: '⚔️✨' },
+        result: { name: 'steel_alloy_sword', quantity: 1, emoji: '⚔️✨' },
         ingredients: [
-            { name: 'steel_alloy', quantity: 3 },
+            { name: 'alloy_steel', quantity: 3 },
             { name: 'wood_core', quantity: 1 },
             { name: 'tree_sap_glue', quantity: 1 }
         ],
         description: {en: 'Forge a sharp and durable sword from steel alloy.', vi: 'Rèn một thanh kiếm sắc và bền từ hợp kim thép.'},
-        requiredTool: 'Lò Rèn',
+        requiredTool: 'forge',
     },
     'portable_camping_tent': {
-        result: { name: 'Lều Cắm Trại Di Động', quantity: 1, emoji: '⛺️' },
+        result: { name: 'portable_tent', quantity: 1, emoji: '⛺️' },
         ingredients: [
             { name: 'durable_cloth', quantity: 5 },
             { name: 'wood_core', quantity: 4 },
@@ -313,7 +314,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'whetstone',
     },
     'repair_kit': {
-        result: { name: 'Bộ Dụng Cụ Sửa Chữa', quantity: 1, emoji: '🔧🛠️' },
+        result: { name: 'repair_kit', quantity: 1, emoji: '🔧🛠️' },
         ingredients: [
             { name: 'wrought_iron', quantity: 1 },
             { name: 'wood_core', quantity: 1 },
@@ -323,7 +324,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'whetstone',
     },
     'fishing_hook': {
-        result: { name: 'Móc Câu Cá', quantity: 1, emoji: '🎣' },
+        result: { name: 'fishing_hook', quantity: 1, emoji: '🎣' },
         ingredients: [
             { name: 'wrought_iron', quantity: 1 },
             { name: 'sturdy_branch', quantity: 1 },
@@ -333,7 +334,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'whetstone',
     },
     'grilled_fish_meat': {
-        result: { name: 'Thịt Cá Nướng', quantity: 1, emoji: '🐟🔥' },
+        result: { name: 'grilled_fish', quantity: 1, emoji: '🐟🔥' },
         ingredients: [
             { name: 'raw_wolf_meat', quantity: 1 },
         ],
@@ -341,7 +342,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'campfire',
     },
     'fishing_net': {
-        result: { name: 'Lưới Bắt Cá', quantity: 1, emoji: '🎣🕸️' },
+        result: { name: 'fishing_net', quantity: 1, emoji: '🎣🕸️' },
         ingredients: [
             { name: 'sturdy_rope', quantity: 3 },
             { name: 'wood_core', quantity: 1 }
@@ -350,7 +351,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'whetstone',
     },
     'sun_rain_hat': {
-        result: { name: 'Mũ Bảo Vệ Nắng/Mưa', quantity: 1, emoji: '👒☔' },
+        result: { name: 'protection_hat', quantity: 1, emoji: '👒☔' },
         ingredients: [
             { name: 'wood_core', quantity: 1 },
             { name: 'durable_cloth', quantity: 1 },
@@ -360,17 +361,17 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'whetstone',
     },
     'thermos_flask': {
-        result: { name: 'Bình Giữ Nhiệt', quantity: 1, emoji: '☕️❄️' },
+        result: { name: 'thermos_flask', quantity: 1, emoji: '☕️❄️' },
         ingredients: [
             { name: 'wrought_iron', quantity: 2 },
-            { name: 'condensed_water_crystal', quantity: 1 },
+            { name: 'crystal_water', quantity: 1 },
             { name: 'tree_sap_glue', quantity: 1 }
         ],
         description: {en: 'Construct a flask that can maintain the temperature of liquids.', vi: 'Chế tạo một bình giữ nhiệt có thể duy trì nhiệt độ của chất lỏng.'},
-        requiredTool: 'Lò Rèn',
+        requiredTool: 'forge',
     },
     'strong_recovery_potion': {
-        result: { name: 'Thuốc Hồi Phục Mạnh', quantity: 1, emoji: '🧪❤️‍🩹' },
+        result: { name: 'strong_recovery_potion', quantity: 1, emoji: '🧪❤️‍🩹' },
         ingredients: [
             { name: 'weak_health_potion', quantity: 2 },
             { name: 'stamina_potion', quantity: 1 },

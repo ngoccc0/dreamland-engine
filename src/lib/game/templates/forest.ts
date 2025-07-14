@@ -1,5 +1,4 @@
 
-
 import { structureDefinitions } from "../structures";
 import type { TranslationKey } from "@/lib/i18n";
 import { naturePlusForestEnemies } from "./modded/nature_plus";
@@ -19,45 +18,45 @@ export const forest_vi = {
     NPCs: [
         { 
             data: { 
-                name: 'Thợ săn bí ẩn' as TranslationKey, 
-                description: 'Một người đàn ông với ánh mắt sắc lẹm và bộ quần áo bằng da cũ kỹ, luôn mang theo cây cung dài.' as TranslationKey, 
-                dialogueSeed: 'Một thợ săn dày dạn kinh nghiệm, mệt mỏi nhưng cảnh giác, nói những câu ngắn gọn, dứt khoát.' as TranslationKey,
-                quest: 'Mang cho ta 5 Nanh Sói để chứng tỏ bản lĩnh của ngươi.' as TranslationKey,
-                questItem: { name: 'Nanh Sói', quantity: 5 },
-                rewardItems: [{ name: 'Da Gấu', quantity: 1, tier: 4, emoji: '🐻' }]
+                name: {en: 'Mysterious Hunter', vi: 'Thợ săn bí ẩn'},
+                description: {en: 'A man with sharp eyes and old leather clothes, always carrying a longbow.', vi: 'Một người đàn ông với ánh mắt sắc lẹm và bộ quần áo bằng da cũ kỹ, luôn mang theo cây cung dài.'},
+                dialogueSeed: {en: 'A seasoned hunter, weary but watchful, who speaks in short, clipped sentences.', vi: 'Một thợ săn dày dạn kinh nghiệm, mệt mỏi nhưng cảnh giác, nói những câu ngắn gọn, dứt khoát.'},
+                quest: {en: 'Bring me 5 Wolf Fangs to prove your mettle.', vi: 'Mang cho ta 5 Nanh Sói để chứng tỏ bản lĩnh của ngươi.'},
+                questItem: { name: 'wolf_fang', quantity: 5 },
+                rewardItems: [{ name: 'bear_hide', quantity: 1, tier: 4, emoji: '🐻' }]
             },
             conditions: { humanPresence: { min: 2 }, chance: 0.05 } 
         },
     ],
     items: [
-        { name: 'Quả Mọng Ăn Được', conditions: { dangerLevel: { max: 4 }, chance: 0.4 } },
-        { name: 'Nấm Độc', conditions: { dangerLevel: { min: 5 }, moisture: { min: 6 }, chance: 0.25 } },
-        { name: 'Thảo Dược Chữa Lành', conditions: { vegetationDensity: { min: 8 }, chance: 0.3 } },
-        { name: 'Hoa Tinh Linh', conditions: { magicAffinity: { min: 7 }, chance: 0.05 } },
-        { name: 'Vỏ Cây Cổ Thụ', conditions: { vegetationDensity: { min: 9 }, chance: 0.02 } },
-        { name: 'Nhựa Cây Dính', conditions: { chance: 0.2 } },
-        { name: 'Mật Ong Hoang', conditions: { vegetationDensity: { min: 6 }, chance: 0.05 } },
-        { name: 'Sỏi', conditions: { chance: 0.4 } },
-        { name: 'Dây Gai', conditions: { vegetationDensity: { min: 5 }, chance: 0.3 } },
-        { name: 'Lá cây lớn', conditions: { vegetationDensity: { min: 6 }, chance: 0.4 } },
-        { name: 'Cành Cây Chắc Chắn', conditions: { chance: 0.5 } },
-        { name: 'Lõi Gỗ Rỗng', conditions: { chance: 0.15, moisture: { min: 4 } } },
-        { name: 'Rễ Cây Ma Thuật', conditions: { chance: 0.05, moisture: { min: 6 }, timeOfDay: 'night' } },
+        { name: 'edible_berries', conditions: { dangerLevel: { max: 4 }, chance: 0.4 } },
+        { name: 'poisonous_mushroom', conditions: { dangerLevel: { min: 5 }, moisture: { min: 6 }, chance: 0.25 } },
+        { name: 'healing_herb', conditions: { vegetationDensity: { min: 8 }, chance: 0.3 } },
+        { name: 'spirit_bloom', conditions: { magicAffinity: { min: 7 }, chance: 0.05 } },
+        { name: 'ancient_bark', conditions: { vegetationDensity: { min: 9 }, chance: 0.02 } },
+        { name: 'sticky_resin', conditions: { chance: 0.2 } },
+        { name: 'wild_honey', conditions: { vegetationDensity: { min: 6 }, chance: 0.05 } },
+        { name: 'pebbles', conditions: { chance: 0.4 } },
+        { name: 'thorny_vine', conditions: { vegetationDensity: { min: 5 }, chance: 0.3 } },
+        { name: 'large_leaf', conditions: { vegetationDensity: { min: 6 }, chance: 0.4 } },
+        { name: 'sturdy_branch', conditions: { chance: 0.5 } },
+        { name: 'hollow_log', conditions: { chance: 0.15, moisture: { min: 4 } } },
+        { name: 'magic_root', conditions: { chance: 0.05, moisture: { min: 6 }, timeOfDay: 'night' } },
     ],
     structures: [
          { 
-            data: structureDefinitions['Bàn thờ bị bỏ hoang'], 
-            loot: [{ name: 'Mảnh Tinh Thể', chance: 0.1, quantity: { min: 1, max: 1 } }],
-            conditions: { magicAffinity: { min: 6 }, chance: 0.01 }
+            data: structureDefinitions['abandoned_altar'], 
+            loot: [{ name: 'crystal_shard', chance: 0.1, quantity: { min: 1, max: 1 } }],
+            conditions: { magicAffinity: { min: 6 }, chance: 0.01 } 
         },
     ],
     creatures: [
-        { name: 'Cây Gỗ Thường', conditions: { chance: 0.7, vegetationDensity: { min: 3 } } },
-        { name: 'Sói', conditions: { predatorPresence: { min: 5 }, chance: 0.3 } },
-        { name: 'Nhện khổng lồ', conditions: { vegetationDensity: { min: 8 }, dangerLevel: { min: 6 }, chance: 0.25 } },
-        { name: 'Heo Rừng', conditions: { predatorPresence: { min: 4 }, chance: 0.25 } },
-        { name: 'Yêu Tinh Rừng', conditions: { dangerLevel: { min: 5 }, humanPresence: { min: 1 }, chance: 0.2 } },
-        { name: 'Gấu', conditions: { predatorPresence: { min: 8 }, dangerLevel: { min: 7 }, chance: 0.08 } },
+        { name: 'common_tree', conditions: { chance: 0.7, vegetationDensity: { min: 3 } } },
+        { name: 'wolf', conditions: { predatorPresence: { min: 5 }, chance: 0.3 } },
+        { name: 'giant_spider', conditions: { vegetationDensity: { min: 8 }, dangerLevel: { min: 6 }, chance: 0.25 } },
+        { name: 'wild_boar', conditions: { predatorPresence: { min: 4 }, chance: 0.25 } },
+        { name: 'forest_goblin', conditions: { dangerLevel: { min: 5 }, humanPresence: { min: 1 }, chance: 0.2 } },
+        { name: 'bear', conditions: { predatorPresence: { min: 8 }, dangerLevel: { min: 7 }, chance: 0.08 } },
     ],
 };
 

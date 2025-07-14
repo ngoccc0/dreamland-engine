@@ -31,9 +31,9 @@ type GameEffectsDeps = {
   setIsGameOver: (gameOver: boolean) => void;
   setIsSaving: (saving: boolean) => void;
   playerStats: PlayerStatus;
-  setPlayerStats: (fn: (prev: PlayerStatus) => PlayerStatus) => void;
+  setPlayerStats: React.Dispatch<React.SetStateAction<PlayerStatus>>;
   playerBehaviorProfile: PlayerBehaviorProfile;
-  setPlayerBehaviorProfile: (fn: (prev: any) => any) => void;
+  setPlayerBehaviorProfile: React.Dispatch<React.SetStateAction<PlayerBehaviorProfile>>;
   world: GameState['world'];
   setWorld: (fn: (prev: GameState['world']) => GameState['world']) => void;
   playerPosition: GameState['playerPosition'];
@@ -145,5 +145,3 @@ export function useGameEffects(deps: GameEffectsDeps) {
     setCurrentChunk: deps.setCurrentChunk,
   });
 }
-
-    

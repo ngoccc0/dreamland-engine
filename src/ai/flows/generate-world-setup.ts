@@ -7,11 +7,11 @@
 import Handlebars from 'handlebars';
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
-import type { Terrain, Skill, TranslatableString } from '@/lib/game/types';
+import type { Terrain, Skill } from '@/lib/game/types';
 import { GeneratedItemSchema, SkillSchema, NarrativeConceptArraySchema, StructureSchema, allTerrains as allTerrainsSchema, TranslatableStringSchema } from '@/ai/schemas';
 import { ItemCategorySchema } from '@/lib/game/definitions';
 import { skillDefinitions } from '@/lib/game/skills';
-import { getEmojiForItem } from '@/lib/utils';
+import { getEmojiForItem, getTranslatedText } from '@/lib/utils';
 import { db } from '@/lib/firebase-config';
 import { collection, getDocs } from 'firebase/firestore';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
@@ -73,7 +73,7 @@ const StructureCatalogCreativeOutputSchema = z.object({
 
 
 // -- Final Combined Output Schema (for the frontend) --
-const WorldConceptSchema = z.object({
+export const WorldConceptSchema = z.object({
   worldName: TranslatableStringSchema,
   initialNarrative: TranslatableStringSchema,
   startingBiome: z.custom<Terrain>(), // Using custom to avoid z.enum with a const
@@ -82,6 +82,7 @@ const WorldConceptSchema = z.object({
   startingSkill: SkillSchema,
   customStructures: z.array(StructureSchema), // Pass the generated structures with each concept
 });
+export type WorldConcept = z.infer<typeof WorldConceptSchema>;
 
 export const GenerateWorldSetupOutputSchema = z.object({
     customItemCatalog: z.array(GeneratedItemSchema),
@@ -306,10 +307,11 @@ const generateWorldSetupFlow = ai.defineFlow(
             validBiomes.push('forest'); // Add a fallback biome if the AI provides an invalid one
         }
 
-        const itemName = typeof item.name === 'string' ? item.name : item.name.en;
+        const itemName = typeof item.name === 'string' ? item.name : getTranslatedText(item.name, 'en');
 
         return {
             ...item,
+            id: itemName.toLowerCase().replace(/\s+/g, '_'),
             tier: getRandomInRange({ min: 1, max: 3 }),
             effects: [], // Start with no effects for AI-generated items
             baseQuantity: { min: 1, max: getRandomInRange({ min: 1, max: 5 }) },
@@ -335,9 +337,7 @@ const generateWorldSetupFlow = ai.defineFlow(
     
     const creativeStructures = structureCatalogResult.output?.customStructures || [];
     const customStructures = creativeStructures.map(struct => ({
-        name: struct.name,
-        description: struct.description,
-        emoji: struct.emoji,
+        ...struct,
         providesShelter: Math.random() > 0.6, // 40% chance of providing shelter
         buildable: false, // AI-generated structures aren't buildable by default
         buildCost: [],
@@ -360,7 +360,7 @@ const generateWorldSetupFlow = ai.defineFlow(
         const startingItems = shuffledItems.slice(0, numItemsToTake);
         
         const playerInventory = startingItems.map(item => ({
-            name: typeof item.name === 'string' ? item.name : item.name.en, // Use english name as key
+            name: getTranslatedText(item.name, 'en'), // Use english name as key
             quantity: getRandomInRange(item.baseQuantity)
         }));
 
@@ -388,11 +388,10 @@ const generateWorldSetupFlow = ai.defineFlow(
         };
     });
 
-    // For output, only pass the fields required by the schema (customStructures: StructureSchema[] expects only name, description, emoji)
     const finalOutput: GenerateWorldSetupOutput = {
         customItemCatalog,
-        customStructures: customStructures.map(({name, description, emoji}) => ({name, description, emoji})),
-        concepts: finalConcepts as any, // Cast to bypass strict type check for biome
+        customStructures: customStructures,
+        concepts: finalConcepts,
     };
     
     logger.info('--- FINAL WORLD SETUP DATA ---', finalOutput);

@@ -13,8 +13,10 @@ import type {
     PlayerAttributes,
     ItemCategory, 
     MultilingualText,
-    TranslatableStringSchema,
+    TranslatableStringSchema as TranslatableStringSchemaZod,
 } from "./definitions";
+import { z } from 'zod';
+
 
 // Re-export for easier access elsewhere
 export type { 
@@ -28,34 +30,21 @@ export type {
     ItemCategory,
     MultilingualText,
     Language,
-    TranslatableStringSchema,
 };
+
+export const TranslatableStringSchema = TranslatableStringSchemaZod;
+export type TranslatableString = z.infer<typeof TranslatableStringSchema>;
 
 /**
  * @description The supported terrain types in the game world.
  */
 export const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic", "wall", "floptropica", "tundra", "beach", "mesa", "mushroom_forest", "ocean", "city", "space_station", "underwater"];
 
-/**
- * @description Represents a string that can be translated.
- * It can be a simple string (acting as a key) or a rich object with translations.
- */
-export type TranslatableString = string | { en: string; vi: string; };
 
-export type ItemDefinition = Omit<ItemDefZod, 'name' | 'description' | 'spawnBiomes'> & { 
-    name: TranslatableString,
-    description: TranslatableString,
-    spawnBiomes?: Terrain[] 
-};
+export type ItemDefinition = z.infer<typeof ItemDefZod>;
 export type BiomeDefinition = Omit<BiomeDefZod, 'id'>;
-export type Recipe = Omit<RecipeDefZod, 'ingredients' | 'description'> & { 
-    ingredients: RecipeIngredient[],
-    description: TranslatableString,
-};
-export type StructureDefinition = Omit<StructDefZod, 'name' | 'description'> & {
-    name: TranslatableString,
-    description: TranslatableString,
-};
+export type Recipe = z.infer<typeof RecipeDefZod>;
+export type StructureDefinition = z.infer<typeof StructDefZod>;
 
 /**
  * @description Represents a contiguous region of a single biome in the game world.
@@ -148,10 +137,7 @@ export interface WeatherZone {
 }
 
 // --- WORLD & GAME STATE TYPES ---
-export type GeneratedItem = Omit<ItemDefinition, 'name' | 'description'> & {
-  name: TranslatableString;
-  description: TranslatableString;
-};
+export type GeneratedItem = ItemDefinition;
 
 export interface WorldProfile {
     climateBase: 'temperate' | 'arid' | 'tropical';
@@ -233,10 +219,7 @@ export interface Skill {
     };
 }
 
-export interface Structure extends Omit<StructureDefinition, 'name' | 'description'> {
-    name: TranslatableString;
-    description: TranslatableString;
-}
+export interface Structure extends StructureDefinition {}
 
 export interface Action {
   id: number;
@@ -338,35 +321,7 @@ export type NarrativeEntry = {
     type: 'narrative' | 'action' | 'system';
 }
 
-export interface WorldConcept {
-  worldName: TranslatableString;
-  initialNarrative: TranslatableString;
-  startingBiome: Terrain;
-  customStructures: StructureDefinition[];
-  playerInventory: { name: string; quantity: number }[];
-  initialQuests: TranslatableString[];
-  startingSkill: Skill;
-  customItemCatalog?: GeneratedItem[];
-}
-
-export interface RecipeIngredient {
-    name: string;
-    quantity: number;
-}
-
-export interface CraftingOutcome {
-    canCraft: boolean;
-    chance: number;
-    hasRequiredTool: boolean;
-    ingredientsToConsume: { name: string; quantity: number }[];
-    resolvedIngredients: {
-        requirement: {name: string, quantity: number};
-        usedItem: { name: string; tier: number } | null; 
-        isSubstitute: boolean;
-        hasEnough: boolean; 
-        playerQuantity: number;
-    }[];
-}
+export type WorldConcept = z.infer<typeof import('../ai/flows/generate-world-setup').WorldConceptSchema>;
 
 export interface GameState {
     worldProfile: WorldProfile;
@@ -380,13 +335,7 @@ export interface GameState {
     playerBehaviorProfile: PlayerBehaviorProfile;
     playerStats: PlayerStatus;
     narrativeLog: NarrativeEntry[];
-    worldSetup: Omit<WorldConcept, 'playerInventory' | 'customStructures' | 'customItemCatalog' | 'initialQuests' > & { 
-        playerInventory: PlayerItem[], 
-        startingSkill: Skill, 
-        customStructures: Structure[],
-        customItemCatalog: GeneratedItem[],
-        initialQuests: string[],
-    };
+    worldSetup: WorldConcept;
     customItemDefinitions: Record<string, ItemDefinition>;
     customItemCatalog: GeneratedItem[];
     customStructures: StructureDefinition[];

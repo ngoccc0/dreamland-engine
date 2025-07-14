@@ -10,6 +10,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '💧💎',
         effects: [{ type: 'REDUCE_HEAT', amount: 5 }],
         baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: true,
     },
     'Rễ Cây Ma Thuật': {
         description: 'item_magic_root_desc',
@@ -18,6 +19,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🌿✨',
         effects: [{ type: 'MANA_REGEN_BOOST', amount: 0.5, duration: 60 }],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: true,
     },
     'Lõi Gỗ Rỗng': {
         description: 'item_hollow_log_desc',
@@ -26,6 +28,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🪵🕳️',
         effects: [],
         baseQuantity: { min: 1, max: 3 },
+        spawnEnabled: true,
     },
     'Lông Sói Đen': {
         description: 'item_black_wolf_pelt_desc',
@@ -34,6 +37,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🐺⚫',
         effects: [],
         baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: true,
     },
     'Nọc Rắn Độc': {
         description: 'item_snake_venom_desc',
@@ -42,6 +46,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🧪🐍',
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: true,
     },
     'Da Cá Sấu Cổ Đại': {
         description: 'item_ancient_gator_hide_desc',
@@ -50,6 +55,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🐊🛡️',
         effects: [],
         baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: true,
     },
 
     // === VẬT PHẨM CHẾ TẠO (do mod thêm vào) ===
@@ -60,6 +66,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🔥🔨',
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Lò Nung': {
         description: 'item_kiln_desc',
@@ -68,6 +75,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🏺🔥',
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Than Củi': {
         description: 'item_charcoal_desc',
@@ -76,6 +84,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '⚫🔥',
         effects: [],
         baseQuantity: { min: 1, max: 3 },
+        spawnEnabled: false,
     },
     'Thép Rèn': {
         description: 'item_wrought_iron_desc',
@@ -84,6 +93,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🔗⚔️',
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Vải Bền': {
         description: 'item_durable_cloth_desc',
@@ -92,6 +102,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '👕💪',
         effects: [],
         baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: false,
     },
     'Lông Thú Dày': {
         description: 'item_thick_fur_desc',
@@ -100,6 +111,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🐻‍❄️🧶',
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Kính Quang Học': {
         description: 'item_optical_glass_desc',
@@ -108,6 +120,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🔍💡',
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Than Hoạt Tính': {
         description: 'item_activated_charcoal_desc',
@@ -116,6 +129,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '⚫💧',
         effects: [],
         baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: false,
     },
     'Nước Sạch': {
         description: 'item_clean_water_desc',
@@ -124,6 +138,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '💧✅',
         effects: [{ type: 'RESTORE_STAMINA', amount: 10 }],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Thuốc Hồi Phục Thể Lực Mạnh': {
         description: 'item_strong_stamina_potion_desc',
@@ -132,6 +147,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🧪🏃',
         effects: [{ type: 'RESTORE_STAMINA', amount: 50 }],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Dây Thừng Chắc Chắn': {
         description: 'item_sturdy_rope_desc',
@@ -140,6 +156,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🔗🧵',
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Keo Nhựa Cây': {
         description: 'item_tree_sap_glue_desc',
@@ -148,6 +165,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🍯🌳',
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Da Thuộc': {
         description: 'item_tanned_leather_desc',
@@ -156,6 +174,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🧷🐻',
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Thép Hợp Kim': {
         description: 'item_steel_alloy_desc',
@@ -164,6 +183,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '💎⚔️',
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Bình Đất Sét': {
         description: 'item_clay_pot_desc',
@@ -172,6 +192,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🏺💧',
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Công Cụ Đồng Thô Sơ': {
         description: 'item_crude_copper_tool_desc',
@@ -180,6 +201,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '⛏️🥉',
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Vữa Xây Dựng': {
         description: 'item_mortar_desc',
@@ -188,6 +210,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🧱💧',
         effects: [],
         baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: false,
     },
     'Sợi Thực Vật': {
         description: 'item_plant_fiber_desc',
@@ -196,6 +219,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🌾',
         effects: [],
         baseQuantity: { min: 2, max: 4 },
+        spawnEnabled: true,
     },
     'Đèn Lồng Đom Đóm': {
         description: 'item_firefly_lantern_desc',
@@ -205,6 +229,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         effects: [{ type: 'PROVIDE_LIGHT', amount: 10 }],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'accessory' as EquipmentSlot,
+        spawnEnabled: false,
     },
     'Áo Giáp Lông Sói': {
         description: 'item_wolf_pelt_armor_desc',
@@ -215,6 +240,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'armor' as EquipmentSlot,
         attributes: { physicalDefense: 5, magicalDefense: 2 },
+        spawnEnabled: false,
     },
     'Dao Sinh Tồn Đa Năng': {
         description: 'item_survival_knife_desc',
@@ -225,6 +251,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon' as EquipmentSlot,
         attributes: { physicalAttack: 10, critChance: 2 },
+        spawnEnabled: false,
     },
     'Bình Lọc Nước Cầm Tay': {
         description: 'item_water_filter_canteen_desc',
@@ -233,6 +260,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🥤💧',
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Túi Ngủ Giữ Nhiệt': {
         description: 'item_insulated_sleeping_bag_desc',
@@ -241,6 +269,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🛌🌡️',
         effects: [{ type: 'REST_BOOST', amount: 20 }, { type: 'COLD_RESISTANCE', amount: 10 }],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Bẫy Động Vật Lớn': {
         description: 'item_large_animal_trap_desc',
@@ -249,6 +278,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🪤🐻',
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Hộp Bảo Quản Thực Phẩm': {
         description: 'item_food_preservation_box_desc',
@@ -257,6 +287,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '📦🍎',
         effects: [{ type: 'FOOD_PRESERVATION_BOOST', amount: 50 }],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'La Bàn Tinh Xảo': {
         description: 'item_exquisite_compass_desc',
@@ -265,6 +296,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🧭✨',
         effects: [{ type: 'EXPLORATION_ASSIST', amount: 10 }],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Cung Gỗ Cải Tiến': {
         description: 'item_improved_wooden_bow_desc',
@@ -275,6 +307,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon' as EquipmentSlot,
         attributes: { physicalAttack: 15, critChance: 3 },
+        spawnEnabled: false,
     },
     'Rìu Sắt Nặng': {
         description: 'item_heavy_iron_axe_desc',
@@ -285,6 +318,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon' as EquipmentSlot,
         attributes: { physicalAttack: 12 },
+        spawnEnabled: false,
     },
     'Áo Giáp Da Thuộc': {
         description: 'item_tanned_leather_armor_desc',
@@ -295,6 +329,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'armor' as EquipmentSlot,
         attributes: { physicalDefense: 8, magicalDefense: 3 },
+        spawnEnabled: false,
     },
     'Túi Đồ Lớn': {
         description: 'item_large_bag_desc',
@@ -303,6 +338,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🎒🎒',
         effects: [{ type: 'INVENTORY_SLOTS', amount: 5 }],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Đèn Pin Cầm Tay': {
         description: 'item_handheld_flashlight_desc',
@@ -312,6 +348,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         effects: [{ type: 'PROVIDE_LIGHT', amount: 20 }],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'accessory' as EquipmentSlot,
+        spawnEnabled: false,
     },
     'Bộ Giáp Thép Hợp Kim': {
         description: 'item_steel_alloy_armor_set_desc',
@@ -322,6 +359,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'armor' as EquipmentSlot,
         attributes: { physicalDefense: 25, magicalDefense: 10 },
+        spawnEnabled: false,
     },
     'Kiếm Thép Hợp Kim': {
         description: 'item_steel_alloy_sword_desc',
@@ -332,6 +370,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon' as EquipmentSlot,
         attributes: { physicalAttack: 25, critChance: 8 },
+        spawnEnabled: false,
     },
     'Lều Cắm Trại Di Động': {
         description: 'item_portable_camping_tent_desc',
@@ -340,6 +379,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '⛺️',
         effects: [{ type: 'REST_BOOST', amount: 40 }, { type: 'WEATHER_PROTECTION', amount: 20 }],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Bộ Dụng Cụ Sửa Chữa': {
         description: 'item_repair_kit_desc',
@@ -348,6 +388,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🔧🛠️',
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Móc Câu Cá': {
         description: 'item_fishing_hook_desc',
@@ -356,6 +397,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🎣',
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Lưới Bắt Cá': {
         description: 'item_fishing_net_desc',
@@ -364,6 +406,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '🎣🕸️',
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Áo Choàng Ngụy Trang': {
         description: 'item_camouflage_cloak_desc',
@@ -374,6 +417,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'armor' as EquipmentSlot,
         attributes: { physicalDefense: 3, magicalDefense: 1 },
+        spawnEnabled: false,
     },
     'Mũ Bảo Vệ Nắng/Mưa': {
         description: 'item_sun_rain_hat_desc',
@@ -384,6 +428,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'accessory' as EquipmentSlot,
         attributes: { physicalDefense: 1 },
+        spawnEnabled: false,
     },
     'Bình Giữ Nhiệt': {
         description: 'item_thermos_flask_desc',
@@ -392,5 +437,6 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         emoji: '☕️❄️',
         effects: [{ type: 'TEMPERATURE_STABILITY_BOOST', amount: 20 }],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
 };

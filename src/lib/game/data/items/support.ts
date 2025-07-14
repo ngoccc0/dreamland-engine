@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Defines all support and healing items in the game.
  * @description This file contains definitions for consumable items like potions,
@@ -20,7 +21,8 @@ export const supportItems: Record<string, ItemDefinition> = {
         growthConditions: {
             optimal: { moisture: { min: 6, max: 8 }, temperature: { min: 5, max: 8 }, lightLevel: { min: 2, max: 6 } },
             subOptimal: { moisture: { min: 4, max: 5 }, temperature: { min: 3, max: 4 } }
-        }
+        },
+        spawnEnabled: true,
     },
     'Cây Thuốc Núi': {
         name: { en: 'Mountain Herb', vi: 'Cây Thuốc Núi' },
@@ -30,7 +32,8 @@ export const supportItems: Record<string, ItemDefinition> = {
         subCategory: 'Potion',
         emoji: '🌿',
         effects: [{ type: 'HEAL', amount: 50 }],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: true,
     },
     'Thuốc Máu Yếu': {
         name: { en: 'Weak Health Potion', vi: 'Thuốc Máu Yếu' },
@@ -40,7 +43,8 @@ export const supportItems: Record<string, ItemDefinition> = {
         subCategory: 'Potion',
         emoji: '🧪',
         effects: [{ type: 'HEAL', amount: 35 }],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Thuốc Máu Mạnh': {
         name: { en: 'Strong Health Potion', vi: 'Thuốc Máu Mạnh' },
@@ -50,7 +54,8 @@ export const supportItems: Record<string, ItemDefinition> = {
         subCategory: 'Potion',
         emoji: '🧪',
         effects: [{ type: 'HEAL', amount: 75 }],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Thuốc Thể Lực': {
         name: { en: 'Stamina Potion', vi: 'Thuốc Thể Lực' },
@@ -60,7 +65,8 @@ export const supportItems: Record<string, ItemDefinition> = {
         subCategory: 'Potion',
         emoji: '🥤',
         effects: [{ type: 'RESTORE_STAMINA', amount: 70 }],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Băng Gạc': {
         name: { en: 'Bandage', vi: 'Băng Gạc' },
@@ -69,7 +75,8 @@ export const supportItems: Record<string, ItemDefinition> = {
         category: 'Support',
         emoji: '🩹',
         effects: [{ type: 'HEAL', amount: 15 }],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Bình Nước Cũ': {
         name: { en: 'Old Canteen', vi: 'Bình Nước Cũ' },
@@ -79,7 +86,8 @@ export const supportItems: Record<string, ItemDefinition> = {
         subCategory: 'Potion',
         emoji: '💧',
         effects: [{ type: 'RESTORE_STAMINA', amount: 30 }], // More stamina focused than food
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: true,
     },
     'Tuyết': {
         name: { en: 'Snow', vi: 'Tuyết' },
@@ -88,7 +96,8 @@ export const supportItems: Record<string, ItemDefinition> = {
         category: 'Support',
         emoji: '❄️',
         effects: [{ type: 'RESTORE_STAMINA', amount: 5 }, { type: 'RESTORE_MANA', amount: 1 }],
-        baseQuantity: { min: 1, max: 3 }
+        baseQuantity: { min: 1, max: 3 },
+        spawnEnabled: true,
     },
     'Nước Ngầm': {
         name: { en: 'Groundwater', vi: 'Nước Ngầm' },
@@ -97,7 +106,8 @@ export const supportItems: Record<string, ItemDefinition> = {
         category: 'Support',
         emoji: '💧',
         effects: [{ type: 'HEAL', amount: 5 }, { type: 'RESTORE_STAMINA', amount: 10 }, { type: 'RESTORE_MANA', amount: 2 }],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: true,
     },
     'Rượu Synth-Whiskey': { 
         name: { en: 'Synth-Whiskey', vi: 'Rượu Synth-Whiskey' },
@@ -105,7 +115,8 @@ export const supportItems: Record<string, ItemDefinition> = {
         emoji: '🥃', 
         category: 'Support', tier: 1, 
         effects: [{ type: 'RESTORE_STAMINA', amount: 20 }, { type: 'RESTORE_MANA', amount: 5 }],
-        baseQuantity: { min: 1, max: 1 } 
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Nước tẩm Gia vị': { 
         name: { en: 'Spice-Infused Water', vi: 'Nước tẩm Gia vị' },
@@ -113,7 +124,8 @@ export const supportItems: Record<string, ItemDefinition> = {
         emoji: '💧', 
         category: 'Support', tier: 2, 
         effects: [{ type: 'RESTORE_STAMINA', amount: 40 }, { type: 'RESTORE_MANA', amount: 10 }],
-        baseQuantity: { min: 1, max: 1 } 
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Thuốc mỡ Tảo biển': { 
         name: { en: 'Algae Salve', vi: 'Thuốc mỡ Tảo biển' },
@@ -121,7 +133,8 @@ export const supportItems: Record<string, ItemDefinition> = {
         emoji: '🌿', 
         category: 'Support', tier: 1, 
         effects: [{ type: 'HEAL', amount: 20 }], 
-        baseQuantity: { min: 1, max: 2 } 
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: false,
     },
      'Viên Yass': { 
         name: { en: 'Yass Pill', vi: 'Viên Yass' },
@@ -129,7 +142,8 @@ export const supportItems: Record<string, ItemDefinition> = {
         emoji: '💊', 
         category: 'Support', tier: 2, 
         effects: [{ type: 'HEAL', amount: 30 }, { type: 'RESTORE_MANA', amount: 5 }], 
-        baseQuantity: { min: 2, max: 2 } 
+        baseQuantity: { min: 2, max: 2 },
+        spawnEnabled: false,
     },
     'Bản Remix của CupcakKe': { 
         name: { en: "CupcakKe's Remix", vi: 'Bản Remix của CupcakKe' },
@@ -137,7 +151,8 @@ export const supportItems: Record<string, ItemDefinition> = {
         emoji: '🎶', 
         category: 'Support', tier: 3, 
         effects: [{ type: 'RESTORE_STAMINA', amount: 50 }, { type: 'RESTORE_MANA', amount: 15 }], 
-        baseQuantity: { min: 1, max: 1 } 
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Thuốc Giải Độc Thảo Mộc': {
         name: { en: 'Herbal Antidote', vi: 'Thuốc Giải Độc Thảo Mộc' },
@@ -146,7 +161,8 @@ export const supportItems: Record<string, ItemDefinition> = {
         category: 'Support',
         emoji: '💉🌿',
         effects: [{ type: 'CURE_POISON', amount: 100 }],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
     'Thuốc Hồi Phục Mạnh': {
         name: { en: 'Strong Recovery Potion', vi: 'Thuốc Hồi Phục Mạnh' },
@@ -155,6 +171,7 @@ export const supportItems: Record<string, ItemDefinition> = {
         category: 'Support',
         emoji: '🧪❤️‍🩹',
         effects: [{ type: 'HEAL', amount: 75 }, { type: 'RESTORE_STAMINA', amount: 75 }],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
 };

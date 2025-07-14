@@ -161,11 +161,11 @@ export const check_conditions = (template_conditions: ConditionType | undefined,
         if (key === 'requiredEntities') {
             const { enemyType, itemType } = conditionValue;
             let entityFound = false;
-            if (enemyType && chunk.enemy && getTranslatedText(chunk.enemy.type, Language.Vietnamese) === enemyType) {
+            if (enemyType && chunk.enemy && getTranslatedText(chunk.enemy.type, 'vi') === enemyType) {
                 entityFound = true;
             }
             if (itemType && !entityFound) {
-                if (chunk.items.some(item => getTranslatedText(item.name, Language.Vietnamese) === itemType)) {
+                if (chunk.items.some(item => getTranslatedText(item.name, 'vi') === itemType)) {
                     entityFound = true;
                 }
             }
@@ -377,12 +377,13 @@ export const handleSearchAction = (
     let newChunk = { ...currentChunk, items: [...currentChunk.items] };
     newChunk.actions = newChunk.actions.filter(a => a.id !== actionId);
 
-    const templates = getTemplates()[currentChunk.terrain];
-    if (!templates || !templates.items) {
+    const templates = getTemplates();
+    const biomeTemplates = templates[currentChunk.terrain];
+    if (!biomeTemplates || !biomeTemplates.items) {
         return { newChunk, narrative: t('exploreFoundNothing'), toastInfo: null };
     }
 
-    const possibleItems = templates.items.filter((itemTmpl: any) => {
+    const possibleItems = biomeTemplates.items.filter((itemTmpl: any) => {
         const itemDef = allItemDefinitions[itemTmpl.name];
         return itemDef && check_conditions(itemTmpl.conditions, currentChunk);
     });
@@ -419,3 +420,5 @@ export const handleSearchAction = (
 
     return { newChunk, narrative: t('exploreFoundNothing'), toastInfo: null };
 };
+
+    

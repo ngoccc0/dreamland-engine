@@ -46,7 +46,7 @@ const mockT = (key: string, replacements?: any) => {
 
 // Mock getTranslatedText function for consistency with fill_template
 const mockGetTranslatedText = (translatable: any, lang: Language, t?: any): string => {
-    const actualLang = lang === Language.Vietnamese ? 'vi' : 'en'; 
+    const actualLang = lang === 'vi' ? 'vi' : 'en'; 
     if (typeof translatable === 'string') {
         return (t || mockT)(translatable);
     }
@@ -167,7 +167,7 @@ describe('check_conditions', () => {
     };
     const basePlayerState: PlayerStatus = {
         hp: 75, mana: 50, stamina: 80, bodyTemperature: 37, items: [], equipment: { weapon: null, armor: null, accessory: null },
-        quests: [], questsCompleted: 0, skills: [], persona: 'explorer', attributes: {physicalAttack: 0, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0}, unlockProgress: { kills: 0, damageSpells: 0, moves: 0 },
+        quests: [], questsCompleted: 0, skills: [], persona: 'explorer', attributes: {physicalAttack: 0, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0}, unlockProgress: { kills: 0, damageSpells: 0, moves: 0 },
         language: 'en', journal: {}, dailyActionLog: [], questHints: {}, trackedEnemy: undefined
     };
 
@@ -283,19 +283,19 @@ describe('fill_template', () => {
     const mockPlayerPosition = { x: 0, y: 0 };
     const basePlayerState: PlayerStatus = {
         hp: 75, mana: 50, stamina: 80, bodyTemperature: 37, items: [], equipment: { weapon: null, armor: null, accessory: null },
-        quests: [], questsCompleted: 0, skills: [], persona: 'explorer', attributes: {physicalAttack: 0, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0}, unlockProgress: { kills: 0, damageSpells: 0, moves: 0 },
+        quests: [], questsCompleted: 0, skills: [], persona: 'explorer', attributes: {physicalAttack: 0, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0}, unlockProgress: { kills: 0, damageSpells: 0, moves: 0 },
         language: 'vi', journal: {}, dailyActionLog: [], questHints: {}, trackedEnemy: undefined
     };
 
     it('should fill static placeholders correctly', () => {
         const template = "Đây là một khu rừng {{jungle_adjective_lush}} và {{jungle_adjective_mysterious}}.";
-        const result = fill_template(template, mockChunk, mockWorld, mockPlayerPosition, mockT, Language.Vietnamese, basePlayerState);
+        const result = fill_template(template, mockChunk, mockWorld, mockPlayerPosition, mockT, 'vi', basePlayerState);
         expect(result).toMatch(/Đây là một khu rừng (rậm rạp|xanh tươi) và (bí ẩn|huyền bí)\./);
     });
 
     it('should replace dynamic chunk-based placeholders (0-100 scale)', () => {
         const template = "Ánh sáng: {light_level_detail}. Nhiệt độ: {temp_detail}. Độ ẩm: {moisture_detail}.";
-        const result = fill_template(template, mockChunk, mockWorld, mockPlayerPosition, mockT, Language.Vietnamese, basePlayerState);
+        const result = fill_template(template, mockChunk, mockWorld, mockPlayerPosition, mockT, 'vi', basePlayerState);
         expect(result).toContain('Ánh sáng: một màn đêm u tối.');
         expect(result).toContain('Nhiệt độ: nóng như thiêu đốt.');
         expect(result).toContain('Độ ẩm: ẩm ướt.');
@@ -304,7 +304,7 @@ describe('fill_template', () => {
     it('should replace playerState related placeholders', () => {
         const template = "Bạn cảm thấy {player_health_status} và {player_stamina_status}.";
         const mockPlayerStatus: PlayerStatus = { ...basePlayerState, hp: 25, stamina: 10 };
-        const result = fill_template(template, mockChunk, mockWorld, mockPlayerPosition, mockT, Language.Vietnamese, mockPlayerStatus);
+        const result = fill_template(template, mockChunk, mockWorld, mockPlayerPosition, mockT, 'vi', mockPlayerStatus);
         expect(result).toContain('Bạn cảm thấy sức khỏe yếu và thể lực cạn kiệt.');
     });
 });
@@ -333,3 +333,5 @@ describe('SmartJoinSentences', () => {
         expect(result).toMatch(/\.$/); 
     });
 });
+
+    

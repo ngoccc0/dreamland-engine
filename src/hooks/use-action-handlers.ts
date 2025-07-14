@@ -14,7 +14,7 @@ import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchA
 import { getEffectiveChunk } from '@/lib/game/engine/generation';
 import { getTemplates } from '@/lib/game/templates';
 import { clamp, getTranslatedText } from '@/lib/utils';
-import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem, NarrativeEntry, GeneratedItem } from '@/lib/game/types';
+import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem, NarrativeEntry, GeneratedItem, Language } from '@/lib/game/types';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-config';
 import { logger } from '@/lib/logger';
@@ -800,7 +800,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         const itemToEquip = newStats.items[itemToEquipIndex];
         const slot = itemDef.equipmentSlot!;
     
-        const currentEquipped = newStats.equipment[slot];
+        const currentEquipped = newStats.equipment[slot as keyof typeof newStats.equipment];
         if (currentEquipped) {
             const existingInInventory = newStats.items.find(i => getTranslatedText(i.name, 'en') === getTranslatedText(currentEquipped.name, 'en'));
             if (existingInInventory) {
@@ -810,7 +810,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             }
         }
     
-        newStats.equipment[slot] = { name: itemToEquip.name, quantity: 1, tier: itemToEquip.tier, emoji: itemToEquip.emoji };
+        (newStats.equipment as any)[slot] = { name: itemToEquip.name, quantity: 1, tier: itemToEquip.tier, emoji: itemToEquip.emoji };
     
         if (itemToEquip.quantity > 1) {
             itemToEquip.quantity -= 1;
@@ -818,7 +818,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             newStats.items.splice(itemToEquipIndex, 1);
         }
         
-        let basePhysAtk = 10, baseMagAtk = 5, baseCrit = 5, baseAtkSpd = 1.0, baseCd = 0;
+        let basePhysAtk = 10, baseMagAtk = 5, baseCrit = 5, baseAtkSpd = 1.0, baseCd = 0, basePhysDef = 0, baseMagDef = 0;
         Object.values(newStats.equipment).forEach(equipped => {
             if (equipped) {
                 const def = customItemDefinitions[getTranslatedText(equipped.name, 'en')];
@@ -828,10 +828,12 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                     baseCrit += def.attributes.critChance || 0;
                     baseAtkSpd += def.attributes.attackSpeed || 0;
                     baseCd += def.attributes.cooldownReduction || 0;
+                    basePhysDef += def.attributes.physicalDefense || 0;
+                    baseMagDef += def.attributes.magicalDefense || 0;
                 }
             }
         });
-        newStats.attributes = { physicalAttack: basePhysAtk, magicalAttack: baseMagAtk, critChance: baseCrit, attackSpeed: baseAtkSpd, cooldownReduction: baseCd };
+        newStats.attributes = { physicalAttack: basePhysAtk, magicalAttack: baseMagAtk, physicalDefense: basePhysDef, magicalDefense: baseMagDef, critChance: baseCrit, attackSpeed: baseAtkSpd, cooldownReduction: baseCd };
 
         return newStats;
     });
@@ -854,7 +856,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
         newStats.equipment[slot] = null;
         
-        let basePhysAtk = 10, baseMagAtk = 5, baseCrit = 5, baseAtkSpd = 1.0, baseCd = 0;
+        let basePhysAtk = 10, baseMagAtk = 5, baseCrit = 5, baseAtkSpd = 1.0, baseCd = 0, basePhysDef = 0, baseMagDef = 0;
         Object.values(newStats.equipment).forEach(equipped => {
             if (equipped) {
                 const def = customItemDefinitions[getTranslatedText(equipped.name, 'en')];
@@ -864,10 +866,12 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                     baseCrit += def.attributes.critChance || 0;
                     baseAtkSpd += def.attributes.attackSpeed || 0;
                     baseCd += def.attributes.cooldownReduction || 0;
+                    basePhysDef += def.attributes.physicalDefense || 0;
+                    baseMagDef += def.attributes.magicalDefense || 0;
                 }
             }
         });
-        newStats.attributes = { physicalAttack: basePhysAtk, magicalAttack: baseMagAtk, critChance: baseCrit, attackSpeed: baseAtkSpd, cooldownReduction: baseCd };
+        newStats.attributes = { physicalAttack: basePhysAtk, magicalAttack: baseMagAtk, physicalDefense: basePhysDef, magicalDefense: baseMagDef, critChance: baseCrit, attackSpeed: baseAtkSpd, cooldownReduction: baseCd };
         
         return newStats;
     });
@@ -1019,5 +1023,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     handleHarvest,
   };
 }
+
+    
 
     

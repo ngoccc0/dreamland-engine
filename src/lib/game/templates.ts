@@ -6,7 +6,7 @@
  * of narrative content.
  */
 
-import type { GameTemplates } from "./types";
+import type { GameTemplates, Language } from "./types";
 import { biomeNarrativeTemplates } from './data/narrative-templates';
 
 /**
@@ -20,3 +20,5 @@ export const getTemplates = (): GameTemplates => {
     // This can be expanded later to merge templates from different sources (e.g., mods).
     return biomeNarrativeTemplates;
 };
+
+    

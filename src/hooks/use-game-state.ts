@@ -44,7 +44,7 @@ export function useGameState({ gameSlot }: GameStateProps) {
     const [playerBehaviorProfile, setPlayerBehaviorProfile] = useState<PlayerBehaviorProfile>({ moves: 0, attacks: 0, crafts: 0, customActions: 0 });
     const [playerStats, setPlayerStats] = useState<PlayerStatus>({
         hp: 100, mana: 50, stamina: 100, bodyTemperature: 37, items: [], equipment: { weapon: null, armor: null, accessory: null }, quests: [],
-        questsCompleted: 0, skills: [], pets: [], persona: 'none', attributes: { physicalAttack: 10, magicalAttack: 5, critChance: 5, attackSpeed: 1.0, cooldownReduction: 0, },
+        questsCompleted: 0, skills: [], pets: [], persona: 'none', attributes: { physicalAttack: 10, magicalAttack: 5, physicalDefense: 0, magicalDefense: 0, critChance: 5, attackSpeed: 1.0, cooldownReduction: 0, },
         unlockProgress: { kills: 0, damageSpells: 0, moves: 0 }, journal: {}, dailyActionLog: [], questHints: {},
     });
     const [customItemDefinitions, setCustomItemDefinitions] = useState<Record<string, ItemDefinition>>(staticItemDefinitions);
@@ -123,3 +123,5 @@ export function useGameState({ gameSlot }: GameStateProps) {
         gameSlot
     };
 }
+
+    

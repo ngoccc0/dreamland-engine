@@ -266,7 +266,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'armor',
-        attributes: { physicalDefense: 5, magicalDefense: 2 },
+        attributes: { physicalDefense: 5, magicalDefense: 2, physicalAttack: 0, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 },
         spawnEnabled: false,
     },
     'survival_knife': {
@@ -278,7 +278,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 10, critChance: 2 },
+        attributes: { physicalAttack: 10, critChance: 2, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, attackSpeed: 0, cooldownReduction: 0 },
         spawnEnabled: false,
     },
     'water_filter_canteen': {
@@ -340,7 +340,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 15, critChance: 3 },
+        attributes: { physicalAttack: 15, critChance: 3, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, attackSpeed: 0, cooldownReduction: 0 },
         spawnEnabled: false,
     },
     'heavy_iron_axe': {
@@ -352,7 +352,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 12 },
+        attributes: { physicalAttack: 12, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 },
         spawnEnabled: false,
     },
     'tanned_leather_armor': {
@@ -364,7 +364,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'armor',
-        attributes: { physicalDefense: 8, magicalDefense: 3 },
+        attributes: { physicalDefense: 8, magicalDefense: 3, physicalAttack: 0, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 },
         spawnEnabled: false,
     },
     'large_bag': {
@@ -397,7 +397,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'armor',
-        attributes: { physicalDefense: 25, magicalDefense: 10 },
+        attributes: { physicalDefense: 25, magicalDefense: 10, physicalAttack: 0, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 },
         spawnEnabled: false,
     },
     'steel_alloy_sword': {
@@ -409,7 +409,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 25, critChance: 8 },
+        attributes: { physicalAttack: 25, critChance: 8, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, attackSpeed: 0, cooldownReduction: 0 },
         spawnEnabled: false,
     },
     'portable_camping_tent': {
@@ -461,7 +461,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'armor',
-        attributes: { physicalDefense: 3, magicalDefense: 1 },
+        attributes: { physicalDefense: 3, magicalDefense: 1, physicalAttack: 0, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 },
         spawnEnabled: false,
     },
     'protection_hat': {
@@ -473,7 +473,7 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'accessory',
-        attributes: { physicalDefense: 1 },
+        attributes: { physicalDefense: 1, magicalDefense: 0, physicalAttack: 0, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 },
         spawnEnabled: false,
     },
     'thermos_flask': {
@@ -487,3 +487,5 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         spawnEnabled: false,
     },
 };
+
+    

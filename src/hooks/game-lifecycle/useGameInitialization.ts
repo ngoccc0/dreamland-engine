@@ -29,7 +29,7 @@ type GameInitializationDeps = {
   setCustomItemDefinitions: (defs: Record<string, any>) => void;
   setCustomStructures: (structures: GameState['customStructures']) => void;
   setBuildableStructures: (structures: GameState['buildableStructures']) => void;
-  setPlayerStats: (stats: GameState['playerStats']) => void;
+  setPlayerStats: React.Dispatch<React.SetStateAction<GameState['playerStats']>>;
   setFinalWorldSetup: (setup: GameState['worldSetup']) => void;
   setPlayerPosition: (pos: GameState['playerPosition']) => void;
   setPlayerBehaviorProfile: (profile: GameState['playerBehaviorProfile']) => void;
@@ -107,10 +107,10 @@ export function useGameInitialization(deps: GameInitializationDeps) {
 
       const finalCatalogMap = new Map<string, GeneratedItem>();
       Object.entries(staticItemDefinitions).forEach(([name, def]) => {
-          finalCatalogMap.set(name, { name, ...def } as unknown as GeneratedItem);
+          finalCatalogMap.set(name, { id: name, ...def } as unknown as GeneratedItem);
       });
       (stateToInitialize.customItemCatalog || []).forEach(item => {
-          const nameKey = typeof item.name === 'string' ? item.name : getTranslatedText(item.name, 'en', t);
+          const nameKey = item.id || (typeof item.name === 'string' ? item.name : getTranslatedText(item.name, 'en', t));
           finalCatalogMap.set(nameKey, item);
       });
       

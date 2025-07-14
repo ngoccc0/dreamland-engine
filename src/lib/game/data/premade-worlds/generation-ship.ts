@@ -1,3 +1,9 @@
+/**
+ * @fileOverview Defines all unique assets for the "Generation Ship" premade world.
+ * @description This file contains the item, structure, and starting scenario definitions
+ * for a sci-fi world set on a vast, silent starship. Items here are marked with 
+ * `spawnEnabled: false` to prevent them from appearing in other, non-sci-fi game worlds.
+ */
 import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
 import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
 
@@ -21,12 +27,12 @@ const skill2: Skill = { name: { en: 'skillFireballName', vi: 'skillFireballName'
 const concepts: WorldConcept[] = [
     {
         worldName: { en: "worldName_theWanderer", vi: "worldName_theWanderer" }, initialNarrative: { en: 'genship_narrative1', vi: 'genship_narrative1' }, startingBiome: 'space_station',
-        playerInventory: [ { name: "Cờ lê Bảo trì", quantity: 1 }, { name: "Bột Dinh dưỡng", quantity: 2 } ],
+        playerInventory: [ { name: "Maintenance Wrench", quantity: 1 }, { name: "Nutrient Paste", quantity: 2 } ],
         initialQuests: [ { en: 'genship_quest1', vi: 'genship_quest1' }, { en: 'genship_quest2', vi: 'genship_quest2' } ], startingSkill: skill1, customStructures: structures
     },
     {
         worldName: { en: "worldName_theWanderer", vi: "worldName_theWanderer" }, initialNarrative: { en: 'genship_narrative1', vi: 'genship_narrative1' }, startingBiome: 'space_station',
-        playerInventory: [ { name: "Nhật ký Kỹ sư", quantity: 1 }, { name: "Thẻ khóa Cấp 1", quantity: 1 } ],
+        playerInventory: [ { name: "Engineer's Log", quantity: 1 }, { name: "Keycard Level 1", quantity: 1 } ],
         initialQuests: [ { en: 'genship_quest3', vi: 'genship_quest3' }, { en: 'genship_quest4', vi: 'genship_quest4' } ], startingSkill: skill2, customStructures: structures
     },
 ];

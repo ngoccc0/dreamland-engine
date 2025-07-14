@@ -1,3 +1,9 @@
+/**
+ * @fileOverview Defines all unique assets for the "Haunted Mansion" premade world.
+ * @description This file contains the item, structure, and starting scenario definitions
+ * for a horror-themed world. Items here are marked with `spawnEnabled: false`
+ * to prevent them from appearing in other, less spooky game worlds.
+ */
 import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
 import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
 
@@ -20,12 +26,12 @@ const skill2: Skill = { name: { en: 'skillHealName', vi: 'skillHealName' }, desc
 const concepts: WorldConcept[] = [
     {
         worldName: { en: "worldName_blackwoodManor", vi: "worldName_blackwoodManor" }, initialNarrative: { en: 'mansion_narrative1', vi: 'mansion_narrative1' }, startingBiome: 'cave', // Using 'cave' to represent dark, indoor spaces
-        playerInventory: [ { name: "Đèn lồng Gỉ sét", quantity: 1 }, { name: "Trang Nhật ký Bị xé", quantity: 1 } ],
+        playerInventory: [ { name: "Rusty Lantern", quantity: 1 }, { name: "Torn Diary Page", quantity: 1 } ],
         initialQuests: [ { en: 'mansion_quest1', vi: 'mansion_quest1' }, { en: 'mansion_quest2', vi: 'mansion_quest2' } ], startingSkill: skill1, customStructures: structures
     },
     {
         worldName: { en: "worldName_blackwoodManor", vi: "worldName_blackwoodManor" }, initialNarrative: { en: 'mansion_narrative2', vi: 'mansion_narrative2' }, startingBiome: 'cave',
-        playerInventory: [ { name: "Chìa khóa Bạc", quantity: 1 } ],
+        playerInventory: [ { name: "Silver Key", quantity: 1 } ],
         initialQuests: [ { en: 'mansion_quest3', vi: 'mansion_quest3' } ], startingSkill: skill2, customStructures: structures
     },
 ];

@@ -1,3 +1,9 @@
+/**
+ * @fileOverview Defines all unique assets for the "Mage Academy" premade world.
+ * @description This file contains the item, structure, and starting scenario definitions
+ * for a high-fantasy world set on a magical floating island. Items here are marked with 
+ * `spawnEnabled: false` to prevent them from appearing in other, less magical game worlds.
+ */
 import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
 import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
 
@@ -20,7 +26,7 @@ const startingSkill: Skill = { name: { en: 'skillFireballName', vi: 'skillFireba
 const mageAcademyConcepts: WorldConcept[] = [
     {
         worldName: { en: "worldName_driftingAcademy", vi: "worldName_driftingAcademy" }, initialNarrative: { en: 'mage_narrative1', vi: 'mage_narrative1' }, startingBiome: 'mountain', // Simulate floating island
-        playerInventory: [ { name: "Đũa Phép Của Học Viên", quantity: 1 }, { name: "Sách Phép Cơ Bản", quantity: 1 } ],
+        playerInventory: [ { name: "Student's Wand", quantity: 1 }, { name: "Tome of Cantrips", quantity: 1 } ],
         initialQuests: [ { en: 'mage_quest1', vi: 'mage_quest1' }, { en: 'mage_quest2', vi: 'mage_quest2' } ], startingSkill: startingSkill, customStructures: mageAcademyStructures, customItemCatalog: mageAcademyItems
     },
 ];

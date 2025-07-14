@@ -1,3 +1,9 @@
+/**
+ * @fileOverview Defines all unique assets for the "Underwater Kingdom" premade world.
+ * @description This file contains the item, structure, and starting scenario definitions
+ * for a world set beneath the ocean. Items here are marked with `spawnEnabled: false`
+ * to prevent them from appearing in other, drier game worlds.
+ */
 import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
 import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
 
@@ -20,12 +26,12 @@ const skill2: Skill = { name: { en: 'skillLifeSiphonName', vi: 'skillLifeSiphonN
 const concepts: WorldConcept[] = [
     {
         worldName: { en: "worldName_abyssalKingdom", vi: "worldName_abyssalKingdom" }, initialNarrative: { en: 'underwater_narrative1', vi: 'underwater_narrative1' }, startingBiome: 'underwater',
-        playerInventory: [ { name: "Giáo San hô", quantity: 1 }, { name: "Thuốc mỡ Tảo biển", quantity: 1 } ],
+        playerInventory: [ { name: "Coral Spear", quantity: 1 }, { name: "Algae Salve", quantity: 1 } ],
         initialQuests: [ { en: 'underwater_quest1', vi: 'underwater_quest1' }, { en: 'underwater_quest2', vi: 'underwater_quest2' } ], startingSkill: skill1, customStructures: structures
     },
     {
         worldName: { en: "worldName_abyssalKingdom", vi: "worldName_abyssalKingdom" }, initialNarrative: { en: 'underwater_narrative2', vi: 'underwater_narrative2' }, startingBiome: 'underwater',
-        playerInventory: [ { name: "Ngọc trai Phát quang", quantity: 2 }, { name: "Mảnh Bia đá Cổ", quantity: 1 } ],
+        playerInventory: [ { name: "Bioluminescent Pearl", quantity: 2 }, { name: "Ancient Tablet Fragment", quantity: 1 } ],
         initialQuests: [ { en: 'underwater_quest3', vi: 'underwater_quest3' } ], startingSkill: skill2, customStructures: structures
     },
 ];

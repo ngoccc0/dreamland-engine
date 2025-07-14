@@ -1,3 +1,9 @@
+/**
+ * @fileOverview Defines all unique assets for the "Frozen Wasteland" premade world.
+ * @description This file contains the item, structure, and starting scenario definitions
+ * for a post-apocalyptic, icy world. Items here are marked with `spawnEnabled: false`
+ * to prevent them from appearing in other, less hostile game worlds.
+ */
 import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
 import type { GeneratedItem, Structure, Skill, WorldConcept, ItemDefinition } from '@/lib/game/types';
 

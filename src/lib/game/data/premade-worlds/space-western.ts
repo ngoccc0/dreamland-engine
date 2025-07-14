@@ -1,3 +1,9 @@
+/**
+ * @fileOverview Defines all unique assets for the "Space Western" premade world.
+ * @description This file contains the item, structure, and starting scenario definitions
+ * for a sci-fi western world. Items here are marked with `spawnEnabled: false`
+ * to prevent them from appearing in other, less futuristic game worlds.
+ */
 import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
 import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
 
@@ -20,12 +26,12 @@ const skill2: Skill = { name: { en: 'skillFireballName', vi: 'skillFireballName'
 const concepts: WorldConcept[] = [
     {
         worldName: { en: "worldName_outlawPlanet", vi: "worldName_outlawPlanet" }, initialNarrative: { en: 'western_narrative1', vi: 'western_narrative1' }, startingBiome: 'desert',
-        playerInventory: [ { name: "Súng lục Laser", quantity: 1 }, { name: "Chip Tiền thưởng", quantity: 1 } ],
+        playerInventory: [ { name: "Laser Revolver", quantity: 1 }, { name: "Bounty Puck", quantity: 1 } ],
         initialQuests: [ { en: 'western_quest1', vi: 'western_quest1' }, { en: 'western_quest2', vi: 'western_quest2' } ], startingSkill: skill1, customStructures: structures
     },
     {
         worldName: { en: "worldName_outlawPlanet", vi: "worldName_outlawPlanet" }, initialNarrative: { en: 'western_narrative2', vi: 'western_narrative2' }, startingBiome: 'desert',
-        playerInventory: [ { name: "Nước tẩm Gia vị", quantity: 3 } ],
+        playerInventory: [ { name: "Spice-Infused Water", quantity: 3 } ],
         initialQuests: [ { en: 'western_quest3', vi: 'western_quest3' } ], startingSkill: skill2, customStructures: structures
     },
 ];

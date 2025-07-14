@@ -72,7 +72,8 @@ export function useGameInitialization(deps: GameInitializationDeps) {
             }
         }
         if (!loadedState) {
-            loadedState = await gameStateRepository.load(`slot_${gameSlot}`);
+            const localData = localStorage.getItem(`gameState_${gameSlot}`);
+            if (localData) loadedState = JSON.parse(localData);
         }
       } catch (error) {
           logger.error('Failed to load game state', error);
@@ -94,17 +95,19 @@ export function useGameInitialization(deps: GameInitializationDeps) {
         logger.info(`[GameInit] Successfully loaded game state for slot ${gameSlot}.`);
         
         const finalCatalogMap = new Map<string, GeneratedItem>();
-        Object.entries(staticItemDefinitions).forEach(([name, def]) => {
-            finalCatalogMap.set(name, { id: name, ...def } as unknown as GeneratedItem);
+        Object.values(staticItemDefinitions).forEach((def) => {
+            finalCatalogMap.set(def.id!, def);
         });
         (stateToInitialize.customItemCatalog || []).forEach(item => {
-            const nameKey = item.id || getTranslatedText(item.name, 'en', t);
-            finalCatalogMap.set(nameKey, item);
+            finalCatalogMap.set(item.id!, item);
         });
         
         const finalCatalogArray: GeneratedItem[] = Array.from(finalCatalogMap.values());
         const finalRecipes = { ...staticRecipes, ...(stateToInitialize.recipes || {}) };
-        const finalDefs = { ...staticItemDefinitions, ...(stateToInitialize.customItemDefinitions || {}) };
+        const finalDefs = finalCatalogArray.reduce((acc, item) => {
+          acc[item.id!] = item;
+          return acc;
+        }, {} as Record<string, ItemDefinition>);
         
         setWorldProfile(stateToInitialize.worldProfile);
         setCurrentSeason(stateToInitialize.currentSeason);

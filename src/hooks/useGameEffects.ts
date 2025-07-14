@@ -35,7 +35,7 @@ type GameEffectsDeps = {
   playerBehaviorProfile: PlayerBehaviorProfile;
   setPlayerBehaviorProfile: React.Dispatch<React.SetStateAction<PlayerBehaviorProfile>>;
   world: GameState['world'];
-  setWorld: (fn: (prev: GameState['world']) => GameState['world']) => void;
+  setWorld: React.Dispatch<React.SetStateAction<GameState['world']>>;
   playerPosition: GameState['playerPosition'];
   setPlayerPosition: (pos: GameState['playerPosition']) => void;
   narrativeLogRef: React.RefObject<NarrativeEntry[]>;

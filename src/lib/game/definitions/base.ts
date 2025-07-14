@@ -1,4 +1,3 @@
-
 import {z} from 'genkit';
 
 // Defines a range for environmental conditions, e.g., moisture: { min: 5, max: 8 }.

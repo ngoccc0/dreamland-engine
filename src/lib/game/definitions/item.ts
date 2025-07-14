@@ -1,6 +1,16 @@
 import {z} from 'genkit';
-import { PlayerAttributesSchema, SpawnConditionsSchema, ItemCategorySchema, TranslatableStringSchema } from './base';
+import { PlayerAttributesSchema, SpawnConditionsSchema, ItemCategorySchema as BaseItemCategorySchema, TranslatableStringSchema } from './base';
 import { allTerrains } from '../types';
+
+// Extend the base schema to include categories that were being used but not defined.
+export const ItemCategorySchema = BaseItemCategorySchema.extend({
+    enum: [
+        ...BaseItemCategorySchema.options,
+        'Equipment',
+        'Support',
+    ]
+});
+export type ItemCategory = z.infer<typeof ItemCategorySchema>;
 
 // The effect an item can have when used.
 export const ItemEffectSchema = z.object({

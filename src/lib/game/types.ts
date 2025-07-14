@@ -3,7 +3,7 @@ import type {
     ItemDefinition as ItemDefZod, 
     ItemEffect, 
     Recipe as RecipeDefZod, 
-    StructureDefinition,
+    StructureDefinition as StructDefZod,
     BiomeDefinition as BiomeDefZod,
     WeatherDefinition,
     RandomEventDefinition,
@@ -18,7 +18,6 @@ import type {
 // Re-export for easier access elsewhere
 export type { 
     ItemEffect, 
-    StructureDefinition,
     WeatherDefinition,
     RandomEventDefinition,
     CreatureDefinition,
@@ -32,7 +31,7 @@ export type {
 
 export const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic", "wall", "floptropica", "tundra", "beach", "mesa", "mushroom_forest", "ocean", "city", "space_station", "underwater"];
 
-export type TranslatableString = TranslationKey | { [lang: string]: string; };
+export type TranslatableString = { en: string; vi: string; } | TranslationKey;
 
 export type ItemDefinition = Omit<ItemDefZod, 'name' | 'description' | 'spawnBiomes'> & { 
     name: TranslatableString,
@@ -43,6 +42,10 @@ export type BiomeDefinition = Omit<BiomeDefZod, 'id'>;
 export type Recipe = Omit<RecipeDefZod, 'ingredients' | 'description'> & { 
     ingredients: RecipeIngredient[],
     description: MultilingualText,
+};
+export type StructureDefinition = Omit<StructDefZod, 'name' | 'description'> & {
+    name: TranslatableString,
+    description: TranslatableString,
 };
 
 // Represents a contiguous region of a single biome.

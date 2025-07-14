@@ -8,7 +8,8 @@ import type { ItemDefinition } from "../../definitions/item";
 
 export const equipmentItems: Record<string, ItemDefinition> = {
     'Dao Găm Đá': {
-        description: 'item_stone_dagger_desc',
+        name: { en: 'Stone Dagger', vi: 'Dao Găm Đá' },
+        description: { en: 'item_stone_dagger_desc', vi: 'item_stone_dagger_desc' },
         tier: 1,
         category: 'Weapon',
         emoji: '🗡️',
@@ -18,7 +19,8 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         attributes: { physicalAttack: 2, critChance: 1, attackSpeed: 0, cooldownReduction: 0 },
     },
     'Khiên Gỗ': {
-        description: 'item_wooden_shield_desc',
+        name: { en: 'Wooden Shield', vi: 'Khiên Gỗ' },
+        description: { en: 'item_wooden_shield_desc', vi: 'item_wooden_shield_desc' },
         tier: 2,
         category: 'Equipment',
         emoji: '🛡️',
@@ -28,7 +30,8 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         attributes: { physicalAttack: 0, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0, physicalDefense: 5 },
     },
     'Giáo Xương': {
-        description: 'item_bone_spear_desc',
+        name: { en: 'Bone Spear', vi: 'Giáo Xương' },
+        description: { en: 'item_bone_spear_desc', vi: 'item_bone_spear_desc' },
         tier: 2,
         category: 'Weapon',
         emoji: '🔱',
@@ -38,7 +41,8 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         attributes: { physicalAttack: 4, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 },
     },
     'Rìu Đá Đơn Giản': {
-        description: 'item_riu_da_don_gian_desc',
+        name: { en: 'Simple Stone Axe', vi: 'Rìu Đá Đơn Giản' },
+        description: { en: 'item_riu_da_don_gian_desc', vi: 'item_riu_da_don_gian_desc' },
         tier: 1,
         category: 'Tool',
         emoji: '🪓',
@@ -48,7 +52,8 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         attributes: { physicalAttack: 3, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 },
     },
     'Thuyền Phao': {
-        description: 'item_inflatable_raft_desc',
+        name: { en: 'Inflatable Raft', vi: 'Thuyền Phao' },
+        description: { en: 'item_inflatable_raft_desc', vi: 'item_inflatable_raft_desc' },
         tier: 3,
         category: 'Equipment',
         emoji: '🛶',
@@ -56,7 +61,8 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 }
     },
     'Rìu Chiến Obsidian': {
-        description: 'item_obsidian_battleaxe_desc',
+        name: { en: 'Obsidian Battleaxe', vi: 'Rìu Chiến Obsidian' },
+        description: { en: 'item_obsidian_battleaxe_desc', vi: 'item_obsidian_battleaxe_desc' },
         tier: 4,
         category: 'Weapon',
         emoji: '🪓',
@@ -66,7 +72,8 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         attributes: { physicalAttack: 12, magicalAttack: 0, critChance: 5, attackSpeed: -0.1, cooldownReduction: 0 },
     },
     'Áo Giáp Da Cá Sấu': {
-        description: 'item_alligator_armor_desc',
+        name: { en: 'Alligator Hide Armor', vi: 'Áo Giáp Da Cá Sấu' },
+        description: { en: 'item_alligator_armor_desc', vi: 'item_alligator_armor_desc' },
         tier: 4,
         category: 'Equipment',
         emoji: '👕',
@@ -76,7 +83,8 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         attributes: { physicalAttack: 2, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 5 },
     },
     'Cung Tên Harpy': {
-        description: 'item_harpy_bow_desc',
+        name: { en: 'Harpy Feather Bow', vi: 'Cung Tên Harpy' },
+        description: { en: 'item_harpy_bow_desc', vi: 'item_harpy_bow_desc' },
         tier: 4,
         category: 'Weapon',
         emoji: '🏹',
@@ -86,7 +94,8 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         attributes: { physicalAttack: 8, magicalAttack: 0, critChance: 0, attackSpeed: 0.2, cooldownReduction: 0 },
     },
     'Trượng Lõi Đá': {
-        description: 'item_golem_staff_desc',
+        name: { en: 'Golem Core Staff', vi: 'Trượng Lõi Đá' },
+        description: { en: 'item_golem_staff_desc', vi: 'item_golem_staff_desc' },
         tier: 5,
         category: 'Weapon',
         subCategory: 'Magic',
@@ -97,7 +106,8 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         attributes: { physicalAttack: 2, magicalAttack: 15, critChance: 0, attackSpeed: 0, cooldownReduction: 10 },
     },
     'Búa Chiến Người Lùn': {
-        description: 'item_dwarven_hammer_desc',
+        name: { en: 'Dwarven War Hammer', vi: 'Búa Chiến Người Lùn' },
+        description: { en: 'item_dwarven_hammer_desc', vi: 'item_dwarven_hammer_desc' },
         tier: 5,
         category: 'Weapon',
         emoji: '🔨',
@@ -107,7 +117,8 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         attributes: { physicalAttack: 15, magicalAttack: 0, critChance: 10, attackSpeed: -0.2, cooldownReduction: 0 },
     },
     'Áo Khoác Trench': { 
-        description: 'item_trench_coat_desc', 
+        name: { en: 'Trench Coat', vi: 'Áo Khoác Trench' },
+        description: { en: 'item_trench_coat_desc', vi: 'item_trench_coat_desc' },
         emoji: '🧥', 
         category: 'Equipment', 
         tier: 2, 
@@ -117,7 +128,8 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         attributes: { physicalDefense: 3 } 
     },
     'Khẩu Súng Lục Cũ': { 
-        description: 'item_old_revolver_desc', 
+        name: { en: 'Old Revolver', vi: 'Khẩu Súng Lục Cũ' },
+        description: { en: 'item_old_revolver_desc', vi: 'item_old_revolver_desc' },
         emoji: '🔫', 
         category: 'Weapon', 
         tier: 2, 
@@ -127,7 +139,8 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         attributes: { physicalAttack: 6, critChance: 3 } 
     },
     'Rìu Băng Tự Chế': { 
-        description: 'item_makeshift_ice_axe_desc', 
+        name: { en: 'Makeshift Ice Axe', vi: 'Rìu Băng Tự Chế' },
+        description: { en: 'item_makeshift_ice_axe_desc', vi: 'item_makeshift_ice_axe_desc' },
         emoji: '⛏️', 
         category: 'Weapon', 
         tier: 1, 
@@ -137,7 +150,8 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         equipmentSlot: 'weapon' 
     },
     'Đũa Phép Của Học Viên': { 
-        description: 'item_student_wand_desc', 
+        name: { en: "Student's Wand", vi: 'Đũa Phép Của Học Viên' },
+        description: { en: 'item_student_wand_desc', vi: 'item_student_wand_desc' },
         emoji: '🪄', 
         category: 'Weapon', 
         tier: 2, 
@@ -147,7 +161,8 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         attributes: { magicalAttack: 5 } 
     },
     'Áo Choàng Học Viện': { 
-        description: 'item_academy_robe_desc', 
+        name: { en: 'Academy Robe', vi: 'Áo Choàng Học Viện' },
+        description: { en: 'item_academy_robe_desc', vi: 'item_academy_robe_desc' },
         emoji: '🥋', 
         category: 'Equipment', 
         tier: 2, 
@@ -157,7 +172,8 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         attributes: { cooldownReduction: 5 } 
     },
     'Súng lục Laser': { 
-        description: 'item_laser_revolver_desc', 
+        name: { en: 'Laser Revolver', vi: 'Súng lục Laser' },
+        description: { en: 'item_laser_revolver_desc', vi: 'item_laser_revolver_desc' },
         emoji: '🔫', 
         category: 'Weapon', 
         tier: 3, 
@@ -167,7 +183,8 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         attributes: { physicalAttack: 8, critChance: 5 } 
     },
     'Giáo San hô': { 
-        description: 'item_coral_spear_desc', 
+        name: { en: 'Coral Spear', vi: 'Giáo San hô' },
+        description: { en: 'item_coral_spear_desc', vi: 'item_coral_spear_desc' },
         emoji: '🔱', 
         category: 'Weapon', 
         tier: 2, 
@@ -177,7 +194,8 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         attributes: { physicalAttack: 5 } 
     },
     'Chảo của Jiafei': {
-        description: 'item_jiafei_pan_desc',
+        name: { en: "Jiafei's Pan", vi: 'Chảo của Jiafei' },
+        description: { en: 'item_jiafei_pan_desc', vi: 'item_jiafei_pan_desc' },
         emoji: '🍳',
         category: 'Weapon',
         tier: 2,

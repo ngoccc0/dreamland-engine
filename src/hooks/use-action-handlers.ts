@@ -137,7 +137,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             const newItem = result.newlyGeneratedItem;
             logger.info('[AI] A new item was generated for the world', { newItem });
             setCustomItemCatalog(prev => [...prev, newItem]);
-            setCustomItemDefinitions(prev => ({ ...prev, [getTranslatedText(newItem.name, 'en')]: { description: newItem.description, tier: newItem.tier, category: newItem.category, emoji: newItem.emoji, effects: newItem.effects as ItemEffect[], baseQuantity: newItem.baseQuantity, growthConditions: newItem.growthConditions, equipmentSlot: newItem.equipmentSlot, attributes: newItem.attributes } }));
+            setCustomItemDefinitions(prev => ({ ...prev, [getTranslatedText(newItem.name, 'en')]: { ...newItem } }));
             if (db) {
                 await setDoc(doc(db, "world-catalog", "items", "generated", getTranslatedText(newItem.name, 'en')), newItem);
             }
@@ -189,7 +189,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             for (const lootItem of enemyTemplate.data.loot) {
                 if (Math.random() < lootItem.chance) {
                     const definition = customItemDefinitions[lootItem.name];
-                    if (definition) { lootDrops.push({ name: lootItem.name, description: t(definition.description as TranslationKey), tier: definition.tier, quantity: clamp(Math.floor(Math.random() * (definition.baseQuantity.max - definition.baseQuantity.min + 1)) + definition.baseQuantity.min, 1, Infinity), emoji: definition.emoji }); }
+                    if (definition) { lootDrops.push({ name: {en: lootItem.name, vi: t(lootItem.name)}, description: definition.description, tier: definition.tier, quantity: clamp(Math.floor(Math.random() * (definition.baseQuantity.max - definition.baseQuantity.min + 1)) + definition.baseQuantity.min, 1, Infinity), emoji: definition.emoji }); }
                 }
             }
         }
@@ -236,7 +236,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     advanceGameTime(nextPlayerStats);
   }, [playerPosition, world, addNarrativeEntry, settings.diceType, t, playerStats, language, customItemDefinitions, advanceGameTime, setWorld, weatherZones, gameTime]);
 
-  const handleOfflineItemUse = useCallback((itemName: string, target: 'player' | string) => {
+  const handleOfflineItemUse = useCallback((itemName: string, target: string) => {
     const itemDef = customItemDefinitions[itemName];
     if (!itemDef) return;
 
@@ -800,7 +800,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         const itemToEquip = newStats.items[itemToEquipIndex];
         const slot = itemDef.equipmentSlot!;
     
-        const currentEquipped = newStats.equipment[slot as keyof typeof newStats.equipment];
+        const currentEquipped = (newStats.equipment as any)[slot];
         if (currentEquipped) {
             const existingInInventory = newStats.items.find(i => getTranslatedText(i.name, 'en') === getTranslatedText(currentEquipped.name, 'en'));
             if (existingInInventory) {
@@ -854,7 +854,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             newStats.items.push({ ...itemToUnequip, quantity: 1 });
         }
 
-        newStats.equipment[slot] = null;
+        (newStats.equipment as any)[slot] = null;
         
         let basePhysAtk = 10, baseMagAtk = 5, baseCrit = 5, baseAtkSpd = 1.0, baseCd = 0, basePhysDef = 0, baseMagDef = 0;
         Object.values(newStats.equipment).forEach(equipped => {
@@ -972,7 +972,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         addNarrativeEntry(t('wallBlock'), 'system');
         return;
     }
-     if (nextChunk?.terrain === 'ocean' && !playerStats.items.some(item => getTranslatedText(item.name, 'en') === 'Thuyền Phao')) {
+     if (nextChunk?.terrain === 'ocean' && !playerStats.items.some(item => getTranslatedText(item.name, 'en') === 'inflatable_raft')) {
         addNarrativeEntry(t('oceanTravelBlocked'), 'system');
         return;
     }
@@ -1023,7 +1023,3 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     handleHarvest,
   };
 }
-
-    
-
-    

@@ -17,7 +17,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 2, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 1, attackSpeed: 0, cooldownReduction: 0 },
+        attributes: { physicalAttack: 2, critChance: 1 },
         spawnEnabled: false,
     },
     'wooden_shield': {
@@ -29,7 +29,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'accessory',
-        attributes: { physicalAttack: 0, magicalAttack: 0, physicalDefense: 5, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 },
+        attributes: { physicalDefense: 5 },
         spawnEnabled: false,
     },
     'bone_spear': {
@@ -41,7 +41,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 4, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 },
+        attributes: { physicalAttack: 4 },
         spawnEnabled: false,
     },
     'simple_stone_axe': {
@@ -53,7 +53,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 3, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 },
+        attributes: { physicalAttack: 3 },
         spawnEnabled: false,
     },
     'inflatable_raft': {
@@ -75,7 +75,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 12, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 5, attackSpeed: -0.1, cooldownReduction: 0 },
+        attributes: { physicalAttack: 12, critChance: 5, attackSpeed: -0.1 },
         spawnEnabled: false,
     },
     'alligator_hide_armor': {
@@ -87,7 +87,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'armor',
-        attributes: { physicalAttack: 2, magicalAttack: 0, physicalDefense: 8, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 5 },
+        attributes: { physicalDefense: 8, physicalAttack: 2, cooldownReduction: 5 },
         spawnEnabled: false,
     },
     'harpy_feather_bow': {
@@ -99,7 +99,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 8, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 0, attackSpeed: 0.2, cooldownReduction: 0 },
+        attributes: { physicalAttack: 8, attackSpeed: 0.2 },
         spawnEnabled: false,
     },
     'golem_core_staff': {
@@ -112,7 +112,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 2, magicalAttack: 15, physicalDefense: 0, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 10 },
+        attributes: { physicalAttack: 2, magicalAttack: 15, cooldownReduction: 10 },
         spawnEnabled: false,
     },
     'dwarven_war_hammer': {
@@ -124,7 +124,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
-        attributes: { physicalAttack: 15, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 10, attackSpeed: -0.2, cooldownReduction: 0 },
+        attributes: { physicalAttack: 15, critChance: 10, attackSpeed: -0.2 },
         spawnEnabled: false,
     },
     'trench_coat': { 
@@ -136,7 +136,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [], 
         baseQuantity: { min: 1, max: 1 }, 
         equipmentSlot: 'armor', 
-        attributes: { physicalAttack: 0, magicalAttack: 0, physicalDefense: 3, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 },
+        attributes: { physicalDefense: 3 },
         spawnEnabled: false, 
     },
     'old_revolver': { 
@@ -148,7 +148,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [], 
         baseQuantity: { min: 1, max: 1 }, 
         equipmentSlot: 'weapon', 
-        attributes: { physicalAttack: 6, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 3, attackSpeed: 0, cooldownReduction: 0 },
+        attributes: { physicalAttack: 6, critChance: 3 },
         spawnEnabled: false,
     },
     'makeshift_ice_axe': { 
@@ -159,7 +159,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         tier: 1, 
         effects: [], 
         baseQuantity: { min: 1, max: 1 }, 
-        attributes: { physicalAttack: 4, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 1, attackSpeed: 0, cooldownReduction: 0 }, 
+        attributes: { physicalAttack: 4, critChance: 1 }, 
         equipmentSlot: 'weapon',
         spawnEnabled: false, 
     },
@@ -172,7 +172,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [], 
         baseQuantity: { min: 1, max: 1 }, 
         equipmentSlot: 'weapon', 
-        attributes: { physicalAttack: 0, magicalAttack: 5, physicalDefense: 0, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 },
+        attributes: { magicalAttack: 5 },
         spawnEnabled: false,
     },
     'academy_robe': { 
@@ -184,7 +184,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [], 
         baseQuantity: { min: 1, max: 1 }, 
         equipmentSlot: 'armor', 
-        attributes: { physicalAttack: 0, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 5 },
+        attributes: { cooldownReduction: 5 },
         spawnEnabled: false, 
     },
     'laser_revolver': { 
@@ -196,7 +196,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [], 
         baseQuantity: { min: 1, max: 1 }, 
         equipmentSlot: 'weapon', 
-        attributes: { physicalAttack: 8, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 5, attackSpeed: 0, cooldownReduction: 0 },
+        attributes: { physicalAttack: 8, critChance: 5 },
         spawnEnabled: false, 
     },
     'coral_spear': { 
@@ -208,7 +208,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [], 
         baseQuantity: { min: 1, max: 1 }, 
         equipmentSlot: 'weapon', 
-        attributes: { physicalAttack: 5, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 },
+        attributes: { physicalAttack: 5 },
         spawnEnabled: false,
     },
     'jiafeis_pan': {
@@ -219,10 +219,8 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         tier: 2,
         effects: [],
         baseQuantity: { min: 1, max: 1 },
-        attributes: { physicalAttack: 5, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 2, attackSpeed: 0, cooldownReduction: 0 },
+        attributes: { physicalAttack: 5, critChance: 2 },
         equipmentSlot: 'weapon',
         spawnEnabled: false,
     }
 };
-
-    

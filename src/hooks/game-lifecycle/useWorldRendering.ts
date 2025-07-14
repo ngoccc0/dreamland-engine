@@ -1,10 +1,15 @@
 
+
 'use client';
 
 import { useEffect } from 'react';
 import { getEffectiveChunk } from '@/lib/game/engine/generation';
 import type { GameState, Chunk } from "@/lib/game/types";
 
+/**
+ * @typedef {object} WorldRenderingDeps
+ * @description Dependencies for the useWorldRendering hook.
+ */
 type WorldRenderingDeps = {
   isLoaded: boolean;
   world: GameState['world'];
@@ -14,6 +19,14 @@ type WorldRenderingDeps = {
   setCurrentChunk: (chunk: Chunk | null) => void;
 };
 
+/**
+ * @fileOverview Manages the calculation of the "effective" chunk based on environmental factors.
+ * @description This hook is responsible for taking the base chunk data and applying dynamic
+ * modifiers like weather and time of day to produce the final, "effective" chunk that the
+* player actually experiences and that the narrative is based on.
+ *
+ * @param {WorldRenderingDeps} deps - The dependencies required for rendering the world state.
+ */
 export function useWorldRendering(deps: WorldRenderingDeps) {
   const {
     isLoaded, world, playerPosition, weatherZones, gameTime, setCurrentChunk

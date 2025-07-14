@@ -5,6 +5,8 @@
  * than what can be inferred from general templates alone.
  */
 
+import type { Language } from '../types';
+
 /**
  * @typedef {object} SensoryData - Defines the sensory details for an entity.
  * @property {string} [adjective] - A descriptive adjective.
@@ -67,7 +69,7 @@ export const itemSensoryDB_vi: Record<string, SensoryData> = {
             smell: "mùi hương thanh khiết, như sương sớm",
             appearance: "phát ra ánh sáng xanh lam dịu nhẹ, cánh hoa trong suốt",
             sound: "một âm thanh ngân nga rất khẽ khi nở",
-            general": "mang vẻ đẹp siêu nhiên"
+            general: "mang vẻ đẹp siêu nhiên"
         }
     },
 };
@@ -116,7 +118,7 @@ export const itemSensoryDB_en: Record<string, SensoryData> = {
             smell: "the damp scent of moss and earth",
             appearance: "deep green, as wide as an adult's hand",
             sound: "rustles softly in the wind",
-            general": "could be used for cover"
+            general: "could be used for cover"
         }
     },
     "Spirit Bloom": {
@@ -125,7 +127,7 @@ export const itemSensoryDB_en: Record<string, SensoryData> = {
             smell: "a pure fragrance, like morning dew",
             appearance: "emits a soft blue light, its petals are translucent",
             sound: "a very faint chime as it blooms",
-            general": "has a supernatural beauty"
+            general: "has a supernatural beauty"
         }
     },
 };
@@ -141,10 +143,10 @@ export const enemySensoryDB_en: Record<string, SensoryData> = {
 
 /**
  * Retrieves the appropriate sensory database based on the selected language.
- * @param {'vi' | 'en'} language - The current game language.
+ * @param {Language} language - The current game language ('vi' or 'en').
  * @returns {{ itemDB: Record<string, SensoryData>, enemyDB: Record<string, SensoryData> }} An object containing the item and enemy sensory databases for the given language.
  */
-export const getSensoryDB = (language: 'vi' | 'en') => {
+export const getSensoryDB = (language: Language) => {
     return {
         itemDB: language === 'vi' ? itemSensoryDB_vi : itemSensoryDB_en,
         enemyDB: language === 'vi' ? enemySensoryDB_vi : enemySensoryDB_en,

@@ -352,6 +352,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         } else if (skillToUse.effect.type === 'DAMAGE' && newEnemy) {
             const baseDamage = skillToUse.effect.amount + Math.round(newPlayerStats.attributes.magicalAttack * 0.5);
             const finalDamage = Math.round(baseDamage * effectMultiplier);
+
             newEnemy.hp = Math.max(0, newEnemy.hp - finalDamage);
             narrativeResult.finalDamage = finalDamage;
 
@@ -1018,5 +1019,3 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     handleHarvest,
   };
 }
-
-  

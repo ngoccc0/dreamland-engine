@@ -4,6 +4,48 @@ Chào mừng các Đội trưởng và những người đồng hành đến v�
 
 ---
 
+## **Bản cập nhật v0.2.55 - "Nền Móng Vững Chắc" (14/07/2025)**
+
+*Tên mã: Solid Foundation*
+
+### 🌟 **Giới thiệu chung**
+
+Bản cập nhật này là một bước tiến quan trọng trong việc củng cố "xương sống" của Dreamland Engine. Chúng ta đã thực hiện một đợt rà soát và tái cấu trúc sâu rộng trên toàn bộ mã nguồn, tập trung vào việc sửa các lỗi type-safety nghiêm trọng, chuẩn hóa cấu trúc dữ liệu và dọn dẹp các module logic. Mục tiêu là tạo ra một nền tảng lập trình vững chắc, đáng tin cậy và sẵn sàng cho việc triển khai các tính năng lớn sắp tới.
+
+### ✨ **Thay đổi chính & Phân tích**
+
+1.  **Tái cấu trúc và Sửa lỗi Module Logic:**
+    *   **Phân tích:** Các hàm logic quan trọng (`getEffectiveChunk`, `generateOfflineNarrative`, v.v.) đã được di chuyển về đúng "nhà" của chúng trong các module engine (`generation.ts`, `offline.ts`). Các lỗi `Module not found` và `is not a function` đã được giải quyết triệt để bằng cách sửa lại toàn bộ các đường dẫn `import` trong các hook (`use-action-handlers.ts`, `useWorldRendering.ts`).
+    *   **Insight:** Đây là một bài học về "tính đóng gói" (Encapsulation). Mỗi module giờ đây chỉ chịu trách nhiệm cho một nhiệm vụ duy nhất và "xuất khẩu" (export) các chức năng của mình một cách rõ ràng, giúp mã nguồn trở nên cực kỳ dễ theo dõi và bảo trì.
+
+2.  **Chuẩn hóa Kiểu Dữ liệu Toàn cục (`TranslatableString` & `ItemCategory`):**
+    *   **Phân tích:** Các lỗi TypeScript liên quan đến kiểu dữ liệu không nhất quán đã được khắc phục. Kiểu `TranslatableString` đã được chuẩn hóa để hỗ trợ đa ngôn ngữ một cách an toàn. `ItemCategorySchema` cũng được mở rộng để bao gồm các loại hợp lý như `Equipment` và `Support`.
+    *   **Insight:** Một hệ thống kiểu dữ liệu (type system) mạnh mẽ và nhất quán là "bản hợp đồng" đảm bảo các phần khác nhau của chương trình "giao tiếp" với nhau một cách chính xác, ngăn ngừa các lỗi tiềm ẩn.
+
+3.  **Tài liệu hóa Mã nguồn với TSDoc:**
+    *   **Thay đổi:** Đã bắt đầu tích hợp các khối comment TSDoc (`/** ... */`) vào toàn bộ các file quan trọng, từ các flow AI, component giao diện, cho đến các hook và engine logic. Script `docs:api` đã được thêm vào `package.json` để chuẩn bị cho việc tự động sinh tài liệu.
+    *   **Insight:** Chúng ta đang chuyển đổi từ việc "viết code" sang "xây dựng một hệ thống bền vững". Tài liệu hóa mã nguồn là một khoản đầu tư cho tương lai, giúp việc bảo trì và mở rộng trở nên dễ dàng hơn gấp nhiều lần.
+
+### 🗺️ **Lộ Trình Phát Triển Tiếp Theo: Kế hoạch Ba Giai Đoạn**
+
+Với nền móng đã được củng cố, chúng ta đã sẵn sàng để xây dựng những "tòa tháp" tính năng mới. Lộ trình phát triển tiếp theo sẽ được chia thành các giai đoạn rõ ràng:
+
+*   **GIAI ĐOẠN 1: Nâng cấp Hệ thống Thời gian (Ngày/Đêm & Buổi trong ngày)**
+    *   **Mục tiêu:** Vượt ra ngoài 'ngày' và 'đêm' đơn giản, thêm các buổi `Bình minh` và `Hoàng hôn`, ảnh hưởng đến `lightLevel`, mood tường thuật, và có thể cả hành động của NPC/sinh vật.
+
+*   **GIAI ĐOẠN 2: Hệ thống Phát triển Nhân vật (XP & Cấp độ cơ bản)**
+    *   **Mục tiêu:** Xây dựng một hệ thống kinh nghiệm (XP) và cấp độ (Level) đơn giản. Người chơi sẽ nhận được XP khi hoàn thành nhiệm vụ, hạ gục kẻ thù, hoặc chế tạo vật phẩm khó. Lên cấp sẽ cải thiện các chỉ số cơ bản.
+
+*   **GIAI ĐOẠN 3: Rà soát và Ưu tiên các Hệ thống cốt lõi khác (Đang triển khai)**
+    *   **Mục tiêu:** Tiếp tục cải tiến và thêm chiều sâu cho các hệ thống hiện có, đặc biệt là:
+        *   **Hệ thống Kể chuyện Offline Nâng cao:** Thêm nhiều mẫu câu chuyện và logic phức tạp hơn.
+        *   **Hệ thống Hợp nhất (Fusion) Offline:** Xây dựng một bộ quy tắc logic offline để quyết định kết quả của việc hợp nhất vật phẩm, giảm sự phụ thuộc vào AI.
+        *   **Hệ thống Tương tác NPC:** Mở rộng khả năng hội thoại và nhiệm vụ của NPC.
+
+Cảm ơn vì đã đồng hành. Chúng ta đang tiến những bước vững chắc!
+
+---
+
 ## **Bản cập nhật v0.2.1 - "La Bàn Của Người Kể Chuyện" (13/07 - 23:22)**
 
 *Tên mã: The Storyteller's Compass*

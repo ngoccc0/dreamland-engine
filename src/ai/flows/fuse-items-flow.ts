@@ -6,7 +6,8 @@
  * This flow acts as a master alchemist or forge. The core logic (rules for success,
  * failure, degradation, and the resulting item's tier/category) is handled in TypeScript.
  * The AI's role is purely creative: to narrate the outcome and invent the name,
- * and description for the resulting item.
+ * and description for the resulting item. It also handles rare "reality glitch" events
+ * where items from other worlds can be created.
  *
  * @export fuseItems - The main function called by the game engine.
  * @export FuseItemsInput - The Zod schema for the input data.
@@ -16,8 +17,10 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { FuseItemsInputSchema, FuseItemsOutputSchema, GeneratedItemSchema } from '@/ai/schemas';
-import { clamp, getEmojiForItem } from '@/lib/utils';
+import { clamp, getEmojiForItem, getTranslatedText } from '@/lib/utils';
 import { logger } from '@/lib/logger';
+import type { GeneratedItem } from '@/lib/game/types';
+
 
 export type FuseItemsInput = z.infer<typeof FuseItemsInputSchema>;
 export type FuseItemsOutput = z.infer<typeof FuseItemsOutputSchema>;
@@ -29,13 +32,6 @@ export type FuseItemsOutput = z.infer<typeof FuseItemsOutputSchema>;
  * calls an AI flow to generate the creative narrative and item details.
  * @param {FuseItemsInput} input - The input containing items to fuse, player status, and environmental context.
  * @returns {Promise<FuseItemsOutput>} A promise that resolves to the fusion result, including narrative and a potential new item.
- * @example
- * const result = await fuseItems({
- *   itemsToFuse: [{ name: 'Sharp Rock', ... }, { name: 'Sturdy Branch', ... }, { name: 'Flint', ...}],
- *   playerPersona: 'artisan',
- *   // ... other context
- * });
- * console.log(result.narrative);
  */
 export async function fuseItems(input: FuseItemsInput): Promise<FuseItemsOutput> {
   logger.info('Starting fuseItems flow');
@@ -45,21 +41,20 @@ export async function fuseItems(input: FuseItemsInput): Promise<FuseItemsOutput>
 
 // --- New schema for the prompt's specific input needs ---
 const FuseItemsPromptInputSchema = FuseItemsInputSchema.extend({
-    determinedOutcome: z.enum(['success', 'degraded', 'totalLoss']),
+    determinedOutcome: z.enum(['success', 'degraded', 'totalLoss', 'realityGlitch']),
+    glitchItem: GeneratedItemSchema.optional().describe("An item pulled from another reality during a 'realityGlitch' event. The AI must invent a narrative for its appearance."),
 });
 
 
 // --- New schema for the AI's creative output ---
-// The AI only needs to generate the creative parts of an item.
 const AIPartialItemSchema = GeneratedItemSchema.pick({
     name: true,
     description: true,
     effects: true,
 });
 
-// The AI's full response schema.
 const AIPromptOutputSchema = z.object({
-  outcome: z.enum(['success', 'degraded', 'totalLoss']),
+  outcome: z.enum(['success', 'degraded', 'totalLoss', 'realityGlitch']),
   narrative: z.string(),
   resultItem: AIPartialItemSchema.optional(),
 });
@@ -77,17 +72,22 @@ The outcome has already been decided by the laws of the world. Your task is to n
 
 **The World's Verdict:**
 - Outcome: '{{determinedOutcome}}'
-- Chaos Factor: {{environmentalModifiers.chaosFactor}}/10 (Higher means more unexpected results. Use this for creative flavor.)
+- Chaos Factor: {{environmentalModifiers.chaosFactor}}/100 (Higher means more unexpected results. Use this for creative flavor.)
+{{#if glitchItem}}
+- **REALITY GLITCH!** The fusion has torn a hole in reality and pulled an object from another world:
+  - Glitch Item: {{json glitchItem}}
+{{/if}}
 
 **Your Task:**
 1.  **Narrate Creatively:** Write an engaging, multi-sensory narrative. Describe the sights (flashes of light, smoke), sounds (crackling, hissing, booming), and smells (ozone, sulfur, strange aromas) of the fusion process. The narrative MUST reflect the 'determinedOutcome' and the environment.
     - **Success:** Describe a powerful, harmonious combination.
     - **Degraded:** Describe a sputtering, unstable process that results in something lesser.
     - **Total Loss:** Describe a volatile or catastrophic failure where the items are utterly destroyed.
+    - **Reality Glitch:** This is a spectacular event! Describe the fusion process becoming unstable, reality distorting, and the '{{glitchItem.name}}' materializing from a tear in spacetime. The narrative must be EPIC.
 2.  **Invent an Item (if needed):**
-    - If the 'determinedOutcome' is 'success': Invent a **new, interesting item** that could result from this fusion. Provide its name, description, and any special effects. The game will handle its power level (tier).
-    - If the 'determinedOutcome' is 'degraded': Invent a **new, lesser item**. It should be a broken, warped, or simplified version of one of the ingredients (e.g., 'Sharp Rock' and 'Sturdy Branch' might degrade into 'Small Pebbles'). Provide its name, description, and any (likely negative) effects.
-    - If the 'determinedOutcome' is 'totalLoss': **Do not** invent a new item. Your narrative should describe the items being destroyed completely.
+    - If 'determinedOutcome' is 'success': Invent a **new, interesting item** that could result from this fusion. Provide its name, description, and any special effects.
+    - If 'determinedOutcome' is 'degraded': Invent a **new, lesser item**. It should be a broken, warped, or simplified version of one of the ingredients (e.g., 'Sharp Rock' and 'Sturdy Branch' might degrade into 'Small Pebbles'). Provide its name, description, and any (likely negative) effects.
+    - If 'determinedOutcome' is 'totalLoss' or 'realityGlitch': **Do not** invent a new item. The resultItem will be the glitchItem or nothing.
 3.  **Respond:** Provide your response in the required JSON format. Ensure the 'outcome' field matches the provided 'determinedOutcome'.
 `;
 
@@ -98,12 +98,10 @@ const fuseItemsFlow = ai.defineFlow(
         outputSchema: FuseItemsOutputSchema,
     },
     async (input) => {
-        logger.info('Executing fuseItemsFlow with input', { items: input.itemsToFuse, persona: input.playerPersona });
-        // --- LOGIC MOVED FROM PROMPT TO CODE ---
+        logger.info('Executing fuseItemsFlow with input', { items: input.itemsToFuse.map(i => getTranslatedText(i.name, 'en')), persona: input.playerPersona });
 
-        // 1. Check for a 'Tool' item. This is a hard rule.
         const hasTool = input.itemsToFuse.some(item => {
-            const def = input.customItemDefinitions[item.name];
+            const def = input.customItemDefinitions[getTranslatedText(item.name, 'en')];
             return def?.category === 'Tool';
         });
 
@@ -118,79 +116,60 @@ const fuseItemsFlow = ai.defineFlow(
             };
         }
 
-        // 2. Calculate success chance and determine outcome.
-        const baseChance = 50; // 50% base success chance
+        const baseChance = 50;
         let bonus = input.environmentalModifiers.successChanceBonus;
-        if (input.playerPersona === 'artisan') {
-            bonus += 10; // Artisan gets a 10% bonus
-        }
+        if (input.playerPersona === 'artisan') bonus += 10;
         const finalChance = clamp(baseChance + bonus, 5, 95);
         const roll = Math.random() * 100;
         
         logger.debug('Fusion chance calculation', { baseChance, bonus, finalChance, roll });
 
-        // 3. Determine the final outcome and the resulting item tier.
-        let determinedOutcome: 'success' | 'degraded' | 'totalLoss';
+        let determinedOutcome: 'success' | 'degraded' | 'totalLoss' | 'realityGlitch';
         let finalTier: number | undefined = undefined;
+        let glitchItem: GeneratedItem | undefined = undefined;
 
-        if (roll < finalChance) { // SUCCESS
-            determinedOutcome = 'success';
-            const avgTier = input.itemsToFuse.reduce((sum, item) => sum + item.tier, 0) / input.itemsToFuse.length;
-            const randomMultiplier = Math.random() * (1.5 - 0.75) + 0.75; // Random between 75% and 150%
-            finalTier = clamp(Math.round(avgTier * randomMultiplier), 1, 6);
-        } else { // FAILURE
+        if (roll < finalChance) {
+            if (roll < 5 && input.environmentalModifiers.chaosFactor > 80) { // Critical success under high chaos
+                determinedOutcome = 'realityGlitch';
+                const unspawnableItems = input.fullItemCatalog.filter(item => item.spawnEnabled === false);
+                if (unspawnableItems.length > 0) {
+                    glitchItem = unspawnableItems[Math.floor(Math.random() * unspawnableItems.length)];
+                    finalTier = glitchItem.tier;
+                } else {
+                    determinedOutcome = 'success'; // Fallback if no glitch items available
+                }
+            } else {
+                determinedOutcome = 'success';
+            }
+            if (determinedOutcome === 'success') {
+                 const avgTier = input.itemsToFuse.reduce((sum, item) => sum + item.tier, 0) / input.itemsToFuse.length;
+                const randomMultiplier = Math.random() * (1.5 - 0.75) + 0.75;
+                finalTier = clamp(Math.round(avgTier * randomMultiplier), 1, 6);
+            }
+        } else {
             const lowestTier = Math.min(...input.itemsToFuse.map(i => i.tier));
             if (roll > 95 || lowestTier <= 1) {
-                // Critical failure (roll > 95) or failing with junk items (Tier 1) results in total loss.
                 determinedOutcome = 'totalLoss';
             } else {
-                // Otherwise, it degrades.
                 determinedOutcome = 'degraded';
-                finalTier = clamp(lowestTier - 1, 1, 6); // Degraded item is one tier lower, but not less than 1.
+                finalTier = clamp(lowestTier - 1, 1, 6);
             }
         }
         
-        logger.info('Fusion outcome determined', { outcome: determinedOutcome, tier: finalTier });
+        logger.info('Fusion outcome determined', { outcome: determinedOutcome, tier: finalTier, glitchItem: glitchItem?.name ? getTranslatedText(glitchItem.name, 'en') : 'None' });
 
-        // 4. Call the AI with the determined outcome for creative narration and item invention.
         const promptInput = {
             ...input,
             determinedOutcome,
+            glitchItem,
         };
         
-        const modelsToTry = [
-            'openai/gpt-4o',
-            'googleai/gemini-1.5-pro',
-            'deepseek/deepseek-chat',
-            'googleai/gemini-2.0-flash',
-        ];
-        
-        let llmResponse;
-        let lastError;
-
-        for (const model of modelsToTry) {
-            try {
-                logger.info(`Attempting fusion narrative generation with model: ${model}`);
-                llmResponse = await ai.generate({
-                    model: model,
-                    prompt: fuseItemsPromptText,
-                    input: promptInput,
-                    output: { schema: AIPromptOutputSchema },
-                });
-                logger.info(`SUCCESS with ${model}`);
-                break; // Success
-            } catch (error) {
-                lastError = error;
-                logger.warn(`Model '${model}' failed during item fusion. Trying next...`, error);
-            }
-        }
-        
-        if (!llmResponse) {
-            logger.error("All AI models failed for item fusion.", lastError);
-            throw lastError || new Error("AI failed to generate a fusion narrative.");
-        }
-
-        const aiOutput = llmResponse.output;
+        const { output: aiOutput } = await ai.generate({
+            model: 'openai/gpt-4o',
+            prompt: fuseItemsPromptText,
+            input: promptInput,
+            output: { schema: AIPromptOutputSchema },
+        });
 
         if (!aiOutput) {
             logger.error("AI model returned an empty or invalid output for fusion.");
@@ -199,23 +178,23 @@ const fuseItemsFlow = ai.defineFlow(
         
         logger.debug('AI fusion output received', { aiOutput });
 
-        // 5. Construct the final, structured output, combining AI creativity with code-driven logic.
         const finalOutput: FuseItemsOutput = {
             outcome: aiOutput.outcome,
             narrative: aiOutput.narrative,
         };
 
-        if (aiOutput.resultItem && finalTier) {
+        if (glitchItem) {
+            finalOutput.resultItem = glitchItem;
+        } else if (aiOutput.resultItem && finalTier) {
             finalOutput.resultItem = {
                 ...aiOutput.resultItem,
-                // --- LOGIC HANDLED BY CODE, NOT AI ---
-                category: 'Fusion', // All fused items belong to the 'Fusion' category.
+                category: 'Fusion',
                 tier: finalTier,
-                emoji: getEmojiForItem(aiOutput.resultItem.name, 'Fusion'),
-                spawnBiomes: [], // Fusion items don't spawn naturally.
-                baseQuantity: { min: 1, max: 1 }, // Fusion always produces 1 item.
+                emoji: getEmojiForItem(getTranslatedText(aiOutput.resultItem.name, 'en'), 'Fusion'),
+                spawnEnabled: false,
+                baseQuantity: { min: 1, max: 1 },
             };
-             logger.info('New fused item created', { item: finalOutput.resultItem });
+             logger.info('New fused item created', { item: finalOutput.resultItem ? getTranslatedText(finalOutput.resultItem.name, 'en') : 'None' });
         }
 
         return finalOutput;

@@ -22,7 +22,7 @@ import {
     CreatureDefinitionSchema,
     allTerrains,
 } from '@/lib/game/definitions';
-import { Language } from '@/lib/i18n';
+import type { Language, TranslatableString } from '@/lib/i18n';
 
 // --- Re-exporting core schemas for AI use ---
 export { 
@@ -44,22 +44,22 @@ export type { Recipe }
 // --- Player & World State Schemas (used as input for AI) ---
 
 export const PlayerItemSchema = z.object({
-    name: z.string(),
+    name: z.custom<TranslatableString>(),
     quantity: z.number().int().min(1),
     tier: z.number(),
     emoji: z.string(),
 });
 
 export const PetSchema = z.object({
-    type: z.string().describe("The type of creature, e.g., 'Sói'."),
+    type: z.custom<TranslatableString>().describe("The type of creature, e.g., 'Sói'."),
     name: z.string().optional().describe("A custom name given by the player."),
     level: z.number().describe("The pet's level."),
 });
 export type Pet = z.infer<typeof PetSchema>;
 
 export const SkillSchema = z.object({
-    name: z.string().describe("The name of the skill."),
-    description: z.string().describe("A brief description of what the skill does."),
+    name: z.custom<TranslatableString>().describe("The name of the skill."),
+    description: z.custom<TranslatableString>().describe("A brief description of what the skill does."),
     tier: z.number().describe("The tier of the skill, from 1 (basic) to higher tiers (advanced)."),
     manaCost: z.number().describe("The amount of mana required to use the skill."),
     effect: z.object({
@@ -106,17 +106,17 @@ export const EnemySchema = CreatureDefinitionSchema.pick({
 });
 
 export const ChunkItemSchema = z.object({
-    name: z.string(),
-    description: z.string(),
+    name: z.custom<TranslatableString>(),
+    description: z.custom<TranslatableString>(),
     quantity: z.number().int(),
     tier: z.number(),
     emoji: z.string(),
 });
 
 export const NpcSchema = z.object({
-    name: z.string().describe("The full name of the NPC."),
-    description: z.string().describe("A brief physical and personality description of the NPC."),
-    dialogueSeed: z.string().describe("A sentence that captures their personality and current mood, to be used by the AI as a basis for generating dialogue. E.g., 'A grizzled hunter, tired but watchful, who speaks in short, clipped sentences.'"),
+    name: z.custom<TranslatableString>().describe("The full name of the NPC."),
+    description: z.custom<TranslatableString>().describe("A brief physical and personality description of the NPC."),
+    dialogueSeed: z.custom<TranslatableString>().describe("A sentence that captures their personality and current mood, to be used by the AI as a basis for generating dialogue. E.g., 'A grizzled hunter, tired but watchful, who speaks in short, clipped sentences.'"),
 });
 export type Npc = z.infer<typeof NpcSchema>;
 
@@ -195,7 +195,7 @@ export const ProvideQuestHintOutputSchema = z.object({
 const EnvironmentalModifiersSchema = z.object({
   successChanceBonus: z.number().describe("A pre-calculated percentage bonus (e.g., 5 for +5%) to the success chance based on environmental factors like weather or magic affinity."),
   elementalAffinity: z.enum(['none', 'fire', 'water', 'earth', 'air', 'electric', 'ice', 'nature', 'dark', 'light']).describe("A dominant elemental theme suggested by the environment (e.g., 'electric' during a storm)."),
-  chaosFactor: z.number().min(0).max(10).describe("A pre-calculated score (0-10) indicating how chaotic or unpredictable the environment is. High values increase the chance of strange outcomes."),
+  chaosFactor: z.number().min(0).max(100).describe("A pre-calculated score (0-100) indicating how chaotic or unpredictable the environment is. High values increase the chance of strange outcomes."),
 });
 
 export const FuseItemsInputSchema = z.object({
@@ -209,13 +209,14 @@ export const FuseItemsInputSchema = z.object({
   environmentalModifiers: EnvironmentalModifiersSchema.describe("Pre-calculated modifiers that should guide the fusion's outcome."),
   language: z.nativeEnum(Language).describe("The language for the generated content (e.g., 'en', 'vi')."),
   customItemDefinitions: z.record(ItemDefinitionSchema).describe("A map of all item definitions available in the world, for looking up categories."),
+  fullItemCatalog: z.array(GeneratedItemSchema).describe("The entire catalog of all possible items in the game, including those not normally spawnable, for rare events."),
 });
 
 // Output for fuse-items flow
 export const FuseItemsOutputSchema = z.object({
-  outcome: z.enum(['success', 'degraded', 'totalLoss']).describe("The outcome of the fusion: 'success' creates a better item, 'degraded' creates a lower-tier item from the ingredients, 'totalLoss' destroys the items when ingredients are tier 1."),
+  outcome: z.enum(['success', 'degraded', 'totalLoss', 'realityGlitch']).describe("The outcome of the fusion: 'success' creates a better item, 'degraded' creates a lower-tier item, 'totalLoss' destroys the items, 'realityGlitch' creates an item from another world."),
   narrative: z.string().describe("A narrative description of the fusion process and its outcome."),
-  resultItem: GeneratedItemSchema.optional().describe("The new item created, either on 'success' or 'degraded' outcome."),
+  resultItem: GeneratedItemSchema.optional().describe("The new item created, either on 'success', 'degraded', or 'realityGlitch' outcome."),
 });
 
 // Input for generate-journal-entry flow

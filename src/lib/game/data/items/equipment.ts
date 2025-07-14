@@ -87,7 +87,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'armor',
-        attributes: { physicalAttack: 2, cooldownReduction: 5 },
+        attributes: { physicalDefense: 8, physicalAttack: 2, cooldownReduction: 5 },
         spawnEnabled: false,
     },
     'harpy_feather_bow': {

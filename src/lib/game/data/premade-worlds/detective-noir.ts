@@ -1,33 +1,34 @@
+
 import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
-import type { GeneratedItem, Structure, Skill, WorldConcept, ItemDefinition } from '@/lib/game/types';
+import type { GeneratedItem, Structure, Skill, WorldConcept, ItemDefinition, TranslatableString } from '@/lib/game/types';
 
 const items: GeneratedItem[] = [
-    { name: { en: 'Trench Coat', vi: 'Áo Khoác Trench' }, description: { en: 'item_trench_coat_desc', vi: 'item_trench_coat_desc' }, emoji: '🧥', category: 'Armor', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, equipmentSlot: 'armor', attributes: { physicalDefense: 3 }, spawnEnabled: false },
-    { name: { en: 'Magnifying Glass', vi: 'Kính Lúp' }, description: { en: 'item_magnifying_glass_desc', vi: 'item_magnifying_glass_desc' }, emoji: '🔎', category: 'Tool', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
-    { name: { en: 'Old Revolver', vi: 'Khẩu Súng Lục Cũ' }, description: { en: 'item_old_revolver_desc', vi: 'item_old_revolver_desc' }, emoji: '🔫', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, equipmentSlot: 'weapon', attributes: { physicalAttack: 6, critChance: 3 }, spawnEnabled: false },
-    { name: { en: 'Case File', vi: 'Hồ Sơ Vụ Án' }, description: { en: 'item_case_file_desc', vi: 'item_case_file_desc' }, emoji: '📂', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
-    { name: { en: 'Synth-Whiskey', vi: 'Rượu Synth-Whiskey' }, description: { en: 'item_synth_whiskey_desc', vi: 'item_synth_whiskey_desc' }, emoji: '🥃', category: 'Support', tier: 1, effects: [{ type: 'RESTORE_STAMINA', amount: 20 }, { type: 'RESTORE_MANA', amount: 5 }], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
+    { name: { en: 'Trench Coat', vi: 'Áo Khoác Trench' }, description: { en: 'A worn, beige trench coat. Smells of rain and regret.', vi: 'Một chiếc áo khoác trench màu be đã sờn. Phảng phất mùi mưa và sự hối tiếc.' }, emoji: '🧥', category: 'Armor', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, equipmentSlot: 'armor', attributes: { physicalDefense: 3 }, spawnEnabled: false },
+    { name: { en: 'Magnifying Glass', vi: 'Kính Lúp' }, description: { en: 'A classic tool for any detective worth their salt.', vi: 'Một công cụ kinh điển cho bất kỳ thám tử nào đáng giá.' }, emoji: '🔎', category: 'Tool', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
+    { name: { en: 'Old Revolver', vi: 'Khẩu Súng Lục Cũ' }, description: { en: 'A heavy, reliable firearm. It has seen better days.', vi: 'Một khẩu súng lục nặng, đáng tin cậy. Nó đã từng có những ngày huy hoàng hơn.' }, emoji: '🔫', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, equipmentSlot: 'weapon', attributes: { physicalAttack: 6, critChance: 3 }, spawnEnabled: false },
+    { name: { en: 'Case File', vi: 'Hồ Sơ Vụ Án' }, description: { en: 'The file for your latest case. A corporate exec, a data chip, a dame in trouble. Classic.', vi: 'Hồ sơ vụ án mới nhất của bạn. Một giám đốc công ty, một con chip dữ liệu, một quý cô gặp rắc rối. Kinh điển.' }, emoji: '📂', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
+    { name: { en: 'Synth-Whiskey', vi: 'Rượu Synth-Whiskey' }, description: { en: 'A cheap synthetic whiskey. Burns on the way down, but steadies the nerves.', vi: 'Một loại rượu whiskey tổng hợp rẻ tiền. Cháy bỏng khi uống, nhưng giúp thần kinh ổn định.' }, emoji: '🥃', category: 'Support', tier: 1, effects: [{ type: 'RESTORE_STAMINA', amount: 20 }, { type: 'RESTORE_MANA', amount: 5 }], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
 ];
 
 const structures: Structure[] = [
-    { name: { en: 'Gumshoe Office', vi: 'Văn phòng Thám tử' }, description: { en: 'structure_gumshoe_office_desc', vi: 'structure_gumshoe_office_desc' }, emoji: '🏢', providesShelter: true, buildable: false, restEffect: { hp: 10, stamina: 30 }, heatValue: 1 },
-    { name: { en: 'Neon Dragon Bar', vi: 'Quán Bar Rồng Neon' }, description: { en: 'structure_neon_dragon_bar_desc', vi: 'structure_neon_dragon_bar_desc' }, emoji: '🍻', providesShelter: true, buildable: false, restEffect: { hp: 5, stamina: 10 }, heatValue: 1 },
+    { name: { en: 'Gumshoe Office', vi: 'Văn phòng Thám tử' }, description: { en: 'Your office. A dusty room with a desk, a chair, and a view of a brick wall.', vi: 'Văn phòng của bạn. Một căn phòng bụi bặm với một cái bàn, một cái ghế và một tầm nhìn ra bức tường gạch.' }, emoji: '🏢', providesShelter: true, buildable: false, restEffect: { hp: 10, stamina: 30 }, heatValue: 1 },
+    { name: { en: 'Neon Dragon Bar', vi: 'Quán Bar Rồng Neon' }, description: { en: 'A shady bar where information is traded as freely as currency.', vi: 'Một quán bar mờ ám nơi thông tin được trao đổi tự do như tiền tệ.' }, emoji: '🍻', providesShelter: true, buildable: false, restEffect: { hp: 5, stamina: 10 }, heatValue: 1 },
 ];
 
-const skill1: Skill = { name: { en: 'skillHealName', vi: 'skillHealName' }, description: { en: 'skillHealDesc', vi: 'skillHealDesc' }, tier: 1, manaCost: 20, effect: { type: 'HEAL', amount: 25, target: 'SELF' } };
-const skill2: Skill = { name: { en: 'skillLifeSiphonName', vi: 'skillLifeSiphonName' }, description: { en: 'skillLifeSiphonDesc', vi: 'skillLifeSiphonDesc' }, tier: 2, manaCost: 30, effect: { type: 'DAMAGE', amount: 25, target: 'ENEMY', healRatio: 0.5 } };
+const skill1: Skill = { name: { en: 'Heal', vi: 'Chữa lành' }, description: { en: 'Use mana to restore a small amount of health.', vi: 'Sử dụng mana để phục hồi một lượng nhỏ máu.' }, tier: 1, manaCost: 20, effect: { type: 'HEAL', amount: 25, target: 'SELF' } };
+const skill2: Skill = { name: { en: 'Life Siphon', vi: 'Hút sinh lực' }, description: { en: 'Deal magic damage and heal for 50% of the damage dealt.', vi: 'Gây sát thương phép và hồi máu bằng 50% sát thương gây ra.' }, tier: 2, manaCost: 30, effect: { type: 'DAMAGE', amount: 25, target: 'ENEMY', healRatio: 0.5 } };
 
 
 const concepts: WorldConcept[] = [
     {
-        worldName: { en: "worldName_rainyCity", vi: "worldName_rainyCity" }, initialNarrative: { en: 'detective_narrative1', vi: 'detective_narrative1' }, startingBiome: 'city',
+        worldName: { en: "Rainy City", vi: "Thành phố Mưa" }, initialNarrative: { en: "Rain lashes against the window of your office. Another night in the Neon City. A new case file appears on your desk, slid under the door by a mysterious figure. It seems this case is more dangerous than most.", vi: "Mưa quất vào cửa sổ văn phòng của bạn. Một đêm nữa ở Thành phố Neon. Một hồ sơ vụ án mới xuất hiện trên bàn của bạn, được luồn dưới cửa bởi một nhân vật bí ẩn. Có vẻ như vụ án này nguy hiểm hơn hầu hết các vụ khác." }, startingBiome: 'city',
         playerInventory: [ { name: "Trench Coat", quantity: 1 }, { name: "Case File", quantity: 1 } ],
-        initialQuests: [ { en: 'detective_quest1', vi: 'detective_quest1' }, { en: 'detective_quest2', vi: 'detective_quest2' } ], startingSkill: skill1, customStructures: structures
+        initialQuests: [ { en: 'Investigate the Neon Dragon Bar for clues.', vi: 'Điều tra Quán bar Rồng Neon để tìm manh mối.' }, { en: "Find out what's on the data chip.", vi: 'Tìm hiểu xem có gì trong con chip dữ liệu.' } ], startingSkill: skill1, customStructures: structures
     },
     {
-        worldName: { en: "worldName_rainyCity", vi: "worldName_rainyCity" }, initialNarrative: { en: 'detective_narrative1', vi: 'detective_narrative1' }, startingBiome: 'city',
+        worldName: { en: "Rainy City", vi: "Thành phố Mưa" }, initialNarrative: { en: "Rain lashes against the window of your office. Another night in the Neon City. A new case file appears on your desk, slid under the door by a mysterious figure. It seems this case is more dangerous than most.", vi: "Mưa quất vào cửa sổ văn phòng của bạn. Một đêm nữa ở Thành phố Neon. Một hồ sơ vụ án mới xuất hiện trên bàn của bạn, được luồn dưới cửa bởi một nhân vật bí ẩn. Có vẻ như vụ án này nguy hiểm hơn hầu hết các vụ khác." }, startingBiome: 'city',
         playerInventory: [ { name: "Old Revolver", quantity: 1 }, { name: "Synth-Whiskey", quantity: 2 } ],
-        initialQuests: [ { en: 'detective_quest1', vi: 'detective_quest1' }, { en: 'detective_quest2', vi: 'detective_quest2' } ], startingSkill: skill2, customStructures: structures
+        initialQuests: [ { en: 'Investigate the Neon Dragon Bar for clues.', vi: 'Điều tra Quán bar Rồng Neon để tìm manh mối.' }, { en: "Find out what's on the data chip.", vi: 'Tìm hiểu xem có gì trong con chip dữ liệu.' } ], startingSkill: skill2, customStructures: structures
     },
 ];
 

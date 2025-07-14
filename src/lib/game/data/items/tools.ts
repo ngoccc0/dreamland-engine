@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Defines all tool items in the game.
  * @description This file contains definitions for items that are primarily used
@@ -17,6 +18,7 @@ export const toolItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: true,
+        spawnBiomes: ['mountain', 'cave']
     },
     'stone_pickaxe': {
         name: {en: "Stone Pickaxe", vi: "Cuốc Đá"},
@@ -47,6 +49,7 @@ export const toolItems: Record<string, ItemDefinition> = {
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: true,
+        spawnBiomes: ['cave', 'mountain']
     },
     'magnifying_glass': {
         name: {en: "Magnifying Glass", vi: "Kính Lúp"},

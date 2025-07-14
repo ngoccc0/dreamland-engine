@@ -1,3 +1,4 @@
+
 import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 import {openAI} from 'genkitx-openai';
@@ -16,7 +17,7 @@ export const ai = genkit({
     // Initialize Google AI with all provided keys.
     // Genkit will manage them for you (e.g., for rate limiting or failover).
     googleAI({
-      apiKey: geminiApiKeys.length > 0 ? geminiApiKeys : undefined,
+      apiKey: geminiApiKeys,
     }),
     // Initialize OpenAI (it will look for OPENAI_API_KEY automatically).
     openAI(),

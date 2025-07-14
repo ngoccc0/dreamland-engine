@@ -1,4 +1,5 @@
 
+
 // src/lib/locales/ui.ts
 
 export const uiTranslations = {
@@ -124,7 +125,6 @@ export const uiTranslations = {
     fusionDesc: "Experiment by combining 2 or 3 items. Requires at least one 'Tool' item. The environment can affect the outcome. Results are not guaranteed!",
     yourInventory: "Your Inventory",
     fusionSlots: "Fusion Slots",
-    emptySlot: "Empty Slot",
     fuseItems: "Fuse Items",
     fusing: "Fusing...",
     
@@ -344,7 +344,6 @@ export const uiTranslations = {
     fusionDesc: "Thử nghiệm bằng cách kết hợp 2 hoặc 3 vật phẩm. Yêu cầu ít nhất một vật phẩm 'Công cụ'. Môi trường có thể ảnh hưởng đến kết quả. Kết quả không được đảm bảo!",
     yourInventory: "Hành trang của bạn",
     fusionSlots: "Ô Hợp nhất",
-    emptySlot: "Ô trống",
     fuseItems: "Hợp nhất vật phẩm",
     fusing: "Đang hợp nhất...",
     

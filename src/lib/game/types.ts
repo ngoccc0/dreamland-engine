@@ -1,4 +1,4 @@
-import type { TranslationKey, Language } from "../i18n";
+
 import type { 
     ItemDefinition as ItemDefZod, 
     ItemEffect, 
@@ -14,6 +14,7 @@ import type {
     ItemCategory, 
     MultilingualText,
     TranslatableStringSchema as TranslatableStringSchemaZod,
+    RecipeIngredientSchema,
 } from "./definitions";
 import { z } from 'zod';
 
@@ -30,10 +31,10 @@ export type {
     ItemCategory,
     MultilingualText,
     Language,
+    RecipeIngredient,
 };
-
-export const TranslatableStringSchema = TranslatableStringSchemaZod;
-export type TranslatableString = z.infer<typeof TranslatableStringSchema>;
+export { TranslatableStringSchema } from "./definitions";
+export type TranslatableString = z.infer<typeof TranslatableStringSchemaZod>;
 
 /**
  * @description The supported terrain types in the game world.
@@ -361,4 +362,21 @@ export interface ModBundle {
 export interface EnemySpawn {
     data: CreatureDefinition;
     conditions: SpawnConditions;
+}
+
+/**
+ * @description Defines the output of a crafting calculation.
+ */
+export interface CraftingOutcome {
+    canCraft: boolean;
+    chance: number;
+    hasRequiredTool: boolean;
+    ingredientsToConsume: { name: string; quantity: number }[];
+    resolvedIngredients: {
+        requirement: RecipeIngredient;
+        usedItem: { name: TranslatableString, tier: number };
+        isSubstitute: boolean;
+        hasEnough: boolean;
+        playerQuantity: number;
+    }[];
 }

@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Contains the core logic for the game's crafting system.
  * @description This file provides functions to determine the outcome of a crafting attempt,
@@ -6,6 +7,7 @@
  */
 
 import type { PlayerItem, Recipe, ItemDefinition, CraftingOutcome } from "../types";
+import { getTranslatedText } from "@/lib/utils";
 
 /**
  * @description Calculates the outcome of a crafting attempt based on the player's inventory and a given recipe.
@@ -32,7 +34,7 @@ export const calculateCraftingOutcome = (
     let worstTier = 1;
     let canCraftAllIngredients = true;
 
-    const hasRequiredTool = !recipe.requiredTool || playerItems.some(item => item.name === recipe.requiredTool);
+    const hasRequiredTool = !recipe.requiredTool || playerItems.some(item => getTranslatedText(item.name, 'en') === recipe.requiredTool);
 
     for (const requirement of recipe.ingredients) {
         let bestAvailable: { item: PlayerItem, quality: number } | null = null;
@@ -50,26 +52,29 @@ export const calculateCraftingOutcome = (
         possibleItems.sort((a, b) => a.quality - b.quality);
         
         for (const possible of possibleItems) {
-            const playerItem = playerItems.find(pi => pi.name === possible.name);
+            const playerItem = playerItems.find(pi => getTranslatedText(pi.name, 'en') === possible.name);
             if (playerItem && playerItem.quantity >= requirement.quantity) {
                 bestAvailable = { item: playerItem, quality: possible.quality };
                 break;
             }
         }
         
-        const playerQuantity = playerItems.find(pi => pi.name === (bestAvailable?.item.name || requirement.name))?.quantity || 0;
+        const playerItemForQty = playerItems.find(pi => pi.name === (bestAvailable?.item.name || requirement.name));
+        const playerQuantity = playerItemForQty ? getTranslatedText(playerItemForQty.name, 'en') === getTranslatedText(requirement.name, 'en') ? playerItemForQty.quantity : 0 : 0;
+
 
         if (bestAvailable) {
             resolvedIngredients.push({
                 requirement,
                 usedItem: { name: bestAvailable.item.name, tier: bestAvailable.quality },
-                isSubstitute: bestAvailable.item.name !== requirement.name,
+                isSubstitute: getTranslatedText(bestAvailable.item.name, 'en') !== requirement.name,
                 hasEnough: true,
                 playerQuantity
             });
             worstTier = Math.max(worstTier, bestAvailable.quality);
-            const currentConsumption = ingredientsToConsumeMap.get(bestAvailable.item.name) || 0;
-            ingredientsToConsumeMap.set(bestAvailable.item.name, currentConsumption + requirement.quantity);
+            const consumptionKey = getTranslatedText(bestAvailable.item.name, 'en');
+            const currentConsumption = ingredientsToConsumeMap.get(consumptionKey) || 0;
+            ingredientsToConsumeMap.set(consumptionKey, currentConsumption + requirement.quantity);
         } else {
             canCraftAllIngredients = false;
             resolvedIngredients.push({

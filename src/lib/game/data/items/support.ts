@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Defines all support and healing items in the game.
  * @description This file contains definitions for consumable items like potions,
@@ -114,7 +115,7 @@ export const supportItems: Record<string, ItemDefinition> = {
         description: { en: 'A cheap synthetic whiskey. Burns on the way down, but steadies the nerves.', vi: 'Một loại rượu whiskey tổng hợp rẻ tiền. Cháy bỏng khi uống, nhưng giúp thần kinh ổn định.' },
         emoji: '🥃', 
         category: 'Support', tier: 1, 
-        effects: [{ type: 'RESTORE_STAMINA', amount: 20 }],
+        effects: [{ type: 'RESTORE_STAMINA', amount: 20 }], 
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
@@ -123,7 +124,7 @@ export const supportItems: Record<string, ItemDefinition> = {
         description: { en: 'Water infused with the mysterious local spice. Highly refreshing.', vi: 'Nước được pha với loại gia vị bí ẩn của địa phương. Rất sảng khoái.' },
         emoji: '💧', 
         category: 'Support', tier: 2, 
-        effects: [{ type: 'RESTORE_STAMINA', amount: 40 }],
+        effects: [{ type: 'RESTORE_STAMINA', amount: 40 }], 
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },

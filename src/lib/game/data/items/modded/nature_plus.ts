@@ -2,9 +2,9 @@
 import type { ItemDefinition, EquipmentSlot } from '@/lib/game/types';
 
 export const naturePlusItems: Record<string, ItemDefinition> = {
-    // === VẬT PHẨM TỰ NHIÊN ĐỘC ĐÁO (do mod thêm vào) ===
-    'Tinh Thể Nước Đọng': {
-        description: 'item_crystal_water_desc',
+    'crystal_water': {
+        name: { en: 'Condensed Water Crystal', vi: 'Tinh Thể Nước Đọng' },
+        description: { en: 'A crystal that slowly drips pure, cool water. A precious resource in harsh environments.', vi: 'Một viên pha lê từ từ nhỏ ra những giọt nước tinh khiết, mát lạnh. Một tài nguyên quý giá trong môi trường khắc nghiệt.' },
         tier: 3,
         category: 'Material',
         emoji: '💧💎',
@@ -13,8 +13,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         spawnEnabled: true,
         spawnBiomes: ['cave', 'mountain'],
     },
-    'Rễ Cây Ma Thuật': {
-        description: 'item_magic_root_desc',
+    'magic_root': {
+        name: { en: 'Magic Root', vi: 'Rễ Cây Ma Thuật' },
+        description: { en: 'A gnarled root that pulses with a faint magical energy. Chewing it enhances mana regeneration.', vi: 'Một rễ cây sần sùi rung động với năng lượng ma thuật yếu. Nhai nó giúp tăng cường tái tạo mana.' },
         tier: 4,
         category: 'Material',
         emoji: '🌿✨',
@@ -23,8 +24,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         spawnEnabled: true,
         spawnBiomes: ['forest', 'jungle', 'swamp'],
     },
-    'Lõi Gỗ Rỗng': {
-        description: 'item_hollow_log_desc',
+    'hollow_wood_core': {
+        name: { en: 'Hollow Wood Core', vi: 'Lõi Gỗ Rỗng' },
+        description: { en: 'A sturdy log that has been hollowed out by insects. Useful as a container or for crafting.', vi: 'Một khúc gỗ chắc chắn đã bị côn trùng làm rỗng. Hữu ích làm thùng chứa hoặc để chế tạo.' },
         tier: 2,
         category: 'Material',
         emoji: '🪵🕳️',
@@ -33,37 +35,39 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         spawnEnabled: true,
         spawnBiomes: ['forest', 'jungle'],
     },
-    'Lông Sói Đen': {
-        description: 'item_black_wolf_pelt_desc',
+    'black_wolf_pelt': {
+        name: { en: 'Black Wolf Pelt', vi: 'Lông Sói Đen' },
+        description: { en: 'The dark, thick pelt of a shadow wolf, excellent for stealthy gear.', vi: 'Bộ lông đen, dày của một con sói bóng đêm, tuyệt vời cho trang bị tàng hình.' },
         tier: 3,
         category: 'Material',
         emoji: '🐺⚫',
         effects: [],
         baseQuantity: { min: 1, max: 2 },
-        spawnEnabled: false, // Loot only
+        spawnEnabled: false, 
     },
-    'Nọc Rắn Độc': {
-        description: 'item_snake_venom_desc',
+    'snake_venom': {
+        name: { en: 'Snake Venom', vi: 'Nọc Rắn Độc' },
+        description: { en: 'Potent venom extracted from a jungle serpent, useful for coating weapons.', vi: 'Nọc độc mạnh được chiết xuất từ một con rắn trong rừng, hữu ích để tẩm vũ khí.' },
         tier: 4,
         category: 'Material',
         emoji: '🧪🐍',
         effects: [],
         baseQuantity: { min: 1, max: 1 },
-        spawnEnabled: false, // Loot only
+        spawnEnabled: false, 
     },
-    'Da Cá Sấu Cổ Đại': {
-        description: 'item_ancient_gator_hide_desc',
+    'ancient_gator_hide': {
+        name: { en: 'Ancient Alligator Hide', vi: 'Da Cá Sấu Cổ Đại' },
+        description: { en: 'The incredibly thick and resilient hide of an ancient swamp alligator.', vi: 'Lớp da cực kỳ dày và bền của một con cá sấu đầm lầy cổ đại.' },
         tier: 5,
         category: 'Material',
         emoji: '🐊🛡️',
         effects: [],
         baseQuantity: { min: 1, max: 2 },
-        spawnEnabled: false, // Loot only
+        spawnEnabled: false, 
     },
-
-    // === VẬT PHẨM CHẾ TẠO (do mod thêm vào) ===
-    'Lò Rèn': {
-        description: 'item_forge_desc',
+    'forge': {
+        name: { en: 'Forge', vi: 'Lò Rèn' },
+        description: { en: 'A structure for smelting ores and working with metals at high temperatures.', vi: 'Một công trình để luyện quặng và gia công kim loại ở nhiệt độ cao.' },
         tier: 3,
         category: 'Tool',
         emoji: '🔥🔨',
@@ -71,8 +75,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Lò Nung': {
-        description: 'item_kiln_desc',
+    'kiln': {
+        name: { en: 'Kiln', vi: 'Lò Nung' },
+        description: { en: 'A thermally insulated chamber for firing pottery and making charcoal.', vi: 'Một lò cách nhiệt để nung gốm và làm than củi.' },
         tier: 2,
         category: 'Tool',
         emoji: '🏺🔥',
@@ -80,8 +85,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Than Củi': {
-        description: 'item_charcoal_desc',
+    'charcoal': {
+        name: { en: 'Charcoal', vi: 'Than Củi' },
+        description: { en: 'A lightweight black carbon residue produced by strongly heating wood.', vi: 'Một chất cặn carbon đen nhẹ được tạo ra bằng cách nung nóng mạnh gỗ.' },
         tier: 1,
         category: 'Material',
         emoji: '⚫🔥',
@@ -89,8 +95,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 3 },
         spawnEnabled: false,
     },
-    'Thép Rèn': {
-        description: 'item_wrought_iron_desc',
+    'wrought_iron': {
+        name: { en: 'Wrought Iron', vi: 'Thép Rèn' },
+        description: { en: 'Iron that has been heated and worked with tools, ready for crafting.', vi: 'Sắt đã được nung nóng và gia công bằng các công cụ, sẵn sàng để chế tạo.' },
         tier: 3,
         category: 'Material',
         emoji: '🔗⚔️',
@@ -98,8 +105,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Vải Bền': {
-        description: 'item_durable_cloth_desc',
+    'durable_cloth': {
+        name: { en: 'Durable Cloth', vi: 'Vải Bền' },
+        description: { en: 'A thick, resilient cloth woven from tough plant fibers.', vi: 'Một loại vải dày, bền được dệt từ các sợi thực vật cứng.' },
         tier: 2,
         category: 'Material',
         emoji: '👕💪',
@@ -107,8 +115,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 },
         spawnEnabled: false,
     },
-    'Lông Thú Dày': {
-        description: 'item_thick_fur_desc',
+    'thick_fur': {
+        name: { en: 'Thick Fur', vi: 'Lông Thú Dày' },
+        description: { en: 'A thick layer of processed fur, excellent for insulation against the cold.', vi: 'Một lớp lông thú dày đã qua xử lý, tuyệt vời để cách nhiệt chống lạnh.' },
         tier: 3,
         category: 'Material',
         emoji: '🐻‍❄️🧶',
@@ -116,8 +125,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Kính Quang Học': {
-        description: 'item_optical_glass_desc',
+    'optical_glass': {
+        name: { en: 'Optical Glass', vi: 'Kính Quang Học' },
+        description: { en: 'A piece of clear, precisely shaped glass used for lenses and optics.', vi: 'Một mảnh thủy tinh trong suốt, được tạo hình chính xác dùng cho thấu kính và quang học.' },
         tier: 4,
         category: 'Material',
         emoji: '🔍💡',
@@ -125,8 +135,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Than Hoạt Tính': {
-        description: 'item_activated_charcoal_desc',
+    'activated_charcoal': {
+        name: { en: 'Activated Charcoal', vi: 'Than Hoạt Tính' },
+        description: { en: 'Charcoal that has been treated to have small, low-volume pores that increase the surface area available for adsorption.', vi: 'Than củi đã được xử lý để có các lỗ nhỏ, thể tích thấp giúp tăng diện tích bề mặt có sẵn để hấp phụ.' },
         tier: 2,
         category: 'Material',
         emoji: '⚫💧',
@@ -134,8 +145,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 },
         spawnEnabled: false,
     },
-    'Nước Sạch': {
-        description: 'item_clean_water_desc',
+    'clean_water': {
+        name: { en: 'Clean Water', vi: 'Nước Sạch' },
+        description: { en: 'Purified water, safe to drink and use in potions.', vi: 'Nước đã được lọc, an toàn để uống và sử dụng trong thuốc.' },
         tier: 1,
         category: 'Consumable',
         emoji: '💧✅',
@@ -143,8 +155,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Thuốc Hồi Phục Thể Lực Mạnh': {
-        description: 'item_strong_stamina_potion_desc',
+    'strong_stamina_potion': {
+        name: { en: 'Strong Stamina Potion', vi: 'Thuốc Hồi Phục Thể Lực Mạnh' },
+        description: { en: 'A potent concoction that significantly restores stamina.', vi: 'Một loại thuốc mạnh mẽ giúp phục hồi một lượng lớn thể lực.' },
         tier: 3,
         category: 'Potion',
         emoji: '🧪🏃',
@@ -152,8 +165,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Dây Thừng Chắc Chắn': {
-        description: 'item_sturdy_rope_desc',
+    'sturdy_rope': {
+        name: { en: 'Sturdy Rope', vi: 'Dây Thừng Chắc Chắn' },
+        description: { en: 'A strong rope made from twisted plant fibers, essential for climbing and building.', vi: 'Một sợi dây thừng chắc chắn làm từ các sợi thực vật xoắn lại, cần thiết cho việc leo trèo và xây dựng.' },
         tier: 2,
         category: 'Material',
         emoji: '🔗🧵',
@@ -161,8 +175,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Keo Nhựa Cây': {
-        description: 'item_tree_sap_glue_desc',
+    'tree_sap_glue': {
+        name: { en: 'Tree Sap Glue', vi: 'Keo Nhựa Cây' },
+        description: { en: 'A sticky adhesive made from boiled tree sap.', vi: 'Một chất kết dính dính được làm từ nhựa cây đun sôi.' },
         tier: 2,
         category: 'Material',
         emoji: '🍯🌳',
@@ -170,8 +185,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Da Thuộc': {
-        description: 'item_tanned_leather_desc',
+    'tanned_leather': {
+        name: { en: 'Tanned Leather', vi: 'Da Thuộc' },
+        description: { en: 'Animal hide that has been treated to make it durable and flexible.', vi: 'Da động vật đã được xử lý để làm cho nó bền và dẻo hơn.' },
         tier: 2,
         category: 'Material',
         emoji: '🧷🐻',
@@ -179,8 +195,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Thép Hợp Kim': {
-        description: 'item_steel_alloy_desc',
+    'steel_alloy': {
+        name: { en: 'Steel Alloy', vi: 'Thép Hợp Kim' },
+        description: { en: 'A strong metal alloy created by forging iron with other minerals.', vi: 'Một hợp kim kim loại mạnh được tạo ra bằng cách rèn sắt với các khoáng chất khác.' },
         tier: 4,
         category: 'Material',
         emoji: '💎⚔️',
@@ -188,8 +205,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Bình Đất Sét': {
-        description: 'item_clay_pot_desc',
+    'clay_pot': {
+        name: { en: 'Clay Pot', vi: 'Bình Đất Sét' },
+        description: { en: 'Fire clay in a kiln to create a sturdy pot for carrying water or cooking.', vi: 'Nung đất sét trong lò để tạo ra một cái nồi chắc chắn để đựng nước hoặc nấu ăn.' },
         tier: 2,
         category: 'Utility',
         emoji: '🏺💧',
@@ -197,8 +215,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Công Cụ Đồng Thô Sơ': {
-        description: 'item_crude_copper_tool_desc',
+    'crude_copper_tool': {
+        name: { en: 'Crude Copper Tool', vi: 'Công Cụ Đồng Thô Sơ' },
+        description: { en: 'A basic tool made from copper, better than stone but not as durable as iron.', vi: 'Một công cụ cơ bản làm từ đồng, tốt hơn đá nhưng không bền bằng sắt.' },
         tier: 2,
         category: 'Tool',
         emoji: '⛏️🥉',
@@ -206,8 +225,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Vữa Xây Dựng': {
-        description: 'item_mortar_desc',
+    'mortar': {
+        name: { en: 'Mortar', vi: 'Vữa Xây Dựng' },
+        description: { en: 'Mix clay, sand, and water to create a basic building mortar.', vi: 'Trộn đất sét, cát và nước để tạo ra một loại vữa xây dựng cơ bản.' },
         tier: 2,
         category: 'Material',
         emoji: '🧱💧',
@@ -215,8 +235,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 2 },
         spawnEnabled: false,
     },
-    'Sợi Thực Vật': {
-        description: 'item_plant_fiber_desc',
+    'plant_fiber': {
+        name: { en: 'Plant Fiber', vi: 'Sợi Thực Vật' },
+        description: { en: 'Basic fibers harvested from plants, used for weaving and crafting.', vi: 'Các sợi cơ bản được thu hoạch từ thực vật, được sử dụng để dệt và chế tạo.' },
         tier: 1,
         category: 'Material',
         emoji: '🌾',
@@ -225,8 +246,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         spawnEnabled: true,
         spawnBiomes: ['forest', 'jungle', 'grassland'],
     },
-    'Đèn Lồng Đom Đóm': {
-        description: 'item_firefly_lantern_desc',
+    'firefly_lantern': {
+        name: { en: 'Firefly Lantern', vi: 'Đèn Lồng Đom Đóm' },
+        description: { en: 'A gentle, continuous light source created from captured fireflies in a hollow log.', vi: 'Một nguồn sáng nhẹ nhàng, liên tục được tạo ra từ những con đom đóm bị bắt trong một khúc gỗ rỗng.' },
         tier: 3,
         category: 'Tool',
         emoji: '💡✨',
@@ -235,8 +257,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         equipmentSlot: 'accessory',
         spawnEnabled: false,
     },
-    'Áo Giáp Lông Sói': {
-        description: 'item_wolf_pelt_armor_desc',
+    'wolf_pelt_armor': {
+        name: { en: 'Wolf Pelt Armor', vi: 'Áo Giáp Lông Sói' },
+        description: { en: 'A warm and intimidating set of armor crafted from wolf pelts.', vi: 'Một bộ áo giáp ấm áp và đáng sợ được chế tác từ da sói.' },
         tier: 3,
         category: 'Armor',
         emoji: '🧥🐺',
@@ -246,8 +269,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         attributes: { physicalDefense: 5, magicalDefense: 2 },
         spawnEnabled: false,
     },
-    'Dao Sinh Tồn Đa Năng': {
-        description: 'item_survival_knife_desc',
+    'survival_knife': {
+        name: { en: 'Multi-Purpose Survival Knife', vi: 'Dao Sinh Tồn Đa Năng' },
+        description: { en: 'A versatile knife that is both a tool and a reliable weapon.', vi: 'Một con dao đa năng vừa là công cụ vừa là vũ khí đáng tin cậy.' },
         tier: 4,
         category: 'Tool',
         emoji: '🔪🛠️',
@@ -257,8 +281,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         attributes: { physicalAttack: 10, critChance: 2 },
         spawnEnabled: false,
     },
-    'Bình Lọc Nước Cầm Tay': {
-        description: 'item_water_filter_canteen_desc',
+    'water_filter_canteen': {
+        name: { en: 'Handheld Water Filter', vi: 'Bình Lọc Nước Cầm Tay' },
+        description: { en: 'A canteen that can purify water on the go.', vi: 'Một bình đựng nước có thể lọc nước khi đang di chuyển.' },
         tier: 3,
         category: 'Tool',
         emoji: '🥤💧',
@@ -266,8 +291,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Túi Ngủ Giữ Nhiệt': {
-        description: 'item_insulated_sleeping_bag_desc',
+    'insulated_sleeping_bag': {
+        name: { en: 'Insulated Sleeping Bag', vi: 'Túi Ngủ Giữ Nhiệt' },
+        description: { en: 'A warm sleeping bag to protect against extreme cold.', vi: 'Chế tạo một túi ngủ ấm áp để bảo vệ khỏi cái lạnh khắc nghiệt.' },
         tier: 4,
         category: 'Utility',
         emoji: '🛌🌡️',
@@ -275,8 +301,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Bẫy Động Vật Lớn': {
-        description: 'item_large_animal_trap_desc',
+    'large_animal_trap': {
+        name: { en: 'Large Animal Trap', vi: 'Bẫy Động Vật Lớn' },
+        description: { en: 'A heavy-duty trap capable of catching large prey.', vi: 'Xây dựng một cái bẫy hạng nặng có khả năng bắt những con mồi lớn.' },
         tier: 3,
         category: 'Utility',
         emoji: '🪤🐻',
@@ -284,8 +311,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Hộp Bảo Quản Thực Phẩm': {
-        description: 'item_food_preservation_box_desc',
+    'food_preservation_box': {
+        name: { en: 'Food Preservation Box', vi: 'Hộp Bảo Quản Thực Phẩm' },
+        description: { en: 'An insulated box to keep food fresh for longer.', vi: 'Xây dựng một cái hộp cách nhiệt để giữ thức ăn tươi lâu hơn.' },
         tier: 3,
         category: 'Utility',
         emoji: '📦🍎',
@@ -293,8 +321,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'La Bàn Tinh Xảo': {
-        description: 'item_exquisite_compass_desc',
+    'exquisite_compass': {
+        name: { en: 'Exquisite Compass', vi: 'La Bàn Tinh Xảo' },
+        description: { en: 'A precise compass to help navigate.', vi: 'Chế tạo một la bàn chính xác để giúp điều hướng.' },
         tier: 4,
         category: 'Tool',
         emoji: '🧭✨',
@@ -302,8 +331,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Cung Gỗ Cải Tiến': {
-        description: 'item_improved_wooden_bow_desc',
+    'improved_wooden_bow': {
+        name: { en: 'Improved Wooden Bow', vi: 'Cung Gỗ Cải Tiến' },
+        description: { en: 'Reinforce a wooden bow to increase its power and accuracy.', vi: 'Gia cố một cây cung gỗ để tăng sức mạnh và độ chính xác của nó.' },
         tier: 3,
         category: 'Weapon',
         emoji: '🏹🌳',
@@ -313,8 +343,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         attributes: { physicalAttack: 15, critChance: 3 },
         spawnEnabled: false,
     },
-    'Rìu Sắt Nặng': {
-        description: 'item_heavy_iron_axe_desc',
+    'heavy_iron_axe': {
+        name: { en: 'Heavy Iron Axe', vi: 'Rìu Sắt Nặng' },
+        description: { en: 'Forge a heavy axe, excellent for felling large trees or as a powerful weapon.', vi: 'Rèn một chiếc rìu nặng, tuyệt vời để đốn hạ những cây lớn hoặc làm vũ khí mạnh mẽ.' },
         tier: 3,
         category: 'Tool',
         emoji: '🪓💪',
@@ -324,8 +355,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         attributes: { physicalAttack: 12 },
         spawnEnabled: false,
     },
-    'Áo Giáp Da Thuộc': {
-        description: 'item_tanned_leather_armor_desc',
+    'tanned_leather_armor': {
+        name: { en: 'Tanned Leather Armor', vi: 'Áo Giáp Da Thuộc' },
+        description: { en: 'Create a sturdy and flexible set of armor from tanned leather.', vi: 'Tạo một bộ áo giáp chắc chắn và linh hoạt từ da thuộc.' },
         tier: 3,
         category: 'Armor',
         emoji: '🛡️🐻',
@@ -335,8 +367,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         attributes: { physicalDefense: 8, magicalDefense: 3 },
         spawnEnabled: false,
     },
-    'Túi Đồ Lớn': {
-        description: 'item_large_bag_desc',
+    'large_bag': {
+        name: { en: 'Large Bag', vi: 'Túi Đồ Lớn' },
+        description: { en: 'Sew together leather and cloth to create a bag with more inventory space.', vi: 'May da và vải lại với nhau để tạo ra một chiếc túi có nhiều không gian hơn.' },
         tier: 3,
         category: 'Utility',
         emoji: '🎒🎒',
@@ -344,8 +377,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Đèn Pin Cầm Tay': {
-        description: 'item_handheld_flashlight_desc',
+    'handheld_flashlight': {
+        name: { en: 'Handheld Flashlight', vi: 'Đèn Pin Cầm Tay' },
+        description: { en: 'Construct a powerful, focused light source using advanced materials.', vi: 'Chế tạo một nguồn sáng mạnh, tập trung bằng cách sử dụng các vật liệu tiên tiến.' },
         tier: 4,
         category: 'Tool',
         emoji: '🔦✨',
@@ -354,8 +388,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         equipmentSlot: 'accessory',
         spawnEnabled: false,
     },
-    'Bộ Giáp Thép Hợp Kim': {
-        description: 'item_steel_alloy_armor_set_desc',
+    'steel_alloy_armor_set': {
+        name: { en: 'Steel Alloy Armor Set', vi: 'Bộ Giáp Thép Hợp Kim' },
+        description: { en: 'Forge a complete set of formidable steel alloy armor.', vi: 'Rèn một bộ áo giáp hợp kim thép hoàn chỉnh, đáng gờm.' },
         tier: 5,
         category: 'Armor',
         emoji: '🪖🛡️',
@@ -365,8 +400,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         attributes: { physicalDefense: 25, magicalDefense: 10 },
         spawnEnabled: false,
     },
-    'Kiếm Thép Hợp Kim': {
-        description: 'item_steel_alloy_sword_desc',
+    'steel_alloy_sword': {
+        name: { en: 'Steel Alloy Sword', vi: 'Kiếm Thép Hợp Kim' },
+        description: { en: 'Forge a sharp and durable sword from steel alloy.', vi: 'Rèn một thanh kiếm sắc và bền từ hợp kim thép.' },
         tier: 5,
         category: 'Weapon',
         emoji: '⚔️✨',
@@ -376,8 +412,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         attributes: { physicalAttack: 25, critChance: 8 },
         spawnEnabled: false,
     },
-    'Lều Cắm Trại Di Động': {
-        description: 'item_portable_camping_tent_desc',
+    'portable_camping_tent': {
+        name: { en: 'Portable Camping Tent', vi: 'Lều Cắm Trại Di Động' },
+        description: { en: 'Craft a lightweight tent that offers good protection from the elements.', vi: 'Chế tạo một chiếc lều nhẹ mang lại sự bảo vệ tốt khỏi các yếu tố thời tiết.' },
         tier: 4,
         category: 'Utility',
         emoji: '⛺️',
@@ -385,8 +422,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Bộ Dụng Cụ Sửa Chữa': {
-        description: 'item_repair_kit_desc',
+    'repair_kit': {
+        name: { en: 'Repair Kit', vi: 'Bộ Dụng Cụ Sửa Chữa' },
+        description: { en: 'Assemble a kit with basic tools and materials for repairing equipment.', vi: 'Lắp ráp một bộ dụng cụ với các công cụ và vật liệu cơ bản để sửa chữa thiết bị.' },
         tier: 3,
         category: 'Tool',
         emoji: '🔧🛠️',
@@ -394,8 +432,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Móc Câu Cá': {
-        description: 'item_fishing_hook_desc',
+    'fishing_hook': {
+        name: { en: 'Fishing Hook', vi: 'Móc Câu Cá' },
+        description: { en: 'Craft a simple fishing hook to catch fish.', vi: 'Chế tạo một lưỡi câu đơn giản để bắt cá.' },
         tier: 2,
         category: 'Tool',
         emoji: '🎣',
@@ -403,8 +442,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Lưới Bắt Cá': {
-        description: 'item_fishing_net_desc',
+    'fishing_net': {
+        name: { en: 'Fishing Net', vi: 'Lưới Bắt Cá' },
+        description: { en: 'Weave a net to catch multiple fish at once.', vi: 'Đan một tấm lưới để bắt nhiều cá cùng một lúc.' },
         tier: 3,
         category: 'Tool',
         emoji: '🎣🕸️',
@@ -412,8 +452,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Áo Choàng Ngụy Trang': {
-        description: 'item_camouflage_cloak_desc',
+    'camouflage_cloak': {
+        name: { en: 'Camouflage Cloak', vi: 'Áo Choàng Ngụy Trang' },
+        description: { en: 'Sew leaves onto a cloak for better stealth in forests.', vi: 'May lá cây lên áo choàng để ẩn mình tốt hơn trong rừng.' },
         tier: 3,
         category: 'Armor',
         emoji: '🌿🧥',
@@ -423,8 +464,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         attributes: { physicalDefense: 3, magicalDefense: 1 },
         spawnEnabled: false,
     },
-    'Mũ Bảo Vệ Nắng/Mưa': {
-        description: 'item_sun_rain_hat_desc',
+    'protection_hat': {
+        name: { en: 'Sun/Rain Protection Hat', vi: 'Mũ Bảo Vệ Nắng/Mưa' },
+        description: { en: 'Craft a wide-brimmed hat for protection against sun and rain.', vi: 'Chế tạo một chiếc mũ rộng vành để bảo vệ khỏi nắng và mưa.' },
         tier: 2,
         category: 'Armor',
         emoji: '👒☔',
@@ -434,8 +476,9 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         attributes: { physicalDefense: 1 },
         spawnEnabled: false,
     },
-    'Bình Giữ Nhiệt': {
-        description: 'item_thermos_flask_desc',
+    'thermos_flask': {
+        name: { en: 'Thermos Flask', vi: 'Bình Giữ Nhiệt' },
+        description: { en: 'Construct a flask that can maintain the temperature of liquids.', vi: 'Chế tạo một bình giữ nhiệt có thể duy trì nhiệt độ của chất lỏng.' },
         tier: 4,
         category: 'Utility',
         emoji: '☕️❄️',

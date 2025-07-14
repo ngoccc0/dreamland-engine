@@ -1,12 +1,20 @@
 
+
 import type {NextConfig} from 'next';
+import type { PWAConfig } from '@ducanh2912/next-pwa';
 import withPWAInit from '@ducanh2912/next-pwa';
 
 const withPWA = withPWAInit({
   dest: 'public',
   disable: process.env.NODE_ENV === 'development',
   register: true,
-  skipWaiting: true,
+  cacheStartUrl: true,
+  cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: true,
+  reloadOnOnline: true,
+  workboxOptions: {
+    skipWaiting: true,
+  },
   runtimeCaching: [
     // Cache Google Fonts
     {
@@ -46,7 +54,7 @@ const withPWA = withPWAInit({
     },
     // Use NetworkFirst for navigation requests to prevent stale HTML and ChunkLoadErrors.
     {
-      urlPattern: ({ request }) => request.mode === 'navigate',
+      urlPattern: ({ request }: { request: Request }) => request.mode === 'navigate',
       handler: 'NetworkFirst',
       options: {
         cacheName: 'pages',
@@ -57,7 +65,7 @@ const withPWA = withPWAInit({
       },
     },
   ],
-});
+} as PWAConfig);
 
 
 const nextConfig: NextConfig = {

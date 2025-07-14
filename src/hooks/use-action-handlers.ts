@@ -183,7 +183,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     let fled = false;
 
     if (enemyDefeated) {
-        const templates = getTemplates();
+        const templates = getTemplates(language);
         const enemyTemplate = templates[currentChunk.terrain]?.enemies.find((e: any) => e.data.type === getTranslatedText(currentChunk.enemy!.type, 'en'));
         if (enemyTemplate?.data.loot) {
             for (const lootItem of enemyTemplate.data.loot) {
@@ -400,7 +400,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
           const npcName = t(action.params!.npcName as TranslationKey);
           const npc = currentChunk.NPCs.find(n => getTranslatedText(n.name, language, t) === npcName);
           if (npc) {
-              const templates = getTemplates();
+              const templates = getTemplates(language);
               let npcDef: any;
                for (const terrain of Object.keys(templates)) {
                   const templateNpc = templates[terrain as 'forest']?.NPCs.find((n: any) => getTranslatedText(n.data.name, language, t) === npcName);
@@ -1019,3 +1019,5 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     handleHarvest,
   };
 }
+
+    

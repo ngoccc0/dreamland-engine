@@ -13,6 +13,7 @@ import { useGameSaving } from './game-lifecycle/useGameSaving';
 import { usePlayerProgression } from './game-lifecycle/usePlayerProgression';
 import { useGameEvents } from './game-lifecycle/useGameEvents';
 import { useWorldRendering } from './game-lifecycle/useWorldRendering';
+import { useLanguage } from '@/context/language-context';
 
 /**
  * @fileOverview Orchestrator hook for managing all game side-effects.
@@ -82,6 +83,7 @@ type GameEffectsDeps = {
  */
 export function useGameEffects(deps: GameEffectsDeps) {
   const { user } = useAuth();
+  const { language } = useLanguage();
   const [gameStateRepository, setGameStateRepository] = useState<IGameStateRepository>(new LocalStorageGameStateRepository());
 
   // Logic to select the appropriate repository based on user status and browser capabilities.
@@ -130,7 +132,7 @@ export function useGameEffects(deps: GameEffectsDeps) {
     customItemDefinitions: deps.customItemDefinitions,
     customItemCatalog: deps.customItemCatalog,
     customStructures: deps.customStructures,
-    language: deps.playerStats.language || 'en', // Safely get language
+    language: language,
     turn: deps.turn,
   });
 
@@ -143,3 +145,5 @@ export function useGameEffects(deps: GameEffectsDeps) {
     setCurrentChunk: deps.setCurrentChunk,
   });
 }
+
+    

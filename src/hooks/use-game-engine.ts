@@ -4,35 +4,33 @@
 import { useRef, useEffect } from 'react';
 import { useGameState } from "./use-game-state";
 import { useActionHandlers } from "./use-action-handlers";
-import { useGameEffects } from "./useGameEffects";
+import { useGameEffects } from "./game-lifecycle/useGameEvents"; // Corrected import case
+
+import type { GameState, WorldConcept, PlayerItem, ItemDefinition, GeneratedItem, Structure } from "@/lib/game/types";
+
+interface GameEngineProps {
+    gameSlot: number;
+}
 
 /**
- * @fileOverview The main Game Engine hook, acting as the primary orchestrator.
+ * The main Game Engine hook.
+ * This hook acts as the primary "Manager" or "Orchestrator" in our architecture.
+ * Its main responsibility is to assemble all the specialized "workers" (other hooks)
+ * and provide a single, clean interface for the UI (the GameLayout component) to interact with.
  *
- * @description
- * This hook serves as the central "Manager" in the application's architecture.
- * Its primary responsibility is to assemble all specialized "worker" hooks
- * (`useGameState`, `useActionHandlers`, `useGameEffects`) and provide a single,
- * clean interface for the UI (the `GameLayout` component) to interact with.
- *
- * This architecture adheres to the "separation of concerns" principle:
+ * It follows the "separation of concerns" principle:
  * - `useGameState`: Manages all the raw state of the game.
  * - `useActionHandlers`: Contains the logic for *how* to execute player actions (the "How").
  * - `useGameEffects`: Manages all side effects that react to state changes (saving, game over checks, etc.).
  * - `GameLayout`: The UI layer, which only knows *what* action it wants to perform (the "What"),
  *   and calls the appropriate function provided by this engine.
- *
- * @param {GameEngineProps} props - The properties for the game engine, specifically the game slot.
- * @returns An object containing the entire game state and all action handler functions.
  */
-export function useGameEngine(props: { gameSlot: number }) {
+export function useGameEngine(props: GameEngineProps) {
     const gameState = useGameState(props);
     const narrativeContainerRef = useRef<HTMLDivElement>(null);
     
-    /**
-     * @description This effect ensures that whenever the narrativeLog changes, the view scrolls to the bottom.
-     * The dependency array `[gameState.narrativeLog]` triggers the effect on every new entry.
-     */
+    // This effect ensures that whenever the narrativeLog changes, we scroll to the bottom.
+    // The dependency array [gameState.narrativeLog] triggers the effect on every new entry.
     useEffect(() => {
         const container = narrativeContainerRef.current;
         if (container) {
@@ -67,3 +65,5 @@ export function useGameEngine(props: { gameSlot: number }) {
         narrativeContainerRef,
     };
 }
+
+    

@@ -1,4 +1,3 @@
-
 /**
  * @fileOverview Defines all support and healing items in the game.
  * @description This file contains definitions for consumable items like potions,
@@ -9,9 +8,9 @@
 import type { ItemDefinition } from "../../definitions/item";
 
 export const supportItems: Record<string, ItemDefinition> = {
-    'Thảo Dược Chữa Lành': {
+    'healing_herb': {
         name: { en: 'Healing Herb', vi: 'Thảo Dược Chữa Lành' },
-        description: { en: 'item_thao_duoc_chua_lanh_desc', vi: 'item_thao_duoc_chua_lanh_desc' },
+        description: { en: 'A common herb with healing properties.', vi: 'Một loại thảo dược thông thường có đặc tính chữa bệnh.' },
         tier: 2,
         category: 'Support',
         subCategory: 'Potion',
@@ -24,9 +23,9 @@ export const supportItems: Record<string, ItemDefinition> = {
         },
         spawnEnabled: true,
     },
-    'Cây Thuốc Núi': {
+    'mountain_herb': {
         name: { en: 'Mountain Herb', vi: 'Cây Thuốc Núi' },
-        description: { en: 'item_cay_thuoc_nui_desc', vi: 'item_cay_thuoc_nui_desc' },
+        description: { en: 'A rare medicinal herb that only grows at high altitudes.', vi: 'Một loại thảo dược quý hiếm chỉ mọc ở độ cao lớn.' },
         tier: 3,
         category: 'Support',
         subCategory: 'Potion',
@@ -36,9 +35,9 @@ export const supportItems: Record<string, ItemDefinition> = {
         spawnEnabled: true,
         spawnBiomes: ['mountain'],
     },
-    'Thuốc Máu Yếu': {
+    'weak_health_potion': {
         name: { en: 'Weak Health Potion', vi: 'Thuốc Máu Yếu' },
-        description: { en: 'item_thuoc_mau_yeu_desc', vi: 'item_thuoc_mau_yeu_desc' },
+        description: { en: 'A basic potion that restores a small amount of health.', vi: 'Một lọ thuốc cơ bản giúp phục hồi một lượng nhỏ máu.' },
         tier: 1,
         category: 'Potion',
         emoji: '🧪',
@@ -46,9 +45,9 @@ export const supportItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Thuốc Máu Mạnh': {
+    'strong_health_potion': {
         name: { en: 'Strong Health Potion', vi: 'Thuốc Máu Mạnh' },
-        description: { en: 'item_strong_health_potion_desc', vi: 'item_strong_health_potion_desc' },
+        description: { en: 'A potent potion that restores a large amount of health.', vi: 'Một lọ thuốc mạnh giúp phục hồi một lượng lớn máu.' },
         tier: 3,
         category: 'Potion',
         emoji: '🧪',
@@ -56,9 +55,9 @@ export const supportItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Thuốc Thể Lực': {
+    'stamina_potion': {
         name: { en: 'Stamina Potion', vi: 'Thuốc Thể Lực' },
-        description: { en: 'item_stamina_potion_desc', vi: 'item_stamina_potion_desc' },
+        description: { en: 'A revitalizing potion that restores stamina.', vi: 'Một lọ thuốc phục hồi giúp phục hồi thể lực.' },
         tier: 3,
         category: 'Potion',
         emoji: '🥤',
@@ -66,9 +65,9 @@ export const supportItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Băng Gạc': {
+    'bandage': {
         name: { en: 'Bandage', vi: 'Băng Gạc' },
-        description: { en: 'item_bandage_desc', vi: 'item_bandage_desc' },
+        description: { en: 'A clean strip of cloth used to dress wounds.', vi: 'Một dải vải sạch dùng để băng bó vết thương.' },
         tier: 2,
         category: 'Support',
         emoji: '🩹',
@@ -76,21 +75,21 @@ export const supportItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Bình Nước Cũ': {
+    'old_canteen': {
         name: { en: 'Old Canteen', vi: 'Bình Nước Cũ' },
-        description: { en: 'item_binh_nuoc_cu_desc', vi: 'item_binh_nuoc_cu_desc' },
+        description: { en: 'An old canteen, still holding some stale water.', vi: 'Một bình nước cũ, vẫn còn một ít nước cũ.' },
         tier: 1,
         category: 'Support',
         subCategory: 'Potion',
         emoji: '💧',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 30 }], // More stamina focused than food
+        effects: [{ type: 'RESTORE_STAMINA', amount: 30 }],
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: true,
         spawnBiomes: ['desert', 'grassland'],
     },
-    'Tuyết': {
+    'snow': {
         name: { en: 'Snow', vi: 'Tuyết' },
-        description: { en: 'item_tuyet_desc', vi: 'item_tuyet_desc' },
+        description: { en: 'A handful of snow. Cold and melts quickly.', vi: 'Một nắm tuyết. Lạnh và tan nhanh.' },
         tier: 1,
         category: 'Support',
         emoji: '❄️',
@@ -99,9 +98,9 @@ export const supportItems: Record<string, ItemDefinition> = {
         spawnEnabled: true,
         spawnBiomes: ['tundra', 'mountain'],
     },
-    'Nước Ngầm': {
+    'groundwater': {
         name: { en: 'Groundwater', vi: 'Nước Ngầm' },
-        description: { en: 'item_nuoc_ngam_desc', vi: 'item_nuoc_ngam_desc' },
+        description: { en: 'Clear, cold water from an underground source.', vi: 'Nước trong, lạnh từ một nguồn nước ngầm.' },
         tier: 1,
         category: 'Support',
         emoji: '💧',
@@ -110,54 +109,54 @@ export const supportItems: Record<string, ItemDefinition> = {
         spawnEnabled: true,
         spawnBiomes: ['cave'],
     },
-    'Rượu Synth-Whiskey': { 
+    'synth_whiskey': { 
         name: { en: 'Synth-Whiskey', vi: 'Rượu Synth-Whiskey' },
-        description: { en: 'item_synth_whiskey_desc', vi: 'item_synth_whiskey_desc' },
+        description: { en: 'A cheap synthetic whiskey. Burns on the way down, but steadies the nerves.', vi: 'Một loại rượu whiskey tổng hợp rẻ tiền. Cháy bỏng khi uống, nhưng giúp thần kinh ổn định.' },
         emoji: '🥃', 
         category: 'Support', tier: 1, 
         effects: [{ type: 'RESTORE_STAMINA', amount: 20 }],
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Nước tẩm Gia vị': { 
+    'spice_infused_water': { 
         name: { en: 'Spice-Infused Water', vi: 'Nước tẩm Gia vị' },
-        description: { en: 'item_spice_infused_water_desc', vi: 'item_spice_infused_water_desc' },
+        description: { en: 'Water infused with the mysterious local spice. Highly refreshing.', vi: 'Nước được pha với loại gia vị bí ẩn của địa phương. Rất sảng khoái.' },
         emoji: '💧', 
         category: 'Support', tier: 2, 
         effects: [{ type: 'RESTORE_STAMINA', amount: 40 }],
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Thuốc mỡ Tảo biển': { 
+    'algae_salve': { 
         name: { en: 'Algae Salve', vi: 'Thuốc mỡ Tảo biển' },
-        description: { en: 'item_algae_salve_desc', vi: 'item_algae_salve_desc' },
+        description: { en: 'A soothing balm made from deep-sea algae. Has healing properties.', vi: 'Một loại thuốc mỡ làm dịu da được làm từ tảo biển sâu. Có đặc tính chữa bệnh.' },
         emoji: '🌿', 
         category: 'Support', tier: 1, 
         effects: [{ type: 'HEAL', amount: 20 }], 
         baseQuantity: { min: 1, max: 2 },
         spawnEnabled: false,
     },
-     'Viên Yass': { 
+    'yass_pill': { 
         name: { en: 'Yass Pill', vi: 'Viên Yass' },
-        description: { en: 'item_yass_pill_desc', vi: 'item_yass_pill_desc' },
+        description: { en: 'A mysterious, glittery pill that makes you feel fabulous and restores some health.', vi: 'Một viên thuốc bí ẩn, lấp lánh giúp bạn cảm thấy tuyệt vời và phục hồi một ít máu.' },
         emoji: '💊', 
         category: 'Support', tier: 2, 
         effects: [{ type: 'HEAL', amount: 30 }], 
         baseQuantity: { min: 2, max: 2 },
         spawnEnabled: false,
     },
-    'Bản Remix của CupcakKe': { 
+    'cupcakke_remix': { 
         name: { en: "CupcakKe's Remix", vi: 'Bản Remix của CupcakKe' },
-        description: { en: 'item_cupcakke_remix_desc', vi: 'item_cupcakke_remix_desc' },
+        description: { en: 'An MP3 player containing a powerful bass-boosted remix. Restores fighting spirit.', vi: 'Một máy nghe nhạc MP3 chứa một bản remix tăng cường âm trầm mạnh mẽ. Phục hồi tinh thần chiến đấu.' },
         emoji: '🎶', 
         category: 'Support', tier: 3, 
         effects: [{ type: 'RESTORE_STAMINA', amount: 50 }], 
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Thuốc Giải Độc Thảo Mộc': {
+    'herbal_antidote': {
         name: { en: 'Herbal Antidote', vi: 'Thuốc Giải Độc Thảo Mộc' },
-        description: { en: 'item_herbal_antidote_desc', vi: 'item_herbal_antidote_desc' },
+        description: { en: 'A herbal concoction that can neutralize poisons.', vi: 'Một loại thuốc thảo dược có thể trung hòa chất độc.' },
         tier: 4,
         category: 'Potion',
         emoji: '💉🌿',
@@ -165,9 +164,9 @@ export const supportItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-    'Thuốc Hồi Phục Mạnh': {
+    'strong_recovery_potion': {
         name: { en: 'Strong Recovery Potion', vi: 'Thuốc Hồi Phục Mạnh' },
-        description: { en: 'item_strong_recovery_potion_desc', vi: 'item_strong_recovery_potion_desc' },
+        description: { en: 'A powerful elixir that restores both health and stamina.', vi: 'Một loại thuốc tiên mạnh mẽ giúp phục hồi cả máu và thể lực.' },
         tier: 5,
         category: 'Potion',
         emoji: '🧪❤️‍🩹',

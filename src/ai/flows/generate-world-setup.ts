@@ -1,34 +1,14 @@
 /**
  * @fileOverview An AI agent for generating game world concepts by distributing tasks across multiple AI models.
- *
- * This file defines a sophisticated, parallelized AI workflow for world creation.
+ * @description This file defines a sophisticated, parallelized AI workflow for world creation.
  * It splits the generation process into four distinct, concurrent tasks to leverage the strengths
  * of different AI models, increase speed, and improve reliability with a fallback mechanism.
- *
- * 1.  **Task A (Item Catalog Generation):** Uses powerful models to generate a rich, thematic
- *     catalog of in-game items (name, description, category). Code then assigns a logical emoji.
- *
- * 2.  **Task B (World Name Generation):** Runs in parallel. Uses a fast model (Gemini Flash) to quickly brainstorm creative world names.
- *
- * 3.  **Task C (Narrative Concept Generation):** Runs in parallel. Uses another distinct model to generate
- *     the starting points for the story (descriptions, quests), adding stylistic variety.
- * 
- * 4.  **Task D (Structure Catalog Generation):** Runs in parallel. Uses an AI model to invent
- *     unique, thematic structures and landmarks for the world.
- *
- * The results from all four tasks are then combined, and player inventory/skills are added programmatically to
- * create the final, ready-to-play world concepts.
- *
- * - generateWorldSetup - The main function for the application to use.
- * - GenerateWorldSetupInput - The type definition for the input.
- * - GenerateWorldSetupOutput - The type definition for the final structured output.
  */
-
 import Handlebars from 'handlebars';
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
-import type { Terrain, Skill } from '@/lib/game/types';
-import { GeneratedItemSchema, SkillSchema, NarrativeConceptArraySchema, StructureSchema, allTerrains as allTerrainsSchema } from '@/ai/schemas';
+import type { Terrain, Skill, TranslatableString } from '@/lib/game/types';
+import { GeneratedItemSchema, SkillSchema, NarrativeConceptArraySchema, StructureSchema, allTerrains as allTerrainsSchema, TranslatableStringSchema } from '@/ai/schemas';
 import { ItemCategorySchema } from '@/lib/game/definitions';
 import { skillDefinitions } from '@/lib/game/skills';
 import { getEmojiForItem } from '@/lib/utils';
@@ -42,6 +22,12 @@ const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Mat
 
 
 // == INPUT SCHEMA ==
+/**
+ * @typedef {object} GenerateWorldSetupInput
+ * @description The input schema for the world generation flow.
+ * @property {string} userInput - The user's initial idea, prompt, or description for the game world.
+ * @property {string} language - The language code for the generated content (e.g., 'en', 'vi').
+ */
 const GenerateWorldSetupInputSchema = z.object({
   userInput: z.string().describe("The user's initial idea, prompt, or description for the game world."),
   language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
@@ -53,8 +39,8 @@ export type GenerateWorldSetupInput = z.infer<typeof GenerateWorldSetupInputSche
 
 // -- New, simplified schema for the AI's creative output for items --
 const AIGeneratedItemCreativeSchema = z.object({
-  name: z.string().describe("A unique and thematic name for the item."),
-  description: z.string().describe("A flavorful, one-sentence description of the item."),
+  name: TranslatableStringSchema.describe("A unique and thematic name for the item."),
+  description: TranslatableStringSchema.describe("A flavorful, one-sentence description of the item."),
   category: ItemCategorySchema,
   spawnBiomes: z.array(z.string()).min(1).describe(`An array of one or more biomes where this item can be found. Choose from: ${allTerrainsSchema.join(', ')}.`),
 });
@@ -67,7 +53,7 @@ const ItemCatalogCreativeOutputSchema = z.object({
 
 // -- Task B Output: World Names --
 const WorldNamesOutputSchema = z.object({
-    worldNames: z.array(z.string()).length(3).describe("An array of three distinct and creative world names based on the user's input."),
+    worldNames: z.array(TranslatableStringSchema).length(3).describe("An array of three distinct and creative world names based on the user's input."),
 });
 
 // -- Task C Output: Narrative Concepts --
@@ -77,8 +63,8 @@ const NarrativeConceptsOutputSchema = z.object({
 
 // -- New schema for AI's creative output for structures --
 const AIGeneratedStructureCreativeSchema = z.object({
-    name: z.string().describe("A unique and thematic name for the structure."),
-    description: z.string().describe("A flavorful, one-sentence description of the structure."),
+    name: TranslatableStringSchema.describe("A unique and thematic name for the structure."),
+    description: TranslatableStringSchema.describe("A flavorful, one-sentence description of the structure."),
     emoji: z.string().describe("A single emoji that represents the structure."),
 });
 const StructureCatalogCreativeOutputSchema = z.object({
@@ -88,11 +74,11 @@ const StructureCatalogCreativeOutputSchema = z.object({
 
 // -- Final Combined Output Schema (for the frontend) --
 const WorldConceptSchema = z.object({
-  worldName: z.string(),
-  initialNarrative: z.string(),
+  worldName: TranslatableStringSchema,
+  initialNarrative: TranslatableStringSchema,
   startingBiome: z.custom<Terrain>(), // Using custom to avoid z.enum with a const
   playerInventory: z.array(z.object({ name: z.string(), quantity: z.number().int().min(1) })),
-  initialQuests: z.array(z.string()),
+  initialQuests: z.array(TranslatableStringSchema),
   startingSkill: SkillSchema,
   customStructures: z.array(StructureSchema), // Pass the generated structures with each concept
 });
@@ -106,7 +92,10 @@ export type GenerateWorldSetupOutput = z.infer<typeof GenerateWorldSetupOutputSc
 
 
 /**
- * This is the primary function that the application's frontend will call.
+ * @description This is the primary function that the application's frontend will call.
+ * It orchestrates a complex, multi-model AI workflow to generate rich game world concepts.
+ * @param {GenerateWorldSetupInput} input - The user's prompt and language preference.
+ * @returns {Promise<GenerateWorldSetupOutput>} A promise resolving to the final structured output for the frontend.
  */
 export async function generateWorldSetup(input: GenerateWorldSetupInput): Promise<GenerateWorldSetupOutput> {
   logger.info('Starting generateWorldSetup flow');
@@ -170,7 +159,10 @@ Based on the user's idea, generate **a small catalog of 2 to 4 unique, thematica
 3.  DO NOT include fields like 'buildable', 'providesShelter', 'buildCost', etc. These will be handled by the game logic.`;
 
 
-// == THE GENKIT FLOW (Orchestration with Parallel Tasks and Fallback Logic) ==
+/**
+ * @description The core Genkit flow that orchestrates parallel AI tasks for world generation.
+ * It combines the results from item, name, narrative, and structure generation into a coherent output.
+ */
 const generateWorldSetupFlow = ai.defineFlow(
   {
     name: 'generateWorldSetupFlow',
@@ -314,6 +306,8 @@ const generateWorldSetupFlow = ai.defineFlow(
             validBiomes.push('forest'); // Add a fallback biome if the AI provides an invalid one
         }
 
+        const itemName = typeof item.name === 'string' ? item.name : item.name.en;
+
         return {
             ...item,
             tier: getRandomInRange({ min: 1, max: 3 }),
@@ -323,7 +317,7 @@ const generateWorldSetupFlow = ai.defineFlow(
             spawnEnabled: true,
             growthConditions: undefined,
             subCategory: undefined,
-            emoji: getEmojiForItem(item.name, item.category),
+            emoji: getEmojiForItem(itemName, item.category),
         };
     });
     
@@ -340,8 +334,6 @@ const generateWorldSetupFlow = ai.defineFlow(
     }
     
     const creativeStructures = structureCatalogResult.output?.customStructures || [];
-    // The Structure type expects name/description/emoji to be string, not object. We'll keep the AI output as-is.
-    // If your Structure type expects localized fields, you need to map here. Otherwise, just use the AI output directly.
     const customStructures = creativeStructures.map(struct => ({
         name: struct.name,
         description: struct.description,
@@ -368,7 +360,7 @@ const generateWorldSetupFlow = ai.defineFlow(
         const startingItems = shuffledItems.slice(0, numItemsToTake);
         
         const playerInventory = startingItems.map(item => ({
-            name: item.name,
+            name: typeof item.name === 'string' ? item.name : item.name.en, // Use english name as key
             quantity: getRandomInRange(item.baseQuantity)
         }));
 

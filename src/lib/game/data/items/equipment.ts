@@ -7,9 +7,9 @@
 import type { ItemDefinition } from "../../definitions/item";
 
 export const equipmentItems: Record<string, ItemDefinition> = {
-    'Dao Găm Đá': {
+    'stone_dagger': {
         name: { en: 'Stone Dagger', vi: 'Dao Găm Đá' },
-        description: { en: 'item_stone_dagger_desc', vi: 'item_stone_dagger_desc' },
+        description: { en: 'A crude but effective dagger chipped from stone.', vi: 'Một con dao găm thô sơ nhưng hiệu quả được đẽo từ đá.' },
         tier: 1,
         category: 'Weapon',
         emoji: '🗡️',
@@ -17,10 +17,11 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
         attributes: { physicalAttack: 2, critChance: 1, attackSpeed: 0, cooldownReduction: 0 },
+        spawnEnabled: false,
     },
-    'Khiên Gỗ': {
+    'wooden_shield': {
         name: { en: 'Wooden Shield', vi: 'Khiên Gỗ' },
-        description: { en: 'item_wooden_shield_desc', vi: 'item_wooden_shield_desc' },
+        description: { en: 'A simple shield made from hardened wood.', vi: 'Một chiếc khiên đơn giản làm từ gỗ cứng.' },
         tier: 2,
         category: 'Armor',
         emoji: '🛡️',
@@ -28,10 +29,11 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'accessory',
         attributes: { physicalAttack: 0, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0, physicalDefense: 5 },
+        spawnEnabled: false,
     },
-    'Giáo Xương': {
+    'bone_spear': {
         name: { en: 'Bone Spear', vi: 'Giáo Xương' },
-        description: { en: 'item_bone_spear_desc', vi: 'item_bone_spear_desc' },
+        description: { en: 'A long branch tipped with a sharpened bone.', vi: 'Một cành cây dài được bịt đầu bằng xương sắc nhọn.' },
         tier: 2,
         category: 'Weapon',
         emoji: '🔱',
@@ -39,10 +41,11 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
         attributes: { physicalAttack: 4, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 },
+        spawnEnabled: false,
     },
-    'Rìu Đá Đơn Giản': {
+    'simple_stone_axe': {
         name: { en: 'Simple Stone Axe', vi: 'Rìu Đá Đơn Giản' },
-        description: { en: 'item_riu_da_don_gian_desc', vi: 'item_riu_da_don_gian_desc' },
+        description: { en: 'A simple stone axe. An essential tool for survival.', vi: 'Một chiếc rìu đá cơ bản. Một công cụ cần thiết để sinh tồn.' },
         tier: 1,
         category: 'Tool',
         emoji: '🪓',
@@ -50,19 +53,21 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
         attributes: { physicalAttack: 3, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 },
+        spawnEnabled: false,
     },
-    'Thuyền Phao': {
+    'inflatable_raft': {
         name: { en: 'Inflatable Raft', vi: 'Thuyền Phao' },
-        description: { en: 'item_inflatable_raft_desc', vi: 'item_inflatable_raft_desc' },
+        description: { en: 'A simple raft to travel across water.', vi: 'Một chiếc bè đơn giản để đi qua mặt nước.' },
         tier: 3,
         category: 'Equipment',
         emoji: '🛶',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Rìu Chiến Obsidian': {
+    'obsidian_battleaxe': {
         name: { en: 'Obsidian Battleaxe', vi: 'Rìu Chiến Obsidian' },
-        description: { en: 'item_obsidian_battleaxe_desc', vi: 'item_obsidian_battleaxe_desc' },
+        description: { en: 'A fearsome battleaxe crafted from volcanic glass.', vi: 'Một chiếc rìu chiến đáng sợ được chế tác từ thủy tinh núi lửa.' },
         tier: 4,
         category: 'Weapon',
         emoji: '🪓',
@@ -70,10 +75,11 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
         attributes: { physicalAttack: 12, magicalAttack: 0, critChance: 5, attackSpeed: -0.1, cooldownReduction: 0 },
+        spawnEnabled: false,
     },
-    'Áo Giáp Da Cá Sấu': {
+    'alligator_hide_armor': {
         name: { en: 'Alligator Hide Armor', vi: 'Áo Giáp Da Cá Sấu' },
-        description: { en: 'item_alligator_armor_desc', vi: 'item_alligator_armor_desc' },
+        description: { en: 'Armor crafted from the tough hide of an alligator.', vi: 'Áo giáp được chế tác từ lớp da cứng của cá sấu.' },
         tier: 4,
         category: 'Armor',
         emoji: '👕',
@@ -81,10 +87,11 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'armor',
         attributes: { physicalAttack: 2, magicalAttack: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 5 },
+        spawnEnabled: false,
     },
-    'Cung Tên Harpy': {
+    'harpy_feather_bow': {
         name: { en: 'Harpy Feather Bow', vi: 'Cung Tên Harpy' },
-        description: { en: 'item_harpy_bow_desc', vi: 'item_harpy_bow_desc' },
+        description: { en: 'A lightweight and precise bow made from harpy feathers.', vi: 'Một cây cung nhẹ và chính xác được làm từ lông harpy.' },
         tier: 4,
         category: 'Weapon',
         emoji: '🏹',
@@ -92,10 +99,11 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
         attributes: { physicalAttack: 8, magicalAttack: 0, critChance: 0, attackSpeed: 0.2, cooldownReduction: 0 },
+        spawnEnabled: false,
     },
-    'Trượng Lõi Đá': {
+    'golem_core_staff': {
         name: { en: 'Golem Core Staff', vi: 'Trượng Lõi Đá' },
-        description: { en: 'item_golem_staff_desc', vi: 'item_golem_staff_desc' },
+        description: { en: 'A staff imbued with the power of a golem core.', vi: 'Một cây trượng được thấm nhuần sức mạnh của lõi người đá.' },
         tier: 5,
         category: 'Weapon',
         subCategory: 'Magic',
@@ -104,10 +112,11 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
         attributes: { physicalAttack: 2, magicalAttack: 15, critChance: 0, attackSpeed: 0, cooldownReduction: 10 },
+        spawnEnabled: false,
     },
-    'Búa Chiến Người Lùn': {
+    'dwarven_war_hammer': {
         name: { en: 'Dwarven War Hammer', vi: 'Búa Chiến Người Lùn' },
-        description: { en: 'item_dwarven_hammer_desc', vi: 'item_dwarven_hammer_desc' },
+        description: { en: 'A mighty warhammer forged with dwarven techniques.', vi: 'Một chiếc búa chiến hùng mạnh được rèn bằng kỹ thuật của người lùn.' },
         tier: 5,
         category: 'Weapon',
         emoji: '🔨',
@@ -115,87 +124,95 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',
         attributes: { physicalAttack: 15, magicalAttack: 0, critChance: 10, attackSpeed: -0.2, cooldownReduction: 0 },
+        spawnEnabled: false,
     },
-    'Áo Khoác Trench': { 
+    'trench_coat': { 
         name: { en: 'Trench Coat', vi: 'Áo Khoác Trench' },
-        description: { en: 'item_trench_coat_desc', vi: 'item_trench_coat_desc' },
+        description: { en: 'A worn, beige trench coat. Smells of rain and regret.', vi: 'Một chiếc áo khoác trench màu be đã sờn. Phảng phất mùi mưa và sự hối tiếc.' },
         emoji: '🧥', 
         category: 'Armor', 
         tier: 2, 
         effects: [], 
         baseQuantity: { min: 1, max: 1 }, 
         equipmentSlot: 'armor', 
-        attributes: { physicalDefense: 3 } 
+        attributes: { physicalDefense: 3 },
+        spawnEnabled: false, 
     },
-    'Khẩu Súng Lục Cũ': { 
+    'old_revolver': { 
         name: { en: 'Old Revolver', vi: 'Khẩu Súng Lục Cũ' },
-        description: { en: 'item_old_revolver_desc', vi: 'item_old_revolver_desc' },
+        description: { en: 'A heavy, reliable firearm. It has seen better days.', vi: 'Một khẩu súng lục nặng, đáng tin cậy. Nó đã từng có những ngày huy hoàng hơn.' },
         emoji: '🔫', 
         category: 'Weapon', 
         tier: 2, 
         effects: [], 
         baseQuantity: { min: 1, max: 1 }, 
         equipmentSlot: 'weapon', 
-        attributes: { physicalAttack: 6, critChance: 3 } 
+        attributes: { physicalAttack: 6, critChance: 3 },
+        spawnEnabled: false,
     },
-    'Rìu Băng Tự Chế': { 
+    'makeshift_ice_axe': { 
         name: { en: 'Makeshift Ice Axe', vi: 'Rìu Băng Tự Chế' },
-        description: { en: 'item_makeshift_ice_axe_desc', vi: 'item_makeshift_ice_axe_desc' },
+        description: { en: 'A crude axe made from sharpened scrap metal, useful for climbing and defense.', vi: 'Một chiếc rìu thô sơ làm từ phế liệu kim loại được mài sắc, hữu ích cho việc leo trèo và phòng thủ.' },
         emoji: '⛏️', 
         category: 'Weapon', 
         tier: 1, 
         effects: [], 
         baseQuantity: { min: 1, max: 1 }, 
         attributes: { physicalAttack: 4, critChance: 1 }, 
-        equipmentSlot: 'weapon' 
+        equipmentSlot: 'weapon',
+        spawnEnabled: false, 
     },
-    'Đũa Phép Của Học Viên': { 
+    'students_wand': { 
         name: { en: "Student's Wand", vi: 'Đũa Phép Của Học Viên' },
-        description: { en: 'item_student_wand_desc', vi: 'item_student_wand_desc' },
+        description: { en: 'A standard-issue wand for apprentices at the academy. Simple, but reliable.', vi: 'Một cây đũa phép tiêu chuẩn cho các pháp sư tập sự tại học viện. Đơn giản nhưng đáng tin cậy.' },
         emoji: '🪄', 
         category: 'Weapon', 
         tier: 2, 
         effects: [], 
         baseQuantity: { min: 1, max: 1 }, 
         equipmentSlot: 'weapon', 
-        attributes: { magicalAttack: 5 } 
+        attributes: { magicalAttack: 5 },
+        spawnEnabled: false,
     },
-    'Áo Choàng Học Viện': { 
+    'academy_robe': { 
         name: { en: 'Academy Robe', vi: 'Áo Choàng Học Viện' },
-        description: { en: 'item_academy_robe_desc', vi: 'item_academy_robe_desc' },
+        description: { en: 'A simple robe worn by students, enchanted to aid in focus.', vi: 'Một chiếc áo choàng đơn giản được học sinh mặc, được phù phép để hỗ trợ sự tập trung.' },
         emoji: '🥋', 
         category: 'Armor', 
         tier: 2, 
         effects: [], 
         baseQuantity: { min: 1, max: 1 }, 
         equipmentSlot: 'armor', 
-        attributes: { cooldownReduction: 5 } 
+        attributes: { cooldownReduction: 5 },
+        spawnEnabled: false, 
     },
-    'Súng lục Laser': { 
+    'laser_revolver': { 
         name: { en: 'Laser Revolver', vi: 'Súng lục Laser' },
-        description: { en: 'item_laser_revolver_desc', vi: 'item_laser_revolver_desc' },
+        description: { en: 'A reliable six-shot laser pistol. Standard issue for any gunslinger on the outer rim.', vi: 'Một khẩu súng lục laser sáu phát đáng tin cậy. Trang bị tiêu chuẩn cho bất kỳ tay súng nào ở vành đai ngoài.' },
         emoji: '🔫', 
         category: 'Weapon', 
         tier: 3, 
         effects: [], 
         baseQuantity: { min: 1, max: 1 }, 
         equipmentSlot: 'weapon', 
-        attributes: { physicalAttack: 8, critChance: 5 } 
+        attributes: { physicalAttack: 8, critChance: 5 },
+        spawnEnabled: false, 
     },
-    'Giáo San hô': { 
+    'coral_spear': { 
         name: { en: 'Coral Spear', vi: 'Giáo San hô' },
-        description: { en: 'item_coral_spear_desc', vi: 'item_coral_spear_desc' },
+        description: { en: 'A spear tipped with sharpened, hardened coral.', vi: 'Một cây giáo được bịt đầu bằng san hô cứng và sắc nhọn.' },
         emoji: '🔱', 
         category: 'Weapon', 
         tier: 2, 
         effects: [], 
         baseQuantity: { min: 1, max: 1 }, 
         equipmentSlot: 'weapon', 
-        attributes: { physicalAttack: 5 } 
+        attributes: { physicalAttack: 5 },
+        spawnEnabled: false,
     },
-    'Chảo của Jiafei': {
+    'jiafeis_pan': {
         name: { en: "Jiafei's Pan", vi: 'Chảo của Jiafei' },
-        description: { en: 'item_jiafei_pan_desc', vi: 'item_jiafei_pan_desc' },
+        description: { en: "A versatile pan, perfect for cooking up... products.", vi: 'Một chiếc chảo đa năng, hoàn hảo để nấu... các sản phẩm.' },
         emoji: '🍳',
         category: 'Weapon',
         tier: 2,
@@ -203,5 +220,6 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         attributes: { physicalAttack: 5, critChance: 2 },
         equipmentSlot: 'weapon',
+        spawnEnabled: false,
     }
 };

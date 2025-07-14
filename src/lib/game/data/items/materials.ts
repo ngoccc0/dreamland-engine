@@ -1,375 +1,467 @@
 /**
  * @fileOverview Defines all standard crafting materials.
  * @description This file contains the definitions for common and rare materials
- * gathered from the environment or dropped by creatures. These items are the
+ * gathered from the environment or dropped by creatures. These are the
  * building blocks for crafting recipes.
  */
 
 import type { ItemDefinition } from "../../definitions/item";
 
 export const materialItems: Record<string, ItemDefinition> = {
-    'Lá cây lớn': {
-        description: 'item_la_cay_lon_desc',
+    'large_leaf': {
+        name: { en: 'Large Leaf', vi: 'Lá cây lớn' },
+        description: { en: 'A large, broad leaf, suitable for wrapping or shelter.', vi: 'Một chiếc lá lớn, rộng bản, thích hợp để gói đồ hoặc làm nơi trú ẩn.' },
         tier: 1,
         category: 'Material',
         emoji: '🍃',
         effects: [],
-        baseQuantity: { min: 2, max: 5 }
+        baseQuantity: { min: 2, max: 5 },
+        spawnEnabled: true,
+        spawnBiomes: ['forest', 'jungle']
     },
-    'Sỏi': {
-        description: 'item_soi_desc',
+    'pebbles': {
+        name: { en: 'Pebbles', vi: 'Sỏi' },
+        description: { en: 'A handful of small, smooth pebbles.', vi: 'Một nắm sỏi nhỏ, nhẵn.' },
         tier: 1,
         category: 'Material',
         emoji: '🪨',
         effects: [],
-        baseQuantity: { min: 2, max: 4 }
+        baseQuantity: { min: 2, max: 4 },
+        spawnEnabled: true,
     },
-    'Đá Cuội': {
-        description: 'item_da_cuoi_desc',
+    'cobblestone': {
+        name: { en: 'Cobblestone', vi: 'Đá Cuội' },
+        description: { en: 'A fist-sized cobblestone, good for building or as a crude tool.', vi: 'Một hòn đá cuội cỡ nắm tay, tốt để xây dựng hoặc làm công cụ thô sơ.' },
         tier: 1,
         category: 'Material',
         emoji: '🗿',
         effects: [],
-        baseQuantity: { min: 1, max: 3 }
+        baseQuantity: { min: 1, max: 3 },
+        spawnEnabled: true,
     },
-    'Đất Sét': {
-        description: 'item_dat_set_desc',
+    'clay': {
+        name: { en: 'Clay', vi: 'Đất Sét' },
+        description: { en: 'A lump of soft, malleable clay.', vi: 'Một cục đất sét mềm, dễ uốn nắn.' },
         tier: 1,
         category: 'Material',
         emoji: '🧱',
         effects: [],
-        baseQuantity: { min: 1, max: 3 }
+        baseQuantity: { min: 1, max: 3 },
+        spawnEnabled: true,
     },
-    'Cát Thường': {
-        description: 'item_cat_thuong_desc',
+    'plain_sand': {
+        name: { en: 'Plain Sand', vi: 'Cát Thường' },
+        description: { en: 'A handful of common sand.', vi: 'Một nắm cát thường.' },
         tier: 1,
         category: 'Material',
         emoji: '⏳',
         effects: [],
-        baseQuantity: { min: 2, max: 5 }
+        baseQuantity: { min: 2, max: 5 },
+        spawnEnabled: true,
     },
-    'Mảnh Xương': {
-        description: 'item_manh_xuong_desc',
+    'bone_fragment': {
+        name: { en: 'Bone Fragment', vi: 'Mảnh Xương' },
+        description: { en: 'A fragment of bone from some unfortunate creature.', vi: 'Một mảnh xương của một sinh vật xấu số nào đó.' },
         tier: 1,
         category: 'Material',
         emoji: '🦴',
         effects: [],
-        baseQuantity: { min: 1, max: 4 }
+        baseQuantity: { min: 1, max: 4 },
+        spawnEnabled: true,
     },
-    'Dây Gai': {
-        description: 'item_day_gai_desc',
+    'thorny_vine': {
+        name: { en: 'Thorny Vine', vi: 'Dây Gai' },
+        description: { en: 'A thorny vine, strong and flexible.', vi: 'Một sợi dây leo có gai, chắc và dẻo.' },
         tier: 1,
         category: 'Material',
         emoji: '🌿',
         effects: [],
-        baseQuantity: { min: 1, max: 3 }
+        baseQuantity: { min: 1, max: 3 },
+        spawnEnabled: true,
     },
-    'Da Thú Nhỏ': {
-        description: 'item_da_thu_nho_desc',
+    'small_animal_hide': {
+        name: { en: 'Small Animal Hide', vi: 'Da Thú Nhỏ' },
+        description: { en: 'The hide of a small animal.', vi: 'Da của một con thú nhỏ.' },
         tier: 1,
         category: 'Material',
         emoji: '🩹',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Mảnh Vải Rách': {
-        description: 'item_manh_vai_rach_desc',
+    'torn_cloth': {
+        name: { en: 'Torn Cloth', vi: 'Mảnh Vải Rách' },
+        description: { en: 'A tattered piece of cloth.', vi: 'Một mảnh vải rách.' },
         tier: 1,
         category: 'Material',
         emoji: '🧣',
         effects: [],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: true,
     },
-    'Lõi Gỗ': {
-        description: 'item_loi_go_desc',
+    'wood_core': {
+        name: { en: 'Wood Core', vi: 'Lõi Gỗ' },
+        description: { en: 'The hard, dense core of a tree branch.', vi: 'Lõi cứng, đặc của một cành cây.' },
         tier: 2,
         category: 'Material',
         emoji: '🪵',
         effects: [],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: true,
     },
-    'Bột Xương': {
-        description: 'item_bot_xuong_desc',
+    'bone_meal': {
+        name: { en: 'Bone Meal', vi: 'Bột Xương' },
+        description: { en: 'Ground bones, useful in alchemy and agriculture.', vi: 'Xương được nghiền thành bột, hữu ích trong giả kim thuật và nông nghiệp.' },
         tier: 2,
         category: 'Material',
         emoji: '💀',
         effects: [],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: false,
     },
-    'Nanh Sói': {
-        description: 'item_nanh_soi_desc',
+    'wolf_fang': {
+        name: { en: 'Wolf Fang', vi: 'Nanh Sói' },
+        description: { en: "A sharp fang from a wolf's jaw.", vi: 'Một chiếc nanh sắc nhọn từ hàm của một con sói.' },
         tier: 2,
         category: 'Material',
         emoji: '🦷',
         effects: [],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: false,
     },
-    'Tơ Nhện Khổng lồ': {
-        description: 'item_to_nhen_khong_lo_desc',
+    'giant_spider_silk': {
+        name: { en: 'Giant Spider Silk', vi: 'Tơ Nhện Khổng lồ' },
+        description: { en: 'Strong, sticky silk from a giant spider.', vi: 'Sợi tơ bền, dính từ một con nhện khổng lồ.' },
         tier: 2,
         category: 'Material',
         emoji: '🕸️',
         effects: [],
-        baseQuantity: { min: 1, max: 3 }
+        baseQuantity: { min: 1, max: 3 },
+        spawnEnabled: false,
     },
-    'Mắt Nhện': {
-        description: 'item_mat_nhen_desc',
+    'spider_eye': {
+        name: { en: 'Spider Eye', vi: 'Mắt Nhện' },
+        description: { en: 'A multi-faceted eye of a spider.', vi: 'Một con mắt đa diện của một con nhện.' },
         tier: 2,
         category: 'Material',
         emoji: '👁️',
         effects: [],
-        baseQuantity: { min: 2, max: 8 }
+        baseQuantity: { min: 2, max: 8 },
+        spawnEnabled: false,
     },
-    'Da Heo Rừng': {
-        description: 'item_da_heo_rung_desc',
+    'boar_hide': {
+        name: { en: 'Boar Hide', vi: 'Da Heo Rừng' },
+        description: { en: 'The tough hide of a wild boar.', vi: 'Lớp da cứng của một con heo rừng hoang dã.' },
         tier: 2,
         category: 'Material',
         emoji: '🐗',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Móng Vuốt Gấu': {
-        description: 'item_mong_vuot_gau_desc',
+    'bear_claw': {
+        name: { en: 'Bear Claw', vi: 'Móng Vuốt Gấu' },
+        description: { en: 'A large, sharp claw from a bear.', vi: 'Một móng vuốt lớn, sắc nhọn của một con gấu.' },
         tier: 4,
         category: 'Material',
         emoji: '🐾',
         effects: [],
-        baseQuantity: { min: 2, max: 4 }
+        baseQuantity: { min: 2, max: 4 },
+        spawnEnabled: false,
     },
-    'Da Gấu': {
-        description: 'item_da_gau_desc',
+    'bear_hide': {
+        name: { en: 'Bear Hide', vi: 'Da Gấu' },
+        description: { en: 'The thick, insulating hide of a bear.', vi: 'Lớp da dày, cách nhiệt của một con gấu.' },
         tier: 4,
         category: 'Material',
         emoji: '🐻',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Da Cáo': {
-        description: 'item_da_cao_desc',
+    'fox_pelt': {
+        name: { en: 'Fox Pelt', vi: 'Da Cáo' },
+        description: { en: 'The soft pelt of a fox.', vi: 'Lớp da mềm của một con cáo.' },
         tier: 2,
         category: 'Material',
         emoji: '🦊',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Cánh Châu Chấu': {
-        description: 'item_canh_chau_chau_desc',
+    'locust_wing': {
+        name: { en: 'Locust Wing', vi: 'Cánh Châu Chấu' },
+        description: { en: 'The iridescent wing of a locust.', vi: 'Cánh óng ánh của một con châu chấu.' },
         tier: 1,
         category: 'Material',
         emoji: '🦗',
         effects: [],
-        baseQuantity: { min: 2, max: 4 }
+        baseQuantity: { min: 2, max: 4 },
+        spawnEnabled: false,
     },
-    'Răng Linh Cẩu': {
-        description: 'item_rang_linh_cau_desc',
+    'hyena_tooth': {
+        name: { en: 'Hyena Tooth', vi: 'Răng Linh Cẩu' },
+        description: { en: 'A powerful tooth from a hyena.', vi: 'Một chiếc răng mạnh mẽ từ một con linh cẩu.' },
         tier: 2,
         category: 'Material',
         emoji: '🦷',
         effects: [],
-        baseQuantity: { min: 1, max: 3 }
+        baseQuantity: { min: 1, max: 3 },
+        spawnEnabled: false,
     },
-    'Da Rắn': {
-        description: 'item_da_ran_desc',
+    'snake_skin': {
+        name: { en: 'Snake Skin', vi: 'Da Rắn' },
+        description: { en: 'The shed skin of a snake.', vi: 'Lớp da đã lột của một con rắn.' },
         tier: 2,
         category: 'Material',
         emoji: '🐍',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Đuôi Bọ Cạp': {
-        description: 'item_duoi_bo_cap_desc',
+    'scorpion_tail': {
+        name: { en: 'Scorpion Tail', vi: 'Đuôi Bọ Cạp' },
+        description: { en: 'The venomous tail of a scorpion.', vi: 'Chiếc đuôi có độc của một con bọ cạp.' },
         tier: 3,
         category: 'Material',
         emoji: '🦂',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Lông Kền Kền': {
-        description: 'item_long_ken_ken_desc',
+    'vulture_feather': {
+        name: { en: 'Vulture Feather', vi: 'Lông Kền Kền' },
+        description: { en: 'A sturdy feather from a vulture.', vi: 'Một chiếc lông vũ chắc chắn từ một con kền kền.' },
         tier: 2,
         category: 'Material',
         emoji: '🪶',
         effects: [],
-        baseQuantity: { min: 2, max: 5 }
+        baseQuantity: { min: 2, max: 5 },
+        spawnEnabled: false,
     },
-    'Chất nhờn của Đỉa': {
-        description: 'item_chat_nhon_dia_desc',
+    'leech_slime': {
+        name: { en: 'Leech Slime', vi: 'Chất nhờn của Đỉa' },
+        description: { en: 'A sticky slime from a giant leech.', vi: 'Một chất nhờn dính từ một con đỉa khổng lồ.' },
         tier: 2,
         category: 'Material',
         emoji: '💧',
         effects: [],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: false,
     },
-    'Da Cá Sấu': {
-        description: 'item_da_ca_sau_desc',
+    'alligator_hide': {
+        name: { en: 'Alligator Hide', vi: 'Da Cá Sấu' },
+        description: { en: 'The tough, scaly hide of an alligator.', vi: 'Lớp da cứng, có vảy của một con cá sấu.' },
         tier: 4,
         category: 'Material',
         emoji: '🐊',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Răng Cá Sấu': {
-        description: 'item_rang_ca_sau_desc',
+    'alligator_tooth': {
+        name: { en: 'Alligator Tooth', vi: 'Răng Cá Sấu' },
+        description: { en: 'A conical tooth from an alligator.', vi: 'Một chiếc răng hình nón của một con cá sấu.' },
         tier: 3,
         category: 'Material',
         emoji: '🦷',
         effects: [],
-        baseQuantity: { min: 1, max: 4 }
+        baseQuantity: { min: 1, max: 4 },
+        spawnEnabled: false,
     },
-    'Cánh Muỗi': {
-        description: 'item_canh_muoi_desc',
+    'mosquito_wing': {
+        name: { en: 'Mosquito Wing', vi: 'Cánh Muỗi' },
+        description: { en: 'The fragile wing of a giant mosquito.', vi: 'Cánh mỏng manh của một con muỗi khổng lồ.' },
         tier: 1,
         category: 'Material',
         emoji: '🦟',
         effects: [],
-        baseQuantity: { min: 2, max: 4 }
+        baseQuantity: { min: 2, max: 4 },
+        spawnEnabled: false,
     },
-    'Sừng Dê Núi': {
-        description: 'item_sung_de_nui_desc',
+    'mountain_goat_horn': {
+        name: { en: 'Mountain Goat Horn', vi: 'Sừng Dê Núi' },
+        description: { en: 'A curved horn from a mountain goat.', vi: 'Một chiếc sừng cong của một con dê núi.' },
         tier: 3,
         category: 'Material',
         emoji: '🐐',
         effects: [],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: false,
     },
-    'Lông Harpie': {
-        description: 'item_long_harpie_desc',
+    'harpy_feather': {
+        name: { en: 'Harpy Feather', vi: 'Lông Harpie' },
+        description: { en: 'A large, strong feather from a harpy.', vi: 'Một chiếc lông vũ lớn, mạnh mẽ từ một con harpy.' },
         tier: 3,
         category: 'Material',
         emoji: '🪶',
         effects: [],
-        baseQuantity: { min: 3, max: 6 }
+        baseQuantity: { min: 3, max: 6 },
+        spawnEnabled: false,
     },
-    'Da Báo Tuyết': {
-        description: 'item_da_bao_tuyet_desc',
+    'snow_leopard_pelt': {
+        name: { en: 'Snow Leopard Pelt', vi: 'Da Báo Tuyết' },
+        description: { en: 'The thick, spotted pelt of a snow leopard.', vi: 'Lớp da dày, có đốm của một con báo tuyết.' },
         tier: 4,
         category: 'Material',
         emoji: '🐆',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Cánh Dơi': {
-        description: 'item_canh_doi_desc',
+    'bat_wing': {
+        name: { en: 'Bat Wing', vi: 'Cánh Dơi' },
+        description: { en: 'The leathery wing of a giant bat.', vi: 'Cánh da của một con dơi khổng lồ.' },
         tier: 2,
         category: 'Material',
         emoji: '🦇',
         effects: [],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: false,
     },
-    'Nọc Độc Nhện Hang': {
-        description: 'item_noc_doc_nhen_hang_desc',
+    'cave_spider_venom': {
+        name: { en: 'Cave Spider Venom', vi: 'Nọc Độc Nhện Hang' },
+        description: { en: 'Potent venom from a cave spider.', vi: 'Nọc độc mạnh từ một con nhện hang.' },
         tier: 3,
         category: 'Material',
         emoji: '☠️',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Chất nhờn Slime': {
-        description: 'item_chat_nhon_slime_desc',
+    'slime_gel': {
+        name: { en: 'Slime Gel', vi: 'Chất nhờn Slime' },
+        description: { en: 'A gelatinous substance dropped by a slime.', vi: 'Một chất sền sệt do một con slime đánh rơi.' },
         tier: 2,
         category: 'Material',
         emoji: '💧',
         effects: [],
-        baseQuantity: { min: 1, max: 3 }
+        baseQuantity: { min: 1, max: 3 },
+        spawnEnabled: false,
     },
-    'Răng Sâu Bò': {
-        description: 'item_rang_sau_bo_desc',
+    'crawler_tooth': {
+        name: { en: 'Crawler Tooth', vi: 'Răng Sâu Bò' },
+        description: { en: 'A powerful mandible from a giant crawler.', vi: 'Một chiếc hàm mạnh mẽ từ một con sâu bọ khổng lồ.' },
         tier: 5,
         category: 'Material',
         emoji: '🦷',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Cành Cây Chắc Chắn': {
-        description: 'item_canh_cay_chac_chan_desc',
+    'sturdy_branch': {
+        name: { en: 'Sturdy Branch', vi: 'Cành Cây Chắc Chắn' },
+        description: { en: 'A sturdy, reliable tree branch.', vi: 'Một cành cây chắc chắn, đáng tin cậy.' },
         tier: 1,
         category: 'Material',
         emoji: '🪵',
         effects: [],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: true,
     },
-    'Vỏ Cây Cổ Thụ': {
-        description: 'item_vo_cay_co_thu_desc',
+    'ancient_bark': {
+        name: { en: 'Ancient Bark', vi: 'Vỏ Cây Cổ Thụ' },
+        description: { en: 'The thick, gnarled bark of an ancient tree.', vi: 'Lớp vỏ cây dày, sần sùi của một cây cổ thụ.' },
         tier: 3,
         category: 'Material',
         emoji: '🌳',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: true,
     },
-    'Nhựa Cây Dính': {
-        description: 'item_nhua_cay_dinh_desc',
+    'sticky_resin': {
+        name: { en: 'Sticky Resin', vi: 'Nhựa Cây Dính' },
+        description: { en: 'Sticky sap from a tree, useful as an adhesive.', vi: 'Nhựa cây dính từ một cái cây, hữu ích như một chất kết dính.' },
         tier: 2,
         category: 'Material',
         emoji: '💧',
         effects: [],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: true,
     },
-    'Rêu Xanh': {
-        description: 'item_reu_xanh_desc',
+    'green_moss': {
+        name: { en: 'Green Moss', vi: 'Rêu Xanh' },
+        description: { en: 'A clump of soft, green moss.', vi: 'Một cụm rêu xanh, mềm mại.' },
         tier: 1,
         category: 'Material',
         emoji: '🌿',
         effects: [],
-        baseQuantity: { min: 1, max: 3 }
+        baseQuantity: { min: 1, max: 3 },
+        spawnEnabled: true,
     },
-    'Hoa Dại': {
-        description: 'item_hoa_dai_desc',
+    'wildflower': {
+        name: { en: 'Wildflower', vi: 'Hoa Dại' },
+        description: { en: 'A common wildflower. Can be pretty.', vi: 'Một bông hoa dại thông thường. Có thể đẹp.' },
         tier: 1,
         category: 'Material',
         emoji: '🌻',
         effects: [],
-        baseQuantity: { min: 2, max: 4 }
+        baseQuantity: { min: 2, max: 4 },
+        spawnEnabled: true,
     },
-    'Lông Chim Ưng': {
-        description: 'item_long_chim_ung_desc',
+    'hawk_feather': {
+        name: { en: 'Hawk Feather', vi: 'Lông Chim Ưng' },
+        description: { en: 'A stiff, aerodynamic feather from a hawk.', vi: 'Một chiếc lông vũ cứng, có tính khí động học từ một con diều hâu.' },
         tier: 2,
         category: 'Material',
         emoji: '🪶',
         effects: [],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: false,
     },
-    'Hạt Giống Hoa Dại': {
-        description: 'item_hat_giong_hoa_dai_desc',
+    'wildflower_seeds': {
+        name: { en: 'Wildflower Seeds', vi: 'Hạt Giống Hoa Dại' },
+        description: { en: 'Seeds from a common wildflower.', vi: 'Hạt giống từ một bông hoa dại thông thường.' },
         tier: 1,
         category: 'Material',
         emoji: '🌱',
         effects: [],
-        baseQuantity: { min: 1, max: 3 }
+        baseQuantity: { min: 1, max: 3 },
+        spawnEnabled: true,
     },
-    'Cỏ Khô': {
-        description: 'item_co_kho_desc',
+    'dry_grass': {
+        name: { en: 'Dry Grass', vi: 'Cỏ Khô' },
+        description: { en: 'Dry grass, useful as tinder or for weaving.', vi: 'Cỏ khô, hữu ích làm mồi lửa hoặc để dệt.' },
         tier: 1,
         category: 'Material',
         emoji: '🌿',
         effects: [],
-        baseQuantity: { min: 1, max: 4 }
+        baseQuantity: { min: 1, max: 4 },
+        spawnEnabled: true,
     },
-    'Đá Sa Thạch': {
-        description: 'item_da_sa_thach_desc',
+    'sandstone': {
+        name: { en: 'Sandstone', vi: 'Đá Sa Thạch' },
+        description: { en: 'A piece of soft, layered sandstone.', vi: 'Một mảnh đá sa thạch mềm, có lớp.' },
         tier: 1,
         category: 'Material',
         emoji: '🏜️',
         effects: [],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: true,
     },
-    'Nọc Bọ Cạp': {
-        description: 'item_noc_bo_cap_desc',
+    'scorpion_venom': {
+        name: { en: 'Scorpion Venom', vi: 'Nọc Bọ Cạp' },
+        description: { en: 'A vial of potent scorpion venom.', vi: 'Một lọ nọc độc bọ cạp mạnh.' },
         tier: 4,
         category: 'Material',
         emoji: '☠️',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Thủy tinh sa mạc': {
-        description: 'item_thuy_tinh_sa_mac_desc',
+    'desert_glass': {
+        name: { en: 'Desert Glass', vi: 'Thủy tinh sa mạc' },
+        description: { en: 'Glass naturally formed by lightning striking sand.', vi: 'Thủy tinh được hình thành tự nhiên do sét đánh vào cát.' },
         tier: 3,
         category: 'Material',
         emoji: '🔍',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: true,
     },
-    'Rêu Phát Sáng': {
-        description: 'item_reu_phat_sang_desc',
+    'glowing_moss': {
+        name: { en: 'Glowing Moss', vi: 'Rêu Phát Sáng' },
+        description: { en: 'A type of moss that emits a soft, biological light.', vi: 'Một loại rêu phát ra ánh sáng sinh học dịu nhẹ.' },
         tier: 2,
         category: 'Material',
         emoji: '✨',
@@ -378,158 +470,197 @@ export const materialItems: Record<string, ItemDefinition> = {
         growthConditions: {
             optimal: { moisture: { min: 8 }, lightLevel: { max: -5 } },
             subOptimal: { moisture: { min: 6, max: 7 }, lightLevel: { min: -4, max: -2 } }
-        }
+        },
+        spawnEnabled: true,
     },
-    'Cây Sậy': {
-        description: 'item_cay_say_desc',
+    'reed': {
+        name: { en: 'Reed', vi: 'Cây Sậy' },
+        description: { en: 'Hollow reeds, useful for crafting tubes or shafts.', vi: 'Những cây sậy rỗng, hữu ích để chế tạo ống hoặc cán.' },
         tier: 1,
         category: 'Material',
         emoji: '🌿',
         effects: [],
-        baseQuantity: { min: 3, max: 7 }
+        baseQuantity: { min: 3, max: 7 },
+        spawnEnabled: true,
     },
-    'Hoa Độc': {
-        description: 'item_hoa_doc_desc',
+    'poisonous_flower': {
+        name: { en: 'Poisonous Flower', vi: 'Hoa Độc' },
+        description: { en: 'A beautiful but poisonous flower.', vi: 'Một bông hoa đẹp nhưng có độc.' },
         tier: 2,
         category: 'Material',
         emoji: '🌺',
         effects: [],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: true,
     },
-    'Nước Bùn': {
-        description: 'item_nuoc_bun_desc',
+    'muddy_water': {
+        name: { en: 'Muddy Water', vi: 'Nước Bùn' },
+        description: { en: 'Dirty, undrinkable water from a swamp.', vi: 'Nước bẩn, không thể uống được từ một đầm lầy.' },
         tier: 1,
         category: 'Material',
         emoji: '💧',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: true,
     },
-    'Quặng Sắt': {
-        description: 'item_quang_sat_desc',
+    'iron_ore': {
+        name: { en: 'Iron Ore', vi: 'Quặng Sắt' },
+        description: { en: 'A rock containing raw iron ore.', vi: 'Một tảng đá chứa quặng sắt thô.' },
         tier: 2,
         category: 'Material',
         emoji: '⛏️',
         effects: [],
-        baseQuantity: { min: 1, max: 3 }
+        baseQuantity: { min: 1, max: 3 },
+        spawnEnabled: true,
     },
-    'Lông Đại Bàng': {
-        description: 'item_long_dai_bang_desc',
+    'eagle_feather': {
+        name: { en: 'Eagle Feather', vi: 'Lông Đại Bàng' },
+        description: { en: 'A large tail feather from a majestic eagle.', vi: 'Một chiếc lông đuôi lớn từ một con đại bàng uy nghi.' },
         tier: 3,
         category: 'Material',
         emoji: '🪶',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Đá Vỏ Chai': {
-        description: 'item_da_vo_chai_desc',
+    'obsidian_shard': {
+        name: { en: 'Obsidian Shard', vi: 'Đá Vỏ Chai' },
+        description: { en: 'A shard of volcanic glass.', vi: 'Một mảnh thủy tinh núi lửa.' },
         tier: 3,
         category: 'Material',
         emoji: '🪨',
         effects: [],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: true,
     },
-    'Đá Granit': {
-        description: 'item_da_granit_desc',
+    'granite': {
+        name: { en: 'Granite', vi: 'Đá Granit' },
+        description: { en: 'A hard, igneous rock.', vi: 'Một loại đá mácma cứng.' },
         tier: 2,
         category: 'Material',
         emoji: '🪨',
         effects: [],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: true,
     },
-    'Cây Địa Y': {
-        description: 'item_cay_dia_y_desc',
+    'lichen': {
+        name: { en: 'Lichen', vi: 'Cây Địa Y' },
+        description: { en: 'A composite organism of algae and fungi, clinging to a rock.', vi: 'Một sinh vật phức hợp của tảo và nấm, bám vào một tảng đá.' },
         tier: 2,
         category: 'Material',
         emoji: '🌿',
         effects: [],
-        baseQuantity: { min: 2, max: 4 }
+        baseQuantity: { min: 2, max: 4 },
+        spawnEnabled: true,
     },
-    'Xương Cổ': {
-        description: 'item_xuong_co_desc',
+    'ancient_bones': {
+        name: { en: 'Ancient Bones', vi: 'Xương Cổ' },
+        description: { en: 'The fossilized bone of an ancient creature.', vi: 'Xương hóa thạch của một sinh vật cổ đại.' },
         tier: 2,
         category: 'Material',
         emoji: '💀',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: true,
     },
-    'Mỏ Vàng': {
-        description: 'item_mo_vang_desc',
+    'gold_vein': {
+        name: { en: 'Gold Vein', vi: 'Mỏ Vàng' },
+        description: { en: 'A rock laced with veins of pure gold.', vi: 'Một tảng đá có các đường gân vàng nguyên chất.' },
         tier: 5,
         category: 'Material',
         emoji: '💰',
         effects: [],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: true,
     },
-    'Đá Vôi': {
-        description: 'item_da_voi_desc',
+    'limestone': {
+        name: { en: 'Limestone', vi: 'Đá Vôi' },
+        description: { en: 'A sedimentary rock rich in calcium carbonate.', vi: 'Một loại đá trầm tích giàu canxi cacbonat.' },
         tier: 2,
         category: 'Material',
         emoji: '🪨',
         effects: [],
-        baseQuantity: { min: 1, max: 3 }
+        baseQuantity: { min: 1, max: 3 },
+        spawnEnabled: true,
     },
-    'Guano (Phân dơi)': {
-        description: 'item_guano_desc',
+    'guano': {
+        name: { en: 'Guano', vi: 'Guano (Phân dơi)' },
+        description: { en: 'Bat droppings, a potent fertilizer.', vi: 'Phân dơi, một loại phân bón mạnh.' },
         tier: 1,
         category: 'Material',
         emoji: '💩',
         effects: [],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: true,
     },
-    'Dây leo Titan': {
-        description: 'item_day_leo_titan_desc',
+    'titan_vine': {
+        name: { en: 'Titan Vine', vi: 'Dây leo Titan' },
+        description: { en: 'An incredibly thick and strong vine.', vi: 'Một sợi dây leo cực kỳ dày và chắc.' },
         tier: 3,
         category: 'Material',
         emoji: '🌿',
         effects: [],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: true,
     },
-    'Hoa ăn thịt': {
-        description: 'item_hoa_an_thit_desc',
+    'carnivorous_flower': {
+        name: { en: 'Carnivorous Flower', vi: 'Hoa ăn thịt' },
+        description: { en: 'A carnivorous plant with a sweet scent.', vi: 'Một loài thực vật ăn thịt có mùi thơm ngọt ngào.' },
         tier: 3,
         category: 'Material',
         emoji: '🌺',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: true,
     },
-    'Nọc Ếch độc': {
-        description: 'item_noc_ech_doc_desc',
+    'poison_frog_venom': {
+        name: { en: 'Poison Frog Venom', vi: 'Nọc Ếch độc' },
+        description: { en: 'A highly toxic venom from a poison dart frog.', vi: 'Một loại nọc độc cực mạnh từ một con ếch phi tiêu độc.' },
         tier: 4,
         category: 'Material',
         emoji: '🐸',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Lông Vẹt Sặc Sỡ': {
-        description: 'item_long_vet_sac_so_desc',
+    'colorful_parrot_feather': {
+        name: { en: 'Colorful Parrot Feather', vi: 'Lông Vẹt Sặc Sỡ' },
+        description: { en: 'A vibrantly colored feather from a parrot.', vi: 'Một chiếc lông vũ có màu sắc rực rỡ từ một con vẹt.' },
         tier: 2,
         category: 'Material',
         emoji: '🦜',
         effects: [],
-        baseQuantity: { min: 2, max: 5 }
+        baseQuantity: { min: 2, max: 5 },
+        spawnEnabled: false,
     },
-    'Đá Obsidian': {
-        description: 'item_da_obsidian_desc',
+    'obsidian': {
+        name: { en: 'Obsidian', vi: 'Đá Obsidian' },
+        description: { en: 'A piece of naturally occurring volcanic glass.', vi: 'Một mảnh thủy tinh núi lửa tự nhiên.' },
         tier: 3,
         category: 'Material',
         emoji: '🪨',
         effects: [],
-        baseQuantity: { min: 2, max: 4 }
+        baseQuantity: { min: 2, max: 4 },
+        spawnEnabled: true,
     },
-    'Lưu huỳnh': {
-        description: 'item_luu_huynh_desc',
+    'sulfur': {
+        name: { en: 'Sulfur', vi: 'Lưu huỳnh' },
+        description: { en: 'A yellow, non-metallic element found near volcanic vents.', vi: 'Một nguyên tố phi kim màu vàng được tìm thấy gần các miệng núi lửa.' },
         tier: 2,
         category: 'Material',
         emoji: '✨',
         effects: [],
-        baseQuantity: { min: 1, max: 3 }
+        baseQuantity: { min: 1, max: 3 },
+        spawnEnabled: true,
     },
-    'Tro núi lửa': {
-        description: 'item_tro_nui_lua_desc',
+    'volcanic_ash': {
+        name: { en: 'Volcanic Ash', vi: 'Tro núi lửa' },
+        description: { en: 'Fine powder ejected from a volcano.', vi: 'Bột mịn bị đẩy ra từ một ngọn núi lửa.' },
         tier: 1,
         category: 'Material',
         emoji: '🌋',
         effects: [],
-        baseQuantity: { min: 1, max: 5 }
+        baseQuantity: { min: 1, max: 5 },
+        spawnEnabled: true,
     },
 };

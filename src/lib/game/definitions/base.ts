@@ -1,12 +1,16 @@
 import {z} from 'genkit';
 
-// Defines a range for environmental conditions, e.g., moisture: { min: 5, max: 8 }.
+/**
+ * @description A schema for defining a range for environmental conditions, e.g., `{ min: 5, max: 8 }`.
+ */
 const ConditionRangeSchema = z.object({
     min: z.number().optional(),
     max: z.number().optional()
 });
 
-// Defines the environmental conditions under which an entity (item, creature) can spawn.
+/**
+ * @description Defines the environmental conditions under which an entity (item, creature) can spawn.
+ */
 export const SpawnConditionsSchema = z.object({
   chance: z.number().optional().describe("Base spawn chance, 0.0 to 1.0."),
   vegetationDensity: ConditionRangeSchema.optional(),
@@ -26,40 +30,51 @@ export const SpawnConditionsSchema = z.object({
 export type SpawnConditions = z.infer<typeof SpawnConditionsSchema>;
 
 
-// Defines the combat attributes that can be applied to a player or an item.
+/**
+ * @description Defines the combat attributes that can be applied to a player or an item.
+ */
 export const PlayerAttributesSchema = z.object({
-    physicalAttack: z.number().optional().describe("Player's base physical damage."),
-    magicalAttack: z.number().optional().describe("Player's base magical damage."),
-    physicalDefense: z.number().optional().describe("Player's physical damage reduction."),
-    magicalDefense: z.number().optional().describe("Player's magical damage reduction."),
-    critChance: z.number().optional().describe("Player's chance to land a critical hit (percentage)."),
-    attackSpeed: z.number().optional().describe("Player's attack speed modifier."),
-    cooldownReduction: z.number().optional().describe("Player's cooldown reduction (percentage)."),
+    physicalAttack: z.number().optional().default(0),
+    magicalAttack: z.number().optional().default(0),
+    physicalDefense: z.number().optional().default(0),
+    magicalDefense: z.number().optional().default(0),
+    critChance: z.number().optional().default(0),
+    attackSpeed: z.number().optional().default(0),
+    cooldownReduction: z.number().optional().default(0),
 });
 
-// Defines the category of an item. This helps with organization and game logic.
+/**
+ * @description Defines the category of an item. This helps with organization and game logic.
+ */
 export const ItemCategorySchema = z.enum([
     'Weapon', 'Armor', 'Accessory',
     'Material', 'Energy Source',
     'Food', 'Consumable', 'Potion',
     'Data', 'Tool', 'Utility',
-    'Magic', 'Fusion', 'Misc'
+    'Magic', 'Fusion', 'Misc',
+    'Equipment', 'Support'
 ]).describe("The primary category of the item.");
 export type ItemCategory = z.infer<typeof ItemCategorySchema>;
 
 
-// Defines a multilingual string object.
+/**
+ * @description Defines a multilingual string object.
+ */
 export const MultilingualTextSchema = z.object({
   en: z.string(),
   vi: z.string(),
 });
 export type MultilingualText = z.infer<typeof MultilingualTextSchema>;
 
-// A schema that can be either a translation key (string) or a direct multilingual object.
+/**
+ * @description A schema that can be either a translation key (string) or a direct multilingual object.
+ */
 export const TranslatableStringSchema = z.union([z.string(), MultilingualTextSchema]);
 
 
-// Defines the loot dropped by an entity (creature, harvestable node, etc.).
+/**
+ * @description Defines the loot dropped by an entity (creature, harvestable node, etc.).
+ */
 export const LootDropSchema = z.object({
   name: z.string().describe("The unique ID of the item to drop."),
   chance: z.number().min(0).max(1).describe("The probability of this item dropping (0 to 1)."),

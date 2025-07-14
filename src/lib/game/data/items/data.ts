@@ -7,131 +7,145 @@
 import type { ItemDefinition } from "../../definitions/item";
 
 export const dataItems: Record<string, ItemDefinition> = {
-    'Tai Yêu Tinh': {
+    'goblin_ear': {
         name: { en: 'Goblin Ear', vi: 'Tai Yêu Tinh' },
-        description: { en: 'item_tai_yeu_tinh_desc', vi: 'item_tai_yeu_tinh_desc' },
+        description: { en: 'The pointed ear of a goblin. A grotesque but valuable trophy.', vi: 'Tai nhọn của một con yêu tinh. Một chiến lợi phẩm ghê tởm nhưng có giá trị.' },
         tier: 2,
         category: 'Data',
         emoji: '👂',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Chìa Khóa Rỉ Sét': {
+    'rusty_key': {
         name: { en: 'Rusty Key', vi: 'Chìa Khóa Rỉ Sét' },
-        description: { en: 'item_chia_khoa_ri_set_desc', vi: 'item_chia_khoa_ri_set_desc' },
+        description: { en: 'A rusty key. Who knows what it opens?', vi: 'Một chiếc chìa khóa rỉ sét. Ai biết nó mở được cái gì?' },
         tier: 2,
         category: 'Data',
         emoji: '🗝️',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Mảnh Gốm Cổ': {
+    'ancient_pottery_shard': {
         name: { en: 'Ancient Pottery Shard', vi: 'Mảnh Gốm Cổ' },
-        description: { en: 'item_manh_gom_co_desc', vi: 'item_manh_gom_co_desc' },
+        description: { en: 'A shard from an ancient ceramic pot.', vi: 'Một mảnh vỡ từ một chiếc bình gốm cổ.' },
         tier: 2,
         category: 'Data',
         emoji: '🏺',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Trứng Griffon': {
+    'griffon_egg': {
         name: { en: 'Griffon Egg', vi: 'Trứng Griffon' },
-        description: { en: 'item_trung_griffon_desc', vi: 'item_trung_griffon_desc' },
+        description: { en: 'The massive, majestic egg of a griffon. Extremely rare.', vi: 'Quả trứng khổng lồ, uy nghi của một con griffon. Cực kỳ hiếm.' },
         tier: 6,
         category: 'Data',
         subCategory: 'Misc',
         emoji: '🥚',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Bản Đồ Cổ': {
+    'ancient_map': {
         name: { en: 'Ancient Map', vi: 'Bản Đồ Cổ' },
-        description: { en: 'item_ban_do_co_desc', vi: 'item_ban_do_co_desc' },
+        description: { en: 'A fragment of an old map, its markings faded.', vi: 'Một mảnh của một tấm bản đồ cũ, các dấu hiệu đã mờ.' },
         tier: 3,
         category: 'Data',
         emoji: '🗺️',
         effects: [],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Hồ Sơ Vụ Án': {
+    'case_file': {
         name: { en: 'Case File', vi: 'Hồ Sơ Vụ Án' },
-        description: { en: 'item_case_file_desc', vi: 'item_case_file_desc' },
+        description: { en: 'The file for your latest case. A corporate exec, a data chip, a dame in trouble. Classic.', vi: 'Hồ sơ vụ án mới nhất của bạn. Một giám đốc công ty, một con chip dữ liệu, một quý cô gặp rắc rối. Kinh điển.' },
         emoji: '📂',
         category: 'Data',
         tier: 1,
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Nhật ký Kỹ sư': {
+    'engineers_log': {
         name: { en: "Engineer's Log", vi: 'Nhật ký Kỹ sư' },
-        description: { en: 'item_engineer_log_desc', vi: 'item_engineer_log_desc' },
+        description: { en: "A datapad containing the last log of a ship's engineer. It mentions strange readings from the AI core.", vi: 'Một máy tính bảng chứa nhật ký cuối cùng của một kỹ sư trên tàu. Nó đề cập đến những chỉ số kỳ lạ từ lõi AI.' },
         emoji: '📋',
         category: 'Data',
         tier: 1,
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Trang Nhật ký Bị xé': {
+    'torn_diary_page': {
         name: { en: 'Torn Diary Page', vi: 'Trang Nhật ký Bị xé' },
-        description: { en: 'item_torn_diary_page_desc', vi: 'item_torn_diary_page_desc' },
+        description: { en: "A page torn from a diary. It reads: '...it knows what I'm thinking. The walls... they move...'", vi: "Một trang giấy bị xé từ một cuốn nhật ký. Nó viết: '...nó biết tôi đang nghĩ gì. Những bức tường... chúng di chuyển...'" },
         emoji: '📄',
         category: 'Data',
         tier: 1,
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Chip Tiền thưởng': {
+    'bounty_puck': {
         name: { en: 'Bounty Puck', vi: 'Chip Tiền thưởng' },
-        description: { en: 'item_bounty_puck_desc', vi: 'item_bounty_puck_desc' },
+        description: { en: 'A small holographic puck displaying your latest bounty. The target is local.', vi: 'Một chiếc đĩa ba chiều nhỏ hiển thị tiền thưởng mới nhất của bạn. Mục tiêu ở địa phương.' },
         emoji: '💿',
         category: 'Data',
         tier: 1,
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Mảnh Bia đá Cổ': {
+    'ancient_tablet_fragment': {
         name: { en: 'Ancient Tablet Fragment', vi: 'Mảnh Bia đá Cổ' },
-        description: { en: 'item_ancient_tablet_fragment_desc', vi: 'item_ancient_tablet_fragment_desc' },
+        description: { en: 'A piece of a stone tablet covered in ancient, glowing runes.', vi: 'Một mảnh của một tấm bia đá được bao phủ bởi những chữ rune cổ xưa, phát sáng.' },
         emoji: '📜',
         category: 'Data',
         tier: 3,
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Nhật Ký Của Người Sống Sót': {
+    'survivors_diary': {
         name: { en: "Survivor's Diary", vi: 'Nhật Ký Của Người Sống Sót' },
-        description: { en: 'item_survivor_diary_desc', vi: 'item_survivor_diary_desc' },
+        description: { en: "A weathered journal. Its pages detail the struggles of someone who came before.", vi: 'Một cuốn nhật ký cũ kỹ. Các trang của nó chi tiết về cuộc đấu tranh của một người nào đó đã đến trước.' },
         emoji: '📔',
         category: 'Data',
         tier: 1,
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Sách Phép Cơ Bản': {
+    'tome_of_cantrips': {
         name: { en: 'Tome of Cantrips', vi: 'Sách Phép Cơ Bản' },
-        description: { en: 'item_tome_of_cantrips_desc', vi: 'item_tome_of_cantrips_desc' },
+        description: { en: 'A textbook containing basic, foundational spells.', vi: 'Một cuốn sách giáo khoa chứa các phép thuật cơ bản, nền tảng.' },
         emoji: '📕',
         category: 'Data',
         tier: 1,
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Chủ đề Stan Twitter': {
+    'stan_twitter_thread': {
         name: { en: 'Stan Twitter Thread', vi: 'Chủ đề Stan Twitter' },
-        description: { en: 'item_stan_twitter_thread_desc', vi: 'item_stan_twitter_thread_desc' },
+        description: { en: "A printout of a legendary thread. The arguments are incomprehensible, but the passion is palpable.", vi: 'Một bản in của một chủ đề huyền thoại. Các lập luận không thể hiểu được, nhưng niềm đam mê thì có thể cảm nhận được.' },
         emoji: '📜',
         category: 'Data',
         tier: 1,
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Phiếu giảm giá Onika Burger': {
+    'onika_burger_coupon': {
         name: { en: 'Onika Burger Coupon', vi: 'Phiếu giảm giá Onika Burger' },
-        description: { en: 'item_onika_burger_coupon_desc', vi: 'item_onika_burger_coupon_desc' },
+        description: { en: 'A coupon for a free burger at the most exclusive restaurant chain on the island.', vi: 'Một phiếu giảm giá cho một chiếc bánh mì kẹp thịt miễn phí tại chuỗi nhà hàng độc quyền nhất trên đảo.' },
         emoji: '🎟️',
         category: 'Data',
         tier: 1,
         effects: [],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
 };

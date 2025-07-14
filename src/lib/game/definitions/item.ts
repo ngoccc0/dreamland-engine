@@ -8,19 +8,23 @@ import {z} from 'genkit';
 import { PlayerAttributesSchema, SpawnConditionsSchema, TranslatableStringSchema } from './base';
 import { allTerrains } from '../types';
 
-// Defines all possible categories for an item. This helps with organization and game logic.
+/**
+ * @description Defines all possible categories for an item. This helps with organization and game logic.
+ */
 export const ItemCategorySchema = z.enum([
-    'Weapon', 'Armor', 'Accessory',
+    'Weapon', 'Armor', 'Accessory', 'Tool',
     'Material', 'Energy Source',
     'Food', 'Consumable', 'Potion',
-    'Data', 'Tool', 'Utility',
+    'Data', 'Utility',
     'Magic', 'Fusion', 'Misc',
-    'Equipment', // Main category for equippable items
-    'Support',   // Main category for support/healing items
+    // Legacy categories to support existing data before it's fully migrated.
+    'Equipment', 'Support' 
 ]).describe("The primary category of the item.");
 export type ItemCategory = z.infer<typeof ItemCategorySchema>;
 
-// Defines the effect an item can have when used.
+/**
+ * @description Defines the effect an item can have when used.
+ */
 export const ItemEffectSchema = z.object({
     type: z.enum([
         'HEAL', 'RESTORE_STAMINA', 'RESTORE_MANA', 'REDUCE_HEAT', 'MANA_REGEN_BOOST', 
@@ -35,14 +39,18 @@ export const ItemEffectSchema = z.object({
 export type ItemEffect = z.infer<typeof ItemEffectSchema>;
 
 
-// Defines the relationship of an item to others, for crafting substitution.
+/**
+ * @description Defines the relationship of an item to others, for crafting substitution.
+ */
 export const ItemRelationshipSchema = z.object({
   substituteFor: z.string().optional().describe("The 'base' item ID this item can substitute for (e.g., 'smallHide' can substitute for 'animalHide')."),
   quality: z.number().min(1).optional().describe("The quality of the substitution. Lower is better (e.g., 1 is a perfect substitute, 2 is a decent one)."),
 });
 export type ItemRelationship = z.infer<typeof ItemRelationshipSchema>;
 
-// The full definition of an item, containing all its properties.
+/**
+ * @description The full definition of an item, containing all its properties.
+ */
 export const ItemDefinitionSchema = z.object({
   id: z.string().optional().describe("Unique identifier for the item, e.g., 'healingHerb'. If not provided, the key from the record will be used."),
   name: TranslatableStringSchema.describe("The name of the item, either a translation key or a multilingual object."),

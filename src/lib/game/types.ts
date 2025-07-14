@@ -13,6 +13,7 @@ import type {
     PlayerAttributes,
     ItemCategory, 
     MultilingualText,
+    TranslatableStringSchema,
 } from "./definitions";
 
 // Re-export for easier access elsewhere
@@ -27,11 +28,19 @@ export type {
     ItemCategory,
     MultilingualText,
     Language,
+    TranslatableStringSchema,
 };
 
+/**
+ * @description The supported terrain types in the game world.
+ */
 export const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic", "wall", "floptropica", "tundra", "beach", "mesa", "mushroom_forest", "ocean", "city", "space_station", "underwater"];
 
-export type TranslatableString = { en: string; vi: string; } | TranslationKey;
+/**
+ * @description Represents a string that can be translated.
+ * It can be a simple string (acting as a key) or a rich object with translations.
+ */
+export type TranslatableString = string | { en: string; vi: string; };
 
 export type ItemDefinition = Omit<ItemDefZod, 'name' | 'description' | 'spawnBiomes'> & { 
     name: TranslatableString,
@@ -41,14 +50,16 @@ export type ItemDefinition = Omit<ItemDefZod, 'name' | 'description' | 'spawnBio
 export type BiomeDefinition = Omit<BiomeDefZod, 'id'>;
 export type Recipe = Omit<RecipeDefZod, 'ingredients' | 'description'> & { 
     ingredients: RecipeIngredient[],
-    description: MultilingualText,
+    description: TranslatableString,
 };
 export type StructureDefinition = Omit<StructDefZod, 'name' | 'description'> & {
     name: TranslatableString,
     description: TranslatableString,
 };
 
-// Represents a contiguous region of a single biome.
+/**
+ * @description Represents a contiguous region of a single biome in the game world.
+ */
 export interface Region {
     terrain: Terrain;
     cells: { x: number; y: number }[];

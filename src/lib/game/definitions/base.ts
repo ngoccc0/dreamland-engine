@@ -32,6 +32,7 @@ export type SpawnConditions = z.infer<typeof SpawnConditionsSchema>;
 
 /**
  * @description Defines the combat attributes that can be applied to a player or an item.
+ * All attributes are optional and default to 0 if not specified.
  */
 export const PlayerAttributesSchema = z.object({
     physicalAttack: z.number().optional().default(0),
@@ -42,6 +43,7 @@ export const PlayerAttributesSchema = z.object({
     attackSpeed: z.number().optional().default(0),
     cooldownReduction: z.number().optional().default(0),
 });
+export type PlayerAttributes = z.infer<typeof PlayerAttributesSchema>;
 
 /**
  * @description Defines the category of an item. This helps with organization and game logic.

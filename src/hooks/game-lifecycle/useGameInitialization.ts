@@ -9,7 +9,7 @@ import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
-import type { GameState, GeneratedItem, Recipe, PlayerStatus } from "@/lib/game/types";
+import type { GameState, GeneratedItem, Recipe, PlayerStatus, World } from "@/lib/game/types";
 import { logger } from '@/lib/logger';
 import { getTranslatedText } from '@/lib/utils';
 import { doc, getDoc } from 'firebase/firestore';
@@ -36,7 +36,7 @@ type GameInitializationDeps = {
   setFinalWorldSetup: (setup: GameState['worldSetup']) => void;
   setPlayerPosition: (pos: GameState['playerPosition']) => void;
   setPlayerBehaviorProfile: (profile: GameState['playerBehaviorProfile']) => void;
-  setWorld: (world: GameState['world']) => void;
+  setWorld: React.Dispatch<React.SetStateAction<World>>;
   setRegions: (regions: GameState['regions']) => void;
   setRegionCounter: (counter: number) => void;
   setNarrativeLog: (log: GameState['narrativeLog']) => void;

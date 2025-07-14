@@ -1,5 +1,19 @@
-// This file contains detailed sensory information for specific items and enemies.
+/**
+ * @fileOverview This file contains detailed sensory information for specific items and enemies.
+ * @description This database provides more flavorful, specific descriptive text
+ * for certain entities, allowing the narrative engine to generate richer descriptions
+ * than what can be inferred from general templates alone.
+ */
 
+/**
+ * @typedef {object} SensoryData - Defines the sensory details for an entity.
+ * @property {string} [adjective] - A descriptive adjective.
+ * @property {object} [sense_effect] - Detailed sensory effects.
+ * @property {string} [sense_effect.smell] - The entity's smell.
+ * @property {string} [sense_effect.appearance] - The entity's appearance.
+ * @property {string} [sense_effect.sound] - The sound the entity makes.
+ * @property {string} [sense_effect.general] - A general sensory impression.
+ */
 export interface SensoryData {
     adjective?: string;
     sense_effect?: {
@@ -125,6 +139,11 @@ export const enemySensoryDB_en: Record<string, SensoryData> = {
     }
 };
 
+/**
+ * Retrieves the appropriate sensory database based on the selected language.
+ * @param {'vi' | 'en'} language - The current game language.
+ * @returns {{ itemDB: Record<string, SensoryData>, enemyDB: Record<string, SensoryData> }} An object containing the item and enemy sensory databases for the given language.
+ */
 export const getSensoryDB = (language: 'vi' | 'en') => {
     return {
         itemDB: language === 'vi' ? itemSensoryDB_vi : itemSensoryDB_en,

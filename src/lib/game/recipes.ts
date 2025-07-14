@@ -1,6 +1,18 @@
+/**
+ * @fileOverview Central recipe book for the game's crafting system.
+ * @description This file aggregates crafting recipes from various modular files
+ * (e.g., base game recipes, mod-added recipes) into a single, comprehensive
+ * `recipes` object that the game engine can use.
+ */
+
 import type { Recipe } from "./definitions/recipe";
 import { naturePlusRecipes } from "./data/recipes/nature_plus";
 
+/**
+ * The master record of all crafting recipes available in the game.
+ * It combines recipes from the base game with those added by mods.
+ * @type {Record<string, Recipe>}
+ */
 export const recipes: Record<string, Recipe> = {
     'Rìu Đá Đơn Giản': {
         result: { name: 'Rìu Đá Đơn Giản', quantity: 1, emoji: '🪓' },

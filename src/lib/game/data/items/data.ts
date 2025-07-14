@@ -1,3 +1,9 @@
+/**
+ * @fileOverview Defines the 'Data' category items in the game.
+ * @description These items are typically used as quest objectives, keys, or informational objects
+ * that drive the narrative forward rather than being consumed or equipped.
+ */
+
 import type { ItemDefinition } from "../../definitions/item";
 
 export const dataItems: Record<string, ItemDefinition> = {

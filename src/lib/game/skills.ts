@@ -1,7 +1,16 @@
+/**
+ * @fileOverview Defines all player skills available in the game.
+ * @description This file contains a static array of skill objects, including their
+ * effects, mana costs, and the conditions required to unlock them.
+ */
 
 import type { Skill } from "./types";
 
-// --- SKILL DEFINITIONS ---
+/**
+ * A static array containing all skill definitions in the game.
+ * New skills can be added directly to this array.
+ * @type {Skill[]}
+ */
 export const skillDefinitions: Skill[] = [
     {
         name: 'skillHealName',

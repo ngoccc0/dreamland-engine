@@ -1,3 +1,10 @@
+/**
+ * @fileOverview Defines all support and healing items in the game.
+ * @description This file contains definitions for consumable items like potions,
+ * bandages, and other restoratives that directly affect the player's core stats
+ * such as health, stamina, or cure status effects.
+ */
+
 import type { ItemDefinition } from "../../definitions/item";
 
 export const supportItems: Record<string, ItemDefinition> = {

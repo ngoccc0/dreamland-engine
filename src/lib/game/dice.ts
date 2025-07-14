@@ -1,7 +1,13 @@
+/**
+ * @fileOverview This file contains all logic related to dice rolling and outcome determination.
+ * @description It provides functions to simulate dice rolls (d20, d12, 2d6) and to categorize
+ * the numerical result into a qualitative success level, which is then used by other game
+ * systems to determine the narrative and mechanical outcomes of player actions.
+ */
+
 import type { DiceType } from "./types";
 import type { TranslationKey } from "../i18n";
 
-// --- DICE ROLL HELPERS ---
 /**
  * @typedef {'CriticalFailure' | 'Failure' | 'Success' | 'GreatSuccess' | 'CriticalSuccess'} SuccessLevel
  * @description Represents the qualitative outcome of a dice roll.
@@ -41,9 +47,12 @@ export function getSuccessLevel(roll: number, diceType: DiceType): SuccessLevel 
 }
 
 /**
- * @description Simulates rolling a game die.
+ * Simulates rolling a game die.
  * @param {DiceType} diceType - The type of dice to roll.
  * @returns {{ roll: number; range: string }} An object containing the numerical result and a string representing the dice range.
+ * @example
+ * const { roll, range } = rollDice('d20');
+ * console.log(`Rolled a ${roll} on a d20 (range: ${range})`);
  */
 export const rollDice = (diceType: DiceType): { roll: number; range: string } => {
     switch (diceType) {
@@ -61,6 +70,7 @@ export const rollDice = (diceType: DiceType): { roll: number; range: string } =>
 
 /**
  * @description A mapping from SuccessLevel enums to their corresponding translation keys.
+ * This allows for easy internationalization of dice roll outcomes in the UI.
  * @type {Record<SuccessLevel, TranslationKey>}
  */
 export const successLevelToTranslationKey: Record<SuccessLevel, TranslationKey> = {

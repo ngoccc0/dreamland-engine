@@ -1,5 +1,16 @@
+/**
+ * @fileOverview Defines all structures in the game.
+ * @description This file contains definitions for both naturally spawning structures
+ * (like ruins) and structures that can be built by the player (like campfires and shelters).
+ */
+
 import type { Structure } from "./types";
 
+/**
+ * A record of naturally-occurring structures that can spawn in the world.
+ * These are not buildable by the player.
+ * @type {Record<string, Omit<Structure, 'buildCost' | 'buildable' | 'restEffect' | 'heatValue'>>}
+ */
 export const structureDefinitions: Record<string, Omit<Structure, 'buildCost' | 'buildable' | 'restEffect' | 'heatValue'>> = {
     // --- Natural Structures ---
     'Tàn tích tháp canh': {
@@ -34,6 +45,11 @@ export const structureDefinitions: Record<string, Omit<Structure, 'buildCost' | 
     },
 };
 
+/**
+ * A record of structures that the player can build.
+ * These definitions include build costs and functional effects.
+ * @type {Record<string, Structure>}
+ */
 export const buildableStructures: Record<string, Structure> = {
     'Lửa trại': {
         name: 'Lửa trại',

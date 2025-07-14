@@ -4,7 +4,7 @@
 import { useRef, useEffect } from 'react';
 import { useGameState } from "./use-game-state";
 import { useActionHandlers } from "./use-action-handlers";
-import { useGameEffects } from "./game-lifecycle/useGameEvents"; // Corrected import case
+import { useGameEffects } from "./useGameEffects";
 
 import type { GameState, WorldConcept, PlayerItem, ItemDefinition, GeneratedItem, Structure } from "@/lib/game/types";
 
@@ -65,5 +65,3 @@ export function useGameEngine(props: GameEngineProps) {
         narrativeContainerRef,
     };
 }
-
-    

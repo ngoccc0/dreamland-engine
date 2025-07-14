@@ -2,10 +2,10 @@ import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
 import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
 
 const items: GeneratedItem[] = [
-    { name: { en: 'Laser Revolver', vi: 'Súng lục Laser' }, description: { en: 'item_laser_revolver_desc', vi: 'item_laser_revolver_desc' }, emoji: '🔫', category: 'Weapon', tier: 3, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: [], equipmentSlot: 'weapon', attributes: { physicalAttack: 8, critChance: 5 }, spawnEnabled: false },
-    { name: { en: 'Spice-Infused Water', vi: 'Nước tẩm Gia vị' }, description: { en: 'item_spice_infused_water_desc', vi: 'item_spice_infused_water_desc' }, emoji: '💧', category: 'Support', tier: 2, effects: [{ type: 'RESTORE_STAMINA', amount: 30 }, { type: 'RESTORE_MANA', amount: 5 }], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['desert'], spawnEnabled: false },
-    { name: { en: 'Sandworm Tooth', vi: 'Răng Giun cát' }, description: { en: 'item_sandworm_tooth_desc', vi: 'item_sandworm_tooth_desc' }, emoji: '🦷', category: 'Material', tier: 5, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['desert'], spawnEnabled: false },
-    { name: { en: 'Bounty Puck', vi: 'Chip Tiền thưởng' }, description: { en: 'item_bounty_puck_desc', vi: 'item_bounty_puck_desc' }, emoji: '💿', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: [], spawnEnabled: false },
+    { name: { en: 'Laser Revolver', vi: 'Súng lục Laser' }, description: { en: 'item_laser_revolver_desc', vi: 'item_laser_revolver_desc' }, emoji: '🔫', category: 'Weapon', tier: 3, effects: [], baseQuantity: { min: 1, max: 1 }, equipmentSlot: 'weapon', attributes: { physicalAttack: 8, critChance: 5 }, spawnEnabled: false },
+    { name: { en: 'Spice-Infused Water', vi: 'Nước tẩm Gia vị' }, description: { en: 'item_spice_infused_water_desc', vi: 'item_spice_infused_water_desc' }, emoji: '💧', category: 'Support', tier: 2, effects: [{ type: 'RESTORE_STAMINA', amount: 30 }, { type: 'RESTORE_MANA', amount: 5 }], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
+    { name: { en: 'Sandworm Tooth', vi: 'Răng Giun cát' }, description: { en: 'item_sandworm_tooth_desc', vi: 'item_sandworm_tooth_desc' }, emoji: '🦷', category: 'Material', tier: 5, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
+    { name: { en: 'Bounty Puck', vi: 'Chip Tiền thưởng' }, description: { en: 'item_bounty_puck_desc', vi: 'item_bounty_puck_desc' }, emoji: '💿', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
 ];
 
 const structures: Structure[] = [

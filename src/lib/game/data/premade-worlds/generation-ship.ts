@@ -2,11 +2,11 @@ import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
 import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
 
 const items: GeneratedItem[] = [
-    { name: { en: 'Maintenance Wrench', vi: 'Cờ lê Bảo trì' }, description: { en: 'item_maintenance_wrench_desc', vi: 'item_maintenance_wrench_desc' }, emoji: '🔧', category: 'Weapon', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['space_station'], equipmentSlot: 'weapon', attributes: { physicalAttack: 3 }, spawnEnabled: false },
-    { name: { en: 'Keycard Level 1', vi: 'Thẻ khóa Cấp 1' }, description: { en: 'item_keycard_desc', vi: 'item_keycard_desc' }, emoji: '💳', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['space_station'], spawnEnabled: false },
-    { name: { en: 'Nutrient Paste', vi: 'Bột Dinh dưỡng' }, description: { en: 'item_nutrient_paste_desc', vi: 'item_nutrient_paste_desc' }, emoji: '🧪', category: 'Food', tier: 1, effects: [{ type: 'RESTORE_STAMINA', amount: 20 }, { type: 'RESTORE_MANA', amount: 5 }], baseQuantity: { min: 2, max: 4 }, spawnBiomes: ['space_station'], spawnEnabled: false },
-    { name: { en: "Engineer's Log", vi: 'Nhật ký Kỹ sư' }, description: { en: 'item_engineer_log_desc', vi: 'item_engineer_log_desc' }, emoji: '📋', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: ['space_station'], spawnEnabled: false },
-    { name: { en: 'Laser Cutter', vi: 'Máy cắt Laser' }, description: { en: 'item_laser_cutter_desc', vi: 'item_laser_cutter_desc' }, emoji: '✨', category: 'Tool', tier: 3, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: [], spawnEnabled: false },
+    { name: { en: 'Maintenance Wrench', vi: 'Cờ lê Bảo trì' }, description: { en: 'item_maintenance_wrench_desc', vi: 'item_maintenance_wrench_desc' }, emoji: '🔧', category: 'Weapon', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, equipmentSlot: 'weapon', attributes: { physicalAttack: 3 }, spawnEnabled: false },
+    { name: { en: 'Keycard Level 1', vi: 'Thẻ khóa Cấp 1' }, description: { en: 'item_keycard_desc', vi: 'item_keycard_desc' }, emoji: '💳', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
+    { name: { en: 'Nutrient Paste', vi: 'Bột Dinh dưỡng' }, description: { en: 'item_nutrient_paste_desc', vi: 'item_nutrient_paste_desc' }, emoji: '🧪', category: 'Food', tier: 1, effects: [{ type: 'RESTORE_STAMINA', amount: 20 }, { type: 'RESTORE_MANA', amount: 5 }], baseQuantity: { min: 2, max: 4 }, spawnEnabled: false },
+    { name: { en: "Engineer's Log", vi: 'Nhật ký Kỹ sư' }, description: { en: 'item_engineer_log_desc', vi: 'item_engineer_log_desc' }, emoji: '📋', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
+    { name: { en: 'Laser Cutter', vi: 'Máy cắt Laser' }, description: { en: 'item_laser_cutter_desc', vi: 'item_laser_cutter_desc' }, emoji: '✨', category: 'Tool', tier: 3, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
 ];
 
 const structures: Structure[] = [

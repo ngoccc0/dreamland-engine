@@ -2,11 +2,11 @@ import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
 import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
 
 const mageAcademyItems: GeneratedItem[] = [
-    { name: { en: "Student's Wand", vi: 'Đũa Phép Của Học Viên' }, description: { en: 'item_student_wand_desc', vi: 'item_student_wand_desc' }, emoji: '🪄', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: [], equipmentSlot: 'weapon', attributes: { magicalAttack: 5 }, spawnEnabled: false },
-    { name: { en: 'Tome of Cantrips', vi: 'Sách Phép Cơ Bản' }, description: { en: 'item_tome_of_cantrips_desc', vi: 'item_tome_of_cantrips_desc' }, emoji: '📕', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: [], spawnEnabled: false },
-    { name: { en: 'Floatstone', vi: 'Đá Bay' }, description: { en: 'item_floatstone_desc', vi: 'item_floatstone_desc' }, emoji: '☁️', category: 'Material', tier: 3, effects: [], baseQuantity: { min: 1, max: 3 }, spawnBiomes: ['mountain'], spawnEnabled: false },
-    { name: { en: 'Stardust', vi: 'Bụi Sao' }, description: { en: 'item_stardust_desc', vi: 'item_stardust_desc' }, emoji: '✨', category: 'Magic', tier: 4, effects: [], baseQuantity: { min: 1, max: 2 }, spawnBiomes: ['mountain'], spawnEnabled: false },
-    { name: { en: 'Academy Robe', vi: 'Áo Choàng Học Viện' }, description: { en: 'item_academy_robe_desc', vi: 'item_academy_robe_desc' }, emoji: '🥋', category: 'Armor', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, spawnBiomes: [], equipmentSlot: 'armor', attributes: { cooldownReduction: 5 }, spawnEnabled: false },
+    { name: { en: "Student's Wand", vi: 'Đũa Phép Của Học Viên' }, description: { en: 'item_student_wand_desc', vi: 'item_student_wand_desc' }, emoji: '🪄', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, equipmentSlot: 'weapon', attributes: { magicalAttack: 5 }, spawnEnabled: false },
+    { name: { en: 'Tome of Cantrips', vi: 'Sách Phép Cơ Bản' }, description: { en: 'item_tome_of_cantrips_desc', vi: 'item_tome_of_cantrips_desc' }, emoji: '📕', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
+    { name: { en: 'Floatstone', vi: 'Đá Bay' }, description: { en: 'item_floatstone_desc', vi: 'item_floatstone_desc' }, emoji: '☁️', category: 'Material', tier: 3, effects: [], baseQuantity: { min: 1, max: 3 }, spawnEnabled: false },
+    { name: { en: 'Stardust', vi: 'Bụi Sao' }, description: { en: 'item_stardust_desc', vi: 'item_stardust_desc' }, emoji: '✨', category: 'Magic', tier: 4, effects: [], baseQuantity: { min: 1, max: 2 }, spawnEnabled: false },
+    { name: { en: 'Academy Robe', vi: 'Áo Choàng Học Viện' }, description: { en: 'item_academy_robe_desc', vi: 'item_academy_robe_desc' }, emoji: '🥋', category: 'Armor', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, equipmentSlot: 'armor', attributes: { cooldownReduction: 5 }, spawnEnabled: false },
 ];
 
 const mageAcademyStructures: Structure[] = [

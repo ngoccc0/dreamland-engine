@@ -1,5 +1,5 @@
 import {z} from 'genkit';
-import { PlayerAttributesSchema, SpawnConditionsSchema, ItemCategorySchema as BaseItemCategorySchema, TranslatableStringSchema } from './base';
+import { PlayerAttributesSchema, SpawnConditionsSchema, BaseItemCategorySchema, TranslatableStringSchema } from './base';
 import { allTerrains } from '../types';
 
 // Extend the base schema to include categories that were being used but not defined.

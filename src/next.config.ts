@@ -8,13 +8,7 @@ const withPWA = withPWAInit({
   dest: 'public',
   disable: process.env.NODE_ENV === 'development',
   register: true,
-  cacheStartUrl: true,
-  cacheOnFrontEndNav: true,
-  aggressiveFrontEndNavCaching: true,
-  reloadOnOnline: true,
-  workboxOptions: {
-    skipWaiting: true,
-  },
+  skipWaiting: true,
   runtimeCaching: [
     // Cache Google Fonts
     {

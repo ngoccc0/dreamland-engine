@@ -4,6 +4,31 @@ Chào mừng các Đội trưởng và những người đồng hành đến v�
 
 ---
 
+## **Bản cập nhật v0.2.57 - "Luồng Chảy Nhất Quán" (15/07/2025)**
+
+*Tên mã: Consistent Flow*
+
+### 🌟 **Giới thiệu chung**
+
+Bản cập nhật này tập trung vào việc sửa một lỗi logic nghiêm trọng nhưng tinh vi trong luồng dữ liệu của engine. Lỗi này khiến cho trạng thái của người chơi (`playerStats`) không được cập nhật một cách nhất quán sau khi thực hiện các hành động, dẫn đến tình trạng "stale state" (trạng thái cũ) và các hành vi không mong muốn.
+
+### ✨ **Thay đổi chính & Phân tích**
+
+1.  **Sửa lỗi Logic cập nhật State trong `useActionHandlers`:**
+    *   **Phân tích:** Các hàm xử lý hành động (ví dụ: `handleOfflineAttack`, `handleItemUse`) đã tính toán chính xác trạng thái mới của người chơi (máu mất, vật phẩm được sử dụng), nhưng lại **quên gọi hàm `setPlayerStats`** để thông báo cho React về sự thay đổi này. Thay vào đó, trạng thái mới chỉ được truyền cho một hàm phụ (`advanceGameTime`), khiến cho state chính của hook không bao giờ được cập nhật.
+    *   **Giải pháp:** Đã thêm một lệnh gọi `setPlayerStats` vào cuối mỗi hàm xử lý hành động có liên quan. Điều này đảm bảo rằng sau mỗi hành động, trạng thái người chơi được cập nhật một cách đồng bộ trên toàn bộ ứng dụng, giải quyết triệt để vấn đề "stale state".
+
+2.  **Dọn dẹp Dependencies trong `useCallback`:**
+    *   **Phân tích:** Một số hook `useCallback` trong `useActionHandlers` có quá nhiều dependencies không cần thiết, làm tăng nguy cơ re-compute không cần thiết.
+    *   **Giải pháp:** Đã rà soát và loại bỏ các dependencies không được sử dụng trực tiếp trong logic của các hàm callback, giúp tối ưu hóa hiệu suất và làm cho mã nguồn sạch sẽ hơn.
+
+### 🎮 **Ảnh hưởng đến Trải nghiệm & Tương lai**
+
+*   **Độ ổn định:** Trạng thái của người chơi (HP, Stamina, Inventory) giờ đây sẽ được phản ánh chính xác ngay lập tức trên giao diện người dùng sau mỗi hành động.
+*   **Độ tin cậy:** Loại bỏ một nguồn gây lỗi tiềm ẩn lớn, giúp các tính năng phức tạp hơn trong tương lai (như hiệu ứng trạng thái, buff/debuff) có thể được xây dựng trên một nền tảng logic vững chắc.
+
+---
+
 ## **Bản cập nhật v0.2.56 - "Sự Nhất Quán" (15/07/2025)**
 
 *Tên mã: Consistency*

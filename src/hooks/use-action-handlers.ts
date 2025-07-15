@@ -102,7 +102,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         logger.debug('[AI] Input for generateNarrative', { entryId, action, playerPosCtx });
 
         const input: GenerateNarrativeInput = {
-            worldName: getTranslatedText(finalWorldSetup.worldName, language, t), playerAction: action, playerStatus: playerStatsCtx,
+            worldName: getTranslatedText(finalWorldSetup.worldName, language), playerAction: action, playerStatus: playerStatsCtx,
             currentChunk,
             surroundingChunks: surroundingChunks.length > 0 ? surroundingChunks : undefined,
             recentNarrative, language, customItemDefinitions,
@@ -142,6 +142,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                 await setDoc(doc(db, "world-catalog", "items", "generated", getTranslatedText(newItem.name, 'en')), newItem);
             }
         }
+        setPlayerStats(() => finalPlayerStats);
         advanceGameTime(finalPlayerStats);
     } catch (error) {
         logger.error("[AI] Narrative generation failed", error);
@@ -149,7 +150,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     } finally {
         setIsLoading(false);
     }
-  }, [settings.diceType, settings.aiModel, settings.narrativeLength, addNarrativeEntry, narrativeLogRef, language, customItemDefinitions, toast, advanceGameTime, finalWorldSetup, setIsLoading, setWorld, setCustomItemCatalog, setCustomItemDefinitions, t, weatherZones, gameTime]);
+  }, [settings.diceType, settings.aiModel, settings.narrativeLength, finalWorldSetup, weatherZones, gameTime, language, customItemDefinitions, narrativeLogRef, setIsLoading, addNarrativeEntry, setWorld, setCustomItemCatalog, setCustomItemDefinitions, setPlayerStats, advanceGameTime, toast, t]);
 
   const handleOfflineAttack = useCallback(() => {
     const key = `${playerPosition.x},${playerPosition.y}`;
@@ -183,8 +184,8 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     let fled = false;
 
     if (enemyDefeated) {
-        const templates = getTemplates(language);
-        const enemyTemplate = templates[currentChunk.terrain]?.enemies.find((e: any) => e.data.type === getTranslatedText(currentChunk.enemy!.type, 'en'));
+        const templates = getTemplates();
+        const enemyTemplate = templates[currentChunk.terrain]?.enemies.find((e: any) => getTranslatedText(e.data.type, 'en') === getTranslatedText(currentChunk.enemy!.type, 'en'));
         if (enemyTemplate?.data.loot) {
             for (const lootItem of enemyTemplate.data.loot) {
                 if (Math.random() < lootItem.chance) {
@@ -209,7 +210,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     addNarrativeEntry(narrative, 'narrative');
 
     if (enemyDefeated && lootDrops.length > 0) {
-        addNarrativeEntry(t('enemyDropped', { items: lootDrops.map(i => `${i.quantity} ${getTranslatedText(i.name, language, t)}`).join(', ') }), 'system');
+        addNarrativeEntry(t('enemyDropped', { items: lootDrops.map(i => `${i.quantity} ${getTranslatedText(i.name, language)}`).join(', ') }), 'system');
     }
 
     setWorld(prev => {
@@ -233,8 +234,9 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         return newWorld;
     });
 
+    setPlayerStats(() => nextPlayerStats);
     advanceGameTime(nextPlayerStats);
-  }, [playerPosition, world, addNarrativeEntry, settings.diceType, t, playerStats, language, customItemDefinitions, advanceGameTime, setWorld, weatherZones, gameTime]);
+  }, [playerPosition, world, addNarrativeEntry, settings.diceType, t, playerStats, language, customItemDefinitions, advanceGameTime, setWorld, weatherZones, gameTime, setPlayerStats]);
 
   const handleOfflineItemUse = useCallback((itemName: string, target: string) => {
     const itemDef = customItemDefinitions[itemName];
@@ -258,7 +260,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
     if (target === 'player') {
         if (!itemDef.effects.length) {
-            addNarrativeEntry(t('itemNoEffect', { item: getTranslatedText(itemName, language, t) }), 'system');
+            addNarrativeEntry(t('itemNoEffect', { item: getTranslatedText(itemName, language) }), 'system');
             return;
         }
         itemWasConsumed = true;
@@ -283,7 +285,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             return;
         }
         if (!currentChunk.enemy.diet.includes(itemName)) {
-            addNarrativeEntry(t('targetNotInterested', { target: getTranslatedText(target, language, t), item: getTranslatedText(itemName, language, t) }), 'system');
+            addNarrativeEntry(t('targetNotInterested', { target: getTranslatedText(target, language), item: getTranslatedText(itemName, language) }), 'system');
             return;
         }
 
@@ -316,12 +318,13 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     }
     
     newPlayerStats.items = newPlayerStats.items.filter(i => i.quantity > 0);
+    setPlayerStats(() => newPlayerStats);
     advanceGameTime(newPlayerStats);
-  }, [playerStats, customItemDefinitions, playerPosition, world, addNarrativeEntry, t, advanceGameTime, setWorld, language]);
+  }, [playerStats, customItemDefinitions, playerPosition, world, addNarrativeEntry, t, advanceGameTime, setWorld, language, setPlayerStats]);
 
   const handleOfflineSkillUse = useCallback((skillName: string) => {
     let newPlayerStats: PlayerStatus = JSON.parse(JSON.stringify(playerStats));
-    const skillToUse = newPlayerStats.skills.find(s => getTranslatedText(s.name, language, t) === skillName);
+    const skillToUse = newPlayerStats.skills.find(s => getTranslatedText(s.name, language) === skillName);
 
     if (!skillToUse) { addNarrativeEntry(t('skillNotFound', { skillName: t(skillName as TranslationKey) }), 'system'); return; }
     if (newPlayerStats.mana < skillToUse.manaCost) { addNarrativeEntry(t('notEnoughMana', { skillName: t(skillName as TranslationKey) }), 'system'); return; }
@@ -375,8 +378,9 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     addNarrativeEntry(narrative, 'narrative');
 
     if(newEnemy !== currentChunk.enemy) setWorld(prev => ({...prev, [key]: {...prev[key]!, enemy: newEnemy}}));
+    setPlayerStats(() => newPlayerStats);
     advanceGameTime(newPlayerStats);
-  }, [playerStats, settings.diceType, t, addNarrativeEntry, playerPosition, world, advanceGameTime, setWorld, language]);
+  }, [playerStats, settings.diceType, t, addNarrativeEntry, playerPosition, world, advanceGameTime, setWorld, language, setPlayerStats]);
 
   const handleOfflineAction = useCallback((action: Action) => {
       let newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), t(action.textKey, action.params)] };
@@ -388,7 +392,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
       if (textKey === 'observeAction_enemy') {
           const enemy = currentChunk.enemy;
           if (enemy) {
-              const enemyName = getTranslatedText(enemy.type, language, t);
+              const enemyName = getTranslatedText(enemy.type, language);
               newPlayerStats.trackedEnemy = {
                   chunkKey: `${currentChunk.x},${currentChunk.y}`,
                   type: getTranslatedText(enemy.type, 'en'),
@@ -398,24 +402,24 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
           }
       } else if (textKey === 'talkToAction_npc') {
           const npcName = t(action.params!.npcName as TranslationKey);
-          const npc = currentChunk.NPCs.find(n => getTranslatedText(n.name, language, t) === npcName);
+          const npc = currentChunk.NPCs.find(n => getTranslatedText(n.name, language) === npcName);
           if (npc) {
-              const templates = getTemplates(language);
+              const templates = getTemplates();
               let npcDef: any;
                for (const terrain of Object.keys(templates)) {
-                  const templateNpc = templates[terrain as 'forest']?.NPCs.find((n: any) => getTranslatedText(n.data.name, language, t) === npcName);
+                  const templateNpc = templates[terrain as 'forest']?.NPCs.find((n: any) => getTranslatedText(n.data.name, language) === npcName);
                   if (templateNpc) {
                       npcDef = templateNpc.data;
                       break;
                   }
               }
               if (npcDef?.quest && npcDef.questItem) {
-                  const questText = getTranslatedText(npcDef.quest, language, t);
+                  const questText = getTranslatedText(npcDef.quest, language);
                   if (newPlayerStats.quests.includes(questText)) {
                       const itemInInventory = newPlayerStats.items.find(i => getTranslatedText(i.name, 'en') === npcDef.questItem!.name);
                       if (itemInInventory && itemInInventory.quantity >= npcDef.questItem!.quantity) {
-                          addNarrativeEntry(t('gaveItemToNpc', { quantity: npcDef.questItem.quantity, itemName: getTranslatedText(npcDef.questItem.name, language, t), npcName: npcName}), 'system');
-                          itemInInventory.quantity -= npcDef.questItem.quantity;
+                          addNarrativeEntry(t('gaveItemToNpc', { quantity: npcDef.questItem.quantity, itemName: getTranslatedText(npcDef.questItem.name, language), npcName: npcName}), 'system');
+                          itemInInventory.quantity -= npcDef.questItem!.quantity;
                           if (itemInInventory.quantity <= 0) newPlayerStats.items = newPlayerStats.items.filter(i => getTranslatedText(i.name, 'en') !== npcDef!.questItem!.name);
                           (npcDef.rewardItems || []).forEach((reward: PlayerItem) => {
                               const existingItem = newPlayerStats.items.find(i => getTranslatedText(i.name, 'en') === getTranslatedText(reward.name, 'en'));
@@ -425,7 +429,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                           newPlayerStats.quests = newPlayerStats.quests.filter(q => q !== questText);
                           addNarrativeEntry(t('npcQuestCompleted', { npcName: npcName }), 'narrative');
                           toast({ title: t('questCompletedTitle'), description: questText });
-                      } else addNarrativeEntry(t('npcQuestNotEnoughItems', { npcName: npcName, needed: npcDef.questItem.quantity - (itemInInventory?.quantity || 0), itemName: getTranslatedText(npcDef.questItem.name, language, t) }), 'narrative');
+                      } else addNarrativeEntry(t('npcQuestNotEnoughItems', { npcName: npcName, needed: npcDef.questItem.quantity - (itemInInventory?.quantity || 0), itemName: getTranslatedText(npcDef.questItem.name, language) }), 'narrative');
                   } else { newPlayerStats.quests.push(questText); addNarrativeEntry(t('npcQuestGive', { npcName: npcName, questText: questText }), 'narrative'); }
               } else addNarrativeEntry(t('npcNoQuest', { npcName: npcName }), 'narrative');
           }
@@ -465,7 +469,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
           toast({
               title: t('itemPickedUpTitle'),
-              description: t('pickedUpItemToast', { quantity: itemInChunk.quantity, itemName: getTranslatedText(itemInChunk.name, language, t) }),
+              description: t('pickedUpItemToast', { quantity: itemInChunk.quantity, itemName: getTranslatedText(itemInChunk.name, language) }),
           });
           
           const itemInInventory = newPlayerStats.items.find(i => getTranslatedText(i.name, 'en') === getTranslatedText(itemInChunk.name, 'en'));
@@ -475,7 +479,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
               newPlayerStats.items.push({...itemInChunk});
           }
           
-          addNarrativeEntry(t('pickedUpItemNarrative', { quantity: itemInChunk.quantity, itemName: getTranslatedText(itemInChunk.name, language, t) }), 'narrative');
+          addNarrativeEntry(t('pickedUpItemNarrative', { quantity: itemInChunk.quantity, itemName: getTranslatedText(itemInChunk.name, language) }), 'narrative');
 
           setWorld(prev => {
               const newWorld = { ...prev };
@@ -519,12 +523,13 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
           }
       } else if (textKey === 'analyzeAction') {
           const chunk = getEffectiveChunk(currentChunk, weatherZones, gameTime);
-          const analysis = `[Analysis Report]\nCoordinates: (${chunk.x}, ${chunk.y})\nTerrain: ${t(chunk.terrain as TranslationKey)}\n- Temperature: ${chunk.temperature?.toFixed(1)}°C\n- Moisture: ${chunk.moisture}/100\n- Light Level: ${chunk.lightLevel}/100\n- Danger Level: ${chunk.dangerLevel}/100\n- Explorability: ${chunk.explorability.toFixed(1)}/100\n- Magic Affinity: ${chunk.magicAffinity}/100\n- Human Presence: ${chunk.humanPresence}/100\n- Predator Presence: ${chunk.predatorPresence}/100\nItems: ${chunk.items.map((i: any) => `${getTranslatedText(i.name, language, t)} (x${i.quantity})`).join(', ') || 'None'}\nEnemy: ${chunk.enemy ? getTranslatedText(chunk.enemy.type, language, t) : 'None'}\nNPCs: ${chunk.NPCs.map((n: any) => getTranslatedText(n.name, language, t)).join(', ') || 'None'}\nStructures: ${chunk.structures.map((s: any) => getTranslatedText(s.name, language, t)).join(', ') || 'None'}`;
+          const analysis = `[Analysis Report]\nCoordinates: (${chunk.x}, ${chunk.y})\nTerrain: ${t(chunk.terrain as TranslationKey)}\n- Temperature: ${chunk.temperature?.toFixed(1)}°C\n- Moisture: ${chunk.moisture}/100\n- Light Level: ${chunk.lightLevel}/100\n- Danger Level: ${chunk.dangerLevel}/100\n- Explorability: ${chunk.explorability.toFixed(1)}/100\n- Magic Affinity: ${chunk.magicAffinity}/100\n- Human Presence: ${chunk.humanPresence}/100\n- Predator Presence: ${chunk.predatorPresence}/100\nItems: ${chunk.items.map((i: any) => `${getTranslatedText(i.name, language)} (x${i.quantity})`).join(', ') || 'None'}\nEnemy: ${chunk.enemy ? getTranslatedText(chunk.enemy.type, language) : 'None'}\nNPCs: ${chunk.NPCs.map((n: any) => getTranslatedText(n.name, language)).join(', ') || 'None'}\nStructures: ${chunk.structures.map((s: any) => getTranslatedText(s.name, language)).join(', ') || 'None'}`;
           addNarrativeEntry(analysis, 'system');
       }
 
+      setPlayerStats(() => newPlayerStats);
       advanceGameTime(newPlayerStats);
-  }, [addNarrativeEntry, playerStats, t, world, playerPosition, language, toast, advanceGameTime, customItemDefinitions, setWorld, turn, weatherZones, gameTime]);
+  }, [addNarrativeEntry, playerStats, t, world, playerPosition, language, toast, advanceGameTime, customItemDefinitions, setWorld, turn, weatherZones, gameTime, setPlayerStats]);
 
   const handleAction = useCallback((actionId: number) => {
     if (isLoading || isGameOver || !isLoaded) return;
@@ -553,12 +558,13 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
     if (!baseChunk?.enemy) { addNarrativeEntry(t('noTarget'), 'system'); return; }
     
-    const actionText = `${t('attackAction')} ${getTranslatedText(baseChunk.enemy.type, language, t)}`;
+    const actionText = `${t('attackAction')} ${getTranslatedText(baseChunk.enemy.type, language)}`;
     addNarrativeEntry(actionText, 'action');
     const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
 
+    setPlayerStats(() => newPlayerStats);
     handleOfflineAttack();
-  }, [isLoading, isGameOver, isLoaded, setPlayerBehaviorProfile, world, playerPosition, addNarrativeEntry, t, playerStats, handleOfflineAttack, language]);
+  }, [isLoading, isGameOver, isLoaded, setPlayerBehaviorProfile, world, playerPosition, addNarrativeEntry, t, playerStats, handleOfflineAttack, language, setPlayerStats]);
 
   const handleCustomAction = useCallback((text: string) => {
     if (!text.trim() || isLoading || isGameOver || !isLoaded) return;
@@ -571,12 +577,15 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
     const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), text]};
     addNarrativeEntry(text, 'action');
-    if (isOnline) handleOnlineNarrative(text, world, playerPosition, newPlayerStats);
+    if (isOnline) {
+        handleOnlineNarrative(text, world, playerPosition, newPlayerStats);
+    }
     else {
          addNarrativeEntry(t('customActionFail'), 'narrative');
-         advanceGameTime();
+         setPlayerStats(() => newPlayerStats);
+         advanceGameTime(newPlayerStats);
     }
-  }, [isLoading, isGameOver, isLoaded, setPlayerBehaviorProfile, playerStats, isOnline, handleOnlineNarrative, handleOfflineAction, world, playerPosition, addNarrativeEntry, t, advanceGameTime]);
+  }, [isLoading, isGameOver, isLoaded, setPlayerBehaviorProfile, playerStats, isOnline, handleOnlineNarrative, handleOfflineAction, world, playerPosition, addNarrativeEntry, t, advanceGameTime, setPlayerStats]);
 
   const handleCraft = useCallback(async (recipe: Recipe, outcome: CraftingOutcome) => {
     if (isLoading || isGameOver) return;
@@ -584,7 +593,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
     if (!outcome.canCraft) { toast({ title: t('error'), description: t('notEnoughIngredients'), variant: "destructive" }); return; }
     
-    const actionText = t('craftAction', {itemName: getTranslatedText(recipe.result.name, language, t)});
+    const actionText = t('craftAction', {itemName: getTranslatedText(recipe.result.name, language)});
     addNarrativeEntry(actionText, 'action');
     let updatedItems = playerStats.items.map(i => ({...i}));
     outcome.ingredientsToConsume.forEach(itemToConsume => {
@@ -603,20 +612,21 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         
         const successKeys: TranslationKey[] = ['craftSuccess1', 'craftSuccess2', 'craftSuccess3'];
         const randomKey = successKeys[Math.floor(Math.random() * successKeys.length)];
-        addNarrativeEntry(t(randomKey, { itemName: getTranslatedText(recipe.result.name, language, t) }), 'system');
-        toast({ title: t('craftSuccessTitle'), description: t('craftSuccess', { itemName: getTranslatedText(recipe.result.name, language, t) }) });
+        addNarrativeEntry(t(randomKey, { itemName: getTranslatedText(recipe.result.name, language) }), 'system');
+        toast({ title: t('craftSuccessTitle'), description: t('craftSuccess', { itemName: getTranslatedText(recipe.result.name, language) }) });
     } else {
         const failKeys: TranslationKey[] = ['craftFail1', 'craftFail2', 'craftFail3'];
         const randomKey = failKeys[Math.floor(Math.random() * failKeys.length)];
-        addNarrativeEntry(t(randomKey, { itemName: getTranslatedText(recipe.result.name, language, t) }), 'system');
-        toast({ title: t('craftFailTitle'), description: t('craftFail', { itemName: getTranslatedText(recipe.result.name, language, t) }), variant: 'destructive' });
+        addNarrativeEntry(t(randomKey, { itemName: getTranslatedText(recipe.result.name, language) }), 'system');
+        toast({ title: t('craftFailTitle'), description: t('craftFail', { itemName: getTranslatedText(recipe.result.name, language) }), variant: 'destructive' });
     }
+    setPlayerStats(() => nextPlayerStats);
     advanceGameTime(nextPlayerStats);
   }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerStats, customItemDefinitions, addNarrativeEntry, toast, t, advanceGameTime, setPlayerStats, language]);
 
-  const handleItemUsed = useCallback((itemName: string, target: 'player' | string) => {
+  const handleItemUsed = useCallback((itemName: TranslatableString, target: 'player' | TranslatableString) => {
     if (isLoading || isGameOver || !isLoaded) return;
-    const actionText = target === 'player' ? `${t('useAction')} ${getTranslatedText(itemName, language, t)}` : `${t('useOnAction', {item: getTranslatedText(itemName, language, t), target: getTranslatedText(target, language, t)})}`;
+    const actionText = target === 'player' ? `${t('useAction')} ${getTranslatedText(itemName, language)}` : `${t('useOnAction', {item: getTranslatedText(itemName, language), target: getTranslatedText(target, language)})}`;
     addNarrativeEntry(actionText, 'action');
     
     handleOfflineItemUse(getTranslatedText(itemName, 'en'), getTranslatedText(target, 'en'));
@@ -625,10 +635,10 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
   const handleUseSkill = useCallback((skillName: string) => {
     if (isLoading || isGameOver || !isLoaded) return;
-    const actionText = `${t('useSkillAction')} ${getTranslatedText(skillName, language, t)}`;
+    const actionText = `${t('useSkillAction')} ${getTranslatedText(skillName, language)}`;
     addNarrativeEntry(actionText, 'action');
 
-    handleOfflineSkillUse(getTranslatedText(skillName, language, t));
+    handleOfflineSkillUse(getTranslatedText(skillName, language));
   }, [isLoading, isGameOver, isLoaded, t, handleOfflineSkillUse, addNarrativeEntry, language]);
 
   const handleBuild = useCallback((structureName: string) => {
@@ -649,7 +659,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const inventoryMap = new Map(playerStats.items.map(item => [getTranslatedText(item.name, 'en'), item.quantity]));
     if (!structureToBuild.buildCost?.every((cost: any) => (inventoryMap.get(cost.name) || 0) >= cost.quantity)) { toast({ title: t('notEnoughIngredients'), variant: "destructive" }); return; }
     
-    const actionText = t('buildConfirm', {structureName: getTranslatedText(structureName, language, t)});
+    const actionText = t('buildConfirm', {structureName: getTranslatedText(structureName, language)});
     addNarrativeEntry(actionText, 'action');
     let updatedItems = playerStats.items.map(i => ({...i}));
     structureToBuild.buildCost?.forEach((cost: any) => { updatedItems.find(i => getTranslatedText(i.name, 'en') === cost.name)!.quantity -= cost.quantity; });
@@ -666,16 +676,17 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         return newWorld;
     });
 
-    addNarrativeEntry(t('builtStructure', { structureName: getTranslatedText(structureName, language, t) }), 'system');
+    addNarrativeEntry(t('builtStructure', { structureName: getTranslatedText(structureName, language) }), 'system');
+    setPlayerStats(() => nextPlayerStats);
     advanceGameTime(nextPlayerStats);
-  }, [isLoading, isGameOver, buildableStructures, playerStats, playerPosition, addNarrativeEntry, advanceGameTime, toast, t, setWorld, world, language]);
+  }, [isLoading, isGameOver, buildableStructures, playerStats, playerPosition, addNarrativeEntry, advanceGameTime, toast, t, setWorld, world, language, setPlayerStats]);
 
   const handleRest = useCallback(() => {
     if (isLoading || isGameOver) return;
     const shelter = world[`${playerPosition.x},${playerPosition.y}`]?.structures.find(s => s.restEffect);
     if (!shelter?.restEffect) { toast({ title: t('cantRestTitle'), description: t('cantRestDesc') }); return; }
 
-    const actionText = t('restInShelter', { shelterName: getTranslatedText(shelter.name, language, t) });
+    const actionText = t('restInShelter', { shelterName: getTranslatedText(shelter.name, language) });
     addNarrativeEntry(actionText, 'action');
     
     const oldStats = {...playerStats};
@@ -702,6 +713,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     }
 
     const nextPlayerStats = { ...playerStats, hp: newHp, stamina: newStamina, bodyTemperature: newTemp, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText] };
+    setPlayerStats(() => nextPlayerStats);
     advanceGameTime(nextPlayerStats);
   }, [isLoading, isGameOver, world, playerPosition, addNarrativeEntry, advanceGameTime, t, toast, playerStats, setPlayerStats, language]);
   
@@ -722,17 +734,17 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     if(weather?.exclusive_tags.includes('heat')) elementalAffinity = 'fire';
     if(effectiveChunk.dangerLevel > 80) { successChanceBonus -= 5; chaosFactor += 20; }
     
-    const actionText = t('fuseAction', { items: itemsToFuse.map(i => getTranslatedText(i.name, language, t)).join(', ') });
+    const actionText = t('fuseAction', { items: itemsToFuse.map(i => getTranslatedText(i.name, language)).join(', ') });
     addNarrativeEntry(actionText, 'action');
     let newItems = playerStats.items.map(i => ({...i}));
     itemsToFuse.forEach(item => { newItems.find(i => getTranslatedText(i.name, 'en') === getTranslatedText(item.name, 'en'))!.quantity -= 1; });
     let nextPlayerStats = { ...playerStats, items: newItems.filter(i => i.quantity > 0), dailyActionLog: [...(playerStats.dailyActionLog || []), actionText] };
-    setPlayerStats(nextPlayerStats);
+    setPlayerStats(() => nextPlayerStats);
 
     try {
         const result = await fuseItems({
             itemsToFuse, playerPersona: playerStats.persona, currentChunk: effectiveChunk,
-            environmentalContext: { biome: effectiveChunk.terrain, weather: getTranslatedText(weather?.name, language, t) || 'clear' },
+            environmentalContext: { biome: effectiveChunk.terrain, weather: getTranslatedText(weather?.name, language) || 'clear' },
             environmentalModifiers: { successChanceBonus, elementalAffinity, chaosFactor: clamp(chaosFactor, 0, 100) },
             language, customItemDefinitions, fullItemCatalog: customItemCatalog,
         });
@@ -764,10 +776,12 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                 }
             }
         }
+        setPlayerStats(() => nextPlayerStats);
         advanceGameTime(nextPlayerStats);
     } catch(e) {
         logger.error("AI Fusion failed:", e);
         toast({ title: t('error'), description: t('fusionError'), variant: "destructive" });
+        setPlayerStats(() => nextPlayerStats);
         advanceGameTime(nextPlayerStats);
     } finally {
         setIsLoading(false);
@@ -837,7 +851,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
         return newStats;
     });
-  }, [isLoading, isGameOver, customItemDefinitions, setPlayerStats, t]);
+  }, [isLoading, isGameOver, customItemDefinitions, setPlayerStats]);
   
   const handleUnequipItem = useCallback((slot: EquipmentSlot) => {
     if (isLoading || isGameOver) return;
@@ -875,7 +889,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         
         return newStats;
     });
-  }, [isLoading, isGameOver, customItemDefinitions, setPlayerStats, t]);
+  }, [isLoading, isGameOver, customItemDefinitions, setPlayerStats]);
 
   const handleReturnToMenu = () => {
     window.location.href = '/';
@@ -903,11 +917,11 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const playerHasTool = playerStats.items.some(item => getTranslatedText(item.name, 'en') === requiredTool);
 
     if (!playerHasTool) {
-        toast({ title: t('harvestFail_noTool'), description: t('harvestFail_noTool_desc', { tool: getTranslatedText(requiredTool, language, t), target: getTranslatedText(targetName, language, t) }), variant: 'destructive' });
+        toast({ title: t('harvestFail_noTool'), description: t('harvestFail_noTool_desc', { tool: getTranslatedText(requiredTool, language), target: getTranslatedText(targetName, language) }), variant: 'destructive' });
         return;
     }
     
-    const actionText = t('harvestAction', { target: getTranslatedText(targetName, language, t) });
+    const actionText = t('harvestAction', { target: getTranslatedText(targetName, language) });
     addNarrativeEntry(actionText, 'action');
 
     let nextPlayerStats = { ...playerStats };
@@ -929,8 +943,8 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     });
     
     if (lootItems.length > 0) {
-        const lootText = lootItems.map(l => `${l.quantity} ${getTranslatedText(l.name, language, t)}`).join(', ');
-        addNarrativeEntry(t('harvestSuccess', { loot: lootText, target: getTranslatedText(targetName, language, t)}), 'system');
+        const lootText = lootItems.map(l => `${l.quantity} ${getTranslatedText(l.name, language)}`).join(', ');
+        addNarrativeEntry(t('harvestSuccess', { loot: lootText, target: getTranslatedText(targetName, language)}), 'system');
         
         lootItems.forEach(lootItem => {
             const existingItem = nextPlayerStats.items.find(i => getTranslatedText(i.name, 'en') === getTranslatedText(lootItem.name, 'en'));
@@ -941,7 +955,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             }
         });
     } else {
-        addNarrativeEntry(t('harvestFail_noLoot', { target: getTranslatedText(targetName, language, t) }), 'system');
+        addNarrativeEntry(t('harvestFail_noLoot', { target: getTranslatedText(targetName, language) }), 'system');
     }
 
     newWorld[`${playerPosition.x},${playerPosition.y}`]!.enemy = null;
@@ -952,8 +966,9 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         setWorld(newWorld);
     }
 
+    setPlayerStats(() => nextPlayerStats);
     advanceGameTime(nextPlayerStats);
-  }, [isLoading, isGameOver, isLoaded, world, playerPosition, playerStats, toast, t, addNarrativeEntry, customItemDefinitions, advanceGameTime, setWorld, language]);
+  }, [isLoading, isGameOver, isLoaded, world, playerPosition, playerStats, toast, t, addNarrativeEntry, customItemDefinitions, advanceGameTime, setWorld, language, setPlayerStats]);
 
   const handleMove = useCallback((direction: "north" | "south" | "east" | "west") => {
     if (isLoading || isGameOver) return;
@@ -995,6 +1010,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     }
     newPlayerStats.dailyActionLog = [...(playerStats.dailyActionLog || []), actionText];
     
+    setPlayerStats(() => newPlayerStats);
     advanceGameTime(newPlayerStats);
 
     const finalChunk = worldSnapshot[`${x},${y}`];
@@ -1003,7 +1019,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
       addNarrativeEntry(narrative, 'narrative');
     }
 
-  }, [isLoading, isGameOver, playerPosition, world, addNarrativeEntry, t, playerStats, setPlayerBehaviorProfile, setPlayerPosition, setWorld, setRegions, setRegionCounter, regions, regionCounter, worldProfile, currentSeason, customItemDefinitions, customItemCatalog, customStructures, language, advanceGameTime, settings.narrativeLength]);
+  }, [isLoading, isGameOver, playerPosition, world, addNarrativeEntry, t, playerStats, setPlayerBehaviorProfile, setPlayerPosition, setWorld, settings.narrativeLength, language, advanceGameTime, setPlayerStats]);
 
   return {
     handleMove,

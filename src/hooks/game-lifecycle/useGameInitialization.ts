@@ -15,6 +15,7 @@ import { getTranslatedText } from '@/lib/utils';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-config';
 import { useAuth } from '@/context/auth-context';
+import type { ItemDefinition } from '@/lib/game/definitions';
 
 type GameInitializationDeps = {
   setIsLoaded: (loaded: boolean) => void;
@@ -33,7 +34,7 @@ type GameInitializationDeps = {
   setCustomStructures: (structures: GameState['customStructures']) => void;
   setBuildableStructures: (structures: GameState['buildableStructures']) => void;
   setPlayerStats: React.Dispatch<React.SetStateAction<PlayerStatus>>;
-  setFinalWorldSetup: (setup: GameState['worldSetup']) => void;
+  setFinalWorldSetup: React.Dispatch<React.SetStateAction<GameState['worldSetup'] | null>>;
   setPlayerPosition: (pos: GameState['playerPosition']) => void;
   setPlayerBehaviorProfile: (profile: GameState['playerBehaviorProfile']) => void;
   setWorld: React.Dispatch<React.SetStateAction<World>>;
@@ -88,6 +89,7 @@ export function useGameInitialization(deps: GameInitializationDeps) {
 
       if (!stateToInitialize && !finalWorldSetup) {
         logger.warn(`[GameInit] No loaded state and no finalWorldSetup for slot ${gameSlot}. Waiting for world creation.`);
+         if (isMounted) setIsLoaded(true);
         return;
       }
 
@@ -120,8 +122,16 @@ export function useGameInitialization(deps: GameInitializationDeps) {
         setCustomItemDefinitions(finalDefs);
         setCustomStructures(stateToInitialize.customStructures || []);
         setBuildableStructures(staticBuildableStructures);
-        setPlayerStats(stateToInitialize.playerStats);
-        setFinalWorldSetup(stateToInitialize.worldSetup);
+        
+        setPlayerStats(() => stateToInitialize.playerStats);
+        
+        setFinalWorldSetup(prevSetup => {
+            if (prevSetup && JSON.stringify(prevSetup) === JSON.stringify(stateToInitialize.worldSetup)) {
+                return prevSetup;
+            }
+            return stateToInitialize.worldSetup;
+        });
+
         setPlayerPosition(stateToInitialize.playerPosition || { x: 0, y: 0 });
         setPlayerBehaviorProfile(stateToInitialize.playerBehaviorProfile || { moves: 0, attacks: 0, crafts: 0, customActions: 0 });
 
@@ -134,9 +144,7 @@ export function useGameInitialization(deps: GameInitializationDeps) {
         
         if (Object.keys(worldSnapshot).length === 0) {
           const { world: newWorld, regions: newRegions, regionCounter: newRegionCounter } = generateChunksInRadius(
-            {},
-            {},
-            0,
+            {}, {}, 0,
             stateToInitialize.playerPosition.x,
             stateToInitialize.playerPosition.y,
             7, // Initial radius
@@ -159,8 +167,8 @@ export function useGameInitialization(deps: GameInitializationDeps) {
                 weatherZonesSnapshot[regionId] = { id: regionId, terrain: region.terrain, currentWeather: initialWeather, nextChangeTime: (stateToInitialize!.gameTime || 360) + Math.floor(Math.random() * (initialWeather.duration_range[1] - initialWeather.duration_range[0] + 1)) + initialWeather.duration_range[0] * 10 };
             }
         });
-
-        setWorld(worldSnapshot);
+        
+        setWorld(() => worldSnapshot);
         setRegions(regionsSnapshot);
         setRegionCounter(regionCounterSnapshot);
         setWeatherZones(weatherZonesSnapshot);
@@ -175,9 +183,12 @@ export function useGameInitialization(deps: GameInitializationDeps) {
         } else {
              setNarrativeLog(stateToInitialize.narrativeLog);
         }
-
-        setIsLoaded(true);
+        
+        if (isMounted) setIsLoaded(true);
         logger.info(`[GameInit] Game for slot ${gameSlot} is fully loaded and initialized.`);
+      } else if (finalWorldSetup && isMounted) {
+        logger.info(`[GameInit] New game initiated with finalWorldSetup for slot ${gameSlot}.`);
+        setIsLoaded(true);
       }
     };
 

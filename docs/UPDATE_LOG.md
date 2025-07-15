@@ -14,15 +14,19 @@ Bản cập nhật này tập trung vào việc giải quyết một loạt lỗ
 
 ### ✨ **Thay đổi chính & Phân tích**
 
-1.  **Tái cấu trúc Toàn diện `ItemDefinition`:**
+1.  **Sửa lỗi Vòng lặp Render Vô hạn:**
+    *   **Phân tích:** Một lỗi nghiêm trọng trong hook `useGameInitialization` đã được xác định, trong đó dependency `finalWorldSetup` không ổn định, gây ra vòng lặp render vô hạn và làm treo ứng dụng.
+    *   **Giải pháp:** Áp dụng một phương pháp cập nhật state an toàn hơn bằng cách so sánh sâu giá trị của `worldSetup` trước khi gọi `setFinalWorldSetup`. Đồng thời, các hàm cập nhật state khác như `setPlayerStats` và `setWorld` đã được chuyển sang dạng functional update để tuân thủ thực tiễn tốt nhất của React.
+
+2.  **Tái cấu trúc Toàn diện `ItemDefinition`:**
     *   **Phân tích:** Lỗi lớn nhất xuất phát từ việc `ItemDefinition` không nhất quán. Tên vật phẩm được dùng làm key, trong khi `name` và `description` chỉ là chuỗi đơn.
     *   **Giải pháp:** Đã thực hiện một cuộc "đại tu" toàn bộ các tệp vật phẩm (`/data/items/**`). Mỗi vật phẩm giờ đây sử dụng một `id` duy nhất làm key (ví dụ: `healing_herb`), và có thuộc tính `name` và `description` là các đối tượng đa ngôn ngữ chuẩn (`{ en: '...', vi: '...' }`). Điều này không chỉ sửa lỗi mà còn hoàn thiện hệ thống đa ngôn ngữ cho toàn bộ vật phẩm trong game.
 
-2.  **Linh hoạt hóa `PlayerAttributesSchema`:**
+3.  **Linh hoạt hóa `PlayerAttributesSchema`:**
     *   **Phân tích:** Các vật phẩm trang bị báo lỗi thiếu thuộc tính (`physicalDefense`, `magicalDefense`, v.v.) khi khai báo `attributes`.
     *   **Giải pháp:** Đã cập nhật `PlayerAttributesSchema` trong `definitions/base.ts`, thêm `.optional().default(0)` vào tất cả các thuộc tính. Giờ đây, khi định nghĩa `attributes` cho một vật phẩm, chúng ta chỉ cần khai báo những chỉ số mà nó thực sự thay đổi, giúp mã nguồn gọn gàng và linh hoạt hơn rất nhiều.
 
-3.  **Sửa lỗi Logic trong các Hooks & Engine:**
+4.  **Sửa lỗi Logic trong các Hooks & Engine:**
     *   **Phân tích:** Một loạt lỗi logic và kiểu dữ liệu đã được phát hiện trong các hook (`useGameInitialization`, `useActionHandlers`) và engine (`generation.ts`, `offline.ts`). Các lỗi bao gồm: truy cập biến `null`, truyền sai tham số cho hàm, và sử dụng kiểu dữ liệu không chính xác.
     *   **Giải pháp:**
         *   Tách `useGameEffects` thành các hook con chuyên biệt (`useGameInitialization`, `useGameSaving`, v.v.) để tăng tính mô-đun hóa.
@@ -30,13 +34,13 @@ Bản cập nhật này tập trung vào việc giải quyết một loạt lỗ
         *   Sửa lại toàn bộ các lời gọi hàm không đúng (ví dụ: `generateOfflineNarrative` giờ đã nhận đủ tham số `language`).
         *   Sửa lỗi logic trong các hàm của engine để chúng truy cập đúng thuộc tính và kiểu dữ liệu.
 
-4.  **Chuẩn hóa Component UI với `getTranslatedText`:**
+5.  **Chuẩn hóa Component UI với `getTranslatedText`:**
     *   **Phân tích:** Nhiều component UI (minimap, inventory, status popup) bị lỗi khi truyền trực tiếp một đối tượng `TranslatableString` vào hàm `t()` của i18n.
     *   **Giải pháp:** Đã áp dụng nhất quán hàm tiện ích `getTranslatedText` trên tất cả các component bị ảnh hưởng. Hàm này sẽ "bóc tách" chuỗi dịch phù hợp với ngôn ngữ hiện tại trước khi truyền vào hàm `t()`, giải quyết triệt để lỗi không tương thích kiểu.
 
 ### 🎮 **Ảnh hưởng đến Trải nghiệm & Tương lai**
 
-*   **Độ ổn định:** Game sẽ không còn gặp các lỗi runtime bất ngờ liên quan đến việc truy cập dữ liệu không nhất quán.
+*   **Độ ổn định:** Game sẽ không còn gặp các lỗi runtime bất ngờ liên quan đến việc truy cập dữ liệu không nhất quán hoặc vòng lặp render vô hạn.
 *   **Khả năng bảo trì:** Cấu trúc mã nguồn giờ đây sạch sẽ và rõ ràng hơn rất nhiều. Việc thêm vật phẩm mới, kẻ thù mới, hoặc các tính năng phức tạp trong tương lai sẽ trở nên dễ dàng và ít rủi ro hơn. Nền móng của chúng ta giờ đây thực sự vững chắc.
 
 ## **Bản cập nhật v0.2.55 - "Nền Móng Vững Chắc" (14/07/2025)**

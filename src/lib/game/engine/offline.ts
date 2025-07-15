@@ -1,3 +1,4 @@
+
 import type { Chunk, MoodTag, NarrativeLength, NarrativeTemplate, ConditionType, Language, PlayerStatus, World } from "../types";
 import { getTranslatedText, SmartJoinSentences } from "../../utils"; 
 import { getTemplates } from '../templates';
@@ -212,7 +213,7 @@ export const fill_template = (
     let filled_template = template_string;
     const biomeTemplateData = getTemplates()[chunk.terrain];
     if (!biomeTemplateData) {
-        logger.warn(`Biome template data not found for ${chunk.terrain}`);
+        logger.warn(`Placeholder data not found for ${chunk.terrain}`);
         return template_string;
     }
 
@@ -257,7 +258,7 @@ export const generateOfflineNarrative = (
     language: Language,
     playerState?: PlayerStatus
 ): string => {
-    const biomeTemplates = getTemplates()[currentChunk.terrain];
+    const biomeTemplates = getTemplates(language)[currentChunk.terrain];
     if (!biomeTemplates) return currentChunk.description || "An unknown area.";
 
     const currentMoods = analyze_chunk_mood(currentChunk);
@@ -377,7 +378,7 @@ export const handleSearchAction = (
     let newChunk = { ...currentChunk, items: [...currentChunk.items] };
     newChunk.actions = newChunk.actions.filter(a => a.id !== actionId);
 
-    const templates = getTemplates();
+    const templates = getTemplates(language);
     const biomeTemplates = templates[currentChunk.terrain];
     if (!biomeTemplates || !biomeTemplates.items) {
         return { newChunk, narrative: t('exploreFoundNothing'), toastInfo: null };
@@ -393,13 +394,13 @@ export const handleSearchAction = (
         const itemDef = allItemDefinitions[foundItemTemplate.name];
         const quantity = rng(itemDef.baseQuantity);
         
-        const existingItem = newChunk.items.find(i => getTranslatedText(i.name, 'en', t) === foundItemTemplate.name);
+        const existingItem = newChunk.items.find(i => getTranslatedText(i.name, 'en') === foundItemTemplate.name);
         if (existingItem) {
             existingItem.quantity += quantity;
         } else {
             newChunk.items.push({
-                name: foundItemTemplate.name,
-                description: t(itemDef.description as TranslationKey),
+                name: itemDef.name,
+                description: itemDef.description,
                 quantity,
                 tier: itemDef.tier,
                 emoji: itemDef.emoji,
@@ -420,5 +421,3 @@ export const handleSearchAction = (
 
     return { newChunk, narrative: t('exploreFoundNothing'), toastInfo: null };
 };
-
-    

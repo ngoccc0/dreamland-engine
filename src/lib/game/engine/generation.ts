@@ -1,11 +1,12 @@
-import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient, Structure, Language, Npc, CraftingOutcome, Action, ItemCategory, Skill, WeatherDefinition } from "../types";
+
+import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, Structure, Language, Npc, Action } from "../types";
 import { seasonConfig, worldConfig } from "../world-config";
 import { getTemplates } from "../templates";
 import { weatherPresets } from "../weatherPresets";
 import { translations } from "../../i18n";
 import type { TranslationKey } from "../../i18n";
 import { clamp, getTranslatedText } from "../../utils";
-import { naturePlusForestEnemies, naturePlusJungleEnemies, naturePlusMountainEnemies, naturePlusSwampEnemies } from "../templates/modded/nature_plus";
+import { logger } from "@/lib/logger";
 
 
 // --- HELPER FUNCTIONS ---
@@ -208,7 +209,7 @@ function generateChunkContent(
     language: Language
 ) {
     const t = (key: TranslationKey, replacements?: { [key: string]: string | number }): string => {
-        let textPool = (translations[language] as any)[key] || (translations.en as any)[key] || key;
+        let textPool = (translations[language as 'en' | 'vi'] as any)[key] || (translations.en as any)[key] || key;
         let text = Array.isArray(textPool) ? textPool[Math.floor(Math.random() * textPool.length)] : textPool;
         if (replacements && typeof text === 'string') {
             for (const [replaceKey, value] of Object.entries(replacements)) {
@@ -218,17 +219,30 @@ function generateChunkContent(
         return text;
     };
 
-    const templates = getTemplates();
-    const template = templates[chunkData.terrain];
+    const templates = getTemplates(language);
+    const terrainTemplate = templates[chunkData.terrain];
+
+    if (!terrainTemplate) {
+        logger.error(`[generateChunkContent] No template found for terrain: ${chunkData.terrain}`);
+        return {
+            description: "An unknown and undescribable area.",
+            NPCs: [],
+            items: [],
+            structures: [],
+            enemy: null,
+            actions: [],
+        };
+    }
     
-    const finalDescription = template.descriptionTemplates.short[0]
-        .replace('[adjective]', template.adjectives[Math.floor(Math.random() * template.adjectives.length)])
-        .replace('[feature]', template.features[Math.floor(Math.random() * template.features.length)]);
+    const descriptionTemplates = terrainTemplate.descriptionTemplates?.short || ["A generic area."];
+    const finalDescription = descriptionTemplates[Math.floor(Math.random() * descriptionTemplates.length)]
+        .replace('[adjective]', (terrainTemplate.adjectives || ['normal'])[Math.floor(Math.random() * (terrainTemplate.adjectives || ['normal']).length)])
+        .replace('[feature]', (terrainTemplate.features || ['nothing special'])[Math.floor(Math.random() * (terrainTemplate.features || ['nothing special']).length)]);
     
-    const staticSpawnCandidates = template.items || [];
+    const staticSpawnCandidates = terrainTemplate.items || [];
     const customSpawnCandidates = customItemCatalog
         .filter(item => item.spawnEnabled !== false && item.spawnBiomes && item.spawnBiomes.includes(chunkData.terrain as Terrain))
-        .map(item => ({ name: getTranslatedText(item.name, 'en', t), conditions: { chance: 0.15 } })); // Use english name as key
+        .map(item => ({ name: getTranslatedText(item.name, 'en', t), conditions: { chance: 0.15 } }));
     
     const allSpawnCandidates = [...staticSpawnCandidates, ...customSpawnCandidates];
 
@@ -244,7 +258,7 @@ function generateChunkContent(
 
             if (finalQuantity > 0) {
                 spawnedItems.push({
-                    name: itemRef.name,
+                    name: itemDef.name,
                     description: itemDef.description,
                     tier: itemDef.tier,
                     quantity: finalQuantity,
@@ -254,13 +268,9 @@ function generateChunkContent(
         }
     }
     
-    const spawnedNPCs: Npc[] = selectEntities(template.NPCs, chunkData, allItemDefinitions, 1).map(ref => ref.data);
+    const spawnedNPCs: Npc[] = selectEntities(terrainTemplate.NPCs, chunkData, allItemDefinitions, 1).map(ref => ref.data);
 
-    let allEnemyCandidates = [...(template.enemies || [])];
-    if (chunkData.terrain === 'swamp') allEnemyCandidates = [...allEnemyCandidates, ...naturePlusSwampEnemies];
-    if (chunkData.terrain === 'jungle') allEnemyCandidates = [...allEnemyCandidates, ...naturePlusJungleEnemies];
-    if (chunkData.terrain === 'forest') allEnemyCandidates = [...allEnemyCandidates, ...naturePlusForestEnemies];
-    if (chunkData.terrain === 'mountain') allEnemyCandidates = [...allEnemyCandidates, ...naturePlusMountainEnemies];
+    let allEnemyCandidates = [...(terrainTemplate.enemies || [])];
 
     const spawnedEnemies = selectEntities(allEnemyCandidates, chunkData, allItemDefinitions, 1);
     
@@ -269,7 +279,7 @@ function generateChunkContent(
         const uniqueStructure = customStructures[Math.floor(Math.random() * customStructures.length)];
         spawnedStructures.push(uniqueStructure);
     } else {
-        const spawnedStructureRefs = selectEntities(template.structures, chunkData, allItemDefinitions, 1);
+        const spawnedStructureRefs = selectEntities(terrainTemplate.structures, chunkData, allItemDefinitions, 1);
         spawnedStructures = spawnedStructureRefs.map(ref => ref.data);
          for (const structureRef of spawnedStructureRefs) {
             if (structureRef.loot) {
@@ -278,12 +288,12 @@ function generateChunkContent(
                         const definition = allItemDefinitions[lootItem.name];
                         if (definition) {
                             const quantity = getRandomInRange(lootItem.quantity);
-                            const existingItem = spawnedItems.find(i => i.name === lootItem.name);
+                            const existingItem = spawnedItems.find(i => getTranslatedText(i.name, 'en') === lootItem.name);
                             if (existingItem) {
                                 existingItem.quantity += quantity;
                             } else {
                                 spawnedItems.push({
-                                    name: lootItem.name,
+                                    name: definition.name,
                                     description: definition.description,
                                     tier: definition.tier,
                                     quantity: quantity,
@@ -304,14 +314,14 @@ function generateChunkContent(
     let actionIdCounter = 1;
 
     if (spawnedEnemy) {
-        actions.push({ id: actionIdCounter++, textKey: 'observeAction_enemy', params: { enemyType: spawnedEnemy.type as TranslationKey } });
+        actions.push({ id: actionIdCounter++, textKey: 'observeAction_enemy', params: { enemyType: getTranslatedText(spawnedEnemy.type, 'en') } });
     }
     if (spawnedNPCs.length > 0) {
-        actions.push({ id: actionIdCounter++, textKey: 'talkToAction_npc', params: { npcName: spawnedNPCs[0].name as TranslationKey } });
+        actions.push({ id: actionIdCounter++, textKey: 'talkToAction_npc', params: { npcName: getTranslatedText(spawnedNPCs[0].name, 'en') } });
     }
 
     spawnedItems.forEach(item => {
-        actions.push({ id: actionIdCounter++, textKey: 'pickUpAction_item', params: { itemName: item.name as TranslationKey } });
+        actions.push({ id: actionIdCounter++, textKey: 'pickUpAction_item', params: { itemName: getTranslatedText(item.name, 'en') } });
     });
     
     actions.push({ id: actionIdCounter++, textKey: 'exploreAction' });
@@ -423,14 +433,12 @@ export const generateRegion = (
         );
         
         const tempChunkData = {
-            terrain,
             vegetationDensity,
             elevation,
             dangerLevel,
             magicAffinity,
             humanPresence,
             predatorPresence,
-            temperature: dependentAttributes.temperature,
             ...dependentAttributes,
         };
 
@@ -502,7 +510,7 @@ export const getEffectiveChunk = (baseChunk: Chunk, weatherZones: { [key: string
 
     const effectiveChunk: Chunk = { ...baseChunk };
     
-    let structureHeat = effectiveChunk.structures?.reduce((sum, s) => sum + (s.heatValue || 0), 0) || 0;
+    const structureHeat = effectiveChunk.structures?.reduce((sum, s) => sum + (s.heatValue || 0), 0) || 0;
 
     if (!weatherZones[effectiveChunk.regionId]) {
         effectiveChunk.temperature = (baseChunk.temperature ?? 50) + (structureHeat * 10);

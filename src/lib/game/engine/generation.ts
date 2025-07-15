@@ -110,6 +110,10 @@ const selectEntities = <T extends {name: string, conditions: SpawnConditions} | 
 // --- WORLD GENERATION LOGIC ---
 
 export const weightedRandom = (options: [Terrain, number][]): Terrain => {
+    if (options.length === 0) {
+        logger.warn("[weightedRandom] Received empty options array. Defaulting to 'forest'.");
+        return 'forest'; // Fallback to a safe default terrain
+    }
     const total = options.reduce((sum, [, prob]) => sum + prob, 0);
     const r = Math.random() * total;
     let current = 0;
@@ -202,7 +206,7 @@ function calculateDependentChunkAttributes(
 }
 
 function generateChunkContent(
-    chunkData: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'explored' | 'structures' | 'terrain' | 'lastVisited'> & { terrain: Terrain },
+    chunkData: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'explored' | 'structures' | 'lastVisited'> & { terrain: Terrain },
     worldProfile: WorldProfile,
     allItemDefinitions: Record<string, ItemDefinition>,
     customItemCatalog: GeneratedItem[],
@@ -428,7 +432,7 @@ export const generateRegion = (
 
         const dependentAttributes = calculateDependentChunkAttributes(
             terrain,
-            { vegetationDensity, moisture: baseMoisture, dangerLevel: dangerLevel, temperature: baseTemperature },
+            { vegetationDensity, moisture: baseMoisture, dangerLevel, dangerLevel, temperature: baseTemperature },
             worldProfile,
             currentSeason
         );

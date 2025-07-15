@@ -81,11 +81,9 @@ const selectEntities = <T extends {name: string, conditions: SpawnConditions} | 
         return [];
     }
     
-    // Lớp phòng vệ 1: Loại bỏ ngay lập tức bất kỳ giá trị null hoặc undefined nào từ mảng đầu vào.
     const cleanPossibleEntities = possibleEntities.filter(Boolean);
 
     const validEntities = cleanPossibleEntities.filter(entity => {
-         // Lớp phòng vệ 2: Kiểm tra lại entity sau khi filter, để chắc chắn.
          if (!entity) {
             logger.error('[selectEntities] Found an undefined entity in template array even after filtering.', { possibleEntities });
             return false;
@@ -107,10 +105,9 @@ const selectEntities = <T extends {name: string, conditions: SpawnConditions} | 
         
         const entityData = 'data' in entity ? entity.data : entity;
         
-        // Lớp phòng vệ 3: Kiểm tra entityData có tồn tại và có 'name' hoặc 'type' không.
         if (!entityData || (!entityData.name && !entityData.type)) {
-            logger.error("[selectEntities] Entity data is missing 'name' or 'type' property.", { entity: entityData });
-            continue; // Bỏ qua thực thể bị lỗi này.
+            logger.error("[selectEntities] SKIPPING entity data is missing 'name' or 'type' property.", { entity: entityData });
+            continue; 
         }
 
         const itemName = entityData.name || entityData.type || entityData;
@@ -134,12 +131,11 @@ const selectEntities = <T extends {name: string, conditions: SpawnConditions} | 
 export const weightedRandom = (options: [Terrain, number][]): Terrain => {
     if (options.length === 0) {
         logger.warn("[weightedRandom] Received empty options array. Defaulting to 'forest'.");
-        return 'forest'; // Fallback to a safe default terrain
+        return 'forest';
     }
     const total = options.reduce((sum, [, prob]) => sum + prob, 0);
     let r = Math.random() * total;
 
-    // Handle floating point inaccuracies
     if (r >= total) r = total - 0.0001;
 
     for (const [option, prob] of options) {
@@ -161,7 +157,6 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
     }
 
     if (adjacentTerrains.size === 0) {
-        // No neighbors found (e.g., starting chunk). Return a list of valid starting terrains.
         return Object.keys(worldConfig).filter(t => t !== 'wall') as Terrain[];
     }
     
@@ -178,7 +173,6 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
         const config = worldConfig[terrain];
         if (!config) return false;
 
-        // Ensure the new terrain can be a neighbor to ALL existing adjacent terrains
         for(const adjTerrain of adjacentTerrains) {
             const adjConfig = worldConfig[adjTerrain];
             if (!adjConfig.allowedNeighbors.includes(terrain)) {
@@ -188,7 +182,6 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
         return true;
     });
     
-    // If no valid terrains found from neighbors, default to a safe list
     return validTerrains.length > 0 ? validTerrains : ['grassland', 'forest'];
 };
 

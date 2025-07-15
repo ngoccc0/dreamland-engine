@@ -46,17 +46,10 @@ const withPWA = withPWAInit({
         },
       },
     },
-    // Use NetworkFirst for navigation requests to prevent stale HTML and ChunkLoadErrors.
+    // Use NetworkOnly for navigation requests to prevent stale HTML and ChunkLoadErrors.
     {
       urlPattern: ({ request }: { request: Request }) => request.mode === 'navigate',
-      handler: 'NetworkFirst',
-      options: {
-        cacheName: 'pages',
-        expiration: {
-          maxEntries: 50,
-          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
-        },
-      },
+      handler: 'NetworkOnly', // Use NetworkOnly to avoid serving stale HTML from cache
     },
   ],
 } as PWAConfig);

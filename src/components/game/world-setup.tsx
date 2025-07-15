@@ -18,7 +18,7 @@ import { SettingsPopup } from "./settings-popup";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 import { Sparkles, ArrowRight, BrainCircuit, Loader2, Settings, ArrowLeft, ChevronLeft, ChevronRight, BookOpen, Map, WandSparkles, BaggageClaim, ListTodo } from "./icons";
 import { ScrollArea } from "../ui/scroll-area";
-import { cn } from "@/lib/utils";
+import { cn, getTranslatedText } from "@/lib/utils";
 
 interface WorldSetupProps {
     onWorldCreated: (worldSetupData: GenerateWorldSetupOutput) => void;
@@ -308,7 +308,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                 options={generatedData.concepts.map(c => c.worldName)}
                                 selectedIndex={selection.worldName}
                                 onSelect={(index) => setSelection(s => ({...s, worldName: index}))}
-                                renderOption={(option) => <p className="text-xl font-bold font-headline">{t(option)}</p>}
+                                renderOption={(option) => <p className="text-xl font-bold font-headline">{getTranslatedText(option, language, t)}</p>}
                             />
                         </div>
                         <SelectionCard
@@ -317,7 +317,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                             options={generatedData.concepts.map(c => c.initialNarrative)}
                             selectedIndex={selection.initialNarrative}
                             onSelect={(index) => setSelection(s => ({...s, initialNarrative: index}))}
-                            renderOption={(option) => <ScrollArea className="h-24"><p className="text-sm italic text-muted-foreground">{t(option)}</p></ScrollArea>}
+                            renderOption={(option) => <ScrollArea className="h-24"><p className="text-sm italic text-muted-foreground">{getTranslatedText(option, language, t)}</p></ScrollArea>}
                         />
                         <SelectionCard
                             label={t('startingBiome')}
@@ -335,8 +335,8 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                             onSelect={(index) => setSelection(s => ({...s, startingSkill: index}))}
                             renderOption={(option: Skill) => 
                                 <div>
-                                    <p className="font-semibold">{t(option.name)}</p>
-                                    <p className="text-xs text-muted-foreground">{t(option.description)}</p>
+                                    <p className="font-semibold">{getTranslatedText(option.name, language, t)}</p>
+                                    <p className="text-xs text-muted-foreground">{getTranslatedText(option.description, language, t)}</p>
                                 </div>
                             }
                         />
@@ -350,8 +350,8 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                                 <div className="flex flex-wrap gap-x-4 gap-y-2 justify-center text-sm">
                                     {option.map((item, i) => {
                                         const allItems = [...(premadeWorlds[userInput.toLowerCase()]?.customItemCatalog || []), ...(generatedData?.customItemCatalog || [])];
-                                        const def = allItems.find(d => d.name === item.name);
-                                        return <span key={i} className="flex items-center gap-1">{def?.emoji} {t(item.name)} x{item.quantity}</span>
+                                        const def = allItems.find(d => getTranslatedText(d.name, 'en') === getTranslatedText(item.name, 'en'));
+                                        return <span key={i} className="flex items-center gap-1">{def?.emoji} {getTranslatedText(item.name, language, t)} x{item.quantity}</span>
                                     })}
                                 </div>
                             }
@@ -365,7 +365,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                               onSelect={(index) => setSelection(s => ({...s, initialQuests: index}))}
                               renderOption={(option: string[]) => 
                                   <ul className="space-y-1 text-sm text-muted-foreground list-disc list-inside">
-                                      {option.map((q, i) => <li key={i}>{t(q)}</li>)}
+                                      {option.map((q, i) => <li key={i}>{getTranslatedText(q, language, t)}</li>)}
                                   </ul>
                               }
                           />

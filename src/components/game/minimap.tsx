@@ -12,10 +12,11 @@ import type { TranslationKey } from "@/lib/i18n";
 import { Separator } from "../ui/separator";
 import { SwordIcon } from "./icons";
 import { Backpack } from "lucide-react";
+import { getTranslatedText } from "@/lib/utils";
 
 
 export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     return (
         <div className="p-1 space-y-2">
             <div className="flex items-center gap-2">
@@ -31,7 +32,7 @@ export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
                     <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><Home />{t('structures')}:</h5>
                         <ul className="space-y-1 text-xs pl-5">
-                            {chunk.structures.map(s => <li key={s.name}>{s.emoji} {t(s.name)}</li>)}
+                            {chunk.structures.map(s => <li key={getTranslatedText(s.name, 'en')}>{s.emoji} {getTranslatedText(s.name, language, t)}</li>)}
                         </ul>
                     </div>
                 )}
@@ -39,21 +40,21 @@ export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
                     <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><Backpack />{t('inventory')}:</h5>
                         <ul className="space-y-1 text-xs pl-5">
-                            {chunk.items.map(item => <li key={item.name}>{item.emoji} {t(item.name)} (x{item.quantity})</li>)}
+                            {chunk.items.map(item => <li key={getTranslatedText(item.name, 'en')}>{item.emoji} {getTranslatedText(item.name, language, t)} (x{item.quantity})</li>)}
                         </ul>
                     </div>
                 )}
                 {chunk.enemy && (
                     <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><SwordIcon />{t('enemy')}:</h5>
-                        <p className="text-xs pl-5">{chunk.enemy.emoji} {t(chunk.enemy.type)} (HP: {chunk.enemy.hp})</p>
+                        <p className="text-xs pl-5">{chunk.enemy.emoji} {getTranslatedText(chunk.enemy.type, language, t)} (HP: {chunk.enemy.hp})</p>
                     </div>
                 )}
                 {chunk.NPCs.length > 0 && (
                      <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><NpcIcon />{t('npcs')}:</h5>
                         <ul className="space-y-1 text-xs pl-5">
-                            {chunk.NPCs.map(npc => <li key={npc.name}>{t(npc.name)}</li>)}
+                            {chunk.NPCs.map(npc => <li key={getTranslatedText(npc.name, 'en')}>{getTranslatedText(npc.name, language, t)}</li>)}
                         </ul>
                     </div>
                 )}
@@ -109,7 +110,7 @@ const biomeIcons: Record<Exclude<Terrain, 'empty' | 'wall' | 'ocean' | 'city' | 
 
 
 export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const responsiveCellSize = "w-14 h-14 md:w-16 md:h-16 lg:w-20 lg:h-20";
 
   return (
@@ -136,7 +137,7 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
               }
 
               const mainIcon = (cell.structures && cell.structures.length > 0)
-                ? <span className="text-3xl opacity-90 drop-shadow-lg" role="img" aria-label={cell.structures[0].name}>{cell.structures[0].emoji}</span>
+                ? <span className="text-3xl opacity-90 drop-shadow-lg" role="img" aria-label={getTranslatedText(cell.structures[0].name, language, t)}>{cell.structures[0].emoji}</span>
                 : (biomeIcons[cell.terrain as keyof typeof biomeIcons] || null);
 
               return (

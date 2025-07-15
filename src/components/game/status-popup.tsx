@@ -18,7 +18,7 @@ import { useLanguage } from "@/context/language-context";
 import type { PlayerStatus, Skill, EquipmentSlot } from "@/lib/game/types";
 import { skillDefinitions } from "@/lib/game/skills";
 import type { TranslationKey } from "@/lib/i18n";
-import { cn } from "@/lib/utils";
+import { cn, getTranslatedText } from "@/lib/utils";
 import { Heart, Loader2, Book, Star, Sparkles, SwordIcon } from "./icons";
 import { Button } from "../ui/button";
 
@@ -43,9 +43,9 @@ type HintFetchStatus = {
 }
 
 const getNextUnlockableSkills = (currentSkills: Skill[]): Skill[] => {
-    const currentSkillNames = new Set(currentSkills.map(s => s.name));
+    const currentSkillNames = new Set(currentSkills.map(s => getTranslatedText(s.name, 'en')));
     return skillDefinitions.filter(
-        skillDef => !currentSkillNames.has(skillDef.name) && skillDef.unlockCondition
+        skillDef => !currentSkillNames.has(getTranslatedText(skillDef.name, 'en')) && skillDef.unlockCondition
     );
 };
 
@@ -127,7 +127,7 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequi
                         <span className="capitalize text-muted-foreground">{t(slot)}:</span>
                         {item ? (
                         <div className="flex items-center gap-2">
-                            <span className="font-semibold text-foreground">{item.emoji} {t(item.name)}</span>
+                            <span className="font-semibold text-foreground">{item.emoji} {getTranslatedText(item.name, language, t)}</span>
                             <Button variant="ghost" size="sm" onClick={() => onUnequipItem(slot as EquipmentSlot)}>
                             {t('unequipItem')}
                             </Button>
@@ -178,8 +178,8 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequi
                         <Separator className="my-2" />
                         <div className="space-y-1">
                             {nextUnlockableSkills.map(skill => (
-                                <div key={skill.name}>
-                                    <p className="text-xs text-accent-foreground font-semibold">{t(skill.name)}</p>
+                                <div key={getTranslatedText(skill.name, 'en')}>
+                                    <p className="text-xs text-accent-foreground font-semibold">{getTranslatedText(skill.name, language, t)}</p>
                                     <p className="text-xs text-muted-foreground">({t('unlockCondition')}: {skill.unlockCondition!.count} {t(skill.unlockCondition!.type)})</p>
                                 </div>
                             ))}
@@ -197,8 +197,8 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequi
               <ul className="space-y-2">
                 {pets.map((pet, index) => (
                   <li key={index} className="p-2 bg-muted rounded-md text-muted-foreground">
-                    <div className="font-semibold text-foreground">{pet.name || t(pet.type)}</div>
-                    <div className="text-xs">{t('levelLabel')} {pet.level} {t(pet.type)}</div>
+                    <div className="font-semibold text-foreground">{pet.name || getTranslatedText(pet.type, language, t)}</div>
+                    <div className="text-xs">{t('levelLabel')} {pet.level} {getTranslatedText(pet.type, language, t)}</div>
                   </li>
                 ))}
               </ul>

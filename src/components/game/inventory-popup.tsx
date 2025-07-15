@@ -13,9 +13,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/context/language-context";
-import type { PlayerItem, ItemDefinition, Chunk, ItemCategory, PlayerAttributes } from "@/lib/game/types";
+import type { PlayerItem, ItemDefinition, Chunk, ItemCategory, PlayerAttributes, TranslatableString } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
-import { cn } from "@/lib/utils";
+import { cn, getTranslatedText } from "@/lib/utils";
 
 interface InventoryPopupProps {
   open: boolean;
@@ -23,7 +23,7 @@ interface InventoryPopupProps {
   items: PlayerItem[];
   itemDefinitions: Record<string, ItemDefinition>;
   enemy: Chunk['enemy'];
-  onUseItem: (itemName: string, target: 'player' | string) => void;
+  onUseItem: (itemName: TranslatableString, target: TranslatableString | 'player') => void;
   onEquipItem: (itemName: string) => void;
 }
 
@@ -52,11 +52,13 @@ const attributeLabels: Record<keyof PlayerAttributes, TranslationKey> = {
     critChance: 'critChance',
     attackSpeed: 'attackSpeed',
     cooldownReduction: 'cooldownReduction',
+    physicalDefense: 'physicalDefense',
+    magicalDefense: 'magicalDefense',
 };
 
 
 export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, enemy, onUseItem, onEquipItem }: InventoryPopupProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const handleAction = (callback: () => void) => {
     callback();
@@ -78,9 +80,9 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
               {items.length > 0 ? (
                 <ul className="space-y-2">
                   {items.map((item, index) => {
-                    const definition = itemDefinitions[item.name];
+                    const definition = itemDefinitions[getTranslatedText(item.name, 'en')];
                     const isUsableOnSelf = definition && definition.effects.length > 0;
-                    const isUsableOnEnemy = enemy && definition && enemy.diet.includes(item.name);
+                    const isUsableOnEnemy = enemy && definition && enemy.diet.includes(getTranslatedText(item.name, 'en'));
                     const isEquippable = definition && definition.equipmentSlot;
                     const isInteractable = isUsableOnSelf || isUsableOnEnemy || isEquippable;
 
@@ -88,7 +90,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                     const categoryEmoji = itemCategory ? categoryEmojis[itemCategory] : '❓';
 
                     return (
-                      <li key={index}>
+                      <li key={getTranslatedText(item.name, 'en') + index}>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <button
@@ -99,7 +101,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <span className="text-2xl mr-2">{item.emoji}</span>
                                         <div className="flex flex-col items-start">
-                                            <span className="text-foreground">{t(item.name)}</span>
+                                            <span className="text-foreground">{getTranslatedText(item.name, language)}</span>
                                             <div className="flex items-center gap-2">
                                               <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary/10 text-primary-foreground font-semibold">{t('tier', { tier: item.tier })}</span>
                                               {definition && definition.category && <span title={t(definition.category)} className="text-xs px-1.5 py-0.5 rounded-full bg-accent/80 text-accent-foreground flex items-center gap-1">{categoryEmoji}</span>}
@@ -112,8 +114,8 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                             
                             <DropdownMenuContent className="w-64">
                                 <DropdownMenuLabel className="font-normal">
-                                    <p className="font-bold">{item.emoji} {t(item.name)}</p>
-                                    <p className="text-xs text-muted-foreground whitespace-normal">{t(definition?.description)}</p>
+                                    <p className="font-bold">{item.emoji} {getTranslatedText(item.name, language)}</p>
+                                    <p className="text-xs text-muted-foreground whitespace-normal">{getTranslatedText(definition?.description, language)}</p>
                                 </DropdownMenuLabel>
                                 
                                 {isInteractable && (
@@ -149,8 +151,8 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
 
                                     <DropdownMenuSeparator />
                                     {isUsableOnSelf && <DropdownMenuItem onClick={() => handleAction(() => onUseItem(item.name, 'player'))}>{t('useOnSelf')}</DropdownMenuItem>}
-                                    {isUsableOnEnemy && <DropdownMenuItem onClick={() => handleAction(() => onUseItem(item.name, enemy!.type))}>{t('useOnTarget', { target: t(enemy!.type) })}</DropdownMenuItem>}
-                                    {isEquippable && <DropdownMenuItem onClick={() => handleAction(() => onEquipItem(item.name))}>{t('equipItem')}</DropdownMenuItem>}
+                                    {isUsableOnEnemy && <DropdownMenuItem onClick={() => handleAction(() => onUseItem(item.name, enemy!.type))}>{t('useOnTarget', { target: getTranslatedText(enemy!.type, language, t) })}</DropdownMenuItem>}
+                                    {isEquippable && <DropdownMenuItem onClick={() => handleAction(() => onEquipItem(getTranslatedText(item.name, 'en')))}>{t('equipItem')}</DropdownMenuItem>}
                                   </>
                                 )}
                             </DropdownMenuContent>

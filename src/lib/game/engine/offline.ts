@@ -211,7 +211,7 @@ export const fill_template = (
     playerState?: PlayerStatus
 ): string => {
     let filled_template = template_string;
-    const biomeTemplateData = getTemplates()[chunk.terrain];
+    const biomeTemplateData = getTemplates(language)[chunk.terrain];
     if (!biomeTemplateData) {
         logger.warn(`Placeholder data not found for ${chunk.terrain}`);
         return template_string;
@@ -263,12 +263,13 @@ export const generateOfflineNarrative = (
 
     const currentMoods = analyze_chunk_mood(currentChunk);
 
-    let candidateTemplates = biomeTemplates.descriptionTemplates.filter((tmpl: NarrativeTemplate) => {
-        return has_mood_overlap(tmpl.mood, currentMoods) && check_conditions(tmpl.conditions, currentChunk, playerState);
+    const narrativeTemplates = biomeTemplates.descriptionTemplates || [];
+    let candidateTemplates = narrativeTemplates.filter((tmpl: NarrativeTemplate) => {
+        return tmpl && has_mood_overlap(tmpl.mood, currentMoods) && check_conditions(tmpl.conditions, currentChunk, playerState);
     });
     
     if (candidateTemplates.length === 0) {
-        candidateTemplates = biomeTemplates.descriptionTemplates.filter((tmpl: NarrativeTemplate) => tmpl.mood.length === 0);
+        candidateTemplates = narrativeTemplates.filter((tmpl: NarrativeTemplate) => tmpl && tmpl.mood.length === 0);
     }
     if (candidateTemplates.length === 0) return currentChunk.description;
 

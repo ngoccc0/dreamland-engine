@@ -4,6 +4,33 @@ Chào mừng các Đội trưởng và những người đồng hành đến v�
 
 ---
 
+## **Bản cập nhật v0.2.60 - "Hoàn Thiện" (17/07/2025)**
+
+*Tên mã: Polishing*
+
+### 🌟 **Giới thiệu chung**
+
+Đây là một bản cập nhật "dọn dẹp" cuối cùng, tập trung vào việc gia cố các hàm cốt lõi của engine để chống lại các lỗi do dữ liệu template không nhất quán. Mục tiêu là đảm bảo engine hoạt động ổn định trong mọi trường hợp, ngay cả khi đối mặt với các template được định nghĩa thiếu sót.
+
+### ✨ **Thay đổi chính & Phân tích**
+
+1.  **Gia cố `generateOfflineNarrative`:**
+    *   **Vấn đề:** Lỗi `TypeError` xảy ra khi hàm cố gắng gọi `.filter()` trên thuộc tính `descriptionTemplates`, cho thấy thuộc tính này có thể không phải là một mảng như mong đợi.
+    *   **Giải pháp:** Đã thêm một lớp bảo vệ bằng cách sử dụng `const narrativeTemplates = biomeTemplates.descriptionTemplates || []`. Điều này đảm bảo biến `narrativeTemplates` luôn là một mảng, ngăn chặn lỗi runtime.
+
+2.  **Gia cố `selectEntities`:**
+    *   **Vấn đề:** Lỗi `TypeError` vẫn tiếp diễn, cho thấy một phần tử `undefined` vẫn có thể lọt vào mảng `possibleEntities`.
+    *   **Giải pháp:** Đã thêm hai lớp phòng vệ mới bên trong hàm `selectEntities`:
+        *   Sử dụng `.filter(Boolean)` ngay từ đầu để loại bỏ các phần tử `null` hoặc `undefined`.
+        *   Thêm các khối kiểm tra `if (!entity)` và `if (!entity.name)` bên trong vòng lặp để ghi log lỗi và bỏ qua các thực thể không hợp lệ, ngăn chặn game bị crash.
+
+### 🎮 **Ảnh hưởng đến Trải nghiệm & Tương lai**
+
+*   **Độ tin cậy tuyệt đối:** Engine giờ đây có khả năng tự phục hồi và hoạt động ổn định ngay cả khi các tệp template (do người dùng hoặc modder tạo ra) có lỗi cú pháp hoặc thiếu dữ liệu.
+*   **Hoàn tất Type-Safety:** Với bản vá này, toàn bộ các bài kiểm tra TypeScript của dự án đã thành công. Nền móng mã nguồn của chúng ta giờ đây không chỉ vững chắc mà còn hoàn toàn an toàn về kiểu dữ liệu, sẵn sàng cho việc mở rộng các tính năng lớn trong tương lai.
+
+---
+
 ## **Bản cập nhật v0.2.59 - "Soi Rọi Logic" (16/07/2025)**
 
 *Tên mã: Logic Illumination*

@@ -81,10 +81,19 @@ const selectEntities = <T extends {name: string, conditions: SpawnConditions} | 
         return [];
     }
     
-    // Defensive filtering to remove any null/undefined entries before processing
     const cleanPossibleEntities = possibleEntities.filter(Boolean);
 
-    const validEntities = cleanPossibleEntities.filter(entity => checkConditions(entity.conditions, chunk));
+    const validEntities = cleanPossibleEntities.filter(entity => {
+         if (!entity) {
+            logger.error('[selectEntities] Found an undefined entity in template array.', { possibleEntities });
+            return false;
+        }
+        if (!entity.conditions) {
+            logger.error('[selectEntities] Entity is missing "conditions" property.', { entity });
+            return false;
+        }
+        return checkConditions(entity.conditions, chunk)
+    });
     
     const selected: any[] = [];
     const shuffled = [...validEntities].sort(() => 0.5 - Math.random());
@@ -95,6 +104,12 @@ const selectEntities = <T extends {name: string, conditions: SpawnConditions} | 
         let spawnChance = entity.conditions.chance ?? 1.0;
         
         const entityData = 'data' in entity ? entity.data : entity;
+        
+        if (!entityData.name && !entityData.type) {
+            logger.error("[selectEntities] Entity is missing 'name' or 'type' property.", { entity: entityData });
+            continue;
+        }
+
         const itemName = entityData.name || entityData.type || entityData;
 
         const itemDef = allItemDefinitions[itemName];

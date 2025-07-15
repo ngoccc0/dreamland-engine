@@ -26,7 +26,7 @@ export const forest_vi = {
                 rewardItems: [{ name: 'bear_hide', quantity: 1, tier: 4, emoji: '🐻' }]
             },
             conditions: { humanPresence: { min: 2 }, chance: 0.05 } 
-        },
+        }
     ],
     items: [
         { name: 'edible_berries', conditions: { dangerLevel: { max: 4 }, chance: 0.4 } },
@@ -40,15 +40,15 @@ export const forest_vi = {
         { name: 'thorny_vine', conditions: { vegetationDensity: { min: 5 }, chance: 0.3 } },
         { name: 'large_leaf', conditions: { vegetationDensity: { min: 6 }, chance: 0.4 } },
         { name: 'sturdy_branch', conditions: { chance: 0.5 } },
-        { name: 'hollow_log', conditions: { chance: 0.15, moisture: { min: 4 } } },
-        { name: 'magic_root', conditions: { chance: 0.05, moisture: { min: 6 }, timeOfDay: 'night' } },
+        { name: 'hollow_wood_core', conditions: { chance: 0.15, moisture: { min: 4 } } },
+        { name: 'magic_root', conditions: { chance: 0.05, moisture: { min: 6 }, timeOfDay: 'night' } }
     ],
     structures: [
          { 
             data: structureDefinitions['abandoned_altar'], 
             loot: [{ name: 'crystal_shard', chance: 0.1, quantity: { min: 1, max: 1 } }],
             conditions: { magicAffinity: { min: 6 }, chance: 0.01 } 
-        },
+        }
     ],
     creatures: [
         { name: 'common_tree', conditions: { chance: 0.7, vegetationDensity: { min: 3 } } },
@@ -56,8 +56,8 @@ export const forest_vi = {
         { name: 'giant_spider', conditions: { vegetationDensity: { min: 8 }, dangerLevel: { min: 6 }, chance: 0.25 } },
         { name: 'wild_boar', conditions: { predatorPresence: { min: 4 }, chance: 0.25 } },
         { name: 'forest_goblin', conditions: { dangerLevel: { min: 5 }, humanPresence: { min: 1 }, chance: 0.2 } },
-        { name: 'bear', conditions: { predatorPresence: { min: 8 }, dangerLevel: { min: 7 }, chance: 0.08 } },
-    ],
+        { name: 'bear', conditions: { predatorPresence: { min: 8 }, dangerLevel: { min: 7 }, chance: 0.08 } }
+    ]
 };
 
 export const forest_en = forest_vi;

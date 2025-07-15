@@ -1,4 +1,5 @@
 
+
 import type { Chunk, MoodTag, NarrativeLength, NarrativeTemplate, ConditionType, Language, PlayerStatus, World } from "../types";
 import { getTranslatedText, SmartJoinSentences } from "../../utils"; 
 import { getTemplates } from '../templates';

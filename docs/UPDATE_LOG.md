@@ -4,6 +4,30 @@ Chào mừng các Đội trưởng và những người đồng hành đến v�
 
 ---
 
+## **Bản cập nhật v0.2.58 - "Nền Móng Bất Hoại" (15/07/2025)**
+
+*Tên mã: Unbreakable Foundation*
+
+### 🌟 **Giới thiệu chung**
+
+Bản cập nhật này tập trung vào việc gia cố "nền móng" của engine, sửa một lỗi crash nghiêm trọng trong quá trình sinh thế giới. Mục tiêu là đảm bảo engine có thể xử lý các tình huống dữ liệu không mong muốn một cách linh hoạt, ngăn chặn các lỗi runtime và giúp hệ thống trở nên ổn định hơn bao giờ hết.
+
+### ✨ **Thay đổi chính & Phân tích**
+
+1.  **Sửa lỗi Crash trong `generateChunkContent`:**
+    *   **Phân tích:** Một lỗi `TypeError` nghiêm trọng đã xảy ra khi hàm `generateChunkContent` cố gắng đọc thuộc tính `descriptionTemplates` từ một `terrainTemplate` không tồn tại (`undefined`). Nguyên nhân gốc rễ là do hệ thống nhận được một giá trị `terrain` không hợp lệ, không có trong danh sách các template đã được định nghĩa.
+    *   **Giải pháp:**
+        *   **Thêm Guard Clause:** Một khối kiểm tra `if (!terrainTemplate)` đã được thêm vào đầu hàm. Nếu không tìm thấy template cho địa hình, hệ thống sẽ ghi lại lỗi chi tiết và trả về một chunk trống an toàn, ngăn chặn việc crash game.
+        *   **Sử dụng Optional Chaining (`?.`):** Như một lớp phòng vệ thứ hai, tất cả các truy cập vào thuộc tính của `terrainTemplate` (như `items`, `enemies`, `structures`) đều được cập nhật để sử dụng optional chaining và fallback về một giá trị mặc định (mảng rỗng `[]`), đảm bảo mã nguồn không bao giờ bị lỗi do truy cập thuộc tính của `undefined`.
+
+### 🎮 **Ảnh hưởng đến Trải nghiệm & Tương lai**
+
+*   **Độ ổn định:** Game sẽ không còn bị crash đột ngột trong quá trình khám phá thế giới do lỗi sinh chunk.
+*   **Khả năng phục hồi:** Engine giờ đây "kiên cường" hơn, có khả năng tự xử lý các tình huống dữ liệu không hợp lệ mà không làm gián đoạn trải nghiệm của người chơi.
+*   **Dễ dàng Debug:** Việc bổ sung `logger.error` sẽ giúp chúng ta nhanh chóng xác định và sửa lỗi nếu có bất kỳ loại địa hình mới nào được thêm vào mà chưa có template tương ứng trong tương lai.
+
+---
+
 ## **Bản cập nhật v0.2.57 - "Luồng Chảy Nhất Quán" (15/07/2025)**
 
 *Tên mã: Consistent Flow*

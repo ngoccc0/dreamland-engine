@@ -1,4 +1,5 @@
 
+
 import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, Structure, Language, Npc, Action } from "../types";
 import { seasonConfig, worldConfig } from "../world-config";
 import { getTemplates } from "../templates";
@@ -505,7 +506,7 @@ export function ensureChunkExists(
 }
 
 
-export const getEffectiveChunk = (baseChunk: Chunk, weatherZones: { [key: string]: WeatherZone }, gameTime: number): Chunk => {
+export const getEffectiveChunk = (baseChunk: Chunk, weatherZones: { [key: string]: WeatherState }, gameTime: number): Chunk => {
     if (!baseChunk) return baseChunk;
 
     const effectiveChunk: Chunk = { ...baseChunk };

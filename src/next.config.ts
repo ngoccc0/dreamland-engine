@@ -1,5 +1,4 @@
 
-
 import type {NextConfig} from 'next';
 import type { PWAConfig } from '@ducanh2912/next-pwa';
 import withPWAInit from '@ducanh2912/next-pwa';

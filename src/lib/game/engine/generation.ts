@@ -115,12 +115,16 @@ export const weightedRandom = (options: [Terrain, number][]): Terrain => {
         return 'forest'; // Fallback to a safe default terrain
     }
     const total = options.reduce((sum, [, prob]) => sum + prob, 0);
-    const r = Math.random() * total;
-    let current = 0;
+    let r = Math.random() * total;
+
+    // Handle floating point inaccuracies
+    if (r >= total) r = total - 0.0001;
+
     for (const [option, prob] of options) {
-        current += prob;
-        if (r <= current) return option;
+        r -= prob;
+        if (r <= 0) return option;
     }
+    logger.warn("[weightedRandom] Failed to select an option, returning first.", { options });
     return options[0][0]; 
 }
 
@@ -135,6 +139,7 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
     }
 
     if (adjacentTerrains.size === 0) {
+        // No neighbors found (e.g., starting chunk). Return a list of valid starting terrains.
         return Object.keys(worldConfig).filter(t => t !== 'wall') as Terrain[];
     }
     
@@ -151,6 +156,7 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
         const config = worldConfig[terrain];
         if (!config) return false;
 
+        // Ensure the new terrain can be a neighbor to ALL existing adjacent terrains
         for(const adjTerrain of adjacentTerrains) {
             const adjConfig = worldConfig[adjTerrain];
             if (!adjConfig.allowedNeighbors.includes(terrain)) {
@@ -160,7 +166,8 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
         return true;
     });
     
-    return validTerrains.length > 0 ? validTerrains : Object.keys(worldConfig).filter(t => t !== 'wall') as Terrain[];
+    // If no valid terrains found from neighbors, default to a safe list
+    return validTerrains.length > 0 ? validTerrains : ['grassland', 'forest'];
 };
 
 function calculateDependentChunkAttributes(
@@ -432,7 +439,7 @@ export const generateRegion = (
 
         const dependentAttributes = calculateDependentChunkAttributes(
             terrain,
-            { vegetationDensity, moisture: baseMoisture, dangerLevel, dangerLevel, temperature: baseTemperature },
+            { vegetationDensity, moisture: baseMoisture, dangerLevel, temperature: baseTemperature },
             worldProfile,
             currentSeason
         );
@@ -445,6 +452,7 @@ export const generateRegion = (
             humanPresence,
             predatorPresence,
             ...dependentAttributes,
+            terrain: terrain
         };
 
         const content = generateChunkContent(tempChunkData, worldProfile, allItemDefinitions, customItemCatalog, customStructures, language);
@@ -452,7 +460,6 @@ export const generateRegion = (
         newWorld[posKey] = {
             x: pos.x, 
             y: pos.y, 
-            terrain, 
             explored: false, 
             lastVisited: 0,
             regionId,

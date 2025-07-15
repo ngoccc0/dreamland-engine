@@ -4,6 +4,30 @@ Chào mừng các Đội trưởng và những người đồng hành đến v�
 
 ---
 
+## **Bản cập nhật v0.2.59 - "Soi Rọi Logic" (16/07/2025)**
+
+*Tên mã: Logic Illumination*
+
+### 🌟 **Giới thiệu chung**
+
+Đây là một bản cập nhật "hậu cần", tập trung vào việc tạo ra tài liệu kỹ thuật để hỗ trợ quá trình debug. Thay vì thay đổi mã nguồn, bản cập nhật này bổ sung một báo cáo chi tiết vào thư mục `docs/`, phân tích sâu về hai quy trình cốt lõi của engine: **Tạo Chunk Mới** và **Tải Thế giới từ Dữ liệu đã lưu**.
+
+### ✨ **Thay đổi chính & Phân tích**
+
+1.  **Tạo Báo cáo Phân tích `report_chunk_creation_and_loading.md`:**
+    *   **Mục tiêu:** Để truy tìm nguyên nhân gốc rễ của lỗi `TypeError` trong `generateChunkContent`, chúng ta cần hiểu rõ luồng dữ liệu của một đối tượng `Chunk`.
+    *   **Nội dung báo cáo:**
+        *   **Logic Tạo Chunk Mới:** Phân tích chi tiết hàm `generateRegion`, cho thấy một `Chunk` được tạo ra với đầy đủ các thuộc tính vật lý (bao gồm `terrain`) trước khi được truyền vào `generateChunkContent` để sinh nội dung (mô tả, vật phẩm).
+        *   **Logic Tải Thế giới:** Phân tích hook `useGameInitialization`, cho thấy toàn bộ đối tượng `World` được tải trực tiếp từ repository (IndexedDB/Firebase) và ghi đè vào state của game.
+    *   **Kết luận từ báo cáo:** Lỗi `terrain` không hợp lệ có thể xuất phát từ hai nguồn: (1) Lỗi trong logic chọn địa hình mới khi sinh thế giới, hoặc (2) Dữ liệu `Chunk` không tương thích/bị hỏng trong một file save cũ.
+
+### 🎮 **Ảnh hưởng đến Trải nghiệm & Tương lai**
+
+*   **Khả năng Debug:** Với báo cáo này, chúng ta có một tài liệu tham chiếu rõ ràng về luồng dữ liệu, giúp việc xác định và sửa các lỗi logic phức tạp trong tương lai trở nên nhanh chóng và chính xác hơn.
+*   **Độ ổn định:** Việc hiểu rõ các quy trình này là tiền đề để xây dựng các cơ chế xác thực dữ liệu (data validation) mạnh mẽ hơn, ngăn chặn các lỗi do dữ liệu không hợp lệ gây ra.
+
+---
+
 ## **Bản cập nhật v0.2.58 - "Nền Móng Bất Hoại" (15/07/2025)**
 
 *Tên mã: Unbreakable Foundation*
@@ -91,6 +115,8 @@ Bản cập nhật này tập trung vào việc giải quyết một loạt lỗ
 
 *   **Độ ổn định:** Game sẽ không còn gặp các lỗi runtime bất ngờ liên quan đến việc truy cập dữ liệu không nhất quán hoặc vòng lặp render vô hạn.
 *   **Khả năng bảo trì:** Cấu trúc mã nguồn giờ đây sạch sẽ và rõ ràng hơn rất nhiều. Việc thêm vật phẩm mới, kẻ thù mới, hoặc các tính năng phức tạp trong tương lai sẽ trở nên dễ dàng và ít rủi ro hơn. Nền móng của chúng ta giờ đây thực sự vững chắc.
+
+---
 
 ## **Bản cập nhật v0.2.55 - "Nền Móng Vững Chắc" (14/07/2025)**
 

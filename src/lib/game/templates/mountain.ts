@@ -23,7 +23,7 @@ export const mountain_vi = {
         { 
             data: { name: 'Người cưỡi griffon' as TranslationKey, description: 'Một chiến binh mặc áo giáp sáng bóng, đứng cạnh một sinh vật griffon uy nghi.' as TranslationKey, dialogueSeed: 'Một hiệp sĩ cao ngạo, chỉ nói chuyện với những người mà họ cho là xứng đáng.' as TranslationKey },
             conditions: { magicAffinity: { min: 6 }, elevation: { min: 9 }, chance: 0.02 } 
-        },
+        }
     ],
     items: [
         { name: 'Quặng Sắt', conditions: { soilType: ['rocky'], chance: 0.25 } },
@@ -35,7 +35,7 @@ export const mountain_vi = {
         { name: 'Đá Granit', conditions: { chance: 0.2 } },
         { name: 'Tuyết', conditions: { temperature: { max: 2 }, chance: 0.4 } },
         { name: 'Cây Địa Y', conditions: { moisture: { min: 4 }, chance: 0.1 } },
-        { name: 'Trứng Đại Bàng', conditions: { elevation: { min: 8 }, chance: 0.1 } },
+        { name: 'Trứng Đại Bàng', conditions: { elevation: { min: 8 }, chance: 0.1 } }
     ],
     structures: [
         { 
@@ -49,7 +49,7 @@ export const mountain_vi = {
         { 
             data: structureDefinitions['Đảo Bay'],
             conditions: { elevation: { min: 10 }, magicAffinity: { min: 8 }, chance: 0.01 } 
-        },
+        }
     ],
     enemies: [
         {
@@ -78,7 +78,7 @@ export const mountain_vi = {
         { data: { type: 'Harpie', emoji: '🦅', hp: 45, damage: 18, behavior: 'aggressive', size: 'medium', diet: ['Dê núi hung hãn', 'Thỏ hoang hung dữ'], satiation: 0, maxSatiation: 2, loot: [{name: 'Lông Harpie', chance: 0.5, quantity: {min: 3, max: 6}}] }, conditions: { elevation: { min: 9 }, windLevel: { min: 7 }, chance: 0.25 } },
         { data: { type: 'Báo tuyết', emoji: '🐆', hp: 60, damage: 20, behavior: 'aggressive', size: 'large', diet: ['Dê núi hung hãn'], satiation: 0, maxSatiation: 2, loot: [{name: 'Da Báo Tuyết', chance: 0.3, quantity: {min: 1, max: 1}}, {name: 'Thịt Báo Tuyết', chance: 0.6, quantity: {min: 1, max: 2}}] }, conditions: { predatorPresence: { min: 7 }, temperature: { max: 3 }, chance: 0.15 } },
         ...naturePlusMountainEnemies
-    ],
+    ]
 };
 
 export const mountain_en = {

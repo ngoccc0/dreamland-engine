@@ -80,7 +80,11 @@ const selectEntities = <T extends {name: string, conditions: SpawnConditions} | 
     if (!possibleEntities) {
         return [];
     }
-    const validEntities = possibleEntities.filter(entity => checkConditions(entity.conditions, chunk));
+    
+    // Defensive filtering to remove any null/undefined entries before processing
+    const cleanPossibleEntities = possibleEntities.filter(Boolean);
+
+    const validEntities = cleanPossibleEntities.filter(entity => checkConditions(entity.conditions, chunk));
     
     const selected: any[] = [];
     const shuffled = [...validEntities].sort(() => 0.5 - Math.random());

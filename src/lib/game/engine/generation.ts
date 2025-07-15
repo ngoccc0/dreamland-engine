@@ -81,11 +81,13 @@ const selectEntities = <T extends {name: string, conditions: SpawnConditions} | 
         return [];
     }
     
+    // Lớp phòng vệ 1: Loại bỏ ngay lập tức bất kỳ giá trị null hoặc undefined nào từ mảng đầu vào.
     const cleanPossibleEntities = possibleEntities.filter(Boolean);
 
     const validEntities = cleanPossibleEntities.filter(entity => {
+         // Lớp phòng vệ 2: Kiểm tra lại entity sau khi filter, để chắc chắn.
          if (!entity) {
-            logger.error('[selectEntities] Found an undefined entity in template array.', { possibleEntities });
+            logger.error('[selectEntities] Found an undefined entity in template array even after filtering.', { possibleEntities });
             return false;
         }
         if (!entity.conditions) {
@@ -105,9 +107,10 @@ const selectEntities = <T extends {name: string, conditions: SpawnConditions} | 
         
         const entityData = 'data' in entity ? entity.data : entity;
         
-        if (!entityData.name && !entityData.type) {
-            logger.error("[selectEntities] Entity is missing 'name' or 'type' property.", { entity: entityData });
-            continue;
+        // Lớp phòng vệ 3: Kiểm tra entityData có tồn tại và có 'name' hoặc 'type' không.
+        if (!entityData || (!entityData.name && !entityData.type)) {
+            logger.error("[selectEntities] Entity data is missing 'name' or 'type' property.", { entity: entityData });
+            continue; // Bỏ qua thực thể bị lỗi này.
         }
 
         const itemName = entityData.name || entityData.type || entityData;
@@ -270,9 +273,9 @@ function generateChunkContent(
         .replace('[adjective]', (terrainTemplate.adjectives || ['normal'])[Math.floor(Math.random() * (terrainTemplate.adjectives || ['normal']).length)])
         .replace('[feature]', (terrainTemplate.features || ['nothing special'])[Math.floor(Math.random() * (terrainTemplate.features || ['nothing special']).length)]);
     
-    const staticSpawnCandidates = terrainTemplate.items || [];
+    const staticSpawnCandidates = (terrainTemplate.items || []).filter(Boolean);
     const customSpawnCandidates = customItemCatalog
-        .filter(item => item.spawnEnabled !== false && item.spawnBiomes && item.spawnBiomes.includes(chunkData.terrain as Terrain))
+        .filter(item => item && item.spawnEnabled !== false && item.spawnBiomes && item.spawnBiomes.includes(chunkData.terrain as Terrain))
         .map(item => ({ name: getTranslatedText(item.name, 'en', t), conditions: { chance: 0.15 } }));
     
     const allSpawnCandidates = [...staticSpawnCandidates, ...customSpawnCandidates];
@@ -301,7 +304,7 @@ function generateChunkContent(
     
     const spawnedNPCs: Npc[] = selectEntities(terrainTemplate.NPCs, chunkData, allItemDefinitions, 1).map(ref => ref.data);
 
-    let allEnemyCandidates = [...(terrainTemplate.enemies || [])];
+    let allEnemyCandidates = [...(terrainTemplate.enemies || [])].filter(Boolean);
 
     const spawnedEnemies = selectEntities(allEnemyCandidates, chunkData, allItemDefinitions, 1);
     
@@ -310,7 +313,7 @@ function generateChunkContent(
         const uniqueStructure = customStructures[Math.floor(Math.random() * customStructures.length)];
         spawnedStructures.push(uniqueStructure);
     } else {
-        const spawnedStructureRefs = selectEntities(terrainTemplate.structures, chunkData, allItemDefinitions, 1);
+        const spawnedStructureRefs = selectEntities((terrainTemplate.structures || []).filter(Boolean), chunkData, allItemDefinitions, 1);
         spawnedStructures = spawnedStructureRefs.map(ref => ref.data);
          for (const structureRef of spawnedStructureRefs) {
             if (structureRef.loot) {
@@ -532,7 +535,7 @@ export function ensureChunkExists(
     const newTerrain = weightedRandom(terrainWeights);
 
     const { newWorld, newRegions, newRegionCounter } = generateRegion(pos, newTerrain, currentWorld, currentRegions, currentRegionCounter, worldProfile, currentSeason, allItemDefinitions, customItemCatalog, customStructures, language);
-    return { worldWithChunk: newWorld, newRegions, newRegionCounter };
+    return { worldWithChunk: newWorld, newRegions: newRegionCounter, newRegionCounter };
 }
 
 

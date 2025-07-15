@@ -263,6 +263,7 @@ export const generateOfflineNarrative = (
 
     const currentMoods = analyze_chunk_mood(currentChunk);
 
+    // Lớp phòng vệ: Đảm bảo narrativeTemplates luôn là một mảng.
     const narrativeTemplates = biomeTemplates.descriptionTemplates || [];
     let candidateTemplates = narrativeTemplates.filter((tmpl: NarrativeTemplate) => {
         return tmpl && has_mood_overlap(tmpl.mood, currentMoods) && check_conditions(tmpl.conditions, currentChunk, playerState);

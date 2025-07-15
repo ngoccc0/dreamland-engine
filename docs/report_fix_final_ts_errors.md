@@ -76,8 +76,8 @@ const selectEntities = <T extends {name: string, conditions: SpawnConditions} | 
         const entityData = 'data' in entity ? entity.data : entity;
         
         // ĐÃ SỬA: Kiểm tra an toàn trước khi truy cập
-        if (!entityData.name && !entityData.type) {
-            logger.error("[selectEntities] Entity is missing 'name' or 'type' property.", { entity: entityData });
+        if (!entityData || (!entityData.name && !entityData.type)) {
+            logger.error("[selectEntities] Entity data is missing 'name' or 'type' property.", { entity: entityData });
             continue;
         }
         // ...

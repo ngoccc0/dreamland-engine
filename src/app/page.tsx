@@ -17,7 +17,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Loader2, Settings, Download, Trash2, Play, PlusCircle, Star, User, Backpack, Swords } from 'lucide-react';
 import type { TranslationKey, Language } from '@/lib/i18n';
 import { LanguageSelector } from '@/components/game/language-selector';
-import { cn } from "@/lib/utils";
+import { cn, getTranslatedText } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from '@/components/ui/separator';
 import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
@@ -160,7 +160,7 @@ export default function Home() {
       playerStats: {
         hp: 100, mana: 50, stamina: 100, bodyTemperature: 37, items: initialPlayerInventory, equipment: { weapon: null, armor: null, accessory: null },
         quests: selectedConcept.initialQuests, questsCompleted: 0, skills: selectedConcept.startingSkill ? [selectedConcept.startingSkill] : [], pets: [], persona: 'none',
-        attributes: { physicalAttack: 10, magicalAttack: 5, critChance: 5, attackSpeed: 1.0, cooldownReduction: 0 },
+        attributes: { physicalAttack: 10, magicalAttack: 5, critChance: 5, attackSpeed: 1.0, cooldownReduction: 0, physicalDefense: 0, magicalDefense: 0 },
         unlockProgress: { kills: 0, damageSpells: 0, moves: 0 }, journal: {}, dailyActionLog: [], questHints: {},
       },
       customItemCatalog: allCustomItems,
@@ -270,7 +270,7 @@ export default function Home() {
                    {slot ? (
                      <>
                         <div className="flex-grow space-y-4">
-                            <CardTitle className="truncate">{t(slot.worldSetup.worldName)}</CardTitle>
+                            <CardTitle className="truncate">{getTranslatedText(slot.worldSetup.worldName, language, t)}</CardTitle>
                             <CardDescription>{t('dayX_time', { day: slot.day, time: getGameTimeAsString(slot.gameTime ?? 360) })}</CardDescription>
 
                             <Separator />
@@ -311,7 +311,7 @@ export default function Home() {
                                  <AlertDialogTitle>{t('confirmDeleteTitle')}</AlertDialogTitle>
                                  <AlertDialogDescription>
                                    {slot.worldSetup?.worldName
-                                     ? t('confirmDeleteDesc', { worldName: t(slot.worldSetup.worldName) })
+                                     ? t('confirmDeleteDesc', { worldName: getTranslatedText(slot.worldSetup.worldName, language, t) })
                                      : t('confirmDeleteDescGeneric')
                                    }
                                  </AlertDialogDescription>

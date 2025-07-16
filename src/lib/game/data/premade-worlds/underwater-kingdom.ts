@@ -16,9 +16,9 @@ const items: GeneratedItem[] = [
 ];
 
 const structures: Structure[] = [
-    { name: { en: 'Coral Palace', vi: 'Cung điện San hô' }, description: { en: 'A breathtaking palace grown from living coral.', vi: 'Một cung điện ngoạn mục được xây dựng từ san hô sống.' }, emoji: '🏰', providesShelter: true, buildable: false, restEffect: { hp: 20, stamina: 20 }, heatValue: 0 },
-    { name: { en: 'Sunken Temple', vi: 'Ngôi đền Chìm' }, description: { en: 'A temple dedicated to an old sea god, now lost to the depths.', vi: 'Một ngôi đền dành riêng cho một vị thần biển cũ, giờ đã bị chôn vùi dưới đáy sâu.' }, emoji: '🏛️', providesShelter: true, buildable: false },
-    { name: { en: 'Hydrothermal Vent', vi: 'Miệng phun Thủy nhiệt' }, description: { en: 'A fissure in the seabed that spews hot, mineral-rich water.', vi: 'Một khe nứt dưới đáy biển phun ra nước nóng, giàu khoáng chất.' }, emoji: '💨', providesShelter: false, buildable: false, heatValue: 5 },
+    { name: { en: 'Coral Palace', vi: 'Cung điện San hô' }, description: { en: 'A breathtaking palace grown from living coral.', vi: 'Một cung điện ngoạn mục được xây dựng từ san hô sống.' }, emoji: '🏰', providesShelter: true, buildable: false, buildCost: [], restEffect: { hp: 20, stamina: 20, mana: 0 }, heatValue: 0 },
+    { name: { en: 'Sunken Temple', vi: 'Ngôi đền Chìm' }, description: { en: 'A temple dedicated to an old sea god, now lost to the depths.', vi: 'Một ngôi đền dành riêng cho một vị thần biển cũ, giờ đã bị chôn vùi dưới đáy sâu.' }, emoji: '🏛️', providesShelter: true, buildable: false, buildCost: [], restEffect: undefined, heatValue: 0 },
+    { name: { en: 'Hydrothermal Vent', vi: 'Miệng phun Thủy nhiệt' }, description: { en: 'A fissure in the seabed that spews hot, mineral-rich water.', vi: 'Một khe nứt dưới đáy biển phun ra nước nóng, giàu khoáng chất.' }, emoji: '💨', providesShelter: false, buildable: false, buildCost: [], restEffect: undefined, heatValue: 5 },
 ];
 
 const skill1: Skill = { name: { en: 'Heal', vi: 'Chữa lành' }, description: { en: 'Use mana to restore a small amount of health.', vi: 'Sử dụng mana để phục hồi một lượng nhỏ máu.' }, tier: 1, manaCost: 20, effect: { type: 'HEAL', amount: 25, target: 'SELF' } };
@@ -27,12 +27,12 @@ const skill2: Skill = { name: { en: 'Life Siphon', vi: 'Hút sinh lực' }, desc
 const concepts: WorldConcept[] = [
     {
         worldName: "worldName_abyssalKingdom", initialNarrative: 'underwater_narrative1', startingBiome: 'underwater',
-        playerInventory: [ { name: "Coral Spear", quantity: 1 }, { name: "Algae Salve", quantity: 1 } ],
+        playerInventory: [ { name: {en: "Coral Spear", vi: "Giáo San hô"}, quantity: 1, tier: 2, emoji: '🔱' }, { name: {en: "Algae Salve", vi: "Thuốc mỡ Tảo biển"}, quantity: 1, tier: 1, emoji: '🌿' } ],
         initialQuests: [ 'underwater_quest1', 'underwater_quest2' ], startingSkill: skill1, customStructures: structures
     },
     {
         worldName: "worldName_abyssalKingdom", initialNarrative: 'underwater_narrative2', startingBiome: 'underwater',
-        playerInventory: [ { name: "Bioluminescent Pearl", quantity: 2 }, { name: "Ancient Tablet Fragment", quantity: 1 } ],
+        playerInventory: [ { name: {en: "Bioluminescent Pearl", vi: "Ngọc trai Phát quang"}, quantity: 2, tier: 2, emoji: '💡' }, { name: {en: "Ancient Tablet Fragment", vi: "Mảnh Bia đá Cổ"}, quantity: 1, tier: 3, emoji: '📜' } ],
         initialQuests: [ 'underwater_quest3' ], startingSkill: skill2, customStructures: structures
     },
 ];

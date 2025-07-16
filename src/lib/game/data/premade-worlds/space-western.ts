@@ -16,9 +16,9 @@ const items: GeneratedItem[] = [
 ];
 
 const structures: Structure[] = [
-    { name: { en: 'Dusty Saloon', vi: 'Quán rượu Bụi bặm' }, description: { en: 'A classic saloon with swinging doors, a gruff bartender, and questionable clientele.', vi: 'Một quán rượu cổ điển với cửa xoay, một người pha chế cộc cằn và những khách hàng đáng ngờ.' }, emoji: '🍺', providesShelter: true, buildable: false, restEffect: { hp: 5, stamina: 15 }, heatValue: 0 },
-    { name: { en: "Sheriff's Office", vi: 'Văn phòng Cảnh sát trưởng' }, description: { en: 'A small, fortified building. The only law in this town.', vi: 'Một tòa nhà nhỏ, được gia cố. Luật pháp duy nhất trong thị trấn này.' }, emoji: '⭐', providesShelter: true, buildable: false },
-    { name: { en: 'Crashed Freighter', vi: 'Xác tàu chở hàng' }, description: { en: 'The wreckage of a cargo ship, now a haven for scavengers and worse.', vi: 'Xác của một con tàu chở hàng, giờ là thiên đường cho những kẻ nhặt rác và những thứ tồi tệ hơn.' }, emoji: '🚀', providesShelter: true, buildable: false },
+    { name: { en: 'Dusty Saloon', vi: 'Quán rượu Bụi bặm' }, description: { en: 'A classic saloon with swinging doors, a gruff bartender, and questionable clientele.', vi: 'Một quán rượu cổ điển với cửa xoay, một người pha chế cộc cằn và những khách hàng đáng ngờ.' }, emoji: '🍺', providesShelter: true, buildable: false, buildCost: [], restEffect: { hp: 5, stamina: 15, mana: 0 }, heatValue: 0 },
+    { name: { en: "Sheriff's Office", vi: 'Văn phòng Cảnh sát trưởng' }, description: { en: 'A small, fortified building. The only law in this town.', vi: 'Một tòa nhà nhỏ, được gia cố. Luật pháp duy nhất trong thị trấn này.' }, emoji: '⭐', providesShelter: true, buildable: false, buildCost: [], restEffect: undefined, heatValue: 0 },
+    { name: { en: 'Crashed Freighter', vi: 'Xác tàu chở hàng' }, description: { en: 'The wreckage of a cargo ship, now a haven for scavengers and worse.', vi: 'Xác của một con tàu chở hàng, giờ là thiên đường cho những kẻ nhặt rác và những thứ tồi tệ hơn.' }, emoji: '🚀', providesShelter: true, buildable: false, buildCost: [], restEffect: undefined, heatValue: 0 },
 ];
 
 const skill1: Skill = { name: { en: 'Heal', vi: 'Chữa lành' }, description: { en: 'Use mana to restore a small amount of health.', vi: 'Sử dụng mana để phục hồi một lượng nhỏ máu.' }, tier: 1, manaCost: 20, effect: { type: 'HEAL', amount: 25, target: 'SELF' } };
@@ -27,12 +27,12 @@ const skill2: Skill = { name: { en: 'Fireball', vi: 'Quả cầu lửa' }, descr
 const concepts: WorldConcept[] = [
     {
         worldName: "worldName_outlawPlanet", initialNarrative: 'western_narrative1', startingBiome: 'desert',
-        playerInventory: [ { name: "Laser Revolver", quantity: 1 }, { name: "Bounty Puck", quantity: 1 } ],
+        playerInventory: [ { name: {en: "Laser Revolver", vi: "Súng lục Laser"}, quantity: 1, tier: 3, emoji: '🔫' }, { name: {en: "Bounty Puck", vi: "Chip Tiền thưởng"}, quantity: 1, tier: 1, emoji: '💿' } ],
         initialQuests: [ 'western_quest1', 'western_quest2' ], startingSkill: skill1, customStructures: structures
     },
     {
         worldName: "worldName_outlawPlanet", initialNarrative: 'western_narrative2', startingBiome: 'desert',
-        playerInventory: [ { name: "Spice-Infused Water", quantity: 3 } ],
+        playerInventory: [ { name: {en: "Spice-Infused Water", vi: "Nước tẩm Gia vị"}, quantity: 3, tier: 2, emoji: '💧' } ],
         initialQuests: [ 'western_quest3' ], startingSkill: skill2, customStructures: structures
     },
 ];

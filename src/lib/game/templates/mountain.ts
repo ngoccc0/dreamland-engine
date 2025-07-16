@@ -38,11 +38,10 @@ export const mountain_vi = {
     ],
     structures: [
         { 
-            data: structureDefinitions['Cửa hầm mỏ bỏ hoang'],
-            conditions: { elevation: { min: 5 }, dangerLevel: { min: 6 }, chance: 0.05 } 
+            data: structureDefinitions['abandoned_mine_entrance'],
         },
         { 
-            data: structureDefinitions['Đảo Bay'],
+            data: structureDefinitions['floating_island'],
             conditions: { elevation: { min: 10 }, magicAffinity: { min: 8 }, chance: 0.01 } 
         }
     ],

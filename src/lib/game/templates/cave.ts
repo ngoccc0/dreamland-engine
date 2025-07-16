@@ -36,8 +36,7 @@ export const cave_vi = {
     ],
     structures: [
         { 
-            data: structureDefinitions['Cửa hầm mỏ bỏ hoang'],
-            conditions: { dangerLevel: { min: 8 }, chance: 0.15 } 
+            data: structureDefinitions['abandoned_mine_entrance'],
         }
     ],
     enemies: [

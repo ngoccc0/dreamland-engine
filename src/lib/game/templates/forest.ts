@@ -1,5 +1,4 @@
 
-
 import { structureDefinitions } from "../structures";
 import type { TranslationKey } from "@/lib/i18n";
 import { naturePlusForestEnemies } from "./modded/nature_plus";
@@ -45,7 +44,7 @@ export const forest_vi = {
         { name: 'magic_root', conditions: { chance: 0.05, moisture: { min: 6 }, timeOfDay: 'night' } }
     ],
     structures: [
-        structureDefinitions['Bàn thờ bị bỏ hoang'],
+        { data: structureDefinitions['abandoned_altar'] }
     ],
     creatures: [
         { name: 'common_tree', conditions: { chance: 0.7, vegetationDensity: { min: 3 } } },

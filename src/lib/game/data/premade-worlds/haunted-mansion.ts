@@ -16,8 +16,8 @@ const items: GeneratedItem[] = [
 ];
 
 const structures: Structure[] = [
-    { name: { en: 'Grand Foyer', vi: 'Đại Sảnh' }, description: { en: 'A large, imposing foyer. The portraits on the walls seem to watch you.', vi: 'Một đại sảnh lớn, hùng vĩ. Những bức chân dung trên tường dường như đang theo dõi bạn.' }, emoji: '🚪', providesShelter: true, buildable: false },
-    { name: { en: 'Dusty Library', vi: 'Thư viện Bụi bặm' }, description: { en: 'Rows of books, covered in a thick layer of dust. The air is heavy with the smell of old paper.', vi: 'Những hàng sách, phủ một lớp bụi dày. Không khí nặng mùi giấy cũ.' }, emoji: '📚', providesShelter: true, buildable: false, restEffect: { hp: 10, stamina: 10 }, heatValue: -1 },
+    { name: { en: 'Grand Foyer', vi: 'Đại Sảnh' }, description: { en: 'A large, imposing foyer. The portraits on the walls seem to watch you.', vi: 'Một đại sảnh lớn, hùng vĩ. Những bức chân dung trên tường dường như đang theo dõi bạn.' }, emoji: '🚪', providesShelter: true, buildable: false, buildCost: [], restEffect: undefined, heatValue: 0 },
+    { name: { en: 'Dusty Library', vi: 'Thư viện Bụi bặm' }, description: { en: 'Rows of books, covered in a thick layer of dust. The air is heavy with the smell of old paper.', vi: 'Những hàng sách, phủ một lớp bụi dày. Không khí nặng mùi giấy cũ.' }, emoji: '📚', providesShelter: true, buildable: false, buildCost: [], restEffect: { hp: 10, stamina: 10, mana: 0 }, heatValue: -1 },
 ];
 
 const skill1: Skill = { name: { en: 'Fireball', vi: 'Quả cầu lửa' }, description: { en: 'Launch a fireball at an enemy, dealing magic damage.', vi: 'Phóng một quả cầu lửa vào kẻ thù, gây sát thương phép.' }, tier: 1, manaCost: 15, effect: { type: 'DAMAGE', amount: 15, target: 'ENEMY' } };
@@ -27,12 +27,12 @@ const skill2: Skill = { name: { en: 'Heal', vi: 'Chữa lành' }, description: {
 const concepts: WorldConcept[] = [
     {
         worldName: "worldName_blackwoodManor", initialNarrative: 'mansion_narrative1', startingBiome: 'cave', // Using 'cave' to represent dark, indoor spaces
-        playerInventory: [ { name: "Rusty Lantern", quantity: 1 }, { name: "Torn Diary Page", quantity: 1 } ],
+        playerInventory: [ { name: {en: "Rusty Lantern", vi: "Đèn lồng Gỉ sét"}, quantity: 1, tier: 1, emoji: '🏮' }, { name: {en: "Torn Diary Page", vi: "Trang Nhật ký Bị xé"}, quantity: 1, tier: 1, emoji: '📄' } ],
         initialQuests: [ 'mansion_quest1', 'mansion_quest2' ], startingSkill: skill1, customStructures: structures
     },
     {
         worldName: "worldName_blackwoodManor", initialNarrative: 'mansion_narrative2', startingBiome: 'cave',
-        playerInventory: [ { name: "Silver Key", quantity: 1 } ],
+        playerInventory: [ { name: {en: "Silver Key", vi: "Chìa khóa Bạc"}, quantity: 1, tier: 2, emoji: '🗝️' } ],
         initialQuests: [ 'mansion_quest3' ], startingSkill: skill2, customStructures: structures
     },
 ];

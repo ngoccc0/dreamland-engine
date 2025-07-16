@@ -107,14 +107,7 @@ export default function GameLayout(props: GameLayoutProps) {
     }, []);
 
     const generateMapGrid = useCallback((): (Chunk | null)[][] => {
-        console.log('[Minimap Debug] Attempting to generate map grid. Dependencies:', {
-            isLoaded,
-            finalWorldSetupExists: !!finalWorldSetup,
-            playerPosition,
-        });
-
         if (!isLoaded || !finalWorldSetup) {
-            console.log('[Minimap Debug] Grid generation SKIPPED. isLoaded or finalWorldSetup is falsy.');
             return [];
         }
         const radius = 2; // 5x5 grid
@@ -142,9 +135,6 @@ export default function GameLayout(props: GameLayoutProps) {
             }
             grid.push(row);
         }
-
-        console.log('[Minimap Debug] Grid generated. Grid length:', grid.length, 'First row content:', grid[0]);
-
         return grid;
     }, [world, playerPosition.x, playerPosition.y, finalWorldSetup, turn, isLoaded]);
     
@@ -154,8 +144,8 @@ export default function GameLayout(props: GameLayoutProps) {
         return (
             <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
                 <div className="flex flex-col items-center gap-2 mt-4 text-muted-foreground">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <p>{t('loadingAdventure')}</p>
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                    <p className="mt-2">{t('loadingAdventure')}</p>
                 </div>
             </div>
         );
@@ -363,5 +353,3 @@ export default function GameLayout(props: GameLayoutProps) {
         </TooltipProvider>
     );
 }
-
-    

@@ -8,6 +8,7 @@ import type { TranslationKey } from "../../i18n";
 import { logger } from "@/lib/logger";
 import type { ItemDefinition } from "../types";
 import { clamp } from "@/lib/utils";
+import { biomeNarrativeTemplates } from "../data/narrative-templates";
 
 /**
  * Phân tích các thuộc tính của chunk để xác định các MoodTag chủ đạo.
@@ -212,7 +213,9 @@ export const fill_template = (
     playerState?: PlayerStatus
 ): string => {
     let filled_template = template_string;
-    const biomeTemplateData = getTemplates(language)[chunk.terrain];
+    const currentBiomeName: string = chunk.terrain;
+    const biomeTemplateData = biomeNarrativeTemplates[currentBiomeName];
+
     if (!biomeTemplateData) {
         logger.warn(`Placeholder data not found for ${chunk.terrain}`);
         return template_string;
@@ -259,19 +262,27 @@ export const generateOfflineNarrative = (
     language: Language,
     playerState?: PlayerStatus
 ): string => {
-    const biomeTemplates = getTemplates(language)[currentChunk.terrain];
-    if (!biomeTemplates) return currentChunk.description || "An unknown area.";
+    const currentBiomeName: string = currentChunk.terrain;
+    const currentBiomeData = biomeNarrativeTemplates[currentBiomeName];
+
+    if (!currentBiomeData) {
+        logger.warn(`[generateOfflineNarrative] No biome template data found for: ${currentBiomeName}`);
+        return currentChunk.description || "An unknown area.";
+    }
 
     const currentMoods = analyze_chunk_mood(currentChunk);
 
-    // Lớp phòng vệ: Đảm bảo narrativeTemplates luôn là một mảng.
-    const narrativeTemplates = biomeTemplates.descriptionTemplates || [];
+    const narrativeTemplates = (
+        currentBiomeData && Array.isArray(currentBiomeData.descriptionTemplates)
+    ) ? currentBiomeData.descriptionTemplates : [];
+
     let candidateTemplates = narrativeTemplates.filter((tmpl: NarrativeTemplate) => {
-        return tmpl && has_mood_overlap(tmpl.mood, currentMoods) && check_conditions(tmpl.conditions, currentChunk, playerState);
+        return tmpl && typeof tmpl === 'object' && !Array.isArray(tmpl) && 'id' in tmpl && 'template' in tmpl &&
+               has_mood_overlap(tmpl.mood, currentMoods) && check_conditions(tmpl.conditions, currentChunk, playerState);
     });
     
     if (candidateTemplates.length === 0) {
-        candidateTemplates = narrativeTemplates.filter((tmpl: NarrativeTemplate) => tmpl && tmpl.mood.length === 0);
+        candidateTemplates = narrativeTemplates.filter((tmpl: NarrativeTemplate) => tmpl && tmpl.mood && tmpl.mood.length === 0);
     }
     if (candidateTemplates.length === 0) return currentChunk.description;
 
@@ -424,3 +435,5 @@ export const handleSearchAction = (
 
     return { newChunk, narrative: t('exploreFoundNothing'), toastInfo: null };
 };
+
+    

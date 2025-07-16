@@ -11,7 +11,7 @@ import { suggestKeywords } from "@/ai/flows/suggest-keywords";
 import { Skeleton } from "../ui/skeleton";
 import { Separator } from "../ui/separator";
 import { useLanguage } from "@/context/language-context";
-import type { Skill, PlayerItem, GeneratedItem, Terrain } from "@/lib/game/types";
+import type { Skill, PlayerItem, GeneratedItem, Terrain, WorldConcept } from "@/lib/game/types";
 import { premadeWorlds } from "@/lib/game/data/premade-worlds";
 import type { TranslationKey } from "@/lib/i18n";
 import { SettingsPopup } from "./settings-popup";
@@ -19,7 +19,7 @@ import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/
 import { Sparkles, ArrowRight, BrainCircuit, Loader2, Settings, ArrowLeft, ChevronLeft, ChevronRight, BookOpen, Map, WandSparkles, BaggageClaim, ListTodo } from "./icons";
 import { ScrollArea } from "../ui/scroll-area";
 import { cn, getTranslatedText } from "@/lib/utils";
-import type { GenerateWorldSetupOutput, WorldConcept } from "@/ai/flows/generate-world-setup";
+import type { GenerateWorldSetupOutput } from "@/ai/flows/generate-world-setup";
 
 interface WorldSetupProps {
     onWorldCreated: (worldSetupData: GenerateWorldSetupOutput) => void;

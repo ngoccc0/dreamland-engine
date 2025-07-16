@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Defines all unique assets for the "Haunted Mansion" premade world.
  * @description This file contains the item, structure, and starting scenario definitions
@@ -8,31 +9,31 @@ import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
 import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
 
 const items: GeneratedItem[] = [
-    { name: { en: 'Rusty Lantern', vi: 'Đèn lồng Gỉ sét' }, description: { en: 'item_rusty_lantern_desc', vi: 'item_rusty_lantern_desc' }, emoji: '🏮', category: 'Tool', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
-    { name: { en: 'Silver Key', vi: 'Chìa khóa Bạc' }, description: { en: 'item_silver_key_desc', vi: 'item_silver_key_desc' }, emoji: '🗝️', category: 'Data', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
-    { name: { en: 'Torn Diary Page', vi: 'Trang Nhật ký Bị xé' }, description: { en: 'item_torn_diary_page_desc', vi: 'item_torn_diary_page_desc' }, emoji: '📄', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
-    { name: { en: 'Ectoplasm', vi: 'Ectoplasm' }, description: { en: 'item_ectoplasm_desc', vi: 'item_ectoplasm_desc' }, emoji: '👻', category: 'Material', tier: 3, effects: [], baseQuantity: { min: 1, max: 2 }, spawnEnabled: false },
+    { id: 'rusty_lantern', name: { en: 'Rusty Lantern', vi: 'Đèn lồng Gỉ sét' }, description: { en: 'An old oil lantern. Provides a flickering, unreliable light.', vi: 'Một chiếc đèn lồng dầu cũ kỹ. Cung cấp ánh sáng leo lét, không đáng tin cậy.' }, emoji: '🏮', category: 'Tool', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
+    { id: 'silver_key', name: { en: 'Silver Key', vi: 'Chìa khóa Bạc' }, description: { en: 'A small, ornate silver key. It feels cold to the touch.', vi: 'Một chiếc chìa khóa bạc nhỏ, được trang trí tinh xảo. Cảm giác lạnh khi chạm vào.' }, emoji: '🗝️', category: 'Data', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
+    { id: 'torn_diary_page', name: { en: 'Torn Diary Page', vi: 'Trang Nhật ký Bị xé' }, description: { en: "A page torn from a diary. It reads: '...it knows what I'm thinking. The walls... they move...'", vi: "Một trang giấy bị xé từ một cuốn nhật ký. Nó viết: '...nó biết tôi đang nghĩ gì. Những bức tường... chúng di chuyển...'" }, emoji: '📄', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
+    { id: 'ectoplasm', name: { en: 'Ectoplasm', vi: 'Ectoplasm' }, description: { en: 'A viscous, supernatural substance left behind by a ghost.', vi: 'Một chất siêu nhiên, nhớt do một con ma để lại.' }, emoji: '👻', category: 'Material', tier: 3, effects: [], baseQuantity: { min: 1, max: 2 }, spawnEnabled: false },
 ];
 
 const structures: Structure[] = [
-    { name: { en: 'Grand Foyer', vi: 'Đại Sảnh' }, description: { en: 'structure_grand_foyer_desc', vi: 'structure_grand_foyer_desc' }, emoji: '🚪', providesShelter: true, buildable: false },
-    { name: { en: 'Dusty Library', vi: 'Thư viện Bụi bặm' }, description: { en: 'structure_dusty_library_desc', vi: 'structure_dusty_library_desc' }, emoji: '📚', providesShelter: true, buildable: false, restEffect: { hp: 10, stamina: 10 }, heatValue: -1 },
+    { name: { en: 'Grand Foyer', vi: 'Đại Sảnh' }, description: { en: 'A large, imposing foyer. The portraits on the walls seem to watch you.', vi: 'Một đại sảnh lớn, hùng vĩ. Những bức chân dung trên tường dường như đang theo dõi bạn.' }, emoji: '🚪', providesShelter: true, buildable: false },
+    { name: { en: 'Dusty Library', vi: 'Thư viện Bụi bặm' }, description: { en: 'Rows of books, covered in a thick layer of dust. The air is heavy with the smell of old paper.', vi: 'Những hàng sách, phủ một lớp bụi dày. Không khí nặng mùi giấy cũ.' }, emoji: '📚', providesShelter: true, buildable: false, restEffect: { hp: 10, stamina: 10 }, heatValue: -1 },
 ];
 
-const skill1: Skill = { name: { en: 'skillFireballName', vi: 'skillFireballName' }, description: { en: 'skillFireballDesc', vi: 'skillFireballDesc' }, tier: 1, manaCost: 15, effect: { type: 'DAMAGE', amount: 15, target: 'ENEMY' } };
-const skill2: Skill = { name: { en: 'skillHealName', vi: 'skillHealName' }, description: { en: 'skillHealDesc', vi: 'skillHealDesc' }, tier: 1, manaCost: 20, effect: { type: 'HEAL', amount: 25, target: 'SELF' } };
+const skill1: Skill = { name: { en: 'Fireball', vi: 'Quả cầu lửa' }, description: { en: 'Launch a fireball at an enemy, dealing magic damage.', vi: 'Phóng một quả cầu lửa vào kẻ thù, gây sát thương phép.' }, tier: 1, manaCost: 15, effect: { type: 'DAMAGE', amount: 15, target: 'ENEMY' } };
+const skill2: Skill = { name: { en: 'Heal', vi: 'Chữa lành' }, description: { en: 'Use mana to restore a small amount of health.', vi: 'Sử dụng mana để phục hồi một lượng nhỏ máu.' }, tier: 1, manaCost: 20, effect: { type: 'HEAL', amount: 25, target: 'SELF' } };
 
 
 const concepts: WorldConcept[] = [
     {
-        worldName: { en: "worldName_blackwoodManor", vi: "worldName_blackwoodManor" }, initialNarrative: { en: 'mansion_narrative1', vi: 'mansion_narrative1' }, startingBiome: 'cave', // Using 'cave' to represent dark, indoor spaces
+        worldName: "worldName_blackwoodManor", initialNarrative: 'mansion_narrative1', startingBiome: 'cave', // Using 'cave' to represent dark, indoor spaces
         playerInventory: [ { name: "Rusty Lantern", quantity: 1 }, { name: "Torn Diary Page", quantity: 1 } ],
-        initialQuests: [ { en: 'mansion_quest1', vi: 'mansion_quest1' }, { en: 'mansion_quest2', vi: 'mansion_quest2' } ], startingSkill: skill1, customStructures: structures
+        initialQuests: [ 'mansion_quest1', 'mansion_quest2' ], startingSkill: skill1, customStructures: structures
     },
     {
-        worldName: { en: "worldName_blackwoodManor", vi: "worldName_blackwoodManor" }, initialNarrative: { en: 'mansion_narrative2', vi: 'mansion_narrative2' }, startingBiome: 'cave',
+        worldName: "worldName_blackwoodManor", initialNarrative: 'mansion_narrative2', startingBiome: 'cave',
         playerInventory: [ { name: "Silver Key", quantity: 1 } ],
-        initialQuests: [ { en: 'mansion_quest3', vi: 'mansion_quest3' } ], startingSkill: skill2, customStructures: structures
+        initialQuests: [ 'mansion_quest3' ], startingSkill: skill2, customStructures: structures
     },
 ];
 

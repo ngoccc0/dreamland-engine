@@ -1,5 +1,4 @@
 
-
 import { structureDefinitions } from "../structures";
 
 export const cave_vi = {
@@ -59,4 +58,3 @@ export const cave_vi = {
 export const cave_en = {
     ...cave_vi,
 };
-

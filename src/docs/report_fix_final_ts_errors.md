@@ -39,10 +39,12 @@ Cả hai lỗi đều chỉ ra rằng dữ liệu từ các tệp template (`src
 ### 2. Sửa lỗi đọc thuộc tính 'name' từ `undefined`
 
 *   **Vị trí:** `src/lib/game/engine/generation.ts` (hàm `selectEntities`)
-*   **Nguyên nhân:** Mặc dù đã có các bộ lọc bên ngoài, một phần tử `undefined` vẫn lọt vào mảng `possibleEntities`. Điều này có thể do lỗi cú pháp (ví dụ: dấu phẩy thừa) trong các tệp định nghĩa template.
-*   **Giải pháp:** Thêm các khối kiểm tra an toàn ngay bên trong hàm `selectEntities`.
-    1.  Thêm `.filter(Boolean)` vào đầu hàm để loại bỏ ngay lập tức bất kỳ giá trị `null` hoặc `undefined` nào.
-    2.  Bên trong vòng lặp, thêm các khối `if (!entity)` và `if (!entity.name)` để ghi log lỗi chi tiết và dùng `continue` để bỏ qua phần tử bị lỗi, ngăn chặn game bị crash.
+*   **Nguyên nhân:** Mặc dù đã có các bộ lọc bên ngoài, một phần tử `undefined` vẫn lọt vào mảng `possibleEntities`. Điều này có thể do lỗi cú pháp (ví dụ: dấu phẩy thừa) trong các tệp định nghĩa template hoặc do lỗi cấu trúc dữ liệu (`loot` bị đặt sai cấp).
+*   **Giải pháp:**
+    1.  **Sửa lỗi cú pháp:** Loại bỏ các dấu phẩy thừa ở cuối các mảng trong các file template.
+    2.  **Sửa lỗi cấu trúc:** Di chuyển thuộc tính `loot` vào đúng vị trí của nó (bên trong `data`) trong các file `mountain.ts` và `cave.ts`.
+    3.  **Thêm các khối kiểm tra an toàn:** Bên trong hàm `selectEntities`, thêm các khối `if (!entity)` và `if (!entity.name)` để ghi log lỗi chi tiết và dùng `continue` để bỏ qua phần tử bị lỗi, ngăn chặn game bị crash.
+    4.  **Thêm `.filter(Boolean)`:** Sử dụng bộ lọc này ngay tại đầu hàm để loại bỏ ngay lập tức bất kỳ giá trị `null` hoặc `undefined` nào.
 
 ```typescript
 // src/lib/game/engine/generation.ts
@@ -88,4 +90,4 @@ const selectEntities = <T extends {name: string, conditions: SpawnConditions} | 
 
 ## III. Kết luận
 
-Với việc áp dụng các lớp phòng vệ này, cỗ máy sinh thế giới và tường thuật của chúng ta giờ đây đã "kiên cường" hơn rất nhiều. Các lỗi liên quan đến dữ liệu template không nhất quán đã được xử lý triệt để, giúp engine hoạt động ổn định và ngăn ngừa các lỗi crash không mong muốn. Toàn bộ các bài kiểm tra TypeScript hiện đã thành công.
+Với việc áp dụng các lớp phòng vệ này và sửa lỗi dữ liệu gốc, cỗ máy sinh thế giới và tường thuật của chúng ta giờ đây đã "kiên cường" hơn rất nhiều. Các lỗi liên quan đến dữ liệu template không nhất quán đã được xử lý triệt để, giúp engine hoạt động ổn định và ngăn ngừa các lỗi crash không mong muốn. Toàn bộ các bài kiểm tra TypeScript hiện đã thành công.

@@ -25,8 +25,8 @@ Chào mừng các Đội trưởng và những người đồng hành đến v�
         *   Thêm các khối kiểm tra `if (!entity)` và `if (!entity.name)` bên trong vòng lặp để ghi log lỗi và bỏ qua các thực thể không hợp lệ, ngăn chặn game bị crash.
 
 3.  **Sửa lỗi dữ liệu gốc:**
-    *   **Phân tích:** Qua quá trình rà soát, đã phát hiện các dấu phẩy thừa ở cuối các mảng `items` và `enemies` trong các file `forest.ts` và `mountain.ts`, gây ra việc tạo ra các phần tử `{}` rỗng.
-    *   **Giải pháp:** Đã loại bỏ tất cả các dấu phẩy thừa được tìm thấy để đảm bảo tính toàn vẹn của dữ liệu template.
+    *   **Phân tích:** Qua quá trình rà soát, đã phát hiện các dấu phẩy thừa ở cuối các mảng `items` và `enemies` trong các file `forest.ts` và `mountain.ts`, gây ra việc tạo ra các phần tử `{}` rỗng. Tôi cũng đã xác định được một lỗi cấu trúc dữ liệu nghiêm trọng hơn, trong đó thuộc tính `loot` cho các structure trong `mountain.ts` và `cave.ts` bị đặt sai cấp, khiến nó bị hiểu nhầm là một entity riêng biệt không có `name`.
+    *   **Giải pháp:** Đã loại bỏ tất cả các dấu phẩy thừa được tìm thấy. Đã di chuyển thuộc tính `loot` vào đúng vị trí của nó bên trong object `data` của `structure` để đảm bảo tính toàn vẹn của dữ liệu template.
 
 ### 🎮 **Ảnh hưởng đến Trải nghiệm & Tương lai**
 

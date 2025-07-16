@@ -26,6 +26,7 @@ import type { ItemDefinition, GeneratedItem, WorldConcept, PlayerItem, GameState
 import { cn, getTranslatedText } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
 import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Heart, Zap, Footprints, Loader2, Menu, LogOut } from "./icons";
+import { logger } from "@/lib/logger";
 
 
 interface GameLayoutProps {
@@ -106,7 +107,16 @@ export default function GameLayout(props: GameLayoutProps) {
     }, []);
 
     const generateMapGrid = useCallback((): (Chunk | null)[][] => {
-        if (!finalWorldSetup) return [];
+        console.log('[Minimap Debug] Attempting to generate map grid. Dependencies:', {
+            isLoaded,
+            finalWorldSetupExists: !!finalWorldSetup,
+            playerPosition,
+        });
+
+        if (!isLoaded || !finalWorldSetup) {
+            console.log('[Minimap Debug] Grid generation SKIPPED. isLoaded or finalWorldSetup is falsy.');
+            return [];
+        }
         const radius = 2; // 5x5 grid
         const size = radius * 2 + 1;
         const grid: (Chunk | null)[][] = [];
@@ -132,8 +142,11 @@ export default function GameLayout(props: GameLayoutProps) {
             }
             grid.push(row);
         }
+
+        console.log('[Minimap Debug] Grid generated. Grid length:', grid.length, 'First row content:', grid[0]);
+
         return grid;
-    }, [world, playerPosition.x, playerPosition.y, finalWorldSetup, turn]);
+    }, [world, playerPosition.x, playerPosition.y, finalWorldSetup, turn, isLoaded]);
     
     const restingPlace = currentChunk?.structures?.find(s => s.restEffect);
     
@@ -350,3 +363,5 @@ export default function GameLayout(props: GameLayoutProps) {
         </TooltipProvider>
     );
 }
+
+    

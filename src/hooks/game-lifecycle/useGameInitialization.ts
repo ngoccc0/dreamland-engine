@@ -65,17 +65,7 @@ export function useGameInitialization(deps: GameInitializationDeps) {
 
       let loadedState: GameState | null = null;
       try {
-        if (user && db) {
-            const docRef = doc(db, "users", user.uid, "games", `slot_${gameSlot}`);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                loadedState = docSnap.data() as GameState;
-            }
-        }
-        if (!loadedState) {
-            const localData = localStorage.getItem(`gameState_${gameSlot}`);
-            if (localData) loadedState = JSON.parse(localData);
-        }
+        loadedState = await gameStateRepository.load(`slot_${gameSlot}`);
       } catch (error) {
           logger.error('Failed to load game state', error);
       }
@@ -89,26 +79,27 @@ export function useGameInitialization(deps: GameInitializationDeps) {
 
       if (!stateToInitialize && !finalWorldSetup) {
         logger.warn(`[GameInit] No loaded state and no finalWorldSetup for slot ${gameSlot}. Waiting for world creation.`);
-         if (isMounted) setIsLoaded(true);
+        if (isMounted) setIsLoaded(true); // Allow UI to render the world setup screen
         return;
       }
-
+      
       if (stateToInitialize) {
-        logger.info(`[GameInit] Successfully loaded game state for slot ${gameSlot}.`);
+        logger.info(`[GameInit] Initializing game state from loaded data for slot ${gameSlot}.`);
         
         const finalCatalogMap = new Map<string, GeneratedItem>();
         Object.values(staticItemDefinitions).forEach((def) => {
-            finalCatalogMap.set(def.id!, def);
+            if (def.id) finalCatalogMap.set(def.id, def);
         });
         (stateToInitialize.customItemCatalog || []).forEach(item => {
-            finalCatalogMap.set(item.id!, item);
+            if (item.id) finalCatalogMap.set(item.id, item);
         });
         
         const finalCatalogArray: GeneratedItem[] = Array.from(finalCatalogMap.values());
         const finalRecipes = { ...staticRecipes, ...(stateToInitialize.recipes || {}) };
+        
         const finalDefs = finalCatalogArray.reduce((acc, item) => {
-          acc[item.id!] = item;
-          return acc;
+            if (item.id) acc[item.id] = item;
+            return acc;
         }, {} as Record<string, ItemDefinition>);
         
         setWorldProfile(stateToInitialize.worldProfile);
@@ -143,6 +134,7 @@ export function useGameInitialization(deps: GameInitializationDeps) {
         const initialPosKey = `${stateToInitialize.playerPosition.x},${stateToInitialize.playerPosition.y}`;
         
         if (Object.keys(worldSnapshot).length === 0) {
+          logger.info('[GameInit] World is empty, performing initial chunk generation.');
           const { world: newWorld, regions: newRegions, regionCounter: newRegionCounter } = generateChunksInRadius(
             {}, {}, 0,
             stateToInitialize.playerPosition.x,

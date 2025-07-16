@@ -71,6 +71,15 @@ export const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 
     return true;
 };
 
+/**
+ * A robust function to randomly select entities from a list.
+ * It ensures that selected entities are valid objects with a 'name' property (and 'type' for enemies).
+ * It gracefully handles and logs malformed data like null, undefined, or empty objects.
+ * @param availableEntities An array of potential entities, which may contain invalid data.
+ * @param maxCount The maximum number of entities to select.
+ * @param language The current language for resolving translatable strings.
+ * @returns An array of valid, selected entities.
+ */
 const selectEntities = <T extends { name: TranslatableString | string; type?: string; data?: any; conditions?: any }>(
     availableEntities: T[],
     maxCount: number,
@@ -88,7 +97,11 @@ const selectEntities = <T extends { name: TranslatableString | string; type?: st
     }
 
     const validEntities = cleanPossibleEntities.filter(entity => {
-        if (!entity || !entity.conditions) {
+        if (!entity) { // Redundant due to filter(Boolean) but safe
+            logger.error('[selectEntities] Found an undefined entity in template array after initial clean.', { availableEntities });
+            return false;
+        }
+        if (!entity.conditions) {
             logger.error('[selectEntities] Entity is missing "conditions" property.', { entity });
             return false;
         }
@@ -101,15 +114,15 @@ const selectEntities = <T extends { name: TranslatableString | string; type?: st
     for (const entity of shuffled) {
         if (selected.length >= maxCount) break;
 
-        let spawnChance = entity.conditions.chance ?? 1.0;
         const entityData = 'data' in entity ? entity.data : entity;
 
         if (!entityData || (!entityData.name && !entityData.type)) {
-            logger.error("[selectEntities] SKIPPING entity data is missing 'name' or 'type' property. HERE IS THE DATA:", { entity: entityData });
+            logger.error("[selectEntities] SKIPPING entity: data is malformed or missing 'name'/'type' property.", { entity });
             continue;
         }
 
-        const itemName = entityData.name || entityData.type || entityData;
+        let spawnChance = entity.conditions.chance ?? 1.0;
+        const itemName = entityData.name || entityData.type;
         const itemDef = allItemDefinitions[itemName];
         if (itemDef) {
             const tier = itemDef.tier;
@@ -124,6 +137,7 @@ const selectEntities = <T extends { name: TranslatableString | string; type?: st
     return selected;
 };
 
+
 // --- WORLD GENERATION LOGIC ---
 
 export const weightedRandom = (options: [Terrain, number][]): Terrain => {
@@ -134,13 +148,15 @@ export const weightedRandom = (options: [Terrain, number][]): Terrain => {
     const total = options.reduce((sum, [, prob]) => sum + prob, 0);
     let r = Math.random() * total;
 
+    // A small correction to handle floating point inaccuracies where r could be exactly equal to total
     if (r >= total) r = total - 0.0001;
 
     for (const [option, prob] of options) {
         r -= prob;
         if (r <= 0) return option;
     }
-    logger.warn("[weightedRandom] Failed to select an option, returning first.", { options });
+    // Fallback in case of unexpected issues
+    logger.warn("[weightedRandom] Failed to select an option through standard logic, returning first option.", { options });
     return options[0][0]; 
 }
 
@@ -155,9 +171,11 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
     }
 
     if (adjacentTerrains.size === 0) {
+        // No adjacent terrains, so any non-wall terrain is possible.
         return Object.keys(worldConfig).filter(t => t !== 'wall') as Terrain[];
     }
     
+    // Get all possible neighbors of our adjacent terrains
     const allPossibleNeighbors = new Set<Terrain>();
     for (const adjTerrain of adjacentTerrains) {
         const adjConfig = worldConfig[adjTerrain];
@@ -166,8 +184,9 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
         }
     }
 
+    // A terrain is valid if it's a neighbor to ALL adjacent chunks.
     const validTerrains = [...allPossibleNeighbors].filter(terrain => {
-        if (terrain === 'wall') return false;
+        if (terrain === 'wall') return false; // Never generate a wall as a new region type
         const config = worldConfig[terrain];
         if (!config) return false;
 
@@ -180,6 +199,8 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
         return true;
     });
     
+    // If no terrain is valid for ALL neighbors, relax the condition.
+    // For now, we'll return a safe default.
     return validTerrains.length > 0 ? validTerrains : ['grassland', 'forest'];
 };
 
@@ -197,6 +218,7 @@ function calculateDependentChunkAttributes(
     const biomeDef = worldConfig[terrain];
     const seasonMods = seasonConfig[currentSeason];
 
+    // Calculate final attributes, clamping them within the 0-100 range
     const temperature = clamp(baseAttributes.temperature + (seasonMods.temperatureMod * 10) + worldProfile.tempBias, 0, 100);
     const finalMoisture = clamp(baseAttributes.moisture + (seasonMods.moistureMod * 10) + worldProfile.moistureBias, 0, 100);
     const windLevel = clamp(getRandomInRange({min: 20, max: 80}) + (seasonMods.windMod * 10), 0, 100);
@@ -205,7 +227,9 @@ function calculateDependentChunkAttributes(
     if (terrain === 'cave') {
         lightLevel = getRandomInRange({ min: -80, max: -50 });
     } else {
+        // Base light is determined by sun and season, reduced by vegetation
         let baseLight = (worldProfile.sunIntensity * 10) + (seasonMods.sunExposureMod * 10) - baseAttributes.vegetationDensity;
+        // Add some random variation
         lightLevel = baseLight + getRandomInRange({ min: -10, max: 10 });
     }
     lightLevel = clamp(lightLevel, -100, 100);
@@ -543,6 +567,8 @@ export function ensureChunkExists(
 /**
  * Creates chunks in a specified radius around a central point if they do not already exist.
  * @param currentWorld The current state of the World object.
+ * @param currentRegions The current state of the Regions object.
+ * @param currentRegionCounter The current region counter.
  * @param center_x The central X coordinate.
  * @param center_y The central Y coordinate.
  * @param radius The radius of chunks to generate (e.g., radius 7 creates a 15x15 area).

@@ -1,4 +1,3 @@
-
 import type { 
     ItemDefinition as ItemDefZod, 
     ItemEffect, 
@@ -17,6 +16,7 @@ import type {
     RecipeIngredientSchema,
 } from "./definitions";
 import { z } from 'zod';
+import { Language } from "../i18n";
 
 
 // Re-export for easier access elsewhere
@@ -30,11 +30,15 @@ export type {
     PlayerAttributes,
     ItemCategory,
     MultilingualText,
-    Language,
     RecipeIngredient,
 };
 export { TranslatableStringSchema } from "./definitions";
-export type TranslatableString = z.infer<typeof TranslatableStringSchemaZod>;
+
+// --- CORE TYPES ---
+export type { Language };
+export type TranslationKey = string;
+export type TranslatableString = string | { [key in Language]?: string };
+
 
 /**
  * @description The supported terrain types in the game world.
@@ -220,11 +224,21 @@ export interface Skill {
     };
 }
 
-export interface Structure extends StructureDefinition {}
+export interface Structure {
+    name: TranslatableString;
+    description: TranslatableString;
+    emoji: string;
+    providesShelter?: boolean;
+    buildable?: boolean;
+    buildCost?: { name: string; quantity: number }[];
+    restEffect?: { hp: number; stamina: number };
+    heatValue?: number;
+}
+
 
 export interface Action {
   id: number;
-  textKey: TranslationKey;
+  textKey: string;
   params?: Record<string, string | number>;
 }
 
@@ -287,7 +301,7 @@ export interface PlayerStatus {
         armor: PlayerItem | null;
         accessory: PlayerItem | null;
     };
-    quests: string[];
+    quests: any[]; // Can be string or TranslatableString
     questsCompleted: number;
     skills: Skill[];
     persona: PlayerPersona;
@@ -322,7 +336,16 @@ export type NarrativeEntry = {
     type: 'narrative' | 'action' | 'system';
 }
 
-export type WorldConcept = z.infer<typeof import('../ai/flows/generate-world-setup').WorldConceptSchema>;
+export interface WorldConcept {
+    worldName: TranslatableString;
+    initialNarrative: TranslatableString;
+    startingBiome: Terrain;
+    startingSkill: Skill;
+    playerInventory: PlayerItem[];
+    initialQuests: TranslatableString[];
+    customStructures?: Structure[];
+    customItemCatalog?: GeneratedItem[];
+}
 
 export interface GameState {
     worldProfile: WorldProfile;

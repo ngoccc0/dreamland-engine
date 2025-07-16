@@ -81,10 +81,11 @@ const selectEntities = <T extends {name: string, conditions: SpawnConditions} | 
         return [];
     }
     
+    logger.debug('[selectEntities] Input availableEntities:', possibleEntities);
     const cleanPossibleEntities = possibleEntities.filter(Boolean);
 
     const validEntities = cleanPossibleEntities.filter(entity => {
-         if (!entity) {
+         if (!entity) { // Should not happen after filter(Boolean) but good for safety
             logger.error('[selectEntities] Found an undefined entity in template array even after filtering.', { possibleEntities });
             return false;
         }
@@ -105,9 +106,10 @@ const selectEntities = <T extends {name: string, conditions: SpawnConditions} | 
         
         const entityData = 'data' in entity ? entity.data : entity;
         
+        // This is the critical check
         if (!entityData || (!entityData.name && !entityData.type)) {
             logger.error("[selectEntities] SKIPPING entity data is missing 'name' or 'type' property.", { entity: entityData });
-            continue; 
+            continue; // Skip this malformed entity
         }
 
         const itemName = entityData.name || entityData.type || entityData;
@@ -249,6 +251,7 @@ function generateChunkContent(
     const templates = getTemplates(language);
     const terrainTemplate = templates[chunkData.terrain];
 
+    // Added guard clause and more robust fallback logic
     if (!terrainTemplate) {
         logger.error(`[generateChunkContent] No template found for terrain: ${chunkData.terrain}`);
         return {
@@ -408,6 +411,7 @@ export const generateRegion = (
     customStructures: Structure[],
     language: Language
 ) => {
+    logger.debug(`[generateRegion] Starting for center (${startPos.x},${startPos.y}), terrain: ${terrain}`);
     const newWorld = { ...currentWorld };
     const newRegions = { ...currentRegions };
     let newRegionCounter = currentRegionCounter;
@@ -442,6 +446,7 @@ export const generateRegion = (
 
     for (const pos of regionCells) {
         const posKey = `${pos.x},${pos.y}`;
+        logger.debug(`[generateRegion] Processing cell (${pos.x},${pos.y}).`);
 
         const vegetationDensity = getRandomInRange(biomeDef.defaultValueRanges.vegetationDensity);
         const baseMoisture = getRandomInRange(biomeDef.defaultValueRanges.moisture);
@@ -469,8 +474,9 @@ export const generateRegion = (
             ...dependentAttributes,
             terrain: terrain
         };
-
+        logger.debug(`[generateRegion] tempChunkData terrain: ${terrain}`);
         const content = generateChunkContent(tempChunkData, worldProfile, allItemDefinitions, customItemCatalog, customStructures, language);
+        logger.debug(`[generateRegion] Content generated for (${pos.x},${pos.y}).`);
         
         newWorld[posKey] = {
             x: pos.x, 
@@ -502,7 +508,7 @@ export const generateRegion = (
             }
         }
     }
-
+    logger.debug(`[generateRegion] Finished for center (${startPos.x},${startPos.y}).`);
     return { newWorld, newRegions, newRegionCounter };
 };
 
@@ -520,12 +526,15 @@ export function ensureChunkExists(
 ) {
     const key = `${pos.x},${pos.y}`;
     if (currentWorld[key]) {
+        logger.debug(`[ensureChunkExists] Chunk at (${pos.x},${pos.y}) already exists.`);
         return { worldWithChunk: currentWorld, newRegions: currentRegions, newRegionCounter: currentRegionCounter };
     }
-
+    logger.info(`[ensureChunkExists] Chunk at (${pos.x},${pos.y}) does not exist. Generating new region.`);
     const validTerrains = getValidAdjacentTerrains(pos, currentWorld);
+    logger.debug(`[ensureChunkExists] Valid adjacent terrains:`, validTerrains);
     const terrainWeights = validTerrains.map(t => [t, worldConfig[t].spreadWeight] as [Terrain, number]);
     const newTerrain = weightedRandom(terrainWeights);
+    logger.info(`[ensureChunkExists] Selected new terrain: ${newTerrain}`);
 
     const { newWorld, newRegions, newRegionCounter } = generateRegion(pos, newTerrain, currentWorld, currentRegions, currentRegionCounter, worldProfile, currentSeason, allItemDefinitions, customItemCatalog, customStructures, language);
     return { worldWithChunk: newWorld, newRegions: newRegionCounter, newRegionCounter };
@@ -592,6 +601,7 @@ export const generateChunksInRadius = (
     customStructures: Structure[],
     language: Language
 ): { world: World, regions: { [id: number]: Region }, regionCounter: number } => {
+    logger.info(`[generateChunksInRadius] Starting generation for radius ${radius} around (${center_x}, ${center_y}).`);
     let newWorld = { ...currentWorld };
     let newRegions = { ...currentRegions };
     let newRegionCounter = currentRegionCounter;
@@ -621,5 +631,6 @@ export const generateChunksInRadius = (
             }
         }
     }
+    logger.info(`[generateChunksInRadius] Finished generation for radius ${radius}.`);
     return { world: newWorld, regions: newRegions, regionCounter: newRegionCounter };
 };

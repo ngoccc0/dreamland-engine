@@ -47,10 +47,8 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     const translationPool = primaryTranslation || fallbackTranslation;
 
     if (process.env.NODE_ENV === 'development') {
-        if (translationPool && translationPool !== key) {
-             console.log(`[TRANSLATION_DEBUG] '${key}': FOUND ✅`);
-        } else {
-             console.log(`[TRANSLATION_DEBUG] '${key}': NOT FOUND ❌`);
+        if (!translationPool || translationPool === key) {
+             console.warn(`[TRANSLATION_DEBUG] Key not found in any language: '${key}'`);
         }
     }
     

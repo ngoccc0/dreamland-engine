@@ -4,7 +4,7 @@ Chào mừng các Đội trưởng và những người đồng hành đến v�
 
 ---
 
-## **Bản cập nhật v0.2.60 - "Hoàn Thiện" (17/07/2025)**
+## **Bản cập nhật v0.2.61 - "Hoàn Thiện" (17/07/2025)**
 
 *Tên mã: Polishing*
 
@@ -19,10 +19,14 @@ Chào mừng các Đội trưởng và những người đồng hành đến v�
     *   **Giải pháp:** Đã thêm một lớp bảo vệ bằng cách sử dụng `const narrativeTemplates = biomeTemplates.descriptionTemplates || []`. Điều này đảm bảo biến `narrativeTemplates` luôn là một mảng, ngăn chặn lỗi runtime.
 
 2.  **Gia cố `selectEntities`:**
-    *   **Vấn đề:** Lỗi `TypeError` vẫn tiếp diễn, cho thấy một phần tử `undefined` vẫn có thể lọt vào mảng `possibleEntities`.
+    *   **Vấn đề:** Lỗi `TypeError` vẫn tiếp diễn, cho thấy một phần tử `undefined` hoặc `{}` rỗng vẫn có thể lọt vào mảng `possibleEntities`.
     *   **Giải pháp:** Đã thêm hai lớp phòng vệ mới bên trong hàm `selectEntities`:
         *   Sử dụng `.filter(Boolean)` ngay từ đầu để loại bỏ các phần tử `null` hoặc `undefined`.
         *   Thêm các khối kiểm tra `if (!entity)` và `if (!entity.name)` bên trong vòng lặp để ghi log lỗi và bỏ qua các thực thể không hợp lệ, ngăn chặn game bị crash.
+
+3.  **Sửa lỗi dữ liệu gốc:**
+    *   **Phân tích:** Qua quá trình rà soát, đã phát hiện các dấu phẩy thừa ở cuối các mảng `items` và `enemies` trong các file `forest.ts` và `mountain.ts`, gây ra việc tạo ra các phần tử `{}` rỗng.
+    *   **Giải pháp:** Đã loại bỏ tất cả các dấu phẩy thừa được tìm thấy để đảm bảo tính toàn vẹn của dữ liệu template.
 
 ### 🎮 **Ảnh hưởng đến Trải nghiệm & Tương lai**
 
@@ -74,7 +78,7 @@ Bản cập nhật này tập trung vào việc gia cố "nền móng" của eng
 ### 🎮 **Ảnh hưởng đến Trải nghiệm & Tương lai**
 
 *   **Độ ổn định:** Game sẽ không còn bị crash đột ngột trong quá trình khám phá thế giới do lỗi sinh chunk.
-*   **Khả năng phục hồi:** Engine giờ đây "kiên cường" hơn, có khả năng tự xử lý các tình huống dữ liệu không hợp lệ mà không làm gián đoạn trải nghiệm của người chơi.
+*   **Khả năng phục hồi:** Engine giờ đây "kiên cường" hơn, có khả năng tự xử lý các trường hợp dữ liệu không hợp lệ mà không làm gián đoạn trải nghiệm của người chơi.
 *   **Dễ dàng Debug:** Việc bổ sung `logger.error` sẽ giúp chúng ta nhanh chóng xác định và sửa lỗi nếu có bất kỳ loại địa hình mới nào được thêm vào mà chưa có template tương ứng trong tương lai.
 
 ---

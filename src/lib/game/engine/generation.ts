@@ -1,6 +1,6 @@
 
 
-import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, Structure, Language, Npc, Action } from "../types";
+import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, Structure, Language, Npc, Action, TranslatableString } from "../types";
 import { seasonConfig, worldConfig } from "../world-config";
 import { getTemplates } from "../templates";
 import { weatherPresets } from "../weatherPresets";
@@ -71,49 +71,41 @@ export const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 
     return true;
 };
 
-const selectEntities = <T extends {name: string, conditions: SpawnConditions} | {data: any, conditions: SpawnConditions, loot?: any}>(
-    possibleEntities: T[] | undefined,
+const selectEntities = <T extends { name: TranslatableString | string; type?: string; data?: any; conditions?: any }>(
+    availableEntities: T[],
+    maxCount: number,
     chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored' | 'structures' | 'lastVisited'>,
-    allItemDefinitions: Record<string, ItemDefinition>, 
-    maxCount: number = 3
+    allItemDefinitions: Record<string, ItemDefinition>,
 ): any[] => {
-    if (!possibleEntities) {
+    if (!availableEntities) {
         return [];
     }
-    
-    logger.debug('[selectEntities] Input availableEntities:', possibleEntities);
-    const cleanPossibleEntities = possibleEntities.filter(Boolean);
+
+    const cleanPossibleEntities = availableEntities.filter(Boolean);
 
     const validEntities = cleanPossibleEntities.filter(entity => {
-         if (!entity) { // Should not happen after filter(Boolean) but good for safety
-            logger.error('[selectEntities] Found an undefined entity in template array even after filtering.', { possibleEntities });
-            return false;
-        }
-        if (!entity.conditions) {
+        if (!entity || !entity.conditions) {
             logger.error('[selectEntities] Entity is missing "conditions" property.', { entity });
             return false;
         }
-        return checkConditions(entity.conditions, chunk)
+        return checkConditions(entity.conditions, chunk);
     });
-    
+
     const selected: any[] = [];
     const shuffled = [...validEntities].sort(() => 0.5 - Math.random());
-    
+
     for (const entity of shuffled) {
         if (selected.length >= maxCount) break;
 
         let spawnChance = entity.conditions.chance ?? 1.0;
-        
         const entityData = 'data' in entity ? entity.data : entity;
-        
-        // This is the critical check
+
         if (!entityData || (!entityData.name && !entityData.type)) {
             logger.error("[selectEntities] SKIPPING entity data is missing 'name' or 'type' property.", { entity: entityData });
-            continue; // Skip this malformed entity
+            continue;
         }
 
         const itemName = entityData.name || entityData.type || entityData;
-
         const itemDef = allItemDefinitions[itemName];
         if (itemDef) {
             const tier = itemDef.tier;
@@ -251,7 +243,6 @@ function generateChunkContent(
     const templates = getTemplates(language);
     const terrainTemplate = templates[chunkData.terrain];
 
-    // Added guard clause and more robust fallback logic
     if (!terrainTemplate) {
         logger.error(`[generateChunkContent] No template found for terrain: ${chunkData.terrain}`);
         return {
@@ -276,7 +267,7 @@ function generateChunkContent(
     
     const allSpawnCandidates = [...staticSpawnCandidates, ...customSpawnCandidates];
 
-    const spawnedItemRefs = selectEntities(allSpawnCandidates, chunkData, allItemDefinitions, 3);
+    const spawnedItemRefs = selectEntities(allSpawnCandidates, 3, chunkData, allItemDefinitions);
     const spawnedItems: ChunkItem[] = [];
 
     for (const itemRef of spawnedItemRefs) {
@@ -298,18 +289,18 @@ function generateChunkContent(
         }
     }
     
-    const spawnedNPCs: Npc[] = selectEntities(terrainTemplate.NPCs, chunkData, allItemDefinitions, 1).map(ref => ref.data);
+    const spawnedNPCs: Npc[] = selectEntities(terrainTemplate.NPCs, 1, chunkData, allItemDefinitions).map(ref => ref.data);
 
     let allEnemyCandidates = [...(terrainTemplate.enemies || [])].filter(Boolean);
 
-    const spawnedEnemies = selectEntities(allEnemyCandidates, chunkData, allItemDefinitions, 1);
+    const spawnedEnemies = selectEntities(allEnemyCandidates, 1, chunkData, allItemDefinitions);
     
     let spawnedStructures: Structure[] = [];
     if (Math.random() < 0.05 && customStructures && customStructures.length > 0) {
         const uniqueStructure = customStructures[Math.floor(Math.random() * customStructures.length)];
         spawnedStructures.push(uniqueStructure);
     } else {
-        const spawnedStructureRefs = selectEntities((terrainTemplate.structures || []).filter(Boolean), chunkData, allItemDefinitions, 1);
+        const spawnedStructureRefs = selectEntities((terrainTemplate.structures || []).filter(Boolean), 1, chunkData, allItemDefinitions);
         spawnedStructures = spawnedStructureRefs.map(ref => ref.data);
          for (const structureRef of spawnedStructureRefs) {
             if (structureRef.loot) {

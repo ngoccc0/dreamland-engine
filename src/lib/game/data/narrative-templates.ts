@@ -1,4 +1,5 @@
 
+
 import type { BiomeTemplateData, Language, NarrativeLength, NarrativeTemplate, MoodTag } from '@/lib/game/types';
 import { logger } from '@/lib/logger';
 
@@ -181,6 +182,15 @@ export const biomeNarrativeTemplates: Record<string, BiomeTemplateData> = {
     sounds: {
         "sound_dark": ["cành cây gãy", "sự im lặng đáng sợ", "tiếng côn trùng kêu"],
     },
+    sky: {}
+  },
+  "beach": {
+    terrain: "beach",
+    descriptionTemplates: [],
+    adjectives: {},
+    features: {},
+    smells: {},
+    sounds: {},
     sky: {}
   }
 };

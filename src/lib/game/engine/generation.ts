@@ -117,7 +117,7 @@ const selectEntities = <T extends { name: TranslatableString | string; type?: st
         const entityData = 'data' in entity ? entity.data : entity;
 
         if (!entityData || (!entityData.name && !entityData.type)) {
-            logger.error("[selectEntities] SKIPPING entity: data is malformed or missing 'name'/'type' property.", { entity });
+            logger.error("[selectEntities] SKIPPING entity data is missing 'name' or 'type' property. HERE IS THE DATA:", entity);
             continue;
         }
 

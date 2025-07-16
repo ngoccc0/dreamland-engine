@@ -102,7 +102,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         logger.debug('[AI] Input for generateNarrative', { entryId, action, playerPosCtx });
 
         const input: GenerateNarrativeInput = {
-            worldName: getTranslatedText(finalWorldSetup.worldName, language), playerAction: action, playerStatus: playerStatsCtx,
+            worldName: t(finalWorldSetup.worldName), playerAction: action, playerStatus: playerStatsCtx,
             currentChunk,
             surroundingChunks: surroundingChunks.length > 0 ? surroundingChunks : undefined,
             recentNarrative, language, customItemDefinitions,
@@ -260,7 +260,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
     if (target === 'player') {
         if (!itemDef.effects.length) {
-            addNarrativeEntry(t('itemNoEffect', { item: getTranslatedText(itemName, language) }), 'system');
+            addNarrativeEntry(t('itemNoEffect', { item: t(itemName) }), 'system');
             return;
         }
         itemWasConsumed = true;
@@ -285,7 +285,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             return;
         }
         if (!currentChunk.enemy.diet.includes(itemName)) {
-            addNarrativeEntry(t('targetNotInterested', { target: getTranslatedText(target, language), item: getTranslatedText(itemName, language) }), 'system');
+            addNarrativeEntry(t('targetNotInterested', { target: t(target), item: t(itemName) }), 'system');
             return;
         }
 
@@ -324,7 +324,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
   const handleOfflineSkillUse = useCallback((skillName: string) => {
     let newPlayerStats: PlayerStatus = JSON.parse(JSON.stringify(playerStats));
-    const skillToUse = newPlayerStats.skills.find(s => getTranslatedText(s.name, language) === skillName);
+    const skillToUse = newPlayerStats.skills.find(s => t(s.name) === skillName);
 
     if (!skillToUse) { addNarrativeEntry(t('skillNotFound', { skillName: t(skillName as TranslationKey) }), 'system'); return; }
     if (newPlayerStats.mana < skillToUse.manaCost) { addNarrativeEntry(t('notEnoughMana', { skillName: t(skillName as TranslationKey) }), 'system'); return; }
@@ -392,7 +392,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
       if (textKey === 'observeAction_enemy') {
           const enemy = currentChunk.enemy;
           if (enemy) {
-              const enemyName = getTranslatedText(enemy.type, language);
+              const enemyName = t(enemy.type);
               newPlayerStats.trackedEnemy = {
                   chunkKey: `${currentChunk.x},${currentChunk.y}`,
                   type: getTranslatedText(enemy.type, 'en'),
@@ -402,23 +402,23 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
           }
       } else if (textKey === 'talkToAction_npc') {
           const npcName = t(action.params!.npcName as TranslationKey);
-          const npc = currentChunk.NPCs.find(n => getTranslatedText(n.name, language) === npcName);
+          const npc = currentChunk.NPCs.find(n => t(n.name) === npcName);
           if (npc) {
               const templates = getTemplates();
               let npcDef: any;
                for (const terrain of Object.keys(templates)) {
-                  const templateNpc = templates[terrain as 'forest']?.NPCs.find((n: any) => getTranslatedText(n.data.name, language) === npcName);
+                  const templateNpc = templates[terrain as 'forest']?.NPCs.find((n: any) => t(n.data.name) === npcName);
                   if (templateNpc) {
                       npcDef = templateNpc.data;
                       break;
                   }
               }
               if (npcDef?.quest && npcDef.questItem) {
-                  const questText = getTranslatedText(npcDef.quest, language);
+                  const questText = t(npcDef.quest);
                   if (newPlayerStats.quests.includes(questText)) {
                       const itemInInventory = newPlayerStats.items.find(i => getTranslatedText(i.name, 'en') === npcDef.questItem!.name);
                       if (itemInInventory && itemInInventory.quantity >= npcDef.questItem!.quantity) {
-                          addNarrativeEntry(t('gaveItemToNpc', { quantity: npcDef.questItem.quantity, itemName: getTranslatedText(npcDef.questItem.name, language), npcName: npcName}), 'system');
+                          addNarrativeEntry(t('gaveItemToNpc', { quantity: npcDef.questItem.quantity, itemName: t(npcDef.questItem.name as TranslationKey), npcName: npcName}), 'system');
                           itemInInventory.quantity -= npcDef.questItem!.quantity;
                           if (itemInInventory.quantity <= 0) newPlayerStats.items = newPlayerStats.items.filter(i => getTranslatedText(i.name, 'en') !== npcDef!.questItem!.name);
                           (npcDef.rewardItems || []).forEach((reward: PlayerItem) => {
@@ -429,7 +429,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                           newPlayerStats.quests = newPlayerStats.quests.filter(q => q !== questText);
                           addNarrativeEntry(t('npcQuestCompleted', { npcName: npcName }), 'narrative');
                           toast({ title: t('questCompletedTitle'), description: questText });
-                      } else addNarrativeEntry(t('npcQuestNotEnoughItems', { npcName: npcName, needed: npcDef.questItem.quantity - (itemInInventory?.quantity || 0), itemName: getTranslatedText(npcDef.questItem.name, language) }), 'narrative');
+                      } else addNarrativeEntry(t('npcQuestNotEnoughItems', { npcName: npcName, needed: npcDef.questItem.quantity - (itemInInventory?.quantity || 0), itemName: t(npcDef.questItem.name) }), 'narrative');
                   } else { newPlayerStats.quests.push(questText); addNarrativeEntry(t('npcQuestGive', { npcName: npcName, questText: questText }), 'narrative'); }
               } else addNarrativeEntry(t('npcNoQuest', { npcName: npcName }), 'narrative');
           }
@@ -469,7 +469,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
           toast({
               title: t('itemPickedUpTitle'),
-              description: t('pickedUpItemToast', { quantity: itemInChunk.quantity, itemName: getTranslatedText(itemInChunk.name, language) }),
+              description: t('pickedUpItemToast', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name) }),
           });
           
           const itemInInventory = newPlayerStats.items.find(i => getTranslatedText(i.name, 'en') === getTranslatedText(itemInChunk.name, 'en'));
@@ -479,7 +479,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
               newPlayerStats.items.push({...itemInChunk});
           }
           
-          addNarrativeEntry(t('pickedUpItemNarrative', { quantity: itemInChunk.quantity, itemName: getTranslatedText(itemInChunk.name, language) }), 'narrative');
+          addNarrativeEntry(t('pickedUpItemNarrative', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name) }), 'narrative');
 
           setWorld(prev => {
               const newWorld = { ...prev };
@@ -523,7 +523,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
           }
       } else if (textKey === 'analyzeAction') {
           const chunk = getEffectiveChunk(currentChunk, weatherZones, gameTime);
-          const analysis = `[Analysis Report]\nCoordinates: (${chunk.x}, ${chunk.y})\nTerrain: ${t(chunk.terrain as TranslationKey)}\n- Temperature: ${chunk.temperature?.toFixed(1)}°C\n- Moisture: ${chunk.moisture}/100\n- Light Level: ${chunk.lightLevel}/100\n- Danger Level: ${chunk.dangerLevel}/100\n- Explorability: ${chunk.explorability.toFixed(1)}/100\n- Magic Affinity: ${chunk.magicAffinity}/100\n- Human Presence: ${chunk.humanPresence}/100\n- Predator Presence: ${chunk.predatorPresence}/100\nItems: ${chunk.items.map((i: any) => `${getTranslatedText(i.name, language)} (x${i.quantity})`).join(', ') || 'None'}\nEnemy: ${chunk.enemy ? getTranslatedText(chunk.enemy.type, language) : 'None'}\nNPCs: ${chunk.NPCs.map((n: any) => getTranslatedText(n.name, language)).join(', ') || 'None'}\nStructures: ${chunk.structures.map((s: any) => getTranslatedText(s.name, language)).join(', ') || 'None'}`;
+          const analysis = `[Analysis Report]\nCoordinates: (${chunk.x}, ${chunk.y})\nTerrain: ${t(chunk.terrain as TranslationKey)}\n- Temperature: ${chunk.temperature?.toFixed(1)}°C\n- Moisture: ${chunk.moisture}/100\n- Light Level: ${chunk.lightLevel}/100\n- Danger Level: ${chunk.dangerLevel}/100\n- Explorability: ${chunk.explorability.toFixed(1)}/100\n- Magic Affinity: ${chunk.magicAffinity}/100\n- Human Presence: ${chunk.humanPresence}/100\n- Predator Presence: ${chunk.predatorPresence}/100\nItems: ${chunk.items.map((i: any) => t(i.name) + ` (x${i.quantity})`).join(', ') || 'None'}\nEnemy: ${chunk.enemy ? t(chunk.enemy.type) : 'None'}\nNPCs: ${chunk.NPCs.map((n: any) => t(n.name)).join(', ') || 'None'}\nStructures: ${chunk.structures.map((s: any) => t(s.name)).join(', ') || 'None'}`;
           addNarrativeEntry(analysis, 'system');
       }
 
@@ -558,7 +558,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
     if (!baseChunk?.enemy) { addNarrativeEntry(t('noTarget'), 'system'); return; }
     
-    const actionText = `${t('attackAction')} ${getTranslatedText(baseChunk.enemy.type, language)}`;
+    const actionText = `${t('attackAction')} ${t(baseChunk.enemy.type)}`;
     addNarrativeEntry(actionText, 'action');
     const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
 
@@ -593,7 +593,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
     if (!outcome.canCraft) { toast({ title: t('error'), description: t('notEnoughIngredients'), variant: "destructive" }); return; }
     
-    const actionText = t('craftAction', {itemName: getTranslatedText(recipe.result.name, language)});
+    const actionText = t('craftAction', {itemName: t(recipe.result.name)});
     addNarrativeEntry(actionText, 'action');
     let updatedItems = playerStats.items.map(i => ({...i}));
     outcome.ingredientsToConsume.forEach(itemToConsume => {
@@ -612,13 +612,13 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         
         const successKeys: TranslationKey[] = ['craftSuccess1', 'craftSuccess2', 'craftSuccess3'];
         const randomKey = successKeys[Math.floor(Math.random() * successKeys.length)];
-        addNarrativeEntry(t(randomKey, { itemName: getTranslatedText(recipe.result.name, language) }), 'system');
-        toast({ title: t('craftSuccessTitle'), description: t('craftSuccess', { itemName: getTranslatedText(recipe.result.name, language) }) });
+        addNarrativeEntry(t(randomKey, { itemName: t(recipe.result.name) }), 'system');
+        toast({ title: t('craftSuccessTitle'), description: t('craftSuccess', { itemName: t(recipe.result.name) }) });
     } else {
         const failKeys: TranslationKey[] = ['craftFail1', 'craftFail2', 'craftFail3'];
         const randomKey = failKeys[Math.floor(Math.random() * failKeys.length)];
-        addNarrativeEntry(t(randomKey, { itemName: getTranslatedText(recipe.result.name, language) }), 'system');
-        toast({ title: t('craftFailTitle'), description: t('craftFail', { itemName: getTranslatedText(recipe.result.name, language) }), variant: 'destructive' });
+        addNarrativeEntry(t(randomKey, { itemName: t(recipe.result.name) }), 'system');
+        toast({ title: t('craftFailTitle'), description: t('craftFail', { itemName: t(recipe.result.name) }), variant: 'destructive' });
     }
     setPlayerStats(() => nextPlayerStats);
     advanceGameTime(nextPlayerStats);
@@ -626,7 +626,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
   const handleItemUsed = useCallback((itemName: TranslatableString, target: 'player' | TranslatableString) => {
     if (isLoading || isGameOver || !isLoaded) return;
-    const actionText = target === 'player' ? `${t('useAction')} ${getTranslatedText(itemName, language)}` : `${t('useOnAction', {item: getTranslatedText(itemName, language), target: getTranslatedText(target, language)})}`;
+    const actionText = target === 'player' ? `${t('useAction')} ${t(itemName)}` : `${t('useOnAction', {item: t(itemName), target: t(target)})}`;
     addNarrativeEntry(actionText, 'action');
     
     handleOfflineItemUse(getTranslatedText(itemName, 'en'), getTranslatedText(target, 'en'));
@@ -635,10 +635,10 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
   const handleUseSkill = useCallback((skillName: string) => {
     if (isLoading || isGameOver || !isLoaded) return;
-    const actionText = `${t('useSkillAction')} ${getTranslatedText(skillName, language)}`;
+    const actionText = `${t('useSkillAction')} ${skillName}`;
     addNarrativeEntry(actionText, 'action');
 
-    handleOfflineSkillUse(getTranslatedText(skillName, language));
+    handleOfflineSkillUse(skillName);
   }, [isLoading, isGameOver, isLoaded, t, handleOfflineSkillUse, addNarrativeEntry, language]);
 
   const handleBuild = useCallback((structureName: string) => {
@@ -659,7 +659,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const inventoryMap = new Map(playerStats.items.map(item => [getTranslatedText(item.name, 'en'), item.quantity]));
     if (!structureToBuild.buildCost?.every((cost: any) => (inventoryMap.get(cost.name) || 0) >= cost.quantity)) { toast({ title: t('notEnoughIngredients'), variant: "destructive" }); return; }
     
-    const actionText = t('buildConfirm', {structureName: getTranslatedText(structureName, language)});
+    const actionText = t('buildConfirm', {structureName: t(structureName)});
     addNarrativeEntry(actionText, 'action');
     let updatedItems = playerStats.items.map(i => ({...i}));
     structureToBuild.buildCost?.forEach((cost: any) => { updatedItems.find(i => getTranslatedText(i.name, 'en') === cost.name)!.quantity -= cost.quantity; });
@@ -676,7 +676,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         return newWorld;
     });
 
-    addNarrativeEntry(t('builtStructure', { structureName: getTranslatedText(structureName, language) }), 'system');
+    addNarrativeEntry(t('builtStructure', { structureName: t(structureName) }), 'system');
     setPlayerStats(() => nextPlayerStats);
     advanceGameTime(nextPlayerStats);
   }, [isLoading, isGameOver, buildableStructures, playerStats, playerPosition, addNarrativeEntry, advanceGameTime, toast, t, setWorld, world, language, setPlayerStats]);
@@ -686,7 +686,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const shelter = world[`${playerPosition.x},${playerPosition.y}`]?.structures.find(s => s.restEffect);
     if (!shelter?.restEffect) { toast({ title: t('cantRestTitle'), description: t('cantRestDesc') }); return; }
 
-    const actionText = t('restInShelter', { shelterName: getTranslatedText(shelter.name, language) });
+    const actionText = t('restInShelter', { shelterName: t(shelter.name) });
     addNarrativeEntry(actionText, 'action');
     
     const oldStats = {...playerStats};
@@ -734,7 +734,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     if(weather?.exclusive_tags.includes('heat')) elementalAffinity = 'fire';
     if(effectiveChunk.dangerLevel > 80) { successChanceBonus -= 5; chaosFactor += 20; }
     
-    const actionText = t('fuseAction', { items: itemsToFuse.map(i => getTranslatedText(i.name, language)).join(', ') });
+    const actionText = t('fuseAction', { items: itemsToFuse.map(i => t(i.name)).join(', ') });
     addNarrativeEntry(actionText, 'action');
     let newItems = playerStats.items.map(i => ({...i}));
     itemsToFuse.forEach(item => { newItems.find(i => getTranslatedText(i.name, 'en') === getTranslatedText(item.name, 'en'))!.quantity -= 1; });
@@ -744,7 +744,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     try {
         const result = await fuseItems({
             itemsToFuse, playerPersona: playerStats.persona, currentChunk: effectiveChunk,
-            environmentalContext: { biome: effectiveChunk.terrain, weather: getTranslatedText(weather?.name, language) || 'clear' },
+            environmentalContext: { biome: effectiveChunk.terrain, weather: t(weather?.name) || 'clear' },
             environmentalModifiers: { successChanceBonus, elementalAffinity, chaosFactor: clamp(chaosFactor, 0, 100) },
             language, customItemDefinitions, fullItemCatalog: customItemCatalog,
         });
@@ -917,11 +917,11 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const playerHasTool = playerStats.items.some(item => getTranslatedText(item.name, 'en') === requiredTool);
 
     if (!playerHasTool) {
-        toast({ title: t('harvestFail_noTool'), description: t('harvestFail_noTool_desc', { tool: getTranslatedText(requiredTool, language), target: getTranslatedText(targetName, language) }), variant: 'destructive' });
+        toast({ title: t('harvestFail_noTool'), description: t('harvestFail_noTool_desc', { tool: t(requiredTool), target: t(targetName) }), variant: 'destructive' });
         return;
     }
     
-    const actionText = t('harvestAction', { target: getTranslatedText(targetName, language) });
+    const actionText = t('harvestAction', { target: t(targetName) });
     addNarrativeEntry(actionText, 'action');
 
     let nextPlayerStats = { ...playerStats };
@@ -943,8 +943,8 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     });
     
     if (lootItems.length > 0) {
-        const lootText = lootItems.map(l => `${l.quantity} ${getTranslatedText(l.name, language)}`).join(', ');
-        addNarrativeEntry(t('harvestSuccess', { loot: lootText, target: getTranslatedText(targetName, language)}), 'system');
+        const lootText = lootItems.map(l => `${l.quantity} ${t(l.name)}`).join(', ');
+        addNarrativeEntry(t('harvestSuccess', { loot: lootText, target: t(targetName)}), 'system');
         
         lootItems.forEach(lootItem => {
             const existingItem = nextPlayerStats.items.find(i => getTranslatedText(i.name, 'en') === getTranslatedText(lootItem.name, 'en'));
@@ -955,7 +955,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             }
         });
     } else {
-        addNarrativeEntry(t('harvestFail_noLoot', { target: getTranslatedText(targetName, language) }), 'system');
+        addNarrativeEntry(t('harvestFail_noLoot', { target: t(targetName) }), 'system');
     }
 
     newWorld[`${playerPosition.x},${playerPosition.y}`]!.enemy = null;

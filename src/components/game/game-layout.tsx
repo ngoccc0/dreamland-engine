@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -155,7 +156,7 @@ export default function GameLayout(props: GameLayoutProps) {
         }
     };
     
-    const worldNameText = getTranslatedText(finalWorldSetup.worldName, language, t);
+    const worldNameText = t(finalWorldSetup.worldName);
 
 
     return (
@@ -258,12 +259,12 @@ export default function GameLayout(props: GameLayoutProps) {
                                 <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('skills')}</h3>
                                 <div className="grid grid-cols-2 gap-2">
                                     {playerStats.skills?.map((skill) => {
-                                        const skillName = getTranslatedText(skill.name, language, t);
-                                        const skillDesc = getTranslatedText(skill.description, language, t);
+                                        const skillName = t(skill.name);
+                                        const skillDesc = t(skill.description);
                                         return (
                                             <Tooltip key={skillName}>
                                                 <TooltipTrigger asChild>
-                                                    <Button variant="secondary" className="w-full justify-center text-xs" onClick={() => { handleUseSkill(skill.name); focusCustomActionInput(); }} disabled={isLoading || playerStats.mana < skill.manaCost}>
+                                                    <Button variant="secondary" className="w-full justify-center text-xs" onClick={() => { handleUseSkill(skillName); focusCustomActionInput(); }} disabled={isLoading || playerStats.mana < skill.manaCost}>
                                                         <WandSparkles className="mr-2 h-3 w-3" />
                                                         {skillName} ({skill.manaCost} MP)
                                                     </Button>
@@ -294,7 +295,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         {restingPlace && (
                             <><div className="space-y-2">
                                 <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('structureActions')}</h2>
-                                <Tooltip><TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => { handleRest(); focusCustomActionInput(); }} disabled={isLoading}><BedDouble className="mr-2 h-4 w-4" />{t('rest')}</Button></TooltipTrigger><TooltipContent><p>{t('restTooltip', { shelterName: getTranslatedText(restingPlace.name, language, t), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => { handleRest(); focusCustomActionInput(); }} disabled={isLoading}><BedDouble className="mr-2 h-4 w-4" />{t('rest')}</Button></TooltipTrigger><TooltipContent><p>{t('restTooltip', { shelterName: t(restingPlace.name), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent></Tooltip>
                             </div><Separator /></>
                         )}
                         

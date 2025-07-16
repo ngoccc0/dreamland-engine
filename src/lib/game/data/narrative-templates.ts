@@ -184,15 +184,22 @@ export const biomeNarrativeTemplates: Record<string, BiomeTemplateData> = {
     },
     sky: {}
   },
-  "beach": {
-    terrain: "beach",
-    descriptionTemplates: [],
-    adjectives: {},
-    features: {},
-    smells: {},
-    sounds: {},
-    sky: {}
-  }
+  "grassland": { terrain: "grassland", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
+  "beach": { terrain: "beach", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
+  "desert": { terrain: "desert", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
+  "swamp": { terrain: "swamp", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
+  "mesa": { terrain: "mesa", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
+  "tundra": { terrain: "tundra", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
+  "mountain": { terrain: "mountain", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
+  "cave": { terrain: "cave", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
+  "volcanic": { terrain: "volcanic", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
+  "floptropica": { terrain: "floptropica", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
+  "wall": { terrain: "wall", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
+  "ocean": { terrain: "ocean", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
+  "city": { terrain: "city", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
+  "space_station": { terrain: "space_station", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
+  "underwater": { terrain: "underwater", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
+  "mushroom_forest": { terrain: "mushroom_forest", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
 };
 
 
@@ -230,5 +237,3 @@ export function findTemplate(language: Language, category: string, topic: string
 
     return templates || [];
 }
-
-    

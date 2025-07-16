@@ -98,11 +98,11 @@ const selectEntities = <T extends { name: TranslatableString | string; type?: st
 
     const validEntities = cleanPossibleEntities.filter(entity => {
         if (!entity) { // Redundant due to filter(Boolean) but safe
-            logger.error('[selectEntities] Found an undefined entity in template array after initial clean.', { availableEntities });
+            logger.error(`[selectEntities] Found an undefined entity in template array after initial clean. Data: ${JSON.stringify(availableEntities)}`);
             return false;
         }
         if (!entity.conditions) {
-            logger.error('[selectEntities] Entity is missing "conditions" property.', { entity });
+            logger.error(`[selectEntities] Entity is missing "conditions" property. Data: ${JSON.stringify(entity)}`);
             return false;
         }
         return checkConditions(entity.conditions, chunk);
@@ -117,7 +117,7 @@ const selectEntities = <T extends { name: TranslatableString | string; type?: st
         const entityData = 'data' in entity ? entity.data : entity;
 
         if (!entityData || (!entityData.name && !entityData.type)) {
-            logger.error("[selectEntities] SKIPPING entity data is missing 'name' or 'type' property. HERE IS THE DATA:", entity);
+            logger.error(`[selectEntities] SKIPPING entity data is missing 'name' or 'type' property. Data: ${JSON.stringify(entity)}`);
             continue;
         }
 
@@ -646,3 +646,4 @@ export function getEffectiveChunk(baseChunk: Chunk, weatherZones: Record<string,
     
     return effectiveChunk;
 }
+

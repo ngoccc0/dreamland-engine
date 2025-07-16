@@ -179,7 +179,7 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequi
                         <div className="space-y-1">
                             {nextUnlockableSkills.map(skill => (
                                 <div key={getTranslatedText(skill.name, 'en')}>
-                                    <p className="text-xs text-accent-foreground font-semibold">{getTranslatedText(skill.name, language, t)}</p>
+                                    <p className="text-xs text-accent-foreground font-semibold">{t(skill.name)}</p>
                                     <p className="text-xs text-muted-foreground">({t('unlockCondition')}: {skill.unlockCondition!.count} {t(skill.unlockCondition!.type)})</p>
                                 </div>
                             ))}
@@ -197,8 +197,8 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequi
               <ul className="space-y-2">
                 {pets.map((pet, index) => (
                   <li key={index} className="p-2 bg-muted rounded-md text-muted-foreground">
-                    <div className="font-semibold text-foreground">{pet.name || getTranslatedText(pet.type, language, t)}</div>
-                    <div className="text-xs">{t('levelLabel')} {pet.level} {getTranslatedText(pet.type, language, t)}</div>
+                    <div className="font-semibold text-foreground">{pet.name || t(pet.type)}</div>
+                    <div className="text-xs">{t('levelLabel')} {pet.level} {t(pet.type)}</div>
                   </li>
                 ))}
               </ul>
@@ -212,7 +212,7 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequi
             {quests.length > 0 ? (
               <Accordion type="single" collapsible className="w-full space-y-2">
                 {quests.map((quest, index) => {
-                  const questText = getTranslatedText(quest, language, t);
+                  const questText = t(quest);
                   const isLegendary = questText.startsWith('[Legendary]') || questText.startsWith('[Huyền thoại]');
                   return (
                     <AccordionItem value={`item-${index}`} key={index} className="p-2 bg-muted rounded-md border-none">

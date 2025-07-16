@@ -6,7 +6,7 @@
  * success chance based on the quality of materials used.
  */
 
-import type { PlayerItem, Recipe, ItemDefinition, CraftingOutcome } from "../types";
+import type { PlayerItem, Recipe, ItemDefinition, CraftingOutcome, TranslatableString } from "../types";
 import { getTranslatedText } from "@/lib/utils";
 
 /**
@@ -40,8 +40,8 @@ export const calculateCraftingOutcome = (
         let bestAvailable: { item: PlayerItem, quality: number } | null = null;
         
         const possibleItems = Object.entries(allItemDefinitions)
-            .filter(([_, def]) => def.relationship?.substituteFor === requirement.name || _ === requirement.name)
-            .map(([name, def]) => ({ name, quality: def.relationship?.quality ?? 1 }));
+            .filter(([_, def]) => (def.relationship?.substituteFor === requirement.name) || getTranslatedText(def.name, 'en') === requirement.name)
+            .map(([_, def]) => ({ name: getTranslatedText(def.name, 'en'), quality: def.relationship?.quality ?? 1 }));
             
         // Also add the primary ingredient itself if not already included via relationship
         if (!possibleItems.some(p => p.name === requirement.name)) {
@@ -59,9 +59,8 @@ export const calculateCraftingOutcome = (
             }
         }
         
-        const playerItemForQty = playerItems.find(pi => pi.name === (bestAvailable?.item.name || requirement.name));
-        const playerQuantity = playerItemForQty ? getTranslatedText(playerItemForQty.name, 'en') === getTranslatedText(requirement.name, 'en') ? playerItemForQty.quantity : 0 : 0;
-
+        const playerItemForQtyCheck = playerItems.find(pi => getTranslatedText(pi.name, 'en') === requirement.name);
+        const playerQuantity = playerItemForQtyCheck ? playerItemForQtyCheck.quantity : 0;
 
         if (bestAvailable) {
             resolvedIngredients.push({
@@ -79,7 +78,7 @@ export const calculateCraftingOutcome = (
             canCraftAllIngredients = false;
             resolvedIngredients.push({
                 requirement,
-                usedItem: { name: requirement.name, tier: 1 },
+                usedItem: { name: requirement.name as unknown as TranslatableString, tier: 1 },
                 isSubstitute: false,
                 hasEnough: false,
                 playerQuantity

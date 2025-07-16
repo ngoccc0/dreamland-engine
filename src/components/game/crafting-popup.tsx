@@ -11,9 +11,9 @@ import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/comp
 import { useLanguage } from "@/context/language-context";
 import type { PlayerItem, Recipe, ItemDefinition, RecipeIngredient } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
-import { calculateCraftingOutcome, type CraftingOutcome } from "@/lib/game/engine";
+import { calculateCraftingOutcome, type CraftingOutcome } from "@/lib/game/engine/crafting";
 import { Hammer } from "./icons";
-import { cn } from "@/lib/utils";
+import { cn, getTranslatedText } from "@/lib/utils";
 
 interface CraftingPopupProps {
   open: boolean;
@@ -25,7 +25,7 @@ interface CraftingPopupProps {
 }
 
 export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions, recipes, onCraft }: CraftingPopupProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -42,15 +42,18 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
             {Object.values(recipes).map((recipe, index) => {
               const outcome = calculateCraftingOutcome(playerItems, recipe, itemDefinitions);
               const hasRequiredTool = outcome.hasRequiredTool;
+              const resultName = getTranslatedText(recipe.result.name, language, t);
+              const resultDescKey = recipe.description;
+              const requiredToolName = recipe.requiredTool ? getTranslatedText(recipe.requiredTool, language, t) : '';
 
               return (
                 <div key={index} className="p-4 border rounded-lg bg-muted/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div className="flex-grow">
                     <h4 className="font-bold text-lg text-foreground flex items-center gap-2">
                       <span className="text-2xl">{recipe.result.emoji}</span>
-                      {t(recipe.result.name)}
+                      {resultName}
                     </h4>
-                    <p className="text-sm text-muted-foreground italic mb-2">{t(recipe.description as TranslationKey)}</p>
+                    <p className="text-sm text-muted-foreground italic mb-2">{getTranslatedText(resultDescKey, language, t)}</p>
                     <div className="text-sm space-y-1">
                       <div>
                         <span className="font-semibold">{t('ingredients')}:</span>
@@ -65,16 +68,21 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
                                  itemClass = resolvedIng.isSubstitute ? "text-yellow-400" : "text-green-400";
                              }
 
+                             const usedItemName = getTranslatedText(itemToShow.name, language, t);
+                             const requirementName = getTranslatedText(requirement.name, language, t);
+                             const reqDef = itemDefinitions[getTranslatedText(requirement.name, 'en')];
+                             const reqDesc = reqDef ? getTranslatedText(reqDef.description, language, t) : '';
+
                             return (
                               <TooltipProvider key={i}>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <li className={itemClass}>
-                                      {itemToShow ? t(itemToShow.name) : t(requirement.name)} ({playerQty}/{requirement.quantity})
+                                      {itemToShow ? usedItemName : requirementName} ({playerQty}/{requirement.quantity})
                                     </li>
                                   </TooltipTrigger>
                                   <TooltipContent>
-                                    <p>{t(itemDefinitions[requirement.name]?.description)}</p>
+                                    <p>{reqDesc}</p>
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
@@ -85,7 +93,7 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
                        {recipe.requiredTool && (
                         <div>
                            <span className={cn("font-semibold", hasRequiredTool ? 'text-green-400' : 'text-red-400')}>
-                             {t('requiredTool')}: {t(recipe.requiredTool)}
+                             {t('requiredTool')}: {requiredToolName}
                            </span>
                         </div>
                        )}

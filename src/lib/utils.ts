@@ -1,3 +1,4 @@
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import type { Language, NarrativeLength, TranslatableString } from "./game/types";
@@ -40,12 +41,26 @@ export function getTranslatedText(
     language: Language,
     t?: (key: TranslationKey, options?: any) => string
 ): string {
+    console.log("GET_TRANSLATED_TEXT_DEBUG: Called with:", { translatable, language, tExists: !!t });
+
     if (typeof translatable === 'string') {
-        return t ? t(translatable) : translatable;
+        console.log("GET_TRANSLATED_TEXT_DEBUG: Translatable is a string (key).");
+        if (t) {
+            const translatedValue = t(translatable);
+            console.log("GET_TRANSLATED_TEXT_DEBUG: 't' function exists. Result of t(key):", translatedValue);
+            return translatedValue;
+        } else {
+            console.log("GET_TRANSLATED_TEXT_DEBUG: 't' function DOES NOT exist. Returning original key.");
+            return translatable;
+        }
     }
     if (typeof translatable === 'object' && translatable !== null) {
-        return translatable[language] || translatable['en'] || '';
+        console.log("GET_TRANSLATED_TEXT_DEBUG: Translatable is an object.");
+        const objTranslated = translatable[language] || translatable['en'] || '';
+        console.log("GET_TRANSLATED_TEXT_DEBUG: Result from object lookup:", objTranslated);
+        return objTranslated;
     }
+    console.log("GET_TRANSLATED_TEXT_DEBUG: Unexpected translatable type. Returning empty string.");
     return '';
 }
 

@@ -168,7 +168,15 @@ export function useGameInitialization(deps: GameInitializationDeps) {
         if ((stateToInitialize.narrativeLog || []).length === 0) {
              const startingChunk = worldSnapshot[initialPosKey];
              if (startingChunk) {
+                console.log("DEBUG: Initializing narrative...");
+                console.log("DEBUG: worldSetup.initialNarrative (key provided):", stateToInitialize.worldSetup.initialNarrative);
+                console.log("DEBUG: Current language (from useLanguage):", language);
+
+                const directTranslationAttempt = t(stateToInitialize.worldSetup.initialNarrative as any);
+                console.log("DEBUG: Direct translation attempt using t():", directTranslationAttempt);
+
                 const initialNarrative = getTranslatedText(stateToInitialize.worldSetup.initialNarrative, language, t);
+                console.log("DEBUG: Final initialNarrative from getTranslatedText():", initialNarrative);
                 const chunkDescription = generateOfflineNarrative(startingChunk, 'long', worldSnapshot, stateToInitialize.playerPosition, t, language);
                 addNarrativeEntry(`${initialNarrative}\n\n${chunkDescription}`, 'narrative');
             }

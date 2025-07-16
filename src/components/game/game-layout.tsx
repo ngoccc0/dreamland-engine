@@ -23,7 +23,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescript
 import { useLanguage } from "@/context/language-context";
 import { useGameEngine } from "@/hooks/use-game-engine";
 import type { ItemDefinition, GeneratedItem, WorldConcept, PlayerItem, GameState, Structure, Chunk, EquipmentSlot, Action } from "@/lib/game/types";
-import { cn } from "@/lib/utils";
+import { cn, getTranslatedText } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
 import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Heart, Zap, Footprints, Loader2, Menu, LogOut } from "./icons";
 
@@ -155,9 +155,7 @@ export default function GameLayout(props: GameLayoutProps) {
         }
     };
     
-    const worldNameText = typeof finalWorldSetup.worldName === 'object' 
-        ? finalWorldSetup.worldName[language] 
-        : finalWorldSetup.worldName;
+    const worldNameText = getTranslatedText(finalWorldSetup.worldName, language, t);
 
 
     return (
@@ -166,7 +164,7 @@ export default function GameLayout(props: GameLayoutProps) {
                 {/* Left Panel: Narrative */}
                 <div className="w-full md:flex-1 flex flex-col md:overflow-hidden">
                     <header className="p-4 border-b flex-shrink-0 flex justify-between items-center">
-                        <h1 className="text-2xl font-bold font-headline">{t(worldNameText)}</h1>
+                        <h1 className="text-2xl font-bold font-headline">{worldNameText}</h1>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon">
@@ -259,17 +257,21 @@ export default function GameLayout(props: GameLayoutProps) {
                              <div className="flex flex-col space-y-2 w-full md:max-w-xs">
                                 <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('skills')}</h3>
                                 <div className="grid grid-cols-2 gap-2">
-                                    {playerStats.skills?.map((skill) => (
-                                        <Tooltip key={skill.name}>
-                                            <TooltipTrigger asChild>
-                                                <Button variant="secondary" className="w-full justify-center text-xs" onClick={() => { handleUseSkill(t(skill.name)); focusCustomActionInput(); }} disabled={isLoading || playerStats.mana < skill.manaCost}>
-                                                    <WandSparkles className="mr-2 h-3 w-3" />
-                                                    {t(skill.name)} ({skill.manaCost} MP)
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent><p>{t(skill.description)}</p><p className="text-muted-foreground">{t('manaCost')}: {skill.manaCost}</p></TooltipContent>
-                                        </Tooltip>
-                                    ))}
+                                    {playerStats.skills?.map((skill) => {
+                                        const skillName = getTranslatedText(skill.name, language, t);
+                                        const skillDesc = getTranslatedText(skill.description, language, t);
+                                        return (
+                                            <Tooltip key={skillName}>
+                                                <TooltipTrigger asChild>
+                                                    <Button variant="secondary" className="w-full justify-center text-xs" onClick={() => { handleUseSkill(skill.name); focusCustomActionInput(); }} disabled={isLoading || playerStats.mana < skill.manaCost}>
+                                                        <WandSparkles className="mr-2 h-3 w-3" />
+                                                        {skillName} ({skill.manaCost} MP)
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent><p>{skillDesc}</p><p className="text-muted-foreground">{t('manaCost')}: {skill.manaCost}</p></TooltipContent>
+                                            </Tooltip>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>
@@ -292,7 +294,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         {restingPlace && (
                             <><div className="space-y-2">
                                 <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('structureActions')}</h2>
-                                <Tooltip><TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => { handleRest(); focusCustomActionInput(); }} disabled={isLoading}><BedDouble className="mr-2 h-4 w-4" />{t('rest')}</Button></TooltipTrigger><TooltipContent><p>{t('restTooltip', { shelterName: t(typeof restingPlace.name === 'object' ? restingPlace.name[language] : restingPlace.name), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => { handleRest(); focusCustomActionInput(); }} disabled={isLoading}><BedDouble className="mr-2 h-4 w-4" />{t('rest')}</Button></TooltipTrigger><TooltipContent><p>{t('restTooltip', { shelterName: getTranslatedText(restingPlace.name, language, t), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent></Tooltip>
                             </div><Separator /></>
                         )}
                         

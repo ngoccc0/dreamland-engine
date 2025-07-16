@@ -1,3 +1,4 @@
+
 import type { BiomeTemplateData, Language, NarrativeLength, NarrativeTemplate, MoodTag } from '@/lib/game/types';
 import { logger } from '@/lib/logger';
 
@@ -161,7 +162,27 @@ export const biomeNarrativeTemplates: Record<string, BiomeTemplateData> = {
         "sky_general": ["bầu trời u ám", "những vệt sáng hiếm hoi", "tán lá che khuất bầu trời"],
     }
   },
-  // We can add other biomes like "Desert", "Mountain" here later.
+  "forest": {
+    terrain: "forest",
+    descriptionTemplates: [
+      { id: "forest_1", type: "Opening", mood: ["Peaceful", "Lush"], length: "medium", weight: 1, template: "Bạn đang ở trong một khu rừng {{adjective_lush}} với những cây {{feature_tree}} vươn cao, che khuất bầu trời {{sky_general}}. Không khí có mùi {{smell_lush}}." },
+      { id: "forest_2", type: "Opening", mood: ["Gloomy", "Mysterious"], length: "long", weight: 0.8, template: "Bạn đang ở sâu trong một khu rừng {{adjective_dark}}. Ánh sáng yếu ớt xuyên qua kẽ lá, và bạn nghe thấy tiếng {{sound_dark}} của sự sống hoang dã. {sensory_details} {entity_report} {surrounding_peek}" },
+    ],
+    adjectives: {
+        "adjective_lush": ["rậm rạp", "yên tĩnh", "xanh tươi"],
+        "adjective_dark": ["u ám", "ma mị", "cổ xưa"],
+        "feature_tree": ["sồi", "thông", "dương xỉ"],
+        "sky_general": ["xanh biếc", "vàng úa", "xám xịt"],
+    },
+    features: {},
+    smells: {
+        "smell_lush": ["đất ẩm", "lá cây mục", "nhựa thông"],
+    },
+    sounds: {
+        "sound_dark": ["cành cây gãy", "sự im lặng đáng sợ", "tiếng côn trùng kêu"],
+    },
+    sky: {}
+  }
 };
 
 

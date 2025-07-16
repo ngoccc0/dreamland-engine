@@ -45,11 +45,7 @@ export const forest_vi = {
         { name: 'magic_root', conditions: { chance: 0.05, moisture: { min: 6 }, timeOfDay: 'night' } }
     ],
     structures: [
-         { 
-            data: structureDefinitions['abandoned_altar'], 
-            loot: [{ name: 'crystal_shard', chance: 0.1, quantity: { min: 1, max: 1 } }],
-            conditions: { magicAffinity: { min: 6 }, chance: 0.01 } 
-        }
+        structureDefinitions['Bàn thờ bị bỏ hoang'],
     ],
     creatures: [
         { name: 'common_tree', conditions: { chance: 0.7, vegetationDensity: { min: 3 } } },

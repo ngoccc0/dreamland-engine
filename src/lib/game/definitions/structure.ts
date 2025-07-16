@@ -8,7 +8,7 @@ export const StructureDefinitionSchema = z.object({
     providesShelter: z.boolean().optional(),
     buildable: z.boolean().optional(),
     buildCost: z.array(z.object({ name: z.string(), quantity: z.number() })).optional(),
-    restEffect: z.object({ hp: z.number(), stamina: z.number() }).optional(),
+    restEffect: z.object({ hp: z.number(), stamina: z.number(), mana: z.number().optional() }).optional(),
     heatValue: z.number().optional(),
     // Add loot and conditions to the base definition
     loot: z.array(LootDropSchema).optional().describe("A list of items this structure might contain."),

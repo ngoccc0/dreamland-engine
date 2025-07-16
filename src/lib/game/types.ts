@@ -224,16 +224,7 @@ export interface Skill {
     };
 }
 
-export interface Structure {
-    name: TranslatableString;
-    description: TranslatableString;
-    emoji: string;
-    providesShelter?: boolean;
-    buildable?: boolean;
-    buildCost?: { name: string; quantity: number }[];
-    restEffect?: { hp: number; stamina: number };
-    heatValue?: number;
-}
+export interface Structure extends StructureDefinition {}
 
 
 export interface Action {

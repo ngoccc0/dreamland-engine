@@ -77,7 +77,7 @@ export const WorldConceptSchema = z.object({
   worldName: TranslatableStringSchema,
   initialNarrative: TranslatableStringSchema,
   startingBiome: z.custom<Terrain>(), // Using custom to avoid z.enum with a const
-  playerInventory: z.array(z.object({ name: z.string(), quantity: z.number().int().min(1) })),
+  playerInventory: z.array(z.object({ name: TranslatableStringSchema, quantity: z.number().int().min(1) })),
   initialQuests: z.array(TranslatableStringSchema),
   startingSkill: SkillSchema,
   customStructures: z.array(StructureSchema), // Pass the generated structures with each concept
@@ -360,7 +360,7 @@ const generateWorldSetupFlow = ai.defineFlow(
         const startingItems = shuffledItems.slice(0, numItemsToTake);
         
         const playerInventory = startingItems.map(item => ({
-            name: getTranslatedText(item.name, 'en'), // Use english name as key
+            name: item.name,
             quantity: getRandomInRange(item.baseQuantity)
         }));
 

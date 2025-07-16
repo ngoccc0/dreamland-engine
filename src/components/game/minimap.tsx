@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon, Home, MapPin } from "./icons";
 import { useLanguage } from "@/context/language-context";
 import type React from "react";
-import type { Chunk, Terrain } from "@/lib/game/types";
+import type { Chunk, Terrain, Structure } from "@/lib/game/types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { TranslationKey } from "@/lib/i18n";
 import { Separator } from "../ui/separator";
@@ -32,7 +32,7 @@ export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
                     <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><Home />{t('structures')}:</h5>
                         <ul className="space-y-1 text-xs pl-5">
-                            {chunk.structures.map(s => <li key={getTranslatedText(s.name, 'en')}>{s.emoji} {getTranslatedText(s.name, language, t)}</li>)}
+                            {chunk.structures.map((s: Structure) => <li key={getTranslatedText(s.name, 'en')}>{s.emoji} {getTranslatedText(s.name, language, t)}</li>)}
                         </ul>
                     </div>
                 )}

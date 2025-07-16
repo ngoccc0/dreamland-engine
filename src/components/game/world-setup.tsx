@@ -11,7 +11,7 @@ import { suggestKeywords } from "@/ai/flows/suggest-keywords";
 import { Skeleton } from "../ui/skeleton";
 import { Separator } from "../ui/separator";
 import { useLanguage } from "@/context/language-context";
-import type { WorldConcept, Skill, PlayerItem, GeneratedItem, Terrain, GenerateWorldSetupOutput } from "@/lib/game/types";
+import type { Skill, PlayerItem, GeneratedItem, Terrain } from "@/lib/game/types";
 import { premadeWorlds } from "@/lib/game/data/premade-worlds";
 import type { TranslationKey } from "@/lib/i18n";
 import { SettingsPopup } from "./settings-popup";
@@ -19,6 +19,7 @@ import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/
 import { Sparkles, ArrowRight, BrainCircuit, Loader2, Settings, ArrowLeft, ChevronLeft, ChevronRight, BookOpen, Map, WandSparkles, BaggageClaim, ListTodo } from "./icons";
 import { ScrollArea } from "../ui/scroll-area";
 import { cn, getTranslatedText } from "@/lib/utils";
+import type { GenerateWorldSetupOutput, WorldConcept } from "@/ai/flows/generate-world-setup";
 
 interface WorldSetupProps {
     onWorldCreated: (worldSetupData: GenerateWorldSetupOutput) => void;
@@ -305,7 +306,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                             <SelectionCard
                                 label={t('worldName')}
                                 icon={<Sparkles />}
-                                options={generatedData.concepts.map(c => c.worldName)}
+                                options={generatedData.concepts.map((c: WorldConcept) => c.worldName)}
                                 selectedIndex={selection.worldName}
                                 onSelect={(index) => setSelection(s => ({...s, worldName: index}))}
                                 renderOption={(option) => <p className="text-xl font-bold font-headline">{getTranslatedText(option, language, t)}</p>}
@@ -314,7 +315,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                         <SelectionCard
                             label={t('openingNarrative')}
                             icon={<BookOpen />}
-                            options={generatedData.concepts.map(c => c.initialNarrative)}
+                            options={generatedData.concepts.map((c: WorldConcept) => c.initialNarrative)}
                             selectedIndex={selection.initialNarrative}
                             onSelect={(index) => setSelection(s => ({...s, initialNarrative: index}))}
                             renderOption={(option) => <ScrollArea className="h-24"><p className="text-sm italic text-muted-foreground">{getTranslatedText(option, language, t)}</p></ScrollArea>}
@@ -322,7 +323,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                         <SelectionCard
                             label={t('startingBiome')}
                             icon={<Map />}
-                            options={generatedData.concepts.map(c => c.startingBiome)}
+                            options={generatedData.concepts.map((c: WorldConcept) => c.startingBiome)}
                             selectedIndex={selection.startingBiome}
                             onSelect={(index) => setSelection(s => ({...s, startingBiome: index}))}
                             renderOption={(option) => <p className="font-semibold text-lg">{t(option)}</p>}
@@ -330,7 +331,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                          <SelectionCard
                             label={t('startingSkill')}
                             icon={<WandSparkles />}
-                            options={generatedData.concepts.map(c => c.startingSkill)}
+                            options={generatedData.concepts.map((c: WorldConcept) => c.startingSkill)}
                             selectedIndex={selection.startingSkill}
                             onSelect={(index) => setSelection(s => ({...s, startingSkill: index}))}
                             renderOption={(option: Skill) => 
@@ -343,7 +344,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                          <SelectionCard
                             label={t('startingEquipment')}
                             icon={<BaggageClaim />}
-                            options={generatedData.concepts.map(c => c.playerInventory)}
+                            options={generatedData.concepts.map((c: WorldConcept) => c.playerInventory)}
                             selectedIndex={selection.playerInventory}
                             onSelect={(index) => setSelection(s => ({...s, playerInventory: index}))}
                             renderOption={(option: PlayerItem[]) => 
@@ -360,7 +361,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                           <SelectionCard
                               label={t('firstQuest')}
                               icon={<ListTodo />}
-                              options={generatedData.concepts.map(c => c.initialQuests)}
+                              options={generatedData.concepts.map((c: WorldConcept) => c.initialQuests)}
                               selectedIndex={selection.initialQuests}
                               onSelect={(index) => setSelection(s => ({...s, initialQuests: index}))}
                               renderOption={(option: string[]) => 

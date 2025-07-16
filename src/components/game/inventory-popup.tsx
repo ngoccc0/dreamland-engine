@@ -13,7 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/context/language-context";
-import type { PlayerItem, ItemDefinition, Chunk, ItemCategory, PlayerAttributes, TranslatableString } from "@/lib/game/types";
+import type { PlayerItem, ItemDefinition, Chunk, ItemCategory, PlayerAttributes, TranslatableString, ItemEffect } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 import { cn, getTranslatedText } from "@/lib/utils";
 
@@ -27,7 +27,7 @@ interface InventoryPopupProps {
   onEquipItem: (itemName: string) => void;
 }
 
-const categoryEmojis: Record<ItemCategory, string> = {
+const categoryEmojis = {
   Weapon: '⚔️',
   Tool: '🛠️',
   Material: '🧱',
@@ -44,7 +44,7 @@ const categoryEmojis: Record<ItemCategory, string> = {
   Potion: '🧪',
   Utility: '⚙️',
   Misc: '❓',
-};
+} as const;
 
 const attributeLabels: Record<keyof PlayerAttributes, TranslationKey> = {
     physicalAttack: 'physicalAttack',
@@ -87,7 +87,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                     const isInteractable = isUsableOnSelf || isUsableOnEnemy || isEquippable;
 
                     const itemCategory = definition?.category;
-                    const categoryEmoji = itemCategory ? categoryEmojis[itemCategory] : '❓';
+                    const categoryEmoji = itemCategory ? categoryEmojis[itemCategory as keyof typeof categoryEmojis] : '❓';
 
                     return (
                       <li key={getTranslatedText(item.name, 'en') + index}>
@@ -126,7 +126,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                                         <div className="px-2 py-1.5 text-xs space-y-1">
                                             <p className="font-semibold text-muted-foreground">{t('attributes')}:</p>
                                             {Object.entries(definition.attributes).map(([key, value]) => {
-                                                if (value === 0) return null;
+                                                if (typeof value !== 'number' || value === 0) return null;
                                                 const sign = value > 0 ? '+' : '';
                                                 return (
                                                     <p key={key} className={cn("ml-2", value > 0 ? "text-green-500" : "text-red-500")}>
@@ -140,7 +140,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                                     {definition?.effects?.length > 0 && (
                                         <div className="px-2 py-1.5 text-xs space-y-1">
                                             <p className="font-semibold text-muted-foreground">{t('effects')}:</p>
-                                            {definition.effects.map((effect, i) => (
+                                            {definition.effects.map((effect: ItemEffect, i) => (
                                                 <p key={i} className="text-green-500 ml-2">
                                                     {effect.type === 'HEAL' && `+${effect.amount} ${t('healthShort')}`}
                                                     {effect.type === 'RESTORE_STAMINA' && `+${effect.amount} ${t('staminaShort')}`}

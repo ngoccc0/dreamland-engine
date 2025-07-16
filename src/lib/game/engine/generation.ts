@@ -101,7 +101,7 @@ const selectEntities = <T extends { name: TranslatableString | string; type?: st
         const entityData = 'data' in entity ? entity.data : entity;
 
         if (!entityData || (!entityData.name && !entityData.type)) {
-            logger.error("[selectEntities] SKIPPING entity data is missing 'name' or 'type' property.", { entity: entityData });
+            logger.error("[selectEntities] SKIPPING entity data is missing 'name' or 'type' property. HERE IS THE DATA:", { entity: entityData });
             continue;
         }
 
@@ -515,9 +515,11 @@ export function ensureChunkExists(
     customStructures: Structure[],
     language: Language
 ) {
+    logger.debug(`[ensureChunkExists] STARTING for chunk (${pos.x},${pos.y}).`);
     const key = `${pos.x},${pos.y}`;
     if (currentWorld[key]) {
-        logger.debug(`[ensureChunkExists] Chunk at (${pos.x},${pos.y}) already exists.`);
+        logger.debug(`[ensureChunkExists] Chunk at (${pos.x},${pos.y}) already exists. Skipping generation.`);
+        logger.debug(`[ensureChunkExists] FINISHED for chunk (${pos.x}, ${pos.y}). Returning world profile.`);
         return { worldWithChunk: currentWorld, newRegions: currentRegions, newRegionCounter: currentRegionCounter };
     }
     logger.info(`[ensureChunkExists] Chunk at (${pos.x},${pos.y}) does not exist. Generating new region.`);
@@ -528,40 +530,10 @@ export function ensureChunkExists(
     logger.info(`[ensureChunkExists] Selected new terrain: ${newTerrain}`);
 
     const { newWorld, newRegions, newRegionCounter } = generateRegion(pos, newTerrain, currentWorld, currentRegions, currentRegionCounter, worldProfile, currentSeason, allItemDefinitions, customItemCatalog, customStructures, language);
-    return { worldWithChunk: newWorld, newRegions: newRegionCounter, newRegionCounter };
+    logger.debug(`[ensureChunkExists] FINISHED generating region for chunk (${pos.x}, ${pos.y}).`);
+    logger.debug(`[ensureChunkExists] FINISHED for chunk (${pos.x}, ${pos.y}). Returning world profile.`);
+    return { worldWithChunk: newWorld, newRegions: newRegions, newRegionCounter: newRegionCounter };
 }
-
-
-export const getEffectiveChunk = (baseChunk: Chunk, weatherZones: { [key: string]: WeatherState }, gameTime: number): Chunk => {
-    if (!baseChunk) return baseChunk;
-
-    const effectiveChunk: Chunk = { ...baseChunk };
-    
-    const structureHeat = effectiveChunk.structures?.reduce((sum, s) => sum + (s.heatValue || 0), 0) || 0;
-
-    if (!weatherZones[effectiveChunk.regionId]) {
-        effectiveChunk.temperature = (baseChunk.temperature ?? 50) + (structureHeat * 10);
-        return effectiveChunk;
-    }
-
-    const weatherZone = weatherZones[baseChunk.regionId];
-    const weather = weatherZone.currentWeather;
-    
-    const baseCelsius = (baseChunk.temperature ?? 50);
-    const weatherCelsiusMod = weather.temperature_delta * 10;
-    effectiveChunk.temperature = baseCelsius + weatherCelsiusMod + (structureHeat * 10);
-
-    effectiveChunk.moisture = clamp((baseChunk.moisture ?? 50) + (weather.moisture_delta * 10), 0, 100);
-    effectiveChunk.windLevel = clamp((baseChunk.windLevel ?? 30) + (weather.wind_delta * 10), 0, 100);
-    
-    let timeLightMod = 0;
-    if (gameTime >= 1320 || gameTime < 300) timeLightMod = -80;
-    else if ((gameTime >= 300 && gameTime < 420) || (gameTime >= 1080 && gameTime < 1200)) timeLightMod = -30;
-    
-    effectiveChunk.lightLevel = clamp(baseChunk.lightLevel + (weather.light_delta * 10) + timeLightMod, -100, 100);
-
-    return effectiveChunk;
-};
 
 
 /**
@@ -592,7 +564,7 @@ export const generateChunksInRadius = (
     customStructures: Structure[],
     language: Language
 ): { world: World, regions: { [id: number]: Region }, regionCounter: number } => {
-    logger.info(`[generateChunksInRadius] Starting generation for radius ${radius} around (${center_x}, ${center_y}).`);
+    logger.debug(`[generateChunksInRadius] STARTING generation for radius ${radius} around (${center_x}, ${center_y}).`);
     let newWorld = { ...currentWorld };
     let newRegions = { ...currentRegions };
     let newRegionCounter = currentRegionCounter;
@@ -602,7 +574,7 @@ export const generateChunksInRadius = (
             const chunk_x = center_x + dx;
             const chunk_y = center_y + dy;
             const chunkKey = `${chunk_x},${chunk_y}`;
-
+            logger.debug(`[generateChunksInRadius] Checking chunk at (${chunk_x}, ${chunk_y}).`);
             if (!newWorld[chunkKey]) {
                 const result = ensureChunkExists(
                     { x: chunk_x, y: chunk_y },

@@ -169,7 +169,8 @@ export function useGameInitialization(deps: GameInitializationDeps) {
              const startingChunk = worldSnapshot[initialPosKey];
              if (startingChunk) {
                 const initialNarrative = getTranslatedText(stateToInitialize.worldSetup.initialNarrative, language, t);
-                addNarrativeEntry(initialNarrative, 'narrative');
+                const chunkDescription = generateOfflineNarrative(startingChunk, 'long', worldSnapshot, stateToInitialize.playerPosition, t, language);
+                addNarrativeEntry(`${initialNarrative}\n\n${chunkDescription}`, 'narrative');
             }
         } else {
              setNarrativeLog(stateToInitialize.narrativeLog);

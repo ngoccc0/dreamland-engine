@@ -70,15 +70,6 @@ Chào mừng đến với bản phân tích chuyên sâu về "trái tim" của 
             *   `>= 70`: Gán mood "Danger", "Foreboding", "Threatening".
             *   `>= 40`: Gán mood "Threatening".
         *   ... và tương tự cho các chỉ số khác.
-    *   **Player Stats Moods:**
-        * `hp`:
-            * `<= 20`: Gán mood "Wounded", "Desperate"
-            * `> 20 & <= 50`: Gán mood "Injured"
-        * `stamina`:
-            * `<= 20`: Gán mood "Exhausted"
-        * `bodyTemperature`:
-            * `< 35`: Gán mood "Freezing"
-            * `> 39`: Gán mood "Feverish"
 
 *   **Phân tích sâu dưới góc độ chuyên gia:**
     *   **Điểm mạnh:** Đây là "bộ não cảm xúc" của engine. Nó cung cấp một nền tảng logic cực kỳ vững chắc để tạo ra các đoạn văn tường thuật động và phù hợp với ngữ cảnh, vượt xa các mô tả tĩnh thông thường.

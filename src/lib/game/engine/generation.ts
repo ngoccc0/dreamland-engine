@@ -80,8 +80,8 @@ export const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 
  * @param language The current language for resolving translatable strings.
  * @returns An array of valid, selected entities.
  */
-const selectEntities = <T extends { name: TranslatableString | string; type?: string; data?: any; conditions?: any }>(
-    availableEntities: T[],
+const selectEntities = <T extends { name?: TranslatableString | string; type?: string; data?: any; conditions?: any }>(
+    availableEntities: T[] | undefined,
     maxCount: number,
     chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored' | 'structures' | 'lastVisited'>,
     allItemDefinitions: Record<string, ItemDefinition>,
@@ -91,18 +91,9 @@ const selectEntities = <T extends { name: TranslatableString | string; type?: st
     }
 
     const cleanPossibleEntities = availableEntities.filter(Boolean);
-
-    if (cleanPossibleEntities.length !== availableEntities.length) {
-        logger.debug('[selectEntities] Filtered out falsy entities.', { originalCount: availableEntities.length, cleanCount: cleanPossibleEntities.length });
-    }
-
+    
     const validEntities = cleanPossibleEntities.filter(entity => {
-        if (!entity) { // Redundant due to filter(Boolean) but safe
-            logger.error(`[selectEntities] Found an undefined entity in template array after initial clean. Data: ${JSON.stringify(availableEntities)}`);
-            return false;
-        }
-        if (!entity.conditions) {
-            logger.error(`[selectEntities] Entity is missing "conditions" property. Data: ${JSON.stringify(entity)}`);
+        if (!entity || !entity.conditions) {
             return false;
         }
         return checkConditions(entity.conditions, chunk);
@@ -114,14 +105,14 @@ const selectEntities = <T extends { name: TranslatableString | string; type?: st
     for (const entity of shuffled) {
         if (selected.length >= maxCount) break;
 
-        const entityData = 'data' in entity ? entity.data : entity;
+        const entityData = 'data' in entity && entity.data ? entity.data : entity;
 
-        if (!entityData || (!entityData.name && !entityData.type)) {
-            logger.error(`[selectEntities] SKIPPING entity data is missing 'name' or 'type' property. Data: ${JSON.stringify(entity)}`);
+        if (!entityData || (!('name' in entityData) && !('type' in entityData))) {
+             logger.error(`[selectEntities] SKIPPING entity data is missing 'name' or 'type' property.`, { entity });
             continue;
         }
 
-        let spawnChance = entity.conditions.chance ?? 1.0;
+        let spawnChance = entity.conditions?.chance ?? 1.0;
         const itemName = entityData.name || entityData.type;
         const itemDef = allItemDefinitions[itemName];
         if (itemDef) {
@@ -329,10 +320,9 @@ function generateChunkContent(
         spawnedStructures.push(uniqueStructure);
     } else {
         const spawnedStructureRefs = selectEntities((terrainTemplate.structures || []).filter(Boolean), 1, chunkData, allItemDefinitions);
-        spawnedStructures = spawnedStructureRefs.map(ref => ref.data);
-         for (const structureRef of spawnedStructureRefs) {
-            if (structureRef.loot) {
-                for (const lootItem of structureRef.loot) {
+        spawnedStructures = spawnedStructureRefs.map(ref => {
+            if (ref.data.loot) {
+                 for (const lootItem of ref.data.loot) {
                     if (Math.random() < lootItem.chance) {
                         const definition = allItemDefinitions[lootItem.name];
                         if (definition) {
@@ -353,7 +343,8 @@ function generateChunkContent(
                     }
                 }
             }
-        }
+            return ref.data;
+        });
     }
    
     const enemyData = spawnedEnemies.length > 0 ? spawnedEnemies[0].data : null;
@@ -646,4 +637,5 @@ export function getEffectiveChunk(baseChunk: Chunk, weatherZones: Record<string,
     
     return effectiveChunk;
 }
+
 

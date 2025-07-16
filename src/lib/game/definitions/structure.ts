@@ -1,3 +1,4 @@
+
 import {z} from 'genkit';
 import { TranslatableStringSchema, LootDropSchema, SpawnConditionsSchema } from './base';
 
@@ -10,7 +11,6 @@ export const StructureDefinitionSchema = z.object({
     buildCost: z.array(z.object({ name: z.string(), quantity: z.number() })).optional(),
     restEffect: z.object({ hp: z.number(), stamina: z.number(), mana: z.number().optional() }).optional(),
     heatValue: z.number().optional(),
-    // Add loot and conditions to the base definition
     loot: z.array(LootDropSchema).optional().describe("A list of items this structure might contain."),
     conditions: SpawnConditionsSchema.optional().describe("The conditions under which this structure will spawn."),
 });

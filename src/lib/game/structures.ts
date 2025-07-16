@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Defines all structures in the game.
  * @description This file contains definitions for both naturally spawning structures
@@ -12,7 +13,6 @@ import type { Structure, StructureDefinition } from "./types";
  * @type {Record<string, StructureDefinition>}
  */
 export const structureDefinitions: Record<string, StructureDefinition> = {
-    // --- Natural Structures ---
     'Tàn tích tháp canh': {
         name: { en: 'Watchtower Ruin', vi: 'Tàn tích tháp canh' },
         description: { en: 'The ruins of a stone watchtower stand silently, offering a commanding view of the surroundings.', vi: 'Tàn tích của một tháp canh bằng đá đứng im lặng, cung cấp một tầm nhìn bao quát ra xung quanh.' },

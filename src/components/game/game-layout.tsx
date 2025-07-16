@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -156,7 +155,7 @@ export default function GameLayout(props: GameLayoutProps) {
         }
     };
     
-    const worldNameText = t(finalWorldSetup.worldName);
+    const worldNameText = getTranslatedText(finalWorldSetup.worldName, language, t);
 
 
     return (
@@ -238,13 +237,11 @@ export default function GameLayout(props: GameLayoutProps) {
                         </div>
 
                         {/* Minimap */}
-                        <div>
-                            <div className="flex flex-col items-center gap-2 mb-4">
-                                <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); focusCustomActionInput(); }}>{t('minimap')}</h3>
-                                <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
-                                    <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
-                                    <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
-                                </div>
+                        <div className="flex flex-col items-center gap-2">
+                            <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); focusCustomActionInput(); }}>{t('minimap')}</h3>
+                            <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
+                                <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
                             </div>
                             <Minimap grid={generateMapGrid()} playerPosition={playerPosition} turn={turn} />
                         </div>
@@ -259,8 +256,8 @@ export default function GameLayout(props: GameLayoutProps) {
                                 <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('skills')}</h3>
                                 <div className="grid grid-cols-2 gap-2">
                                     {playerStats.skills?.map((skill) => {
-                                        const skillName = t(skill.name);
-                                        const skillDesc = t(skill.description);
+                                        const skillName = getTranslatedText(skill.name, language, t);
+                                        const skillDesc = getTranslatedText(skill.description, language, t);
                                         return (
                                             <Tooltip key={skillName}>
                                                 <TooltipTrigger asChild>
@@ -295,7 +292,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         {restingPlace && (
                             <><div className="space-y-2">
                                 <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('structureActions')}</h2>
-                                <Tooltip><TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => { handleRest(); focusCustomActionInput(); }} disabled={isLoading}><BedDouble className="mr-2 h-4 w-4" />{t('rest')}</Button></TooltipTrigger><TooltipContent><p>{t('restTooltip', { shelterName: t(restingPlace.name), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => { handleRest(); focusCustomActionInput(); }} disabled={isLoading}><BedDouble className="mr-2 h-4 w-4" />{t('rest')}</Button></TooltipTrigger><TooltipContent><p>{t('restTooltip', { shelterName: getTranslatedText(restingPlace.name, language, t), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent></Tooltip>
                             </div><Separator /></>
                         )}
                         

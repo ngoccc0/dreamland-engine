@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Defines all player skills available in the game.
  * @description This file contains a static array of skill objects, including their
@@ -13,8 +14,8 @@ import type { Skill } from "./types";
  */
 export const skillDefinitions: Skill[] = [
     {
-        name: 'skillHealName',
-        description: 'skillHealDesc',
+        name: { en: 'Heal', vi: 'Chữa lành' },
+        description: { en: 'Use mana to restore a small amount of health.', vi: 'Sử dụng mana để phục hồi một lượng nhỏ máu.' },
         tier: 1,
         manaCost: 20,
         effect: {
@@ -24,8 +25,8 @@ export const skillDefinitions: Skill[] = [
         }
     },
     {
-        name: 'skillFireballName',
-        description: 'skillFireballDesc',
+        name: { en: 'Fireball', vi: 'Quả cầu lửa' },
+        description: { en: 'Launch a fireball at an enemy, dealing magic damage.', vi: 'Phóng một quả cầu lửa vào kẻ thù, gây sát thương phép.' },
         tier: 1,
         manaCost: 15,
         effect: {
@@ -35,8 +36,8 @@ export const skillDefinitions: Skill[] = [
         }
     },
     {
-        name: 'skillLifeSiphonName',
-        description: 'skillLifeSiphonDesc',
+        name: { en: 'Life Siphon', vi: 'Hút sinh lực' },
+        description: { en: 'Deal magic damage and heal for 50% of the damage dealt.', vi: 'Gây sát thương phép và hồi máu bằng 50% sát thương gây ra.' },
         tier: 2,
         manaCost: 30,
         effect: {
@@ -51,8 +52,8 @@ export const skillDefinitions: Skill[] = [
         }
     },
     {
-        name: 'skillChainLightningName',
-        description: 'skillChainLightningDesc',
+        name: { en: 'Chain Lightning', vi: 'Sét chuỗi' },
+        description: { en: 'Unleash a powerful bolt of lightning. Higher damage than Fireball.', vi: 'Phóng ra một tia sét mạnh mẽ. Sát thương cao hơn Quả cầu lửa.' },
         tier: 2,
         manaCost: 25,
         effect: {
@@ -67,8 +68,8 @@ export const skillDefinitions: Skill[] = [
     },
     // NOTE: Blink skill requires a targeting UI, which will be implemented in a future update.
     {
-        name: 'skillBlinkName',
-        description: 'skillBlinkDesc',
+        name: { en: 'Blink', vi: 'Dịch chuyển' },
+        description: { en: 'Instantly teleport to a nearby location in sight.', vi: 'Dịch chuyển tức thời đến một vị trí gần đó trong tầm mắt.' },
         tier: 3,
         manaCost: 40,
         effect: {

@@ -37,13 +37,8 @@ export const mountain_vi = {
         { name: 'Trứng Đại Bàng', conditions: { elevation: { min: 8 }, chance: 0.1 } }
     ],
     structures: [
-        { 
-            data: structureDefinitions['abandoned_mine_entrance'],
-        },
-        { 
-            data: structureDefinitions['floating_island'],
-            conditions: { elevation: { min: 10 }, magicAffinity: { min: 8 }, chance: 0.01 } 
-        }
+        structureDefinitions['abandoned_mine_entrance'],
+        structureDefinitions['floating_island']
     ],
     enemies: [
         {

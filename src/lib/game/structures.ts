@@ -18,6 +18,7 @@ export const structureDefinitions: Record<string, StructureDefinition> = {
         description: { en: 'The ruins of a stone watchtower stand silently, offering a commanding view of the surroundings.', vi: 'Tàn tích của một tháp canh bằng đá đứng im lặng, cung cấp một tầm nhìn bao quát ra xung quanh.' },
         emoji: '🏰',
         providesShelter: true,
+        conditions: { humanPresence: { min: 2 }, elevation: { min: 2 }, chance: 0.03 } 
     },
     'abandoned_altar': {
         name: { en: 'Abandoned Altar', vi: 'Bàn thờ bị bỏ hoang' },
@@ -32,6 +33,7 @@ export const structureDefinitions: Record<string, StructureDefinition> = {
         description: { en: 'A natural hot spring that occasionally erupts with a column of steam and hot water.', vi: 'Một suối nước nóng tự nhiên thỉnh thoảng phun ra một cột hơi nước và nước nóng.' },
         emoji: '💨',
         providesShelter: false,
+        conditions: { temperature: { min: 7 }, chance: 0.15 }
     },
     'abandoned_mine_entrance': {
         name: { en: 'Abandoned Mine Entrance', vi: 'Cửa hầm mỏ bỏ hoang' },
@@ -49,6 +51,7 @@ export const structureDefinitions: Record<string, StructureDefinition> = {
         description: { en: 'A massive chunk of earth hangs impossibly in the sky, with waterfalls cascading into the clouds below.', vi: 'Một khối đất khổng lồ lơ lửng không thể tưởng tượng được trên bầu trời, với những thác nước đổ xuống những đám mây bên dưới.' },
         emoji: '☁️',
         providesShelter: false,
+        conditions: { elevation: { min: 10 }, magicAffinity: { min: 8 }, chance: 0.01 } 
     },
 };
 

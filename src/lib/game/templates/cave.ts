@@ -35,9 +35,7 @@ export const cave_vi = {
         { name: 'Mảnh Xương', conditions: { chance: 0.3 } }
     ],
     structures: [
-        { 
-            data: structureDefinitions['abandoned_mine_entrance'],
-        }
+        structureDefinitions['abandoned_mine_entrance']
     ],
     enemies: [
         { data: { type: 'Dơi khổng lồ', emoji: '🦇', hp: 25, damage: 10, behavior: 'passive', size: 'small', diet: ['Nhện hang'], satiation: 0, maxSatiation: 2, loot: [{name: 'Cánh Dơi', chance: 0.6, quantity: {min: 1, max: 2}}, {name: 'Guano (Phân dơi)', chance: 0.2, quantity: {min: 1, max: 2}}] }, conditions: { lightLevel: { max: -2 }, chance: 0.5 } },

@@ -44,7 +44,7 @@ export const forest_vi = {
         { name: 'magic_root', conditions: { chance: 0.05, moisture: { min: 6 }, timeOfDay: 'night' } }
     ],
     structures: [
-        { data: structureDefinitions['abandoned_altar'] }
+        structureDefinitions['abandoned_altar']
     ],
     creatures: [
         { name: 'common_tree', conditions: { chance: 0.7, vegetationDensity: { min: 3 } } },

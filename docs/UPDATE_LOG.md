@@ -4,6 +4,35 @@ Chào mừng các Đội trưởng và những người đồng hành đến v�
 
 ---
 
+## **Bản cập nhật v0.2.62 - "Kiến trúc Bất hoại" (17/07/2025)**
+
+*Tên mã: Indestructible Architecture*
+
+### 🌟 **Giới thiệu chung**
+
+Đây là một bản cập nhật quan trọng, giải quyết triệt để lỗi cấu trúc dữ liệu đã gây ra các lỗi `TypeError` trong engine sinh thế giới. Bằng cách tái cấu trúc lại cách các `structure` (công trình) được định nghĩa và tham chiếu, chúng ta đã tạo ra một hệ thống dữ liệu nhất quán, mạnh mẽ và loại bỏ hoàn toàn các lỗi liên quan đến "entity không hợp lệ".
+
+### ✨ **Thay đổi chính & Phân tích**
+
+1.  **Tái cấu trúc `StructureDefinitionSchema`:**
+    *   **Vấn đề:** Các thuộc tính `loot` và `conditions` cho các công trình được định nghĩa một cách không nhất quán, đôi khi nằm trong file template, đôi khi lại thiếu, gây ra lỗi khi engine cố gắng xử lý chúng như một thực thể độc lập.
+    *   **Giải pháp:** Đã thực hiện một cuộc "đại tu" nhỏ nhưng quan trọng cho `StructureDefinitionSchema` (trong `src/lib/game/definitions/structure.ts`). Thuộc tính `loot` và `conditions` giờ đây đã chính thức trở thành một phần của định nghĩa gốc của một công trình. Điều này đảm bảo rằng bất kỳ công trình nào cũng có một cấu trúc dữ liệu chuẩn, dễ dự đoán.
+
+2.  **Chuẩn hóa Dữ liệu trong `structures.ts`:**
+    *   **Vấn đề:** Dữ liệu về `loot` và `conditions` của "Cửa hầm mỏ bỏ hoang" bị đặt sai chỗ trong các file template (`mountain.ts`, `cave.ts`).
+    *   **Giải pháp:** Toàn bộ thông tin `loot` và `conditions` đã được di chuyển về đúng "nhà" của nó: file định nghĩa gốc `src/lib/game/structures.ts`. Giờ đây, file này là nguồn chân lý duy nhất cho tất cả các thuộc tính của một công trình.
+
+3.  **Đơn giản hóa Tham chiếu Template:**
+    *   **Vấn đề:** Các file template như `mountain.ts` và `cave.ts` phải sử dụng một "wrapper" object phức tạp (`{ data: ..., conditions: ... }`) để tham chiếu đến công trình.
+    *   **Giải pháp:** Sau khi đã chuẩn hóa dữ liệu gốc, các file template giờ đây chỉ cần tham chiếu trực tiếp đến `structureDefinitions['Cửa hầm mỏ bỏ hoang']`. Cách làm này không chỉ sửa lỗi mà còn giúp cho các file template trở nên sạch sẽ, dễ đọc và dễ bảo trì hơn rất nhiều.
+
+### 🎮 **Ảnh hưởng đến Trải nghiệm & Tương lai**
+
+*   **Độ tin cậy tuyệt đối:** Lỗi `SKIPPING entity data is missing 'name' or 'type' property` liên quan đến `structure` đã được loại bỏ hoàn toàn. Engine sinh thế giới giờ đây sẽ không bao giờ gặp phải lỗi do dữ liệu công trình không nhất quán.
+*   **Khả năng bảo trì:** Việc tập trung tất cả các thuộc tính của một thực thể vào một nơi duy nhất giúp việc quản lý, cân bằng game và thêm nội dung mới trong tương lai trở nên dễ dàng và ít rủi ro hơn. Nền móng dữ liệu của chúng ta giờ đây thực sự vững chắc.
+
+---
+
 ## **Bản cập nhật v0.2.61 - "Hoàn Thiện" (17/07/2025)**
 
 *Tên mã: Polishing*

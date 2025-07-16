@@ -36,14 +36,7 @@ export const cave_vi = {
     ],
     structures: [
         { 
-            data: { 
-                ...structureDefinitions['Cửa hầm mỏ bỏ hoang'], 
-                loot: [
-                    { name: 'Quặng Sắt', chance: 0.2, quantity: { min: 2, max: 4 } }, 
-                    { name: 'Mỏ Vàng', chance: 0.02, quantity: { min: 1, max: 1 } },
-                    { name: 'Bản Đồ Cổ', chance: 0.05, quantity: { min: 1, max: 1 } }
-                ]
-            },
+            data: structureDefinitions['Cửa hầm mỏ bỏ hoang'],
             conditions: { dangerLevel: { min: 8 }, chance: 0.15 } 
         }
     ],

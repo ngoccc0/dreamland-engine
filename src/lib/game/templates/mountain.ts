@@ -38,13 +38,7 @@ export const mountain_vi = {
     ],
     structures: [
         { 
-            data: { 
-                ...structureDefinitions['Cửa hầm mỏ bỏ hoang'], 
-                loot: [
-                    { name: 'Quặng Sắt', chance: 0.3, quantity: { min: 1, max: 2 } }, 
-                    { name: 'Chìa Khóa Rỉ Sét', chance: 0.1, quantity: { min: 1, max: 1 } }
-                ]
-            },
+            data: structureDefinitions['Cửa hầm mỏ bỏ hoang'],
             conditions: { elevation: { min: 5 }, dangerLevel: { min: 6 }, chance: 0.05 } 
         },
         { 

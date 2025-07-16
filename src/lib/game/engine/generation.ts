@@ -83,6 +83,10 @@ const selectEntities = <T extends { name: TranslatableString | string; type?: st
 
     const cleanPossibleEntities = availableEntities.filter(Boolean);
 
+    if (cleanPossibleEntities.length !== availableEntities.length) {
+        logger.debug('[selectEntities] Filtered out falsy entities.', { originalCount: availableEntities.length, cleanCount: cleanPossibleEntities.length });
+    }
+
     const validEntities = cleanPossibleEntities.filter(entity => {
         if (!entity || !entity.conditions) {
             logger.error('[selectEntities] Entity is missing "conditions" property.', { entity });
@@ -255,7 +259,7 @@ function generateChunkContent(
         };
     }
     
-    const descriptionTemplates = terrainTemplate.descriptionTemplates?.short || ["A generic area."];
+    const descriptionTemplates = (terrainTemplate.descriptionTemplates?.short || ["A generic area."]).filter(Boolean);
     const finalDescription = descriptionTemplates[Math.floor(Math.random() * descriptionTemplates.length)]
         .replace('[adjective]', (terrainTemplate.adjectives || ['normal'])[Math.floor(Math.random() * (terrainTemplate.adjectives || ['normal']).length)])
         .replace('[feature]', (terrainTemplate.features || ['nothing special'])[Math.floor(Math.random() * (terrainTemplate.features || ['nothing special']).length)]);
@@ -597,3 +601,22 @@ export const generateChunksInRadius = (
     logger.info(`[generateChunksInRadius] Finished generation for radius ${radius}.`);
     return { world: newWorld, regions: newRegions, regionCounter: newRegionCounter };
 };
+
+export function getEffectiveChunk(baseChunk: Chunk, weatherZones: Record<string, WeatherZone>, gameTime: number): Chunk {
+    const effectiveChunk = { ...baseChunk };
+    const weatherZone = weatherZones[baseChunk.regionId];
+    if (weatherZone) {
+        const weather = weatherZone.currentWeather;
+        effectiveChunk.temperature = clamp((effectiveChunk.temperature ?? 50) + weather.temperature_delta, 0, 100);
+        effectiveChunk.moisture = clamp(effectiveChunk.moisture + weather.moisture_delta, 0, 100);
+        effectiveChunk.lightLevel = clamp(effectiveChunk.lightLevel + weather.light_delta, -100, 100);
+        effectiveChunk.windLevel = clamp((effectiveChunk.windLevel ?? 0) + weather.wind_delta, 0, 100);
+    }
+
+    const isDay = gameTime >= 360 && gameTime < 1080;
+    if (!isDay && baseChunk.terrain !== 'cave') {
+        effectiveChunk.lightLevel = Math.min(effectiveChunk.lightLevel, -20);
+    }
+    
+    return effectiveChunk;
+}

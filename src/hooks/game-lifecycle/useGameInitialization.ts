@@ -79,7 +79,7 @@ export function useGameInitialization(deps: GameInitializationDeps) {
 
       if (!stateToInitialize && !finalWorldSetup) {
         logger.warn(`[GameInit] No loaded state and no finalWorldSetup for slot ${gameSlot}. Waiting for world creation.`);
-        if (isMounted) setIsLoaded(true); // Allow UI to render the world setup screen
+        if (isMounted) setIsLoaded(false); 
         return;
       }
       
@@ -88,17 +88,20 @@ export function useGameInitialization(deps: GameInitializationDeps) {
         
         const finalCatalogMap = new Map<string, GeneratedItem>();
         Object.values(staticItemDefinitions).forEach((def) => {
-            if (def.id) finalCatalogMap.set(def.id, def);
+            const defId = getTranslatedText(def.name, 'en');
+            if (defId) finalCatalogMap.set(defId, def);
         });
         (stateToInitialize.customItemCatalog || []).forEach(item => {
-            if (item.id) finalCatalogMap.set(item.id, item);
+            const itemId = getTranslatedText(item.name, 'en');
+            if (itemId) finalCatalogMap.set(itemId, item);
         });
         
         const finalCatalogArray: GeneratedItem[] = Array.from(finalCatalogMap.values());
         const finalRecipes = { ...staticRecipes, ...(stateToInitialize.recipes || {}) };
         
         const finalDefs = finalCatalogArray.reduce((acc, item) => {
-            if (item.id) acc[item.id] = item;
+            const itemId = getTranslatedText(item.name, 'en');
+            if (itemId) acc[itemId] = item;
             return acc;
         }, {} as Record<string, ItemDefinition>);
         
@@ -116,12 +119,7 @@ export function useGameInitialization(deps: GameInitializationDeps) {
         
         setPlayerStats(() => stateToInitialize.playerStats);
         
-        setFinalWorldSetup(prevSetup => {
-            if (prevSetup && JSON.stringify(prevSetup) === JSON.stringify(stateToInitialize.worldSetup)) {
-                return prevSetup;
-            }
-            return stateToInitialize.worldSetup;
-        });
+        setFinalWorldSetup(() => stateToInitialize.worldSetup);
 
         setPlayerPosition(stateToInitialize.playerPosition || { x: 0, y: 0 });
         setPlayerBehaviorProfile(stateToInitialize.playerBehaviorProfile || { moves: 0, attacks: 0, crafts: 0, customActions: 0 });
@@ -168,15 +166,7 @@ export function useGameInitialization(deps: GameInitializationDeps) {
         if ((stateToInitialize.narrativeLog || []).length === 0) {
              const startingChunk = worldSnapshot[initialPosKey];
              if (startingChunk) {
-                console.log("DEBUG: Initializing narrative...");
-                console.log("DEBUG: worldSetup.initialNarrative (key provided):", stateToInitialize.worldSetup.initialNarrative);
-                console.log("DEBUG: Current language (from useLanguage):", language);
-
-                const directTranslationAttempt = t(stateToInitialize.worldSetup.initialNarrative as any);
-                console.log("DEBUG: Direct translation attempt using t():", directTranslationAttempt);
-
                 const initialNarrative = getTranslatedText(stateToInitialize.worldSetup.initialNarrative, language, t);
-                console.log("DEBUG: Final initialNarrative from getTranslatedText():", initialNarrative);
                 const chunkDescription = generateOfflineNarrative(startingChunk, 'long', worldSnapshot, stateToInitialize.playerPosition, t, language);
                 addNarrativeEntry(`${initialNarrative}\n\n${chunkDescription}`, 'narrative');
             }
@@ -197,5 +187,5 @@ export function useGameInitialization(deps: GameInitializationDeps) {
     return () => {
       isMounted = false;
     };
-  }, [gameSlot, finalWorldSetup, gameStateRepository, language, user]);
+  }, [gameSlot, gameStateRepository, language, user]); // Removed finalWorldSetup from deps
 }

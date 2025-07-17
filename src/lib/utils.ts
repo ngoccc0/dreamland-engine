@@ -41,26 +41,16 @@ export function getTranslatedText(
     language: Language,
     t?: (key: TranslationKey, options?: any) => string
 ): string {
-    console.log("GET_TRANSLATED_TEXT_DEBUG: Called with:", { translatable, language, tExists: !!t });
-
     if (typeof translatable === 'string') {
-        console.log("GET_TRANSLATED_TEXT_DEBUG: Translatable is a string (key).");
         if (t) {
-            const translatedValue = t(translatable);
-            console.log("GET_TRANSLATED_TEXT_DEBUG: 't' function exists. Result of t(key):", translatedValue);
-            return translatedValue;
+            return t(translatable);
         } else {
-            console.log("GET_TRANSLATED_TEXT_DEBUG: 't' function DOES NOT exist. Returning original key.");
             return translatable;
         }
     }
     if (typeof translatable === 'object' && translatable !== null) {
-        console.log("GET_TRANSLATED_TEXT_DEBUG: Translatable is an object.");
-        const objTranslated = translatable[language] || translatable['en'] || '';
-        console.log("GET_TRANSLATED_TEXT_DEBUG: Result from object lookup:", objTranslated);
-        return objTranslated;
+        return translatable[language] || translatable['en'] || '';
     }
-    console.log("GET_TRANSLATED_TEXT_DEBUG: Unexpected translatable type. Returning empty string.");
     return '';
 }
 

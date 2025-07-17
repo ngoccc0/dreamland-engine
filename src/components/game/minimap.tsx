@@ -152,11 +152,9 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
               const turnDifference = turn - cell.lastVisited;
               const isFoggy = turnDifference > 50 && cell.lastVisited !== 0;
 
-              // ADDED LOG: Log details for each tile being rendered
               logger.debug(`[MINIMAP-RENDER] Tile (${cell.x},${cell.y}) → terrain=${cell.terrain}, explored=${cell.explored}, foggy=${isFoggy}`);
 
               if (!cell.explored) {
-                // MODIFIED LOGIC: Render an unexplored tile instead of nothing.
                 return (
                     <div key={key} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />
                 );
@@ -226,4 +224,3 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
     </div>
   );
 }
-

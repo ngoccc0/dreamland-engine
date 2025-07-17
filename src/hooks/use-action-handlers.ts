@@ -754,9 +754,9 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         if (result.resultItem) {
             nextPlayerStats = { ...nextPlayerStats, items: [...nextPlayerStats.items] }; 
             const resultItemName = getTranslatedText(result.resultItem.name, 'en');
-            const existing = nextPlayerStats.items.find(i => getTranslatedText(i.name, 'en') === resultItemName);
-            if (existing) {
-                existing.quantity += result.resultItem!.baseQuantity.min;
+            const existingItem = nextPlayerStats.items.find(i => getTranslatedText(i.name, 'en') === resultItemName);
+            if (existingItem) {
+                existingItem.quantity += result.resultItem!.baseQuantity.min;
             } else {
                 const itemToAdd: PlayerItem = {
                     name: result.resultItem.name,

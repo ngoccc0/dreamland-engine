@@ -7,6 +7,7 @@ import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, Wor
 import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
+import { logger } from "@/lib/logger";
 
 
 interface GameStateProps {
@@ -99,7 +100,8 @@ export function useGameState({ gameSlot }: GameStateProps) {
         const chunkKey = `${currentPosition.x},${currentPosition.y}`;
         setWorld(prevWorld => {
             const chunkToUpdate = prevWorld[chunkKey];
-            if (chunkToUpdate && (!chunkToUpdate.explored || chunkToUpdate.lastVisited !== nextTurn)) {
+            if (chunkToUpdate) {
+                logger.debug(`[advanceGameTime] Marking chunk (${currentPosition.x},${currentPosition.y}) as explored and visited at turn ${nextTurn}`);
                 const newWorld = { ...prevWorld };
                 newWorld[chunkKey] = { ...chunkToUpdate, explored: true, lastVisited: nextTurn };
                 return newWorld;

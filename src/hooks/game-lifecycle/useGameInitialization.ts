@@ -62,6 +62,8 @@ export function useGameInitialization(deps: GameInitializationDeps) {
     const loadGame = async () => {
       setIsLoaded(false);
       logger.info(`[GameInit] Starting to load game for slot ${gameSlot}.`);
+      logger.debug("[INIT] isLoaded:", false, "| finalWorldSetup:", finalWorldSetup);
+
 
       let loadedState: GameState | null = null;
       try {
@@ -176,9 +178,12 @@ export function useGameInitialization(deps: GameInitializationDeps) {
         
         if (isMounted) setIsLoaded(true);
         logger.info(`[GameInit] Game for slot ${gameSlot} is fully loaded and initialized.`);
+        logger.debug("[INIT] isLoaded:", true, "| finalWorldSetup:", stateToInitialize.worldSetup);
+
       } else if (finalWorldSetup && isMounted) {
         logger.info(`[GameInit] New game initiated with finalWorldSetup for slot ${gameSlot}.`);
         setIsLoaded(true);
+        logger.debug("[INIT] isLoaded:", true, "| finalWorldSetup:", finalWorldSetup);
       }
     };
 

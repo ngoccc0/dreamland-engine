@@ -4,7 +4,7 @@
 import { cn } from "@/lib/utils";
 import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon, Home, MapPin } from "./icons";
 import { useLanguage } from "@/context/language-context";
-import React, { useEffect } from "react";
+import React from "react";
 import type { Chunk, Terrain, Structure } from "@/lib/game/types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "../ui/separator";
@@ -92,7 +92,7 @@ const biomeColors: Record<Terrain | 'empty', string> = {
   city: "bg-map-city",
   space_station: "bg-map-space_station",
   underwater: "bg-map-underwater",
-  empty: "bg-map-empty",
+  empty: "bg-black/20",
 };
 
 const biomeIcons: Record<Exclude<Terrain, 'empty' | 'wall' | 'ocean' | 'city' | 'space_station' | 'underwater'>, React.ReactNode> = {
@@ -142,15 +142,14 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
               
               const isPlayerHere = playerPosition.x === cell.x && playerPosition.y === cell.y;
               const isWithin3x3Radius = Math.abs(playerPosition.x - cell.x) <= 1 && Math.abs(playerPosition.y - cell.y) <= 1;
-
-              // Hide unexplored chunks outside the 3x3 radius
-              if (!isWithin3x3Radius && !cell.explored) {
-                  return <div key={key} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />;
-              }
-              
               const turnDifference = turn - cell.lastVisited;
               const isFoggy = turnDifference > 50 && cell.lastVisited !== 0;
 
+              // Hide unexplored chunks outside the 3x3 radius
+              if (!isWithin3x3Radius && !cell.explored) {
+                  return <div key={key} className={cn(responsiveCellSize, "bg-black/20 border-r border-b border-dashed border-border/50")} />;
+              }
+              
               // Show fog for explored but unvisited chunks outside the 3x3 radius
               if (!isWithin3x3Radius && isFoggy) {
                  return (
@@ -217,5 +216,3 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
     </div>
   );
 }
-
-  

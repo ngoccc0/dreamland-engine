@@ -125,7 +125,7 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
                                 const chunk = world[chunkKey];
 
                                 if (!chunk) {
-                                    return <div key={chunkKey} className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />;
+                                    return <div key={chunkKey} className={cn(currentCellSize, "bg-black/20 border-r border-b border-dashed border-border/50")} />;
                                 }
 
                                 const isPlayerHere = playerPosition.x === worldX && playerPosition.y === worldY;
@@ -133,7 +133,7 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
                                 
                                 // Hide unexplored chunks outside the 3x3 radius
                                 if (!isWithin3x3Radius && !chunk.explored) {
-                                    return <div key={chunkKey} className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />;
+                                    return <div key={chunkKey} className={cn(currentCellSize, "bg-black/20 border-r border-b border-dashed border-border/50")} />;
                                 }
 
                                 const turnDifference = turn - chunk.lastVisited;
@@ -219,5 +219,3 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
     </Sheet>
   );
 }
-
-  

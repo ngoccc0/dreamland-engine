@@ -64,7 +64,7 @@ const withPWA = withPWAInit({
 } as PWAConfig);
 
 
-const nextConfig: NextConfig = {
+const config: NextConfig = {
   /* config options here */
   typescript: {
     ignoreBuildErrors: true,
@@ -84,4 +84,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA(nextConfig);
+export default withPWA(config);

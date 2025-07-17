@@ -1,5 +1,6 @@
 
 import type {NextConfig} from 'next';
+import type { PWAConfig } from '@ducanh2912/next-pwa';
 import withPWAInit from '@ducanh2912/next-pwa';
 
 const withPWA = withPWAInit({
@@ -44,12 +45,15 @@ const withPWA = withPWAInit({
         },
       },
     },
-    // Use NetworkFirst for navigation requests to prevent stale HTML and ChunkLoadErrors.
+    // Use NetworkFirst for navigation requests.
+    // This will try to fetch the newest page from the network,
+    // but if it fails (e.g., offline), it will fall back to the cached version.
     {
-      urlPattern: ({ request }) => request.mode === 'navigate',
+      urlPattern: ({ request }: { request: Request }) => request.mode === 'navigate',
       handler: 'NetworkFirst',
       options: {
         cacheName: 'pages',
+        networkTimeoutSeconds: 3, // Optional: timeout for the network request
         expiration: {
           maxEntries: 50,
           maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
@@ -57,7 +61,7 @@ const withPWA = withPWAInit({
       },
     },
   ],
-});
+} as PWAConfig);
 
 
 const nextConfig: NextConfig = {

@@ -108,6 +108,7 @@ export default function GameLayout(props: GameLayoutProps) {
 
     const generateMapGrid = useCallback((): (Chunk | null)[][] => {
         if (!isLoaded || !finalWorldSetup) {
+            logger.warn("[GameLayout] Grid generation SKIPPED. isLoaded:", isLoaded, "| finalWorldSetup exists:", !!finalWorldSetup);
             return [];
         }
         const radius = 2; // 5x5 grid
@@ -253,7 +254,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                                 <TooltipTrigger asChild>
                                                     <Button variant="secondary" className="w-full justify-center text-xs" onClick={() => { handleUseSkill(skillName); focusCustomActionInput(); }} disabled={isLoading || playerStats.mana < skill.manaCost}>
                                                         <WandSparkles className="mr-2 h-3 w-3" />
-                                                        {skillName} ({skill.manaCost} MP)
+                                                        {skillName} ({t('manaCostShort', { cost: skill.manaCost })})
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent><p>{skillDesc}</p><p className="text-muted-foreground">{t('manaCost')}: {skill.manaCost}</p></TooltipContent>
@@ -290,7 +291,7 @@ export default function GameLayout(props: GameLayoutProps) {
                             <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('availableActions')}</h2>
                             <div className="grid grid-cols-2 gap-2">
                                 {currentChunk?.actions.map(action => {
-                                    const actionText = t(action.textKey, action.params as any);
+                                    const actionText = t(action.textKey as TranslationKey, action.params);
                                     return (
                                         <Tooltip key={action.id}>
                                             <TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => handleActionClick(action.id)} disabled={isLoading}>{actionText}</Button></TooltipTrigger>

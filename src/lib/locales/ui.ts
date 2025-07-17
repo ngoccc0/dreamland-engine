@@ -19,6 +19,7 @@ export const uiTranslations = {
 
     // In-Game UI
     mainActions: "Main Actions",
+    availableActions: "Available Actions",
     status: "Status",
     statusTooltip: "View health, mana, and quests.",
     inventory: "Inventory",
@@ -105,7 +106,7 @@ export const uiTranslations = {
     staminaShort: "Stamina",
     attributes: 'Attributes',
     equipItem: 'Equip',
-
+    
     // Crafting Popup
     craftingDesc: "Combine items to create new tools and supplies. The system will use the best alternative ingredients if you have them.",
     ingredients: "Ingredients",
@@ -186,6 +187,8 @@ export const uiTranslations = {
     fontSizeSmall: 'Small',
     fontSizeMedium: 'Medium',
     fontSizeLarge: 'Large',
+    manaCost: "Mana Cost",
+    manaCostShort: "{cost} MP",
 
     // Tutorial Popup
     tutorialTitle: "How to Play",
@@ -238,6 +241,7 @@ export const uiTranslations = {
 
     // In-Game UI
     mainActions: "Hành động chính",
+    availableActions: "Hành động có sẵn",
     status: "Trạng thái",
     statusTooltip: "Xem máu, mana và nhiệm vụ.",
     inventory: "Hành trang",
@@ -405,7 +409,9 @@ export const uiTranslations = {
     fontSizeSmall: 'Nhỏ',
     fontSizeMedium: 'Vừa',
     fontSizeLarge: 'Lớn',
-    
+    manaCost: "Tiêu tốn Mana",
+    manaCostShort: "{cost} MP",
+
     // Tutorial Popup
     tutorialTitle: "Hướng dẫn chơi",
     tutorialDesc: "Hướng dẫn về các cơ chế cốt lõi của cuộc phiêu lưu của bạn.",

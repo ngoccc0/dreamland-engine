@@ -7,19 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { generateWorldSetup, type GenerateWorldSetupOutput } from "@/ai/flows/generate-world-setup";
 import { suggestKeywords } from "@/ai/flows/suggest-keywords";
 import { Skeleton } from "../ui/skeleton";
 import { Separator } from "../ui/separator";
 import { useLanguage } from "@/context/language-context";
-import type { WorldConcept, Skill, PlayerItem, GeneratedItem, Terrain } from "@/lib/game/types";
+import type { Skill, PlayerItem, GeneratedItem, Terrain, WorldConcept } from "@/lib/game/types";
 import { premadeWorlds } from "@/lib/game/data/premade-worlds";
 import type { TranslationKey } from "@/lib/i18n";
 import { SettingsPopup } from "./settings-popup";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 import { Sparkles, ArrowRight, BrainCircuit, Loader2, Settings, ArrowLeft, ChevronLeft, ChevronRight, BookOpen, Map, WandSparkles, BaggageClaim, ListTodo } from "./icons";
 import { ScrollArea } from "../ui/scroll-area";
-import { cn } from "@/lib/utils";
+import { cn, getTranslatedText } from "@/lib/utils";
+import type { GenerateWorldSetupOutput } from "@/ai/flows/generate-world-setup";
 
 interface WorldSetupProps {
     onWorldCreated: (worldSetupData: GenerateWorldSetupOutput) => void;
@@ -165,14 +165,20 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         setIsPremade(false);
 
         try {
-            const timeoutPromise = new Promise<GenerateWorldSetupOutput>((_, reject) =>
-                setTimeout(() => reject(new Error("AI generation timed out after 30 seconds.")), 30000)
-            );
+            const response = await fetch('/api/generate-world', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userInput, language }),
+            });
 
-            const generationPromise = generateWorldSetup({ userInput, language });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to generate world');
+            }
             
-            const result = await Promise.race([generationPromise, timeoutPromise]);
-            
+            const result: GenerateWorldSetupOutput = await response.json();
             setGeneratedData(result);
         } catch (error) {
             console.error("Failed to generate world:", error);
@@ -300,24 +306,24 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                             <SelectionCard
                                 label={t('worldName')}
                                 icon={<Sparkles />}
-                                options={generatedData.concepts.map(c => c.worldName)}
+                                options={generatedData.concepts.map((c: WorldConcept) => c.worldName)}
                                 selectedIndex={selection.worldName}
                                 onSelect={(index) => setSelection(s => ({...s, worldName: index}))}
-                                renderOption={(option) => <p className="text-xl font-bold font-headline">{t(option)}</p>}
+                                renderOption={(option) => <p className="text-xl font-bold font-headline">{getTranslatedText(option, language, t)}</p>}
                             />
                         </div>
                         <SelectionCard
                             label={t('openingNarrative')}
                             icon={<BookOpen />}
-                            options={generatedData.concepts.map(c => c.initialNarrative)}
+                            options={generatedData.concepts.map((c: WorldConcept) => c.initialNarrative)}
                             selectedIndex={selection.initialNarrative}
                             onSelect={(index) => setSelection(s => ({...s, initialNarrative: index}))}
-                            renderOption={(option) => <ScrollArea className="h-24"><p className="text-sm italic text-muted-foreground">{t(option)}</p></ScrollArea>}
+                            renderOption={(option) => <ScrollArea className="h-24"><p className="text-sm italic text-muted-foreground">{getTranslatedText(option, language, t)}</p></ScrollArea>}
                         />
                         <SelectionCard
                             label={t('startingBiome')}
                             icon={<Map />}
-                            options={generatedData.concepts.map(c => c.startingBiome)}
+                            options={generatedData.concepts.map((c: WorldConcept) => c.startingBiome)}
                             selectedIndex={selection.startingBiome}
                             onSelect={(index) => setSelection(s => ({...s, startingBiome: index}))}
                             renderOption={(option) => <p className="font-semibold text-lg">{t(option)}</p>}
@@ -325,28 +331,28 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                          <SelectionCard
                             label={t('startingSkill')}
                             icon={<WandSparkles />}
-                            options={generatedData.concepts.map(c => c.startingSkill)}
+                            options={generatedData.concepts.map((c: WorldConcept) => c.startingSkill)}
                             selectedIndex={selection.startingSkill}
                             onSelect={(index) => setSelection(s => ({...s, startingSkill: index}))}
                             renderOption={(option: Skill) => 
                                 <div>
-                                    <p className="font-semibold">{t(option.name)}</p>
-                                    <p className="text-xs text-muted-foreground">{t(option.description)}</p>
+                                    <p className="font-semibold">{getTranslatedText(option.name, language, t)}</p>
+                                    <p className="text-xs text-muted-foreground">{getTranslatedText(option.description, language, t)}</p>
                                 </div>
                             }
                         />
                          <SelectionCard
                             label={t('startingEquipment')}
                             icon={<BaggageClaim />}
-                            options={generatedData.concepts.map(c => c.playerInventory)}
+                            options={generatedData.concepts.map((c: WorldConcept) => c.playerInventory)}
                             selectedIndex={selection.playerInventory}
                             onSelect={(index) => setSelection(s => ({...s, playerInventory: index}))}
                             renderOption={(option: PlayerItem[]) => 
                                 <div className="flex flex-wrap gap-x-4 gap-y-2 justify-center text-sm">
                                     {option.map((item, i) => {
                                         const allItems = [...(premadeWorlds[userInput.toLowerCase()]?.customItemCatalog || []), ...(generatedData?.customItemCatalog || [])];
-                                        const def = allItems.find(d => d.name === item.name);
-                                        return <span key={i} className="flex items-center gap-1">{def?.emoji} {t(item.name)} x{item.quantity}</span>
+                                        const def = allItems.find(d => getTranslatedText(d.name, 'en') === getTranslatedText(item.name, 'en'));
+                                        return <span key={i} className="flex items-center gap-1">{def?.emoji} {getTranslatedText(item.name, language, t)} x{item.quantity}</span>
                                     })}
                                 </div>
                             }
@@ -355,12 +361,12 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                           <SelectionCard
                               label={t('firstQuest')}
                               icon={<ListTodo />}
-                              options={generatedData.concepts.map(c => c.initialQuests)}
+                              options={generatedData.concepts.map((c: WorldConcept) => c.initialQuests)}
                               selectedIndex={selection.initialQuests}
                               onSelect={(index) => setSelection(s => ({...s, initialQuests: index}))}
                               renderOption={(option: string[]) => 
                                   <ul className="space-y-1 text-sm text-muted-foreground list-disc list-inside">
-                                      {option.map((q, i) => <li key={i}>{t(q)}</li>)}
+                                      {option.map((q, i) => <li key={i}>{getTranslatedText(q, language, t)}</li>)}
                                   </ul>
                               }
                           />

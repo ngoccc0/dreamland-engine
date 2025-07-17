@@ -1,91 +1,117 @@
+/**
+ * @fileOverview Defines all food items in the game.
+ * @description These items are primarily used to restore stamina, and sometimes have
+ * minor healing or other effects. They are organized by raw meats, cooked foods,
+ * and gathered foods like fruits and vegetables.
+ */
+
 import type { ItemDefinition } from "../../definitions/item";
 
 export const foodItems: Record<string, ItemDefinition> = {
     // --- RAW MEATS (Low recovery) ---
-    'Thịt Sói Sống': {
-        description: 'item_thit_soi_song_desc',
+    'raw_wolf_meat': {
+        name: {en: "Raw Wolf Meat", vi: "Thịt Sói Sống"},
+        description: {en: 'The raw meat of a wolf. Not very appetizing.', vi: 'Thịt sống của một con sói. Không hấp dẫn lắm.'},
         tier: 1,
         category: 'Food',
         subCategory: 'Meat',
         emoji: '🥩',
         effects: [{ type: 'RESTORE_STAMINA', amount: 5 }, { type: 'RESTORE_MANA', amount: 1 }],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Thịt Heo Rừng': {
-        description: 'item_thit_heo_rung_desc',
+    'boar_meat': {
+        name: {en: "Boar Meat", vi: "Thịt Heo Rừng"},
+        description: {en: 'The tough meat of a wild boar. Needs cooking.', vi: 'Thịt dai của một con heo rừng. Cần nấu chín.'},
         tier: 2,
         category: 'Food',
         subCategory: 'Meat',
         emoji: '🍖',
         effects: [{ type: 'RESTORE_STAMINA', amount: 15 }, { type: 'RESTORE_MANA', amount: 3 }],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: false,
     },
-    'Thịt Thỏ': {
-        description: 'item_thit_tho_desc',
+    'rabbit_meat': {
+        name: {en: "Rabbit Meat", vi: "Thịt Thỏ"},
+        description: {en: 'The tender meat of a rabbit.', vi: 'Thịt mềm của một con thỏ.'},
         tier: 1,
         category: 'Food',
         subCategory: 'Meat',
         emoji: '🐰',
         effects: [{ type: 'RESTORE_STAMINA', amount: 8 }, { type: 'RESTORE_MANA', amount: 2 }],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: false,
     },
-    'Thịt Dê Núi': {
-        description: 'item_thit_de_nui_desc',
+    'mountain_goat_meat': {
+        name: {en: "Mountain Goat Meat", vi: "Thịt Dê Núi"},
+        description: {en: 'The gamy meat of a mountain goat.', vi: 'Thịt có mùi đặc trưng của dê núi.'},
         tier: 2,
         category: 'Food',
         subCategory: 'Meat',
         emoji: '🍖',
         effects: [{ type: 'RESTORE_STAMINA', amount: 20 }, { type: 'RESTORE_MANA', amount: 5 }],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: false,
     },
-    'Thịt Báo Tuyết': {
-        description: 'item_thit_bao_tuyet_desc',
+    'snow_leopard_meat': {
+        name: {en: "Snow Leopard Meat", vi: "Thịt Báo Tuyết"},
+        description: {en: 'The rich meat of a snow leopard.', vi: 'Thịt béo ngậy của một con báo tuyết.'},
         tier: 3,
         category: 'Food',
         subCategory: 'Meat',
         emoji: '🍖',
         effects: [{ type: 'RESTORE_STAMINA', amount: 25 }, { type: 'RESTORE_MANA', amount: 7 }],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: false,
     },
-     'Bột Dinh dưỡng': { 
-        description: 'item_nutrient_paste_desc', 
+    'nutrient_paste': { 
+        name: {en: "Nutrient Paste", vi: "Bột Dinh dưỡng"},
+        description: {en: 'A tube of beige paste. Tasteless, but provides all necessary nutrients.', vi: 'Một tuýp bột nhão màu be. Vô vị, nhưng cung cấp tất cả các chất dinh dưỡng cần thiết.'}, 
         emoji: '🧪', 
         category: 'Food', tier: 1, 
         effects: [{ type: 'RESTORE_STAMINA', amount: 20 }, { type: 'RESTORE_MANA', amount: 5 }], 
-        baseQuantity: { min: 2, max: 4 } 
+        baseQuantity: { min: 2, max: 4 },
+        spawnEnabled: false, 
     },
-    'Thịt Cá Nướng': {
-        description: 'item_grilled_fish_desc',
+    'grilled_fish_meat': {
+        name: {en: "Grilled Fish Meat", vi: "Thịt Cá Nướng"},
+        description: {en: 'Grilled fish over a fire for a nutritious meal.', vi: 'Nướng cá trên lửa để có một bữa ăn bổ dưỡng.'},
         tier: 2,
         category: 'Food',
         emoji: '🐟🔥',
         effects: [{ type: 'HEAL', amount: 10 }, {type: 'RESTORE_STAMINA', amount: 30}],
         baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
 
     // --- COOKED FOODS (Higher recovery) ---
-    'Thịt Nướng': {
-        description: 'item_cooked_meat_desc',
+    'cooked_meat': {
+        name: {en: "Cooked Meat", vi: "Thịt Nướng"},
+        description: {en: 'Meat cooked over a fire. Much better than raw.', vi: 'Thịt được nấu trên lửa. Ngon hơn nhiều so với thịt sống.'},
         tier: 2,
         category: 'Food',
         subCategory: 'Meat',
         emoji: '🍗',
         effects: [{ type: 'RESTORE_STAMINA', amount: 35 }, { type: 'RESTORE_MANA', amount: 10 }],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
-    'Bánh Mì': {
-        description: 'item_bread_desc',
+    'bread': {
+        name: {en: "Bread", vi: "Bánh Mì"},
+        description: {en: 'A simple loaf of bread.', vi: 'Một ổ bánh mì đơn giản.'},
         tier: 1,
         category: 'Food',
         emoji: '🍞',
         effects: [{ type: 'RESTORE_STAMINA', amount: 25 }, { type: 'RESTORE_MANA', amount: 5 }],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
     },
 
 
     // --- GATHERED FOODS ---
-    'Quả Mọng Ăn Được': {
-        description: 'item_qua_mong_an_duoc_desc',
+    'edible_berries': {
+        name: {en: "Edible Berries", vi: "Quả Mọng Ăn Được"},
+        description: {en: 'Juicy berries that are safe to eat.', vi: 'Những quả mọng ngon ngọt có thể ăn được.'},
         tier: 1,
         category: 'Food',
         subCategory: 'Fruit',
@@ -95,46 +121,56 @@ export const foodItems: Record<string, ItemDefinition> = {
         growthConditions: {
             optimal: { moisture: { min: 5 }, vegetationDensity: { min: 7 } },
             subOptimal: { moisture: { min: 3, max: 4 } }
-        }
+        },
+        spawnEnabled: true,
     },
-    'Lúa Mì': {
-        description: 'item_lua_mi_desc',
+    'wheat': {
+        name: {en: "Wheat", vi: "Lúa Mì"},
+        description: {en: 'Grains of wheat, can be ground into flour.', vi: 'Hạt lúa mì, có thể xay thành bột.'},
         tier: 1,
         category: 'Food',
         subCategory: 'Vegetable',
         emoji: '🌾',
         effects: [{ type: 'RESTORE_STAMINA', amount: 4 }, { type: 'RESTORE_MANA', amount: 1 }],
-        baseQuantity: { min: 2, max: 5 }
+        baseQuantity: { min: 2, max: 5 },
+        spawnEnabled: true,
     },
-    'Rễ Củ Ăn Được': {
-        description: 'item_re_cu_an_duoc_desc',
+    'edible_tuber': {
+        name: {en: "Edible Tuber", vi: "Rễ Củ Ăn Được"},
+        description: {en: 'A starchy tuber, good for energy.', vi: 'Một loại củ có tinh bột, tốt cho năng lượng.'},
         tier: 1,
         category: 'Food',
         subCategory: 'Vegetable',
         emoji: '🥔',
         effects: [{ type: 'RESTORE_STAMINA', amount: 18 }, { type: 'RESTORE_MANA', amount: 2 }],
-        baseQuantity: { min: 1, max: 3 }
+        baseQuantity: { min: 1, max: 3 },
+        spawnEnabled: true,
     },
-    'Nấm Mỡ': {
-        description: 'item_nam_mo_desc',
+    'field_mushroom': {
+        name: {en: "Field Mushroom", vi: "Nấm Mỡ"},
+        description: {en: 'A common, edible mushroom.', vi: 'Một loại nấm thông thường, ăn được.'},
         tier: 1,
         category: 'Food',
         subCategory: 'Vegetable',
         emoji: '🍄',
         effects: [{ type: 'RESTORE_STAMINA', amount: 8 }, { type: 'RESTORE_MANA', amount: 1 }],
-        baseQuantity: { min: 2, max: 5 }
+        baseQuantity: { min: 2, max: 5 },
+        spawnEnabled: true,
     },
-    'Hoa Xương Rồng': {
-        description: 'item_hoa_xuong_rong_desc',
+    'cactus_flower': {
+        name: {en: "Cactus Flower", vi: "Hoa Xương Rồng"},
+        description: {en: 'The edible fruit of a cactus.', vi: 'Quả ăn được của một cây xương rồng.'},
         tier: 1,
         category: 'Food',
         subCategory: 'Fruit',
         emoji: '🌵',
         effects: [{ type: 'RESTORE_STAMINA', amount: 15 }, { type: 'RESTORE_MANA', amount: 2 }],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: true,
     },
-    'Cây Xương Rồng Nhỏ': {
-        description: 'item_cay_xuong_rong_nho_desc',
+    'small_cactus': {
+        name: {en: "Small Cactus", vi: "Cây Xương Rồng Nhỏ"},
+        description: {en: 'A small cactus, can be eaten if you are careful with the spines.', vi: 'Một cây xương rồng nhỏ, có thể ăn được nếu bạn cẩn thận với gai.'},
         tier: 1,
         category: 'Food',
         subCategory: 'Vegetable',
@@ -144,60 +180,73 @@ export const foodItems: Record<string, ItemDefinition> = {
         growthConditions: {
             optimal: { temperature: { min: 8 }, moisture: { max: 1 } },
             subOptimal: { temperature: { min: 6, max: 7 }, moisture: { min: 2, max: 3 } }
-        }
+        },
+        spawnEnabled: true,
     },
-    'Nấm Đầm Lầy': {
-        description: 'item_nam_dam_lay_desc',
+    'swamp_mushroom': {
+        name: {en: "Swamp Mushroom", vi: "Nấm Đầm Lầy"},
+        description: {en: 'A strange mushroom that grows in swamps.', vi: 'Một loại nấm lạ mọc trong đầm lầy.'},
         tier: 1,
         category: 'Food',
         subCategory: 'Vegetable',
         emoji: '🍄',
         effects: [{ type: 'RESTORE_STAMINA', amount: 8 }, { type: 'RESTORE_MANA', amount: 2 }],
-        baseQuantity: { min: 2, max: 4 }
+        baseQuantity: { min: 2, max: 4 },
+        spawnEnabled: true,
     },
-    'Quả Lạ': {
-        description: 'item_qua_la_desc',
+    'strange_fruit': {
+        name: {en: "Strange Fruit", vi: "Quả Lạ"},
+        description: {en: 'A strange, exotic fruit. Looks edible... probably.', vi: 'Một loại trái cây lạ, kỳ lạ. Trông có vẻ ăn được... có lẽ vậy.'},
         tier: 2,
         category: 'Food',
         subCategory: 'Fruit',
         emoji: '🥥',
         effects: [{ type: 'RESTORE_STAMINA', amount: 12 }, { type: 'RESTORE_MANA', amount: 3 }],
-        baseQuantity: { min: 1, max: 3 }
+        baseQuantity: { min: 1, max: 3 },
+        spawnEnabled: true,
     },
-    'Gusher': { 
-        description: "item_gusher_desc", 
+    'gusher': { 
+        name: {en: "Gusher", vi: "Gusher"},
+        description: {en: 'A fruit snack with a liquid center. A delicacy on the island.', vi: 'Một món ăn nhẹ trái cây có nhân lỏng. Một món ngon trên đảo.'}, 
         emoji: '🥤', 
         category: 'Food', tier: 1, 
-        effects: [{ type: 'RESTORE_STAMINA', amount: 25 }, { type: 'RESTORE_MANA', amount: 10 }], 
-        baseQuantity: { min: 1, max: 2 } 
+        effects: [{ type: 'RESTORE_STAMINA', amount: 30 }], 
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: false,
     },
 
     // --- EGGS & MISC ---
-    'Trứng Chim Hoang': {
-        description: 'item_trung_chim_hoang_desc',
+    'wild_bird_egg': {
+        name: {en: "Wild Bird Egg", vi: "Trứng Chim Hoang"},
+        description: {en: 'The egg of a wild bird.', vi: 'Trứng của một con chim hoang.'},
         tier: 1,
         category: 'Food',
         subCategory: 'Misc',
         emoji: '🥚',
         effects: [{ type: 'RESTORE_STAMINA', amount: 15 }, { type: 'RESTORE_MANA', amount: 5 }],
-        baseQuantity: { min: 2, max: 4 }
+        baseQuantity: { min: 2, max: 4 },
+        spawnEnabled: true,
     },
-    'Trứng Đại Bàng': {
-        description: 'item_trung_dai_bang_desc',
+    'eagle_egg': {
+        name: {en: "Eagle Egg", vi: "Trứng Đại Bàng"},
+        description: {en: 'The large egg of an eagle. Very nutritious.', vi: 'Quả trứng lớn của một con đại bàng. Rất bổ dưỡng.'},
         tier: 3,
         category: 'Food',
         subCategory: 'Misc',
         emoji: '🥚',
         effects: [{ type: 'RESTORE_STAMINA', amount: 35 }, { type: 'RESTORE_MANA', amount: 10 }],
-        baseQuantity: { min: 1, max: 2 }
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: false,
     },
-    'Mật Ong Hoang': {
-        description: 'item_mat_ong_hoang_desc',
+    'wild_honey': {
+        name: {en: "Wild Honey", vi: "Mật Ong Hoang"},
+        description: {en: 'Sweet, sticky honey from a wild beehive.', vi: 'Mật ong ngọt, dính từ một tổ ong hoang.'},
         tier: 2,
         category: 'Food',
         subCategory: 'Misc',
         emoji: '🍯',
         effects: [{ type: 'HEAL', amount: 5 }, { type: 'RESTORE_STAMINA', amount: 12 }, { type: 'RESTORE_MANA', amount: 8 }],
-        baseQuantity: { min: 1, max: 1 }
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: true,
     },
 };

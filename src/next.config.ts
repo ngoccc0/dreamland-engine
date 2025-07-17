@@ -1,5 +1,6 @@
 
 import type {NextConfig} from 'next';
+import type { PWAConfig } from '@ducanh2912/next-pwa';
 import withPWAInit from '@ducanh2912/next-pwa';
 
 const withPWA = withPWAInit({
@@ -7,16 +8,6 @@ const withPWA = withPWAInit({
   disable: process.env.NODE_ENV === 'development',
   register: true,
   skipWaiting: true,
-  workboxOptions: {
-    // Exclude navigation routes from precaching
-    exclude: [
-        /^\/$/, // Exclude root route
-        /^\/index\.html$/, // Exclude index.html
-        /^\/manifest\.json$/, // Exclude manifest
-    ],
-    // Add a 30-second timeout for network requests for debugging
-    networkTimeoutSeconds: 30,
-  },
   runtimeCaching: [
     // Cache Google Fonts
     {
@@ -54,8 +45,13 @@ const withPWA = withPWAInit({
         },
       },
     },
+    // Use NetworkOnly for navigation requests to prevent stale HTML and ChunkLoadErrors.
+    {
+      urlPattern: ({ request }: { request: Request }) => request.mode === 'navigate',
+      handler: 'NetworkOnly', // Use NetworkOnly to avoid serving stale HTML from cache
+    },
   ],
-});
+} as PWAConfig);
 
 
 const nextConfig: NextConfig = {

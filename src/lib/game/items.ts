@@ -1,3 +1,10 @@
+/**
+ * @fileOverview Central item catalog for the game.
+ * @description This file acts as an aggregator, importing item definitions from various
+ * modular files (organized by category) and combining them into a single, comprehensive
+ * `itemDefinitions` object. This approach supports easy expansion and modding.
+ */
+
 import type { ItemDefinition } from "./types";
 import { dataItems } from "./data/items/data";
 import { equipmentItems } from "./data/items/equipment";
@@ -9,10 +16,13 @@ import { toolItems } from "./data/items/tools";
 import { naturePlusItems } from "./data/items/modded/nature_plus";
 
 
-// --- CENTRAL ITEM CATALOG ---
-// This file now aggregates item definitions from multiple modular files.
-// To add more items, especially from mods, you would import them here and spread them into the final object.
-// The description and name fields now hold keys for the i18n system.
+/**
+ * The master record of all item definitions in the game.
+ * It combines static, category-based item lists with items from mods.
+ * To add more items, especially from mods, you would import them here and
+ * spread them into this final object.
+ * @type {Record<string, ItemDefinition>}
+ */
 export const itemDefinitions: Record<string, ItemDefinition> = {
     ...dataItems,
     ...equipmentItems,

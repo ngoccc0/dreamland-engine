@@ -1,11 +1,13 @@
-import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, RecipeIngredient, Structure, Language, Npc, CraftingOutcome, Action, ItemCategory, Skill, WeatherDefinition } from "../types";
+
+
+import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, Structure, Language, Npc, Action, TranslatableString } from "../types";
 import { seasonConfig, worldConfig } from "../world-config";
 import { getTemplates } from "../templates";
 import { weatherPresets } from "../weatherPresets";
 import { translations } from "../../i18n";
 import type { TranslationKey } from "../../i18n";
-import { clamp } from "../../utils";
-import { naturePlusForestEnemies, naturePlusJungleEnemies, naturePlusMountainEnemies, naturePlusSwampEnemies } from "../templates/modded/nature_plus";
+import { clamp, getTranslatedText } from "../../utils";
+import { logger } from "@/lib/logger";
 
 
 // --- HELPER FUNCTIONS ---
@@ -28,7 +30,6 @@ export const generateWeatherForZone = (terrain: Terrain, season: Season, previou
     }
     
     if (candidateWeather.length === 0) {
-        // Fallback to clear weather if no valid weather is found after filtering
         return weatherPresets.find(w => w.id === 'clear')!;
     }
 
@@ -42,19 +43,17 @@ export const generateWeatherForZone = (terrain: Terrain, season: Season, previou
         }
     }
     
-    return candidateWeather[0]; // Should not be reached, but as a fallback
+    return candidateWeather[0]; 
 };
 
 
 // --- ENTITY SPAWNING LOGIC ---
 
-// Helper function to check if a chunk meets the spawn conditions for an entity
 export const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored' | 'structures' | 'lastVisited'>): boolean => {
     for (const key in conditions) {
         if (key === 'chance') continue;
         const condition = conditions[key as keyof typeof conditions];
         
-        // This handles the new optional `chunk` parameter in the type
         const chunkValue = chunk[key as keyof typeof chunk];
 
         if (key === 'soilType') {
@@ -72,43 +71,57 @@ export const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 
     return true;
 };
 
-
 /**
- * Selects entities based on conditions and chance.
- * @param possibleEntities - An array of potential entities with their spawn conditions.
- * @param chunk - The chunk data to check conditions against.
- * @param maxCount - The maximum number of entity types to select.
- * @returns An array of selected entity names.
+ * A robust function to randomly select entities from a list.
+ * It ensures that selected entities are valid objects with a 'name' property (and 'type' for enemies).
+ * It gracefully handles and logs malformed data like null, undefined, or empty objects.
+ * @param availableEntities An array of potential entities, which may contain invalid data.
+ * @param maxCount The maximum number of entities to select.
+ * @param language The current language for resolving translatable strings.
+ * @returns An array of valid, selected entities.
  */
-const selectEntities = <T extends {name: string, conditions: SpawnConditions} | {data: any, conditions: SpawnConditions, loot?: any}>(
-    possibleEntities: T[] | undefined,
+const selectEntities = <T extends { name?: TranslatableString | string; type?: string; data?: any; conditions?: any }>(
+    availableEntities: T[] | undefined,
+    maxCount: number,
     chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored' | 'structures' | 'lastVisited'>,
-    allItemDefinitions: Record<string, ItemDefinition>, // Pass in all definitions
-    maxCount: number = 3
+    allItemDefinitions: Record<string, ItemDefinition>,
 ): any[] => {
-    if (!possibleEntities) {
-        return []; // Safety check for undefined arrays
+    if (!availableEntities) {
+        return [];
     }
-    const validEntities = possibleEntities.filter(entity => checkConditions(entity.conditions, chunk));
+
+    const cleanPossibleEntities = availableEntities.filter(Boolean);
     
+    const validEntities = cleanPossibleEntities.filter(entity => {
+        if (!entity) {
+            logger.error('[selectEntities] Found an undefined entity in template array.', { availableEntities });
+            return false;
+        }
+        if (!entity.conditions) {
+            logger.error('[selectEntities] Entity is missing "conditions" property.', { entity });
+            return false;
+        }
+        return checkConditions(entity.conditions, chunk);
+    });
+
     const selected: any[] = [];
     const shuffled = [...validEntities].sort(() => 0.5 - Math.random());
-    
+
     for (const entity of shuffled) {
         if (selected.length >= maxCount) break;
 
-        let spawnChance = entity.conditions.chance ?? 1.0;
-        
-        // This handles both the old format {data: {type: '...'}, ...} for enemies/NPCs
-        // and the new format {name: '...', ...} for items.
-        const entityData = 'data' in entity ? entity.data : entity;
-        const itemName = entityData.name || entityData.type || entityData;
+        const entityData = 'data' in entity && entity.data ? entity.data : entity;
 
-        // For items, check the definition catalog for the tier
+        if (!entityData || (!('name' in entityData) && !('type' in entityData))) {
+             logger.error(`[selectEntities] SKIPPING entity data is missing 'name' or 'type' property.`, { entity: entityData });
+            continue;
+        }
+
+        let spawnChance = entity.conditions?.chance ?? 1.0;
+        const itemName = entityData.name || entityData.type;
         const itemDef = allItemDefinitions[itemName];
         if (itemDef) {
             const tier = itemDef.tier;
-            // Reduce spawn chance by 50% for each tier above 1.
             const tierMultiplier = Math.pow(0.5, tier - 1);
             spawnChance *= tierMultiplier;
         }
@@ -123,19 +136,26 @@ const selectEntities = <T extends {name: string, conditions: SpawnConditions} | 
 
 // --- WORLD GENERATION LOGIC ---
 
-// Selects a random terrain type based on weighted probabilities from worldConfig.
 export const weightedRandom = (options: [Terrain, number][]): Terrain => {
-    const total = options.reduce((sum, [, prob]) => sum + prob, 0);
-    const r = Math.random() * total;
-    let current = 0;
-    for (const [option, prob] of options) {
-        current += prob;
-        if (r <= current) return option;
+    if (options.length === 0) {
+        logger.warn("[weightedRandom] Received empty options array. Defaulting to 'forest'.");
+        return 'forest';
     }
-    return options[0][0]; // Fallback
+    const total = options.reduce((sum, [, prob]) => sum + prob, 0);
+    let r = Math.random() * total;
+
+    // A small correction to handle floating point inaccuracies where r could be exactly equal to total
+    if (r >= total) r = total - 0.0001;
+
+    for (const [option, prob] of options) {
+        r -= prob;
+        if (r <= 0) return option;
+    }
+    // Fallback in case of unexpected issues
+    logger.warn("[weightedRandom] Failed to select an option through standard logic, returning first option.", { options });
+    return options[0][0]; 
 }
 
-// Determines which terrain types can be generated at a new position
 export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentWorld: World): Terrain[] => {
     const directions = [{ x: 0, y: 1 }, { x: 0, y: -1 }, { x: 1, y: 0 }, { x: -1, y: 0 }];
     const adjacentTerrains = new Set<Terrain>();
@@ -147,9 +167,11 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
     }
 
     if (adjacentTerrains.size === 0) {
+        // No adjacent terrains, so any non-wall terrain is possible.
         return Object.keys(worldConfig).filter(t => t !== 'wall') as Terrain[];
     }
     
+    // Get all possible neighbors of our adjacent terrains
     const allPossibleNeighbors = new Set<Terrain>();
     for (const adjTerrain of adjacentTerrains) {
         const adjConfig = worldConfig[adjTerrain];
@@ -158,12 +180,12 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
         }
     }
 
+    // A terrain is valid if it's a neighbor to ALL adjacent chunks.
     const validTerrains = [...allPossibleNeighbors].filter(terrain => {
-        if (terrain === 'wall') return false;
+        if (terrain === 'wall') return false; // Never generate a wall as a new region type
         const config = worldConfig[terrain];
         if (!config) return false;
 
-        // A potential new terrain is valid if it's allowed to be a neighbor of ALL existing adjacent terrains.
         for(const adjTerrain of adjacentTerrains) {
             const adjConfig = worldConfig[adjTerrain];
             if (!adjConfig.allowedNeighbors.includes(terrain)) {
@@ -173,23 +195,16 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
         return true;
     });
     
-    return validTerrains.length > 0 ? validTerrains : Object.keys(worldConfig).filter(t => t !== 'wall') as Terrain[];
+    // If no terrain is valid for ALL neighbors, relax the condition.
+    // For now, we'll return a safe default.
+    return validTerrains.length > 0 ? validTerrains : ['grassland', 'forest'];
 };
 
-/**
- * Calculates attributes of a chunk that are dependent on other values
- * (e.g., world profile, season, base attributes).
- * @param terrain The terrain type of the chunk.
- * @param baseAttributes The randomly generated base attributes for the chunk.
- * @param worldProfile The global profile of the world.
- * @param currentSeason The current season.
- * @returns An object containing all calculated attributes.
- */
 function calculateDependentChunkAttributes(
     terrain: Terrain,
     baseAttributes: {
         vegetationDensity: number;
-        moisture: number; // This is the base moisture before seasonal/world mods
+        moisture: number; 
         dangerLevel: number;
         temperature: number;
     },
@@ -199,21 +214,23 @@ function calculateDependentChunkAttributes(
     const biomeDef = worldConfig[terrain];
     const seasonMods = seasonConfig[currentSeason];
 
-    const temperature = clamp(baseAttributes.temperature + seasonMods.temperatureMod + worldProfile.tempBias, 0, 10);
-    const finalMoisture = clamp(baseAttributes.moisture + seasonMods.moistureMod + worldProfile.moistureBias, 0, 10);
-    const windLevel = clamp(getRandomInRange({min: 2, max: 8}) + seasonMods.windMod, 0, 10);
+    // Calculate final attributes, clamping them within the 0-100 range
+    const temperature = clamp(baseAttributes.temperature + (seasonMods.temperatureMod * 10) + worldProfile.tempBias, 0, 100);
+    const finalMoisture = clamp(baseAttributes.moisture + (seasonMods.moistureMod * 10) + worldProfile.moistureBias, 0, 100);
+    const windLevel = clamp(getRandomInRange({min: 20, max: 80}) + (seasonMods.windMod * 10), 0, 100);
     
     let lightLevel: number;
     if (terrain === 'cave') {
-        lightLevel = getRandomInRange({ min: -8, max: -5 });
+        lightLevel = getRandomInRange({ min: -80, max: -50 });
     } else {
-        // Base light from sun, modified by season, reduced by vegetation density
-        let baseLight = worldProfile.sunIntensity + seasonMods.sunExposureMod - baseAttributes.vegetationDensity;
-        lightLevel = baseLight + getRandomInRange({ min: -1, max: 1 });
+        // Base light is determined by sun and season, reduced by vegetation
+        let baseLight = (worldProfile.sunIntensity * 10) + (seasonMods.sunExposureMod * 10) - baseAttributes.vegetationDensity;
+        // Add some random variation
+        lightLevel = baseLight + getRandomInRange({ min: -10, max: 10 });
     }
-    lightLevel = clamp(lightLevel, -10, 10);
+    lightLevel = clamp(lightLevel, -100, 100);
 
-    const explorability = clamp(10 - (baseAttributes.vegetationDensity / 2) - (baseAttributes.dangerLevel / 2), 0, 10);
+    const explorability = clamp(100 - (baseAttributes.vegetationDensity / 2) - (baseAttributes.dangerLevel / 2), 0, 100);
     const soilType = biomeDef.soilType[Math.floor(Math.random() * biomeDef.soilType.length)];
     const travelCost = biomeDef.travelCost;
     
@@ -228,15 +245,8 @@ function calculateDependentChunkAttributes(
     };
 }
 
-/**
- * Generates the "content" of a chunk (description, NPCs, items, enemies, actions)
- * based on its final physical attributes.
- * @param chunkData The complete physical data of the chunk.
- * @param worldProfile The global settings for the world.
- * @returns An object containing the generated content.
- */
 function generateChunkContent(
-    chunkData: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'explored' | 'structures' | 'terrain' | 'lastVisited'> & { terrain: Terrain },
+    chunkData: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'explored' | 'structures' | 'lastVisited'> & { terrain: Terrain },
     worldProfile: WorldProfile,
     allItemDefinitions: Record<string, ItemDefinition>,
     customItemCatalog: GeneratedItem[],
@@ -244,7 +254,7 @@ function generateChunkContent(
     language: Language
 ) {
     const t = (key: TranslationKey, replacements?: { [key: string]: string | number }): string => {
-        let textPool = (translations[language] as any)[key] || (translations.en as any)[key] || key;
+        let textPool = (translations[language as 'en' | 'vi'] as any)[key] || (translations.en as any)[key] || key;
         let text = Array.isArray(textPool) ? textPool[Math.floor(Math.random() * textPool.length)] : textPool;
         if (replacements && typeof text === 'string') {
             for (const [replaceKey, value] of Object.entries(replacements)) {
@@ -255,33 +265,46 @@ function generateChunkContent(
     };
 
     const templates = getTemplates(language);
-    const template = templates[chunkData.terrain];
+    const terrainTemplate = templates[chunkData.terrain];
+
+    if (!terrainTemplate) {
+        logger.error(`[generateChunkContent] No template found for terrain: ${chunkData.terrain}`);
+        return {
+            description: "An unknown and undescribable area.",
+            NPCs: [],
+            items: [],
+            structures: [],
+            enemy: null,
+            actions: [],
+        };
+    }
     
-    const finalDescription = template.descriptionTemplates.short[0]
-        .replace('[adjective]', template.adjectives[Math.floor(Math.random() * template.adjectives.length)])
-        .replace('[feature]', template.features[Math.floor(Math.random() * template.features.length)]);
+    const descriptionTemplates = (terrainTemplate.descriptionTemplates?.short || ["A generic area."]).filter(Boolean);
+    const finalDescription = descriptionTemplates[Math.floor(Math.random() * descriptionTemplates.length)]
+        .replace('[adjective]', (terrainTemplate.adjectives || ['normal'])[Math.floor(Math.random() * (terrainTemplate.adjectives || ['normal']).length)])
+        .replace('[feature]', (terrainTemplate.features || ['nothing special'])[Math.floor(Math.random() * (terrainTemplate.features || ['nothing special']).length)]);
     
-    const staticSpawnCandidates = template.items || [];
+    const staticSpawnCandidates = (terrainTemplate.items || []).filter(Boolean);
     const customSpawnCandidates = customItemCatalog
-        .filter(item => item.spawnEnabled !== false && item.spawnBiomes && item.spawnBiomes.includes(chunkData.terrain as Terrain))
-        .map(item => ({ name: item.name, conditions: { chance: 0.15 } })); 
+        .filter(item => item && item.spawnEnabled !== false && item.spawnBiomes && item.spawnBiomes.includes(chunkData.terrain as Terrain))
+        .map(item => ({ name: getTranslatedText(item.name, 'en', t), conditions: { chance: 0.15 } }));
     
     const allSpawnCandidates = [...staticSpawnCandidates, ...customSpawnCandidates];
 
-    const spawnedItemRefs = selectEntities(allSpawnCandidates, chunkData, allItemDefinitions, 3);
+    const spawnedItemRefs = selectEntities(allSpawnCandidates, 3, chunkData, allItemDefinitions);
     const spawnedItems: ChunkItem[] = [];
 
     for (const itemRef of spawnedItemRefs) {
         const itemDef = allItemDefinitions[itemRef.name];
         if (itemDef) {
             const baseQuantity = getRandomInRange(itemDef.baseQuantity);
-            const multiplier = worldProfile.resourceDensity / 5.0;
+            const multiplier = worldProfile.resourceDensity / 50;
             const finalQuantity = Math.round(baseQuantity * multiplier);
 
             if (finalQuantity > 0) {
                 spawnedItems.push({
-                    name: itemRef.name,
-                    description: t(itemDef.description as TranslationKey),
+                    name: itemDef.name,
+                    description: itemDef.description,
                     tier: itemDef.tier,
                     quantity: finalQuantity,
                     emoji: itemDef.emoji,
@@ -290,48 +313,40 @@ function generateChunkContent(
         }
     }
     
-    const spawnedNPCs: Npc[] = selectEntities(template.NPCs, chunkData, allItemDefinitions, 1).map(ref => ref.data);
+    const spawnedNPCs: Npc[] = selectEntities(terrainTemplate.NPCs, 1, chunkData, allItemDefinitions).map(ref => ref.data);
 
-    // Combine base enemies with modded enemies
-    let allEnemyCandidates = [...(template.enemies || [])];
-    if (chunkData.terrain === 'swamp') allEnemyCandidates = [...allEnemyCandidates, ...naturePlusSwampEnemies];
-    if (chunkData.terrain === 'jungle') allEnemyCandidates = [...allEnemyCandidates, ...naturePlusJungleEnemies];
-    if (chunkData.terrain === 'forest') allEnemyCandidates = [...allEnemyCandidates, ...naturePlusForestEnemies];
-    if (chunkData.terrain === 'mountain') allEnemyCandidates = [...allEnemyCandidates, ...naturePlusMountainEnemies];
+    let allEnemyCandidates = [...(terrainTemplate.enemies || [])].filter(Boolean);
 
-    const spawnedEnemies = selectEntities(allEnemyCandidates, chunkData, allItemDefinitions, 1);
+    const spawnedEnemies = selectEntities(allEnemyCandidates, 1, chunkData, allItemDefinitions);
     
     let spawnedStructures: Structure[] = [];
-    if (Math.random() < 0.05 && customStructures && customStructures.length > 0) { // Reduced chance
-        const uniqueStructure = customStructures[Math.floor(Math.random() * customStructures.length)];
-        spawnedStructures.push(uniqueStructure);
-    } else {
-        const spawnedStructureRefs = selectEntities(template.structures, chunkData, allItemDefinitions, 1);
-        spawnedStructures = spawnedStructureRefs.map(ref => ref.data);
-         for (const structureRef of spawnedStructureRefs) {
-            if (structureRef.loot) {
-                for (const lootItem of structureRef.loot) {
-                    if (Math.random() < lootItem.chance) {
-                        const definition = allItemDefinitions[lootItem.name];
-                        if (definition) {
-                            const quantity = getRandomInRange(lootItem.quantity);
-                            const existingItem = spawnedItems.find(i => i.name === lootItem.name);
-                            if (existingItem) {
-                                existingItem.quantity += quantity;
-                            } else {
-                                spawnedItems.push({
-                                    name: lootItem.name,
-                                    description: t(definition.description as TranslationKey),
-                                    tier: definition.tier,
-                                    quantity: quantity,
-                                    emoji: definition.emoji,
-                                });
-                            }
+    const spawnedStructureRefs = selectEntities((terrainTemplate.structures || []).filter(Boolean), 1, chunkData, allItemDefinitions);
+    
+    for (const structRef of spawnedStructureRefs) {
+        // The entity from selectEntities is now the root definition itself
+        if (structRef.loot) {
+            for (const lootItem of structRef.loot) {
+                if (Math.random() < lootItem.chance) {
+                    const definition = allItemDefinitions[lootItem.name];
+                    if (definition) {
+                        const quantity = getRandomInRange(lootItem.quantity);
+                        const existingItem = spawnedItems.find(i => getTranslatedText(i.name, 'en') === lootItem.name);
+                        if (existingItem) {
+                            existingItem.quantity += quantity;
+                        } else {
+                            spawnedItems.push({
+                                name: definition.name,
+                                description: definition.description,
+                                tier: definition.tier,
+                                quantity,
+                                emoji: definition.emoji,
+                            });
                         }
                     }
                 }
             }
         }
+        spawnedStructures.push(structRef);
     }
    
     const enemyData = spawnedEnemies.length > 0 ? spawnedEnemies[0].data : null;
@@ -341,14 +356,14 @@ function generateChunkContent(
     let actionIdCounter = 1;
 
     if (spawnedEnemy) {
-        actions.push({ id: actionIdCounter++, textKey: 'observeAction_enemy', params: { enemyType: spawnedEnemy.type as TranslationKey } });
+        actions.push({ id: actionIdCounter++, textKey: 'observeAction_enemy', params: { enemyType: getTranslatedText(spawnedEnemy.type, 'en') } });
     }
     if (spawnedNPCs.length > 0) {
-        actions.push({ id: actionIdCounter++, textKey: 'talkToAction_npc', params: { npcName: spawnedNPCs[0].name as TranslationKey } });
+        actions.push({ id: actionIdCounter++, textKey: 'talkToAction_npc', params: { npcName: getTranslatedText(spawnedNPCs[0].name, 'en') } });
     }
 
     spawnedItems.forEach(item => {
-        actions.push({ id: actionIdCounter++, textKey: 'pickUpAction_item', params: { itemName: item.name as TranslationKey } });
+        actions.push({ id: actionIdCounter++, textKey: 'pickUpAction_item', params: { itemName: getTranslatedText(item.name, 'en') } });
     });
     
     actions.push({ id: actionIdCounter++, textKey: 'exploreAction' });
@@ -364,7 +379,6 @@ function generateChunkContent(
     };
 }
 
-
 function createWallChunk(pos: { x: number; y: number }): Chunk {
     const biomeDef = worldConfig['wall'];
     return {
@@ -375,15 +389,15 @@ function createWallChunk(pos: { x: number; y: number }): Chunk {
         NPCs: [],
         items: [],
         structures: [],
-        explored: true, // Walls are always visible
+        explored: true, 
         lastVisited: 0,
         enemy: null,
         actions: [],
-        regionId: -1, // Walls don't belong to a region
+        regionId: -1, 
         travelCost: biomeDef.travelCost,
         vegetationDensity: 0,
         moisture: 0,
-        elevation: 5,
+        elevation: 50,
         lightLevel: 0,
         dangerLevel: 0,
         magicAffinity: 0,
@@ -391,7 +405,8 @@ function createWallChunk(pos: { x: number; y: number }): Chunk {
         explorability: 0,
         soilType: 'rocky',
         predatorPresence: 0,
-        temperature: 5,
+        temperature: 50,
+        windLevel: 0,
     };
 }
 
@@ -408,6 +423,7 @@ export const generateRegion = (
     customStructures: Structure[],
     language: Language
 ) => {
+    logger.debug(`[generateRegion] Starting for center (${startPos.x},${startPos.y}), terrain: ${terrain}`);
     const newWorld = { ...currentWorld };
     const newRegions = { ...currentRegions };
     let newRegionCounter = currentRegionCounter;
@@ -442,6 +458,7 @@ export const generateRegion = (
 
     for (const pos of regionCells) {
         const posKey = `${pos.x},${pos.y}`;
+        logger.debug(`[generateRegion] Processing cell (${pos.x},${pos.y}).`);
 
         const vegetationDensity = getRandomInRange(biomeDef.defaultValueRanges.vegetationDensity);
         const baseMoisture = getRandomInRange(biomeDef.defaultValueRanges.moisture);
@@ -454,29 +471,28 @@ export const generateRegion = (
 
         const dependentAttributes = calculateDependentChunkAttributes(
             terrain,
-            { vegetationDensity, moisture: baseMoisture, dangerLevel: dangerLevel, temperature: baseTemperature },
+            { vegetationDensity, moisture: baseMoisture, dangerLevel, temperature: baseTemperature },
             worldProfile,
             currentSeason
         );
         
         const tempChunkData = {
-            terrain,
             vegetationDensity,
             elevation,
             dangerLevel,
             magicAffinity,
             humanPresence,
             predatorPresence,
-            temperature: dependentAttributes.temperature,
             ...dependentAttributes,
+            terrain: terrain
         };
-
+        logger.debug(`[generateRegion] tempChunkData terrain: ${terrain}`);
         const content = generateChunkContent(tempChunkData, worldProfile, allItemDefinitions, customItemCatalog, customStructures, language);
+        logger.debug(`[generateRegion] Content generated for (${pos.x},${pos.y}).`);
         
         newWorld[posKey] = {
             x: pos.x, 
             y: pos.y, 
-            terrain, 
             explored: false, 
             lastVisited: 0,
             regionId,
@@ -504,10 +520,9 @@ export const generateRegion = (
             }
         }
     }
-
-
+    logger.debug(`[generateRegion] Finished for center (${startPos.x},${startPos.y}).`);
     return { newWorld, newRegions, newRegionCounter };
-};
+}
 
 export function ensureChunkExists(
     pos: { x: number; y: number },
@@ -521,46 +536,106 @@ export function ensureChunkExists(
     customStructures: Structure[],
     language: Language
 ) {
+    logger.debug(`[ensureChunkExists] STARTING for chunk (${pos.x},${pos.y}).`);
     const key = `${pos.x},${pos.y}`;
     if (currentWorld[key]) {
+        logger.debug(`[ensureChunkExists] Chunk at (${pos.x},${pos.y}) already exists. Skipping generation.`);
+        logger.debug(`[ensureChunkExists] FINISHED for chunk (${pos.x}, ${pos.y}). Returning world profile.`);
         return { worldWithChunk: currentWorld, newRegions: currentRegions, newRegionCounter: currentRegionCounter };
     }
-
+    logger.info(`[ensureChunkExists] Chunk at (${pos.x},${pos.y}) does not exist. Generating new region.`);
     const validTerrains = getValidAdjacentTerrains(pos, currentWorld);
+    logger.debug(`[ensureChunkExists] Valid adjacent terrains:`, validTerrains);
     const terrainWeights = validTerrains.map(t => [t, worldConfig[t].spreadWeight] as [Terrain, number]);
     const newTerrain = weightedRandom(terrainWeights);
+    logger.info(`[ensureChunkExists] Selected new terrain: ${newTerrain}`);
 
-    return generateRegion(pos, newTerrain, currentWorld, currentRegions, currentRegionCounter, worldProfile, currentSeason, allItemDefinitions, customItemCatalog, customStructures, language);
+    const { newWorld, newRegions, newRegionCounter } = generateRegion(pos, newTerrain, currentWorld, currentRegions, currentRegionCounter, worldProfile, currentSeason, allItemDefinitions, customItemCatalog, customStructures, language);
+    logger.debug(`[ensureChunkExists] FINISHED generating region for chunk (${pos.x}, ${pos.y}).`);
+    logger.debug(`[ensureChunkExists] FINISHED for chunk (${pos.x}, ${pos.y}). Returning world profile.`);
+    return { worldWithChunk: newWorld, newRegions: newRegions, newRegionCounter: newRegionCounter };
 }
 
 
-export const getEffectiveChunk = (baseChunk: Chunk, weatherZones: { [key: string]: WeatherZone }, gameTime: number): Chunk => {
-    if (!baseChunk) return baseChunk;
+/**
+ * Creates chunks in a specified radius around a central point if they do not already exist.
+ * @param currentWorld The current state of the World object.
+ * @param currentRegions The current state of the Regions object.
+ * @param currentRegionCounter The current region counter.
+ * @param center_x The central X coordinate.
+ * @param center_y The central Y coordinate.
+ * @param radius The radius of chunks to generate (e.g., radius 7 creates a 15x15 area).
+ * @param worldProfile The world profile for generating attributes.
+ * @param currentSeason The current season.
+ * @param allItemDefinitions A record of all item definitions.
+ * @param customItemCatalog A list of custom AI-generated items.
+ * @param customStructures A list of custom AI-generated structures.
+ * @param language The current language.
+ * @returns An object containing the updated world, regions, and region counter.
+ */
+export const generateChunksInRadius = (
+    currentWorld: World,
+    currentRegions: { [id: number]: Region },
+    currentRegionCounter: number,
+    center_x: number,
+    center_y: number,
+    radius: number,
+    worldProfile: WorldProfile,
+    currentSeason: Season,
+    allItemDefinitions: Record<string, ItemDefinition>,
+    customItemCatalog: GeneratedItem[],
+    customStructures: Structure[],
+    language: Language
+): { world: World, regions: { [id: number]: Region }, regionCounter: number } => {
+    logger.debug(`[generateChunksInRadius] STARTING generation for radius ${radius} around (${center_x}, ${center_y}).`);
+    let newWorld = { ...currentWorld };
+    let newRegions = { ...currentRegions };
+    let newRegionCounter = currentRegionCounter;
 
-    const effectiveChunk: Chunk = { ...baseChunk };
-    
-    let structureHeat = effectiveChunk.structures?.reduce((sum, s) => sum + (s.heatValue || 0), 0) || 0;
+    for (let dx = -radius; dx <= radius; dx++) {
+        for (let dy = -radius; dy <= radius; dy++) {
+            const chunk_x = center_x + dx;
+            const chunk_y = center_y + dy;
+            const chunkKey = `${chunk_x},${chunk_y}`;
+            logger.debug(`[generateChunksInRadius] Checking chunk at (${chunk_x}, ${chunk_y}).`);
+            if (!newWorld[chunkKey]) {
+                const result = ensureChunkExists(
+                    { x: chunk_x, y: chunk_y },
+                    newWorld,
+                    newRegions,
+                    newRegionCounter,
+                    worldProfile,
+                    currentSeason,
+                    allItemDefinitions,
+                    customItemCatalog,
+                    customStructures,
+                    language
+                );
+                newWorld = result.worldWithChunk;
+                newRegions = result.newRegions;
+                newRegionCounter = result.newRegionCounter;
+            }
+        }
+    }
+    logger.info(`[generateChunksInRadius] Finished generation for radius ${radius}.`);
+    return { world: newWorld, regions: newRegions, regionCounter: newRegionCounter };
+};
 
-    if (!weatherZones[effectiveChunk.regionId]) {
-        effectiveChunk.temperature = (baseChunk.temperature ?? 15) + structureHeat;
-        return effectiveChunk;
+export function getEffectiveChunk(baseChunk: Chunk, weatherZones: Record<string, WeatherZone>, gameTime: number): Chunk {
+    const effectiveChunk = { ...baseChunk };
+    const weatherZone = weatherZones[baseChunk.regionId];
+    if (weatherZone) {
+        const weather = weatherZone.currentWeather;
+        effectiveChunk.temperature = clamp((effectiveChunk.temperature ?? 50) + weather.temperature_delta, 0, 100);
+        effectiveChunk.moisture = clamp(effectiveChunk.moisture + weather.moisture_delta, 0, 100);
+        effectiveChunk.lightLevel = clamp(effectiveChunk.lightLevel + weather.light_delta, -100, 100);
+        effectiveChunk.windLevel = clamp((effectiveChunk.windLevel ?? 0) + weather.wind_delta, 0, 100);
     }
 
-    const weatherZone = weatherZones[baseChunk.regionId];
-    const weather = weatherZone.currentWeather;
+    const isDay = gameTime >= 360 && gameTime < 1080;
+    if (!isDay && baseChunk.terrain !== 'cave') {
+        effectiveChunk.lightLevel = Math.min(effectiveChunk.lightLevel, -20);
+    }
     
-    const baseCelsius = (baseChunk.temperature ?? 5) * 4;
-    const weatherCelsiusMod = weather.temperature_delta * 2;
-    effectiveChunk.temperature = baseCelsius + weatherCelsiusMod + structureHeat;
-
-    effectiveChunk.moisture = clamp(baseChunk.moisture + weather.moisture_delta, 0, 10);
-    effectiveChunk.windLevel = clamp((baseChunk.windLevel ?? 3) + weather.wind_delta, 0, 10);
-    
-    let timeLightMod = 0;
-    if (gameTime >= 1320 || gameTime < 300) timeLightMod = -8;
-    else if ((gameTime >= 300 && gameTime < 420) || (gameTime >= 1080 && gameTime < 1200)) timeLightMod = -3;
-    
-    effectiveChunk.lightLevel = clamp(baseChunk.lightLevel + weather.light_delta + timeLightMod, -10, 10);
-
     return effectiveChunk;
-};
+}

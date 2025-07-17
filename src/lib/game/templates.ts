@@ -1,6 +1,12 @@
+/**
+ * @fileOverview Central hub for accessing narrative templates.
+ * @description This file aggregates biome-specific template data from various modular files.
+ * It provides a single function, `getTemplates`, to retrieve the correct set of templates
+ * based on the current game language. This architecture allows for easy expansion and modding
+ * of narrative content.
+ */
 
-
-import type { Language, Terrain } from "./types";
+import type { GameTemplates, Language } from "./types";
 import { forest_vi, forest_en } from './templates/forest';
 import { grassland_vi, grassland_en } from './templates/grassland';
 import { desert_vi, desert_en } from './templates/desert';
@@ -19,6 +25,8 @@ import { ocean_vi, ocean_en } from "./templates/ocean";
 import { city_vi, city_en } from "./templates/city";
 import { space_station_vi, space_station_en } from "./templates/space_station";
 import { underwater_vi, underwater_en } from "./templates/underwater";
+import type { Terrain } from './types';
+
 
 const templates_vi: Record<Terrain, any> = {
     forest: forest_vi,
@@ -62,9 +70,11 @@ const templates_en: Record<Terrain, any> = {
     underwater: underwater_en,
 };
 
-export const getTemplates = (lang: Language): Record<Terrain, any> => {
-  if (lang === 'vi') {
-    return templates_vi;
-  }
-  return templates_en;
+/**
+ * Retrieves the appropriate set of narrative templates for the game.
+ * @param {Language} language The language for which to get templates.
+ * @returns {Record<Terrain, any>} An object containing all biome-specific narrative templates for the given language.
+ */
+export const getTemplates = (language: Language): Record<Terrain, any> => {
+    return language === 'vi' ? templates_vi : templates_en;
 };

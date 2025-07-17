@@ -18,7 +18,7 @@ import { useLanguage } from "@/context/language-context";
 import type { PlayerStatus, Skill, EquipmentSlot } from "@/lib/game/types";
 import { skillDefinitions } from "@/lib/game/skills";
 import type { TranslationKey } from "@/lib/i18n";
-import { cn } from "@/lib/utils";
+import { cn, getTranslatedText } from "@/lib/utils";
 import { Heart, Loader2, Book, Star, Sparkles, SwordIcon } from "./icons";
 import { Button } from "../ui/button";
 
@@ -43,9 +43,9 @@ type HintFetchStatus = {
 }
 
 const getNextUnlockableSkills = (currentSkills: Skill[]): Skill[] => {
-    const currentSkillNames = new Set(currentSkills.map(s => s.name));
+    const currentSkillNames = new Set(currentSkills.map(s => getTranslatedText(s.name, 'en')));
     return skillDefinitions.filter(
-        skillDef => !currentSkillNames.has(skillDef.name) && skillDef.unlockCondition
+        skillDef => !currentSkillNames.has(getTranslatedText(skillDef.name, 'en')) && skillDef.unlockCondition
     );
 };
 
@@ -127,7 +127,7 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequi
                         <span className="capitalize text-muted-foreground">{t(slot)}:</span>
                         {item ? (
                         <div className="flex items-center gap-2">
-                            <span className="font-semibold text-foreground">{item.emoji} {t(item.name)}</span>
+                            <span className="font-semibold text-foreground">{item.emoji} {getTranslatedText(item.name, language, t)}</span>
                             <Button variant="ghost" size="sm" onClick={() => onUnequipItem(slot as EquipmentSlot)}>
                             {t('unequipItem')}
                             </Button>
@@ -178,7 +178,7 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequi
                         <Separator className="my-2" />
                         <div className="space-y-1">
                             {nextUnlockableSkills.map(skill => (
-                                <div key={skill.name}>
+                                <div key={getTranslatedText(skill.name, 'en')}>
                                     <p className="text-xs text-accent-foreground font-semibold">{t(skill.name)}</p>
                                     <p className="text-xs text-muted-foreground">({t('unlockCondition')}: {skill.unlockCondition!.count} {t(skill.unlockCondition!.type)})</p>
                                 </div>
@@ -212,24 +212,25 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequi
             {quests.length > 0 ? (
               <Accordion type="single" collapsible className="w-full space-y-2">
                 {quests.map((quest, index) => {
-                  const isLegendary = quest.startsWith('[Legendary]') || quest.startsWith('[Huyền thoại]');
+                  const questText = t(quest);
+                  const isLegendary = questText.startsWith('[Legendary]') || questText.startsWith('[Huyền thoại]');
                   return (
                     <AccordionItem value={`item-${index}`} key={index} className="p-2 bg-muted rounded-md border-none">
-                      <AccordionTrigger onClick={() => handleQuestClick(quest)} className="py-0 text-left hover:no-underline text-muted-foreground">
+                      <AccordionTrigger onClick={() => handleQuestClick(questText)} className="py-0 text-left hover:no-underline text-muted-foreground">
                         <div className="flex items-center gap-2">
                           {isLegendary && <Sparkles className="h-4 w-4 text-yellow-400 flex-shrink-0" />}
-                          <span className={cn(isLegendary && "text-yellow-300/90")}>{quest}</span>
+                          <span className={cn(isLegendary && "text-yellow-300/90")}>{questText}</span>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="pt-2 text-accent-foreground italic">
-                        {hintFetchStatus[quest]?.isLoading && (
+                        {hintFetchStatus[questText]?.isLoading && (
                           <div className="flex items-center gap-2">
                             <Loader2 className="h-4 w-4 animate-spin"/>
                             <span>{t('suggesting')}...</span>
                           </div>
                         )}
-                        {hintFetchStatus[quest]?.error && <p className="text-destructive">{hintFetchStatus[quest]?.error}</p>}
-                        {stats.questHints?.[quest] && <p>"{stats.questHints[quest]}"</p>}
+                        {hintFetchStatus[questText]?.error && <p className="text-destructive">{hintFetchStatus[questText]?.error}</p>}
+                        {stats.questHints?.[questText] && <p>"{stats.questHints[questText]}"</p>}
                       </AccordionContent>
                     </AccordionItem>
                   );

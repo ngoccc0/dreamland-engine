@@ -1,6 +1,7 @@
 
 import {z} from 'zod';
 import { ItemRelationshipSchema } from './item';
+import { MultilingualTextSchema, TranslatableStringSchema } from './base';
 
 // Defines an ingredient for a recipe, including its quantity and possible substitutes.
 export const RecipeIngredientSchema = z.object({
@@ -21,7 +22,7 @@ export const RecipeResultSchema = z.object({
 export const RecipeSchema = z.object({
     result: RecipeResultSchema,
     ingredients: z.array(RecipeIngredientSchema).min(1).max(5).describe("A list of 1 to 5 ingredients required for the recipe."),
-    description: z.object({ en: z.string(), vi: z.string() }).describe("A brief, multilingual description of what this recipe creates."),
+    description: TranslatableStringSchema.describe("A brief, multilingual description of what this recipe creates."),
     requiredTool: z.string().optional().describe("The name of the tool item required to be in the player's inventory to perform this craft."),
 });
 export type Recipe = z.infer<typeof RecipeSchema>;

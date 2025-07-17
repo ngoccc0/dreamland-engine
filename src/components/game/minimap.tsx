@@ -1,26 +1,26 @@
 
-
 "use client";
 
 import { cn } from "@/lib/utils";
 import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon, Home, MapPin } from "./icons";
 import { useLanguage } from "@/context/language-context";
-import type React from "react";
-import type { Chunk, Terrain } from "@/lib/game/types";
+import React, { useEffect } from "react";
+import type { Chunk, Terrain, Structure } from "@/lib/game/types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import type { TranslationKey } from "@/lib/i18n";
 import { Separator } from "../ui/separator";
 import { SwordIcon } from "./icons";
 import { Backpack } from "lucide-react";
+import { getTranslatedText } from "@/lib/utils";
+import { logger } from "@/lib/logger";
 
 
 export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     return (
         <div className="p-1 space-y-2">
             <div className="flex items-center gap-2">
                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                 <h4 className="font-bold capitalize">{chunk.terrain === 'wall' ? t('wall') : t(chunk.terrain)} ({chunk.x}, {chunk.y})</h4>
+                 <h4 className="font-bold capitalize">{chunk.terrain === 'wall' ? t('wall') : t(chunk.terrain as any)} ({chunk.x}, {chunk.y})</h4>
             </div>
             <p className="text-xs text-muted-foreground italic line-clamp-3">{chunk.description}</p>
             
@@ -31,7 +31,11 @@ export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
                     <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><Home />{t('structures')}:</h5>
                         <ul className="space-y-1 text-xs pl-5">
-                            {chunk.structures.map(s => <li key={s.name}>{s.emoji} {t(s.name)}</li>)}
+                           {chunk.structures.map((s) => {
+                                const structData = (s as any).data || s;
+                                const name = getTranslatedText(structData.name, 'en');
+                                return <li key={name}>{structData.emoji} {getTranslatedText(structData.name, language, t)}</li>
+                            })}
                         </ul>
                     </div>
                 )}
@@ -39,21 +43,21 @@ export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
                     <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><Backpack />{t('inventory')}:</h5>
                         <ul className="space-y-1 text-xs pl-5">
-                            {chunk.items.map(item => <li key={item.name}>{item.emoji} {t(item.name)} (x{item.quantity})</li>)}
+                            {chunk.items.map(item => <li key={getTranslatedText(item.name, 'en')}>{item.emoji} {getTranslatedText(item.name, language, t)} (x{item.quantity})</li>)}
                         </ul>
                     </div>
                 )}
                 {chunk.enemy && (
                     <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><SwordIcon />{t('enemy')}:</h5>
-                        <p className="text-xs pl-5">{chunk.enemy.emoji} {t(chunk.enemy.type)} (HP: {chunk.enemy.hp})</p>
+                        <p className="text-xs pl-5">{chunk.enemy.emoji} {getTranslatedText(chunk.enemy.type, language, t)} (HP: {chunk.enemy.hp})</p>
                     </div>
                 )}
                 {chunk.NPCs.length > 0 && (
                      <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><NpcIcon />{t('npcs')}:</h5>
                         <ul className="space-y-1 text-xs pl-5">
-                            {chunk.NPCs.map(npc => <li key={npc.name}>{t(npc.name)}</li>)}
+                            {chunk.NPCs.map(npc => <li key={getTranslatedText(npc.name, 'en')}>{getTranslatedText(npc.name, language, t)}</li>)}
                         </ul>
                     </div>
                 )}
@@ -109,8 +113,29 @@ const biomeIcons: Record<Exclude<Terrain, 'empty' | 'wall' | 'ocean' | 'city' | 
 
 
 export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const responsiveCellSize = "w-14 h-14 md:w-16 md:h-16 lg:w-20 lg:h-20";
+
+  useEffect(() => {
+    logger.debug("[MINIMAP] Mounted with props:", { grid, playerPosition, turn });
+    if (grid?.length > 0) {
+      logger.debug("[MINIMAP] Calculated map size:", `${grid[0].length}x${grid.length}`);
+    }
+  }, [grid, playerPosition, turn]);
+
+
+  if (!grid || grid.length === 0) {
+    logger.warn("[MINIMAP] No map data provided.");
+    return (
+      <div className="flex flex-col items-center gap-2">
+        <div className="grid grid-cols-5 border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-hidden">
+          {Array.from({ length: 25 }).map((_, i) => (
+             <div key={i} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col items-center gap-2">
@@ -127,16 +152,26 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
               const turnDifference = turn - cell.lastVisited;
               const isFoggy = turnDifference > 50 && cell.lastVisited !== 0;
 
-              if (!cell.explored || (isFoggy && !isPlayerHere)) {
+              logger.debug(`[MINIMAP-RENDER] Tile (${cell.x},${cell.y}) → terrain=${cell.terrain}, explored=${cell.explored}, foggy=${isFoggy}`);
+
+              if (!cell.explored) {
                 return (
+                    <div key={key} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />
+                );
+              }
+              
+              if (isFoggy && !isPlayerHere) {
+                 return (
                     <div key={key} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50 flex items-center justify-center")}>
-                        {cell.explored && <span className="text-2xl opacity-30" title={t('fogOfWarDesc') as string}>🌫️</span>}
+                        <span className="text-2xl opacity-30" title={t('fogOfWarDesc') as string}>🌫️</span>
                     </div>
                 );
               }
-
-              const mainIcon = (cell.structures && cell.structures.length > 0)
-                ? <span className="text-3xl opacity-90 drop-shadow-lg" role="img" aria-label={cell.structures[0].name}>{cell.structures[0].emoji}</span>
+              
+              const firstStructure = cell.structures && cell.structures.length > 0 ? (cell.structures[0] as any) : null;
+              const structData = firstStructure?.data || firstStructure;
+              const mainIcon = structData
+                ? <span className="text-3xl opacity-90 drop-shadow-lg" role="img" aria-label={getTranslatedText(structData.name, language, t)}>{structData.emoji}</span>
                 : (biomeIcons[cell.terrain as keyof typeof biomeIcons] || null);
 
               return (

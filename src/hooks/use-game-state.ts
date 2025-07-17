@@ -78,9 +78,11 @@ export function useGameState({ gameSlot }: GameStateProps) {
      * @description Advances the game's internal clock and turn counter.
      * Also responsible for updating player stats that might have changed during the turn.
      * @param {PlayerStatus} [newPlayerStats] - The player's updated status after an action. If not provided, the existing stats are used.
+     * @param {{x: number, y: number}} [pos] - The player's position for this new turn.
      */
-    const advanceGameTime = useCallback((newPlayerStats?: PlayerStatus) => {
-        setTurn(prev => prev + 1);
+    const advanceGameTime = useCallback((newPlayerStats?: PlayerStatus, pos?: { x: number, y: number }) => {
+        const nextTurn = turn + 1;
+        setTurn(nextTurn);
         const finalStats = newPlayerStats || playerStats;
 
         const newTime = (gameTime + 10) % 1440;
@@ -91,8 +93,21 @@ export function useGameState({ gameSlot }: GameStateProps) {
         
         // Update stats after advancing time. If new stats are passed, use them.
         setPlayerStats(finalStats);
+        
+        // Mark the current chunk as explored
+        const currentPosition = pos || playerPosition;
+        const chunkKey = `${currentPosition.x},${currentPosition.y}`;
+        setWorld(prevWorld => {
+            const chunkToUpdate = prevWorld[chunkKey];
+            if (chunkToUpdate && (!chunkToUpdate.explored || chunkToUpdate.lastVisited !== nextTurn)) {
+                const newWorld = { ...prevWorld };
+                newWorld[chunkKey] = { ...chunkToUpdate, explored: true, lastVisited: nextTurn };
+                return newWorld;
+            }
+            return prevWorld;
+        });
 
-    }, [gameTime, playerStats]);
+    }, [gameTime, playerStats, turn, playerPosition]);
 
 
     return {

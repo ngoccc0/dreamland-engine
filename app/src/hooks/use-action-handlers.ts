@@ -14,7 +14,7 @@ import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchA
 import { getEffectiveChunk } from '@/lib/game/engine/generation';
 import { getTemplates } from '@/lib/game/templates';
 import { clamp, getTranslatedText } from '@/lib/utils';
-import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem, NarrativeEntry, GeneratedItem, Language } from '@/lib/game/types';
+import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem, NarrativeEntry, GeneratedItem, Language, TranslatableString } from '@/lib/game/types';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-config';
 import { logger } from '@/lib/logger';
@@ -102,7 +102,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         logger.debug('[AI] Input for generateNarrative', { entryId, action, playerPosCtx });
 
         const input: GenerateNarrativeInput = {
-            worldName: t(finalWorldSetup.worldName as TranslationKey), playerAction: action, playerStatus: playerStatsCtx,
+            worldName: getTranslatedText(finalWorldSetup.worldName, language, t), playerAction: action, playerStatus: playerStatsCtx,
             currentChunk,
             surroundingChunks: surroundingChunks.length > 0 ? surroundingChunks : undefined,
             recentNarrative, language, customItemDefinitions,
@@ -392,7 +392,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
       if (textKey === 'observeAction_enemy') {
           const enemy = currentChunk.enemy;
           if (enemy) {
-              const enemyName = t(enemy.type as TranslationKey);
+              const enemyName = getTranslatedText(enemy.type, language, t);
               newPlayerStats.trackedEnemy = {
                   chunkKey: `${currentChunk.x},${currentChunk.y}`,
                   type: getTranslatedText(enemy.type, 'en'),
@@ -402,12 +402,12 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
           }
       } else if (textKey === 'talkToAction_npc') {
           const npcName = t(action.params!.npcName as TranslationKey);
-          const npc = currentChunk.NPCs.find(n => t(n.name as TranslationKey) === npcName);
+          const npc = currentChunk.NPCs.find(n => getTranslatedText(n.name, language, t) === npcName);
           if (npc) {
               const templates = getTemplates(language);
               let npcDef: any;
                for (const terrain of Object.keys(templates)) {
-                  const templateNpc = templates[terrain as 'forest']?.NPCs.find((n: any) => t(n.data.name as TranslationKey) === npcName);
+                  const templateNpc = templates[terrain as 'forest']?.NPCs.find((n: any) => getTranslatedText(n.data.name, language, t) === npcName);
                   if (templateNpc) {
                       npcDef = templateNpc.data;
                       break;
@@ -523,7 +523,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
           }
       } else if (textKey === 'analyzeAction') {
           const chunk = getEffectiveChunk(currentChunk, weatherZones, gameTime);
-          const analysis = `[Analysis Report]\nCoordinates: (${chunk.x}, ${chunk.y})\nTerrain: ${t(chunk.terrain as TranslationKey)}\n- Temperature: ${chunk.temperature?.toFixed(1)}°C\n- Moisture: ${chunk.moisture}/100\n- Light Level: ${chunk.lightLevel}/100\n- Danger Level: ${chunk.dangerLevel}/100\n- Explorability: ${chunk.explorability.toFixed(1)}/100\n- Magic Affinity: ${chunk.magicAffinity}/100\n- Human Presence: ${chunk.humanPresence}/100\n- Predator Presence: ${chunk.predatorPresence}/100\nItems: ${chunk.items.map((i: any) => t(i.name) + ` (x${i.quantity})`).join(', ') || 'None'}\nEnemy: ${chunk.enemy ? t(chunk.enemy.type) : 'None'}\nNPCs: ${chunk.NPCs.map((n: any) => t(n.name)).join(', ') || 'None'}\nStructures: ${chunk.structures.map((s: any) => t(s.name)).join(', ') || 'None'}`;
+          const analysis = `[Analysis Report]\nCoordinates: (${chunk.x}, ${chunk.y})\nTerrain: ${t(chunk.terrain as TranslationKey)}\n- Temperature: ${chunk.temperature?.toFixed(1)}°C\n- Moisture: ${chunk.moisture}/100\n- Light Level: ${chunk.lightLevel}/100\n- Danger Level: ${chunk.dangerLevel}/100\n- Explorability: ${chunk.explorability.toFixed(1)}/100\n- Magic Affinity: ${chunk.magicAffinity}/100\n- Human Presence: ${chunk.humanPresence}/100\n- Predator Presence: ${chunk.predatorPresence}/100\nItems: ${chunk.items.map((i: any) => t(i.name) + ` (x${i.quantity})`).join(', ') || 'None'}\nEnemy: ${chunk.enemy ? getTranslatedText(chunk.enemy.type, language, t) : 'None'}\nNPCs: ${chunk.NPCs.map((n: any) => getTranslatedText(n.name, language, t)).join(', ') || 'None'}\nStructures: ${chunk.structures.map((s: any) => getTranslatedText(s.name, language, t)).join(', ') || 'None'}`;
           addNarrativeEntry(analysis, 'system');
       }
 
@@ -558,7 +558,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
     if (!baseChunk?.enemy) { addNarrativeEntry(t('noTarget'), 'system'); return; }
     
-    const actionText = `${t('attackAction')} ${t(baseChunk.enemy.type as TranslationKey)}`;
+    const actionText = `${t('attackAction')} ${getTranslatedText(baseChunk.enemy.type, language, t)}`;
     addNarrativeEntry(actionText, 'action');
     const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText]};
 
@@ -593,7 +593,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
     if (!outcome.canCraft) { toast({ title: t('error'), description: t('notEnoughIngredients'), variant: "destructive" }); return; }
     
-    const actionText = t('craftAction', {itemName: t(recipe.result.name as TranslationKey)});
+    const actionText = t('craftAction', {itemName: getTranslatedText(recipe.result.name, language, t)});
     addNarrativeEntry(actionText, 'action');
     let updatedItems = playerStats.items.map(i => ({...i}));
     outcome.ingredientsToConsume.forEach(itemToConsume => {
@@ -612,13 +612,13 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         
         const successKeys: TranslationKey[] = ['craftSuccess1', 'craftSuccess2', 'craftSuccess3'];
         const randomKey = successKeys[Math.floor(Math.random() * successKeys.length)];
-        addNarrativeEntry(t(randomKey, { itemName: t(recipe.result.name as TranslationKey) }), 'system');
-        toast({ title: t('craftSuccessTitle'), description: t('craftSuccess', { itemName: t(recipe.result.name as TranslationKey) }) });
+        addNarrativeEntry(t(randomKey, { itemName: getTranslatedText(recipe.result.name, language, t) }), 'system');
+        toast({ title: t('craftSuccessTitle'), description: t('craftSuccess', { itemName: getTranslatedText(recipe.result.name, language, t) }) });
     } else {
         const failKeys: TranslationKey[] = ['craftFail1', 'craftFail2', 'craftFail3'];
         const randomKey = failKeys[Math.floor(Math.random() * failKeys.length)];
-        addNarrativeEntry(t(randomKey, { itemName: t(recipe.result.name as TranslationKey) }), 'system');
-        toast({ title: t('craftFailTitle'), description: t('craftFail', { itemName: t(recipe.result.name as TranslationKey) }), variant: 'destructive' });
+        addNarrativeEntry(t(randomKey, { itemName: getTranslatedText(recipe.result.name, language, t) }), 'system');
+        toast({ title: t('craftFailTitle'), description: t('craftFail', { itemName: getTranslatedText(recipe.result.name, language, t) }), variant: 'destructive' });
     }
     setPlayerStats(() => nextPlayerStats);
     advanceGameTime(nextPlayerStats);
@@ -626,7 +626,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
   const handleItemUsed = useCallback((itemName: TranslatableString, target: 'player' | TranslatableString) => {
     if (isLoading || isGameOver || !isLoaded) return;
-    const actionText = target === 'player' ? `${t('useAction')} ${t(itemName as TranslationKey)}` : `${t('useOnAction', {item: t(itemName as TranslationKey), target: t(target as TranslationKey)})}`;
+    const actionText = target === 'player' ? `${t('useAction')} ${getTranslatedText(itemName, language, t)}` : `${t('useOnAction', {item: getTranslatedText(itemName, language, t), target: getTranslatedText(target, language, t)})}`;
     addNarrativeEntry(actionText, 'action');
     
     handleOfflineItemUse(getTranslatedText(itemName, 'en'), getTranslatedText(target, 'en'));
@@ -686,7 +686,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const shelter = world[`${playerPosition.x},${playerPosition.y}`]?.structures.find(s => s.restEffect);
     if (!shelter?.restEffect) { toast({ title: t('cantRestTitle'), description: t('cantRestDesc') }); return; }
 
-    const actionText = t('restInShelter', { shelterName: t(shelter.name as TranslationKey) });
+    const actionText = t('restInShelter', { shelterName: getTranslatedText(shelter.name, language, t) });
     addNarrativeEntry(actionText, 'action');
     
     const oldStats = {...playerStats};
@@ -734,7 +734,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     if(weather?.exclusive_tags.includes('heat')) elementalAffinity = 'fire';
     if(effectiveChunk.dangerLevel > 80) { successChanceBonus -= 5; chaosFactor += 20; }
     
-    const actionText = t('fuseAction', { items: itemsToFuse.map(i => t(i.name as TranslationKey)).join(', ') });
+    const actionText = t('fuseAction', { items: itemsToFuse.map(i => getTranslatedText(i.name, language, t)).join(', ') });
     addNarrativeEntry(actionText, 'action');
     let newItems = playerStats.items.map(i => ({...i}));
     itemsToFuse.forEach(item => { newItems.find(i => getTranslatedText(i.name, 'en') === getTranslatedText(item.name, 'en'))!.quantity -= 1; });
@@ -943,7 +943,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     });
     
     if (lootItems.length > 0) {
-        const lootText = lootItems.map(l => `${l.quantity} ${t(l.name as TranslationKey)}`).join(', ');
+        const lootText = lootItems.map(l => `${l.quantity} ${getTranslatedText(l.name, language, t)}`).join(', ');
         addNarrativeEntry(t('harvestSuccess', { loot: lootText, target: t(targetName as TranslationKey)}), 'system');
         
         lootItems.forEach(lootItem => {
@@ -997,6 +997,18 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const actionText = t('wentDirection', { direction: t(`direction${direction.charAt(0).toUpperCase() + direction.slice(1)}` as TranslationKey) });
     addNarrativeEntry(actionText, 'action');
     
+    // Mark the new chunk as explored IMMEDIATELY
+    const nextTurn = turn + 1; // Anticipate the next turn
+    setWorld(prevWorld => {
+        const newWorld = { ...prevWorld };
+        const chunkToUpdate = newWorld[nextChunkKey];
+        if (chunkToUpdate) {
+            logger.debug(`[handleMove] Preemptively marking chunk (${x},${y}) as explored and visited at turn ${nextTurn}`);
+            newWorld[nextChunkKey] = { ...chunkToUpdate, explored: true, lastVisited: nextTurn };
+        }
+        return newWorld;
+    });
+
     setPlayerPosition({ x, y });
     
     const staminaCost = worldSnapshot[nextChunkKey]?.travelCost ?? 1;
@@ -1018,7 +1030,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
       addNarrativeEntry(narrative, 'narrative');
     }
 
-  }, [isLoading, isGameOver, playerPosition, world, addNarrativeEntry, t, playerStats, setPlayerBehaviorProfile, setPlayerPosition, setWorld, settings.narrativeLength, language, advanceGameTime, setPlayerStats]);
+  }, [isLoading, isGameOver, playerPosition, world, addNarrativeEntry, t, playerStats, setPlayerBehaviorProfile, setPlayerPosition, setWorld, settings.narrativeLength, language, advanceGameTime, setPlayerStats, turn]);
 
   return {
     handleMove,

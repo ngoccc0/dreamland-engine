@@ -5,7 +5,7 @@
 import { cn } from "@/lib/utils";
 import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon, Home, MapPin } from "./icons";
 import { useLanguage } from "@/context/language-context";
-import type React from "react";
+import React, { useEffect } from "react";
 import type { Chunk, Terrain, Structure } from "@/lib/game/types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "../ui/separator";
@@ -116,6 +116,27 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
   const { t, language } = useLanguage();
   const responsiveCellSize = "w-14 h-14 md:w-16 md:h-16 lg:w-20 lg:h-20";
 
+  useEffect(() => {
+    console.log("[MINIMAP] Mounted with props:", { grid, playerPosition, turn });
+    if (grid?.length > 0) {
+      console.log("[MINIMAP] Calculated map size:", `${grid[0].length}x${grid.length}`);
+    }
+  }, [grid, playerPosition, turn]);
+
+
+  if (!grid || grid.length === 0) {
+    console.warn("[MINIMAP] No map data provided.");
+    return (
+      <div className="flex flex-col items-center gap-2">
+        <div className="grid grid-cols-5 border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-hidden">
+          {Array.from({ length: 25 }).map((_, i) => (
+             <div key={i} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col items-center gap-2">
         <div className="grid grid-cols-5 border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-hidden">
@@ -124,12 +145,15 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
               const key = `${rowIndex}-${colIndex}`;
               
               if (!cell) {
+                console.log(`[MINIMAP] Rendering tile (${rowIndex},${colIndex}): NULL`);
                 return <div key={key} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />;
               }
               
               const isPlayerHere = playerPosition.x === cell.x && playerPosition.y === cell.y;
               const turnDifference = turn - cell.lastVisited;
               const isFoggy = turnDifference > 50 && cell.lastVisited !== 0;
+
+              console.log(`[MINIMAP] Rendering tile (${cell.x},${cell.y}): terrain=${cell.terrain}, explored=${cell.explored}, foggy=${isFoggy}`);
 
               if (!cell.explored || (isFoggy && !isPlayerHere)) {
                 return (

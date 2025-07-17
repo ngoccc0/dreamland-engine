@@ -130,21 +130,22 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
 
                                 const isPlayerHere = playerPosition.x === worldX && playerPosition.y === worldY;
                                 const isWithin3x3Radius = Math.abs(playerPosition.x - chunk.x) <= 1 && Math.abs(playerPosition.y - chunk.y) <= 1;
+                                
+                                // Hide unexplored chunks outside the 3x3 radius
+                                if (!isWithin3x3Radius && !chunk.explored) {
+                                    return <div key={chunkKey} className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />;
+                                }
 
-                                // --- New Rendering Logic ---
-                                if (!isWithin3x3Radius) {
-                                    if (!chunk.explored) {
-                                        return <div key={chunkKey} className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />;
-                                    }
-                                    const turnDifference = turn - chunk.lastVisited;
-                                    const isFoggy = turnDifference > 50 && chunk.lastVisited !== 0;
-                                    if (isFoggy) {
-                                        return (
-                                            <div key={chunkKey} className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50 flex items-center justify-center")}>
-                                                <span className={cn(currentBiomeIconSize, "opacity-30")} title={t('fogOfWarDesc') as string}>🌫️</span>
-                                            </div>
-                                        );
-                                    }
+                                const turnDifference = turn - chunk.lastVisited;
+                                const isFoggy = turnDifference > 50 && chunk.lastVisited !== 0;
+
+                                // Show fog for explored but unvisited chunks outside the 3x3 radius
+                                if (!isWithin3x3Radius && isFoggy) {
+                                    return (
+                                        <div key={chunkKey} className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50 flex items-center justify-center")}>
+                                            <span className={cn(currentBiomeIconSize, "opacity-30")} title={t('fogOfWarDesc') as string}>🌫️</span>
+                                        </div>
+                                    );
                                 }
                                 
                                 const firstStructure = chunk.structures && chunk.structures.length > 0 ? (chunk.structures[0] as any) : null;
@@ -218,3 +219,5 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
     </Sheet>
   );
 }
+
+  

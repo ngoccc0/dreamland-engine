@@ -5,13 +5,12 @@ import * as React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
-import type { PlayerItem, Recipe, ItemDefinition, RecipeIngredient } from "@/lib/game/types";
+import type { PlayerItem, Recipe, ItemDefinition } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 import { calculateCraftingOutcome, type CraftingOutcome } from "@/lib/game/engine/crafting";
-import { Hammer, Filter, SortAsc } from "./icons";
+import { Hammer, SortAsc } from "./icons";
 import { cn, getTranslatedText } from "@/lib/utils";
 import { Switch } from '../ui/switch';
 import { Label } from '../ui/label';
@@ -39,9 +38,14 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
       
       const missingIngredients = outcome.resolvedIngredients
         .filter(ing => !ing.hasEnough)
-        .map(ing => `${ing.requirement.quantity - ing.playerQuantity}x ${getTranslatedText(ing.requirement.name, language, t)}`);
+        .map(ing => {
+            const reqName = getTranslatedText(ing.requirement.name, language, t);
+            return `${ing.requirement.quantity - ing.playerQuantity}x ${reqName}`;
+        });
+        
+      const resultName = getTranslatedText(recipe.result.name, language, t);
 
-      return { recipe, outcome, craftabilityScore, missingIngredients };
+      return { recipe, outcome, craftabilityScore, missingIngredients, resultName };
     });
   }, [recipes, playerItems, itemDefinitions, language, t]);
 
@@ -53,9 +57,14 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
     }
 
     if (sortBy === 'craftability') {
-      filtered.sort((a, b) => b.craftabilityScore - a.craftabilityScore || getTranslatedText(a.recipe.result.name, language).localeCompare(getTranslatedText(b.recipe.result.name, language)));
+      filtered.sort((a, b) => {
+        if (b.craftabilityScore !== a.craftabilityScore) {
+            return b.craftabilityScore - a.craftabilityScore;
+        }
+        return a.resultName.localeCompare(b.resultName, language);
+      });
     } else {
-      filtered.sort((a, b) => getTranslatedText(a.recipe.result.name, language).localeCompare(getTranslatedText(b.recipe.result.name, language)));
+      filtered.sort((a, b) => a.resultName.localeCompare(b.resultName, language));
     }
 
     return filtered;
@@ -104,16 +113,16 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
         
         <ScrollArea className="max-h-[60vh] -mx-6">
           <div className="p-6 pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {displayedRecipes.map(({ recipe, outcome, craftabilityScore, missingIngredients }) => {
-              const resultName = getTranslatedText(recipe.result.name, language, t);
+            {displayedRecipes.map(({ recipe, outcome, missingIngredients, resultName }) => {
               const resultDescText = getTranslatedText(recipe.description, language, t);
               const requiredToolName = recipe.requiredTool ? t(recipe.requiredTool as TranslationKey) : '';
               const tooltipContent = outcome.canCraft 
                 ? t('canCraftTooltip')
                 : `${t('missingIngredientsTooltip')}: ${missingIngredients.join(', ')}`;
+              const recipeKey = getTranslatedText(recipe.result.name, 'en');
 
               return (
-                <TooltipProvider key={getTranslatedText(recipe.result.name, 'en')}>
+                <TooltipProvider key={recipeKey}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                        <div className="p-4 border rounded-lg bg-card flex flex-col justify-between gap-4 h-full">
@@ -133,11 +142,10 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
                                      const playerQty = resolvedIng.playerQuantity;
                                      const hasEnough = playerQty >= requirement.quantity;
                                      
-                                     const usedItemName = itemToShow ? getTranslatedText(itemToShow.name, language, t) : '';
                                      const requirementName = getTranslatedText(requirement.name, language, t);
 
                                     return (
-                                        <li key={i} className={cn("text-xs", hasEnough ? "text-green-400" : "text-red-400")}>
+                                        <li key={`${recipeKey}-ing-${i}`} className={cn("text-xs", hasEnough ? "text-green-400" : "text-red-400")}>
                                           {requirementName} ({playerQty}/{requirement.quantity})
                                         </li>
                                     )
@@ -178,3 +186,4 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
     </Dialog>
   );
 }
+

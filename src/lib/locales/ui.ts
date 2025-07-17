@@ -1,5 +1,4 @@
 
-
 // src/lib/locales/ui.ts
 
 export const uiTranslations = {
@@ -25,7 +24,8 @@ export const uiTranslations = {
     inventory: "Inventory",
     inventoryTooltip: "Check the items you are carrying.",
     crafting: "Crafting",
-    craftingTooltip: "Open the crafting window.",
+    craftingTooltip: "Open the crafting window. ({count} available now)",
+    craftableNow: "{count} craftable",
     building: "Building",
     buildingTooltip: "Open the building window. Building costs stamina and time.",
     fusion: "Fusion",
@@ -113,6 +113,13 @@ export const uiTranslations = {
     requiredTool: "Required Tool",
     craft: "Craft",
     successChance: "Success chance: {chance}%",
+    showOnlyCraftable: "Show only craftable",
+    sortByCraftability: "Sort: Craftable",
+    sortByAlphabetical: "Sort: A-Z",
+    sortTooltip: "Toggle between sorting by craftability and alphabetically.",
+    canCraftTooltip: "You have all the required ingredients!",
+    missingIngredientsTooltip: "You are missing",
+    noMatchingRecipes: "No recipes match your current filter.",
     
     // Building Popup
     buildingDesc: "Use materials to build structures.",
@@ -247,7 +254,8 @@ export const uiTranslations = {
     inventory: "Hành trang",
     inventoryTooltip: "Kiểm tra các vật phẩm bạn đang mang theo.",
     crafting: "Chế tạo",
-    craftingTooltip: "Mở cửa sổ chế tạo.",
+    craftingTooltip: "Mở cửa sổ chế tạo. ({count} có thể chế tạo ngay)",
+    craftableNow: "{count} có thể chế tạo",
     building: "Xây dựng",
     buildingTooltip: "Mở cửa sổ xây dựng. Xây dựng tốn thể lực và thời gian.",
     fusion: "Hợp nhất",
@@ -335,6 +343,13 @@ export const uiTranslations = {
     requiredTool: "Công cụ yêu cầu",
     craft: "Chế tạo",
     successChance: "Tỷ lệ thành công: {chance}%",
+    showOnlyCraftable: "Chỉ hiển thị có thể chế tạo",
+    sortByCraftability: "Sắp xếp: Khả năng chế tạo",
+    sortByAlphabetical: "Sắp xếp: A-Z",
+    sortTooltip: "Chuyển đổi giữa sắp xếp theo khả năng chế tạo và theo bảng chữ cái.",
+    canCraftTooltip: "Bạn có đủ nguyên liệu cần thiết!",
+    missingIngredientsTooltip: "Bạn còn thiếu",
+    noMatchingRecipes: "Không có công thức nào khớp với bộ lọc hiện tại.",
     
     // Building Popup
     buildingDesc: "Sử dụng vật liệu để xây dựng các công trình.",

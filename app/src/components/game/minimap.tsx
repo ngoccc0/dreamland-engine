@@ -118,8 +118,10 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
 
   useEffect(() => {
     logger.debug("[MINIMAP] Mounted with props:", { grid, playerPosition, turn });
-    if (grid?.length > 0) {
+    if (grid?.length > 0 && grid[0]?.length > 0) {
       logger.debug("[MINIMAP] Calculated map size:", `${grid[0].length}x${grid.length}`);
+    } else {
+      logger.warn("[MINIMAP] Grid is empty or not properly formed.");
     }
   }, [grid, playerPosition, turn]);
 

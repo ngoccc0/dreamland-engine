@@ -15,7 +15,7 @@
     "docs:api": "typedoc --out docs/api src --excludePrivate --excludeExternals --disableSources --name \"Dreamland API Documentation\" --entryPointStrategy expand"
   },
   "dependencies": {
-    "@ducanh2912/next-pwa": "10.2.7",
+    "@ducanh2912/next-pwa": "^10.2.7",
     "@genkit-ai/firebase": "1.14.1",
     "@genkit-ai/googleai": "1.14.1",
     "@genkit-ai/next": "1.14.1",
@@ -78,5 +78,12 @@
     "ts-jest": "^29.1.5",
     "typedoc": "^0.26.5",
     "typescript": "^5"
+  },
+  "overrides": {
+    "genkit": "1.14.1",
+    "@genkit-ai/firebase": "1.14.1",
+    "@genkit-ai/googleai": "1.14.1",
+    "@genkit-ai/next": "1.14.1",
+    "@genkit-ai/openai": "1.14.1"
   }
 }

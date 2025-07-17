@@ -119,7 +119,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'whetstone',
     },
     'steel_alloy': {
-        result: { name: 'alloy_steel', quantity: 1, emoji: '💎⚔️' },
+        result: { name: 'steel_alloy', quantity: 1, emoji: '💎⚔️' },
         ingredients: [
             { name: 'wrought_iron', quantity: 2 },
             { name: 'iron_ore', quantity: 1 }
@@ -257,7 +257,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
     'heavy_iron_axe': {
         result: { name: 'heavy_iron_axe', quantity: 1, emoji: '🪓💪' },
         ingredients: [
-            { name: 'alloy_steel', quantity: 2 },
+            { name: 'steel_alloy', quantity: 2 },
             { name: 'wood_core', quantity: 2 }
         ],
         description: {en: 'Forge a heavy axe, excellent for felling large trees or as a powerful weapon.', vi: 'Rèn một chiếc rìu nặng, tuyệt vời để đốn hạ những cây lớn hoặc làm vũ khí mạnh mẽ.'},
@@ -276,7 +276,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
     'handheld_flashlight': {
         result: { name: 'handheld_flashlight', quantity: 1, emoji: '🔦✨' },
         ingredients: [
-            { name: 'alloy_steel', quantity: 1 },
+            { name: 'steel_alloy', quantity: 1 },
             { name: 'optical_glass', quantity: 1 },
             { name: 'crystal_water', quantity: 2 }
         ],
@@ -284,9 +284,9 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'forge',
     },
     'steel_alloy_armor_set': {
-        result: { name: 'steel_alloy_armor', quantity: 1, emoji: '🪖🛡️' },
+        result: { name: 'steel_alloy_armor_set', quantity: 1, emoji: '🪖🛡️' },
         ingredients: [
-            { name: 'alloy_steel', quantity: 5 },
+            { name: 'steel_alloy', quantity: 5 },
             { name: 'tanned_leather', quantity: 2 },
             { name: 'wood_core', quantity: 3 }
         ],
@@ -296,7 +296,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
     'steel_alloy_sword': {
         result: { name: 'steel_alloy_sword', quantity: 1, emoji: '⚔️✨' },
         ingredients: [
-            { name: 'alloy_steel', quantity: 3 },
+            { name: 'steel_alloy', quantity: 3 },
             { name: 'wood_core', quantity: 1 },
             { name: 'tree_sap_glue', quantity: 1 }
         ],
@@ -304,7 +304,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'forge',
     },
     'portable_camping_tent': {
-        result: { name: 'portable_tent', quantity: 1, emoji: '⛺️' },
+        result: { name: 'portable_camping_tent', quantity: 1, emoji: '⛺️' },
         ingredients: [
             { name: 'durable_cloth', quantity: 5 },
             { name: 'wood_core', quantity: 4 },
@@ -334,12 +334,12 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         requiredTool: 'whetstone',
     },
     'grilled_fish_meat': {
-        result: { name: 'grilled_fish', quantity: 1, emoji: '🐟🔥' },
+        result: { name: 'grilled_fish_meat', quantity: 1, emoji: '🐟🔥' },
         ingredients: [
             { name: 'raw_wolf_meat', quantity: 1 },
         ],
         description: {en: 'Grill fish over a fire for a nutritious meal.', vi: 'Nướng cá trên lửa để có một bữa ăn bổ dưỡng.'},
-        requiredTool: 'campfire',
+        requiredTool: 'Lửa trại',
     },
     'fishing_net': {
         result: { name: 'fishing_net', quantity: 1, emoji: '🎣🕸️' },

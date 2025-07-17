@@ -113,7 +113,7 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
                 : `${t('missingIngredientsTooltip')}: ${missingIngredients.join(', ')}`;
 
               return (
-                <TooltipProvider key={resultName}>
+                <TooltipProvider key={getTranslatedText(recipe.result.name, 'en')}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                        <div className="p-4 border rounded-lg bg-card flex flex-col justify-between gap-4 h-full">

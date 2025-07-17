@@ -44,7 +44,7 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
               const hasRequiredTool = outcome.hasRequiredTool;
               const resultName = getTranslatedText(recipe.result.name, language, t);
               const resultDescText = getTranslatedText(recipe.description, language, t);
-              const requiredToolName = recipe.requiredTool ? t(recipe.requiredTool) : '';
+              const requiredToolName = recipe.requiredTool ? t(recipe.requiredTool as TranslationKey) : '';
 
               return (
                 <div key={index} className="p-4 border rounded-lg bg-muted/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

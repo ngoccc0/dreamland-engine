@@ -1,5 +1,3 @@
-
-
 import type { BiomeTemplateData, Language, NarrativeLength, NarrativeTemplate, MoodTag } from '@/lib/game/types';
 import { logger } from '@/lib/logger';
 

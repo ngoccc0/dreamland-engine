@@ -100,8 +100,8 @@ export function useGameState({ gameSlot }: GameStateProps) {
         const chunkKey = `${currentPosition.x},${currentPosition.y}`;
         setWorld(prevWorld => {
             const chunkToUpdate = prevWorld[chunkKey];
-            if (chunkToUpdate && (!chunkToUpdate.explored || chunkToUpdate.lastVisited !== nextTurn)) {
-                logger.info(`[EXPLORATION] Marked tile (${currentPosition.x}, ${currentPosition.y}) as explored`);
+            if (chunkToUpdate) {
+                logger.debug(`[EXPLORATION] Marked tile (${currentPosition.x},${currentPosition.y}) as explored and visited at turn ${nextTurn}`);
                 const newWorld = { ...prevWorld };
                 newWorld[chunkKey] = { ...chunkToUpdate, explored: true, lastVisited: nextTurn };
                 return newWorld;

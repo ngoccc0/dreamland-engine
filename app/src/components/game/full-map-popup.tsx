@@ -10,7 +10,7 @@ import { useLanguage } from "@/context/language-context";
 import type { World, Chunk, Terrain } from "@/lib/game/types";
 import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon } from "./icons";
 import { MapCellDetails } from './minimap';
-import type { TranslationKey } from '@/lib/i18n';
+import { getTranslatedText } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { Minus, Plus } from 'lucide-react';
 
@@ -65,7 +65,7 @@ const MIN_ZOOM = 1;
 const MAX_ZOOM = 5;
 
 export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }: FullMapPopupProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [zoom, setZoom] = React.useState(2);
   const mapRadius = 7;
 
@@ -131,26 +131,26 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
                                 const isPlayerHere = playerPosition.x === worldX && playerPosition.y === worldY;
                                 const isWithin3x3Radius = Math.abs(playerPosition.x - chunk.x) <= 1 && Math.abs(playerPosition.y - chunk.y) <= 1;
 
-                                const turnDifference = turn - chunk.lastVisited;
-                                const isFoggy = turnDifference > 50 && chunk.lastVisited !== 0;
-
+                                // --- New Rendering Logic ---
                                 if (!isWithin3x3Radius) {
-                                  if (!chunk.explored) {
-                                      return (
-                                          <div key={chunkKey} className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />
-                                      );
-                                  }
-                                  if (isFoggy && !isPlayerHere) {
-                                      return (
-                                          <div key={chunkKey} className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50 flex items-center justify-center")}>
-                                              <span className={cn(currentBiomeIconSize, "opacity-30")} title={t('fogOfWarDesc') as string}>🌫️</span>
-                                          </div>
-                                      );
-                                  }
+                                    if (!chunk.explored) {
+                                        return <div key={chunkKey} className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />;
+                                    }
+                                    const turnDifference = turn - chunk.lastVisited;
+                                    const isFoggy = turnDifference > 50 && chunk.lastVisited !== 0;
+                                    if (isFoggy) {
+                                        return (
+                                            <div key={chunkKey} className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50 flex items-center justify-center")}>
+                                                <span className={cn(currentBiomeIconSize, "opacity-30")} title={t('fogOfWarDesc') as string}>🌫️</span>
+                                            </div>
+                                        );
+                                    }
                                 }
                                 
-                                const mainIcon = (chunk.structures && chunk.structures.length > 0)
-                                    ? <span className={cn(currentBiomeIconSize, 'opacity-90 drop-shadow-lg')} role="img" aria-label={chunk.structures[0].name}>{chunk.structures[0].emoji}</span>
+                                const firstStructure = chunk.structures && chunk.structures.length > 0 ? (chunk.structures[0] as any) : null;
+                                const structData = firstStructure?.data || firstStructure;
+                                const mainIcon = structData
+                                    ? <span className={cn(currentBiomeIconSize, 'opacity-90 drop-shadow-lg')} role="img" aria-label={getTranslatedText(structData.name, language, t)}>{structData.emoji}</span>
                                     : (biomeIcons[chunk.terrain as keyof typeof biomeIcons] || null);
                                 
                                 return (

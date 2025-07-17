@@ -143,25 +143,22 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
               const isPlayerHere = playerPosition.x === cell.x && playerPosition.y === cell.y;
               const isWithin3x3Radius = Math.abs(playerPosition.x - cell.x) <= 1 && Math.abs(playerPosition.y - cell.y) <= 1;
 
-              const turnDifference = turn - cell.lastVisited;
-              const isFoggy = turnDifference > 50 && cell.lastVisited !== 0;
-
-              // If not in 3x3 radius, apply visibility rules
+              // --- New Rendering Logic ---
               if (!isWithin3x3Radius) {
-                if (!cell.explored) {
-                  return (
-                      <div key={key} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />
-                  );
-                }
-                if (isFoggy && !isPlayerHere) {
-                   return (
-                      <div key={key} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50 flex items-center justify-center")}>
-                          <span className="text-2xl opacity-30" title={t('fogOfWarDesc') as string}>🌫️</span>
-                      </div>
-                  );
-                }
+                  if (!cell.explored) {
+                      return <div key={key} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />;
+                  }
+                  const turnDifference = turn - cell.lastVisited;
+                  const isFoggy = turnDifference > 50 && cell.lastVisited !== 0;
+                  if (isFoggy) {
+                     return (
+                        <div key={key} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50 flex items-center justify-center")}>
+                            <span className="text-2xl opacity-30" title={t('fogOfWarDesc') as string}>🌫️</span>
+                        </div>
+                    );
+                  }
               }
-
+              
               // Render fully if within 3x3 or explored and not foggy
               const firstStructure = cell.structures && cell.structures.length > 0 ? (cell.structures[0] as any) : null;
               const structData = firstStructure?.data || firstStructure;

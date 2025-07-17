@@ -43,8 +43,8 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
               const outcome = calculateCraftingOutcome(playerItems, recipe, itemDefinitions);
               const hasRequiredTool = outcome.hasRequiredTool;
               const resultName = getTranslatedText(recipe.result.name, language, t);
-              const resultDescKey = recipe.description;
-              const requiredToolName = recipe.requiredTool ? getTranslatedText(recipe.requiredTool, language, t) : '';
+              const resultDescText = getTranslatedText(recipe.description, language, t);
+              const requiredToolName = recipe.requiredTool ? t(recipe.requiredTool) : '';
 
               return (
                 <div key={index} className="p-4 border rounded-lg bg-muted/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -53,7 +53,7 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
                       <span className="text-2xl">{recipe.result.emoji}</span>
                       {resultName}
                     </h4>
-                    <p className="text-sm text-muted-foreground italic mb-2">{getTranslatedText(resultDescKey, language, t)}</p>
+                    <p className="text-sm text-muted-foreground italic mb-2">{resultDescText}</p>
                     <div className="text-sm space-y-1">
                       <div>
                         <span className="font-semibold">{t('ingredients')}:</span>
@@ -68,7 +68,7 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
                                  itemClass = resolvedIng.isSubstitute ? "text-yellow-400" : "text-green-400";
                              }
 
-                             const usedItemName = getTranslatedText(itemToShow.name, language, t);
+                             const usedItemName = itemToShow ? getTranslatedText(itemToShow.name, language, t) : '';
                              const requirementName = getTranslatedText(requirement.name, language, t);
                              const reqDef = itemDefinitions[getTranslatedText(requirement.name, 'en')];
                              const reqDesc = reqDef ? getTranslatedText(reqDef.description, language, t) : '';

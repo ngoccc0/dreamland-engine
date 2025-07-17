@@ -112,31 +112,18 @@ export default function GameLayout(props: GameLayoutProps) {
         }
         const radius = 2; // 5x5 grid
         const size = radius * 2 + 1;
-        const grid: (Chunk | null)[][] = [];
+        const grid: (Chunk | null)[][] = Array.from({ length: size }, () => Array(size).fill(null));
 
         for (let gy = 0; gy < size; gy++) {
-            const row: (Chunk | null)[] = [];
             for (let gx = 0; gx < size; gx++) {
                 const wx = playerPosition.x - radius + gx;
                 const wy = playerPosition.y + radius - gy;
                 const chunkKey = `${wx},${wy}`;
-                const chunk = world[chunkKey];
-    
-                if (chunk) { 
-                    const isFoggy = (turn - chunk.lastVisited) > 50 && chunk.lastVisited !== 0;
-                    if (!chunk.explored || (isFoggy && !(chunk.x === playerPosition.x && chunk.y === playerPosition.y))) {
-                         row.push({ ...chunk, description: 'fog' }); // Use a special marker for fog
-                    } else {
-                        row.push(chunk);
-                    }
-                } else {
-                    row.push(null);
-                }
+                grid[gy][gx] = world[chunkKey] || null;
             }
-            grid.push(row);
         }
         return grid;
-    }, [world, playerPosition.x, playerPosition.y, finalWorldSetup, turn, isLoaded]);
+    }, [world, playerPosition.x, playerPosition.y, finalWorldSetup, isLoaded]);
     
     const restingPlace = currentChunk?.structures?.find(s => s.restEffect);
     

@@ -122,25 +122,16 @@ export default function Home() {
     const allCustomItems = worldSetupData.customItemCatalog || [];
 
     const customDefs = allCustomItems.reduce((acc, item) => {
-        const itemName = typeof item.name === 'object' ? item.name[language] : item.name;
-        const itemDesc = typeof item.description === 'object' ? item.description[language] : item.description;
-        acc[itemName] = {
-            description: itemDesc,
-            tier: item.tier, category: item.category, emoji: item.emoji, effects: item.effects,
-            baseQuantity: item.baseQuantity, growthConditions: item.growthConditions, equipmentSlot: item.equipmentSlot, attributes: item.attributes,
-        };
+        const itemName = getTranslatedText(item.name, 'en');
+        acc[itemName] = { ...item };
         return acc;
-    }, {} as Record<string, Omit<ItemDefinition, 'name'>>);
+    }, {} as Record<string, Omit<ItemDefinition, 'id' | 'name'>>);
 
     const initialPlayerInventory = selectedConcept.playerInventory.map(item => {
-        const def = allCustomItems.find(def => {
-            const defName = typeof def.name === 'object' ? def.name[language] : def.name;
-            const itemName = typeof item.name === 'object' ? item.name[language] : item.name;
-            return defName === itemName;
-        });
-        const itemName = typeof item.name === 'object' ? item.name[language] : item.name;
+        const itemName = getTranslatedText(item.name, 'en');
+        const def = allCustomItems.find(d => getTranslatedText(d.name, 'en') === itemName);
         return {
-            name: itemName,
+            name: item.name,
             quantity: item.quantity,
             tier: def?.tier || 1,
             emoji: def?.emoji || '❓'
@@ -160,7 +151,7 @@ export default function Home() {
       worldSetup: worldConceptForState,
       playerStats: {
         hp: 100, mana: 50, stamina: 100, bodyTemperature: 37, items: initialPlayerInventory, equipment: { weapon: null, armor: null, accessory: null },
-        quests: selectedConcept.initialQuests, questsCompleted: 0, skills: selectedConcept.startingSkill ? [selectedConcept.startingSkill] : [], pets: [], persona: 'none',
+        quests: selectedConcept.initialQuests as string[], questsCompleted: 0, skills: selectedConcept.startingSkill ? [selectedConcept.startingSkill] : [], pets: [], persona: 'none',
         attributes: { physicalAttack: 10, magicalAttack: 5, critChance: 5, attackSpeed: 1.0, cooldownReduction: 0, physicalDefense: 0, magicalDefense: 0 },
         unlockProgress: { kills: 0, damageSpells: 0, moves: 0 }, journal: {}, dailyActionLog: [], questHints: {},
       },

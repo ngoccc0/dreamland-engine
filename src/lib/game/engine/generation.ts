@@ -93,7 +93,12 @@ const selectEntities = <T extends { name?: TranslatableString | string; type?: s
     const cleanPossibleEntities = availableEntities.filter(Boolean);
     
     const validEntities = cleanPossibleEntities.filter(entity => {
-        if (!entity || !entity.conditions) {
+        if (!entity) {
+            logger.error('[selectEntities] Found an undefined entity in template array.', { availableEntities });
+            return false;
+        }
+        if (!entity.conditions) {
+            logger.error('[selectEntities] Entity is missing "conditions" property.', { entity });
             return false;
         }
         return checkConditions(entity.conditions, chunk);
@@ -108,7 +113,7 @@ const selectEntities = <T extends { name?: TranslatableString | string; type?: s
         const entityData = 'data' in entity && entity.data ? entity.data : entity;
 
         if (!entityData || (!('name' in entityData) && !('type' in entityData))) {
-             logger.error(`[selectEntities] SKIPPING entity data is missing 'name' or 'type' property.`, { entity });
+             logger.error(`[selectEntities] SKIPPING entity data is missing 'name' or 'type' property.`, { entity: entityData });
             continue;
         }
 
@@ -315,36 +320,33 @@ function generateChunkContent(
     const spawnedEnemies = selectEntities(allEnemyCandidates, 1, chunkData, allItemDefinitions);
     
     let spawnedStructures: Structure[] = [];
-    if (Math.random() < 0.05 && customStructures && customStructures.length > 0) {
-        const uniqueStructure = customStructures[Math.floor(Math.random() * customStructures.length)];
-        spawnedStructures.push(uniqueStructure);
-    } else {
-        const spawnedStructureRefs = selectEntities((terrainTemplate.structures || []).filter(Boolean), 1, chunkData, allItemDefinitions);
-        spawnedStructures = spawnedStructureRefs.map(ref => {
-            if (ref.data.loot) {
-                 for (const lootItem of ref.data.loot) {
-                    if (Math.random() < lootItem.chance) {
-                        const definition = allItemDefinitions[lootItem.name];
-                        if (definition) {
-                            const quantity = getRandomInRange(lootItem.quantity);
-                            const existingItem = spawnedItems.find(i => getTranslatedText(i.name, 'en') === lootItem.name);
-                            if (existingItem) {
-                                existingItem.quantity += quantity;
-                            } else {
-                                spawnedItems.push({
-                                    name: definition.name,
-                                    description: definition.description,
-                                    tier: definition.tier,
-                                    quantity: quantity,
-                                    emoji: definition.emoji,
-                                });
-                            }
+    const spawnedStructureRefs = selectEntities((terrainTemplate.structures || []).filter(Boolean), 1, chunkData, allItemDefinitions);
+    
+    for (const structRef of spawnedStructureRefs) {
+        // The entity from selectEntities is now the root definition itself
+        if (structRef.loot) {
+            for (const lootItem of structRef.loot) {
+                if (Math.random() < lootItem.chance) {
+                    const definition = allItemDefinitions[lootItem.name];
+                    if (definition) {
+                        const quantity = getRandomInRange(lootItem.quantity);
+                        const existingItem = spawnedItems.find(i => getTranslatedText(i.name, 'en') === lootItem.name);
+                        if (existingItem) {
+                            existingItem.quantity += quantity;
+                        } else {
+                            spawnedItems.push({
+                                name: definition.name,
+                                description: definition.description,
+                                tier: definition.tier,
+                                quantity,
+                                emoji: definition.emoji,
+                            });
                         }
                     }
                 }
             }
-            return ref.data;
-        });
+        }
+        spawnedStructures.push(structRef);
     }
    
     const enemyData = spawnedEnemies.length > 0 ? spawnedEnemies[0].data : null;
@@ -520,7 +522,7 @@ export const generateRegion = (
     }
     logger.debug(`[generateRegion] Finished for center (${startPos.x},${startPos.y}).`);
     return { newWorld, newRegions, newRegionCounter };
-};
+}
 
 export function ensureChunkExists(
     pos: { x: number; y: number },
@@ -637,5 +639,3 @@ export function getEffectiveChunk(baseChunk: Chunk, weatherZones: Record<string,
     
     return effectiveChunk;
 }
-
-

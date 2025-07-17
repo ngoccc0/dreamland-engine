@@ -64,19 +64,6 @@ export const PlayerAttributesSchema = z.object({
 export type PlayerAttributes = z.infer<typeof PlayerAttributesSchema>;
 
 /**
- * @description Defines the category of an item. This helps with organization and game logic.
- */
-export const ItemCategorySchema = z.enum([
-    'Weapon', 'Armor', 'Accessory',
-    'Material', 'Energy Source',
-    'Food', 'Consumable', 'Potion',
-    'Data', 'Tool', 'Utility',
-    'Magic', 'Fusion', 'Misc',
-    'Equipment', 'Support'
-]).describe("The primary category of the item.");
-export type ItemCategory = z.infer<typeof ItemCategorySchema>;
-
-/**
  * @description Defines the loot dropped by an entity (creature, harvestable node, etc.).
  */
 export const LootDropSchema = z.object({

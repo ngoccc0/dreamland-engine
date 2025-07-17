@@ -31,7 +31,11 @@ export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
                     <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><Home />{t('structures')}:</h5>
                         <ul className="space-y-1 text-xs pl-5">
-                            {chunk.structures.map((s) => <li key={getTranslatedText(s.name, 'en')}>{s.emoji} {getTranslatedText(s.name, language, t)}</li>)}
+                            {chunk.structures.map((s: any) => {
+                                const structData = s.data || s;
+                                const name = getTranslatedText(structData.name, 'en');
+                                return <li key={name}>{structData.emoji} {getTranslatedText(structData.name, language, t)}</li>
+                            })}
                         </ul>
                     </div>
                 )}
@@ -134,9 +138,10 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
                     </div>
                 );
               }
-
-              const mainIcon = (cell.structures && cell.structures.length > 0)
-                ? <span className="text-3xl opacity-90 drop-shadow-lg" role="img" aria-label={getTranslatedText(cell.structures[0].name, language, t)}>{cell.structures[0].emoji}</span>
+              
+              const firstStructure = cell.structures && cell.structures.length > 0 ? (cell.structures[0] as any) : null;
+              const mainIcon = firstStructure
+                ? <span className="text-3xl opacity-90 drop-shadow-lg" role="img" aria-label={getTranslatedText(firstStructure.data?.name || firstStructure.name, language, t)}>{firstStructure.data?.emoji || firstStructure.emoji}</span>
                 : (biomeIcons[cell.terrain as keyof typeof biomeIcons] || null);
 
               return (

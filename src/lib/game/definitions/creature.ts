@@ -1,13 +1,12 @@
-
 import { z } from 'zod';
-import { MultilingualTextSchema, LootDropSchema } from './base';
+import { TranslatableStringSchema, LootDropSchema } from './base';
 
 // The main schema for defining a creature/entity in the world.
 // This can be an animal, a monster, a plant, a rock formation, etc.
 export const CreatureDefinitionSchema = z.object({
   id: z.string().describe("Unique identifier for the creature, e.g., 'wolf', 'iron_ore_vein', 'oak_tree'."),
-  name: MultilingualTextSchema,
-  description: MultilingualTextSchema,
+  name: TranslatableStringSchema.describe("The name of the creature, either a translation key or a multilingual object."),
+  description: TranslatableStringSchema.describe("The creature's description, either a translation key or a multilingual object."),
   emoji: z.string(),
 
   // --- Core Stats ---
@@ -34,6 +33,8 @@ export const CreatureDefinitionSchema = z.object({
   senseEffect: z.object({
       keywords: z.array(z.string()),
   }).optional().describe("Keywords for sensory descriptions during gameplay."),
+  // --- Legacy field to be removed ---
+  type: z.string().optional(),
 });
 
 export type CreatureDefinition = z.infer<typeof CreatureDefinitionSchema>;

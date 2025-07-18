@@ -32,7 +32,7 @@ export const volcanic_vi = {
         { name: 'Quặng Sắt', conditions: { soilType: ['rocky'], chance: 0.15 } }
     ],
     structures: [
-        { data: structureDefinitions['Mạch nước phun'], conditions: { temperature: { min: 7 }, chance: 0.15 } },
+        structureDefinitions['geyser']
     ],
     enemies: [
         { data: { type: 'Salamander lửa', emoji: '🦎', hp: 50, damage: 15, behavior: 'territorial', size: 'medium', diet: ['Lưu huỳnh'], satiation: 0, maxSatiation: 3, loot: [{ name: 'Da Rắn', chance: 0.5, quantity: { min: 1, max: 2 } }] }, conditions: { temperature: { min: 8 }, chance: 0.4 } },
@@ -64,7 +64,7 @@ export const volcanic_en = {
     ],
     items: volcanic_vi.items,
     structures: [
-        { data: structureDefinitions['Mạch nước phun'], conditions: { temperature: { min: 7 }, chance: 0.15 } },
+        structureDefinitions['geyser']
     ],
     enemies: [
         { data: { type: 'Fire Salamander', emoji: '🦎', hp: 50, damage: 15, behavior: 'territorial', size: 'medium', diet: ['Lưu huỳnh'], satiation: 0, maxSatiation: 3, loot: [{ name: 'Da Rắn', chance: 0.5, quantity: { min: 1, max: 2 } }] }, conditions: { temperature: { min: 8 }, chance: 0.4 } },

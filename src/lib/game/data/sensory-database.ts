@@ -1,5 +1,21 @@
-// This file contains detailed sensory information for specific items and enemies.
+/**
+ * @fileOverview This file contains detailed sensory information for specific items and enemies.
+ * @description This database provides more flavorful, specific descriptive text
+ * for certain entities, allowing the narrative engine to generate richer descriptions
+ * than what can be inferred from general templates alone.
+ */
 
+import type { Language } from '../types';
+
+/**
+ * @typedef {object} SensoryData - Defines the sensory details for an entity.
+ * @property {string} [adjective] - A descriptive adjective.
+ * @property {object} [sense_effect] - Detailed sensory effects.
+ * @property {string} [sense_effect.smell] - The entity's smell.
+ * @property {string} [sense_effect.appearance] - The entity's appearance.
+ * @property {string} [sense_effect.sound] - The sound the entity makes.
+ * @property {string} [sense_effect.general] - A general sensory impression.
+ */
 export interface SensoryData {
     adjective?: string;
     sense_effect?: {
@@ -53,7 +69,7 @@ export const itemSensoryDB_vi: Record<string, SensoryData> = {
             smell: "mùi hương thanh khiết, như sương sớm",
             appearance: "phát ra ánh sáng xanh lam dịu nhẹ, cánh hoa trong suốt",
             sound: "một âm thanh ngân nga rất khẽ khi nở",
-            general": "mang vẻ đẹp siêu nhiên"
+            general: "mang vẻ đẹp siêu nhiên"
         }
     },
 };
@@ -102,7 +118,7 @@ export const itemSensoryDB_en: Record<string, SensoryData> = {
             smell: "the damp scent of moss and earth",
             appearance: "deep green, as wide as an adult's hand",
             sound: "rustles softly in the wind",
-            general": "could be used for cover"
+            general: "could be used for cover"
         }
     },
     "Spirit Bloom": {
@@ -111,7 +127,7 @@ export const itemSensoryDB_en: Record<string, SensoryData> = {
             smell: "a pure fragrance, like morning dew",
             appearance: "emits a soft blue light, its petals are translucent",
             sound: "a very faint chime as it blooms",
-            general": "has a supernatural beauty"
+            general: "has a supernatural beauty"
         }
     },
 };
@@ -125,7 +141,12 @@ export const enemySensoryDB_en: Record<string, SensoryData> = {
     }
 };
 
-export const getSensoryDB = (language: 'vi' | 'en') => {
+/**
+ * Retrieves the appropriate sensory database based on the selected language.
+ * @param {Language} language - The current game language ('vi' or 'en').
+ * @returns {{ itemDB: Record<string, SensoryData>, enemyDB: Record<string, SensoryData> }} An object containing the item and enemy sensory databases for the given language.
+ */
+export const getSensoryDB = (language: Language) => {
     return {
         itemDB: language === 'vi' ? itemSensoryDB_vi : itemSensoryDB_en,
         enemyDB: language === 'vi' ? enemySensoryDB_vi : enemySensoryDB_en,

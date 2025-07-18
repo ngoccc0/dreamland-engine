@@ -3,9 +3,11 @@
 
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { translations, Language, TranslationKey } from '@/lib/i18n';
+import type { TranslatableString } from '@/lib/game/types';
+import { logger } from '@/lib/logger';
 
 // A type for our t function to handle replacements
-type TFunction = (key: TranslationKey, replacements?: { [key: string]: string | number }) => string;
+type TFunction = (key: TranslationKey | TranslatableString, replacements?: { [key: string]: string | number }) => string;
 
 interface LanguageContextType {
   language: Language;
@@ -34,15 +36,27 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const t: TFunction = (key, replacements) => {
-    // Fallback to English if translation is missing in the current language
-    const translationPool = (translations[language] as any)[key] || (translations.en as any)[key] || key;
-    let translation: string;
+    // --- NEW: Handle TranslatableString objects directly ---
+    if (typeof key === 'object' && key !== null && 'en' in key && 'vi' in key) {
+        return key[language] || key['en'] || '';
+    }
 
-    // --- NEW: Handle arrays for random selection ---
+    // Fallback to English if translation is missing in the current language
+    const primaryTranslation = (translations[language] as any)[key];
+    const fallbackTranslation = (translations.en as any)[key];
+    const translationPool = primaryTranslation || fallbackTranslation;
+
+    if (process.env.NODE_ENV === 'development') {
+        if (!translationPool || translationPool === key) {
+             console.warn(`[TRANSLATION_DEBUG] Key not found in any language: '${key}'`);
+        }
+    }
+    
+    let translation: string;
     if (Array.isArray(translationPool)) {
         translation = translationPool[Math.floor(Math.random() * translationPool.length)];
     } else {
-        translation = translationPool;
+        translation = translationPool || key;
     }
     
     // Handle nested keys for custom action responses

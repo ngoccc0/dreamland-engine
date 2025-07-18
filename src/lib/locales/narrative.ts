@@ -1,4 +1,3 @@
-
 // src/lib/locales/narrative.ts
 
 export const narrativeTranslations = {
@@ -57,7 +56,18 @@ export const narrativeTranslations = {
         craftFail1: "The materials smoke and spark, then crumble to dust. The crafting attempt failed.",
         craftFail2: "You misjudge a crucial step, and the pieces break apart. Your {itemName} was not meant to be.",
         craftFail3: "Despite your best efforts, the components refuse to combine correctly. The crafting fails.",
-
+        light_level_dark: "in the dim light",
+        light_level_dim: "in the murky light",
+        light_level_normal: "in the clear light",
+        temp_cold: "in the freezing cold",
+        temp_hot: "in the scorching heat",
+        temp_mild: "in the pleasant weather",
+        moisture_humid: "in the humid air",
+        moisture_dry: "in the dry air",
+        moisture_normal: "in the fresh air",
+        jungle_feeling_dark_phrase: "is watching you",
+        no_enemy_found: "no enemy",
+        no_item_found: "no items",
     },
     vi: {
         itemUsePlayerSuccessNarrative: "Bạn sử dụng {item}. {effect}. {sensory_feedback}",
@@ -114,5 +124,17 @@ export const narrativeTranslations = {
         craftFail1: "Các vật liệu bốc khói và tóe lửa, rồi vỡ vụn thành cát bụi. Nỗ lực chế tạo đã thất bại.",
         craftFail2: "Bạn đánh giá sai một bước quan trọng, và các mảnh vỡ ra. {itemName} của bạn đã không thể thành hình.",
         craftFail3: "Mặc dù đã cố gắng hết sức, các thành phần từ chối kết hợp một cách chính xác. Việc chế tạo thất bại.",
+        light_level_dark: "trong ánh sáng mờ ảo",
+        light_level_dim: "trong ánh sáng lờ mờ",
+        light_level_normal: "trong ánh sáng trong trẻo",
+        temp_cold: "trong cái lạnh buốt giá",
+        temp_hot: "trong cái nóng như thiêu đốt",
+        temp_mild: "trong thời tiết dễ chịu",
+        moisture_humid: "trong không khí ẩm ướt",
+        moisture_dry: "trong không khí khô hanh",
+        moisture_normal: "trong không khí trong lành",
+        jungle_feeling_dark_phrase: "đang theo dõi bạn",
+        no_enemy_found: "không có kẻ thù nào",
+        no_item_found: "không có vật phẩm nào",
     }
 };

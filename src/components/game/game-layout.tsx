@@ -23,9 +23,10 @@ import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescript
 import { useLanguage } from "@/context/language-context";
 import { useGameEngine } from "@/hooks/use-game-engine";
 import type { ItemDefinition, GeneratedItem, WorldConcept, PlayerItem, GameState, Structure, Chunk, EquipmentSlot, Action } from "@/lib/game/types";
-import { cn } from "@/lib/utils";
+import { cn, getTranslatedText } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
 import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Heart, Zap, Footprints, Loader2, Menu, LogOut } from "./icons";
+import { logger } from "@/lib/logger";
 
 
 interface GameLayoutProps {
@@ -106,34 +107,24 @@ export default function GameLayout(props: GameLayoutProps) {
     }, []);
 
     const generateMapGrid = useCallback((): (Chunk | null)[][] => {
-        if (!finalWorldSetup) return [];
+        if (!isLoaded || !finalWorldSetup) {
+            logger.warn("[GameLayout] Grid generation SKIPPED. isLoaded:", isLoaded, "| finalWorldSetup exists:", !!finalWorldSetup);
+            return [];
+        }
         const radius = 2; // 5x5 grid
         const size = radius * 2 + 1;
-        const grid: (Chunk | null)[][] = [];
+        const grid: (Chunk | null)[][] = Array.from({ length: size }, () => Array(size).fill(null));
 
         for (let gy = 0; gy < size; gy++) {
-            const row: (Chunk | null)[] = [];
             for (let gx = 0; gx < size; gx++) {
                 const wx = playerPosition.x - radius + gx;
                 const wy = playerPosition.y + radius - gy;
                 const chunkKey = `${wx},${wy}`;
-                const chunk = world[chunkKey];
-    
-                if (chunk) { 
-                    const isFoggy = (turn - chunk.lastVisited) > 50 && chunk.lastVisited !== 0;
-                    if (!chunk.explored || (isFoggy && !(chunk.x === playerPosition.x && chunk.y === playerPosition.y))) {
-                         row.push({ ...chunk, description: 'fog' }); // Use a special marker for fog
-                    } else {
-                        row.push(chunk);
-                    }
-                } else {
-                    row.push(null);
-                }
+                grid[gy][gx] = world[chunkKey] || null;
             }
-            grid.push(row);
         }
         return grid;
-    }, [world, playerPosition.x, playerPosition.y, finalWorldSetup, turn]);
+    }, [world, playerPosition.x, playerPosition.y, finalWorldSetup, isLoaded]);
     
     const restingPlace = currentChunk?.structures?.find(s => s.restEffect);
     
@@ -141,8 +132,8 @@ export default function GameLayout(props: GameLayoutProps) {
         return (
             <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
                 <div className="flex flex-col items-center gap-2 mt-4 text-muted-foreground">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <p>{t('loadingAdventure')}</p>
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                    <p className="mt-2">{t('loadingAdventure')}</p>
                 </div>
             </div>
         );
@@ -155,9 +146,7 @@ export default function GameLayout(props: GameLayoutProps) {
         }
     };
     
-    const worldNameText = typeof finalWorldSetup.worldName === 'object' 
-        ? finalWorldSetup.worldName[language] 
-        : finalWorldSetup.worldName;
+    const worldNameText = getTranslatedText(finalWorldSetup.worldName, language, t);
 
 
     return (
@@ -166,7 +155,7 @@ export default function GameLayout(props: GameLayoutProps) {
                 {/* Left Panel: Narrative */}
                 <div className="w-full md:flex-1 flex flex-col md:overflow-hidden">
                     <header className="p-4 border-b flex-shrink-0 flex justify-between items-center">
-                        <h1 className="text-2xl font-bold font-headline">{t(worldNameText)}</h1>
+                        <h1 className="text-2xl font-bold font-headline">{worldNameText}</h1>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon">
@@ -239,13 +228,11 @@ export default function GameLayout(props: GameLayoutProps) {
                         </div>
 
                         {/* Minimap */}
-                        <div>
-                            <div className="flex flex-col items-center gap-2 mb-4">
-                                <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); focusCustomActionInput(); }}>{t('minimap')}</h3>
-                                <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
-                                    <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
-                                    <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
-                                </div>
+                        <div className="flex flex-col items-center gap-2">
+                            <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); focusCustomActionInput(); }}>{t('minimap')}</h3>
+                            <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
+                                <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
                             </div>
                             <Minimap grid={generateMapGrid()} playerPosition={playerPosition} turn={turn} />
                         </div>
@@ -259,17 +246,21 @@ export default function GameLayout(props: GameLayoutProps) {
                              <div className="flex flex-col space-y-2 w-full md:max-w-xs">
                                 <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('skills')}</h3>
                                 <div className="grid grid-cols-2 gap-2">
-                                    {playerStats.skills?.map((skill) => (
-                                        <Tooltip key={skill.name}>
-                                            <TooltipTrigger asChild>
-                                                <Button variant="secondary" className="w-full justify-center text-xs" onClick={() => { handleUseSkill(t(skill.name)); focusCustomActionInput(); }} disabled={isLoading || playerStats.mana < skill.manaCost}>
-                                                    <WandSparkles className="mr-2 h-3 w-3" />
-                                                    {t(skill.name)} ({skill.manaCost} MP)
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent><p>{t(skill.description)}</p><p className="text-muted-foreground">{t('manaCost')}: {skill.manaCost}</p></TooltipContent>
-                                        </Tooltip>
-                                    ))}
+                                    {playerStats.skills?.map((skill) => {
+                                        const skillName = getTranslatedText(skill.name, language, t);
+                                        const skillDesc = getTranslatedText(skill.description, language, t);
+                                        return (
+                                            <Tooltip key={skillName}>
+                                                <TooltipTrigger asChild>
+                                                    <Button variant="secondary" className="w-full justify-center text-xs" onClick={() => { handleUseSkill(skillName); focusCustomActionInput(); }} disabled={isLoading || playerStats.mana < skill.manaCost}>
+                                                        <WandSparkles className="mr-2 h-3 w-3" />
+                                                        {skillName} ({t('manaCostShort', { cost: skill.manaCost })})
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent><p>{skillDesc}</p><p className="text-muted-foreground">{t('manaCost')}: {skill.manaCost}</p></TooltipContent>
+                                            </Tooltip>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>
@@ -292,7 +283,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         {restingPlace && (
                             <><div className="space-y-2">
                                 <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('structureActions')}</h2>
-                                <Tooltip><TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => { handleRest(); focusCustomActionInput(); }} disabled={isLoading}><BedDouble className="mr-2 h-4 w-4" />{t('rest')}</Button></TooltipTrigger><TooltipContent><p>{t('restTooltip', { shelterName: t(typeof restingPlace.name === 'object' ? restingPlace.name[language] : restingPlace.name), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => { handleRest(); focusCustomActionInput(); }} disabled={isLoading}><BedDouble className="mr-2 h-4 w-4" />{t('rest')}</Button></TooltipTrigger><TooltipContent><p>{t('restTooltip', { shelterName: getTranslatedText(restingPlace.name, language, t), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent></Tooltip>
                             </div><Separator /></>
                         )}
                         
@@ -300,7 +291,7 @@ export default function GameLayout(props: GameLayoutProps) {
                             <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('availableActions')}</h2>
                             <div className="grid grid-cols-2 gap-2">
                                 {currentChunk?.actions.map(action => {
-                                    const actionText = t(action.textKey, action.params as any);
+                                    const actionText = t(action.textKey as TranslationKey, action.params);
                                     return (
                                         <Tooltip key={action.id}>
                                             <TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => handleActionClick(action.id)} disabled={isLoading}>{actionText}</Button></TooltipTrigger>

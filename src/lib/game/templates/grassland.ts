@@ -37,8 +37,7 @@ export const grassland_vi = {
     ],
     structures: [
         { 
-            data: structureDefinitions['Tàn tích tháp canh'], 
-            loot: [{ name: 'Mũi Tên Cũ', chance: 0.2, quantity: { min: 1, max: 3 } }, {name: 'Chìa Khóa Rỉ Sét', chance: 0.05, quantity: {min: 1, max: 1}}],
+            data: structureDefinitions['watchtower_ruin'], 
             conditions: { humanPresence: { min: 2 }, elevation: { min: 2 }, chance: 0.03 } 
         },
     ],

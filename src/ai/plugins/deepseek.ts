@@ -87,11 +87,8 @@ async function deepseekGenerate(
 export const deepseekPlugin = (): Plugin => ({
   name: 'genkit-plugin-custom-deepseek',
   configure: (config) => {
-    const apiKey = process.env.DEEPSEEK_API_KEY;
-    if (!apiKey) {
-      console.warn('DEEPSEEK_API_KEY not found. Deepseek models will not be available.');
-      return;
-    }
+    // API key is now checked in genkit.ts before this plugin is even added.
+    const apiKey = process.env.DEEPSEEK_API_KEY!;
 
     defineModel(
       {

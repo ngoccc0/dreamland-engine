@@ -18,11 +18,14 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Loader2, Settings, Download, Trash2, Play, PlusCircle, Star, User, Backpack, Swords } from 'lucide-react';
 import type { TranslationKey, Language } from '@/lib/i18n';
 import { LanguageSelector } from '@/components/game/language-selector';
-import { doc, setDoc, deleteDoc, getDocs, collection } from "firebase/firestore";
-import { db } from "@/lib/firebase-config";
-import { cn } from "@/lib/utils";
+import { cn, getTranslatedText } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from '@/components/ui/separator';
+import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
+import { LocalStorageGameStateRepository } from '@/infrastructure/persistence/local-storage.repository';
+import { FirebaseGameStateRepository } from '@/infrastructure/persistence/firebase.repository';
+import { IndexedDbGameStateRepository } from '@/infrastructure/persistence/indexed-db.repository';
+
 
 type SaveSlotSummary = Pick<GameState, 'worldSetup' | 'day' | 'gameTime' | 'playerStats'> | null;
 
@@ -32,47 +35,39 @@ export default function Home() {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
 
+  const [gameStateRepository, setGameStateRepository] = useState<IGameStateRepository>(new LocalStorageGameStateRepository());
   const [loadState, setLoadState] = useState<'loading' | 'language_select' | 'slot_selection' | 'new_game' | 'continue_game'>('loading');
   const [saveSlots, setSaveSlots] = useState<SaveSlotSummary[]>([null, null, null]);
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
 
   const [isSettingsOpen, setSettingsOpen] = useState(false);
 
+  // Determine which repository to use based on auth state and browser capabilities
+  useEffect(() => {
+    let repo: IGameStateRepository;
+    if (user) {
+      repo = new FirebaseGameStateRepository(user.uid);
+    } else if (typeof window !== 'undefined' && 'indexedDB' in window) {
+      repo = new IndexedDbGameStateRepository();
+    } else {
+      repo = new LocalStorageGameStateRepository();
+    }
+    setGameStateRepository(repo);
+  }, [user]);
+
   const loadSaveSlots = useCallback(async () => {
     setLoadState('loading');
-    let slots: SaveSlotSummary[] = [null, null, null];
-    if (user && db) { // Load from Firebase
-      try {
-        const gamesColRef = collection(db, "users", user.uid, "games");
-        const querySnapshot = await getDocs(gamesColRef);
-        querySnapshot.forEach(doc => {
-          const docId = doc.id; // e.g., "slot_0"
-          const slotIndex = parseInt(docId.split('_')[1], 10);
-          if (slotIndex >= 0 && slotIndex < 3) {
-            const data = doc.data() as GameState;
-            slots[slotIndex] = { worldSetup: data.worldSetup, day: data.day, gameTime: data.gameTime, playerStats: data.playerStats };
-          }
-        });
-      } catch (error) {
-        console.error("Failed to load save slots from Firebase:", error);
-      }
-    } else { // Load from localStorage
-      slots = [0, 1, 2].map(i => {
-        try {
-          const savedData = localStorage.getItem(`gameState_${i}`);
-          if (savedData) {
-            const gameState: GameState = JSON.parse(savedData);
-            return { worldSetup: gameState.worldSetup, day: gameState.day, gameTime: gameState.gameTime, playerStats: gameState.playerStats };
-          }
-          return null;
-        } catch {
-          return null;
-        }
-      });
+    try {
+      const summaries = await gameStateRepository.listSaveSummaries();
+      setSaveSlots(summaries);
+    } catch (error) {
+      console.error("Failed to load save slots:", error);
+      toast({ title: "Error", description: "Failed to load save data.", variant: "destructive" });
+      setSaveSlots([null, null, null]); // Fallback to empty slots on error
+    } finally {
+      setLoadState('slot_selection');
     }
-    setSaveSlots(slots);
-    setLoadState('slot_selection');
-  }, [user]);
+  }, [gameStateRepository, toast]);
 
   // Main effect to drive the initial state of the application
   useEffect(() => {
@@ -107,21 +102,17 @@ export default function Home() {
   };
 
   const handleDelete = async (slotIndex: number) => {
-    if (user && db) {
-        try {
-            await deleteDoc(doc(db, "users", user.uid, "games", `slot_${slotIndex}`));
-        } catch (error) {
-            console.error("Failed to delete from Firebase:", error);
-            toast({ title: "Error", description: "Failed to delete cloud save.", variant: "destructive" });
-        }
-    } else {
-        localStorage.removeItem(`gameState_${slotIndex}`);
+    try {
+        await gameStateRepository.delete(`slot_${slotIndex}`);
+        setSaveSlots(prev => {
+            const newSlots = [...prev];
+            newSlots[slotIndex] = null;
+            return newSlots;
+        });
+    } catch (error) {
+        console.error("Failed to delete save slot:", error);
+        toast({ title: "Error", description: "Failed to delete save.", variant: "destructive" });
     }
-    setSaveSlots(prev => {
-        const newSlots = [...prev];
-        newSlots[slotIndex] = null;
-        return newSlots;
-    });
   };
 
   const onWorldCreated = async (worldSetupData: GenerateWorldSetupOutput) => {
@@ -131,25 +122,16 @@ export default function Home() {
     const allCustomItems = worldSetupData.customItemCatalog || [];
 
     const customDefs = allCustomItems.reduce((acc, item) => {
-        const itemName = typeof item.name === 'object' ? item.name[language] : item.name;
-        const itemDesc = typeof item.description === 'object' ? item.description[language] : item.description;
-        acc[itemName] = {
-            description: itemDesc,
-            tier: item.tier, category: item.category, emoji: item.emoji, effects: item.effects,
-            baseQuantity: item.baseQuantity, growthConditions: item.growthConditions, equipmentSlot: item.equipmentSlot, attributes: item.attributes,
-        };
+        const itemName = getTranslatedText(item.name, 'en');
+        acc[itemName] = { ...item };
         return acc;
-    }, {} as Record<string, Omit<ItemDefinition, 'name'>>);
+    }, {} as Record<string, Omit<ItemDefinition, 'id' | 'name'>>);
 
     const initialPlayerInventory = selectedConcept.playerInventory.map(item => {
-        const def = allCustomItems.find(def => {
-            const defName = typeof def.name === 'object' ? def.name[language] : def.name;
-            const itemName = typeof item.name === 'object' ? item.name[language] : item.name;
-            return defName === itemName;
-        });
-        const itemName = typeof item.name === 'object' ? item.name[language] : item.name;
+        const itemName = getTranslatedText(item.name, 'en');
+        const def = allCustomItems.find(d => getTranslatedText(d.name, 'en') === itemName);
         return {
-            name: itemName,
+            name: item.name,
             quantity: item.quantity,
             tier: def?.tier || 1,
             emoji: def?.emoji || '❓'
@@ -169,8 +151,8 @@ export default function Home() {
       worldSetup: worldConceptForState,
       playerStats: {
         hp: 100, mana: 50, stamina: 100, bodyTemperature: 37, items: initialPlayerInventory, equipment: { weapon: null, armor: null, accessory: null },
-        quests: selectedConcept.initialQuests, questsCompleted: 0, skills: selectedConcept.startingSkill ? [selectedConcept.startingSkill] : [], pets: [], persona: 'none',
-        attributes: { physicalAttack: 10, magicalAttack: 5, critChance: 5, attackSpeed: 1.0, cooldownReduction: 0 },
+        quests: selectedConcept.initialQuests as string[], questsCompleted: 0, skills: selectedConcept.startingSkill ? [selectedConcept.startingSkill] : [], pets: [], persona: 'none',
+        attributes: { physicalAttack: 10, magicalAttack: 5, critChance: 5, attackSpeed: 1.0, cooldownReduction: 0, physicalDefense: 0, magicalDefense: 0 },
         unlockProgress: { kills: 0, damageSpells: 0, moves: 0 }, journal: {}, dailyActionLog: [], questHints: {},
       },
       customItemCatalog: allCustomItems,
@@ -180,14 +162,10 @@ export default function Home() {
       currentSeason: 'spring', gameTime: 360, weatherZones: {}, world: {}, recipes: {}, buildableStructures: {}, regions: {}, regionCounter: 0,
       playerPosition: { x: 0, y: 0 }, playerBehaviorProfile: { moves: 0, attacks: 0, crafts: 0, customActions: 0 },
     };
+    
     try {
-      // Debug: log before saving
-      console.log('Saving new game state to localStorage:', newGameState);
-      if (user && db) {
-        await setDoc(doc(db, "users", user.uid, "games", `slot_${activeSlot}`), newGameState);
-      } else {
-        localStorage.setItem(`gameState_${activeSlot}`, JSON.stringify(newGameState));
-      }
+      await gameStateRepository.save(`slot_${activeSlot}`, newGameState);
+      
       setSaveSlots(prev => {
         const newSlots = [...prev];
         newSlots[activeSlot!] = { worldSetup: newGameState.worldSetup, day: newGameState.day, gameTime: newGameState.gameTime, playerStats: newGameState.playerStats };
@@ -225,7 +203,7 @@ export default function Home() {
     return (
       <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
         <div className="flex flex-col items-center text-center p-4 animate-in fade-in duration-1000">
-          <img src="/assets/logo.svg" alt="Dreamland Engine Logo" className="h-[384px] w-[384px]" />
+          <img src="/assets/Logo.svg" alt="Dreamland Engine" className="h-[384px] w-[384px] -mb-[30px]" />
           <div className="flex items-center justify-center">
             <h1 className="text-5xl font-bold font-headline tracking-tighter -mt-36">
               Dreamland Engine
@@ -284,7 +262,7 @@ export default function Home() {
                    {slot ? (
                      <>
                         <div className="flex-grow space-y-4">
-                            <CardTitle className="truncate">{t(slot.worldSetup.worldName)}</CardTitle>
+                            <CardTitle className="truncate">{getTranslatedText(slot.worldSetup.worldName, language, t)}</CardTitle>
                             <CardDescription>{t('dayX_time', { day: slot.day, time: getGameTimeAsString(slot.gameTime ?? 360) })}</CardDescription>
 
                             <Separator />
@@ -325,7 +303,7 @@ export default function Home() {
                                  <AlertDialogTitle>{t('confirmDeleteTitle')}</AlertDialogTitle>
                                  <AlertDialogDescription>
                                    {slot.worldSetup?.worldName
-                                     ? t('confirmDeleteDesc', { worldName: t(slot.worldSetup.worldName) })
+                                     ? t('confirmDeleteDesc', { worldName: getTranslatedText(slot.worldSetup.worldName, language, t) })
                                      : t('confirmDeleteDescGeneric')
                                    }
                                  </AlertDialogDescription>

@@ -20,9 +20,6 @@ import {deepseekPlugin} from './plugins/deepseek';
 
 const plugins: Plugin[] = [];
 
-// This explicit check helps in debugging by confirming if the keys are loaded.
-// The logs will appear in the terminal where you run your Next.js app.
-
 // Collect all provided Gemini API keys from environment variables.
 const geminiApiKeys = [
   process.env.GEMINI_API_KEY_PRIMARY,
@@ -32,7 +29,8 @@ const geminiApiKeys = [
 if (geminiApiKeys.length > 0) {
   console.log(`Found ${geminiApiKeys.length} Gemini API key(s). Initializing Google AI plugin.`);
   // Pass all found keys to the plugin. Genkit will manage them.
-  plugins.push(googleAI({apiKey: geminiApiKeys}));
+  // Disable context caching to prevent 'fs' module errors on the client.
+  plugins.push(googleAI({apiKey: geminiApiKeys, cache: {}}));
 } else {
   console.warn(
     'GEMINI_API_KEY_PRIMARY or GEMINI_API_KEY_SECONDARY not found. Google AI plugin will not be available.'
@@ -49,8 +47,15 @@ if (process.env.OPENAI_API_KEY) {
   );
 }
 
-// The deepseek plugin is now called as a function, which is the standard pattern.
-plugins.push(deepseekPlugin());
+if (process.env.DEEPSEEK_API_KEY) {
+  console.log('Found DEEPSEEK_API_KEY. Initializing Deepseek plugin.');
+  // The deepseek plugin is now called as a function, which is the standard pattern.
+  plugins.push(deepseekPlugin());
+} else {
+    console.warn(
+        'DEEPSEEK_API_KEY not found. Deepseek models will not be available.'
+    );
+}
 
 
 export const ai = genkit({

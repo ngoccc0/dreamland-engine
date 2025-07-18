@@ -18,12 +18,14 @@ export const uiTranslations = {
 
     // In-Game UI
     mainActions: "Main Actions",
+    availableActions: "Available Actions",
     status: "Status",
     statusTooltip: "View health, mana, and quests.",
     inventory: "Inventory",
     inventoryTooltip: "Check the items you are carrying.",
     crafting: "Crafting",
-    craftingTooltip: "Open the crafting window.",
+    craftingTooltip: "Open the crafting window. ({count} available now)",
+    craftableNow: "{count} craftable",
     building: "Building",
     buildingTooltip: "Open the building window. Building costs stamina and time.",
     fusion: "Fusion",
@@ -104,13 +106,20 @@ export const uiTranslations = {
     staminaShort: "Stamina",
     attributes: 'Attributes',
     equipItem: 'Equip',
-
+    
     // Crafting Popup
     craftingDesc: "Combine items to create new tools and supplies. The system will use the best alternative ingredients if you have them.",
     ingredients: "Ingredients",
     requiredTool: "Required Tool",
     craft: "Craft",
     successChance: "Success chance: {chance}%",
+    showOnlyCraftable: "Show only craftable",
+    sortByCraftability: "Sort: Craftable",
+    sortByAlphabetical: "Sort: A-Z",
+    sortTooltip: "Toggle between sorting by craftability and alphabetically.",
+    canCraftTooltip: "You have all the required ingredients!",
+    missingIngredientsTooltip: "You are missing",
+    noMatchingRecipes: "No recipes match your current filter.",
     
     // Building Popup
     buildingDesc: "Use materials to build structures.",
@@ -124,7 +133,6 @@ export const uiTranslations = {
     fusionDesc: "Experiment by combining 2 or 3 items. Requires at least one 'Tool' item. The environment can affect the outcome. Results are not guaranteed!",
     yourInventory: "Your Inventory",
     fusionSlots: "Fusion Slots",
-    emptySlot: "Empty Slot",
     fuseItems: "Fuse Items",
     fusing: "Fusing...",
     
@@ -186,6 +194,8 @@ export const uiTranslations = {
     fontSizeSmall: 'Small',
     fontSizeMedium: 'Medium',
     fontSizeLarge: 'Large',
+    manaCost: "Mana Cost",
+    manaCostShort: "{cost} MP",
 
     // Tutorial Popup
     tutorialTitle: "How to Play",
@@ -238,12 +248,14 @@ export const uiTranslations = {
 
     // In-Game UI
     mainActions: "Hành động chính",
+    availableActions: "Hành động có sẵn",
     status: "Trạng thái",
     statusTooltip: "Xem máu, mana và nhiệm vụ.",
     inventory: "Hành trang",
     inventoryTooltip: "Kiểm tra các vật phẩm bạn đang mang theo.",
     crafting: "Chế tạo",
-    craftingTooltip: "Mở cửa sổ chế tạo.",
+    craftingTooltip: "Mở cửa sổ chế tạo. ({count} có thể chế tạo ngay)",
+    craftableNow: "{count} có thể chế tạo",
     building: "Xây dựng",
     buildingTooltip: "Mở cửa sổ xây dựng. Xây dựng tốn thể lực và thời gian.",
     fusion: "Hợp nhất",
@@ -331,6 +343,13 @@ export const uiTranslations = {
     requiredTool: "Công cụ yêu cầu",
     craft: "Chế tạo",
     successChance: "Tỷ lệ thành công: {chance}%",
+    showOnlyCraftable: "Chỉ hiển thị có thể chế tạo",
+    sortByCraftability: "Sắp xếp: Khả năng chế tạo",
+    sortByAlphabetical: "Sắp xếp: A-Z",
+    sortTooltip: "Chuyển đổi giữa sắp xếp theo khả năng chế tạo và theo bảng chữ cái.",
+    canCraftTooltip: "Bạn có đủ nguyên liệu cần thiết!",
+    missingIngredientsTooltip: "Bạn còn thiếu",
+    noMatchingRecipes: "Không có công thức nào khớp với bộ lọc hiện tại.",
     
     // Building Popup
     buildingDesc: "Sử dụng vật liệu để xây dựng các công trình.",
@@ -344,7 +363,6 @@ export const uiTranslations = {
     fusionDesc: "Thử nghiệm bằng cách kết hợp 2 hoặc 3 vật phẩm. Yêu cầu ít nhất một vật phẩm 'Công cụ'. Môi trường có thể ảnh hưởng đến kết quả. Kết quả không được đảm bảo!",
     yourInventory: "Hành trang của bạn",
     fusionSlots: "Ô Hợp nhất",
-    emptySlot: "Ô trống",
     fuseItems: "Hợp nhất vật phẩm",
     fusing: "Đang hợp nhất...",
     
@@ -406,7 +424,9 @@ export const uiTranslations = {
     fontSizeSmall: 'Nhỏ',
     fontSizeMedium: 'Vừa',
     fontSizeLarge: 'Lớn',
-    
+    manaCost: "Tiêu tốn Mana",
+    manaCostShort: "{cost} MP",
+
     // Tutorial Popup
     tutorialTitle: "Hướng dẫn chơi",
     tutorialDesc: "Hướng dẫn về các cơ chế cốt lõi của cuộc phiêu lưu của bạn.",

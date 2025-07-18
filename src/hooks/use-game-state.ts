@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useCallback, useRef } from "react";
-import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ItemDefinition, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, PlayerAttributes, ItemEffect, Terrain, GeneratedItem } from "@/lib/game/types";
+import type { GameState, World, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ItemDefinition, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, PlayerAttributes, ItemEffect, Terrain, GeneratedItem, TranslatableString } from "@/lib/game/types";
 import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
@@ -94,22 +94,7 @@ export function useGameState({ gameSlot }: GameStateProps) {
         
         // Update stats after advancing time. If new stats are passed, use them.
         setPlayerStats(finalStats);
-        
-        // Mark the current chunk as explored
-        const currentPosition = pos || playerPosition;
-        const chunkKey = `${currentPosition.x},${currentPosition.y}`;
-        setWorld(prevWorld => {
-            const chunkToUpdate = prevWorld[chunkKey];
-            if (chunkToUpdate) {
-                logger.debug(`[advanceGameTime] Marking chunk (${currentPosition.x},${currentPosition.y}) as explored and visited at turn ${nextTurn}`);
-                const newWorld = { ...prevWorld };
-                newWorld[chunkKey] = { ...chunkToUpdate, explored: true, lastVisited: nextTurn };
-                return newWorld;
-            }
-            return prevWorld;
-        });
-
-    }, [gameTime, playerStats, turn, playerPosition]);
+    }, [gameTime, playerStats, turn]);
 
 
     return {

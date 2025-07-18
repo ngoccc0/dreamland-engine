@@ -45,7 +45,7 @@ const withPWA = withPWAInit({
         },
       },
     },
-    // Use NetworkOnly for navigation requests to prevent stale HTML and ChunkLoadErrors.
+    // Use NetworkFirst for navigation requests to prevent stale HTML and ChunkLoadErrors.
     {
       urlPattern: ({ request }: { request: Request }) => request.mode === 'navigate',
       handler: 'NetworkOnly', // Use NetworkOnly to avoid serving stale HTML from cache
@@ -54,7 +54,7 @@ const withPWA = withPWAInit({
 } as PWAConfig);
 
 
-const nextConfig: NextConfig = {
+const config: NextConfig = {
   /* config options here */
   typescript: {
     ignoreBuildErrors: true,
@@ -74,6 +74,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA(nextConfig);
-
-    
+export default withPWA(config);

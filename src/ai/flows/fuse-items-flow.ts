@@ -168,12 +168,16 @@ const fuseItemsFlow = ai.defineFlow(
         };
         
         const { output: aiOutput } = await ai.generate({
-            model: 'openai/gpt-4o-mini',
-            prompt: fuseItemsPromptText,
-            options: {
-                input: promptInput,
-                output: { schema: AIPromptOutputSchema },
-            },
+            prompt: [
+                {
+                    text: fuseItemsPromptText,
+                    custom: {
+                        model: 'openai/gpt-4o-mini',
+                        input: promptInput,
+                        output: { schema: AIPromptOutputSchema }
+                    }
+                }
+            ]
         });
 
         if (!aiOutput) {

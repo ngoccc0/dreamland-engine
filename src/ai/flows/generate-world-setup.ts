@@ -6,10 +6,18 @@
  */
 import Handlebars from 'handlebars';
 import {ai} from '@/ai/genkit';
+import type { Genkit } from 'genkit';
 import {z} from 'zod';
-import type { Terrain, Skill } from '@/lib/game/types';
-import { GeneratedItemSchema, SkillSchema, NarrativeConceptArraySchema, StructureSchema, allTerrains as allTerrainsSchema, TranslatableStringSchema } from '@/ai/schemas';
-import { ItemCategorySchema } from '@/lib/game/definitions';
+import type {Terrain, Skill} from '@/lib/game/types';
+import {
+    GeneratedItemSchema,
+    SkillSchema,
+    NarrativeConceptArraySchema,
+    StructureDefinitionSchema,
+    allTerrains as allTerrainsSchema,
+    TranslatableStringSchema
+} from '@/ai/schemas';
+import {ItemCategorySchema} from '@/lib/game/definitions';
 import { skillDefinitions } from '@/lib/game/skills';
 import { getEmojiForItem, getTranslatedText } from '@/lib/utils';
 import { db } from '@/lib/firebase-config';
@@ -80,13 +88,13 @@ export const WorldConceptSchema = z.object({
   playerInventory: z.array(z.object({ name: TranslatableStringSchema, quantity: z.number().int().min(1) })),
   initialQuests: z.array(TranslatableStringSchema),
   startingSkill: SkillSchema,
-  customStructures: z.array(StructureSchema), // Pass the generated structures with each concept
+  customStructures: z.array(StructureDefinitionSchema), // Pass the generated structures with each concept
 });
 export type WorldConcept = z.infer<typeof WorldConceptSchema>;
 
 export const GenerateWorldSetupOutputSchema = z.object({
     customItemCatalog: z.array(GeneratedItemSchema),
-    customStructures: z.array(StructureSchema),
+    customStructures: z.array(StructureDefinitionSchema),
     concepts: z.array(WorldConceptSchema).length(3),
 });
 export type GenerateWorldSetupOutput = z.infer<typeof GenerateWorldSetupOutputSchema>;
@@ -164,13 +172,13 @@ Based on the user's idea, generate **a small catalog of 2 to 4 unique, thematica
  * @description The core Genkit flow that orchestrates parallel AI tasks for world generation.
  * It combines the results from item, name, narrative, and structure generation into a coherent output.
  */
-const generateWorldSetupFlow = ai.defineFlow(
+const generateWorldSetupFlow = (ai as Genkit).defineFlow(
   {
     name: 'generateWorldSetupFlow',
     inputSchema: GenerateWorldSetupInputSchema,
     outputSchema: GenerateWorldSetupOutputSchema,
   },
-  async (input) => {
+  async (input: GenerateWorldSetupInput): Promise<GenerateWorldSetupOutput> => {
 
     logger.info('--- STARTING WORLD GENERATION ---', { userInput: input.userInput, language: input.language });
     
@@ -191,11 +199,12 @@ const generateWorldSetupFlow = ai.defineFlow(
         for (const modelName of modelsToTry) {
             try {
                 logger.debug(`[Task A] Attempting item catalog generation with model: ${modelName}`, { prompt: renderedPrompt });
-                const result = await ai.generate({
-                    model: modelName,
-                    prompt: renderedPrompt,
-                    output: { schema: ItemCatalogCreativeOutputSchema },
-                });
+                const result = await (ai as Genkit).generate<typeof ItemCatalogCreativeOutputSchema>([
+                    {
+                        text: renderedPrompt,
+                        custom: {}
+                    }
+                ]);
                 logger.info(`[Task A] SUCCESS with ${modelName}.`);
                 logger.debug(`[Task A] Parsed AI output from ${modelName}:`, result.output);
                 return result;
@@ -219,11 +228,12 @@ const generateWorldSetupFlow = ai.defineFlow(
         for (const modelName of modelsToTry) {
             try {
                 logger.debug(`[Task B] Attempting world name generation with model: ${modelName}`, { prompt: renderedPrompt });
-                const result = await ai.generate({
-                    model: modelName,
-                    prompt: renderedPrompt,
-                    output: { schema: WorldNamesOutputSchema },
-                });
+                const result = await (ai as Genkit).generate<typeof WorldNamesOutputSchema>([
+                    {
+                        text: renderedPrompt,
+                        custom: {}
+                    }
+                ]);
                 logger.info(`[Task B] SUCCESS with ${modelName}.`);
                 return result;
             } catch (error: any) {
@@ -242,11 +252,12 @@ const generateWorldSetupFlow = ai.defineFlow(
         for (const modelName of modelsToTry) {
             try {
                 logger.debug(`[Task C] Attempting narrative concepts generation with model: ${modelName}`, { prompt: renderedPrompt });
-                const result = await ai.generate({
-                    model: modelName,
-                    prompt: renderedPrompt,
-                    output: { schema: NarrativeConceptsOutputSchema },
-                });
+                const result = await (ai as Genkit).generate<typeof NarrativeConceptsOutputSchema>([
+                    {
+                        text: renderedPrompt,
+                        custom: {}
+                    }
+                ]);
                 logger.info(`[Task C] SUCCESS with ${modelName}.`);
                 return result;
             } catch (error: any) {
@@ -265,11 +276,12 @@ const generateWorldSetupFlow = ai.defineFlow(
         for (const modelName of modelsToTry) {
             try {
                 logger.debug(`[Task D] Attempting structure catalog generation with model: ${modelName}`, { prompt: renderedPrompt });
-                const result = await ai.generate({
-                    model: modelName,
-                    prompt: renderedPrompt,
-                    output: { schema: StructureCatalogCreativeOutputSchema },
-                });
+                const result = await (ai as Genkit).generate<typeof StructureCatalogCreativeOutputSchema>([
+                    {
+                        text: renderedPrompt,
+                        custom: {}
+                    }
+                ]);
                 logger.info(`[Task D] SUCCESS with ${modelName}.`);
                 return result;
             } catch (error: any) {
@@ -301,8 +313,8 @@ const generateWorldSetupFlow = ai.defineFlow(
 
     // Programmatically add logical fields to the creative items generated by the AI.
     const allTerrainsList: Terrain[] = ["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic", "tundra", "beach", "mesa", "mushroom_forest", "ocean"];
-    const customItemCatalog = creativeItems.map(item => {
-        const validBiomes = item.spawnBiomes.filter(b => allTerrainsList.includes(b as Terrain)) as Terrain[];
+    const customItemCatalog = creativeItems.map((item: typeof AIGeneratedItemCreativeSchema._type) => {
+        const validBiomes = item.spawnBiomes.filter((b: string) => allTerrainsList.includes(b as Terrain)) as Terrain[];
         if (validBiomes.length === 0) {
             validBiomes.push('forest'); // Add a fallback biome if the AI provides an invalid one
         }
@@ -336,7 +348,7 @@ const generateWorldSetupFlow = ai.defineFlow(
     }
     
     const creativeStructures = structureCatalogResult.output?.customStructures || [];
-    const customStructures = creativeStructures.map(struct => ({
+    const customStructures = creativeStructures.map((struct: typeof AIGeneratedStructureCreativeSchema._type) => ({
         ...struct,
         providesShelter: Math.random() > 0.6, // 40% chance of providing shelter
         buildable: false, // AI-generated structures aren't buildable by default
@@ -350,11 +362,11 @@ const generateWorldSetupFlow = ai.defineFlow(
     const tier2Skills = skillDefinitions.filter(s => s.tier === 2);
     const availableBiomes: Terrain[] = ['forest', 'grassland', 'desert', 'swamp', 'mountain', 'beach']; // Basic biomes for starting
     
-    const finalConcepts = worldNames.map((name, index) => {
+    const finalConcepts = worldNames.map((name: typeof TranslatableStringSchema._type, index: number) => {
         const concept = narrativeConcepts[index];
         
         // Programmatically select starting inventory
-        const lowTierItems = customItemCatalog.filter(item => item.tier <= 2);
+        const lowTierItems = customItemCatalog.filter((item: typeof GeneratedItemSchema._type) => item.tier <= 2);
         const shuffledItems = [...lowTierItems].sort(() => 0.5 - Math.random());
         const numItemsToTake = getRandomInRange({ min: 2, max: 3 });
         const startingItems = shuffledItems.slice(0, numItemsToTake);

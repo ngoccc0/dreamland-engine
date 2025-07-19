@@ -13,18 +13,54 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function POST(req: NextRequest) {
   try {
-    const { userInput, language } = await req.json();
-
-    if (!userInput || !language) {
-      return NextResponse.json({ error: 'Missing userInput or language' }, { status: 400 });
+    // First try to parse the request body
+    let body;
+    try {
+      body = await req.json();
+    } catch (parseError) {
+      console.error('Invalid request body:', parseError);
+      return NextResponse.json(
+        { error: 'Invalid request body', details: 'Request must be valid JSON' },
+        { status: 400 }
+      );
     }
 
-    // The AI flow is now safely called on the server side.
-    const result = await generateWorldSetup({ userInput, language });
-    
-    return NextResponse.json(result);
+    const { userInput, language } = body;
+
+    // Validate input
+    if (!userInput || typeof userInput !== 'string') {
+      return NextResponse.json(
+        { error: 'Invalid userInput', details: 'userInput must be a non-empty string' },
+        { status: 400 }
+      );
+    }
+    if (!language || typeof language !== 'string') {
+      return NextResponse.json(
+        { error: 'Invalid language', details: 'language must be a non-empty string' },
+        { status: 400 }
+      );
+    }
+
+    try {
+      // Try to generate the world
+      const result = await generateWorldSetup({ userInput, language });
+      return NextResponse.json(result);
+    } catch (genError: any) {
+      console.error('World generation error:', genError);
+      // Return a more specific error for AI generation failures
+      return NextResponse.json({
+        error: 'World generation failed',
+        details: genError.message || 'Unknown AI error',
+        stack: process.env.NODE_ENV === 'development' ? genError.stack : undefined
+      }, { status: 500 });
+    }
   } catch (error: any) {
-    console.error('Error in /api/generate-world:', error);
-    return NextResponse.json({ error: error.message || 'An unknown error occurred' }, { status: 500 });
+    // Catch any other unexpected errors
+    console.error('Unexpected error in /api/generate-world:', error);
+    return NextResponse.json({
+      error: 'Server error',
+      details: error.message || 'An unknown error occurred',
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    }, { status: 500 });
   }
 }

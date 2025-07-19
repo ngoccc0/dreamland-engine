@@ -1,9 +1,9 @@
 
 import 'dotenv/config';
-import {genkit, Plugin} from 'genkit';
-import {googleAI} from '@genkit-ai/googleai';
-import {openAI} from 'genkitx-openai';
-import {deepseekPlugin} from './plugins/deepseek';
+import { genkit, type Genkit } from 'genkit';
+import { googleAI } from '@genkit-ai/googleai';
+import { openAI } from 'genkitx-openai';
+import { deepseekPlugin } from './plugins/deepseek';
 
 /**
  * This file configures the Genkit AI object.
@@ -18,49 +18,46 @@ import {deepseekPlugin} from './plugins/deepseek';
  * - DEEPSEEK_API_KEY
  */
 
-const plugins: Plugin[] = [];
+const plugins = [];
 
-// Collect all provided Gemini API keys from environment variables.
-const geminiApiKeys = [
-  process.env.GEMINI_API_KEY_PRIMARY,
-  process.env.GEMINI_API_KEY_SECONDARY,
-].filter((key): key is string => !!key); // Filters out any undefined/empty keys
+try {
+    // Initialize Google AI Plugin
+    if (process.env.GEMINI_API_KEY_PRIMARY || process.env.GEMINI_API_KEY_SECONDARY) {
+        const plugin = googleAI({
+            apiKey: process.env.GEMINI_API_KEY_PRIMARY || process.env.GEMINI_API_KEY_SECONDARY
+        });
+        plugins.push(plugin);
+        console.log('Google AI Plugin initialized');
+    }
 
-if (geminiApiKeys.length > 0) {
-  console.log(`Found ${geminiApiKeys.length} Gemini API key(s). Initializing Google AI plugin.`);
-  // Pass all found keys to the plugin. Genkit will manage them.
-  // Disable context caching to prevent 'fs' module errors on the client.
-  plugins.push(googleAI({apiKey: geminiApiKeys, cache: {}}));
-} else {
-  console.warn(
-    'GEMINI_API_KEY_PRIMARY or GEMINI_API_KEY_SECONDARY not found. Google AI plugin will not be available.'
-  );
+    // Initialize OpenAI Plugin
+    if (process.env.OPENAI_API_KEY) {
+        const plugin = openAI();
+        plugins.push(plugin);
+        console.log('OpenAI Plugin initialized');
+    }
+
+    // Initialize Deepseek Plugin
+    if (process.env.DEEPSEEK_API_KEY) {
+        const plugin = deepseekPlugin();
+        plugins.push(plugin);
+        console.log('Deepseek Plugin initialized');
+    }
+} catch (error) {
+    console.error('Error initializing plugins:', error);
 }
 
-if (process.env.OPENAI_API_KEY) {
-  console.log('Found OPENAI_API_KEY. Initializing OpenAI plugin.');
-  // The plugin automatically reads the key from the environment.
-  plugins.push(openAI());
-} else {
-  console.warn(
-    'OPENAI_API_KEY not found. OpenAI plugin will not be available.'
-  );
+// Initialize Genkit with plugins and error handling
+let ai: Genkit;
+try {
+    ai = genkit({
+        plugins,
+        model: 'googleai/gemini-2.0-flash'
+    });
+} catch (error: any) {
+    console.error('Error initializing Genkit:', error);
+    // Provide a fallback or throw a more informative error
+    throw new Error(`Failed to initialize AI system: ${error.message || 'Unknown error'}`);
 }
 
-if (process.env.DEEPSEEK_API_KEY) {
-  console.log('Found DEEPSEEK_API_KEY. Initializing Deepseek plugin.');
-  // The deepseek plugin is now called as a function, which is the standard pattern.
-  plugins.push(deepseekPlugin());
-} else {
-    console.warn(
-        'DEEPSEEK_API_KEY not found. Deepseek models will not be available.'
-    );
-}
-
-
-export const ai = genkit({
-  plugins,
-  // Set a default model to be used by flows that don't specify one.
-  // This resolves the error where `generate()` is called without a model.
-  model: 'googleai/gemini-2.0-flash',
-});
+export { ai, type Genkit };

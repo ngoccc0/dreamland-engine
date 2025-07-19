@@ -66,12 +66,15 @@ const generateLegendaryQuestFlow = ai.defineFlow(
         let lastError;
         for (const model of modelsToTry) {
             try {
-                const { output } = await ai.generate({
-                    model: model,
-                    prompt: promptText,
-                    input: input,
-                    output: { schema: GenerateNewQuestOutputSchema },
-                });
+                const { output } = await ai.generate([
+                    {
+                        text: "You are a game's quest designer. Generate challenging and engaging legendary quests based on the player's status and game world."
+                    },
+                    {
+                        text: promptText,
+                        custom: input
+                    }
+                ]);
                 if (output) return output;
             } catch (error) {
                 lastError = error;

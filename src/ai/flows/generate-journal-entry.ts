@@ -11,7 +11,7 @@
  * - GenerateJournalEntryOutput - The Zod schema for the output data.
  */
 
-import { ai } from '@/ai/genkit';
+import {ai, type Genkit} from '@/ai/genkit';
 import { z } from 'zod';
 import { GenerateJournalEntryInputSchema, GenerateJournalEntryOutputSchema } from '@/ai/schemas';
 
@@ -52,7 +52,7 @@ const generateJournalEntryFlow = ai.defineFlow(
     },
     async (input) => {
         const modelsToTry = [
-            'openai/gpt-4o',
+            'openai/gpt-4',
             'googleai/gemini-1.5-pro',
             'deepseek/deepseek-chat',
             'googleai/gemini-2.0-flash',
@@ -61,16 +61,18 @@ const generateJournalEntryFlow = ai.defineFlow(
         let lastError;
         for (const model of modelsToTry) {
             try {
-                const { output } = await ai.generate({
-                    model: model,
-                    prompt: promptText,
-                    input: input,
-                    output: { schema: GenerateJournalEntryOutputSchema },
-                });
-                if (output) return output;
+                const { output } = await ai.generate([
+                    {
+                        text: promptText,
+                        custom: input
+                    }
+                ]);
+                
+                if (output && output.journalEntry) return { journalEntry: output.journalEntry };
             } catch (error) {
                 lastError = error;
                 console.warn(`[generateJournalEntry] Model '${model}' failed. Trying next...`);
+                continue;
             }
         }
         

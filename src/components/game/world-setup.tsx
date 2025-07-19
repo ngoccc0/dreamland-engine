@@ -72,7 +72,7 @@ const SelectionCard = ({
 );
 
 
-export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
+export function WorldSetup({ onWorldCreated }: WorldSetupProps): JSX.Element {
     const { t, language } = useLanguage();
     
     const [step, setStep] = useState(0);
@@ -173,13 +173,24 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                 body: JSON.stringify({ userInput, language }),
             });
 
+            let data;
+            try {
+                data = await response.json();
+            } catch (parseError) {
+                if (!response.ok) {
+                    throw new Error(`Server error (${response.status}): ${response.statusText}`);
+                }
+                throw new Error('Invalid response from server');
+            }
+
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to generate world');
+                if (data.error) {
+                    throw new Error(`${data.error}${data.details ? `: ${data.details}` : ''}`);
+                }
+                throw new Error('Failed to generate world');
             }
             
-            const result: GenerateWorldSetupOutput = await response.json();
-            setGeneratedData(result);
+            setGeneratedData(data);
         } catch (error) {
             console.error("Failed to generate world:", error);
             toast({ title: t('worldGenError'), description: String(error), variant: "destructive" });
@@ -196,7 +207,12 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
             worldName: generatedData.concepts[selection.worldName].worldName,
             initialNarrative: generatedData.concepts[selection.initialNarrative].initialNarrative,
             startingBiome: generatedData.concepts[selection.startingBiome].startingBiome,
-            playerInventory: generatedData.concepts[selection.playerInventory].playerInventory,
+            playerInventory: generatedData.concepts[selection.playerInventory].playerInventory.map(item => ({
+                name: typeof item.name === 'object' ? item.name[language] : item.name,
+                quantity: item.quantity,
+                tier: 1,
+                emoji: '📦'
+            })),
             initialQuests: generatedData.concepts[selection.initialQuests].initialQuests,
             startingSkill: generatedData.concepts[selection.startingSkill].startingSkill,
             customStructures: generatedData.customStructures, // Shared across concepts
@@ -209,7 +225,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
         };
 
         onWorldCreated(finalOutput);
-    }
+    };
     
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -306,7 +322,14 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                             <SelectionCard
                                 label={t('worldName')}
                                 icon={<Sparkles />}
-                                options={generatedData.concepts.map((c: WorldConcept) => c.worldName)}
+                                options={generatedData.concepts.map(c => ({
+                                    ...c,
+                                    playerInventory: c.playerInventory.map(item => ({
+                                        ...item,
+                                        tier: 1,
+                                        emoji: '📦'
+                                    }))
+                                })).map(c => c.worldName)}
                                 selectedIndex={selection.worldName}
                                 onSelect={(index) => setSelection(s => ({...s, worldName: index}))}
                                 renderOption={(option) => <p className="text-xl font-bold font-headline">{getTranslatedText(option, language, t)}</p>}
@@ -315,7 +338,14 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                         <SelectionCard
                             label={t('openingNarrative')}
                             icon={<BookOpen />}
-                            options={generatedData.concepts.map((c: WorldConcept) => c.initialNarrative)}
+                            options={generatedData.concepts.map(c => ({
+                                ...c,
+                                playerInventory: c.playerInventory.map(item => ({
+                                    ...item,
+                                    tier: 1,
+                                    emoji: '📦'
+                                }))
+                            })).map(c => c.initialNarrative)}
                             selectedIndex={selection.initialNarrative}
                             onSelect={(index) => setSelection(s => ({...s, initialNarrative: index}))}
                             renderOption={(option) => <ScrollArea className="h-24"><p className="text-sm italic text-muted-foreground">{getTranslatedText(option, language, t)}</p></ScrollArea>}
@@ -323,7 +353,14 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                         <SelectionCard
                             label={t('startingBiome')}
                             icon={<Map />}
-                            options={generatedData.concepts.map((c: WorldConcept) => c.startingBiome)}
+                            options={generatedData.concepts.map(c => ({
+                                ...c,
+                                playerInventory: c.playerInventory.map(item => ({
+                                    ...item,
+                                    tier: 1,
+                                    emoji: '📦'
+                                }))
+                            })).map(c => c.startingBiome)}
                             selectedIndex={selection.startingBiome}
                             onSelect={(index) => setSelection(s => ({...s, startingBiome: index}))}
                             renderOption={(option) => <p className="font-semibold text-lg">{t(option)}</p>}
@@ -331,7 +368,14 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                          <SelectionCard
                             label={t('startingSkill')}
                             icon={<WandSparkles />}
-                            options={generatedData.concepts.map((c: WorldConcept) => c.startingSkill)}
+                            options={generatedData.concepts.map(c => ({
+                                ...c,
+                                playerInventory: c.playerInventory.map(item => ({
+                                    ...item,
+                                    tier: 1,
+                                    emoji: '📦'
+                                }))
+                            })).map(c => c.startingSkill)}
                             selectedIndex={selection.startingSkill}
                             onSelect={(index) => setSelection(s => ({...s, startingSkill: index}))}
                             renderOption={(option: Skill) => 
@@ -344,15 +388,23 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                          <SelectionCard
                             label={t('startingEquipment')}
                             icon={<BaggageClaim />}
-                            options={generatedData.concepts.map((c: WorldConcept) => c.playerInventory)}
+                            options={generatedData.concepts.map(c => ({
+                                ...c,
+                                playerInventory: c.playerInventory.map(item => ({
+                                    ...item,
+                                    tier: 1,
+                                    emoji: '📦'
+                                }))
+                            })).map(c => c.playerInventory)}
                             selectedIndex={selection.playerInventory}
                             onSelect={(index) => setSelection(s => ({...s, playerInventory: index}))}
-                            renderOption={(option: PlayerItem[]) => 
+                            renderOption={(option) => 
                                 <div className="flex flex-wrap gap-x-4 gap-y-2 justify-center text-sm">
-                                    {option.map((item, i) => {
+                                    {(option as PlayerItem[]).map((item: PlayerItem, i: number) => {
                                         const allItems = [...(premadeWorlds[userInput.toLowerCase()]?.customItemCatalog || []), ...(generatedData?.customItemCatalog || [])];
                                         const def = allItems.find(d => getTranslatedText(d.name, 'en') === getTranslatedText(item.name, 'en'));
-                                        return <span key={i} className="flex items-center gap-1">{def?.emoji} {getTranslatedText(item.name, language, t)} x{item.quantity}</span>
+                                        const emoji = def?.emoji || '📦';
+                                        return <span key={i} className="flex items-center gap-1">{emoji} {getTranslatedText(item.name, language, t)} x{item.quantity}</span>
                                     })}
                                 </div>
                             }
@@ -361,7 +413,14 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps) {
                           <SelectionCard
                               label={t('firstQuest')}
                               icon={<ListTodo />}
-                              options={generatedData.concepts.map((c: WorldConcept) => c.initialQuests)}
+                              options={generatedData.concepts.map(c => ({
+                                  ...c,
+                                  playerInventory: c.playerInventory.map(item => ({
+                                      ...item,
+                                      tier: 1,
+                                      emoji: '📦'
+                                  }))
+                              })).map(c => c.initialQuests)}
                               selectedIndex={selection.initialQuests}
                               onSelect={(index) => setSelection(s => ({...s, initialQuests: index}))}
                               renderOption={(option: string[]) => 

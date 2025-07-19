@@ -1,7 +1,15 @@
 # **Dreamland Engine - Nhật Ký Phát Triển (Update Log)**
 
 Chào mừng các Đội trưởng và những người đồng hành đến với nhật ký phát triển chính thức của Dreamland Engine! Tại đây, chúng tôi sẽ ghi lại những thay đổi, nâng cấp và cả những quyết định thiết kế quan trọng đã định hình nên thế giới này.
+---
 
+## **Bản cập nhật chính :v0.5 - "Demo bắt đầu 🤩🔥" (19/07/2025)**
+Cuối cùng cũng sửa được phần lớn các lỗi và có thể bắt đầu chạy demo.
+### **Tính năng mới:**
+- Thêm chế độ xem bản đồ cho phép người chơi khám phá thế giới một cách trực quan hơn.
+- Cải thiện hệ thống chế tạo với các gợi ý và hướng dẫn rõ ràng hơn.(thêm các phần hỗ trợ ux trong phần chế tạo)
+- Thêm cơ chế ẩn bản đồ sau một thời gian (fog of war)
+- Giảm độ khó bằng cách tăng tỷ lệ spawn đồ tự nhiên , giảm số sinh vật thù địch spawn
 ---
 
 ## **Bản cập nhật v0.3.1 - "Giao diện Chế tạo Thông minh" (18/07/2025)**

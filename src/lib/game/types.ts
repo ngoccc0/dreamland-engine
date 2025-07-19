@@ -1,20 +1,19 @@
 
-import type { 
-    ItemDefinition as ItemDefZod, 
-    ItemEffect, 
-    Recipe as RecipeDefZod, 
-    StructureDefinition as StructDefZod,
-    BiomeDefinition as BiomeDefZod,
+import type {
+    ItemEffect,
     WeatherDefinition,
     RandomEventDefinition,
     CreatureDefinition,
     LootDrop,
     SpawnConditions,
     PlayerAttributes,
-    ItemCategory, 
+    ItemCategory,
     MultilingualText,
-    TranslatableStringSchema as TranslatableStringSchemaZod,
-    RecipeIngredientSchema,
+    RecipeIngredient,
+    ItemDefinition,
+    BiomeDefinition,
+    Recipe,
+    StructureDefinition
 } from "./definitions";
 import { z } from 'zod';
 import { Language } from "../i18n";
@@ -40,6 +39,30 @@ export type { Language };
 export type TranslationKey = string;
 export type TranslatableString = string | { [key in Language]?: string };
 
+// --- TERRAIN TYPES ---
+export type SoilType = 'rocky' | 'sandy' | 'fertile' | 'clay' | 'loamy' | 'volcanic' | 'peaty' | 'silty' | 'chalky';
+
+export interface CraftabilityInfo {
+  score: number;  // Percentage of available ingredients (0-1)
+  missingIngredients: string[];  // Names of missing ingredients
+  availableIngredients: string[];  // Names of available ingredients
+}
+
+export interface CraftingOutcome {
+  canCraft: boolean;
+  chance: number;
+  hasRequiredTool: boolean;
+  ingredientsToConsume: { name: string; quantity: number }[];
+  resolvedIngredients: {
+    requirement: RecipeIngredient;
+    usedItem: { name: TranslatableString, tier: number };
+    isSubstitute: boolean;
+    hasEnough: boolean;
+    playerQuantity: number;
+  }[];
+  craftability?: CraftabilityInfo;
+}
+
 
 /**
  * @description The supported terrain types in the game world.
@@ -47,10 +70,8 @@ export type TranslatableString = string | { [key in Language]?: string };
 export const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic", "wall", "floptropica", "tundra", "beach", "mesa", "mushroom_forest", "ocean", "city", "space_station", "underwater"];
 
 
-export type ItemDefinition = z.infer<typeof ItemDefZod>;
-export type BiomeDefinition = Omit<BiomeDefZod, 'id'>;
-export type Recipe = z.infer<typeof RecipeDefZod>;
-export type StructureDefinition = z.infer<typeof StructDefZod>;
+// Core types are re-exported from definitions module
+export type { ItemDefinition, BiomeDefinition, Recipe, StructureDefinition } from './definitions';
 
 /**
  * @description Represents a contiguous region of a single biome in the game world.
@@ -61,7 +82,6 @@ export interface Region {
 }
 
 export type Terrain = "forest" | "grassland" | "desert" | "swamp" | "mountain" | "cave" | "jungle" | "volcanic" | "wall" | "floptropica" | "tundra" | "beach" | "mesa" | "mushroom_forest" | "ocean" | "city" | "space_station" | "underwater";
-export type SoilType = 'loamy' | 'clay' | 'sandy' | 'rocky' | 'metal';
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
 export type PlayerPersona = 'none' | 'explorer' | 'warrior' | 'artisan';
 export type GameMode = 'ai' | 'offline';
@@ -394,4 +414,5 @@ export interface CraftingOutcome {
         hasEnough: boolean;
         playerQuantity: number;
     }[];
+    craftability?: CraftabilityInfo;
 }

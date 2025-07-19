@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
-import type { PlayerItem, Recipe, ItemDefinition, RecipeIngredient } from "@/lib/game/types";
+import type { PlayerItem, Recipe, ItemDefinition, RecipeIngredient, CraftingOutcome } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
-import { calculateCraftingOutcome, type CraftingOutcome } from "@/lib/game/engine/crafting";
+import { calculateCraftingOutcome } from "@/lib/game/engine/crafting";
 import { Hammer } from "./icons";
 import { cn, getTranslatedText } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
+import { useState } from "react";
 
 interface CraftingPopupProps {
   open: boolean;
@@ -26,6 +28,25 @@ interface CraftingPopupProps {
 
 export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions, recipes, onCraft }: CraftingPopupProps) {
   const { t, language } = useLanguage();
+  const [showOnlyCraftable, setShowOnlyCraftable] = useState(false);
+  const [sortByCraftability, setSortByCraftability] = useState(false);
+
+  // Process recipes with craftability scores
+  const processedRecipes = Object.values(recipes).map(recipe => {
+    const outcome = calculateCraftingOutcome(playerItems, recipe, itemDefinitions);
+    const craftabilityScore = outcome.resolvedIngredients.filter(ing => ing.hasEnough).length / recipe.ingredients.length;
+    return { recipe, outcome, craftabilityScore };
+  });
+
+  // Filter and sort recipes
+  const filteredRecipes = processedRecipes
+    .filter(({ craftabilityScore }) => !showOnlyCraftable || craftabilityScore === 1)
+    .sort((a, b) => {
+      if (sortByCraftability) {
+        return b.craftabilityScore - a.craftabilityScore;
+      }
+      return 0;
+    });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -36,23 +57,67 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
           </DialogTitle>
           <DialogDescription>{t('craftingDesc')}</DialogDescription>
         </DialogHeader>
+        <div className="flex gap-4 mb-4">
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={showOnlyCraftable}
+              onCheckedChange={setShowOnlyCraftable}
+              id="craftable-filter"
+            />
+            <label htmlFor="craftable-filter" className="text-sm">
+              {t('showOnlyCraftable')}
+            </label>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSortByCraftability(!sortByCraftability)}
+            className={cn("text-sm", sortByCraftability && "bg-accent")}
+          >
+            {t('sortByCraftability')}
+          </Button>
+        </div>
         <Separator />
         <ScrollArea className="max-h-[65vh] pr-4">
           <div className="p-4 space-y-4">
-            {Object.values(recipes).map((recipe, index) => {
-              const outcome = calculateCraftingOutcome(playerItems, recipe, itemDefinitions);
+            {filteredRecipes.map(({ recipe, outcome }, index) => {
               const hasRequiredTool = outcome.hasRequiredTool;
               const resultName = getTranslatedText(recipe.result.name, language, t);
               const resultDescText = getTranslatedText(recipe.description, language, t);
               const requiredToolName = recipe.requiredTool ? t(recipe.requiredTool as TranslationKey) : '';
 
               return (
-                <div key={index} className="p-4 border rounded-lg bg-muted/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div key={index} 
+                  className={cn(
+                    "p-4 border rounded-lg bg-muted/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4",
+                    outcome.canCraft && "border-green-400/20"
+                  )}>
                   <div className="flex-grow">
-                    <h4 className="font-bold text-lg text-foreground flex items-center gap-2">
-                      <span className="text-2xl">{recipe.result.emoji}</span>
-                      {resultName}
-                    </h4>
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-bold text-lg text-foreground flex items-center gap-2">
+                        <span className="text-2xl">{recipe.result.emoji}</span>
+                        {resultName}
+                      </h4>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <div className={cn(
+                              "px-2 py-0.5 rounded text-xs",
+                              outcome.canCraft ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"
+                            )}>
+                              {Math.round((outcome.resolvedIngredients.filter(ing => ing.hasEnough).length / recipe.ingredients.length) * 100)}% craftable
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-sm">
+                              {outcome.canCraft 
+                                ? t('readyToCraft')
+                                : t('missingIngredients')}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
                     <p className="text-sm text-muted-foreground italic mb-2">{resultDescText}</p>
                     <div className="text-sm space-y-1">
                       <div>
@@ -82,7 +147,14 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
                                     </li>
                                   </TooltipTrigger>
                                   <TooltipContent>
-                                    <p>{reqDesc}</p>
+                                    <div className="space-y-1">
+                                      <p>{reqDesc}</p>
+                                      {resolvedIng.hasEnough ? (
+                                        <p className="text-green-400">{t('ingredientAvailable')}</p>
+                                      ) : (
+                                        <p className="text-red-400">{t('ingredientMissing', { quantity: resolvedIng.requirement.quantity - resolvedIng.playerQuantity })}</p>
+                                      )}
+                                    </div>
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>

@@ -1,6 +1,27 @@
 
 
-import type { Chunk, ChunkItem, Region, SoilType, SpawnConditions, Terrain, World, WorldProfile, Season, ItemDefinition, GeneratedItem, WeatherState, PlayerItem, Recipe, Structure, Language, Npc, Action, TranslatableString } from "../types";
+import type { 
+    Chunk, 
+    ChunkItem, 
+    Region, 
+    SoilType, 
+    SpawnConditions, 
+    Terrain, 
+    World, 
+    WorldProfile, 
+    Season, 
+    ItemDefinition, 
+    GeneratedItem, 
+    WeatherState,
+    WeatherZone, 
+    PlayerItem, 
+    Recipe, 
+    Structure, 
+    Language, 
+    Npc, 
+    Action, 
+    TranslatableString 
+} from "../types";
 import { seasonConfig, worldConfig } from "../world-config";
 import { getTemplates } from "../templates";
 import { weatherPresets } from "../weatherPresets";
@@ -85,6 +106,7 @@ const selectEntities = <T extends { name?: TranslatableString | string; type?: s
     maxCount: number,
     chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored' | 'structures' | 'lastVisited'>,
     allItemDefinitions: Record<string, ItemDefinition>,
+    worldProfile: WorldProfile,
 ): any[] => {
     if (!availableEntities) {
         return [];
@@ -124,6 +146,20 @@ const selectEntities = <T extends { name?: TranslatableString | string; type?: s
             const tier = itemDef.tier;
             const tierMultiplier = Math.pow(0.5, tier - 1);
             spawnChance *= tierMultiplier;
+        }
+
+        // Giảm mức độ ảnh hưởng của tier lên tỷ lệ spawn
+        if (itemDef) {
+            const tier = itemDef.tier;
+            // Thay đổi hệ số giảm từ 0.5 thành 0.8
+            const tierMultiplier = Math.pow(0.8, tier - 1);
+            spawnChance *= tierMultiplier;
+        }
+
+        // Thêm bonus chance dựa trên world profile
+        if (worldProfile?.resourceDensity) {
+            const densityBonus = (worldProfile.resourceDensity - 50) / 100; // -0.5 to 0.5
+            spawnChance = Math.min(0.95, spawnChance + densityBonus);
         }
 
         if (Math.random() < spawnChance) {
@@ -231,7 +267,8 @@ function calculateDependentChunkAttributes(
     lightLevel = clamp(lightLevel, -100, 100);
 
     const explorability = clamp(100 - (baseAttributes.vegetationDensity / 2) - (baseAttributes.dangerLevel / 2), 0, 100);
-    const soilType = biomeDef.soilType[Math.floor(Math.random() * biomeDef.soilType.length)];
+    // Ensure soilType is one of the valid SoilType values
+    const soilType = biomeDef.soilType[Math.floor(Math.random() * biomeDef.soilType.length)] as SoilType;
     const travelCost = biomeDef.travelCost;
     
     return {
@@ -287,11 +324,17 @@ function generateChunkContent(
     const staticSpawnCandidates = (terrainTemplate.items || []).filter(Boolean);
     const customSpawnCandidates = customItemCatalog
         .filter(item => item && item.spawnEnabled !== false && item.spawnBiomes && item.spawnBiomes.includes(chunkData.terrain as Terrain))
-        .map(item => ({ name: getTranslatedText(item.name, 'en', t), conditions: { chance: 0.15 } }));
+        .map(item => ({ 
+            name: getTranslatedText(item.name, 'en', t), 
+            conditions: { chance: 0.35 } // Tăng tỷ lệ spawn lên 35%
+        }));
     
     const allSpawnCandidates = [...staticSpawnCandidates, ...customSpawnCandidates];
 
-    const spawnedItemRefs = selectEntities(allSpawnCandidates, 3, chunkData, allItemDefinitions);
+    // Tăng số lượng item tối đa có thể spawn trong một chunk
+    // Default to 6 items if worldProfile is not available
+    const maxItems = 6;
+    const spawnedItemRefs = selectEntities(allSpawnCandidates, maxItems, chunkData, allItemDefinitions, worldProfile);
     const spawnedItems: ChunkItem[] = [];
 
     for (const itemRef of spawnedItemRefs) {
@@ -313,14 +356,14 @@ function generateChunkContent(
         }
     }
     
-    const spawnedNPCs: Npc[] = selectEntities(terrainTemplate.NPCs, 1, chunkData, allItemDefinitions).map(ref => ref.data);
+    const spawnedNPCs: Npc[] = selectEntities(terrainTemplate.NPCs, 1, chunkData, allItemDefinitions, worldProfile).map(ref => ref.data);
 
     let allEnemyCandidates = [...(terrainTemplate.enemies || [])].filter(Boolean);
 
-    const spawnedEnemies = selectEntities(allEnemyCandidates, 1, chunkData, allItemDefinitions);
+    const spawnedEnemies = selectEntities(allEnemyCandidates, 1, chunkData, allItemDefinitions, worldProfile);
     
     let spawnedStructures: Structure[] = [];
-    const spawnedStructureRefs = selectEntities((terrainTemplate.structures || []).filter(Boolean), 1, chunkData, allItemDefinitions);
+    const spawnedStructureRefs = selectEntities((terrainTemplate.structures || []).filter(Boolean), 1, chunkData, allItemDefinitions, worldProfile);
     
     for (const structRef of spawnedStructureRefs) {
         // The entity from selectEntities is now the root definition itself

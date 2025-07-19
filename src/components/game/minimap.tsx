@@ -150,21 +150,69 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
               
               const isPlayerHere = playerPosition.x === cell.x && playerPosition.y === cell.y;
               const turnDifference = turn - cell.lastVisited;
-              const isFoggy = turnDifference > 50 && cell.lastVisited !== 0;
+              // Calculate if the tile is within the 3x3 visibility radius
+              const distanceFromPlayer = Math.max(
+                Math.abs(cell.x - playerPosition.x),
+                Math.abs(cell.y - playerPosition.y)
+              );
+              const isInVisibleRange = distanceFromPlayer <= 1; // 1 tile radius for 3x3 area
 
-              logger.debug(`[MINIMAP-RENDER] Tile (${cell.x},${cell.y}) → terrain=${cell.terrain}, explored=${cell.explored}, foggy=${isFoggy}`);
+              // Shorter fog of war timing (25 turns)
+              const isFoggy = turnDifference > 25 && cell.lastVisited !== 0;
 
+              logger.debug(`[MINIMAP-RENDER] Tile (${cell.x},${cell.y}) → terrain=${cell.terrain}, explored=${cell.explored}, foggy=${isFoggy}, visible=${isInVisibleRange}`);
+
+              // Unexplored tiles should still be rendered but with a fog effect
               if (!cell.explored) {
                 return (
-                    <div key={key} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />
+                    <Popover key={key}>
+                        <PopoverTrigger asChild>
+                            <div className={cn(
+                                responsiveCellSize, 
+                                "bg-map-empty/50 border-r border-b border-dashed border-border/50 flex items-center justify-center"
+                            )}>
+                                <span className="text-2xl opacity-20" title={t('unexploredArea') as string}>🌫️</span>
+                            </div>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80">
+                            <div className="p-2 text-sm text-muted-foreground">
+                                {t('unexploredAreaDesc')}
+                            </div>
+                        </PopoverContent>
+                    </Popover>
                 );
               }
               
-              if (isFoggy && !isPlayerHere) {
+              // Tiles in fog of war show more detailed tooltips
+              if (isFoggy && !isInVisibleRange) {
+                 const tooltipMessages = [
+                    { vi: "Đã lâu bạn không đến đây, mọi thứ dường như đã thay đổi...", en: "It's been a while since you've been here, things might have changed..." },
+                    { vi: "Thời gian trôi qua khiến ký ức về nơi này trở nên mờ nhạt.", en: "Time has made your memories of this place fade." },
+                    { vi: "Sương mù dày đặc khiến bạn không thể nhớ rõ nơi này có gì.", en: "The thick fog makes it hard to remember what's here." }
+                 ];
+                 const randomMessage = tooltipMessages[Math.floor(Math.random() * tooltipMessages.length)];
+
                  return (
-                    <div key={key} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50 flex items-center justify-center")}>
-                        <span className="text-2xl opacity-30" title={t('fogOfWarDesc') as string}>🌫️</span>
-                    </div>
+                    <Popover key={key}>
+                        <PopoverTrigger asChild>
+                            <div className={cn(
+                                responsiveCellSize, 
+                                "bg-map-empty border-r border-b border-dashed border-border/50 flex items-center justify-center"
+                            )}>
+                                <span className="text-2xl opacity-30" title={t('fogOfWarDesc') as string}>🌫️</span>
+                            </div>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80">
+                            <div className="p-2 space-y-2">
+                                <p className="text-sm text-muted-foreground">{language === 'vi' ? randomMessage.vi : randomMessage.en}</p>
+                                {cell.terrain && (
+                                    <p className="text-xs text-muted-foreground/70">
+                                        {t('lastKnownTerrain')}: {t(cell.terrain as any)}
+                                    </p>
+                                )}
+                            </div>
+                        </PopoverContent>
+                    </Popover>
                 );
               }
               

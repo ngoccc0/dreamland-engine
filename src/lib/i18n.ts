@@ -93,7 +93,12 @@ export const translations = {
  * @typedef {'en' | 'vi'} Language
  * @description Defines the supported languages for the application.
  */
-export type Language = 'en' | 'vi';
+export const LanguageEnum = {
+    en: 'en',
+    vi: 'vi'
+} as const;
+
+export type Language = typeof LanguageEnum[keyof typeof LanguageEnum];
 
 /**
  * @typedef {string} TranslationKey

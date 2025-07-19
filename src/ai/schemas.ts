@@ -2,7 +2,7 @@
  * @fileOverview Centralized Zod schemas for AI flows and tools.
  *
  * This file acts as an "adapter" or "port" for the AI layer. It imports the
- * core game definitions from `src/lib/game/definitions` and exports them for use
+ * core game definition    la    language: z.nativeEnum(SupportedLanguages).describe("The language for the generated content (e.g., 'en', 'vi')"),guage: z.enum(['en', 'vi']).describe("The language for the generated content (e.g., 'en', 'vi')"), from `src/lib/game/definitions` and exports them for use
  * by Genkit flows and tools. This ensures the AI operates on the same a
  * single source of truth as the game engine itself.
  */
@@ -17,12 +17,27 @@ import {
     RecipeSchema,
     RecipeResultSchema,
     RecipeIngredientSchema,
-    StructureSchema,
+    StructureDefinitionSchema, // Use correct name without alias
     MultilingualTextSchema,
     CreatureDefinitionSchema,
-    allTerrains,
+    TranslatableStringSchema,
 } from '@/lib/game/definitions';
-import type { Language, TranslatableString } from '@/lib/i18n';
+
+// Get terrains from the game definitions
+import { BiomeDefinitionSchema } from '@/lib/game/definitions';
+import { LanguageEnum as Language } from '@/lib/i18n'; // Correct import and alias to Language
+import type { TranslatableString } from '@/lib/game/types';
+
+// Define supported languages
+export const SupportedLanguages = {
+    en: 'en',
+    vi: 'vi'
+} as const;
+
+// Define terrain types
+export const terrainTypes = ['forest', 'desert', 'mountain', 'plains', 'cave', 'ocean'] as const;
+export type Terrain = typeof terrainTypes[number];
+export const allTerrains = terrainTypes;
 
 // --- Re-exporting core schemas for AI use ---
 export { 
@@ -34,10 +49,11 @@ export {
     RecipeSchema,
     RecipeResultSchema,
     RecipeIngredientSchema,
-    StructureSchema,
-    CreatureDefinitionSchema
+    StructureDefinitionSchema,
+    CreatureDefinitionSchema,
+    TranslatableStringSchema
 };
-export type { Recipe }
+export type Recipe = z.infer<typeof RecipeSchema>;
 
 // === Schemas tailored for specific AI inputs/outputs ===
 
@@ -128,7 +144,7 @@ export const ChunkSchema = z.object({
     description: z.string(),
     NPCs: z.array(NpcSchema),
     items: z.array(ChunkItemSchema).describe("Items present in the chunk, with quantities and tiers."),
-    structures: z.array(StructureSchema).optional().describe("Structures present in the chunk."),
+    structures: z.array(StructureDefinitionSchema).optional().describe("Structures present in the chunk."),
     explored: z.boolean(),
     enemy: EnemySchema.nullable(),
     // These detailed attributes are now included for the AI to have full context

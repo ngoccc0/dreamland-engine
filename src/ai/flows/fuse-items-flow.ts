@@ -1,9 +1,8 @@
-
 'use server';
 /**
  * @fileOverview An AI agent for dynamically fusing items based on player experimentation.
  *
- * This flow acts as a master alchemist or forge. The core logic (rules for success,
+ * This flow acts as a master alchemist. The core logic (rules for success,
  * failure, degradation, and the resulting item's tier/category) is handled in TypeScript.
  * The AI's role is purely creative: to narrate the outcome and invent the name,
  * and description for the resulting item. It also handles rare "reality glitch" events
@@ -16,14 +15,10 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { FuseItemsInputSchema, FuseItemsOutputSchema, GeneratedItemSchema } from '@/ai/schemas';
+import { FuseItemsInputSchema, FuseItemsOutputSchema, GeneratedItemSchema, PlayerItemSchema } from '@/ai/schemas';
 import { clamp, getEmojiForItem, getTranslatedText } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 import type { GeneratedItem } from '@/lib/game/types';
-
-
-export type FuseItemsInput = z.infer<typeof FuseItemsInputSchema>;
-export type FuseItemsOutput = z.infer<typeof FuseItemsOutputSchema>;
 
 // --- The Exported Function ---
 
@@ -33,11 +28,16 @@ export type FuseItemsOutput = z.infer<typeof FuseItemsOutputSchema>;
  * @param {FuseItemsInput} input - The input containing items to fuse, player status, and environmental context.
  * @returns {Promise<FuseItemsOutput>} A promise that resolves to the fusion result, including narrative and a potential new item.
  */
+// Types for flow input and output
+export type ItemToFuse = z.infer<typeof PlayerItemSchema>;
+export type FuseItemsInput = z.infer<typeof FuseItemsInputSchema>;
+export type FuseItemsOutput = z.infer<typeof FuseItemsOutputSchema>;
+
 export async function fuseItems(input: FuseItemsInput): Promise<FuseItemsOutput> {
   logger.info('Starting fuseItems flow');
-  return fuseItemsFlow(input);
+  const result = await fuseItemsFlow(input);
+  return result;
 }
-
 
 // --- New schema for the prompt's specific input needs ---
 const FuseItemsPromptInputSchema = FuseItemsInputSchema.extend({
@@ -45,6 +45,7 @@ const FuseItemsPromptInputSchema = FuseItemsInputSchema.extend({
     glitchItem: GeneratedItemSchema.optional().describe("An item pulled from another reality during a 'realityGlitch' event. The AI must invent a narrative for its appearance."),
 });
 
+type FuseItemsPromptInput = z.infer<typeof FuseItemsPromptInputSchema>;
 
 // --- New schema for the AI's creative output ---
 const AIPartialItemSchema = GeneratedItemSchema.pick({
@@ -54,11 +55,12 @@ const AIPartialItemSchema = GeneratedItemSchema.pick({
 });
 
 const AIPromptOutputSchema = z.object({
-  outcome: z.enum(['success', 'degraded', 'totalLoss', 'realityGlitch']),
-  narrative: z.string(),
-  resultItem: AIPartialItemSchema.optional(),
+    outcome: z.enum(['success', 'degraded', 'totalLoss', 'realityGlitch']),
+    narrative: z.string(),
+    resultItem: AIPartialItemSchema.optional(),
 });
 
+type AIPromptOutput = z.infer<typeof AIPromptOutputSchema>;
 
 // --- The Genkit Prompt and Flow ---
 const fuseItemsPromptText = `You are the Spirit of the Forge, an ancient entity that governs the laws of alchemy and creation in this world. A player is attempting to fuse items. Your entire response MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
@@ -72,7 +74,7 @@ The outcome has already been decided by the laws of the world. Your task is to n
 
 **The World's Verdict:**
 - Outcome: '{{determinedOutcome}}'
-- Chaos Factor: {{environmentalModifiers.chaosFactor}}/100 (Higher means more unexpected results. Use this for creative flavor.)
+- Chaos Factor: {{environmentalContext.chaosFactor}}/100 (Higher means more unexpected results. Use this for creative flavor.)
 {{#if glitchItem}}
 - **REALITY GLITCH!** The fusion has torn a hole in reality and pulled an object from another world:
   - Glitch Item: {{json glitchItem}}
@@ -97,11 +99,12 @@ const fuseItemsFlow = ai.defineFlow(
         inputSchema: FuseItemsInputSchema,
         outputSchema: FuseItemsOutputSchema,
     },
-    async (input) => {
-        logger.info('Executing fuseItemsFlow with input', { items: input.itemsToFuse.map(i => getTranslatedText(i.name, 'en')), persona: input.playerPersona });
+    async (input: FuseItemsInput): Promise<FuseItemsOutput> => {
+        const typedInput = input;
+        logger.info('Executing fuseItemsFlow with input', { items: typedInput.itemsToFuse.map((i: ItemToFuse) => getTranslatedText(i.name, 'en')), persona: typedInput.playerPersona });
 
-        const hasTool = input.itemsToFuse.some(item => {
-            const def = input.customItemDefinitions[getTranslatedText(item.name, 'en')];
+        const hasTool = typedInput.itemsToFuse.some((item: ItemToFuse) => {
+            const def = typedInput.customItemDefinitions[getTranslatedText(item.name, 'en')];
             return def?.category === 'Tool';
         });
 
@@ -113,12 +116,12 @@ const fuseItemsFlow = ai.defineFlow(
             return {
                 outcome: 'totalLoss',
                 narrative: narrative,
-            };
+            } as FuseItemsOutput;
         }
 
         const baseChance = 50;
-        let bonus = input.environmentalModifiers.successChanceBonus;
-        if (input.playerPersona === 'artisan') bonus += 10;
+        let bonus = typedInput.environmentalModifiers.successChanceBonus;
+        if (typedInput.playerPersona === 'artisan') bonus += 10;
         const finalChance = clamp(baseChance + bonus, 5, 95);
         const roll = Math.random() * 100;
         
@@ -131,10 +134,10 @@ const fuseItemsFlow = ai.defineFlow(
         if (roll < finalChance) {
             if (roll < 5 && input.environmentalModifiers.chaosFactor > 80) { // Critical success under high chaos
                 determinedOutcome = 'realityGlitch';
-                const unspawnableItems = input.fullItemCatalog.filter(item => item.spawnEnabled === false);
+                const unspawnableItems = input.fullItemCatalog.filter((item: GeneratedItem) => item.spawnEnabled === false);
                 if (unspawnableItems.length > 0) {
                     glitchItem = unspawnableItems[Math.floor(Math.random() * unspawnableItems.length)];
-                    finalTier = glitchItem.tier;
+                    finalTier = glitchItem?.tier;
                 } else {
                     determinedOutcome = 'success'; // Fallback if no glitch items available
                 }
@@ -142,12 +145,12 @@ const fuseItemsFlow = ai.defineFlow(
                 determinedOutcome = 'success';
             }
             if (determinedOutcome === 'success') {
-                 const avgTier = input.itemsToFuse.reduce((sum, item) => sum + item.tier, 0) / input.itemsToFuse.length;
+                const avgTier = input.itemsToFuse.reduce((sum: number, item: ItemToFuse) => sum + item.tier, 0) / input.itemsToFuse.length;
                 const randomMultiplier = Math.random() * (1.5 - 0.75) + 0.75;
                 finalTier = clamp(Math.round(avgTier * randomMultiplier), 1, 6);
             }
         } else {
-            const lowestTier = Math.min(...input.itemsToFuse.map(i => i.tier));
+            const lowestTier = Math.min(...input.itemsToFuse.map((i: ItemToFuse) => i.tier));
             if (roll > 95 || lowestTier <= 1) {
                 determinedOutcome = 'totalLoss';
             } else {
@@ -158,17 +161,19 @@ const fuseItemsFlow = ai.defineFlow(
         
         logger.info('Fusion outcome determined', { outcome: determinedOutcome, tier: finalTier, glitchItem: glitchItem?.name ? getTranslatedText(glitchItem.name, 'en') : 'None' });
 
-        const promptInput = {
+        const promptInput: FuseItemsPromptInput = {
             ...input,
             determinedOutcome,
             glitchItem,
         };
         
         const { output: aiOutput } = await ai.generate({
-            model: 'openai/gpt-4o',
+            model: 'openai/gpt-4o-mini',
             prompt: fuseItemsPromptText,
-            input: promptInput,
-            output: { schema: AIPromptOutputSchema },
+            options: {
+                input: promptInput,
+                output: { schema: AIPromptOutputSchema },
+            },
         });
 
         if (!aiOutput) {
@@ -193,8 +198,8 @@ const fuseItemsFlow = ai.defineFlow(
                 emoji: getEmojiForItem(getTranslatedText(aiOutput.resultItem.name, 'en'), 'Fusion'),
                 spawnEnabled: false,
                 baseQuantity: { min: 1, max: 1 },
-            };
-             logger.info('New fused item created', { item: finalOutput.resultItem ? getTranslatedText(finalOutput.resultItem.name, 'en') : 'None' });
+            } as GeneratedItem;
+            logger.info('New fused item created', { item: finalOutput.resultItem ? getTranslatedText(finalOutput.resultItem.name, 'en') : 'None' });
         }
 
         return finalOutput;

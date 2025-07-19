@@ -6,7 +6,28 @@
  * success chance based on the quality of materials used.
  */
 
-import type { PlayerItem, Recipe, ItemDefinition, CraftingOutcome, TranslatableString } from "../types";
+import type { PlayerItem, Recipe, ItemDefinition, TranslatableString, RecipeIngredient } from "../types";
+
+export interface CraftabilityInfo {
+    score: number;  // Percentage of available ingredients (0-1)
+    missingIngredients: string[];  // Names of missing ingredients
+    availableIngredients: string[];  // Names of available ingredients
+}
+
+export interface CraftingOutcome {
+    canCraft: boolean;
+    chance: number;
+    hasRequiredTool: boolean;
+    ingredientsToConsume: { name: string; quantity: number }[];
+    resolvedIngredients: {
+        requirement: RecipeIngredient;
+        usedItem: { name: TranslatableString, tier: number };
+        isSubstitute: boolean;
+        hasEnough: boolean;
+        playerQuantity: number;
+    }[];
+    craftability?: CraftabilityInfo;
+}
 import { getTranslatedText } from "@/lib/utils";
 
 /**
@@ -33,6 +54,9 @@ export const calculateCraftingOutcome = (
     const ingredientsToConsumeMap = new Map<string, number>();
     let worstTier = 1;
     let canCraftAllIngredients = true;
+    let availableIngredientsCount = 0;
+    const missingIngredients: string[] = [];
+    const availableIngredients: string[] = [];
 
     const hasRequiredTool = !recipe.requiredTool || playerItems.some(item => getTranslatedText(item.name, 'en') === recipe.requiredTool);
 
@@ -70,6 +94,8 @@ export const calculateCraftingOutcome = (
                 hasEnough: true,
                 playerQuantity
             });
+            availableIngredientsCount++;
+            availableIngredients.push(getTranslatedText(bestAvailable.item.name, 'en'));
             worstTier = Math.max(worstTier, bestAvailable.quality);
             const consumptionKey = getTranslatedText(bestAvailable.item.name, 'en');
             const currentConsumption = ingredientsToConsumeMap.get(consumptionKey) || 0;
@@ -83,6 +109,7 @@ export const calculateCraftingOutcome = (
                 hasEnough: false,
                 playerQuantity
             });
+            missingIngredients.push(requirement.name);
         }
     }
 
@@ -92,11 +119,18 @@ export const calculateCraftingOutcome = (
     if (worstTier === 3) chance = 10;
     if (!canCraft) chance = 0;
 
+    const craftability: CraftabilityInfo = {
+        score: availableIngredientsCount / recipe.ingredients.length,
+        missingIngredients,
+        availableIngredients
+    };
+
     return {
         canCraft,
         chance,
         hasRequiredTool,
         ingredientsToConsume: Array.from(ingredientsToConsumeMap.entries()).map(([name, quantity]) => ({ name, quantity })),
-        resolvedIngredients
+        resolvedIngredients,
+        craftability
     };
 };

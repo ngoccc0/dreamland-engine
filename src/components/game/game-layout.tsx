@@ -22,7 +22,7 @@ import { Progress } from "@/components/ui/progress";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/context/language-context";
 import { useGameEngine } from "@/hooks/use-game-engine";
-import type { ItemDefinition, GeneratedItem, WorldConcept, PlayerItem, GameState, Structure, Chunk, EquipmentSlot, Action } from "@/lib/game/types";
+import type { PlayerItem, Recipe, ItemDefinition, Chunk, CraftingOutcome } from "@/lib/game/types";
 import { cn, getTranslatedText } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
 import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Heart, Zap, Footprints, Loader2, Menu, LogOut } from "./icons";
@@ -106,25 +106,45 @@ export default function GameLayout(props: GameLayoutProps) {
         }
     }, []);
 
-    const generateMapGrid = useCallback((): (Chunk | null)[][] => {
+    const generateMapGrid = useCallback(() => {
         if (!isLoaded || !finalWorldSetup) {
             logger.warn("[GameLayout] Grid generation SKIPPED. isLoaded:", isLoaded, "| finalWorldSetup exists:", !!finalWorldSetup);
             return [];
         }
-        const radius = 2; // 5x5 grid
-        const size = radius * 2 + 1;
-        const grid: (Chunk | null)[][] = Array.from({ length: size }, () => Array(size).fill(null));
+        
+        // Calculate visibility grid size (3x3 around player)
+        const visibilityRadius = 1; // 3x3 grid for direct visibility
+        // Calculate total grid size (5x5 for minimap display, but with visibility rules)
+        const displayRadius = 2; // 5x5 grid for display
+        const size = displayRadius * 2 + 1;
+        const grid = Array.from({ length: size }, () => Array(size).fill(null));
 
         for (let gy = 0; gy < size; gy++) {
             for (let gx = 0; gx < size; gx++) {
-                const wx = playerPosition.x - radius + gx;
-                const wy = playerPosition.y + radius - gy;
+                const wx = playerPosition.x - displayRadius + gx;
+                const wy = playerPosition.y + displayRadius - gy;
                 const chunkKey = `${wx},${wy}`;
-                grid[gy][gx] = world[chunkKey] || null;
+                
+                // Check if this chunk is within the 3x3 visibility radius
+                const chunk = world[chunkKey];
+                if (chunk) {
+                    const distanceFromPlayer = Math.max(
+                        Math.abs(wx - playerPosition.x),
+                        Math.abs(wy - playerPosition.y)
+                    );
+                    
+                    // Mark chunks within visibility radius as explored
+                    if (distanceFromPlayer <= visibilityRadius) {
+                        chunk.explored = true;
+                        chunk.lastVisited = turn;
+                    }
+                }
+
+                grid[gy][gx] = chunk;
             }
         }
         return grid;
-    }, [world, playerPosition.x, playerPosition.y, finalWorldSetup, isLoaded]);
+    }, [world, playerPosition.x, playerPosition.y, finalWorldSetup, isLoaded, turn]);
     
     const restingPlace = currentChunk?.structures?.find(s => s.restEffect);
     

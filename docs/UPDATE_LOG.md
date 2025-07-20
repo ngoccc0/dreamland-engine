@@ -3,6 +3,81 @@
 Chào mừng các Đội trưởng và những người đồng hành đến với nhật ký phát triển chính thức của Dreamland Engine! Tại đây, chúng tôi sẽ ghi lại những thay đổi, nâng cấp và cả những quyết định thiết kế quan trọng đã định hình nên thế giới này.
 ---
 
+## **Bản cập nhật v0.6.0 - "Nhà Thám Hiểm" (20/07/2025)**
+
+*Tên mã: The Explorer's Codex*
+
+### 🌟 **Giới thiệu Hệ thống Khám Phá (Exploration System)**
+
+Bản cập nhật này giới thiệu một hệ thống khám phá hoàn toàn mới, biến việc khám phá thế giới từ một hoạt động đơn giản thành một hệ thống sâu sắc với nhiều chiều.
+
+### ✨ **Tính năng mới**
+
+1. **Hệ thống Khám Phá & Phát Hiện:**
+   - **Các loại Phát hiện (Discovery Types):**
+     - `LANDMARK`: Địa điểm đặc biệt
+     - `RESOURCE`: Tài nguyên quý hiếm
+     - `SETTLEMENT`: Khu định cư
+     - `DUNGEON`: Hầm ngục
+     - `ARTIFACT`: Di tích cổ
+     - `SECRET`: Bí mật ẩn
+
+   - **Độ Khó Khám Phá (5 cấp độ):**
+     - `EASY`: Dễ tìm và ít nguy hiểm
+     - `NORMAL`: Cân bằng giữa rủi ro và phần thưởng
+     - `HARD`: Yêu cầu kỹ năng và chuẩn bị kỹ
+     - `EXTREME`: Cực kỳ nguy hiểm, phần thưởng lớn
+     - `LEGENDARY`: Hiếm gặp, phần thưởng độc nhất
+
+2. **Hệ thống Kỹ năng Khám Phá:**
+   - **4 Kỹ năng chuyên biệt:**
+     - `Tracking`: Theo dấu và tìm đường
+     - `Survival`: Sinh tồn trong môi trường khắc nghiệt
+     - `Archaeology`: Nghiên cứu di tích và đồ cổ
+     - `Naturalism`: Hiểu biết về thực vật và động vật
+
+   - **Cơ chế Phát triển Kỹ năng:**
+     - Mỗi phát hiện tăng điểm kinh nghiệm cho kỹ năng tương ứng
+     - Kỹ năng cao hơn = Cơ hội phát hiện tốt hơn (+5% mỗi cấp)
+     - Hệ thống level up với độ khó tăng dần (1.5x mỗi cấp)
+
+3. **Hệ thống Phần thưởng:**
+   - **Điểm Khám Phá (Exploration Points):**
+     - Landmark: 50 điểm
+     - Resource: 30 điểm
+     - Settlement: 100 điểm
+     - Dungeon: 150 điểm
+     - Artifact: 200 điểm
+     - Secret: 250 điểm
+
+   - **Kinh nghiệm (XP) theo độ khó:**
+     - Phần thưởng cơ bản: 50-300 XP
+     - Nhân hệ số theo độ khó (1x - 5x)
+     - Bonus XP cho first-time discoveries
+
+4. **Cơ chế Khám Phá Thông minh:**
+   - **Hệ thống Xác suất Động:**
+     - Cơ hội phát hiện dựa trên thuộc tính ô đất
+     - Giảm xác suất khi nhiều ô lân cận đã khám phá
+     - Tác động của kỹ năng người chơi
+   
+   - **Tích hợp với Môi trường:**
+     - Ảnh hưởng của thời tiết và thời gian
+     - Độ nguy hiểm và khả năng khám phá của địa hình
+     - Sự hiện diện của sinh vật và dấu vết con người
+
+### 🎮 **Ảnh hưởng đến Gameplay**
+
+- **Chiều sâu Chiến thuật:** Người chơi phải cân nhắc giữa rủi ro và phần thưởng
+- **Progression có ý nghĩa:** Hệ thống kỹ năng cho phép nhiều playstyle khác nhau
+- **Tương tác Phong phú:** Mỗi vùng đất có đặc tính và bí mật riêng
+- **Replayability:** Hệ thống ngẫu nhiên thông minh tạo trải nghiệm mới mỗi lần chơi
+
+### 🛠️ **Cải tiến Kỹ thuật**
+- Tối ưu hóa thuật toán sinh phát hiện
+- Cache thông minh cho các tính toán phức tạp
+- Hệ thống lưu trữ tiến độ khám phá hiệu quả
+
 ## **Bản cập nhật chính :v0.5 - "Demo bắt đầu 🤩🔥" (19/07/2025)**
 Cuối cùng cũng sửa được phần lớn các lỗi và có thể bắt đầu chạy demo.
 ### **Tính năng mới:**

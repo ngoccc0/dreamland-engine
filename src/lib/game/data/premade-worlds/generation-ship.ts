@@ -9,7 +9,7 @@ import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
 import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
 
 const items: GeneratedItem[] = [
-    { id: 'maintenance_wrench', name: { en: 'Maintenance Wrench', vi: 'Cờ lê Bảo trì' }, description: { en: 'A heavy, all-purpose wrench. Can be used for repairs or for cracking skulls.', vi: 'Một chiếc cờ lê nặng, đa năng. Có thể dùng để sửa chữa hoặc để đập đầu.' }, emoji: '🔧', category: 'Weapon', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, equipmentSlot: 'weapon', attributes: { physicalAttack: 3 }, spawnEnabled: false },
+    { id: 'maintenance_wrench', name: { en: 'Maintenance Wrench', vi: 'Cờ lê Bảo trì' }, description: { en: 'A heavy, all-purpose wrench. Can be used for repairs or for cracking skulls.', vi: 'Một chiếc cờ lê nặng, đa năng. Có thể dùng để sửa chữa hoặc để đập đầu.' }, emoji: '🔧', category: 'Weapon', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, equipmentSlot: 'weapon', attributes: { physicalAttack: 3, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 }, spawnEnabled: false },
     { id: 'keycard_level_1', name: { en: 'Keycard Level 1', vi: 'Thẻ khóa Cấp 1' }, description: { en: 'A standard issue keycard. Grants access to common areas.', vi: 'Một thẻ khóa tiêu chuẩn. Cấp quyền truy cập vào các khu vực chung.' }, emoji: '💳', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
     { id: 'nutrient_paste', name: { en: 'Nutrient Paste', vi: 'Bột Dinh dưỡng' }, description: { en: 'A tube of beige paste. Tasteless, but provides all necessary nutrients.', vi: 'Một tuýp bột nhão màu be. Vô vị, nhưng cung cấp tất cả các chất dinh dưỡng cần thiết.' }, emoji: '🧪', category: 'Food', tier: 1, effects: [{ type: 'RESTORE_STAMINA', amount: 20 }, { type: 'RESTORE_MANA', amount: 5 }], baseQuantity: { min: 2, max: 4 }, spawnEnabled: false },
     { id: 'engineers_log', name: { en: "Engineer's Log", vi: 'Nhật ký Kỹ sư' }, description: { en: 'A datapad containing the last log of a ship\'s engineer. It mentions strange readings from the AI core.', vi: 'Một máy tính bảng chứa nhật ký cuối cùng của một kỹ sư trên tàu. Nó đề cập đến những chỉ số kỳ lạ từ lõi AI.' }, emoji: '📋', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
@@ -28,12 +28,12 @@ const skill2: Skill = { name: { en: 'Fireball', vi: 'Quả cầu lửa' }, descr
 const concepts: WorldConcept[] = [
     {
         worldName: "worldName_theWanderer", initialNarrative: 'genship_narrative1', startingBiome: 'space_station',
-        playerInventory: [ { name: "Maintenance Wrench", quantity: 1 }, { name: "Nutrient Paste", quantity: 2 } ],
+        playerInventory: [ { name: { en: "Maintenance Wrench", vi: 'Cờ lê Bảo trì' }, quantity: 1, tier: 1, emoji: '🔧' }, { name: { en: "Nutrient Paste", vi: 'Bột Dinh dưỡng' }, quantity: 2, tier: 1, emoji: '🧪' } ],
         initialQuests: [ 'genship_quest1', 'genship_quest2' ], startingSkill: skill1, customStructures: structures
     },
     {
         worldName: "worldName_theWanderer", initialNarrative: 'genship_narrative1', startingBiome: 'space_station',
-        playerInventory: [ { name: "Engineer's Log", quantity: 1 }, { name: "Keycard Level 1", quantity: 1 } ],
+        playerInventory: [ { name: { en: "Engineer's Log", vi: 'Nhật ký Kỹ sư' }, quantity: 1, tier: 1, emoji: '📋' }, { name: { en: "Keycard Level 1", vi: 'Thẻ khóa Cấp 1' }, quantity: 1, tier: 1, emoji: '💳' } ],
         initialQuests: [ 'genship_quest3', 'genship_quest4' ], startingSkill: skill2, customStructures: structures
     },
 ];

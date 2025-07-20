@@ -20,13 +20,20 @@ import {
     StructureDefinitionSchema, // Use correct name without alias
     MultilingualTextSchema,
     CreatureDefinitionSchema,
-    TranslatableStringSchema,
+    TranslatableStringSchema
 } from '@/lib/game/definitions';
 
 // Get terrains from the game definitions
 import { BiomeDefinitionSchema } from '@/lib/game/definitions';
 import { LanguageEnum as Language } from '@/lib/i18n'; // Correct import and alias to Language
-import type { TranslatableString } from '@/lib/game/types';
+import type { TranslatableString, SoilType } from '@/lib/game/types';
+import { allTerrains, SoilTypeEnum } from '@/lib/game/types'; // Import allTerrains and SoilTypeEnum
+
+export const PlayerLevelSchema = z.object({
+  level: z.number().int().min(1).max(100).default(1).describe("The player's current level."),
+  experience: z.number().int().min(0).default(0).describe("The player's current experience points."),
+});
+export type PlayerLevel = z.infer<typeof PlayerLevelSchema>;
 
 // Define supported languages
 export const SupportedLanguages = {
@@ -34,10 +41,9 @@ export const SupportedLanguages = {
     vi: 'vi'
 } as const;
 
-// Define terrain types
-export const terrainTypes = ['forest', 'desert', 'mountain', 'plains', 'cave', 'ocean'] as const;
-export type Terrain = typeof terrainTypes[number];
-export const allTerrains = terrainTypes;
+// Define terrain types (already defined in types.ts, re-exporting for consistency)
+export type Terrain = typeof allTerrains[number];
+export const terrainTypes = allTerrains; // Use the array from types.ts
 
 // --- Re-exporting core schemas for AI use ---
 export { 
@@ -52,8 +58,25 @@ export {
     StructureDefinitionSchema,
     CreatureDefinitionSchema,
     TranslatableStringSchema
+    // RecipeUnlockConditionSchema removed from here
 };
 export type Recipe = z.infer<typeof RecipeSchema>;
+
+export const RecipeUnlockConditionSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("playerLevel"), level: z.number().int().min(1).max(100).describe("The required player level.") }),
+  z.object({ type: z.literal("questCompletion"), questId: z.string().describe("The ID of the quest that must be completed.") }),
+  z.object({ type: z.literal("actionRepetition"), action: z.string().describe("The action to repeat."), count: z.number().int().min(1).describe("The number of times the action must be repeated.") }),
+  z.object({ type: z.literal("itemPossession"), itemId: z.string().describe("The ID of the item that must be in the player's inventory.") }),
+  z.object({ type: z.literal("locationDiscovery"), locationId: z.string().describe("The ID of the location that must be discovered.") }),
+  z.object({ type: z.literal("enemyDefeat"), enemyType: z.string().describe("The type of enemy that must be defeated."), count: z.number().int().min(1).describe("The number of enemies that must be defeated.") }),
+  z.object({ type: z.literal("playerStatThreshold"), stat: z.enum(["hp", "mana", "stamina", "strength", "intelligence", "dexterity", "luck"]).describe("The stat to check."), threshold: z.number().describe("The required stat value.") }),
+  z.object({ type: z.literal("purchaseFromVendor"), vendorId: z.string().describe("The ID of the vendor that the recipe must be purchased from.") }),
+  z.object({ type: z.literal("puzzleSolving"), puzzleId: z.string().describe("The ID of the puzzle that must be solved.") }),
+  z.object({ type: z.literal("timeCycle"), time: z.enum(["day", "night"]).describe("The required time of day.") }),
+  z.object({ type: z.literal("itemDisintegration"), itemId: z.string().describe("The ID of the item that must be disintegrated.") }),
+  z.object({ type: z.literal("professionTier"), profession: z.string().describe("The profession to check."), tier: z.number().int().min(1).describe("The required profession tier.") }),
+]);
+export type RecipeUnlockCondition = z.infer<typeof RecipeUnlockConditionSchema>;
 
 // === Schemas tailored for specific AI inputs/outputs ===
 
@@ -74,7 +97,7 @@ export const PetSchema = z.object({
 export type Pet = z.infer<typeof PetSchema>;
 
 export const SkillSchema = z.object({
-    name: z.custom<TranslatableString>().describe("The name of the skill."),
+    name: z.custom<TranslatableString>(),
     description: z.custom<TranslatableString>().describe("A brief description of what the skill does."),
     tier: z.number().describe("The tier of the skill, from 1 (basic) to higher tiers (advanced)."),
     manaCost: z.number().describe("The amount of mana required to use the skill."),
@@ -82,7 +105,7 @@ export const SkillSchema = z.object({
         type: z.enum(['HEAL', 'DAMAGE', 'TELEPORT']).describe("The type of effect."),
         amount: z.number().describe("The amount of healing or damage."),
         target: z.enum(['SELF', 'ENEMY']).describe("Who the skill affects."),
-        healRatio: z.number().optional().describe("For damaging skills, the percentage of damage dealt that is returned as health to the caster."),
+        healRatio: z.number().optional().describe("The player's level and experience points."),
     }),
     unlockCondition: z.object({
         type: z.enum(['kills', 'damageSpells', 'moves']),
@@ -94,7 +117,7 @@ export const PlayerStatusSchema = z.object({
     hp: z.number(),
     mana: z.number(),
     stamina: z.number().describe("Player's stamina, used for physical actions."),
-    items: z.array(PlayerItemSchema).describe("Player's inventory with item names, quantities, and tiers."),
+    items: z.array(PlayerItemSchema).describe("Player's inventory with item names, quantities and tiers."),
     equipment: z.object({ 
         weapon: PlayerItemSchema.nullable().optional(), 
         armor: PlayerItemSchema.nullable().optional(), 
@@ -115,6 +138,7 @@ export const PlayerStatusSchema = z.object({
     dailyActionLog: z.array(z.string()).optional().describe("A log of player actions taken during the current day, used for journaling."),
     questHints: z.record(z.string()).optional().describe("A map of quest texts to their AI-generated hints."),
     language: z.enum(['en', 'vi']).optional().describe("The player's current language preference."),
+    playerLevel: PlayerLevelSchema.describe("The player's level and experience points."),
 });
 
 export const EnemySchema = CreatureDefinitionSchema.pick({
@@ -130,7 +154,7 @@ export const ChunkItemSchema = z.object({
 });
 
 export const NpcSchema = z.object({
-    name: z.custom<TranslatableString>().describe("The full name of the NPC."),
+    name: z.custom<TranslatableString>(),
     description: z.custom<TranslatableString>().describe("A brief physical and personality description of the NPC."),
     dialogueSeed: z.custom<TranslatableString>().describe("A sentence that captures their personality and current mood, to be used by the AI as a basis for generating dialogue. E.g., 'A grizzled hunter, tired but watchful, who speaks in short, clipped sentences.'"),
 });
@@ -155,6 +179,7 @@ export const ChunkSchema = z.object({
     dangerLevel: z.number(),
     magicAffinity: z.number(),
     humanPresence: z.number(),
+    soilType: SoilTypeEnum.describe("The type of soil in the chunk."),
     predatorPresence: z.number(),
     temperature: z.number().optional(), // Now optional to handle dynamic calculation
     windLevel: z.number().optional(),   // Now optional to handle dynamic calculation
@@ -205,6 +230,7 @@ export const ProvideQuestHintInputSchema = z.object({
 // Output for provide-quest-hint flow
 export const ProvideQuestHintOutputSchema = z.object({
     hint: z.string().describe("A single, short, helpful (but not spoiler-heavy) hint for the quest."),
+    language: z.nativeEnum(Language).describe("The language for the generated content (e.g., 'en', 'vi')."),
 });
 
 // Input for fuse-items flow
@@ -230,20 +256,20 @@ export const FuseItemsInputSchema = z.object({
 
 // Output for fuse-items flow
 export const FuseItemsOutputSchema = z.object({
-  outcome: z.enum(['success', 'degraded', 'totalLoss', 'realityGlitch']).describe("The outcome of the fusion: 'success' creates a better item, 'degraded' creates a lower-tier item, 'totalLoss' destroys the items, 'realityGlitch' creates an item from another world."),
+  outcome: z.enum(['success', 'degraded', 'totalLoss', 'realityGlitch']).describe("The outcome of the fusion: 'success' creates a better item, 'degraded' creates a lower-tier item, totalLoss' creates an item from another world."),
   narrative: z.string().describe("A narrative description of the fusion process and its outcome."),
   resultItem: GeneratedItemSchema.optional().describe("The new item created, either on 'success', 'degraded', or 'realityGlitch' outcome."),
 });
 
 // Input for generate-journal-entry flow
 export const GenerateJournalEntryInputSchema = z.object({
-  dailyActionLog: z.array(z.string()).describe("A list of actions the player took today."),
-  playerPersona: PlayerStatusSchema.shape.persona,
-  worldName: z.string().describe("The name of the world for thematic context."),
-  language: z.nativeEnum(Language).describe("The language for the generated content (e.g., 'en', 'vi')."),
+    dailyActionLog: z.array(z.string()).describe("A list of actions the player took today."),
+    playerPersona: PlayerStatusSchema.shape.persona,
+    worldName: z.string().describe("The name of the world for thematic context."),
+    language: z.nativeEnum(Language).describe("The language for the generated content (e.g., 'en', 'vi')."),
 });
 
 // Output for generate-journal-entry flow
 export const GenerateJournalEntryOutputSchema = z.object({
-  journalEntry: z.string().describe("A reflective, first-person journal entry summarizing the day's events."),
+    journalEntry: z.string().describe("A reflective, first-person journal entry summarizing the day's events."),
 });

@@ -1,4 +1,8 @@
 
+import { type TranslatableString, type TranslationObject } from '@/core/types/i18n';
+import type { Language } from '@/core/types/i18n';
+import { z } from 'zod';
+
 import type {
     ItemEffect,
     WeatherDefinition,
@@ -15,9 +19,6 @@ import type {
     Recipe,
     StructureDefinition
 } from "./definitions";
-import { z } from 'zod';
-import { Language } from "../i18n";
-
 
 // Re-export for easier access elsewhere
 export type { 
@@ -34,13 +35,12 @@ export type {
 };
 export { TranslatableStringSchema } from "./definitions";
 
-// --- CORE TYPES ---
-export type { Language };
-export type TranslationKey = string;
-export type TranslatableString = string | { [key in Language]?: string };
+// Re-export core types
+export type { Language, TranslatableString, TranslationObject };
 
 // --- TERRAIN TYPES ---
 export type SoilType = 'rocky' | 'sandy' | 'fertile' | 'clay' | 'loamy' | 'volcanic' | 'peaty' | 'silty' | 'chalky';
+export const SoilTypeEnum = z.enum(['rocky', 'sandy', 'fertile', 'clay', 'loamy', 'volcanic', 'peaty', 'silty', 'chalky']);
 
 export interface CraftabilityInfo {
   score: number;  // Percentage of available ingredients (0-1)
@@ -303,6 +303,8 @@ export interface World {
 }
 
 export interface PlayerStatus {
+    level: number;
+    experience: number;
     hp: number;
     mana: number;
     stamina: number;
@@ -402,6 +404,12 @@ export interface EnemySpawn {
 /**
  * @description Defines the output of a crafting calculation.
  */
+export const ExpCurve = [
+  { level: 20, increase: 0.25 }, // Levels 1-20: 25% increase
+  { level: 60, increase: 0.15 }, // Levels 21-60: 15% increase
+  { level: 100, increase: 0.05 }, // Levels 61-100: 5% increase
+];
+
 export interface CraftingOutcome {
     canCraft: boolean;
     chance: number;

@@ -13,7 +13,7 @@ const frozenWastelandItems: GeneratedItem[] = [
     { id: 'canned_hot_soup', name: { en: 'Canned Hot Soup', vi: 'Súp Nóng Đóng Hộp' }, description: { en: 'A self-heating can of soup. A warm meal is a luxury in this frozen world.', vi: 'Một hộp súp tự hâm nóng. Một bữa ăn ấm áp là một thứ xa xỉ trong thế giới băng giá này.' }, emoji: '🥫', category: 'Food', tier: 2, effects: [{ type: 'RESTORE_STAMINA', amount: 40 }], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
     { id: 'satellite_debris', name: { en: 'Satellite Debris', vi: 'Mảnh Vỡ Vệ Tinh' }, description: { en: 'A twisted piece of metal from a fallen satellite. Might contain advanced components.', vi: 'Một mảnh kim loại bị xoắn từ một vệ tinh rơi. Có thể chứa các thành phần tiên tiến.' }, emoji: '🛰️', category: 'Material', tier: 4, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
     { id: 'survivors_diary', name: { en: "Survivor's Diary", vi: 'Nhật Ký Của Người Sống Sót' }, description: { en: "A weathered journal. Its pages detail the struggles of someone who came before.", vi: 'Một cuốn nhật ký cũ kỹ. Các trang của nó chi tiết về cuộc đấu tranh của một người nào đó đã đến trước.' }, emoji: '📔', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
-    { id: 'makeshift_ice_axe', name: { en: 'Makeshift Ice Axe', vi: 'Rìu Băng Tự Chế' }, description: { en: 'A crude axe made from sharpened scrap metal, useful for climbing and defense.', vi: 'Một chiếc rìu thô sơ làm từ phế liệu kim loại được mài sắc, hữu ích cho việc leo trèo và phòng thủ.' }, emoji: '⛏️', category: 'Weapon', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, attributes: { physicalAttack: 4, critChance: 1 }, equipmentSlot: 'weapon', spawnEnabled: false },
+    { id: 'makeshift_ice_axe', name: { en: 'Makeshift Ice Axe', vi: 'Rìu Băng Tự Chế' }, description: { en: 'A crude axe made from sharpened scrap metal, useful for climbing and defense.', vi: 'Một chiếc rìu thô sơ làm từ phế liệu kim loại được mài sắc, hữu ích cho việc leo trèo và phòng thủ.' }, emoji: '⛏️', category: 'Weapon', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, attributes: { physicalAttack: 4, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 1, attackSpeed: 0, cooldownReduction: 0 }, equipmentSlot: 'weapon', spawnEnabled: false },
 ];
 
 const frozenWastelandStructures: Structure[] = [
@@ -26,7 +26,7 @@ const startingSkill: Skill = { name: { en: 'Heal', vi: 'Chữa lành' }, descrip
 const frozenWastelandConcepts: WorldConcept[] = [
     {
         worldName: "worldName_frostedWreckage", initialNarrative: 'frozen_narrative1', startingBiome: 'tundra',
-        playerInventory: [ { name: "Makeshift Ice Axe", quantity: 1 }, { name: "Canned Hot Soup", quantity: 1 } ],
+        playerInventory: [ { name: { en: "Makeshift Ice Axe", vi: 'Rìu Băng Tự Chế' }, quantity: 1, tier: 1, emoji: '⛏️' }, { name: { en: "Canned Hot Soup", vi: 'Súp Nóng Đóng Hộp' }, quantity: 1, tier: 2, emoji: '🥫' } ],
         initialQuests: [ 'frozen_quest1', 'frozen_quest2' ], startingSkill: startingSkill, customStructures: frozenWastelandStructures, customItemCatalog: frozenWastelandItems
     },
 ];

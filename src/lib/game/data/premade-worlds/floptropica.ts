@@ -9,7 +9,7 @@ import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
 import type { GeneratedItem, Structure, Skill, WorldConcept, ItemDefinition } from '@/lib/game/types';
 
 const floptropicaItems: GeneratedItem[] = [
-    { id: 'jiafeis_pan', name: { en: "Jiafei's Pan", vi: 'Chảo của Jiafei' }, description: { en: "A versatile pan, perfect for cooking up... products.", vi: 'Một chiếc chảo đa năng, hoàn hảo để nấu... các sản phẩm.' }, emoji: '🍳', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, attributes: { physicalAttack: 5, critChance: 2 }, equipmentSlot: 'weapon', spawnEnabled: false },
+    { id: 'jiafeis_pan', name: { en: "Jiafei's Pan", vi: 'Chảo của Jiafei' }, description: { en: "A versatile pan, perfect for cooking up... products.", vi: 'Một chiếc chảo đa năng, hoàn hảo để nấu... các sản phẩm.' }, emoji: '🍳', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, attributes: { physicalAttack: 5, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 2, attackSpeed: 0, cooldownReduction: 0 }, equipmentSlot: 'weapon', spawnEnabled: false },
     { id: 'stan_twitter_thread', name: { en: 'Stan Twitter Thread', vi: 'Chủ đề Stan Twitter' }, description: { en: "A printout of a legendary thread. The arguments are incomprehensible, but the passion is palpable.", vi: 'Một bản in của một chủ đề huyền thoại. Các lập luận không thể hiểu được, nhưng niềm đam mê thì có thể cảm nhận được.' }, emoji: '📜', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
     { id: 'cupcakkes_remix', name: { en: "CupcakKe's Remix", vi: 'Bản Remix của CupcakKe' }, description: { en: 'An MP3 player containing a powerful bass-boosted remix. Restores fighting spirit.', vi: 'Một máy nghe nhạc MP3 chứa một bản remix tăng cường âm trầm mạnh mẽ. Phục hồi tinh thần chiến đấu.' }, emoji: '🎶', category: 'Support', tier: 3, effects: [{ type: 'RESTORE_STAMINA', amount: 50 }], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
     { id: 'yass_pill', name: { en: 'Yass Pill', vi: 'Viên Yass' }, description: { en: 'A mysterious, glittery pill that makes you feel fabulous and restores some health.', vi: 'Một viên thuốc bí ẩn, lấp lánh giúp bạn cảm thấy tuyệt vời và phục hồi một ít máu.' }, emoji: '💊', category: 'Support', tier: 2, effects: [{ type: 'HEAL', amount: 30 }], baseQuantity: { min: 2, max: 2 }, spawnEnabled: false },
@@ -30,17 +30,17 @@ const skill3: Skill = { name: { en: 'Life Siphon', vi: 'Hút sinh lực' }, desc
 const floptropicaConcepts: WorldConcept[] = [
     {
         worldName: "worldName_floptropica", initialNarrative: "floptropica_narrative1", startingBiome: 'floptropica',
-        playerInventory: [ { name: "Jiafei's Pan", quantity: 1 }, { name: "Stan Twitter Thread", quantity: 1 } ],
+        playerInventory: [ { name: { en: "Jiafei's Pan", vi: 'Chảo của Jiafei' }, quantity: 1, tier: 2, emoji: '🍳' }, { name: { en: "Stan Twitter Thread", vi: 'Chủ đề Stan Twitter' }, quantity: 1, tier: 1, emoji: '📜' } ],
         initialQuests: [ "floptropica_quest1", "floptropica_quest2" ], startingSkill: skill1, customStructures: floptropicaStructures
     },
     {
         worldName: "worldName_onikaKingdom", initialNarrative: "floptropica_narrative2", startingBiome: 'floptropica',
-        playerInventory: [ { name: "CupcakKe's Remix", quantity: 1 }, { name: "Onika Burger Coupon", quantity: 1 } ],
+        playerInventory: [ { name: { en: "CupcakKe's Remix", vi: 'Bản Remix của CupcakKe' }, quantity: 1, tier: 3, emoji: '🎶' }, { name: { en: "Onika Burger Coupon", vi: 'Phiếu giảm giá Onika Burger' }, quantity: 1, tier: 1, emoji: '🎟️' } ],
         initialQuests: [ "floptropica_quest3", "floptropica_quest4" ], startingSkill: skill2, customStructures: floptropicaStructures
     },
     {
         worldName: "worldName_badBussyWasteland", initialNarrative: "floptropica_narrative3", startingBiome: 'floptropica',
-        playerInventory: [ { name: "Jiafei's Pan", quantity: 1 }, { name: "Yass Pill", quantity: 2 } ],
+        playerInventory: [ { name: { en: "Jiafei's Pan", vi: 'Chảo của Jiafei' }, quantity: 1, tier: 2, emoji: '🍳' }, { name: { en: "Yass Pill", vi: 'Viên Yass' }, quantity: 2, tier: 2, emoji: '💊' } ],
         initialQuests: [ "floptropica_quest5", "floptropica_quest6" ], startingSkill: skill3, customStructures: floptropicaStructures
     }
 ];

@@ -9,11 +9,11 @@ import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
 import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
 
 const mageAcademyItems: GeneratedItem[] = [
-    { id: 'student_wand', name: { en: "Student's Wand", vi: 'Đũa Phép Của Học Viên' }, description: { en: 'A standard-issue wand for apprentices at the academy. Simple, but reliable.', vi: 'Một cây đũa phép tiêu chuẩn cho các pháp sư tập sự tại học viện. Đơn giản nhưng đáng tin cậy.' }, emoji: '🪄', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, equipmentSlot: 'weapon', attributes: { magicalAttack: 5 }, spawnEnabled: false },
+    { id: 'student_wand', name: { en: "Student's Wand", vi: 'Đũa Phép Của Học Viên' }, description: { en: 'A standard-issue wand for apprentices at the academy. Simple, but reliable.', vi: 'Một cây đũa phép tiêu chuẩn cho các pháp sư tập sự tại học viện. Đơn giản nhưng đáng tin cậy.' }, emoji: '🪄', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, equipmentSlot: 'weapon', attributes: { physicalAttack: 0, magicalAttack: 5, physicalDefense: 0, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 }, spawnEnabled: false },
     { id: 'tome_of_cantrips', name: { en: 'Tome of Cantrips', vi: 'Sách Phép Cơ Bản' }, description: { en: 'A textbook containing basic, foundational spells.', vi: 'Một cuốn sách giáo khoa chứa các phép thuật cơ bản, nền tảng.' }, emoji: '📕', category: 'Data', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },
     { id: 'floatstone', name: { en: 'Floatstone', vi: 'Đá Bay' }, description: { en: 'A lightweight rock that hums with anti-gravitational energy.', vi: 'Một tảng đá nhẹ phát ra năng lượng chống trọng lực.' }, emoji: '☁️', category: 'Material', tier: 3, effects: [], baseQuantity: { min: 1, max: 3 }, spawnEnabled: false },
     { id: 'stardust', name: { en: 'Stardust', vi: 'Bụi Sao' }, description: { en: 'Shimmering dust collected from cosmic winds. A potent magical catalyst.', vi: 'Bụi lung linh được thu thập từ gió vũ trụ. Một chất xúc tác ma thuật mạnh mẽ.' }, emoji: '✨', category: 'Magic', tier: 4, effects: [], baseQuantity: { min: 1, max: 2 }, spawnEnabled: false },
-    { id: 'academy_robe', name: { en: 'Academy Robe', vi: 'Áo Choàng Học Viện' }, description: { en: 'A simple robe worn by students, enchanted to aid in focus.', vi: 'Một chiếc áo choàng đơn giản được học sinh mặc, được phù phép để hỗ trợ sự tập trung.' }, emoji: '🥋', category: 'Armor', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, equipmentSlot: 'armor', attributes: { cooldownReduction: 5 }, spawnEnabled: false },
+    { id: 'academy_robe', name: { en: 'Academy Robe', vi: 'Áo Choàng Học Viện' }, description: { en: 'A simple robe worn by students, enchanted to aid in focus.', vi: 'Một chiếc áo choàng đơn giản được học sinh mặc, được phù phép để hỗ trợ sự tập trung.' }, emoji: '🥋', category: 'Armor', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, equipmentSlot: 'armor', attributes: { physicalAttack: 0, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 5 }, spawnEnabled: false },
 ];
 
 const mageAcademyStructures: Structure[] = [
@@ -27,7 +27,7 @@ const startingSkill: Skill = { name: { en: 'Fireball', vi: 'Quả cầu lửa' }
 const mageAcademyConcepts: WorldConcept[] = [
     {
         worldName: "worldName_driftingAcademy", initialNarrative: 'mage_narrative1', startingBiome: 'mountain', // Simulate floating island
-        playerInventory: [ { name: "Student's Wand", quantity: 1 }, { name: "Tome of Cantrips", quantity: 1 } ],
+        playerInventory: [ { name: { en: "Student's Wand", vi: 'Đũa Phép Của Học Viên' }, quantity: 1, tier: 2, emoji: '🪄' }, { name: { en: "Tome of Cantrips", vi: 'Sách Phép Cơ Bản' }, quantity: 1, tier: 1, emoji: '📕' } ],
         initialQuests: [ 'mage_quest1', 'mage_quest2' ], startingSkill: startingSkill, customStructures: mageAcademyStructures, customItemCatalog: mageAcademyItems
     },
 ];

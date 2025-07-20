@@ -13,10 +13,16 @@ export const MultilingualTextSchema = z.object({
 export type MultilingualText = z.infer<typeof MultilingualTextSchema>;
 
 /**
- * @description A schema that can be either a translation key (string) or a direct multilingual object.
- * This provides flexibility for static UI text vs. dynamic game data.
+ * @description A schema that can be either a translation key (string) or a translation object with params.
+ * This provides flexibility for static UI text vs. dynamic game data with variables.
  */
-export const TranslatableStringSchema = z.union([z.string(), MultilingualTextSchema]);
+export const TranslatableStringSchema = z.union([
+    z.string(),
+    z.object({
+        key: z.string(),
+        params: z.record(z.union([z.string(), z.number()])).optional(),
+    })
+]);
 
 /**
  * @description A schema for defining a range for environmental conditions, e.g., `{ min: 5, max: 8 }`.

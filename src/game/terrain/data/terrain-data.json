@@ -1,0 +1,31 @@
+{
+    "terrains": [
+        {
+            "id": "forest",
+            "name": "Forest",
+            "baseAttributes": {
+                "vegetationDensity": 80,
+                "elevation": 100,
+                "temperature": 20,
+                "moisture": 60
+            },
+            "features": [
+                {
+                    "id": "dense_trees",
+                    "name": "Dense Trees",
+                    "description": "Thick forest canopy providing shade and resources",
+                    "attributeModifiers": {
+                        "lightLevel": -20,
+                        "windLevel": -30,
+                        "travelCost": 2
+                    }
+                }
+            ],
+            "metadata": {
+                "buildable": true,
+                "passable": true,
+                "resources": ["wood", "berries", "herbs"]
+            }
+        }
+    ]
+}

@@ -1,16 +1,16 @@
 import { Position } from '../types/common';
 import { Terrain } from '../types/terrain';
-import { TerrainAttributes } from '../types/attributes';
+import { BaseTerrainAttributes } from '../types/terrain-attributes';
 import { Entity, IEntityContainer } from './entity';
 
+/**
+ * Represents a chunk in the game world
+ * A chunk is a section of the world that contains terrain, entities, and other game elements
+ */
 export class Chunk implements IEntityContainer {
-    public readonly position: Position;
-    public readonly terrain: Terrain;
-    private _attributes: TerrainAttributes;
-
-    get attributes(): TerrainAttributes {
-        return this._attributes;
-    }
+    private readonly _position: Position;
+    private readonly _terrain: Terrain;
+    private _attributes: BaseTerrainAttributes;
     private _explored: boolean;
     private _lastVisited: number;
     private _regionId: number;
@@ -20,11 +20,11 @@ export class Chunk implements IEntityContainer {
     constructor(
         position: Position,
         terrain: Terrain,
-        attributes: TerrainAttributes,
+        attributes: BaseTerrainAttributes,
         regionId: number
     ) {
-        this.position = position;
-        this.terrain = terrain;
+        this._position = position;
+        this._terrain = terrain;
         this._attributes = attributes;
         this._regionId = regionId;
         this._explored = false;
@@ -82,10 +82,18 @@ export class Chunk implements IEntityContainer {
         }
     }
 
-    private calculateNewAttributes(hoursPassed: number): TerrainAttributes {
-        // This will implement the actual attribute evolution over time
-        // For now, return current attributes
-        return { ...this.attributes };
+    private calculateNewAttributes(hoursPassed: number): BaseTerrainAttributes {
+        // Basic attribute evolution over time
+        const attrs = { ...this._attributes };
+
+        // Vegetation grows slightly over time in suitable conditions
+        if (attrs.moisture >= 30 && attrs.temperature >= 10 && attrs.temperature <= 35) {
+            attrs.vegetationDensity = Math.min(100, 
+                attrs.vegetationDensity + (0.1 * hoursPassed)
+            );
+        }
+
+        return attrs;
     }
 
     reassignRegion(newRegionId: number): void {

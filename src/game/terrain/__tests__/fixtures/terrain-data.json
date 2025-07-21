@@ -3,6 +3,7 @@
         {
             "id": "test_forest",
             "name": "Test Forest",
+            "type": "forest",
             "baseAttributes": {
                 "vegetationDensity": 80,
                 "elevation": 100,
@@ -30,6 +31,7 @@
         {
             "id": "test_desert",
             "name": "Test Desert",
+            "type": "desert",
             "baseAttributes": {
                 "vegetationDensity": 10,
                 "elevation": 200,

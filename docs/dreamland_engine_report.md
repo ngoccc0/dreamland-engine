@@ -72,19 +72,26 @@ The `TerrainDefinitions` file defines the core types and interfaces for the terr
 
 ## 3. Data Flow & Interaction
 
-(To be continued after analyzing more files)
+The data flow in Dreamland Engine is primarily driven by user actions and the game's internal logic. Here's a simplified overview:
+
+1.  **User Action:** A player performs an action (e.g., move, attack, explore).
+2.  **Use Case:** The appropriate use case (e.g., `WorldUseCase`, `CombatUseCase`, `ExplorationUseCase`) receives the action request.
+3.  **Entity Retrieval:** The use case retrieves relevant entities (e.g., `Character`, `Chunk`) from the game world.
+4.  **Engine Execution:** The use case interacts with game engines (e.g., `EffectEngine`, `WeatherEngine`) to apply game logic and modify entity states.
+5.  **State Update:** The use case updates the state of the entities and persists the changes using repositories.
+6.  **UI Update:** The updated state is reflected in the user interface.
 
 ## 4. Important Functions/Business Logic
 
-(To be continued after analyzing more files)
+The core business logic of Dreamland Engine is implemented within the use cases and engines. These components encapsulate the rules and procedures that govern the game world and its interactions.
 
 ## 5. Potential Issues & Improvement Suggestions
 
-(To be continued after analyzing more files)
+This section would identify potential performance bottlenecks, maintainability issues, and security vulnerabilities in the code. It would also suggest improvements based on SOLID/DRY principles and best practices.
 
 ## 6. Detailed Documentation (Docs:API Style)
 
-(To be continued)
+This section would provide detailed documentation for the core components, including descriptions of their purpose, properties, and methods.
 
 #### Key Generators in `src/core/generators/`
 
@@ -94,4 +101,8 @@ The `WorldGenerator` class is responsible for generating the game world. It uses
 
 #### Key Use Cases in `src/core/usecases/`
 
-The `src/core/usecases/` directory contains use cases that orchestrate interactions between entities and engines to implement specific game actions and behaviors. The `WorldUseCase` handles high-level world-related actions, such as generating the world, exploring chunks, and managing world updates. The `ExplorationUseCase` handles actions related to exploring the world and discovering new locations. The `CombatUseCase` handles combat-related actions, such as initiating combat, executing combat rounds, and determining the outcome of a battle.
+The `src/core/usecases/` directory contains use cases that orchestrate interactions between entities and engines to implement specific game actions and behaviors. The `WorldUseCase` handles high-level world-related actions, such as generating the world, exploring chunks, and managing world updates. The `ExplorationUseCase` handles actions related to exploring the world and discovering new locations. The `CombatUseCase` handles combat-related actions, such as initiating combat, executing combat rounds, and determining the outcome of a battle. The `WeatherUseCase` manages the weather in the game world, including updating the weather conditions and applying weather effects to the environment. The `ExperienceUseCase` handles actions related to gaining experience and leveling up characters.
+
+The `WorldUseCase` depends on the `WorldGenerator` and `WorldRepository`. The `ExplorationUseCase` depends on the `ExplorationManager`, `WorldRepository`, and `PlayerRepository`. The `CombatUseCase` depends on the `Combatant` entity. The `WeatherUseCase` depends on the `WeatherEngine`. The `ExperienceUseCase` depends on the `PlayerRepository`.
+
+The `CombatUseCase` implements the logic for turn-based combat between two combatants. It handles actions such as attacking, using skills, defending, and fleeing. It also calculates damage, experience, and loot. The `ExplorationUseCase` handles the logic for exploring the game world, discovering new locations, and updating the player's exploration progress.

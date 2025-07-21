@@ -1,4 +1,4 @@
-import { TerrainDefinition, TerrainFeature, TerrainAttributes, GridTerrainAttributes } from './types';
+import { TerrainDefinition, TerrainFeature, TerrainAttributes, GridTerrainAttributes, ModifierType, AttributeModifier } from './types';
 
 /**
  * Public interface for terrain management
@@ -29,20 +29,22 @@ export interface ITerrainManager {
  * Public interface for terrain instances
  */
 export interface ITerrain {
-    /** Unique ID of this terrain type */
+    /** Get the unique identifier of this terrain */
     readonly id: string;
-    /** Current attributes of this terrain */
+    /** Get the current attributes */
     readonly attributes: TerrainAttributes;
-    /** All features applied to this terrain */
+    /** Get the list of features */
     readonly features: TerrainFeature[];
-    /** Calculate final attributes including feature modifiers */
+    /** Calculate modified attributes including all features */
     getModifiedAttributes(): GridTerrainAttributes;
+    /** Update the current attributes */
+    updateAttributes(updates: Partial<TerrainAttributes>): void;
 }
 
-export type { 
-    TerrainDefinition, 
-    TerrainFeature, 
-    TerrainAttributes, 
+export type {
+    TerrainDefinition,
+    TerrainFeature,
+    TerrainAttributes,
     GridTerrainAttributes,
     ModifierType,
     AttributeModifier

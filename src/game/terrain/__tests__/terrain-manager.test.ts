@@ -1,5 +1,5 @@
 import { TerrainManager } from '../implementations/terrain-manager';
-import { TerrainDefinition } from '../api';
+import { TerrainDefinition, TerrainType } from '../../terrain-v2/types';
 
 describe('TerrainManager', () => {
     let manager: TerrainManager;
@@ -13,6 +13,7 @@ describe('TerrainManager', () => {
     const mockTerrain: TerrainDefinition = {
         id: 'test_terrain',
         name: 'Test Terrain',
+        type: 'forest', // Add required type
         baseAttributes: {
             vegetationDensity: 50,
             elevation: 100,

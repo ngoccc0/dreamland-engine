@@ -1,5 +1,5 @@
 import { Terrain } from '../implementations/terrain';
-import { TerrainDefinition, AttributeModifier } from '../api';
+import { TerrainDefinition, TerrainFeature, AttributeModifier } from '../../terrain-v2/types';
 import { logger } from '../../../lib/logger';
 
 describe('Terrain', () => {
@@ -17,7 +17,7 @@ describe('Terrain', () => {
         id: string, 
         modifiers: Record<string, AttributeModifier>,
         priority?: number
-    ) => ({
+    ): TerrainFeature => ({
         id,
         name: `Test ${id}`,
         attributeModifiers: modifiers,
@@ -27,6 +27,7 @@ describe('Terrain', () => {
     const mockDefinition: TerrainDefinition = {
         id: 'test_forest',
         name: 'Test Forest',
+        type: 'forest', // Add the required type property
         baseAttributes: {
             vegetationDensity: 80,
             elevation: 100,
@@ -51,6 +52,7 @@ describe('Terrain', () => {
         it('should apply features in priority order', () => {
             const definition: TerrainDefinition = {
                 ...mockDefinition,
+                type: 'forest', // Add required type
                 features: [
                     createMockFeature('low_priority', {
                         lightLevel: { type: 'set', value: 50 }
@@ -67,7 +69,19 @@ describe('Terrain', () => {
             // High priority feature should be applied last
             expect(result.lightLevel).toBe(30); // 50 - 20
             expect(logger.debug).toHaveBeenCalledWith(
+                'Starting attribute modification', 
+                expect.any(Object)
+            );
+            expect(logger.debug).toHaveBeenCalledWith(
+                'Default extended attributes',
+                expect.any(Object)
+            );
+            expect(logger.debug).toHaveBeenCalledWith(
                 'Applying features in order',
+                expect.any(Object)
+            );
+            expect(logger.debug).toHaveBeenCalledWith(
+                'Final attributes',
                 expect.any(Object)
             );
         });
@@ -75,12 +89,13 @@ describe('Terrain', () => {
         it('should handle different modifier types correctly', () => {
             const definition: TerrainDefinition = {
                 ...mockDefinition,
+                type: 'forest', // Add required type
                 features: [
                     createMockFeature('test_modifiers', {
                         vegetationDensity: { type: 'multiply', value: 0.5 }, // 80 * 0.5 = 40
                         moisture: { type: 'add', value: 20 },                // 60 + 20 = 80
                         temperature: { type: 'set', value: 30 },             // Set to 30
-                        windLevel: { type: 'subtract', value: 10 }           // 100 - 10 = 90
+                        windLevel: { type: 'subtract', value: 10 }           // 40 (forest default) - 10 = 30
                     })
                 ]
             };
@@ -91,12 +106,13 @@ describe('Terrain', () => {
             expect(result.vegetationDensity).toBe(40);
             expect(result.moisture).toBe(80);
             expect(result.temperature).toBe(30);
-            expect(result.windLevel).toBe(90);
+            expect(result.windLevel).toBe(30);
         });
 
         it('should clamp values correctly', () => {
             const definition: TerrainDefinition = {
                 ...mockDefinition,
+                type: 'forest', // Add required type
                 features: [
                     createMockFeature('extreme_values', {
                         vegetationDensity: { type: 'add', value: 1000 },     // Should clamp to 100
@@ -127,7 +143,7 @@ describe('Terrain', () => {
                 expect.any(Object)
             );
             expect(logger.debug).toHaveBeenCalledWith(
-                'Modified attribute',
+                'Final attributes',
                 expect.any(Object)
             );
             expect(logger.debug).toHaveBeenCalledWith(

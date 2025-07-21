@@ -1,28 +1,28 @@
 import { Terrain } from '../implementations/terrain';
-import { TerrainDefinition } from '../api';
+import { TerrainDefinition, TerrainFeature, AttributeModifier } from '../../terrain-v2/types';
 
 describe('Terrain', () => {
+    const mockFeature: TerrainFeature = {
+        id: 'dense_trees',
+        name: 'Dense Trees',
+        attributeModifiers: {
+            lightLevel: { type: 'subtract', value: 20 },
+            windLevel: { type: 'subtract', value: 30 },
+            travelCost: { type: 'add', value: 2 }
+        }
+    };
+
     const mockDefinition: TerrainDefinition = {
         id: 'test_forest',
         name: 'Test Forest',
+        type: 'forest', // Add the required type property
         baseAttributes: {
             vegetationDensity: 80,
             elevation: 100,
             temperature: 20,
             moisture: 60
         },
-        features: [
-            {
-                id: 'dense_trees',
-                name: 'Dense Trees',
-                description: 'Test feature',
-                attributeModifiers: {
-                    lightLevel: -20,
-                    windLevel: -30,
-                    travelCost: 2
-                }
-            }
-        ],
+        features: [mockFeature],
         metadata: {
             buildable: true,
             passable: true,
@@ -61,9 +61,9 @@ describe('Terrain', () => {
     describe('getModifiedAttributes', () => {
         it('should apply feature modifiers correctly', () => {
             const modified = terrain.getModifiedAttributes();
-            expect(modified.lightLevel).toBe(80); // 100 base - 20 from feature
-            expect(modified.windLevel).toBe(70); // 100 base - 30 from feature
-            expect(modified.travelCost).toBe(3); // 1 base + 2 from feature
+            expect(modified.lightLevel).toBe(40); // 60 (forest default) - 20
+            expect(modified.windLevel).toBe(10); // 40 (forest default) - 30
+            expect(modified.travelCost).toBe(3.5); // 1.5 (forest default) + 2
         });
 
         it('should clamp numeric values between 0 and 100', () => {
@@ -73,8 +73,8 @@ describe('Terrain', () => {
                     id: 'extreme',
                     name: 'Extreme',
                     attributeModifiers: {
-                        lightLevel: -200,  // Should clamp to 0
-                        windLevel: 200     // Should clamp to 100
+                        lightLevel: { type: 'subtract', value: 200 },  // Should clamp to 0
+                        windLevel: { type: 'add', value: 200 }     // Should clamp to 100
                     }
                 }]
             });

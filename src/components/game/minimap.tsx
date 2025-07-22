@@ -1,5 +1,15 @@
 
 "use client";
+// Helper: render emoji or image file
+function renderItemEmoji(emoji: string, size: number = 24) {
+  if (!emoji) return null;
+  // Nếu là emoji unicode (không có dấu chấm, không phải đường dẫn)
+  if (/^[^./\\]{1,3}$/.test(emoji)) {
+    return <span>{emoji}</span>;
+  }
+  // Nếu là tên file hình ảnh (svg/png/jpg...)
+  return <img src={emoji.startsWith('/') ? emoji : `/assets/${emoji}`} alt="icon" style={{ width: size, height: size, display: 'inline-block', verticalAlign: 'middle' }} />;
+}
 
 import { cn } from "@/lib/utils";
 import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon, Home, MapPin } from "./icons";
@@ -34,7 +44,7 @@ export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
                            {chunk.structures.map((s) => {
                                 const structData = (s as any).data || s;
                                 const name = getTranslatedText(structData.name, 'en');
-                                return <li key={name}>{structData.emoji} {getTranslatedText(structData.name, language, t)}</li>
+                                return <li key={name}>{renderItemEmoji(structData.emoji, 18)} {getTranslatedText(structData.name, language, t)}</li>
                             })}
                         </ul>
                     </div>
@@ -43,14 +53,14 @@ export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
                     <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><Backpack />{t('inventory')}:</h5>
                         <ul className="space-y-1 text-xs pl-5">
-                            {chunk.items.map(item => <li key={getTranslatedText(item.name, 'en')}>{item.emoji} {getTranslatedText(item.name, language, t)} (x{item.quantity})</li>)}
+                            {chunk.items.map(item => <li key={getTranslatedText(item.name, 'en')}>{renderItemEmoji(item.emoji, 16)} {getTranslatedText(item.name, language, t)} (x{item.quantity})</li>)}
                         </ul>
                     </div>
                 )}
                 {chunk.enemy && (
                     <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><SwordIcon />{t('enemy')}:</h5>
-                        <p className="text-xs pl-5">{chunk.enemy.emoji} {getTranslatedText(chunk.enemy.type, language, t)} (HP: {chunk.enemy.hp})</p>
+                        <p className="text-xs pl-5">{renderItemEmoji(chunk.enemy.emoji, 16)} {getTranslatedText(chunk.enemy.type, language, t)} (HP: {chunk.enemy.hp})</p>
                     </div>
                 )}
                 {chunk.NPCs.length > 0 && (
@@ -219,7 +229,7 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
               const firstStructure = cell.structures && cell.structures.length > 0 ? (cell.structures[0] as any) : null;
               const structData = firstStructure?.data || firstStructure;
               const mainIcon = structData
-                ? <span className="text-3xl opacity-90 drop-shadow-lg" role="img" aria-label={getTranslatedText(structData.name, language, t)}>{structData.emoji}</span>
+                ? <span className="text-3xl opacity-90 drop-shadow-lg" role="img" aria-label={getTranslatedText(structData.name, language, t)}>{renderItemEmoji(structData.emoji, 28)}</span>
                 : (biomeIcons[cell.terrain as keyof typeof biomeIcons] || null);
 
               return (
@@ -250,13 +260,13 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
                             
                             {cell.enemy && (
                                 <div className="absolute bottom-px left-px">
-                                    <EnemyIcon emoji={cell.enemy.emoji} />
+                                    {renderItemEmoji(cell.enemy.emoji, 20)}
                                 </div>
                             )}
 
                             {cell.items.length > 0 && (
                                 <div className="absolute bottom-px right-px">
-                                    <ItemIcon emoji={cell.items[0].emoji} />
+                                    {renderItemEmoji(cell.items[0].emoji, 20)}
                                 </div>
                             )}
                         </div>

@@ -21,6 +21,10 @@ export const TranslatableStringSchema = z.union([
     z.object({
         key: z.string(),
         params: z.record(z.union([z.string(), z.number()])).optional(),
+    }),
+    z.object({
+        en: z.string(),
+        vi: z.string(),
     })
 ]);
 

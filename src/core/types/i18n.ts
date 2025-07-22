@@ -16,15 +16,28 @@ export interface I18nDictionary {
  * A translation key that can include variables to be interpolated.
  * E.g., { key: 'items.sword.name', params: { type: 'iron' } }
  */
+
 export interface TranslationObject {
     key: string;
     params?: { [key: string]: string | number };
 }
 
 /**
- * A string that can be translated. Either a direct key or an object with a key and params.
+ * Inline translation object, e.g. { en: 'Sword', vi: 'Kiếm' }
  */
-export type TranslatableString = string | TranslationObject;
+export interface InlineTranslation {
+    en?: string;
+    vi?: string;
+    [lang: string]: string | undefined;
+}
+
+/**
+ * A string that can be translated. Can be:
+ * - a direct key (string)
+ * - an object with a key and params
+ * - an inline translation object (e.g. { en: 'Sword', vi: 'Kiếm' })
+ */
+export type TranslatableString = string | TranslationObject | InlineTranslation;
 
 // Re-export language enum from lib/i18n
 export { LanguageEnum, type Language } from '../../lib/i18n';

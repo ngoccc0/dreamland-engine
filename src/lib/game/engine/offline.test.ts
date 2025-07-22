@@ -51,7 +51,12 @@ const mockGetTranslatedText = (translatable: any, lang: Language, t?: any): stri
         return (t || mockT)(translatable);
     }
     if (typeof translatable === 'object' && translatable !== null) {
-        return translatable[actualLang] || translatable['en'] || 'MISSING_TRANSLATION';
+        if ('key' in translatable) {
+            return (t || mockT)(translatable.key, translatable.params);
+        }
+        if ('en' in translatable || 'vi' in translatable) {
+            return translatable[actualLang] || translatable['en'] || 'MISSING_TRANSLATION';
+        }
     }
     return 'INVALID_TRANSLATABLE';
 };

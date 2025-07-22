@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -122,8 +120,8 @@ export default function Home() {
     const allCustomItems = worldSetupData.customItemCatalog || [];
 
     const customDefs = allCustomItems.reduce((acc, item) => {
-        const itemName = typeof item.name === 'object' ? item.name[language] : item.name;
-        const itemDesc = typeof item.description === 'object' ? item.description[language] : item.description;
+        const itemName = typeof item.name === 'object' ? t(item.name) : item.name;
+        const itemDesc = typeof item.description === 'object' ? t(item.description) : item.description;
         acc[itemName] = {
             ...item,
             name: itemName,
@@ -135,11 +133,11 @@ export default function Home() {
 
     const initialPlayerInventory = selectedConcept.playerInventory.map(item => {
         const def = allCustomItems.find(def => {
-            const defName = typeof def.name === 'object' ? def.name[language] : def.name;
-            const itemName = typeof item.name === 'object' ? item.name[language] : item.name;
+            const defName = typeof def.name === 'object' ? t(def.name) : def.name;
+            const itemName = typeof item.name === 'object' ? t(item.name) : item.name;
             return defName === itemName;
         });
-        const itemName = typeof item.name === 'object' ? item.name[language] : item.name;
+        const itemName = typeof item.name === 'object' ? t(item.name) : item.name;
         return {
             name: itemName,
             quantity: item.quantity,
@@ -164,6 +162,8 @@ export default function Home() {
         quests: selectedConcept.initialQuests, questsCompleted: 0, skills: selectedConcept.startingSkill ? [selectedConcept.startingSkill] : [], pets: [], persona: 'none',
         attributes: { physicalAttack: 10, magicalAttack: 5, critChance: 5, attackSpeed: 1.0, cooldownReduction: 0, physicalDefense: 0, magicalDefense: 0 },
         unlockProgress: { kills: 0, damageSpells: 0, moves: 0 }, journal: {}, dailyActionLog: [], questHints: {},
+        level: 1,
+        experience: 0,
       },
       customItemCatalog: allCustomItems,
       customItemDefinitions: customDefs,
@@ -211,18 +211,14 @@ export default function Home() {
   // Render loading screen
   if (loadState === 'loading' || authLoading) {
     return (
-      <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
-        <div className="flex flex-col items-center text-center p-4 animate-in fade-in duration-1000">
-          <img src="/assets/Logo.svg" alt="Dreamland Engine" className="h-[384px] w-[384px] -mb-[30px]" />
-          <div className="flex items-center justify-center">
-            <h1 className="text-5xl font-bold font-headline tracking-tighter -mt-36">
-              Dreamland Engine
-            </h1>
-          </div>
-          <div className="flex items-center gap-2 mt-4 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            <p>{t('loadingAdventure')}</p>
-          </div>
+      <div className="flex flex-col items-center justify-center min-h-dvh bg-gradient-to-br from-[#181824] via-[#23234a] to-[#23234a] text-foreground">
+        <img src="/assets/logo.svg" alt="Dreamland Engine" className="h-[340px] w-[340px] mt-12 mb-2" />
+        <h1 className="text-5xl font-bold tracking-tight text-primary drop-shadow-lg mb-4" style={{ fontFamily: language ? `var(--font-${language})` : undefined }}>
+          Dreamland Engine
+        </h1>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <p>{t('loadingAdventure')}</p>
         </div>
       </div>
     );

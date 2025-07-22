@@ -25,17 +25,12 @@ export type ItemCategory = z.infer<typeof ItemCategorySchema>;
 /**
  * @description Defines the effect an item can have when used.
  */
+// Effect schema is now extensible: allows extra fields for custom effects
 export const ItemEffectSchema = z.object({
-    type: z.enum([
-        'HEAL', 'RESTORE_STAMINA', 'RESTORE_MANA', 'REDUCE_HEAT', 'MANA_REGEN_BOOST', 
-        'PROVIDE_LIGHT', 'CURE_POISON', 'POISON_RESISTANCE', 'REST_BOOST', 
-        'COLD_RESISTANCE', 'HEAT_RESISTANCE', 'STEALTH_BOOST', 'INVENTORY_SLOTS', 
-        'TEMPERATURE_STABILITY_BOOST', 'FOOD_PRESERVATION_BOOST', 'EXPLORATION_ASSIST',
-        'HUNGER_REDUCE', 'STAMINA_RECOVER', 'WEATHER_PROTECTION',
-    ]).describe("The type of effect the item has."),
-    amount: z.number().describe("The numerical value of the effect (e.g., amount of health restored)."),
+    type: z.string().describe("The type of effect the item has. Can be a built-in or custom effect type."),
+    amount: z.number().optional().describe("The numerical value of the effect (e.g., amount of health restored)."),
     duration: z.number().optional().describe("Duration of the effect in game turns, if applicable."),
-});
+}).passthrough();
 export type ItemEffect = z.infer<typeof ItemEffectSchema>;
 
 
@@ -58,19 +53,23 @@ export const ItemDefinitionSchema = z.object({
   tier: z.number(),
   category: ItemCategorySchema,
   subCategory: z.string().optional().describe("A more specific category like 'Meat', 'Fruit', 'Potion'."),
-  emoji: z.string().describe("A single emoji that represents the item."),
-  effects: z.array(ItemEffectSchema).describe("An array of effects the item provides when used."),
+  emoji: z.string().describe("A single emoji, SVG filename, or image name representing the item."),
+  effects: z.array(ItemEffectSchema).describe("An array of effects the item provides when used. Can be extended with custom fields."),
   baseQuantity: z.object({ min: z.number(), max: z.number() }),
-  growthConditions: z.object({
-    optimal: SpawnConditionsSchema,
-    subOptimal: SpawnConditionsSchema,
-  }).optional().describe("For living resources like plants or fungi, define the conditions under which they grow."),
+  // growthConditions removed for simplicity and flexibility
   equipmentSlot: z.enum(['weapon', 'armor', 'accessory']).optional().describe("If the item is equippable, which slot it goes into."),
   attributes: PlayerAttributesSchema.optional().describe("The combat attributes this item provides when equipped."),
   relationship: ItemRelationshipSchema.optional().describe("How this item relates to others for crafting substitutions."),
   weight: z.number().optional().describe("The weight of a single item unit."),
   stackable: z.number().int().optional().describe("The maximum number of this item that can be held in one inventory slot."),
-  senseEffect: z.object({ keywords: z.array(z.string()) }).optional().describe("Keywords for sensory descriptions."),
+  senseEffect: z.object({
+    visual: TranslatableStringSchema.optional().describe("How the item looks."),
+    auditory: TranslatableStringSchema.optional().describe("How the item sounds when interacted with."),
+    tactile: TranslatableStringSchema.optional().describe("How the item feels to the touch."),
+    olfactory: TranslatableStringSchema.optional().describe("How the item smells."),
+    taste: TranslatableStringSchema.optional().describe("How the item tastes, if applicable."),
+    keywords: z.array(z.string()).optional().describe("Keywords for sensory descriptions."),
+  }).optional().describe("Descriptions of the item's sensory effects (sight, sound, touch, smell, taste, etc.)."),
   naturalSpawn: z.array(z.object({
       biome: z.string(), // Ideally, this should be of type Terrain, but string allows for modded biomes
       chance: z.number(),

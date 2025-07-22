@@ -49,7 +49,19 @@ export function getTranslatedText(
         }
     }
     if (typeof translatable === 'object' && translatable !== null) {
-        return translatable[language] || translatable['en'] || '';
+        // TranslationObject dạng { key, params }
+        if ('key' in translatable) {
+            const key = translatable.key ?? '';
+            if (t) {
+                return t(key, translatable.params);
+            } else {
+                return key;
+            }
+        }
+        // InlineTranslation dạng { en: ..., vi: ... }
+        if ('en' in translatable || 'vi' in translatable) {
+            return translatable[language] || translatable['en'] || '';
+        }
     }
     return '';
 }

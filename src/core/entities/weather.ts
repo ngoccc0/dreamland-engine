@@ -31,6 +31,10 @@ export interface Weather {
     update(deltaTime: number): void;
     getWeatherAtPosition(position: GridPosition): Weather | null;
     addRegionalVariation(region: string, intensityModifier: number): void;
+    /**
+     * Lấy WeatherCondition chính (primary) của trạng thái thời tiết này
+     */
+    getPrimaryCondition(): WeatherCondition;
 }
 
 export interface WeatherParams {
@@ -51,6 +55,12 @@ export interface WeatherState {
 }
 
 export class WeatherImpl implements Weather {
+    /**
+     * Lấy WeatherCondition chính (primary) của trạng thái thời tiết này
+     */
+    getPrimaryCondition(): WeatherCondition {
+        return this.conditions[0];
+    }
     private type: WeatherType;
     private intensity: WeatherIntensity;
     private conditions: WeatherCondition[];
@@ -169,6 +179,12 @@ export class WeatherImpl implements Weather {
 }
 
 export class WeatherSystem implements Weather {
+    /**
+     * Lấy WeatherCondition chính (primary) của trạng thái thời tiết hiện tại
+     */
+    getPrimaryCondition(): WeatherCondition {
+        return this._weather.getPrimaryCondition();
+    }
     private _weather: Weather;
     private _forecast: Array<Weather>;
     private _weatherUpdateInterval = 1; // hours

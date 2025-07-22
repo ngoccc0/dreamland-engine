@@ -127,7 +127,7 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequi
                         <span className="capitalize text-muted-foreground">{t(slot)}:</span>
                         {item ? (
                         <div className="flex items-center gap-2">
-                            <span className="font-semibold text-foreground">{item.emoji} {getTranslatedText(item.name, language, t)}</span>
+                            <span className="font-semibold text-foreground">{require("./icons").renderItemEmoji(item.emoji, 18)} {getTranslatedText(item.name, language, t)}</span>
                             <Button variant="ghost" size="sm" onClick={() => onUnequipItem(slot as EquipmentSlot)}>
                             {t('unequipItem')}
                             </Button>

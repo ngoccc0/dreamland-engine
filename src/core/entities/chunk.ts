@@ -1,35 +1,35 @@
 import { Position } from '../types/common';
-import { Terrain } from '../types/terrain';
-import { BaseTerrainAttributes } from '../types/terrain-attributes';
+import { Terrain } from './terrain';
+import { TerrainAttributes } from '../types/world-attributes';
 import { Entity, IEntityContainer } from './entity';
 
-/**
- * Represents a chunk in the game world
- * A chunk is a section of the world that contains terrain, entities, and other game elements
- */
 export class Chunk implements IEntityContainer {
-    private readonly _position: Position;
-    private readonly _terrain: Terrain;
-    private _attributes: BaseTerrainAttributes;
-    private _explored: boolean;
-    private _lastVisited: number;
-    private _regionId: number;
-    private _entities: Entity[] = [];
-    private _lastUpdated: number;
+    private _attributes: TerrainAttributes;
+    private _explored: boolean = false;
+    private _lastVisited: number = 0;
+    private _lastUpdated: number = Date.now();
+    private readonly _entities: Entity[] = [];
 
     constructor(
-        position: Position,
-        terrain: Terrain,
-        attributes: BaseTerrainAttributes,
-        regionId: number
+        private readonly _position: Position,
+        private readonly _terrain: Terrain,
+        attributes: TerrainAttributes,
+        private _regionId: number
     ) {
-        this._position = position;
-        this._terrain = terrain;
         this._attributes = attributes;
-        this._regionId = regionId;
-        this._explored = false;
-        this._lastVisited = 0;
-        this._lastUpdated = Date.now();
+    }
+
+    // Basic properties
+    get position(): Position { 
+        return this._position;
+    }
+
+    get terrain(): Terrain {
+        return this._terrain;
+    }
+
+    get attributes(): TerrainAttributes {
+        return this._attributes;
     }
 
     get explored(): boolean {
@@ -40,12 +40,12 @@ export class Chunk implements IEntityContainer {
         return this._lastVisited;
     }
 
-    get regionId(): number {
-        return this._regionId;
-    }
-
     get lastUpdated(): number {
         return this._lastUpdated;
+    }
+
+    get regionId(): number {
+        return this._regionId;
     }
 
     // IEntityContainer implementation
@@ -58,13 +58,17 @@ export class Chunk implements IEntityContainer {
     }
 
     removeEntity(entityId: string): void {
-        this._entities = this._entities.filter(e => e.id !== entityId);
+        const index = this._entities.findIndex(e => e.id === entityId);
+        if (index !== -1) {
+            this._entities.splice(index, 1);
+        }
     }
 
     getEntities(): Entity[] {
         return this._entities;
     }
 
+    // Game mechanics
     visit(time: number): void {
         this._explored = true;
         this._lastVisited = time;
@@ -75,18 +79,21 @@ export class Chunk implements IEntityContainer {
         const now = Date.now();
         const hoursSinceLastUpdate = (now - this._lastUpdated) / (1000 * 60 * 60);
         
-        // Update attributes based on time passed and current conditions
         if (hoursSinceLastUpdate > 1) {
             this._attributes = this.calculateNewAttributes(hoursSinceLastUpdate);
             this._lastUpdated = now;
         }
     }
 
-    private calculateNewAttributes(hoursPassed: number): BaseTerrainAttributes {
+    reassignRegion(newRegionId: number): void {
+        this._regionId = newRegionId;
+    }
+
+    private calculateNewAttributes(hoursPassed: number): TerrainAttributes {
         // Basic attribute evolution over time
         const attrs = { ...this._attributes };
 
-        // Vegetation grows slightly over time in suitable conditions
+        // Example: Vegetation grows slightly over time in suitable conditions
         if (attrs.moisture >= 30 && attrs.temperature >= 10 && attrs.temperature <= 35) {
             attrs.vegetationDensity = Math.min(100, 
                 attrs.vegetationDensity + (0.1 * hoursPassed)
@@ -94,9 +101,5 @@ export class Chunk implements IEntityContainer {
         }
 
         return attrs;
-    }
-
-    reassignRegion(newRegionId: number): void {
-        this._regionId = newRegionId;
     }
 }

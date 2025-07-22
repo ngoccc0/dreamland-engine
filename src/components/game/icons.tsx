@@ -1,3 +1,11 @@
+// Helper: render emoji or image file (dùng lại cho mọi thành phần)
+export function renderItemEmoji(emoji: string, size: number = 20) {
+  if (!emoji) return null;
+  if (/^[^./\\]{1,3}$/.test(emoji)) {
+    return <span>{emoji}</span>;
+  }
+  return <img src={emoji.startsWith('/') ? emoji : `/assets/${emoji}`} alt="icon" style={{ width: size, height: size, display: 'inline-block', verticalAlign: 'middle' }} />;
+}
 // Re-export Lucide icons for a single point of management
 export {
   Backpack,
@@ -53,9 +61,9 @@ export function PlayerIcon() {
   );
 }
 
-export function EnemyIcon({ emoji }: { emoji: string }) {
+export function EnemyIcon({ emoji, size = 20 }: { emoji: string, size?: number }) {
   return (
-    <span className="text-sm drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]" role="img" aria-label="Enemy">{emoji}</span>
+    <span className="text-sm drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]" role="img" aria-label="Enemy">{renderItemEmoji(emoji, size)}</span>
   );
 }
 
@@ -76,8 +84,8 @@ export function NpcIcon() {
   );
 }
 
-export function ItemIcon({ emoji }: { emoji: string }) {
+export function ItemIcon({ emoji, size = 18 }: { emoji: string, size?: number }) {
   return (
-    <span className="text-xs drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]" role="img" aria-label="Item">{emoji}</span>
+    <span className="text-xs drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]" role="img" aria-label="Item">{renderItemEmoji(emoji, size)}</span>
   );
 }

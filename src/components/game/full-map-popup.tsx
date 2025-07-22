@@ -8,7 +8,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/language-context";
 import type { World, Chunk, Terrain } from "@/lib/game/types";
-import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon } from "./icons";
+import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon, renderItemEmoji } from "./icons";
+import { getTranslatedText } from "@/lib/utils";
 import { MapCellDetails } from './minimap';
 import type { TranslationKey } from '@/lib/i18n';
 import { Button } from '../ui/button';
@@ -141,7 +142,13 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
                                 }
                                 
                                 const mainIcon = (chunk.structures && chunk.structures.length > 0)
-                                    ? <span className={cn(currentBiomeIconSize, 'opacity-90 drop-shadow-lg')} role="img" aria-label={chunk.structures[0].name}>{chunk.structures[0].emoji}</span>
+                                    ? <span
+                                        className={cn(currentBiomeIconSize, 'opacity-90 drop-shadow-lg')}
+                                        role="img"
+                                        aria-label={getTranslatedText(chunk.structures[0].name, 'en')}
+                                      >
+                                        {renderItemEmoji(chunk.structures[0].emoji, 28)}
+                                      </span>
                                     : (biomeIcons[chunk.terrain as keyof typeof biomeIcons] || null);
                                 
                                 return (

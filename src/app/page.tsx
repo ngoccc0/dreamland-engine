@@ -125,9 +125,13 @@ export default function Home() {
     // Properly type item in reduce
     const customDefs = allCustomItems.reduce((acc, item) => {
         const itemName = getTranslatedText(item.name, 'en');
-        acc[itemName] = { ...item };
+        acc[itemName] = {
+            ...item,
+            name: item.name,
+            description: item.description,
+        };
         return acc;
-    }, {} as Record<string, Omit<ItemDefinition, 'id' | 'name'>>);
+    }, {} as Record<string, ItemDefinition>);
 
     // selectedConcept.playerInventory is PlayerItem[]
     const initialPlayerInventory = (selectedConcept.playerInventory ?? []).map((item: import("@/lib/game/types").PlayerItem) => {
@@ -160,6 +164,8 @@ export default function Home() {
         pets: [], persona: 'none',
         attributes: { physicalAttack: 10, magicalAttack: 5, critChance: 5, attackSpeed: 1.0, cooldownReduction: 0, physicalDefense: 0, magicalDefense: 0 },
         unlockProgress: { kills: 0, damageSpells: 0, moves: 0 }, journal: {}, dailyActionLog: [], questHints: {},
+        level: 1,
+        experience: 0,
       },
       customItemCatalog: allCustomItems,
       customItemDefinitions: customDefs,

@@ -1,4 +1,4 @@
-import { TerrainType, SoilType } from '../entities/terrain';
+import { TerrainType, SoilType } from '../../lib/definitions/terrain-definitions';
 import { TerrainAttributes } from '../types/attributes';
 import { Entity } from './entity-factory';
 import { EntityFactory } from './entity-factory';
@@ -82,7 +82,7 @@ export class TerrainFactory {
 }
 
 const defaultTerrainAttributes: Record<TerrainType, TerrainBaseAttributes> = {
-    [TerrainType.PLAINS]: {
+    ['grassland']: {
         baseMoisture: 50,
         baseVegetation: 70,
         baseElevation: 30,
@@ -95,9 +95,9 @@ const defaultTerrainAttributes: Record<TerrainType, TerrainBaseAttributes> = {
         basePredatorPresence: 40,
         baseHumanPresence: 60,
         baseTravelCost: 1,
-        preferredSoilTypes: [SoilType.LOAMY, SoilType.SILTY]
+        preferredSoilTypes: ['loamy', 'silty']
     },
-    [TerrainType.FOREST]: {
+    ['forest']: {
         baseMoisture: 70,
         baseVegetation: 90,
         baseElevation: 40,
@@ -110,9 +110,9 @@ const defaultTerrainAttributes: Record<TerrainType, TerrainBaseAttributes> = {
         basePredatorPresence: 70,
         baseHumanPresence: 30,
         baseTravelCost: 2,
-        preferredSoilTypes: [SoilType.LOAMY, SoilType.PEATY]
+        preferredSoilTypes: ['loamy', 'peaty']
     },
-    [TerrainType.MOUNTAIN]: {
+    ['mountain']: {
         baseMoisture: 40,
         baseVegetation: 30,
         baseElevation: 90,
@@ -125,9 +125,9 @@ const defaultTerrainAttributes: Record<TerrainType, TerrainBaseAttributes> = {
         basePredatorPresence: 60,
         baseHumanPresence: 20,
         baseTravelCost: 4,
-        preferredSoilTypes: [SoilType.ROCKY, SoilType.CHALKY]
+        preferredSoilTypes: ['rocky', 'chalky']
     },
-    [TerrainType.DESERT]: {
+    ['desert']: {
         baseMoisture: 10,
         baseVegetation: 10,
         baseElevation: 50,
@@ -140,9 +140,9 @@ const defaultTerrainAttributes: Record<TerrainType, TerrainBaseAttributes> = {
         basePredatorPresence: 50,
         baseHumanPresence: 20,
         baseTravelCost: 3,
-        preferredSoilTypes: [SoilType.SANDY]
+        preferredSoilTypes: ['sandy']
     },
-    [TerrainType.WATER]: {
+    ['ocean']: {
         baseMoisture: 100,
         baseVegetation: 40,
         baseElevation: 0,
@@ -155,9 +155,9 @@ const defaultTerrainAttributes: Record<TerrainType, TerrainBaseAttributes> = {
         basePredatorPresence: 60,
         baseHumanPresence: 40,
         baseTravelCost: 5,
-        preferredSoilTypes: [SoilType.SILTY]
+        preferredSoilTypes: ['silty']
     },
-    [TerrainType.SWAMP]: {
+    ['swamp']: {
         baseMoisture: 90,
         baseVegetation: 60,
         baseElevation: 20,
@@ -170,9 +170,9 @@ const defaultTerrainAttributes: Record<TerrainType, TerrainBaseAttributes> = {
         basePredatorPresence: 80,
         baseHumanPresence: 10,
         baseTravelCost: 4,
-        preferredSoilTypes: [SoilType.PEATY]
+        preferredSoilTypes: ['peaty']
     },
-    [TerrainType.CAVE]: {
+    ['cave']: {
         baseMoisture: 60,
         baseVegetation: 20,
         baseElevation: 0,
@@ -185,9 +185,9 @@ const defaultTerrainAttributes: Record<TerrainType, TerrainBaseAttributes> = {
         basePredatorPresence: 90,
         baseHumanPresence: 5,
         baseTravelCost: 3,
-        preferredSoilTypes: [SoilType.ROCKY]
+        preferredSoilTypes: ['rocky']
     },
-    [TerrainType.RUINS]: {
+    ['ruins']: {
         baseMoisture: 40,
         baseVegetation: 50,
         baseElevation: 30,
@@ -200,6 +200,6 @@ const defaultTerrainAttributes: Record<TerrainType, TerrainBaseAttributes> = {
         basePredatorPresence: 70,
         baseHumanPresence: 0,
         baseTravelCost: 2,
-        preferredSoilTypes: [SoilType.ROCKY, SoilType.CHALKY]
+        preferredSoilTypes: ['rocky', 'chalky']
     }
 };

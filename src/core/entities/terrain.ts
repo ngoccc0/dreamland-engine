@@ -1,32 +1,12 @@
 import { TranslatableString } from '../types/i18n';
 import { GridPosition } from '../values/grid-position';
-
-export enum SoilType {
-    SANDY = 'sandy',
-    LOAMY = 'loamy',
-    CLAY = 'clay',
-    SILTY = 'silty',
-    PEATY = 'peaty',
-    CHALKY = 'chalky',
-    ROCKY = 'rocky'
-}
-
-export enum TerrainType {
-    PLAINS = 'plains',
-    FOREST = 'forest',
-    MOUNTAIN = 'mountain',
-    DESERT = 'desert',
-    WATER = 'water',
-    SWAMP = 'swamp',
-    CAVE = 'cave',
-    RUINS = 'ruins'
-}
-
+import { TerrainType, SoilType } from '../../lib/definitions/terrain-definitions';
 import { Entity, IEntityContainer } from './entity';
 import { TerrainAttributes } from '../types/attributes';
 
 export class Terrain implements IEntityContainer {
     private _entities: Entity[] = [];
+
 
     constructor(
         private readonly _type: TerrainType,

@@ -1,5 +1,7 @@
-// ai/flows/generate-narrative-flow.ts
 'use server';
+
+import { getTranslatedText } from "@/lib/utils";
+// ai/flows/generate-narrative-flow.ts
 /**
  * @fileOverview Luồng Kể Chuyện AI cho Dreamland Engine.
  *
@@ -274,12 +276,13 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
           if (result.lootDrops && result.lootDrops.length > 0) {
             const currentItems = finalOutput.updatedChunk?.items || input.currentChunk.items || [];
             const newItemsMap = new Map<string, z.infer<typeof ChunkItemSchema>>(); 
+            // Sử dụng getTranslatedText để lấy tên item, nhận cả key dịch và inline translation
             currentItems.forEach(item => {
-                const itemName = typeof item.name === 'string' ? item.name : item.name.en || item.name.vi || '';
+                const itemName = getTranslatedText(item.name, Language.en) || getTranslatedText(item.name, Language.vi) || '';
                 newItemsMap.set(itemName, { ...item });
             });
-            result.lootDrops?.forEach((droppedItem) => { 
-                const itemName = typeof droppedItem.name === 'string' ? droppedItem.name : droppedItem.name.en || droppedItem.name.vi || '';
+            result.lootDrops?.forEach((droppedItem) => {
+                const itemName = getTranslatedText(droppedItem.name, Language.en) || getTranslatedText(droppedItem.name, Language.vi) || '';
                 const existingItem = newItemsMap.get(itemName);
                 if (existingItem) {
                     existingItem.quantity += droppedItem.quantity;
@@ -324,16 +327,17 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
               const newItemsMap = new Map<string, z.infer<typeof PlayerItemSchema>>();
               
               currentItems.forEach(item => {
-                const itemName = typeof item.name === 'string' ? item.name : item.name.en || item.name.vi || '';
+                const itemName = getTranslatedText(item.name, Language.en) || getTranslatedText(item.name, Language.vi) || '';
                 newItemsMap.set(itemName, { ...item });
               });
               
-              result.rewardItems?.forEach((rewardItem) => { 
-                  const existingItem = newItemsMap.get(typeof rewardItem.name === 'string' ? rewardItem.name : rewardItem.name.en || rewardItem.name.vi || '');
+              result.rewardItems?.forEach((rewardItem) => {
+                  const rewardItemName = getTranslatedText(rewardItem.name, Language.en) || getTranslatedText(rewardItem.name, Language.vi) || '';
+                  const existingItem = newItemsMap.get(rewardItemName);
                   if (existingItem) {
                       existingItem.quantity += rewardItem.quantity;
                   } else {
-                      newItemsMap.set(typeof rewardItem.name === 'string' ? rewardItem.name : rewardItem.name.en || rewardItem.name.vi || '', rewardItem);
+                      newItemsMap.set(rewardItemName, rewardItem);
                   }
               });
 
@@ -397,7 +401,7 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
                       language: input.language as "en" | "vi", 
                   });
                   
-                  const newIndeedItemName = typeof newItem.name === 'string' ? newItem.name : newItem.name.en || newItem.name.vi || '';
+                  const newIndeedItemName = getTranslatedText(newItem.name, Language.en) || getTranslatedText(newItem.name, Language.vi) || '';
                   if (newItem && !allCurrentItemNames.includes(newIndeedItemName)) {
                       finalOutput.newlyGeneratedItem = newItem;
                   }

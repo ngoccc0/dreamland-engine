@@ -212,11 +212,11 @@ export default function Home() {
   if (loadState === 'loading' || authLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-dvh bg-gradient-to-br from-[#181824] via-[#23234a] to-[#23234a] text-foreground">
-        <img src="/assets/logo.svg" alt="Dreamland Engine" className="h-[340px] w-[340px] mt-12 mb-2" />
-        <h1 className="text-5xl font-bold tracking-tight text-primary drop-shadow-lg mb-4" style={{ fontFamily: language ? `var(--font-${language})` : undefined }}>
+        <img src="/assets/logo.svg" alt="Dreamland Engine" className="h-[480px] w-[480px] mt-4 mb-6" />
+        <h1 className="text-5xl font-bold tracking-tight text-primary drop-shadow-lg mb-6" style={{ fontFamily: language ? `var(--font-${language})` : undefined }}>
           Dreamland Engine
         </h1>
-        <div className="flex items-center gap-2 text-muted-foreground">
+        <div className="flex items-center gap-2 text-muted-foreground mb-2">
           <Loader2 className="h-5 w-5 animate-spin" />
           <p>{t('loadingAdventure')}</p>
         </div>

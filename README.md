@@ -1,64 +1,43 @@
-# Dreamland Engine - Ký Sự Lãng Du
 
-Chào mừng bạn đến với **Dreamland Engine**, một game phiêu lưu text-based được kiến tạo bởi trí tuệ nhân tạo. Tại đây, mỗi quyết định, mỗi hành động của bạn không chỉ định hình nên nhân vật mà còn cả một thế giới sống động, luôn biến đổi và đầy bất ngờ.
+# Dreamland Engine
 
-## ✨ Tính Năng Nổi Bật
 
-- **Người Kể Chuyện AI & Chế Độ Offline:** Lựa chọn giữa một AI kể chuyện sáng tạo hoặc một chế độ offline dựa trên quy tắc.
-- **Kiến Tạo Thế Giới Đa Tác Nhân:** Một đội ngũ "chuyên gia" AI cùng nhau tạo ra thế giới độc đáo cho bạn.
-- **Thế Giới Sống:** Hệ sinh thái, thời tiết, và tài nguyên luôn biến đổi.
-- **Hệ Thống Sinh Tồn & Chế Tạo Sâu Sắc:** Quản lý chỉ số, thân nhiệt, chế tạo công cụ, xây dựng nơi trú ẩn và thử nghiệm hợp nhất vật phẩm.
-- **Hệ Thống Mod Linh Hoạt:** Dễ dàng thêm nội dung mới vào game thông qua các gói mod dạng JSON.
 
----
+**Dreamland Engine** mở ra một thế giới phiêu lưu nơi mọi lựa chọn của bạn đều có sức mạnh thay đổi vận mệnh, cảnh vật, và cả những câu chuyện chưa từng được kể. Được dẫn dắt bởi AI kể chuyện, bạn sẽ khám phá một vũ trụ sống động, nơi từng vùng đất, từng sinh vật, và từng thử thách đều phản ứng linh hoạt với hành động của bạn.
 
-## 🎮 Cách Chơi
+Không chỉ là một game text-based, Dreamland Engine là nơi bạn có thể tự do sáng tạo, khám phá, sinh tồn, và viết nên câu chuyện của riêng mình. Thế giới không ngừng biến đổi, các hệ thống thời gian, thời tiết, và tâm trạng tạo ra những trải nghiệm mới mẻ mỗi lần chơi. Bạn có thể mở rộng game bằng mod, tự tạo vật phẩm, kẻ thù, hoặc thậm chí cả những vùng đất mới chỉ với vài dòng JSON hoặc TypeScript.
 
-1.  **Tạo thế giới:** Mô tả ý tưởng của bạn hoặc chọn một kịch bản có sẵn.
-2.  **Lựa chọn & Kết hợp:** Trộn lẫn các yếu tố bạn thích từ các phiên bản AI đề xuất để tạo ra thế giới cuối cùng.
-3.  **Khám phá:** Sử dụng các nút mũi tên hoặc phím `W,A,S,D` để di chuyển.
-4.  **Tương tác:** Sử dụng các nút hành động theo ngữ cảnh hoặc nhập bất kỳ hành động nào bạn muốn vào ô văn bản. Hãy sáng tạo! AI sẽ diễn giải và phản hồi lại.
-5.  **Sinh tồn:** Để mắt đến các chỉ số, chế tạo công cụ, xây dựng nơi trú ẩn và chiến đấu để tồn tại.
+## 🎮 Cách chơi & trải nghiệm
 
----
+1. **Khởi tạo thế giới:** Chọn kịch bản hoặc nhập ý tưởng, engine sẽ sinh thế giới với các vùng, địa hình, và hệ sinh thái động.
+2. **Khám phá:** Di chuyển bằng các phím mũi tên hoặc WASD, mỗi hành động là một lượt (turn), thời gian trong game sẽ thay đổi theo từng lượt.
+3. **Tương tác:** Sử dụng các nút hành động theo ngữ cảnh hoặc nhập lệnh tự do (ví dụ: "search", "attack", "craft torch"). AI sẽ diễn giải và phản hồi lại bằng narrative động.
+4. **Sinh tồn & chiến đấu:** Quản lý chỉ số (HP, mana, stamina, bodyTemperature), chế tạo vật phẩm, xây dựng nơi trú ẩn, và tham gia combat theo lượt với kẻ thù. Các chỉ số môi trường (lightLevel, dangerLevel, moisture, ...) ảnh hưởng trực tiếp đến gameplay và kết quả hành động.
+5. **Modding:** Có thể thêm nội dung mới (items, recipes, enemies) bằng cách paste JSON mod bundle vào game. Mod có thể viết bằng TypeScript để kiểm tra kiểu dữ liệu trước khi sử dụng.
+6. **Tiến trình & sự kiện:** Thế giới thay đổi theo thời gian, thời tiết, và hành động của người chơi. Các sự kiện đặc biệt, trạng thái môi trường, và mood sẽ ảnh hưởng đến narrative và gameplay.
 
-## 🛠️ Hướng Dẫn Modding (Cơ bản)
 
-Dreamland Engine được thiết kế với khả năng tùy biến cao. Bạn có thể dễ dàng thêm vật phẩm, công thức, và sinh vật mới vào game mà không cần sửa đổi mã nguồn.
+## Kiến trúc & Cơ chế cốt lõi
 
-### Cấu trúc cơ bản của một Gói Mod
+- **Hệ thống thời gian:** Mỗi hành động = 1 turn, mỗi turn = +10 phút. Ngày/đêm động, lightLevel ảnh hưởng bởi biome, thời gian, thời tiết, thảm thực vật.
+- **Chunk & World Generation:** Chunk là tile chứa địa hình, vật phẩm, kẻ thù, chỉ số môi trường. Sinh chủ động 15x15 quanh người chơi, bất đồng bộ để mượt UX. Có hệ thống Region và LOD cho chunk xa.
+- **Chỉ số & Mood:** Chunk có các chỉ số (dangerLevel, lightLevel, moisture, elevation, magicAffinity, ...), player có hp, mana, stamina, bodyTemperature. MoodTag được sinh từ stats, dùng cho narrative động.
+- **Engines & Usecases:** EffectEngine (buff/debuff, stacking, conditions), WeatherEngine (thời tiết động, hiệu ứng vùng), Usecase điều phối hành động (exploration, combat, weather, experience).
 
-Một gói mod (ModBundle) là một đối tượng JSON duy nhất chứa tất cả nội dung bạn muốn thêm vào.
+## Modding & mở rộng
 
-**Ví dụ cấu trúc `ModBundle` (Dạng TypeScript để tham khảo):**
+- Mod viết bằng TypeScript, paste JSON vào game.
+- Data schemas versioned, extensible, validated bằng Zod.
+- Nội dung mới luôn modular, tránh hardcode.
+- Xem `docs/core_mechanics_report.md` và `docs/dreamland_engine_report.md` để cập nhật conventions và kiến trúc.
 
-```typescript
-// file: my_awesome_mod.ts (Để phát triển với type-checking)
-import type { ModBundle } from './src/lib/game/types'; // Import các định nghĩa
+## Ví dụ & best practices
 
-export const myMod: ModBundle = {
-  id: "my_awesome_mod", // ID duy nhất cho mod của bạn
-  items: {
-    // ... định nghĩa các vật phẩm ở đây
-  },
-  recipes: {
-    // ... định nghĩa các công thức ở đây
-  },
-  enemies: {
-    // ... định nghĩa các kẻ địch ở đây
-  },
-};
-```
+- **Mod Bundle:** Viết bằng TypeScript, paste JSON vào game. Xem `docs/core_mechanics_report.md` để biết cấu trúc.
+- **Entity Extension:** Mở rộng interface ở `src/core/types/attributes.ts`, implement logic ở `src/core/entities/`.
+- **AI Flow:** Thêm flow mới ở `src/ai/flows/`, đăng ký qua plugin ở `src/ai/plugins/`.
+- **Combat/Exploration:** Logic theo lượt, outcome dựa trên stats, narrative chọn theo mood.
 
-**Cách sử dụng:**
-1.  Viết mod của bạn trong một tệp `.ts` (ví dụ: `my_awesome_mod.ts`) để tận dụng type-checking.
-2.  Sau khi hoàn thành, sao chép đối tượng JSON từ `myMod` (không bao gồm `export const myMod =`).
-3.  Vào game, mở **Cài đặt (Settings)** -> **Tab Mods**.
-4.  Dán mã JSON của bạn vào ô văn bản và nhấn **"Apply Mods"**.
-
-### 1. Thêm Vật phẩm mới (`items`)
-
-Mỗi vật phẩm được định nghĩa là một đối tượng trong `items`.
 
 **Cấu trúc `ItemDefinition`:**
 

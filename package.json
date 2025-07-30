@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "typecheck:file": "tsc --noEmit",
     "test": "jest",
     "docs:api": "typedoc --out docs/api src --excludePrivate --excludeExternals --disableSources --name \"Dreamland API Documentation\" --entryPointStrategy expand"
   },

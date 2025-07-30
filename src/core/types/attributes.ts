@@ -1,4 +1,5 @@
-import { SoilType } from '../entities/terrain';
+
+// SoilType is a type, not a value. Use string literals like "loamy", "rocky", etc.
 
 /**
  * Base attributes for all environment-related entities
@@ -10,7 +11,7 @@ export interface EnvironmentAttributes {
     temperature: number;
     windLevel: number;
     lightLevel: number;
-    soilType: SoilType;
+    soilType: string; // e.g. "loamy", "rocky", etc.
 }
 
 /**
@@ -38,7 +39,9 @@ export interface CharacterAttributes {
 /**
  * Combined attributes for world chunks and cells
  */
-export interface TerrainAttributes extends EnvironmentAttributes, GameplayAttributes {}
+export interface TerrainAttributes extends EnvironmentAttributes, GameplayAttributes {
+    preferredSoilTypes?: string[]; // e.g. ["loamy", "rocky"]
+}
 
 /**
  * Entity-specific attributes
@@ -63,7 +66,7 @@ export interface EntityAttributes {
  * Combined attributes for regions
  */
 export interface RegionAttributes extends EnvironmentAttributes, GameplayAttributes {
-    regionType: string;
+    regionType: string; // e.g. "forest", "desert", etc.
     fertility: number;
     biodiversity: number;
 }
@@ -72,6 +75,6 @@ export interface RegionAttributes extends EnvironmentAttributes, GameplayAttribu
  * Combined attributes for the world
  */
 export interface WorldAttributes extends EnvironmentAttributes {
-    worldType: string;
+    worldType: string; // e.g. "overworld", "underwater", etc.
     magicalPotency: number;
 }

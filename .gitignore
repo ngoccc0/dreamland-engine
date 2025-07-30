@@ -37,3 +37,6 @@ yarn-error.log*
 venv/
 .venv/
 env/
+# Ignore GitHub workflows and VSCode settings
+.github/
+.vscode/

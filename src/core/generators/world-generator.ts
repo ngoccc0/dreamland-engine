@@ -1,8 +1,9 @@
 import { GridPosition } from '../values/grid-position';
-import { World } from '../entities/world';
+import type { World } from '../entities/world';
 import { Region } from '../entities/region';
 import { GridCell, GridCellAttributes } from '../entities/grid-cell';
-import { Terrain, TerrainType, SoilType } from '../entities/terrain';
+import { Terrain } from '../entities/terrain';
+import { TerrainType, SoilType } from '../../lib/definitions/terrain-definitions';
 
 interface WorldGenerationConfig {
     width: number;
@@ -22,10 +23,11 @@ export class WorldGenerator {
     async generateWorld(): Promise<World> {
         const world = new World();
         const regions = await this.generateRegions();
-        
+
         regions.forEach(region => {
             world.addRegion(region);
-            region.cells.forEach(cell => world.addChunk(cell));
+            // region.chunks is the correct property
+            region.chunks.forEach(chunk => world.addChunk(chunk));
         });
 
         return world;
@@ -39,7 +41,7 @@ export class WorldGenerator {
         while (gridPositions.length > 0) {
             const centerPos = this.selectRandomPosition(gridPositions);
             const terrain = await this.selectTerrainForRegion(centerPos);
-            
+
             const regionSize = this.randomBetween(
                 this.config.minRegionSize,
                 this.config.maxRegionSize
@@ -53,7 +55,8 @@ export class WorldGenerator {
                 gridPositions
             );
 
-            const region = new Region(currentRegionId, terrain, regionCells);
+            // Region expects (terrain, attributes), so pass terrain and regionCells as attributes
+            const region = new Region(terrain, regionCells);
             regions.push(region);
             currentRegionId++;
         }
@@ -147,24 +150,24 @@ export class WorldGenerator {
         const random = () => 0.8 + Math.random() * 0.4; // Random factor between 0.8 and 1.2
 
         return {
-            vegetationDensity: Math.floor(base.baseVegetation * random()),
-            elevation: Math.floor(base.baseElevation * random()),
-            dangerLevel: Math.floor(base.baseDanger * random()),
-            magicAffinity: Math.floor(base.baseMagicAffinity * random()),
+            vegetationDensity: Math.floor(base.vegetationDensity * random()),
+            elevation: Math.floor(base.elevation * random()),
+            dangerLevel: Math.floor(base.dangerLevel * random()),
+            magicAffinity: Math.floor(base.magicAffinity * random()),
             humanPresence: Math.floor(this.config.baseAttributes.humanPresence || 0 * random()),
-            predatorPresence: Math.floor(base.basePredatorPresence * random()),
-            temperature: Math.floor(base.baseTemperature * random()),
-            moisture: Math.floor(base.baseMoisture * random()),
-            windLevel: Math.floor(base.baseWindLevel * random()),
-            lightLevel: Math.floor(base.baseLightLevel * random()),
-            explorability: Math.floor(base.baseExplorability * random()),
+            predatorPresence: Math.floor(base.predatorPresence * random()),
+            temperature: Math.floor(base.temperature * random()),
+            moisture: Math.floor(base.moisture * random()),
+            windLevel: Math.floor(base.windLevel * random()),
+            lightLevel: Math.floor(base.lightLevel * random()),
+            explorability: Math.floor(base.explorability * random()),
             soilType: this.selectSoilType(terrain),
-            travelCost: Math.floor(base.baseTravelCost * random())
+            travelCost: Math.floor(base.travelCost * random())
         };
     }
 
     private selectSoilType(terrain: Terrain): SoilType {
-        if (terrain.attributes.preferredSoilTypes.length > 0) {
+        if (terrain.attributes.preferredSoilTypes && terrain.attributes.preferredSoilTypes.length > 0) {
             const index = Math.floor(Math.random() * terrain.attributes.preferredSoilTypes.length);
             return terrain.attributes.preferredSoilTypes[index];
         }

@@ -1,6 +1,8 @@
 import { TranslatableString } from '../types/i18n';
 import { GridPosition } from '../values/grid-position';
 import { TerrainType, SoilType } from '../../lib/definitions/terrain-definitions';
+
+export type { TerrainType, SoilType };
 import { Entity, IEntityContainer } from './entity';
 import { TerrainAttributes } from '../types/attributes';
 

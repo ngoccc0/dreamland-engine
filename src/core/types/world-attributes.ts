@@ -1,4 +1,4 @@
-import { SoilType } from '../entities/terrain';
+import type { SoilType } from '../entities/terrain';
 
 /**
  * Base attributes for all world objects
@@ -49,33 +49,21 @@ export interface WorldAttributes extends BaseAttributes {
  * Entity-specific attributes for living things
  */
 export interface EntityAttributes {
-    health: number;           // 0-100: Current health
-    maxHealth: number;        // Maximum possible health
-    strength: number;         // Base strength value
-    defense: number;          // Base defense value
-    speed: number;           // Movement speed
-    agility: number;         // Ability to dodge and maneuver
-    intelligence: number;     // Intelligence level
-    size: number;            // Size of the entity
-    age: number;             // Age in years
-    reproductionRate: number; // Rate of reproduction
-    adaptability: number;     // Ability to adapt to changes
-    resourceYield: number;    // Resources provided when harvested
-    resistance: number;      // Resistance to negative effects
-}
-export interface EntityAttributes {
     // Base stats
     health: number;           // Current health
     maxHealth: number;        // Maximum health
     strength: number;         // Physical strength
-    agility: number;         // Movement and reaction speed
+    defense?: number;         // Base defense value (optional)
+    agility: number;          // Movement and reaction speed
     intelligence: number;     // Mental capability
     resistance: number;       // Resistance to damage and effects
-
-    // Physical properties
-    size?: number;           // Size of the entity (1 = normal)
-    height?: number;         // Height of the entity (0-1)
-    speed?: number;          // Movement speed
+    size?: number;            // Size of the entity (1 = normal)
+    height?: number;          // Height of the entity (0-1)
+    speed?: number;           // Movement speed
+    age?: number;             // Age in years
+    reproductionRate?: number;// Rate of reproduction
+    adaptability?: number;    // Ability to adapt to changes
+    resourceYield?: number;   // Resources provided when harvested
 }
 
 /**

@@ -22,7 +22,7 @@ import { Progress } from "@/components/ui/progress";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/context/language-context";
 import { useGameEngine } from "@/hooks/use-game-engine";
-import type { PlayerItem, Recipe, ItemDefinition, Chunk, CraftingOutcome } from "@/lib/game/types";
+import type { PlayerItem, Recipe, ItemDefinition, Chunk, CraftingOutcome, Structure, Action, NarrativeEntry } from "@/lib/game/types";
 import { cn, getTranslatedText } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
 import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Heart, Zap, Footprints, Loader2, Menu, LogOut } from "./icons";
@@ -108,7 +108,7 @@ export default function GameLayout(props: GameLayoutProps) {
 
     const generateMapGrid = useCallback(() => {
         if (!isLoaded || !finalWorldSetup) {
-            logger.warn("[GameLayout] Grid generation SKIPPED. isLoaded:", isLoaded, "| finalWorldSetup exists:", !!finalWorldSetup);
+            logger.warn(`[GameLayout] Grid generation SKIPPED. isLoaded: ${isLoaded} | finalWorldSetup exists: ${!!finalWorldSetup}`);
             return [];
         }
         
@@ -146,7 +146,7 @@ export default function GameLayout(props: GameLayoutProps) {
         return grid;
     }, [world, playerPosition.x, playerPosition.y, finalWorldSetup, isLoaded, turn]);
     
-    const restingPlace = currentChunk?.structures?.find(s => s.restEffect);
+    const restingPlace = currentChunk?.structures?.find((s: Structure) => s.restEffect);
     
     if (!isLoaded || !finalWorldSetup || !currentChunk) {
         return (
@@ -202,12 +202,12 @@ export default function GameLayout(props: GameLayoutProps) {
 
                     <main ref={narrativeContainerRef} className="flex-grow p-4 md:p-6 overflow-y-auto max-h-[50dvh] md:max-h-full hide-scrollbar">
                         <div className="prose prose-stone dark:prose-invert max-w-4xl mx-auto">
-                            {narrativeLog.map((entry) => (
+                            {narrativeLog.map((entry: NarrativeEntry) => (
                                 <p key={entry.id} id={entry.id} className={cn("animate-in fade-in duration-500 whitespace-pre-line",
                                     entry.type === 'action' ? 'italic text-muted-foreground' : '',
                                     entry.type === 'system' ? 'font-semibold text-accent' : ''
                                 )}>
-                                    {entry.text}
+                                    {getTranslatedText(entry.text, language, t)}
                                 </p>
                             ))}
                             {isLoading && (
@@ -310,8 +310,8 @@ export default function GameLayout(props: GameLayoutProps) {
                         <div className="space-y-2">
                             <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('availableActions')}</h2>
                             <div className="grid grid-cols-2 gap-2">
-                                {currentChunk?.actions.map(action => {
-                                    const actionText = t(action.textKey as TranslationKey, action.params);
+                                {currentChunk?.actions.map((action: Action) => {
+                                    const actionText = getTranslatedText({ key: action.textKey, params: action.params }, language, t);
                                     return (
                                         <Tooltip key={action.id}>
                                             <TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => handleActionClick(action.id)} disabled={isLoading}>{actionText}</Button></TooltipTrigger>

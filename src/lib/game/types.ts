@@ -1,6 +1,77 @@
+/**
+ * Represents an enemy entity in the game world.
+ * This interface is designed for extensibility and modding.
+ *
+ * @property type - The enemy's type or name (translatable).
+ * @property hp - The enemy's hit points.
+ * @property damage - The base damage dealt by the enemy.
+ * @property behavior - The AI behavior pattern of the enemy.
+ * @property size - The size category of the enemy.
+ * @property diet - The enemy's diet (for ecosystem simulation).
+ * @property satiation - Current satiation level.
+ * @property maxSatiation - Maximum satiation level.
+ * @property emoji - Emoji representation for UI.
+ * @property harvestable - Optional: harvesting info (loot, requirements).
+ * @property senseEffect - Optional: special senses or detection effects. Keywords should be descriptive cues, e.g., "smell:foul", "sound:rumbling".
+ * @example
+ * const goblin: Enemy = {
+ *   type: { en: "Goblin", vi: "Yêu tinh" },
+ *   hp: 30,
+ *   damage: 5,
+ *   behavior: "aggressive",
+ *   size: "small",
+ *   diet: ["berries", "meat"],
+ *   satiation: 10,
+ *   maxSatiation: 20,
+ *   emoji: "👹",
+ *   senseEffect: { keywords: ["smell:foul", "sound:raspy breathing"] }
+ * }
+ */
+export interface Enemy {
+  type: TranslatableString;
+  hp: number;
+  damage: number;
+  behavior: 'aggressive' | 'passive' | 'defensive' | 'territorial' | 'immobile' | 'ambush';
+  size: 'small' | 'medium' | 'large';
+  diet: string[];
+  satiation: number;
+  maxSatiation: number;
+  emoji: string;
+  harvestable?: {
+    difficulty: number;
+    requiredTool: string;
+    loot: LootDrop[];
+  };
+  /**
+   * Sensory cues for AI/narrative. Use descriptive keywords, e.g., "smell:foul", "sound:rumbling".
+   */
+  senseEffect?: { keywords: string[] };
+  // Mod extension fields can be added here
+}
 
-import { type TranslatableString, type TranslationObject } from '@/core/types/i18n';
-import type { Language } from '@/core/types/i18n';
+// import { type TranslatableString, type TranslationObject } from '@/core/types/i18n';
+// import type { Language } from '@/core/types/i18n';
+/**
+ * Represents a string that can be translated into multiple languages.
+ * Can be a plain string, a translation object, or a translation key with params.
+ * @example
+ * "Sword"
+ * { en: "Sword", vi: "Kiếm" }
+ * { key: "item.sword", params: { tier: 2 } }
+ */
+export type TranslatableString = string | TranslationObject | { key: string; params?: Record<string, string | number> };
+
+/**
+ * Represents a translation object with language keys.
+ * @example
+ * { en: "Sword", vi: "Kiếm" }
+ */
+export type TranslationObject = { [lang: string]: string };
+
+/**
+ * Supported language codes.
+ */
+export type Language = 'en' | 'vi';
 import { z } from 'zod';
 
 import type {
@@ -19,6 +90,7 @@ import type {
     Recipe,
     StructureDefinition
 } from "./definitions";
+import type { WorldDefinition, PlayerStatusDefinition } from '../definitions/world-definitions';
 
 // Re-export for easier access elsewhere
 export type { 
@@ -36,16 +108,23 @@ export type {
 export { TranslatableStringSchema } from "./definitions";
 
 // Re-export core types
-export type { Language, TranslatableString, TranslationObject };
+// Already exported below
+// Already exported above
 
 // --- TERRAIN TYPES ---
 export type SoilType = 'rocky' | 'sandy' | 'fertile' | 'clay' | 'loamy' | 'volcanic' | 'peaty' | 'silty' | 'chalky';
 export const SoilTypeEnum = z.enum(['rocky', 'sandy', 'fertile', 'clay', 'loamy', 'volcanic', 'peaty', 'silty', 'chalky']);
 
+/**
+ * Represents the craftability calculation result for a recipe.
+ * @property score - Percentage of available ingredients (0-1)
+ * @property missingIngredients - Names of missing ingredients
+ * @property availableIngredients - Names of available ingredients
+ */
 export interface CraftabilityInfo {
-  score: number;  // Percentage of available ingredients (0-1)
-  missingIngredients: string[];  // Names of missing ingredients
-  availableIngredients: string[];  // Names of available ingredients
+  score: number;
+  missingIngredients: string[];
+  availableIngredients: string[];
 }
 
 export interface CraftingOutcome {
@@ -264,23 +343,7 @@ export interface Chunk {
     structures: Structure[];
     explored: boolean;
     lastVisited: number; 
-    enemy: {
-        type: TranslatableString;
-        hp: number;
-        damage: number;
-        behavior: 'aggressive' | 'passive' | 'defensive' | 'territorial' | 'immobile' | 'ambush';
-        size: 'small' | 'medium' | 'large';
-        diet: string[]; 
-        satiation: number; 
-        maxSatiation: number; 
-        emoji: string;
-        harvestable?: { 
-            difficulty: number;
-            requiredTool: string;
-            loot: LootDrop[];
-        };
-        senseEffect?: { keywords: string[] };
-    } | null;
+    enemy: Enemy | null;
     actions: Action[];
     regionId: number;
     travelCost: number;          
@@ -298,56 +361,53 @@ export interface Chunk {
     temperature?: number;
 }
 
-export interface World {
-    [key: string]: Chunk;
-}
-
-export interface PlayerStatus {
-    level: number;
-    experience: number;
-    hp: number;
-    mana: number;
-    stamina: number;
-    bodyTemperature: number;
-    items: PlayerItem[];
-    equipment: {
-        weapon: PlayerItem | null;
-        armor: PlayerItem | null;
-        accessory: PlayerItem | null;
-    };
-    quests: any[]; // Can be string or TranslatableString
-    questsCompleted: number;
-    skills: Skill[];
-    persona: PlayerPersona;
-    attributes: PlayerAttributes;
-    pets?: Pet[];
-    unlockProgress: {
-        kills: number;
-        damageSpells: number;
-        moves: number;
-    };
-    journal?: Record<number, string>;
-    dailyActionLog?: string[];
-    questHints?: Record<string, string>;
-    trackedEnemy?: {
-        chunkKey: string;
-        type: string;
-        lastSeen: number; // turn
-    };
-    language?: Language;
-}
-
 export interface PlayerBehaviorProfile {
     moves: number;
     attacks: number;
     crafts: number;
     customActions: number;
+    /**
+     * Item name (translatable).
+     */
+    name: TranslatableString;
+    /**
+     * Item description (translatable).
+     */
+    description: TranslatableString; 
+    /**
+     * Quantity of the item.
+     */
+    quantity: number;
+    /**
+     * Item tier/rarity.
+     */
+    tier: number;
+    /**
+     * Emoji for UI.
+     */
+    emoji: string;
 }
 
 export type NarrativeEntry = {
     id: string;
     text: string;
     type: 'narrative' | 'action' | 'system';
+    /**
+     * Item name (translatable).
+     */
+    name: TranslatableString;
+    /**
+     * Quantity of the item.
+     */
+    quantity: number;
+    /**
+     * Item tier/rarity.
+     */
+    tier: number;
+    /**
+     * Emoji for UI.
+     */
+    emoji: string;
 }
 
 export interface WorldConcept {
@@ -359,19 +419,41 @@ export interface WorldConcept {
     initialQuests: TranslatableString[];
     customStructures?: Structure[];
     customItemCatalog?: GeneratedItem[];
+    /**
+     * Pet type (translatable).
+     */
+    type: TranslatableString;
+    /**
+     * Pet name (optional).
+     */
+    name?: string;
+    /**
+     * Pet level.
+     */
+    level: number;
 }
 
+/**
+ * GameState holds the full serializable state of the game for save/load/modding.
+ * Uses plain interfaces for world and player, mapped to entity classes for logic.
+ */
 export interface GameState {
     worldProfile: WorldProfile;
     currentSeason: Season;
-    world: World;
+    /**
+     * Serializable world state for save/load/modding. See GameWorld entity for logic.
+     */
+    world: WorldDefinition;
     regions: { [id: number]: Region };
     recipes: Record<string, Recipe>;
     buildableStructures: Record<string, Structure>;
     regionCounter: number;
     playerPosition: { x: number; y: number };
     playerBehaviorProfile: PlayerBehaviorProfile;
-    playerStats: PlayerStatus;
+    /**
+     * Serializable player state for save/load/modding. See Character entity for logic.
+     */
+    playerStats: PlayerStatusDefinition;
     narrativeLog: NarrativeEntry[];
     worldSetup: WorldConcept;
     customItemDefinitions: Record<string, ItemDefinition>;
@@ -381,6 +463,21 @@ export interface GameState {
     gameTime: number; 
     day: number;
     turn: number;
+    // Skill fields below may be legacy or misplaced; consider refactoring to Skill[] or player entity
+    name: TranslatableString;
+    description: TranslatableString;
+    tier: number;
+    manaCost: number;
+    effect: {
+        type: 'HEAL' | 'DAMAGE' | 'TELEPORT';
+        amount: number;
+        target: 'SELF' | 'ENEMY';
+        healRatio?: number;
+    };
+    unlockCondition?: {
+        type: 'kills' | 'damageSpells' | 'moves';
+        count: number;
+    };
 }
 
 export type RandomEvent = RandomEventDefinition;

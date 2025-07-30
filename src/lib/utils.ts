@@ -1,8 +1,10 @@
 
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import type { Language, NarrativeLength, TranslatableString } from "./game/types";
+import type { Language, NarrativeLength } from "./game/types";
 import type { TranslationKey } from "./i18n";
+import type { TranslatableString } from "@/core/types/i18n";
+import { isTranslationObject, isInlineTranslation } from "@/core/types/i18n";
 
 /**
  * @description A utility function to merge Tailwind CSS classes conditionally.
@@ -36,33 +38,42 @@ export const clamp = (num: number, min: number, max: number) => Math.min(Math.ma
  * getTranslatedText({ en: 'Hello', vi: 'Xin chào' }, 'vi'); // "Xin chào"
  * getTranslatedText('some_translation_key', 'en', t); // Looks up the key in the English translations
  */
+/**
+ * Gets the translated text for a given translatable string.
+ * Handles both translation keys and inline translations with proper type safety.
+ * 
+ * @param translatable - The string or object to translate
+ * @param language - The target language
+ * @param t - Optional translation function for key-based translations
+ * @returns The translated string
+ */
 export function getTranslatedText(
     translatable: TranslatableString,
     language: Language,
     t?: (key: TranslationKey, options?: any) => string
 ): string {
+    // Handle direct translation keys
     if (typeof translatable === 'string') {
         if (t) {
             return t(translatable);
-        } else {
-            return translatable;
         }
+        return translatable;
     }
-    if (typeof translatable === 'object' && translatable !== null) {
-        // TranslationObject dạng { key, params }
-        if ('key' in translatable) {
-            const key = translatable.key ?? '';
-            if (t) {
-                return t(key, translatable.params);
-            } else {
-                return key;
-            }
+
+    // Use type guards for better type safety
+    if (isTranslationObject(translatable)) {
+        if (t) {
+            return t(translatable.key, translatable.params);
         }
-        // InlineTranslation dạng { en: ..., vi: ... }
-        if ('en' in translatable || 'vi' in translatable) {
-            return translatable[language] || translatable['en'] || '';
-        }
+        return translatable.key;
     }
+
+    if (isInlineTranslation(translatable)) {
+        // Always fall back to English if the requested language is not available
+        return translatable[language] || translatable.en;
+    }
+
+    // Fallback for unexpected cases
     return '';
 }
 

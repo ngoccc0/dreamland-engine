@@ -208,7 +208,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps): JSX.Element {
             initialNarrative: generatedData.concepts[selection.initialNarrative].initialNarrative,
             startingBiome: generatedData.concepts[selection.startingBiome].startingBiome,
             playerInventory: generatedData.concepts[selection.playerInventory].playerInventory.map(item => ({
-                name: typeof item.name === 'object' ? item.name[language] : item.name,
+                name: typeof item.name === 'object' && 'en' in item.name ? item.name[language] : item.name,
                 quantity: item.quantity,
                 tier: 1,
                 emoji: '📦'

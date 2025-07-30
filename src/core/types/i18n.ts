@@ -16,7 +16,6 @@ export interface I18nDictionary {
  * A translation key that can include variables to be interpolated.
  * E.g., { key: 'items.sword.name', params: { type: 'iron' } }
  */
-
 export interface TranslationObject {
     key: string;
     params?: { [key: string]: string | number };
@@ -26,10 +25,21 @@ export interface TranslationObject {
  * Inline translation object, e.g. { en: 'Sword', vi: 'Kiếm' }
  */
 export interface InlineTranslation {
-    en?: string;
-    vi?: string;
-    [lang: string]: string | undefined;
+    en: string;  // Made required for type safety
+    vi?: string; // Optional but will fallback to English
 }
+
+/**
+ * Type guards for translation types
+ */
+export const isTranslationObject = (value: unknown): value is TranslationObject => {
+    return typeof value === 'object' && value !== null && 'key' in value;
+};
+
+export const isInlineTranslation = (value: unknown): value is InlineTranslation => {
+    return typeof value === 'object' && value !== null && 
+           'en' in value && typeof (value as any).en === 'string';
+};
 
 /**
  * A string that can be translated. Can be:

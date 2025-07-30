@@ -1,7 +1,19 @@
+/**
+ * EntityFactory: Centralized factory for creating game entities based on terrain and context.
+ * Combines all logic from previous factories, with TSDoc for all interfaces and methods.
+ * Place in src/core/factories/entity-factory.ts for Clean Architecture.
+ */
+
 import { GridPosition } from '../values/grid-position';
-import { TerrainType } from '../entities/terrain';
 import { EntityAttributes } from '../types/attributes';
 
+/**
+ * Represents a game entity (tree, animal, rock, cactus, etc.)
+ * @property id Unique identifier
+ * @property type Entity type (e.g. 'TREE', 'DEER')
+ * @property position Grid position in the world
+ * @property attributes Entity stats and properties
+ */
 export interface Entity {
     id: string;
     type: string;
@@ -9,53 +21,50 @@ export interface Entity {
     attributes: EntityAttributes;
 }
 
+/**
+ * Factory for creating entities based on terrain type and context.
+ * Supports trees, animals, rocks, cactus, and can be extended for modding.
+ */
 export class EntityFactory {
+    /** Internal counter for unique entity IDs */
     private entityCounter = 0;
 
-    createEntitiesForTerrain(terrainType: TerrainType, position: GridPosition): Entity[] {
+    /**
+     * Creates entities for a given terrain type and position.
+     * @param terrainType Terrain type as string (e.g. 'forest', 'plains', 'mountain', 'desert')
+     * @param position Grid position
+     * @returns Array of created entities
+     * @example
+     *   factory.createEntitiesForTerrain('forest', new GridPosition(1,2));
+     */
+    createEntitiesForTerrain(terrainType: string, position: GridPosition): Entity[] {
         const entities: Entity[] = [];
-        
         switch(terrainType) {
-            case TerrainType.FOREST:
-                if (Math.random() > 0.3) {
-                    entities.push(this.createTree(position));
-                }
-                if (Math.random() > 0.7) {
-                    entities.push(this.createAnimal('DEER', position));
-                }
+            case 'forest':
+                if (Math.random() > 0.3) entities.push(this.createTree(position));
+                if (Math.random() > 0.7) entities.push(this.createAnimal('DEER', position));
                 break;
-
-            case TerrainType.PLAINS:
-                if (Math.random() > 0.5) {
-                    entities.push(this.createTree(position));
-                }
-                if (Math.random() > 0.8) {
-                    entities.push(this.createAnimal('RABBIT', position));
-                }
+            case 'plains':
+                if (Math.random() > 0.5) entities.push(this.createTree(position));
+                if (Math.random() > 0.8) entities.push(this.createAnimal('RABBIT', position));
                 break;
-
-            case TerrainType.MOUNTAIN:
-                if (Math.random() > 0.6) {
-                    entities.push(this.createRock(position));
-                }
-                if (Math.random() > 0.9) {
-                    entities.push(this.createAnimal('GOAT', position));
-                }
+            case 'mountain':
+                if (Math.random() > 0.6) entities.push(this.createRock(position));
+                if (Math.random() > 0.9) entities.push(this.createAnimal('GOAT', position));
                 break;
-
-            case TerrainType.DESERT:
-                if (Math.random() > 0.8) {
-                    entities.push(this.createCactus(position));
-                }
-                if (Math.random() > 0.9) {
-                    entities.push(this.createAnimal('SNAKE', position));
-                }
+            case 'desert':
+                if (Math.random() > 0.8) entities.push(this.createCactus(position));
+                if (Math.random() > 0.9) entities.push(this.createAnimal('SNAKE', position));
                 break;
         }
-
         return entities;
     }
 
+    /**
+     * Creates a tree entity.
+     * @param position Grid position
+     * @returns Tree entity
+     */
     private createTree(position: GridPosition): Entity {
         const attributes: EntityAttributes = {
             health: 100,
@@ -69,7 +78,6 @@ export class EntityFactory {
             adaptability: Math.floor(Math.random() * 30) + 20,
             resourceYield: Math.floor(Math.random() * 50) + 50
         };
-
         return {
             id: `tree_${this.entityCounter++}`,
             type: 'TREE',
@@ -78,6 +86,11 @@ export class EntityFactory {
         };
     }
 
+    /**
+     * Creates a cactus entity (desert only).
+     * @param position Grid position
+     * @returns Cactus entity
+     */
     private createCactus(position: GridPosition): Entity {
         const attributes: EntityAttributes = {
             health: 80,
@@ -91,7 +104,6 @@ export class EntityFactory {
             adaptability: Math.floor(Math.random() * 50) + 50,
             resourceYield: Math.floor(Math.random() * 30) + 20
         };
-
         return {
             id: `cactus_${this.entityCounter++}`,
             type: 'CACTUS',
@@ -100,6 +112,11 @@ export class EntityFactory {
         };
     }
 
+    /**
+     * Creates a rock entity (mountain only).
+     * @param position Grid position
+     * @returns Rock entity
+     */
     private createRock(position: GridPosition): Entity {
         const attributes: EntityAttributes = {
             health: 200,
@@ -113,7 +130,6 @@ export class EntityFactory {
             adaptability: 0,
             resourceYield: Math.floor(Math.random() * 100) + 50
         };
-
         return {
             id: `rock_${this.entityCounter++}`,
             type: 'ROCK',
@@ -122,6 +138,12 @@ export class EntityFactory {
         };
     }
 
+    /**
+     * Creates an animal entity.
+     * @param animalType Animal type (e.g. 'DEER', 'GOAT', 'SNAKE')
+     * @param position Grid position
+     * @returns Animal entity
+     */
     private createAnimal(animalType: string, position: GridPosition): Entity {
         const attributes: EntityAttributes = {
             health: 100,
@@ -135,7 +157,6 @@ export class EntityFactory {
             adaptability: Math.floor(Math.random() * 40) + 30,
             resourceYield: Math.floor(Math.random() * 30) + 20
         };
-
         return {
             id: `${animalType.toLowerCase()}_${this.entityCounter++}`,
             type: animalType,

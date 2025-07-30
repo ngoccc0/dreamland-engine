@@ -1,5 +1,6 @@
 import { GridPosition } from '../values/grid-position';
-import { Terrain, TerrainType, SoilType } from './terrain';
+import { Terrain } from './terrain';
+import type { TerrainType, SoilType } from './terrain';
 
 export interface GridCellAttributes {
     vegetationDensity: number;

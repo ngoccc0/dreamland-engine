@@ -49,24 +49,11 @@ export interface Enemy {
   // Mod extension fields can be added here
 }
 
-// import { type TranslatableString, type TranslationObject } from '@/core/types/i18n';
-// import type { Language } from '@/core/types/i18n';
-/**
- * Represents a string that can be translated into multiple languages.
- * Can be a plain string, a translation object, or a translation key with params.
- * @example
- * "Sword"
- * { en: "Sword", vi: "Kiếm" }
- * { key: "item.sword", params: { tier: 2 } }
- */
-export type TranslatableString = string | TranslationObject | { key: string; params?: Record<string, string | number> };
 
-/**
- * Represents a translation object with language keys.
- * @example
- * { en: "Sword", vi: "Kiếm" }
- */
-export type TranslationObject = { [lang: string]: string };
+import type { TranslatableString } from '@/core/types/i18n';
+
+// Re-export TranslatableString và TranslationObject từ core để đồng bộ type toàn dự án
+export type { TranslatableString, TranslationObject } from '@/core/types/i18n';
 
 /**
  * Supported language codes.

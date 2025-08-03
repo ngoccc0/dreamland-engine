@@ -14,11 +14,16 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { PlayerStatusSchema, EnemySchema, PlayerItemSchema, ChunkItemSchema, ItemDefinitionSchema, PetSchema, SkillSchema, allTerrains, TranslatableStringSchema } from '@/ai/schemas';
-import type { PlayerItem, PlayerStatus, Pet, ChunkItem, Skill, Structure, TranslatableString, Terrain } from '@/lib/game/types';
+import { EnemySchema, PlayerItemSchema, ChunkItemSchema, ItemDefinitionSchema, PetSchema, SkillSchema, TranslatableStringSchema } from '@/ai/schemas';
+import { allTerrains } from '@/lib/game/types';
+import type { PlayerItem, Pet, ChunkItem, Skill, Structure, Terrain } from '@/lib/game/types';
+import type { TranslatableString } from '@/core/types/i18n';
+import { PlayerStatusSchema } from '@/ai/schemas';
+type PlayerStatus = import('zod').infer<typeof PlayerStatusSchema>;
+import { isInlineTranslation, isTranslationObject } from '@/core/types/i18n';
 import { getTemplates } from '@/lib/game/templates';
 import { buildableStructures } from '@/lib/game/structures';
-
+import { getTranslatedText } from '@/lib/utils';
 
 /**
  * Helper function to get a random integer within a specified range.
@@ -34,13 +39,11 @@ const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Mat
  * @returns The translated string, or 'unknown' if not found.
  */
 function getTranslatableStringValue(translatable: TranslatableString | string | undefined, language: 'en' | 'vi'): string {
-    if (translatable === undefined) {
-        return 'unknown';
-    }
-    if (typeof translatable === 'string') {
-        return translatable;
-    }
-    return translatable[language] || translatable.en || translatable.vi || 'unknown';
+    if (translatable === undefined) return 'unknown';
+    if (typeof translatable === 'string') return translatable;
+    if (isInlineTranslation(translatable)) return translatable[language] || translatable.en || translatable.vi || 'unknown';
+    if (isTranslationObject(translatable)) return translatable.key;
+    return 'unknown';
 }
 
 /**
@@ -168,7 +171,7 @@ export const playerAttackTool = ai.defineTool({
         const templates = getTemplates(playerStatus.language || 'en');
         const terrainKey = terrain as Terrain; // Assert terrain type
         const enemyTemplate = (templates[terrainKey] as { enemies: { data: { type: TranslatableString, loot?: any[] } }[] })?.enemies.find((e: any) => 
-            getTranslatableStringValue(e.data.type, playerStatus.language || 'en') === getTranslatableStringValue(enemy.type, playerStatus.language || 'en')
+            getTranslatedText(e.data.type ?? '', playerStatus.language || 'en') === getTranslatedText(enemy.type ?? '', playerStatus.language || 'en')
         );
 
         if (enemyTemplate && enemyTemplate.data.loot) {
@@ -177,7 +180,7 @@ export const playerAttackTool = ai.defineTool({
 
             for (const lootItem of enemyTemplate.data.loot) {
                 if (Math.random() < lootItem.chance) {
-                    const itemName = getTranslatableStringValue(lootItem.name, playerStatus.language || 'en');
+                    const itemName = getTranslatedText(lootItem.name, playerStatus.language || 'en');
                     const definition = allItemDefinitions[itemName];
                     if (definition) {
                         const quantity = getRandomInRange(lootItem.quantity);
@@ -193,7 +196,7 @@ export const playerAttackTool = ai.defineTool({
             }
             if (drops.length > 0) {
                     lootDrops = drops;
-                    combatLogParts.push(`Enemy dropped ${drops.map(d => `${d.quantity} ${getTranslatableStringValue(d.name, playerStatus.language || 'en')}`).join(', ')}.`);
+                    combatLogParts.push(`Enemy dropped ${drops.map(d => `${d.quantity} ${getTranslatedText(d.name, playerStatus.language || 'en')}`).join(', ')}.`);
             }
         }
         
@@ -282,11 +285,11 @@ export const takeItemTool = ai.defineTool({
     inputSchema: TakeItemInputSchema,
     outputSchema: TakeItemOutputSchema
 }, async ({ itemToTake, currentChunkItems, playerInventory }) => {
-    const updatedChunkItems = currentChunkItems.filter(i => getTranslatableStringValue(i.name, 'en') !== getTranslatableStringValue(itemToTake.name, 'en')); // Use 'en' for filtering consistency if internal
+    const updatedChunkItems = currentChunkItems.filter(i => getTranslatedText(i.name, 'en') !== getTranslatedText(itemToTake.name, 'en')); // Use 'en' for filtering consistency if internal
     const updatedPlayerInventory = [...playerInventory];
     
     // Fix: Use getTranslatableStringValue for comparison
-    const existingItem = updatedPlayerInventory.find(i => getTranslatableStringValue(i.name, 'en') === getTranslatableStringValue(itemToTake.name, 'en'));
+    const existingItem = updatedPlayerInventory.find(i => getTranslatedText(i.name, 'en') === getTranslatedText(itemToTake.name, 'en'));
     
     if (existingItem) {
         existingItem.quantity += itemToTake.quantity;
@@ -342,14 +345,14 @@ export const useItemTool = ai.defineTool({
 }, async ({ itemName, playerStatus, customItemDefinitions }) => {
     const newStatus: PlayerStatus = JSON.parse(JSON.stringify(playerStatus)); // Deep copy
     // Fix: Use getTranslatableStringValue for comparison
-    const itemIndex = newStatus.items.findIndex((i: PlayerItem) => getTranslatableStringValue(i.name, playerStatus.language || 'en').toLowerCase() === itemName.toLowerCase());
+    const itemIndex = newStatus.items.findIndex((i: PlayerItem) => getTranslatedText(i.name, playerStatus.language || 'en').toLowerCase() === itemName.toLowerCase());
 
     if (itemIndex === -1) {
         return { updatedPlayerStatus: playerStatus, wasUsed: false, effectDescription: 'Item not found.' };
     }
 
     // Fix: Use getTranslatableStringValue for accessing customItemDefinitions
-    const itemDef = customItemDefinitions[getTranslatableStringValue(newStatus.items[itemIndex].name, playerStatus.language || 'en')];
+    const itemDef = customItemDefinitions[getTranslatedText(newStatus.items[itemIndex].name, playerStatus.language || 'en')];
     
     if (!itemDef) {
         return { updatedPlayerStatus: playerStatus, wasUsed: false, effectDescription: 'Item has no defined effect.' };
@@ -360,17 +363,21 @@ export const useItemTool = ai.defineTool({
     itemDef.effects.forEach((effect: typeof ItemDefinitionSchema._type['effects'][number]) => {
         switch (effect.type) {
             case 'HEAL':
-                const oldHp = newStatus.hp;
-                newStatus.hp = Math.min(100, newStatus.hp + effect.amount);
-                if (newStatus.hp > oldHp) {
-                    effectDescriptions.push(`Healed for ${newStatus.hp - oldHp} HP.`);
+                if (typeof effect.amount === 'number') {
+                    const oldHp = newStatus.hp;
+                    newStatus.hp = Math.min(100, newStatus.hp + effect.amount);
+                    if (newStatus.hp > oldHp) {
+                        effectDescriptions.push(`Healed for ${newStatus.hp - oldHp} HP.`);
+                    }
                 }
                 break;
             case 'RESTORE_STAMINA':
-                const oldStamina = newStatus.stamina;
-                newStatus.stamina = Math.min(100, newStatus.stamina + effect.amount);
-                if (newStatus.stamina > oldStamina) {
-                    effectDescriptions.push(`Restored ${newStatus.stamina - oldStamina} stamina.`);
+                if (typeof effect.amount === 'number') {
+                    const oldStamina = newStatus.stamina;
+                    newStatus.stamina = Math.min(100, newStatus.stamina + effect.amount);
+                    if (newStatus.stamina > oldStamina) {
+                        effectDescriptions.push(`Restored ${newStatus.stamina - oldStamina} stamina.`);
+                    }
                 }
                 break;
         }
@@ -459,7 +466,7 @@ export const tameEnemyTool = ai.defineTool({
             updatedPlayerStatus: playerStatus,
             updatedEnemy: enemy,
             newPet: null,
-            log: `The ${getTranslatableStringValue(enemy.type, playerStatus.language || 'en')} is not interested in the ${itemName}.`
+            log: `The ${getTranslatedText(enemy.type ?? '', playerStatus.language || 'en')} is not interested in the ${itemName ?? ''}.`
         };
     }
     
@@ -495,7 +502,7 @@ export const tameEnemyTool = ai.defineTool({
             updatedPlayerStatus: newStatus,
             updatedEnemy: null, 
             newPet: newPet,
-            log: `The ${getTranslatableStringValue(enemy.type, playerStatus.language || 'en')} ate the ${itemName}. Taming was successful!`
+            log: `The ${getTranslatedText(enemy.type ?? '', playerStatus.language || 'en')} ate the ${itemName ?? ''}. Taming was successful!`
         };
     } else {
         return {
@@ -504,7 +511,7 @@ export const tameEnemyTool = ai.defineTool({
             updatedPlayerStatus: newStatus,
             updatedEnemy: newEnemyState,
             newPet: null,
-            log: `The ${getTranslatableStringValue(enemy.type, playerStatus.language || 'en')} ate the ${itemName}, but remains wild.`
+            log: `The ${getTranslatedText(enemy.type ?? '', playerStatus.language || 'en')} ate the ${itemName ?? ''}, but remains wild.`
         };
     }
 });
@@ -553,7 +560,7 @@ export const useSkillTool = ai.defineTool({
     let newEnemy: typeof enemy | null = enemy ? JSON.parse(JSON.stringify(enemy)) : null;
 
     // Fix: Use getTranslatableStringValue for comparison
-    const skillToUse = newPlayerStatus.skills.find(s => getTranslatableStringValue(s.name, playerStatus.language || 'en').toLowerCase() === skillName.toLowerCase());
+    const skillToUse = newPlayerStatus.skills.find(s => getTranslatedText(s.name, playerStatus.language || 'en').toLowerCase() === skillName.toLowerCase());
 
     if (!skillToUse) {
         return { updatedPlayerStatus: playerStatus, updatedEnemy: enemy, log: `Player does not know the skill: ${skillName}.` };
@@ -561,7 +568,7 @@ export const useSkillTool = ai.defineTool({
 
     if (newPlayerStatus.mana < skillToUse.manaCost) {
         // FIX: Add type assertion for skillToUse.name to resolve potential TypeScript inference issues.
-        return { updatedPlayerStatus: playerStatus, updatedEnemy: enemy, log: `Not enough mana to use ${getTranslatableStringValue(skillToUse.name as TranslatableString, playerStatus.language || 'en')}.` };
+        return { updatedPlayerStatus: playerStatus, updatedEnemy: enemy, log: `Not enough mana to use ${getTranslatedText(skillToUse.name as TranslatableString, playerStatus.language || 'en')}.` };
     }
 
     newPlayerStatus.mana -= skillToUse.manaCost;
@@ -584,7 +591,7 @@ export const useSkillTool = ai.defineTool({
 
         case 'Failure':
             // FIX: Add type assertion for skillToUse.name.
-            log = `The magic fizzles! Your attempt to cast ${getTranslatableStringValue(skillToUse.name as TranslatableString, playerStatus.language || 'en')} fails.`;
+            log = `The magic fizzles! Your attempt to cast ${getTranslatedText(skillToUse.name as TranslatableString, playerStatus.language || 'en')} fails.`;
             return { updatedPlayerStatus: newPlayerStatus, updatedEnemy: newEnemy, log };
 
         case 'GreatSuccess':

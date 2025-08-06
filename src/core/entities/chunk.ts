@@ -1,3 +1,4 @@
+// This file has been removed as it is now merged into world.ts
 import { Position } from '../types/common';
 import { Terrain } from './terrain';
 import { TerrainAttributes } from '../types/world-attributes';

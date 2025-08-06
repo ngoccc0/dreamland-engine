@@ -1,6 +1,6 @@
 import { ExplorationManager, ExplorationResult, Discovery, DiscoveryType } from '../entities/exploration';
 import { GridPosition } from '../values/grid-position';
-import { GridCell } from '../entities/grid-cell';
+import { GridCell } from '../entities/world';
 
 export interface IExplorationUseCase {
     exploreLocation(position: GridPosition): Promise<ExplorationResult>;
@@ -65,7 +65,7 @@ export class ExplorationUseCase implements IExplorationUseCase {
         const progress = this.explorationManager.getProgress();
 
         let exploredCells = 0;
-        region.cells.forEach(cell => {
+        region.cells.forEach((cell: import('../entities/world').GridCell) => {
             if (progress.revealedCells.has(cell.position.toString())) {
                 exploredCells++;
             }

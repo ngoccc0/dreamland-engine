@@ -1,7 +1,7 @@
 import { WeatherEngine } from '../engines/weather-engine';
 import { WeatherType, WeatherIntensity, WeatherCondition } from '../types/weather';
 import { GridPosition } from '../values/grid-position';
-import { GridCell } from '../entities/grid-cell';
+import { GridCell } from '../entities/world';
 
 export interface IWeatherUseCase {
     getCurrentWeather(): WeatherCondition;
@@ -33,7 +33,7 @@ export class WeatherUseCase implements IWeatherUseCase {
             center,
             radius,
             type,
-            WeatherIntensity.MODERATE
+            WeatherIntensity.NORMAL
         );
 
         // Update affected cells
@@ -52,7 +52,7 @@ export class WeatherUseCase implements IWeatherUseCase {
 
         // Update world cells affected by weather
         const world = await this.worldRepository.getWorld();
-        world.chunks.forEach(cell => {
+        world.chunks.forEach((cell: import('../entities/world').GridCell) => {
             this.weatherEngine.applyWeatherEffects(cell);
         });
 

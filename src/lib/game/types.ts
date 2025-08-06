@@ -77,7 +77,9 @@ import type {
     Recipe,
     StructureDefinition
 } from "./definitions";
-import type { WorldDefinition, PlayerStatusDefinition } from '../definitions/world-definitions';
+// WorldDefinition and PlayerStatusDefinition are defined in ../definitions/world-definitions, but not found. Define them here for now.
+export type WorldDefinition = Record<string, any>; // TODO: Replace with real type
+export type PlayerStatusDefinition = Record<string, any>; // TODO: Replace with real type
 
 // Re-export for easier access elsewhere
 export type { 

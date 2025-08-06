@@ -34,6 +34,15 @@ interface GameLayoutProps {
 }
 
 export default function GameLayout(props: GameLayoutProps) {
+    // Guard: If gameSlot is not a valid number, show error and do not render game logic
+    if (typeof props.gameSlot !== 'number' || isNaN(props.gameSlot) || props.gameSlot < 0) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full text-red-600">
+                <h2>Invalid or missing game slot.</h2>
+                <p>Please return to the main menu and select a valid save slot.</p>
+            </div>
+        );
+    }
     const { t, language } = useLanguage();
     
     const {
@@ -266,7 +275,7 @@ export default function GameLayout(props: GameLayoutProps) {
                              <div className="flex flex-col space-y-2 w-full md:max-w-xs">
                                 <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('skills')}</h3>
                                 <div className="grid grid-cols-2 gap-2">
-                                    {playerStats.skills?.map((skill) => {
+                                    {playerStats.skills?.map((skill: import('@/lib/game/types').Skill) => {
                                         const skillName = getTranslatedText(skill.name, language, t);
                                         const skillDesc = getTranslatedText(skill.description, language, t);
                                         return (

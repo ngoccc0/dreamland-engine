@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 import GameLayout from '@/components/game/game-layout';
 import { WorldSetup } from '@/components/game/world-setup';
 import { SettingsPopup } from '@/components/game/settings-popup';
-import type { GameState, PlayerStatus, ItemDefinition } from '@/lib/game/types';
+import type { GameState, ItemDefinition } from '@/lib/game/types';
 import type { GenerateWorldSetupOutput } from "@/ai/flows/generate-world-setup";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -19,6 +19,7 @@ import { Loader2, Settings, Download, Trash2, Play, PlusCircle, Star, User, Back
 import type { TranslationKey, Language } from '@/lib/i18n';
 import { LanguageSelector } from '@/components/game/language-selector';
 import { cn, getTranslatedText } from "@/lib/utils";
+import { logger } from '@/lib/logger';
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from '@/components/ui/separator';
 import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
@@ -92,13 +93,17 @@ export default function Home() {
   };
 
   const handlePlay = (slotIndex: number) => {
+    logger.info('[SlotSelect] handlePlay called', { slotIndex });
     setActiveSlot(slotIndex);
     setLoadState('continue_game');
+    logger.debug('[SlotSelect] activeSlot set for continue_game', { slotIndex });
   };
 
   const handleNewGame = (slotIndex: number) => {
+    logger.info('[SlotSelect] handleNewGame called', { slotIndex });
     setActiveSlot(slotIndex);
     setLoadState('new_game');
+    logger.debug('[SlotSelect] activeSlot set for new_game', { slotIndex });
   };
 
   const handleDelete = async (slotIndex: number) => {
@@ -153,6 +158,10 @@ export default function Home() {
       startingSkill: selectedConcept.startingSkill,
       customStructures: worldSetupData.customStructures || [],
       playerInventory: initialPlayerInventory,
+      // Add required WorldConcept fields (type, level, name)
+      type: selectedConcept.type ?? { en: 'pet', vi: 'thú cưng' },
+      level: selectedConcept.level ?? 1,
+      name: selectedConcept.name ?? { en: 'World', vi: 'Thế giới' },
     };
     const newGameState: GameState = {
       worldSetup: worldConceptForState,
@@ -172,7 +181,13 @@ export default function Home() {
       customStructures: worldSetupData.customStructures || [],
       day: 1, turn: 1, narrativeLog: [], worldProfile: { climateBase: 'temperate', magicLevel: 5, mutationFactor: 2, sunIntensity: 7, weatherTypesAllowed: ['clear', 'rain', 'fog'], moistureBias: 0, tempBias: 0, resourceDensity: 5, theme: 'Normal', },
       currentSeason: 'spring', gameTime: 360, weatherZones: {}, world: {}, recipes: {}, buildableStructures: {}, regions: {}, regionCounter: 0,
-      playerPosition: { x: 0, y: 0 }, playerBehaviorProfile: { moves: 0, attacks: 0, crafts: 0, customActions: 0 },
+      playerPosition: { x: 0, y: 0 },
+      playerBehaviorProfile: {
+        moves: 0, attacks: 0, crafts: 0, customActions: 0,
+        name: { en: 'Player', vi: 'Người chơi' },
+        description: { en: 'Default player', vi: 'Người chơi mặc định' },
+        quantity: 1, tier: 1, emoji: '🙂'
+      },
     };
     
     try {
@@ -354,12 +369,28 @@ export default function Home() {
 
   // Render the new game creation flow
   if (loadState === 'new_game' && activeSlot !== null) {
-     return <WorldSetup onWorldCreated={onWorldCreated} />;
+    logger.debug('[Render] Rendering WorldSetup', { activeSlot });
+    return <WorldSetup onWorldCreated={onWorldCreated} />;
   }
 
-  // Render the actual game layout
-  if (loadState === 'continue_game' && activeSlot !== null) {
-    return <GameLayout gameSlot={activeSlot} />;
+
+  // Render the actual game layout, but only if activeSlot is a valid number
+  if (loadState === 'continue_game') {
+    logger.debug('[Render] Rendering GameLayout or fallback', { activeSlot });
+    if (typeof activeSlot === 'number' && !isNaN(activeSlot) && activeSlot >= 0) {
+      logger.info('[SlotSelect] Rendering GameLayout with valid slot', { activeSlot });
+      return <GameLayout gameSlot={activeSlot} />;
+    } else {
+      logger.error('[SlotSelect] Tried to render GameLayout with missing/invalid slot', { activeSlot });
+      // Fallback: If slot is missing, show slot selection and a warning
+      return (
+        <div className="flex flex-col items-center justify-center h-full text-red-600">
+          <h2>Missing or invalid save slot</h2>
+          <p>Please select a valid save slot to continue your adventure.</p>
+          <Button onClick={() => setLoadState('slot_selection')}>Back to Slot Selection</Button>
+        </div>
+      );
+    }
   }
 
   return null;

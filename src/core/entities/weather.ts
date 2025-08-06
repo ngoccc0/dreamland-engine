@@ -1,6 +1,7 @@
 ﻿import { WeatherType, WeatherIntensity, WeatherCondition } from '../types/weather';
 import { GridPosition } from '../values/grid-position';
 import { EffectType, Effect, EffectTarget } from '../types/effects';
+import type { WeatherTransition } from '../types/weather';
 
 export type WeatherEffectType = EffectType.TEMPERATURE | EffectType.MOISTURE | EffectType.WIND;
 
@@ -17,6 +18,14 @@ export function createWeatherEffect(type: WeatherEffectType, value: number, inte
             value: 1
         }
     };
+
+}
+
+export interface WeatherParams {
+    type: WeatherType;
+    intensity?: WeatherIntensity;
+    conditions?: WeatherCondition[];
+    duration?: number;
 }
 
 export interface Weather {
@@ -27,40 +36,16 @@ export interface Weather {
     getCoverage(): GridPosition[];
     getDuration(): number;
     remainingDuration(): number;
-    getPossibleTransitions(): WeatherType[];
+    getPossibleTransitions(): WeatherTransition[];
     update(deltaTime: number): void;
     getWeatherAtPosition(position: GridPosition): Weather | null;
     addRegionalVariation(region: string, intensityModifier: number): void;
-    /**
-     * Lấy WeatherCondition chính (primary) của trạng thái thời tiết này
-     */
     getPrimaryCondition(): WeatherCondition;
-}
-
-export interface WeatherParams {
-    type: WeatherType;
-    intensity?: WeatherIntensity;
-    conditions?: WeatherCondition[];
-    duration?: number;
-}
-
-export interface WeatherState {
-    temperature: number;
-    windSpeed: number;
-    precipitation: number;
-    cloudCover: number;
-    visibility: number;
-    thunderstorm: boolean;
-    effects: Effect[];
-}
-
-export class WeatherImpl implements Weather {
     /**
      * Lấy WeatherCondition chính (primary) của trạng thái thời tiết này
      */
-    getPrimaryCondition(): WeatherCondition {
-        return this.conditions[0];
     }
+export class WeatherImpl implements Weather {
     private type: WeatherType;
     private intensity: WeatherIntensity;
     private conditions: WeatherCondition[];
@@ -106,24 +91,10 @@ export class WeatherImpl implements Weather {
     remainingDuration(): number {
         return Math.max(0, this.duration - (Date.now() - this.lastUpdate) / 1000);
     }
-    
-    getPossibleTransitions(): WeatherType[] {
-        switch(this.type) {
-            case WeatherType.CLEAR:
-                return [WeatherType.CLOUDY, WeatherType.WIND];
-            case WeatherType.CLOUDY:
-                return [WeatherType.CLEAR, WeatherType.RAIN, WeatherType.STORM];
-            case WeatherType.RAIN:
-                return [WeatherType.CLOUDY, WeatherType.STORM, WeatherType.SNOW];
-            case WeatherType.SNOW:
-                return [WeatherType.CLOUDY, WeatherType.CLEAR];
-            case WeatherType.STORM:
-                return [WeatherType.RAIN, WeatherType.CLOUDY];
-            case WeatherType.WIND:
-                return [WeatherType.CLEAR, WeatherType.CLOUDY, WeatherType.STORM];
-            default:
-                return [WeatherType.CLEAR];
-        }
+
+    getPossibleTransitions(): WeatherTransition[] {
+        // TODO: Replace with real transition logic
+        return [];
     }
 
     update(deltaTime: number): void {
@@ -176,6 +147,19 @@ export class WeatherImpl implements Weather {
             default: return 1.0;
         }
     }
+    getPrimaryCondition(): WeatherCondition {
+        // Return the first condition as the primary, or a default if none
+        return this.conditions[0] ?? {
+            type: this.type,
+            intensity: this.intensity,
+            effects: [],
+            temperature: 0,
+            windSpeed: 0,
+            precipitation: 0,
+            cloudCover: 0,
+            visibility: 0
+        };
+    }
 }
 
 export class WeatherSystem implements Weather {
@@ -223,7 +207,7 @@ export class WeatherSystem implements Weather {
         return this._weather.remainingDuration();
     }
 
-    getPossibleTransitions(): WeatherType[] {
+    getPossibleTransitions(): WeatherTransition[] {
         return this._weather.getPossibleTransitions();
     }
 
@@ -253,14 +237,13 @@ export class WeatherSystem implements Weather {
     private transitionWeather(): void {
         const possibleTransitions = this._weather.getPossibleTransitions();
         if (possibleTransitions.length === 0) return;
-        
-        const nextType = possibleTransitions[Math.floor(Math.random() * possibleTransitions.length)];
+        const nextTransition = possibleTransitions[Math.floor(Math.random() * possibleTransitions.length)];
+        const nextType = nextTransition?.toType ?? this._weather.getType();
         const nextWeather = new WeatherImpl({
             type: nextType,
             intensity: WeatherIntensity.NORMAL,
             duration: 3600 // 1 hour
         });
-        
         this._weather = nextWeather;
         this.generateForecast();
     }
@@ -268,18 +251,16 @@ export class WeatherSystem implements Weather {
     private generateForecast(): void {
         this._forecast = [];
         let lastWeather = this._weather;
-        
         // Generate 24-hour forecast
         for (let i = 0; i < 24; i += this._weatherUpdateInterval) {
-            const possibleTypes = lastWeather.getPossibleTransitions();
-            const nextType = possibleTypes[Math.floor(Math.random() * possibleTypes.length)];
-            
+            const possibleTransitions = lastWeather.getPossibleTransitions();
+            const nextTransition = possibleTransitions[Math.floor(Math.random() * possibleTransitions.length)];
+            const nextType = nextTransition?.toType ?? lastWeather.getType();
             lastWeather = new WeatherImpl({
-                type: nextType || lastWeather.getType(),
+                type: nextType,
                 intensity: WeatherIntensity.NORMAL,
                 duration: this._weatherUpdateInterval * 3600
             });
-            
             this._forecast.push(lastWeather);
         }
     }

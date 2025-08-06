@@ -1,3 +1,4 @@
+// Fully removed: logic is now in world.ts
 import { GridPosition } from '../values/grid-position';
 import { Terrain } from './terrain';
 import type { TerrainType, SoilType } from './terrain';

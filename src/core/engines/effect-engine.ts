@@ -1,7 +1,7 @@
+export type { Effect } from '../types/effects';
 import { Effect, EffectType, EffectCondition, EffectTarget } from '../types/effects';
-import { GridCell } from '../entities/grid-cell';
+import { GridCell } from '../entities/world';
 import { Character, CharacterStats } from '../entities/character';
-import { CharacterImpl } from '../entities/character-impl';
 
 export class EffectEngine {
     private activeEffects: Map<string, Effect[]> = new Map();
@@ -141,8 +141,7 @@ export class EffectEngine {
     }
 
     private processStatusEffect(effect: Effect, target: Character): void {
-        if (!target.statuses) target.statuses = new Set();
-        target.statuses.add(effect.id);
+        if (!target.hasStatus(effect.id)) target.addStatus(effect.id);
     }
 
     private processOverTimeEffect(effect: Effect, target: Character): void {

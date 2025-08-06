@@ -1,6 +1,15 @@
-import { World } from '../entities/world';
+
+// Minimal World interface for usecase compatibility (should be replaced with real implementation)
+interface World {
+    getChunk(position: any): GridCell | undefined;
+    getChunksInArea(position: any, viewRadius: number): GridCell[];
+    getChunksByTerrain(terrainType: any): GridCell[];
+    update(): void;
+    getExploredPercentage(): number;
+    getRegion(regionId: number): any;
+}
 import { GridPosition } from '../values/grid-position';
-import { GridCell } from '../entities/grid-cell';
+import { GridCell } from '../entities/world';
 import { TerrainType } from '../entities/terrain';
 import { WorldGenerator } from '../generators/world-generator';
 
@@ -27,7 +36,8 @@ export class WorldUseCase implements IWorldUseCase {
     ) {}
 
     async generateWorld(config: WorldGenerationConfig): Promise<World> {
-        this.world = await this.worldGenerator.generateWorld();
+        // TODO: Replace with real World implementation
+        this.world = await this.worldGenerator.generateWorld() as unknown as World;
         await this.worldRepository.save(this.world);
         return this.world;
     }
@@ -38,7 +48,7 @@ export class WorldUseCase implements IWorldUseCase {
             throw new Error(`No chunk found at position ${position.toString()}`);
         }
 
-        chunk.visit();
+        chunk.markExplored();
         await this.worldRepository.save(this.world);
         return chunk;
     }

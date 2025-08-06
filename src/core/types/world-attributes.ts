@@ -9,8 +9,8 @@ export interface BaseAttributes {
     elevation: number;            // 0-100: Height above sea level
     temperature: number;          // 0-100: Temperature in the area
     windLevel: number;            // 0-100: Wind strength
-    lightLevel: number;          // 0-100: Natural light level
-    soilType: SoilType;          // Type of soil in the area
+    lightLevel: number;           // 0-100: Natural light level
+    soilType: string;             // Type of soil in the area (string for modding compatibility)
 }
 
 /**

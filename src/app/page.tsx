@@ -128,12 +128,19 @@ export default function Home() {
     const allCustomItems = worldSetupData.customItemCatalog || [];
 
     // Properly type item in reduce
-    const customDefs = allCustomItems.reduce((acc, item) => {
+    const customDefs = allCustomItems.reduce<Record<string, ItemDefinition>>((acc: Record<string, ItemDefinition>, item: ItemDefinition) => {
         const itemName = getTranslatedText(item.name, 'en');
+        if (!itemName) return acc; // Skip items without valid names
         acc[itemName] = {
             ...item,
             name: item.name,
             description: item.description,
+            type: 'item',
+            amount: 1,
+            target: 'self',
+            effects: item.effects || [], // Ensure effects array exists
+            tier: item.tier || 0,
+            category: item.category || 'Misc'
         };
         return acc;
     }, {} as Record<string, ItemDefinition>);
@@ -164,6 +171,9 @@ export default function Home() {
       name: selectedConcept.name ?? { en: 'World', vi: 'Thế giới' },
     };
     const newGameState: GameState = {
+      type: 'game',
+      amount: 1,
+      target: 'self',
       worldSetup: worldConceptForState,
       playerStats: {
         hp: 100, mana: 50, stamina: 100, bodyTemperature: 37, items: initialPlayerInventory, equipment: { weapon: null, armor: null, accessory: null },
@@ -179,8 +189,28 @@ export default function Home() {
       customItemCatalog: allCustomItems,
       customItemDefinitions: customDefs,
       customStructures: worldSetupData.customStructures || [],
-      day: 1, turn: 1, narrativeLog: [], worldProfile: { climateBase: 'temperate', magicLevel: 5, mutationFactor: 2, sunIntensity: 7, weatherTypesAllowed: ['clear', 'rain', 'fog'], moistureBias: 0, tempBias: 0, resourceDensity: 5, theme: 'Normal', },
-      currentSeason: 'spring', gameTime: 360, weatherZones: {}, world: {}, recipes: {}, buildableStructures: {}, regions: {}, regionCounter: 0,
+      day: 1, 
+      turn: 1, 
+      narrativeLog: [], 
+      worldProfile: { 
+        climateBase: 'temperate', 
+        magicLevel: 5, 
+        mutationFactor: 2, 
+        sunIntensity: 7, 
+        weatherTypesAllowed: ['clear', 'rain', 'fog'], 
+        moistureBias: 0, 
+        tempBias: 0, 
+        resourceDensity: 5, 
+        theme: 'Normal' 
+      },
+      currentSeason: 'spring', 
+      gameTime: 360, 
+      weatherZones: {}, 
+      world: {}, 
+      recipes: {}, 
+      buildableStructures: {}, 
+      regions: {}, 
+      regionCounter: 0,
       playerPosition: { x: 0, y: 0 },
       playerBehaviorProfile: {
         moves: 0, attacks: 0, crafts: 0, customActions: 0,
@@ -193,9 +223,16 @@ export default function Home() {
     try {
       await gameStateRepository.save(`slot_${activeSlot}`, newGameState);
       
-      setSaveSlots(prev => {
+      setSaveSlots((prev: SaveSlot[]) => {
         const newSlots = [...prev];
-        newSlots[activeSlot!] = { worldSetup: newGameState.worldSetup, day: newGameState.day, gameTime: newGameState.gameTime, playerStats: newGameState.playerStats };
+        if (typeof activeSlot === 'number') {
+          newSlots[activeSlot] = { 
+            worldSetup: newGameState.worldSetup, 
+            day: newGameState.day, 
+            gameTime: newGameState.gameTime, 
+            playerStats: newGameState.playerStats 
+          };
+        }
         return newSlots;
       });
       setLoadState('continue_game');

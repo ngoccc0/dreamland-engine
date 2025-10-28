@@ -452,12 +452,6 @@ export interface GameState {
     gameTime: number; 
     day: number;
     turn: number;
-    // Skill fields below may be legacy or misplaced; consider refactoring to Skill[] or player entity
-    name: TranslatableString;
-    description: TranslatableString;
-    tier: number;
-    manaCost: number;
-    effect: {
         type: 'HEAL' | 'DAMAGE' | 'TELEPORT';
         amount: number;
         target: 'SELF' | 'ENEMY';

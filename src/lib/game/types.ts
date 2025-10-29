@@ -452,15 +452,6 @@ export interface GameState {
     gameTime: number; 
     day: number;
     turn: number;
-        type: 'HEAL' | 'DAMAGE' | 'TELEPORT';
-        amount: number;
-        target: 'SELF' | 'ENEMY';
-        healRatio?: number;
-    };
-    unlockCondition?: {
-        type: 'kills' | 'damageSpells' | 'moves';
-        count: number;
-    };
 }
 
 export type RandomEvent = RandomEventDefinition;

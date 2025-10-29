@@ -118,9 +118,9 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
         let finalPlayerStats: PlayerStatus = { ...playerStatsCtx, ...(result.updatedPlayerStatus || {})};
         
-        if (worldCtx[`${playerPosCtx.x},${playerPosCtx.y}`]?.enemy && result.updatedChunk?.enemy === null) {
-            finalPlayerStats.unlockProgress = { ...finalPlayerStats.unlockProgress, kills: finalPlayerStats.unlockProgress.kills + 1 };
-        }
+            if (worldCtx[`${playerPosCtx.x},${playerPosCtx.y}`]?.enemy && result.updatedChunk?.enemy === null) {
+                finalPlayerStats.unlockProgress = { ...finalPlayerStats.unlockProgress, kills: (finalPlayerStats.unlockProgress?.kills ?? 0) + 1 };
+            }
 
         setWorld(prev => {
             const newWorld = { ...prev };
@@ -168,11 +168,11 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const damageMultiplier = successLevel === 'CriticalFailure' ? 0 : successLevel === 'Failure' ? 0 : successLevel === 'GreatSuccess' ? 1.5 : successLevel === 'CriticalSuccess' ? 2.0 : 1.0;
     
     if (damageMultiplier > 0) {
-        let playerDamageModifier = 1.0;
-        if (currentChunk.lightLevel < -3) { playerDamageModifier *= 0.8; }
-        if (currentChunk.moisture > 8) { playerDamageModifier *= 0.9; }
+    let playerDamageModifier = 1.0;
+    if ((currentChunk.lightLevel ?? 0) < -3) { playerDamageModifier *= 0.8; }
+    if ((currentChunk.moisture ?? 0) > 8) { playerDamageModifier *= 0.9; }
         
-        let playerBaseDamage = playerStats.attributes.physicalAttack + (playerStats.persona === 'warrior' ? 2 : 0);
+    let playerBaseDamage = (playerStats.attributes?.physicalAttack ?? 0) + (playerStats.persona === 'warrior' ? 2 : 0);
         playerDamage = Math.round(playerBaseDamage * damageMultiplier * playerDamageModifier);
     }
 
@@ -202,7 +202,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     let nextPlayerStats = {...playerStats};
     nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - enemyDamage);
     if (enemyDefeated) {
-        nextPlayerStats.unlockProgress = { ...nextPlayerStats.unlockProgress, kills: nextPlayerStats.unlockProgress.kills + 1 };
+        nextPlayerStats.unlockProgress = { ...nextPlayerStats.unlockProgress, kills: (nextPlayerStats.unlockProgress?.kills ?? 0) + 1 };
     }
 
     const narrativeResult = { successLevel, playerDamage, enemyDamage, enemyDefeated, fled, enemyType: currentChunk.enemy!.type };
@@ -243,6 +243,9 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     if (!itemDef) return;
 
     let newPlayerStats: PlayerStatus = JSON.parse(JSON.stringify(playerStats));
+    newPlayerStats.items = newPlayerStats.items || [];
+    newPlayerStats.pets = newPlayerStats.pets || [];
+    newPlayerStats.skills = newPlayerStats.skills || [];
     const itemIndex = newPlayerStats.items.findIndex(i => getTranslatedText(i.name, 'en') === itemName);
 
     if (itemIndex === -1) {
@@ -323,16 +326,19 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
   }, [playerStats, customItemDefinitions, playerPosition, world, addNarrativeEntry, t, advanceGameTime, setWorld, language, setPlayerStats]);
 
   const handleOfflineSkillUse = useCallback((skillName: string) => {
+
     let newPlayerStats: PlayerStatus = JSON.parse(JSON.stringify(playerStats));
+    newPlayerStats.skills = newPlayerStats.skills || [];
+    newPlayerStats.items = newPlayerStats.items || [];
     const skillToUse = newPlayerStats.skills.find(s => t(s.name as TranslationKey) === skillName);
 
     if (!skillToUse) { addNarrativeEntry(t('skillNotFound', { skillName: t(skillName as TranslationKey) }), 'system'); return; }
-    if (newPlayerStats.mana < skillToUse.manaCost) { addNarrativeEntry(t('notEnoughMana', { skillName: t(skillName as TranslationKey) }), 'system'); return; }
+    if ((newPlayerStats.mana ?? 0) < skillToUse.manaCost) { addNarrativeEntry(t('notEnoughMana', { skillName: t(skillName as TranslationKey) }), 'system'); return; }
 
     const { roll } = rollDice(settings.diceType);
     const successLevel = getSuccessLevel(roll, settings.diceType);
     addNarrativeEntry(t('diceRollMessage', { roll, level: t(successLevelToTranslationKey[successLevel]) }), 'system');
-    newPlayerStats.mana -= skillToUse.manaCost;
+    newPlayerStats.mana = (newPlayerStats.mana ?? 0) - skillToUse.manaCost;
 
     const key = `${playerPosition.x},${playerPosition.y}`;
     const currentChunk = world[key]!;
@@ -353,7 +359,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             newPlayerStats.hp = Math.min(100, newPlayerStats.hp + healAmount);
             narrativeResult.healedAmount = newPlayerStats.hp - oldHp;
         } else if (skillToUse.effect.type === 'DAMAGE' && newEnemy) {
-            const baseDamage = skillToUse.effect.amount + Math.round(newPlayerStats.attributes.magicalAttack * 0.5);
+                const baseDamage = skillToUse.effect.amount + Math.round((newPlayerStats.attributes?.magicalAttack ?? 0) * 0.5);
             const finalDamage = Math.round(baseDamage * effectMultiplier);
 
             newEnemy.hp = Math.max(0, newEnemy.hp - finalDamage);
@@ -367,9 +373,9 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             }
             if (newEnemy.hp <= 0) {
                 newEnemy = null;
-                newPlayerStats.unlockProgress.kills += 1;
+                newPlayerStats.unlockProgress = { ...newPlayerStats.unlockProgress, kills: (newPlayerStats.unlockProgress?.kills ?? 0) + 1 };
             }
-            newPlayerStats.unlockProgress.damageSpells += 1;
+            newPlayerStats.unlockProgress = { ...newPlayerStats.unlockProgress, damageSpells: (newPlayerStats.unlockProgress?.damageSpells ?? 0) + 1 };
             narrativeResult.enemy = newEnemy;
         }
     }
@@ -383,7 +389,9 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
   }, [playerStats, settings.diceType, t, addNarrativeEntry, playerPosition, world, advanceGameTime, setWorld, language, setPlayerStats]);
 
   const handleOfflineAction = useCallback((action: Action) => {
-      let newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), t(action.textKey as TranslationKey, action.params)] };
+    let newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), t(action.textKey as TranslationKey, action.params)] };
+    newPlayerStats.items = newPlayerStats.items || [];
+    newPlayerStats.quests = newPlayerStats.quests || [];
       const currentChunk = world[`${playerPosition.x},${playerPosition.y}`];
       if (!currentChunk) return;
 
@@ -595,7 +603,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     
     const actionText = t('craftAction', {itemName: t(recipe.result.name as TranslationKey)});
     addNarrativeEntry(actionText, 'action');
-    let updatedItems = playerStats.items.map(i => ({...i}));
+    let updatedItems = (playerStats.items || []).map(i => ({...i}));
     outcome.ingredientsToConsume.forEach(itemToConsume => {
         const itemIndex = updatedItems.findIndex(i => getTranslatedText(i.name, 'en') === itemToConsume.name);
         if (itemIndex > -1) updatedItems[itemIndex].quantity -= itemToConsume.quantity;
@@ -654,14 +662,14 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     if (!structureToBuild?.buildable) return;
 
     const buildStaminaCost = 15;
-    if (playerStats.stamina < buildStaminaCost) { toast({ title: t('notEnoughStamina'), description: t('notEnoughStaminaDesc', { cost: buildStaminaCost, current: playerStats.stamina.toFixed(0) }), variant: "destructive" }); return; }
+    if ((playerStats.stamina ?? 0) < buildStaminaCost) { toast({ title: t('notEnoughStamina'), description: t('notEnoughStaminaDesc', { cost: buildStaminaCost, current: (playerStats.stamina ?? 0).toFixed(0) }), variant: "destructive" }); return; }
 
-    const inventoryMap = new Map(playerStats.items.map(item => [getTranslatedText(item.name, 'en'), item.quantity]));
+    const inventoryMap = new Map((playerStats.items || []).map(item => [getTranslatedText(item.name, 'en'), item.quantity]));
     if (!structureToBuild.buildCost?.every((cost: any) => (inventoryMap.get(cost.name) || 0) >= cost.quantity)) { toast({ title: t('notEnoughIngredients'), variant: "destructive" }); return; }
     
     const actionText = t('buildConfirm',{structureName: t(structureName as TranslationKey)});
     addNarrativeEntry(actionText, 'action');
-    let updatedItems = playerStats.items.map(i => ({...i}));
+    let updatedItems = (playerStats.items || []).map(i => ({...i}));
     structureToBuild.buildCost?.forEach((cost: any) => { updatedItems.find(i => getTranslatedText(i.name, 'en') === cost.name)!.quantity -= cost.quantity; });
     
     const nextPlayerStats = { ...playerStats, items: updatedItems.filter(item => item.quantity > 0), stamina: playerStats.stamina - buildStaminaCost, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText] };
@@ -736,7 +744,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     
     const actionText = t('fuseAction', { items: itemsToFuse.map(i => t(i.name as TranslationKey)).join(', ') });
     addNarrativeEntry(actionText, 'action');
-    let newItems = playerStats.items.map(i => ({...i}));
+    let newItems = (playerStats.items || []).map(i => ({...i}));
     itemsToFuse.forEach(item => { newItems.find(i => getTranslatedText(i.name, 'en') === getTranslatedText(item.name, 'en'))!.quantity -= 1; });
     let nextPlayerStats = { ...playerStats, items: newItems.filter(i => i.quantity > 0), dailyActionLog: [...(playerStats.dailyActionLog || []), actionText] };
     setPlayerStats(() => nextPlayerStats);
@@ -914,7 +922,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     }
 
     const requiredTool = enemy.harvestable.requiredTool;
-    const playerHasTool = playerStats.items.some(item => getTranslatedText(item.name, 'en') === requiredTool);
+    const playerHasTool = (playerStats.items || []).some(item => getTranslatedText(item.name, 'en') === requiredTool);
 
     if (!playerHasTool) {
         toast({ title: t('harvestFail_noTool'), description: t('harvestFail_noTool_desc', { tool: t(requiredTool as TranslationKey), target: t(targetName as TranslationKey) }), variant: 'destructive' });
@@ -925,6 +933,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     addNarrativeEntry(actionText, 'action');
 
     let nextPlayerStats = { ...playerStats };
+    nextPlayerStats.items = nextPlayerStats.items || [];
     let worldWasModified = false;
     const newWorld = { ...world };
     
@@ -987,7 +996,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         addNarrativeEntry(t('wallBlock'), 'system');
         return;
     }
-     if (nextChunk?.terrain === 'ocean' && !playerStats.items.some(item => getTranslatedText(item.name, 'en') === 'inflatable_raft')) {
+     if (nextChunk?.terrain === 'ocean' && !(playerStats.items || []).some(item => getTranslatedText(item.name, 'en') === 'inflatable_raft')) {
         addNarrativeEntry(t('oceanTravelBlocked'), 'system');
         return;
     }
@@ -1002,11 +1011,11 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const staminaCost = worldSnapshot[nextChunkKey]?.travelCost ?? 1;
     
     let newPlayerStats = { ...playerStats };
-    if (playerStats.stamina > staminaCost) {
-        newPlayerStats.stamina -= staminaCost;
+    if ((playerStats.stamina ?? 0) > staminaCost) {
+        newPlayerStats.stamina = (newPlayerStats.stamina ?? 0) - staminaCost;
     } else {
         newPlayerStats.stamina = 0;
-        newPlayerStats.hp -= 5;
+        newPlayerStats.hp = (newPlayerStats.hp ?? 0) - 5;
     }
     newPlayerStats.dailyActionLog = [...(playerStats.dailyActionLog || []), actionText];
     

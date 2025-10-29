@@ -63,13 +63,15 @@ export type SpawnConditions = z.infer<typeof SpawnConditionsSchema>;
  * All attributes are optional and default to 0 if not specified, allowing for flexible item creation.
  */
 export const PlayerAttributesSchema = z.object({
-    physicalAttack: z.number().optional().default(0).describe("Damage dealt by physical attacks."),
-    magicalAttack: z.number().optional().default(0).describe("Damage dealt by magical attacks."),
-    physicalDefense: z.number().optional().default(0).describe("Reduces incoming physical damage."),
-    magicalDefense: z.number().optional().default(0).describe("Reduces incoming magical damage."),
-    critChance: z.number().optional().default(0).describe("Chance to deal critical damage (%)."),
-    attackSpeed: z.number().optional().default(0).describe("Speed of attacks (e.g., attacks per second)."),
-    cooldownReduction: z.number().optional().default(0).describe("Reduces skill cooldowns (%)."),
+  // Make individual attributes optional without defaults so partial attribute
+  // objects (e.g., only physicalAttack) are accepted by TypeScript.
+  physicalAttack: z.number().optional().describe("Damage dealt by physical attacks."),
+  magicalAttack: z.number().optional().describe("Damage dealt by magical attacks."),
+  physicalDefense: z.number().optional().describe("Reduces incoming physical damage."),
+  magicalDefense: z.number().optional().describe("Reduces incoming magical damage."),
+  critChance: z.number().optional().describe("Chance to deal critical damage (%)."),
+  attackSpeed: z.number().optional().describe("Speed of attacks (e.g., attacks per second)."),
+  cooldownReduction: z.number().optional().describe("Reduces skill cooldowns (%)."),
 }).describe("Defines various combat and utility attributes for a player or item.");
 export type PlayerAttributes = z.infer<typeof PlayerAttributesSchema>;
 

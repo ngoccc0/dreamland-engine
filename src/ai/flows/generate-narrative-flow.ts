@@ -77,7 +77,10 @@ export const GenerateNarrativeInputSchema = z.object({
   successLevel: SuccessLevelSchema.describe("The categorized outcome of the dice roll."),
   customItemDefinitions: z.record(ItemDefinitionSchema).optional().describe("A map of AI-generated item definitions for the current game session."),
   aiModel: z.enum(['balanced', 'creative', 'fast', 'quality']).describe("The AI model preference for generation."),
-  narrativeLength: z.enum(['short', 'medium', 'long']).describe("The desired length for the narrative response."),
+    // Include 'detailed' to match engine types (some callers request a more
+    // verbose 'detailed' response). Kept in the allowed set for backward
+    // compatibility with existing saved settings.
+    narrativeLength: z.enum(['short', 'medium', 'long', 'detailed']).describe("The desired length for the narrative response."),
 });
 /**
  * @typedef {z.infer<typeof GenerateNarrativeInputSchema>} GenerateNarrativeInput

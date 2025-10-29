@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
 import type { PlayerItem, Structure } from "@/lib/game/types";
+import { getTranslatedText } from '@/lib/utils';
 import type { TranslationKey } from "@/lib/i18n";
 import { Home } from "./icons";
 
@@ -21,8 +22,8 @@ interface BuildingPopupProps {
 }
 
 export function BuildingPopup({ open, onOpenChange, playerItems, buildableStructures, onBuild }: BuildingPopupProps) {
-  const { t } = useLanguage();
-  const playerItemsMap = new Map(playerItems.map(item => [item.name, item.quantity]));
+  const { t, language } = useLanguage();
+  const playerItemsMap = new Map(playerItems.map(item => [getTranslatedText(item.name as any, 'en'), item.quantity]));
 
   const canBuild = (structure: Structure): boolean => {
     if (!structure.buildCost) return true; // Can always build if no cost
@@ -79,7 +80,7 @@ export function BuildingPopup({ open, onOpenChange, playerItems, buildableStruct
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="flex-shrink-0">
-                          <Button onClick={() => handleBuildClick(structure.name)} disabled={!buildable}>
+                          <Button onClick={() => handleBuildClick(getTranslatedText(structure.name as any, 'en'))} disabled={!buildable}>
                             {t('build')}
                           </Button>
                         </div>

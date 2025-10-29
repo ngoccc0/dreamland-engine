@@ -28,6 +28,8 @@ import { BiomeDefinitionSchema } from '@/lib/game/definitions';
 import { LanguageEnum as Language } from '@/lib/i18n'; // Correct import and alias to Language
 import type { TranslatableString, SoilType } from '@/lib/game/types';
 import { allTerrains, SoilTypeEnum } from '@/lib/game/types'; // Import allTerrains and SoilTypeEnum
+// Re-export the canonical terrain list so AI flows can import it from this adapter
+export { allTerrains };
 
 export const PlayerLevelSchema = z.object({
   level: z.number().int().min(1).max(100).default(1).describe("The player's current level."),
@@ -115,7 +117,9 @@ export const SkillSchema = z.object({
 
 export const PlayerStatusSchema = z.object({
     hp: z.number(),
-    mana: z.number(),
+    // Mana may be omitted in some legacy data; keep optional to avoid
+    // breaking lots of saved fixtures during migration.
+    mana: z.number().optional(),
     stamina: z.number().describe("Player's stamina, used for physical actions."),
     items: z.array(PlayerItemSchema).describe("Player's inventory with item names, quantities and tiers."),
     equipment: z.object({ 
@@ -129,16 +133,20 @@ export const PlayerStatusSchema = z.object({
     attributes: PlayerAttributesSchema.describe("Player's combat attributes."),
     pets: z.array(PetSchema).optional().describe("A list of the player's tamed companions."),
     persona: z.enum(['none', 'explorer', 'warrior', 'artisan']).optional().default('none').describe("The player's determined playstyle, which may grant subtle bonuses."),
+    // 'moves' can be absent in some sources; default to 0 to make flows safer
+    // during the types migration.
     unlockProgress: z.object({
         kills: z.number(),
         damageSpells: z.number(),
-        moves: z.number(),
+        moves: z.number().optional().default(0),
     }).describe("Tracks player actions to unlock new skills."),
     journal: z.record(z.string()).optional().describe("A record of daily journal entries written by the AI, indexed by day number."),
     dailyActionLog: z.array(z.string()).optional().describe("A log of player actions taken during the current day, used for journaling."),
     questHints: z.record(z.string()).optional().describe("A map of quest texts to their AI-generated hints."),
     language: z.enum(['en', 'vi']).optional().describe("The player's current language preference."),
-    playerLevel: PlayerLevelSchema.describe("The player's level and experience points."),
+    // playerLevel may be missing from some presets/tests; make optional for
+    // compatibility with existing data.
+    playerLevel: PlayerLevelSchema.optional().describe("The player's level and experience points."),
 });
 
 export const EnemySchema = CreatureDefinitionSchema.pick({

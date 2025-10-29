@@ -11,7 +11,7 @@ import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/comp
 import { useLanguage } from "@/context/language-context";
 import type { PlayerItem, ItemDefinition } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
-import { cn } from "@/lib/utils";
+import { cn, getTranslatedText } from "@/lib/utils";
 import { FlaskConical, X } from "./icons";
 
 interface FusionPopupProps {
@@ -24,13 +24,14 @@ interface FusionPopupProps {
 }
 
 export function FusionPopup({ open, onOpenChange, playerItems, itemDefinitions, onFuse, isLoading }: FusionPopupProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [selectedItems, setSelectedItems] = useState<PlayerItem[]>([]);
 
   const handleSelectItem = (item: PlayerItem) => {
     if (selectedItems.length >= 3) return;
     // Check if we can select one more of this item
-    const countInSelection = selectedItems.filter(i => i.name === item.name).length;
+    const key = getTranslatedText(item.name as any, 'en');
+    const countInSelection = selectedItems.filter(i => getTranslatedText(i.name as any, 'en') === key).length;
     if (item.quantity > countInSelection) {
       setSelectedItems(prev => [...prev, { ...item, quantity: 1 }]);
     }
@@ -50,9 +51,10 @@ export function FusionPopup({ open, onOpenChange, playerItems, itemDefinitions, 
   const getAvailablePlayerItems = (): PlayerItem[] => {
     const availableMap = new Map<string, PlayerItem>();
     playerItems.forEach(item => {
-      const selectedCount = selectedItems.filter(sel => sel.name === item.name).length;
+      const key = getTranslatedText(item.name as any, 'en');
+      const selectedCount = selectedItems.filter(sel => getTranslatedText(sel.name as any, 'en') === key).length;
       if (item.quantity - selectedCount > 0) {
-        availableMap.set(item.name, { ...item, quantity: item.quantity - selectedCount });
+        availableMap.set(key, { ...item, quantity: item.quantity - selectedCount });
       }
     });
     return Array.from(availableMap.values());
@@ -61,7 +63,7 @@ export function FusionPopup({ open, onOpenChange, playerItems, itemDefinitions, 
   const canFuse = (): boolean => {
     if (selectedItems.length < 2 || selectedItems.length > 3) return false;
     const hasTool = selectedItems.some(item => {
-      const def = itemDefinitions[item.name];
+      const def = itemDefinitions[getTranslatedText(item.name as any, 'en')];
       return def?.category === 'Tool';
     });
     return hasTool;
@@ -94,7 +96,7 @@ export function FusionPopup({ open, onOpenChange, playerItems, itemDefinitions, 
                   <div className="h-72 border rounded-md p-2 bg-muted/20 overflow-y-auto">
                       <div className="space-y-2">
                         {getAvailablePlayerItems().map((item) => (
-                          <TooltipProvider key={item.name}>
+                          <TooltipProvider key={getTranslatedText(item.name as any, 'en')}>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <button
@@ -108,9 +110,9 @@ export function FusionPopup({ open, onOpenChange, playerItems, itemDefinitions, 
                                   <span className="font-mono text-sm font-bold">x{item.quantity}</span>
                                 </button>
                               </TooltipTrigger>
-                               <TooltipContent>
-                                  <p>{t(itemDefinitions[item.name]?.description as TranslationKey)}</p>
-                              </TooltipContent>
+                     <TooltipContent>
+                       <p>{t(itemDefinitions[getTranslatedText(item.name as any, 'en')]?.description as TranslationKey)}</p>
+                    </TooltipContent>
                              </Tooltip>
                           </TooltipProvider>
                         ))}

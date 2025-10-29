@@ -159,7 +159,9 @@ export default function Home() {
       worldSetup: worldConceptForState,
       playerStats: {
         hp: 100, mana: 50, stamina: 100, bodyTemperature: 37, items: initialPlayerInventory, equipment: { weapon: null, armor: null, accessory: null },
-        quests: selectedConcept.initialQuests, questsCompleted: 0, skills: selectedConcept.startingSkill ? [selectedConcept.startingSkill] : [], pets: [], persona: 'none',
+  // playerStats.quests expects a string[] of quest ids — translate the concept's translatable quests
+  quests: (selectedConcept.initialQuests || []).map(q => getTranslatedText(q as any, language, t)),
+  questsCompleted: 0, skills: selectedConcept.startingSkill ? [selectedConcept.startingSkill] : [], pets: [], persona: 'none',
         attributes: { physicalAttack: 10, magicalAttack: 5, critChance: 5, attackSpeed: 1.0, cooldownReduction: 0, physicalDefense: 0, magicalDefense: 0 },
         unlockProgress: { kills: 0, damageSpells: 0, moves: 0 }, journal: {}, dailyActionLog: [], questHints: {},
         level: 1,
@@ -276,7 +278,7 @@ export default function Home() {
                             <div className="text-sm text-muted-foreground space-y-2">
                                 <div className="flex items-center gap-2">
                                     <Star className="h-4 w-4 text-primary" />
-                                    <span>{t('levelLabel')}: {slot.playerStats.questsCompleted + 1}</span>
+                                    <span>{t('levelLabel')}: {(slot.playerStats.questsCompleted ?? 0) + 1}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <User className="h-4 w-4 text-primary" />

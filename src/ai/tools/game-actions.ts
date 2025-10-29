@@ -149,9 +149,9 @@ export const playerAttackTool = ai.defineTool({
             playerDamageModifier *= 0.9;
         }
 
-        let playerBaseDamage = playerStatus.attributes.physicalAttack;
+        let playerBaseDamage = playerStatus.attributes?.physicalAttack ?? 0;
         if (playerStatus.persona === 'warrior') {
-            playerBaseDamage += 2; 
+            playerBaseDamage += 2;
         }
 
         playerDamage = Math.round(playerBaseDamage * damageMultiplier * playerDamageModifier);
@@ -344,6 +344,9 @@ export const useItemTool = ai.defineTool({
     outputSchema: UseItemOutputSchema
 }, async ({ itemName, playerStatus, customItemDefinitions }) => {
     const newStatus: PlayerStatus = JSON.parse(JSON.stringify(playerStatus)); // Deep copy
+    newStatus.items = newStatus.items || [];
+    newStatus.skills = newStatus.skills || [];
+    newStatus.pets = newStatus.pets || [];
     // Fix: Use getTranslatableStringValue for comparison
     const itemIndex = newStatus.items.findIndex((i: PlayerItem) => getTranslatedText(i.name, playerStatus.language || 'en').toLowerCase() === itemName.toLowerCase());
 
@@ -566,12 +569,12 @@ export const useSkillTool = ai.defineTool({
         return { updatedPlayerStatus: playerStatus, updatedEnemy: enemy, log: `Player does not know the skill: ${skillName}.` };
     }
 
-    if (newPlayerStatus.mana < skillToUse.manaCost) {
+    if ((newPlayerStatus.mana ?? 0) < skillToUse.manaCost) {
         // FIX: Add type assertion for skillToUse.name to resolve potential TypeScript inference issues.
         return { updatedPlayerStatus: playerStatus, updatedEnemy: enemy, log: `Not enough mana to use ${getTranslatedText(skillToUse.name as TranslatableString, playerStatus.language || 'en')}.` };
     }
 
-    newPlayerStatus.mana -= skillToUse.manaCost;
+    newPlayerStatus.mana = (newPlayerStatus.mana ?? 0) - skillToUse.manaCost;
 
     let log = "";
     let effectMultiplier = 1.0;
@@ -625,7 +628,7 @@ export const useSkillTool = ai.defineTool({
                     // FIX: Add type assertion for skillToUse.name.
                     log = `Used ${getTranslatableStringValue(skillToUse.name as TranslatableString, playerStatus.language || 'en')}, but there was no target.`;
                 } else {
-                    const baseDamage = skillToUse.effect.amount + Math.round(newPlayerStatus.attributes.magicalAttack * 0.5);
+                    const baseDamage = skillToUse.effect.amount + Math.round((newPlayerStatus.attributes?.magicalAttack ?? 0) * 0.5);
                     const finalDamage = Math.round(baseDamage * effectMultiplier);
 
                     newEnemy.hp = Math.max(0, newEnemy.hp - finalDamage);

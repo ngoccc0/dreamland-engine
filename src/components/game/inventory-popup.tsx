@@ -81,8 +81,8 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                 <ul className="space-y-2">
                   {items.map((item, index) => {
                     const definition = itemDefinitions[getTranslatedText(item.name, 'en')];
-                    const isUsableOnSelf = definition && definition.effects.length > 0;
-                    const isUsableOnEnemy = enemy && definition && enemy.diet.includes(getTranslatedText(item.name, 'en'));
+                    const isUsableOnSelf = !!(definition && definition.effects && definition.effects.length > 0);
+                    const isUsableOnEnemy = !!(enemy && definition && enemy.diet && enemy.diet.includes(getTranslatedText(item.name, 'en')));
                     const isEquippable = definition && definition.equipmentSlot;
                     const isInteractable = isUsableOnSelf || isUsableOnEnemy || isEquippable;
 
@@ -113,10 +113,10 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                             </DropdownMenuTrigger>
                             
                             <DropdownMenuContent className="w-64">
-                                <DropdownMenuLabel className="font-normal">
-                                    <p className="font-bold">{item.emoji} {getTranslatedText(item.name, language)}</p>
-                                    <p className="text-xs text-muted-foreground whitespace-normal">{getTranslatedText(definition?.description, language)}</p>
-                                </DropdownMenuLabel>
+                <DropdownMenuLabel className="font-normal">
+                  <p className="font-bold">{item.emoji} {getTranslatedText(item.name, language)}</p>
+                  <p className="text-xs text-muted-foreground whitespace-normal">{getTranslatedText(definition?.description ?? '', language)}</p>
+                </DropdownMenuLabel>
                                 
                                 {isInteractable && (
                                   <>
@@ -151,7 +151,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
 
                                     <DropdownMenuSeparator />
                                     {isUsableOnSelf && <DropdownMenuItem onClick={() => handleAction(() => onUseItem(item.name, 'player'))}>{t('useOnSelf')}</DropdownMenuItem>}
-                                    {isUsableOnEnemy && <DropdownMenuItem onClick={() => handleAction(() => onUseItem(item.name, enemy!.type))}>{t('useOnTarget', { target: getTranslatedText(enemy!.type, language, t) })}</DropdownMenuItem>}
+                                    {isUsableOnEnemy && <DropdownMenuItem onClick={() => handleAction(() => onUseItem(item.name, enemy?.type ?? 'player'))}>{t('useOnTarget', { target: enemy?.type ? getTranslatedText(enemy.type, language, t) : t('no_enemy_found') })}</DropdownMenuItem>}
                                     {isEquippable && <DropdownMenuItem onClick={() => handleAction(() => onEquipItem(getTranslatedText(item.name, 'en')))}>{t('equipItem')}</DropdownMenuItem>}
                                   </>
                                 )}

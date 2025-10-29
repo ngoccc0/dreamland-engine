@@ -56,7 +56,11 @@ export const ItemDefinitionSchema = z.object({
   emoji: z.string().describe("A single emoji, SVG filename, or image name representing the item."),
   effects: z.array(ItemEffectSchema).describe("An array of effects the item provides when used. Can be extended with custom fields."),
   baseQuantity: z.object({ min: z.number(), max: z.number() }),
-  // growthConditions removed for simplicity and flexibility
+  // Optional growth conditions for natural items (e.g. plants). Some data
+  // files include growthConditions; accept them to remain compatible.
+  // growthConditions shape varies across recipes and mod data. Accept an
+  // open record to remain compatible and avoid frequent schema churn.
+  growthConditions: z.record(z.any()).optional(),
   equipmentSlot: z.enum(['weapon', 'armor', 'accessory']).optional().describe("If the item is equippable, which slot it goes into."),
   attributes: PlayerAttributesSchema.optional().describe("The combat attributes this item provides when equipped."),
   relationship: ItemRelationshipSchema.optional().describe("How this item relates to others for crafting substitutions."),

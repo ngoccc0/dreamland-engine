@@ -28,7 +28,11 @@
  * }
  */
 export interface Enemy {
-  type: TranslatableString;
+    /**
+     * Type can be a plain string or a translatable object. Some code expects a string key,
+     * other parts of the engine accept a TranslatableString. Support both for now.
+     */
+    type?: string | TranslatableString;
   hp: number;
   damage: number;
   behavior: 'aggressive' | 'passive' | 'defensive' | 'territorial' | 'immobile' | 'ambush';
@@ -45,7 +49,7 @@ export interface Enemy {
   /**
    * Sensory cues for AI/narrative. Use descriptive keywords, e.g., "smell:foul", "sound:rumbling".
    */
-  senseEffect?: { keywords: string[] };
+    senseEffect?: { keywords: string[] };
   // Mod extension fields can be added here
 }
 
@@ -79,7 +83,37 @@ import type {
 } from "./definitions";
 // WorldDefinition and PlayerStatusDefinition are defined in ../definitions/world-definitions, but not found. Define them here for now.
 export type WorldDefinition = Record<string, any>; // TODO: Replace with real type
-export type PlayerStatusDefinition = Record<string, any>; // TODO: Replace with real type
+
+export interface PlayerStatusDefinition {
+    hp: number;
+    stamina: number;
+    mana?: number;
+    items: PlayerItem[];
+    quests: string[];
+    skills: Skill[];
+    persona: PlayerPersona;
+    pets?: Pet[];
+    // Some older data and tests include a "moves" counter; keep it optional for
+    // compatibility while we migrate downstream data to the canonical shape.
+    unlockProgress: { kills: number; damageSpells: number; moves?: number };
+    // Player-level convenience fields that appear in some presets/tests.
+    playerLevel?: number;
+    questsCompleted?: number;
+    // Equipment map can hold different shapes depending on mods; keep as loose
+    // record for compatibility during the migration.
+    equipment: Record<EquipmentSlot, any>;
+    // Attributes may be a partial map in some data files; keep permissive here.
+    attributes: Record<string, number>;
+    dailyActionLog?: string[];
+    questHints?: Record<string, string>;
+    // allow other dynamic fields used by code
+    [key: string]: any;
+}
+
+// Temporary aliases for backward compatibility until definitions are consolidated
+export type World = WorldDefinition;
+export type PlayerStatus = PlayerStatusDefinition;
+export type TranslationKey = string;
 
 // Re-export for easier access elsewhere
 export type { 
@@ -358,23 +392,25 @@ export interface PlayerBehaviorProfile {
     /**
      * Item name (translatable).
      */
-    name: TranslatableString;
+    // The profile object is used in multiple places with only counters; keep
+    // these fields optional to avoid forcing full item-like shape everywhere.
+    name?: TranslatableString;
     /**
      * Item description (translatable).
      */
-    description: TranslatableString; 
+    description?: TranslatableString; 
     /**
      * Quantity of the item.
      */
-    quantity: number;
+    quantity?: number;
     /**
      * Item tier/rarity.
      */
-    tier: number;
+    tier?: number;
     /**
      * Emoji for UI.
      */
-    emoji: string;
+    emoji?: string;
 }
 
 export type NarrativeEntry = {
@@ -411,7 +447,9 @@ export interface WorldConcept {
     /**
      * Pet type (translatable).
      */
-    type: TranslatableString;
+    // Optional: some premade-worlds omit these fields (they're not strictly
+    // required to start a world). Mark optional to avoid cascade failures.
+    type?: TranslatableString;
     /**
      * Pet name (optional).
      */
@@ -419,7 +457,7 @@ export interface WorldConcept {
     /**
      * Pet level.
      */
-    level: number;
+    level?: number;
 }
 
 /**

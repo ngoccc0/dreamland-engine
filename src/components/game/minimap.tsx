@@ -60,7 +60,7 @@ export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
                 {chunk.enemy && (
                     <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><SwordIcon />{t('enemy')}:</h5>
-                        <p className="text-xs pl-5">{renderItemEmoji(chunk.enemy.emoji, 16)} {getTranslatedText(chunk.enemy.type, language, t)} (HP: {chunk.enemy.hp})</p>
+                        <p className="text-xs pl-5">{renderItemEmoji(chunk.enemy.emoji, 16)} {chunk.enemy.type ? getTranslatedText(chunk.enemy.type, language, t) : t('no_enemy_found')} (HP: {chunk.enemy.hp})</p>
                     </div>
                 )}
                 {chunk.NPCs.length > 0 && (

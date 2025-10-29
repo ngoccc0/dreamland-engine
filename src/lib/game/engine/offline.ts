@@ -164,7 +164,7 @@ export const check_conditions = (template_conditions: ConditionType | undefined,
         if (key === 'requiredEntities') {
             const { enemyType, itemType } = conditionValue;
             let entityFound = false;
-            if (enemyType && chunk.enemy && getTranslatedText(chunk.enemy.type, 'vi') === enemyType) {
+            if (enemyType && chunk.enemy && chunk.enemy.type && getTranslatedText(chunk.enemy.type, 'vi') === enemyType) {
                 entityFound = true;
             }
             if (itemType && !entityFound) {
@@ -240,7 +240,7 @@ export const fill_template = (
     filled_template = filled_template.replace('{temp_detail}', () => chunk.temperature && chunk.temperature <= 20 ? t('temp_cold') : chunk.temperature && chunk.temperature >= 80 ? t('temp_hot') : t('temp_mild'));
     filled_template = filled_template.replace('{moisture_detail}', () => chunk.moisture >= 80 ? t('moisture_humid') : chunk.moisture <= 20 ? t('moisture_dry') : t('moisture_normal'));
     filled_template = filled_template.replace('{jungle_feeling_dark}', t('jungle_feeling_dark_phrase'));
-    filled_template = filled_template.replace(/{enemy_name}/g, chunk.enemy ? getTranslatedText(chunk.enemy.type, language, t) : t('no_enemy_found'));
+    filled_template = filled_template.replace(/{enemy_name}/g, chunk.enemy && chunk.enemy.type ? getTranslatedText(chunk.enemy.type, language, t) : t('no_enemy_found'));
     filled_template = filled_template.replace(/{item_found}/g, chunk.items && chunk.items.length > 0 ? getTranslatedText(chunk.items[Math.floor(Math.random() * chunk.items.length)].name, language, t) : t('no_item_found'));
 
     if (playerState) {
@@ -319,7 +319,7 @@ export const generateOfflineActionNarrative = (
 ) => {
     let narrativeKey: TranslationKey = '';
     let replacements: any = {};
-    const enemyType = currentChunk.enemy ? getTranslatedText(currentChunk.enemy.type, language, t) : ' существо';
+    const enemyType = currentChunk.enemy && currentChunk.enemy.type ? getTranslatedText(currentChunk.enemy.type, language, t) : ' существо';
     const sensoryFeedbackOptions = [
         `sensoryFeedback_${currentChunk.temperature && currentChunk.temperature > 80 ? 'hot' : 'cold'}`,
         `sensoryFeedback_${currentChunk.lightLevel < 20 ? 'dark' : 'normal'}`,

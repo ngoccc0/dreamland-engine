@@ -131,17 +131,18 @@ export default function Home() {
     const customDefs = allCustomItems.reduce<Record<string, ItemDefinition>>((acc: Record<string, ItemDefinition>, item: ItemDefinition) => {
         const itemName = getTranslatedText(item.name, 'en');
         if (!itemName) return acc; // Skip items without valid names
-        acc[itemName] = {
-            ...item,
-            name: item.name,
-            description: item.description,
-            type: 'item',
-            amount: 1,
-            target: 'self',
-            effects: item.effects || [], // Ensure effects array exists
-            tier: item.tier || 0,
-            category: item.category || 'Misc'
-        };
+    acc[itemName] = {
+      // Create a minimal ItemDefinition shape expected by the engine
+      id: item.id,
+      name: item.name,
+      description: item.description,
+      tier: item.tier || 0,
+      category: (item.category as any) || 'Misc',
+      emoji: item.emoji || '❓',
+      effects: item.effects || [],
+      baseQuantity: (item as any).baseQuantity || { min: 1, max: 1 },
+      spawnEnabled: (item as any).spawnEnabled ?? true,
+    } as import("@/lib/game/types").ItemDefinition;
         return acc;
     }, {} as Record<string, ItemDefinition>);
 
@@ -168,17 +169,16 @@ export default function Home() {
       // Add required WorldConcept fields (type, level, name)
       type: selectedConcept.type ?? { en: 'pet', vi: 'thú cưng' },
       level: selectedConcept.level ?? 1,
-      name: selectedConcept.name ?? { en: 'World', vi: 'Thế giới' },
+      // WorldConcept.name is a simple string (optional) in the canonical type.
+      name: getTranslatedText((selectedConcept as any).name, language) || 'World',
     };
     const newGameState: GameState = {
-      type: 'game',
-      amount: 1,
-      target: 'self',
       worldSetup: worldConceptForState,
       playerStats: {
         hp: 100, mana: 50, stamina: 100, bodyTemperature: 37, items: initialPlayerInventory, equipment: { weapon: null, armor: null, accessory: null },
-        quests: selectedConcept.initialQuests,
-        questsCompleted: 0,
+  // Player stats expect string[] for quests; translate any TranslatableString entries to plain strings.
+  quests: (selectedConcept.initialQuests || []).map((q: any) => getTranslatedText(q, language)),
+  questsCompleted: 0,
         skills: selectedConcept.startingSkill ? [selectedConcept.startingSkill] : [],
         pets: [], persona: 'none',
         attributes: { physicalAttack: 10, magicalAttack: 5, critChance: 5, attackSpeed: 1.0, cooldownReduction: 0, physicalDefense: 0, magicalDefense: 0 },
@@ -223,7 +223,7 @@ export default function Home() {
     try {
       await gameStateRepository.save(`slot_${activeSlot}`, newGameState);
       
-      setSaveSlots((prev: SaveSlot[]) => {
+      setSaveSlots((prev: SaveSlotSummary[]) => {
         const newSlots = [...prev];
         if (typeof activeSlot === 'number') {
           newSlots[activeSlot] = { 
@@ -334,7 +334,7 @@ export default function Home() {
                             <div className="text-sm text-muted-foreground space-y-2">
                                 <div className="flex items-center gap-2">
                                     <Star className="h-4 w-4 text-primary" />
-                                    <span>{t('levelLabel')}: {slot.playerStats.questsCompleted + 1}</span>
+                                    <span>{t('levelLabel')}: {(slot.playerStats.questsCompleted ?? 0) + 1}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <User className="h-4 w-4 text-primary" />

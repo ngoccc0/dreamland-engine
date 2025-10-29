@@ -1,8 +1,9 @@
 
 
-'use client';
+ 'use client';
 
 import { useEffect, useState } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import { useAuth } from '@/context/auth-context';
 import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
 import { FirebaseGameStateRepository } from '@/infrastructure/persistence/firebase.repository';
@@ -43,7 +44,7 @@ type GameEffectsDeps = {
   setNarrativeLog: (log: NarrativeEntry[]) => void;
   addNarrativeEntry: (text: string, type: 'narrative' | 'action' | 'system', entryId?: string) => void;
   finalWorldSetup: GameState['worldSetup'] | null;
-  setFinalWorldSetup: (setup: GameState['worldSetup']) => void;
+  setFinalWorldSetup: Dispatch<SetStateAction<GameState['worldSetup'] | null>>;
   turn: number;
   setTurn: (turn: number) => void;
   day: number;

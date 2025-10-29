@@ -43,7 +43,7 @@ type GameEffectsDeps = {
   setNarrativeLog: (log: NarrativeEntry[]) => void;
   addNarrativeEntry: (text: string, type: 'narrative' | 'action' | 'system', entryId?: string) => void;
   finalWorldSetup: GameState['worldSetup'] | null;
-  setFinalWorldSetup: (setup: GameState['worldSetup']) => void;
+  setFinalWorldSetup: React.Dispatch<React.SetStateAction<GameState['worldSetup'] | null>>;
   turn: number;
   setTurn: (turn: number) => void;
   day: number;

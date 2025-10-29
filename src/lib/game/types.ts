@@ -97,7 +97,9 @@ export interface PlayerStatusDefinition {
     // compatibility while we migrate downstream data to the canonical shape.
     unlockProgress: { kills: number; damageSpells: number; moves?: number };
     // Player-level convenience fields that appear in some presets/tests.
-    playerLevel?: number;
+    // Migrate to a structured playerLevel where possible. Keep the legacy numeric
+    // field as optional for backwards compatibility; engine will coerce when needed.
+    playerLevel?: { level: number; experience: number } | number;
     questsCompleted?: number;
     // Equipment map can hold different shapes depending on mods; keep as loose
     // record for compatibility during the migration.

@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "typecheck:file": "tsc --noEmit",
     "test": "jest",
-    "docs:api": "typedoc --out docs/api src --excludePrivate --excludeExternals --disableSources --name \"Dreamland API Documentation\" --entryPointStrategy expand"
+    "docs:api": "typedoc --out docs/api src --excludePrivate --excludeExternals --disableSources --name \"Dreamland API Documentation\" --entryPointStrategy expand",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "10.2.7",
@@ -94,6 +95,19 @@
     "ts-jest": "^29.1.5",
     "typedoc": "^0.26.5",
     "typescript": "^5",
-    "url": "^0.11.4"
+    "url": "^0.11.4",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.4"
+  }
+  ,
+  "overrides": {
+    "micromatch": "4.0.8"
+  }
+  ,
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "npm run lint -- --fix",
+      "git add"
+    ]
   }
 }

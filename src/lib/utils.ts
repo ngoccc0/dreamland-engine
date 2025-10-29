@@ -48,10 +48,11 @@ export const clamp = (num: number, min: number, max: number) => Math.min(Math.ma
  * @returns The translated string
  */
 export function getTranslatedText(
-    translatable: TranslatableString,
+    translatable: TranslatableString | undefined | null,
     language: Language,
     t?: (key: TranslationKey, options?: any) => string
 ): string {
+    if (!translatable) return '';
     // Handle direct translation keys
     if (typeof translatable === 'string') {
         if (t) {

@@ -14,7 +14,7 @@ import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchA
 import { getEffectiveChunk } from '@/lib/game/engine/generation';
 import { getTemplates } from '@/lib/game/templates';
 import { clamp, getTranslatedText } from '@/lib/utils';
-import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem, NarrativeEntry, GeneratedItem, Language, TranslatableString } from '@/lib/game/types';
+import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem, NarrativeEntry, GeneratedItem, Language, TranslatableString, ItemDefinition, Chunk, Enemy } from '@/lib/game/types';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-config';
 import { logger } from '@/lib/logger';
@@ -25,15 +25,15 @@ type ActionHandlerDeps = {
   isLoading: boolean;
   isGameOver: boolean;
   setIsLoading: (loading: boolean) => void;
-  playerStats: PlayerStatus;
-  setPlayerStats: (fn: (prev: PlayerStatus) => PlayerStatus) => void;
-  world: World;
-  setWorld: (fn: (prev: World) => World) => void;
-  recipes: Record<string, Recipe>;
-  buildableStructures: Record<string, any>;
-  customItemDefinitions: Record<string, any>;
-  setCustomItemCatalog: (fn: (prev: any[]) => any[]) => void;
-  setCustomItemDefinitions: (fn: (prev: Record<string, any>) => Record<string, any>) => void;
+    playerStats: PlayerStatus;
+    setPlayerStats: React.Dispatch<React.SetStateAction<PlayerStatus>>;
+    world: World;
+    setWorld: React.Dispatch<React.SetStateAction<World>>;
+    recipes: Record<string, Recipe>;
+    buildableStructures: Record<string, any>;
+    customItemDefinitions: Record<string, ItemDefinition>;
+    setCustomItemCatalog: React.Dispatch<React.SetStateAction<GeneratedItem[]>>;
+    setCustomItemDefinitions: React.Dispatch<React.SetStateAction<Record<string, ItemDefinition>>>;
   finalWorldSetup: GameState['worldSetup'] | null;
   addNarrativeEntry: (text: string, type: NarrativeEntry['type'], entryId?: string) => void;
   advanceGameTime: (stats?: PlayerStatus, pos?: { x: number, y: number }) => void;
@@ -164,9 +164,10 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             const key = `${currentChunk.x},${currentChunk.y}`;
             if (result.updatedChunk) {
                 const chunkToUpdate = newWorld[key];
-                const updatedEnemy = result.updatedChunk.enemy !== undefined ? result.updatedChunk.enemy : chunkToUpdate.enemy;
-                // result.updatedChunk may have loosened types from AI — cast to any to avoid strict mismatches here
-                newWorld[key] = { ...chunkToUpdate, ...(result.updatedChunk as any), enemy: updatedEnemy as any };
+                const updatedEnemy: Enemy | null = result.updatedChunk?.enemy !== undefined ? result.updatedChunk.enemy : chunkToUpdate.enemy;
+                // result.updatedChunk may be partial — treat it as Partial<Chunk> when merging
+                const partial: Partial<Chunk> | undefined = result.updatedChunk as Partial<Chunk> | undefined;
+                newWorld[key] = { ...chunkToUpdate, ...(partial || {}), enemy: updatedEnemy } as Chunk;
             }
             return newWorld;
         });

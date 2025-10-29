@@ -12,6 +12,7 @@ import type { IGameStateRepository } from '@/lib/game/ports/game-state.repositor
 import type { GameState, PlayerStatusDefinition, WorldDefinition, GeneratedItem, Recipe, StructureDefinition, ItemDefinition } from '@/lib/game/types';
 import { logger } from '@/lib/logger';
 import { getTranslatedText } from '@/lib/utils';
+import { normalizePlayerStatus } from '@/lib/game/normalize';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-config';
 import { useAuth } from '@/context/auth-context';
@@ -141,7 +142,7 @@ export function useGameInitialization(deps: GameInitializationDeps) {
         setCustomItemDefinitions(finalDefs);
         setCustomStructures(stateToInitialize.customStructures || []);
         setBuildableStructures(staticBuildableStructures);
-        setPlayerStats(() => stateToInitialize.playerStats);
+  setPlayerStats(() => normalizePlayerStatus(stateToInitialize.playerStats));
         setFinalWorldSetup(() => stateToInitialize.worldSetup);
         setPlayerPosition(stateToInitialize.playerPosition || { x: 0, y: 0 });
         setPlayerBehaviorProfile(stateToInitialize.playerBehaviorProfile || { moves: 0, attacks: 0, crafts: 0, customActions: 0 });

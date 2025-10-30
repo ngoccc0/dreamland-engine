@@ -147,6 +147,9 @@ export const biomeNarrativeTemplates: Record<string, BiomeTemplateData> = {
       "jungle_terrain_desc": ["thảm thực vật chằng chịt", "khu rừng bạt ngàn", "tán lá dày đặc", "lối đi rậm rạp"],
       "jungle_terrain_desc_lush": ["những tán lá xanh tươi", "thảm thực vật sum suê", "khu rừng trù phú"],
       "vague_shape_adj": ["kỳ dị", "ma mị", "không rõ ràng", "ẩn hiện"],
+      // Compatibility keys expected by tests/templates
+      "jungle_adjective_lush": ["rậm rạp", "xanh tươi"],
+      "jungle_adjective_mysterious": ["bí ẩn", "huyền bí"],
     },
     features: {
         "main_feature": ["một dòng suối nhỏ", "một cụm cây cổ thụ", "một vách đá phủ rêu"],
@@ -163,6 +166,7 @@ export const biomeNarrativeTemplates: Record<string, BiomeTemplateData> = {
         "sky_general": ["bầu trời u ám", "những vệt sáng hiếm hoi", "tán lá che khuất bầu trời"],
     }
   },
+  
   "forest": {
     terrain: "forest",
     descriptionTemplates: [

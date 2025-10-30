@@ -31,7 +31,19 @@ export function useGameEngine(props: GameEngineProps) {
     const narrativeLogRef = useRef(gameState.narrativeLog || [] as any[]);
 
     const addNarrativeEntry = (text: string, type: 'narrative' | 'action' | 'system', entryId?: string) => {
-        const entry = { id: entryId ?? `${Date.now()}`, text, type } as any;
+        // Create a stable, unique id for each narrative entry. Prefer a caller-supplied
+        // `entryId` but ensure uniqueness by appending a small suffix if there's a clash
+        // with an existing entry. Using Date.now() alone can collide when multiple
+        // entries are created within the same millisecond (observed in fast async flows).
+        const baseId = entryId ?? `${Date.now()}`;
+        let generatedId = baseId;
+        // If the current log already contains this id, append a numeric suffix to make it unique.
+        let suffix = 0;
+        while (narrativeLogRef.current?.some(e => e.id === generatedId)) {
+            suffix += 1;
+            generatedId = `${baseId}-${suffix}`;
+        }
+        const entry = { id: generatedId, text, type } as any;
         gameState.setNarrativeLog(prev => {
             const next = [...(prev || []), entry];
             narrativeLogRef.current = next;

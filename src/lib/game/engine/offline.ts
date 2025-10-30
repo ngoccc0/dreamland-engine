@@ -62,11 +62,13 @@ export const analyze_chunk_mood = (chunk: Chunk): MoodTag[] => {
     }
 
     // 7. Nhiệt độ (temperature) - Dải 0-100 (0: đóng băng, 100: cực nóng, 50: dễ chịu)
-    if (chunk.temperature && chunk.temperature >= 80) { // Rất nóng
+    // Use numeric existence checks (Number.isFinite) so that 0 is treated as a valid value.
+    const temp: number = (chunk.temperature ?? NaN) as number;
+    if (Number.isFinite(temp) && temp >= 80) { // Rất nóng
         moods.push("Hot", "Harsh");
-    } else if (chunk.temperature && chunk.temperature <= 20) { // Rất lạnh
+    } else if (Number.isFinite(temp) && temp <= 20) { // Rất lạnh
         moods.push("Cold", "Harsh");
-    } else if (chunk.temperature && chunk.temperature > 35 && chunk.temperature < 65) { // Nhiệt độ dễ chịu
+    } else if (Number.isFinite(temp) && temp > 35 && temp < 65) { // Nhiệt độ dễ chịu
         moods.push("Peaceful");
     }
 
@@ -214,7 +216,16 @@ export const fill_template = (
 ): string => {
     let filled_template = template_string;
     const currentBiomeName: string = chunk.terrain;
-    const biomeTemplateData = biomeNarrativeTemplates[currentBiomeName];
+    // Lookup biome templates in a case-insensitive and flexible way to handle dataset/casing differences.
+    let biomeTemplateData = biomeNarrativeTemplates[currentBiomeName];
+    if (!biomeTemplateData) {
+        const lower = currentBiomeName.toLowerCase();
+        biomeTemplateData = biomeNarrativeTemplates[lower] || biomeNarrativeTemplates[currentBiomeName.charAt(0).toUpperCase() + currentBiomeName.slice(1)];
+    }
+    if (!biomeTemplateData) {
+        // Fallback: try to find a template whose declared terrain matches case-insensitively
+        biomeTemplateData = Object.values(biomeNarrativeTemplates).find((b: any) => b && b.terrain && String(b.terrain).toLowerCase() === String(currentBiomeName).toLowerCase()) as any;
+    }
 
     if (!biomeTemplateData) {
         logger.warn(`Placeholder data not found for ${chunk.terrain}`);

@@ -56,7 +56,7 @@
     "genkitx-openai": "^0.23.0",
     "handlebars": "^4.7.8",
     "lucide-react": "^0.475.0",
-  "next": "15.5.6",
+    "next": "15.5.6",
     "openai": "^4.95.0",
     "patch-package": "^8.0.0",
     "react": "^18.3.1",
@@ -78,13 +78,19 @@
     "@types/node": "^20",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
     "assert": "^2.1.0",
     "browserify-zlib": "^0.2.0",
     "crypto-browserify": "^3.12.1",
     "dotenv": "^16.4.5",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
     "genkit-cli": "1.14.1",
     "https-browserify": "^1.0.0",
+    "husky": "^8.0.3",
     "jest": "^29.7.0",
+    "lint-staged": "^13.2.4",
     "null-loader": "^4.0.1",
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
@@ -95,17 +101,13 @@
     "ts-jest": "^29.1.5",
     "typedoc": "^0.26.5",
     "typescript": "^5",
-    "url": "^0.11.4",
-    "husky": "^8.0.3",
-    "lint-staged": "^13.2.4"
-  }
-  ,
+    "url": "^0.11.4"
+  },
   "overrides": {
     "micromatch": "4.0.8"
-  }
-  ,
+  },
   "lint-staged": {
-    "*.{js,jsx}": [
+    "*.{js,jsx,ts,tsx}": [
       "node ./scripts/lint-wrapper.js",
       "git add"
     ]

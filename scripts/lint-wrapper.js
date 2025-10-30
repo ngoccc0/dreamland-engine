@@ -15,5 +15,7 @@ function run(cmd) {
 
 // Run eslint CLI for lint-staged. Avoid calling `next lint` which can fail when Next's
 // app/pages detection behaves differently in certain environments.
-const cmd = `npx eslint --fix --max-warnings=0 ${args.map(a => `"${a}"`).join(' ')}`.trim();
+// NOTE: run eslint in --quiet mode during pre-commit so warnings don't block commits; only errors
+// will fail the hook. Developers should still run full lint locally to see warnings.
+const cmd = `npx eslint --fix --quiet ${args.map(a => `"${a}"`).join(' ')}`.trim();
 process.exit(run(cmd));

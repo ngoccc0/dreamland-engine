@@ -40,3 +40,4 @@ env/
 # Ignore GitHub workflows and VSCode settings
 .github/
 .vscode/
+tsconfig.tsbuildinfo

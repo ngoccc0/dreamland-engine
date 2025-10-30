@@ -6,7 +6,7 @@
  * to prevent them from appearing in other, more serious game worlds.
  */
 import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
-import type { GeneratedItem, Structure, Skill, WorldConcept, ItemDefinition } from '@/lib/game/types';
+import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
 
 const floptropicaItems: GeneratedItem[] = [
     { id: 'jiafeis_pan', name: { en: "Jiafei's Pan", vi: 'Chảo của Jiafei' }, description: { en: "A versatile pan, perfect for cooking up... products.", vi: 'Một chiếc chảo đa năng, hoàn hảo để nấu... các sản phẩm.' }, emoji: '🍳', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, attributes: { physicalAttack: 5, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 2, attackSpeed: 0, cooldownReduction: 0 }, equipmentSlot: 'weapon', spawnEnabled: false },

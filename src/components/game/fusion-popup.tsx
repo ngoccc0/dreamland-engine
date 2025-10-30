@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
 import type { PlayerItem, ItemDefinition } from "@/lib/game/types";
+import type { TranslationKey } from "@/lib/i18n";
 import { getTranslatedText } from "@/lib/utils";
 import { FlaskConical, X } from "./icons";
 

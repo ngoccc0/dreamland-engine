@@ -1,7 +1,6 @@
 
 
-import type { BiomeTemplateData, Language, NarrativeLength, NarrativeTemplate, MoodTag } from '@/lib/game/types';
-import { logger } from '@/lib/logger';
+import type { BiomeTemplateData, Language, NarrativeLength } from '@/lib/game/types';
 
 // This file holds structured narrative templates and keyword variations.
 

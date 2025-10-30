@@ -1,5 +1,4 @@
 import type { 
-    Chunk,
     WorldProfile,
     ItemDefinition,
     GeneratedItem,

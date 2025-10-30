@@ -9,7 +9,6 @@ import {
 
 import { SmartJoinSentences } from '../../utils';
 import type { Chunk, NarrativeTemplate, NarrativeLength, PlayerStatus, World } from '../types';
-import { Language } from '../../i18n'; 
 
 // Mock translation function
 const mockT = (key: string, replacements?: any) => {

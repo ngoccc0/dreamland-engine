@@ -11,7 +11,6 @@ import type { World, Chunk, Terrain } from "@/lib/game/types";
 import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon, renderItemEmoji } from "./icons";
 import { getTranslatedText } from "@/lib/utils";
 import { MapCellDetails } from './minimap';
-import type { TranslationKey } from '@/lib/i18n';
 import { Button } from '../ui/button';
 import { Minus, Plus } from 'lucide-react';
 

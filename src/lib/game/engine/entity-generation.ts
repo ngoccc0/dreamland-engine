@@ -1,7 +1,6 @@
 import type { Chunk, SpawnConditions, TranslatableString, ItemDefinition, WorldProfile, Terrain } from "../types";
 import { SoilType } from "../types";
 import { logger } from "@/lib/logger";
-import { getTranslatedText } from "../../utils";
 
 export const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 'description' | 'actions' | 'items' | 'NPCs' | 'enemy' | 'regionId' | 'x' | 'y' | 'terrain' | 'explored' | 'structures' | 'lastVisited'> & { terrain: Terrain }): boolean => {
     for (const key in conditions) {

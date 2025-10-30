@@ -11,7 +11,7 @@
  * - GenerateJournalEntryOutput - The Zod schema for the output data.
  */
 
-import {ai, type Genkit} from '@/ai/genkit';
+import {ai} from '@/ai/genkit';
 import { z } from 'zod';
 import { GenerateJournalEntryInputSchema, GenerateJournalEntryOutputSchema } from '@/ai/schemas';
 

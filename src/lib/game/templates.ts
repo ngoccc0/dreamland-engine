@@ -6,7 +6,7 @@
  * of narrative content.
  */
 
-import type { GameTemplates, Language } from "./types";
+import type { Language } from "./types";
 import { forest_vi, forest_en } from './templates/forest';
 import { grassland_vi, grassland_en } from './templates/grassland';
 import { desert_vi, desert_en } from './templates/desert';

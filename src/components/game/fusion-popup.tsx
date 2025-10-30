@@ -6,12 +6,11 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+// Separator not used in this component
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
 import type { PlayerItem, ItemDefinition } from "@/lib/game/types";
-import type { TranslationKey } from "@/lib/i18n";
-import { cn, getTranslatedText } from "@/lib/utils";
+import { getTranslatedText } from "@/lib/utils";
 import { FlaskConical, X } from "./icons";
 
 interface FusionPopupProps {
@@ -24,7 +23,7 @@ interface FusionPopupProps {
 }
 
 export function FusionPopup({ open, onOpenChange, playerItems, itemDefinitions, onFuse, isLoading }: FusionPopupProps) {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [selectedItems, setSelectedItems] = useState<PlayerItem[]>([]);
 
   const handleSelectItem = (item: PlayerItem) => {

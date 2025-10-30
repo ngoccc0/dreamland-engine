@@ -1,6 +1,5 @@
 import { WeatherState, Season, Terrain, Chunk, WeatherZone } from "../types";
 import { weatherPresets } from "../weatherPresets";
-import { logger } from "@/lib/logger";
 import { clamp } from "../../utils";
 
 export const generateWeatherForZone = (terrain: Terrain, season: Season, previousWeather?: WeatherState): WeatherState => {

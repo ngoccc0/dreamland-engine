@@ -3,11 +3,10 @@
 import type { Chunk, MoodTag, NarrativeLength, NarrativeTemplate, ConditionType, Language, PlayerStatus, World } from "../types";
 import { getTranslatedText, SmartJoinSentences } from "../../utils"; 
 import { getTemplates } from '../templates';
-import { translations } from "../../i18n";
 import type { TranslationKey } from "../../i18n";
 import { logger } from "@/lib/logger";
 import type { ItemDefinition } from "../types";
-import { clamp } from "@/lib/utils";
+// clamp imported elsewhere when needed; not required here
 import { biomeNarrativeTemplates } from "../data/narrative-templates";
 
 /**
@@ -297,7 +296,7 @@ export const generateOfflineNarrative = (
     }
     if (candidateTemplates.length === 0) return currentChunk.description;
 
-    const { min_s, max_s } = get_sentence_limits(narrativeLength);
+    const { max_s } = get_sentence_limits(narrativeLength);
     let finalSentences: string[] = [];
     let sentenceCount = 0;
 

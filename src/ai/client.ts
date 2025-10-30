@@ -20,7 +20,7 @@ export async function generateCompat(opts: any): Promise<any> {
   try {
     const fallbackPrompt = JSON.stringify(opts.input ?? opts, null, 2);
     return ai.generate(String(fallbackPrompt));
-  } catch (err) {
+  } catch {
     return ai.generate(String(opts));
   }
 }

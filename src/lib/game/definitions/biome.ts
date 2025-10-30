@@ -3,20 +3,21 @@ import { MultilingualTextSchema, SpawnConditionsSchema } from './base';
 import type { Terrain, BiomeTemplateData } from '../types';
 
 // Defines a template for generating descriptive text.
-const DescriptionTemplatesSchema = z.object({
+// exported so consumers (mods) can import this schema if needed; prevents unused-var warnings
+export const DescriptionTemplatesSchema = z.object({
   short: z.array(z.string()),
   medium: z.array(z.string()),
   long: z.array(z.string()),
 });
 
 // Defines a template for a single entity spawn (e.g., an item, structure, or enemy).
-const EntitySpawnTemplateSchema = z.object({
+export const EntitySpawnTemplateSchema = z.object({
   name: z.string().describe("The unique ID of the entity to spawn."),
   conditions: SpawnConditionsSchema,
 });
 
 // Defines a template for an NPC spawn, including dialogue seeds.
-const NpcSpawnTemplateSchema = z.object({
+export const NpcSpawnTemplateSchema = z.object({
   data: z.object({
     name: MultilingualTextSchema,
     description: MultilingualTextSchema,

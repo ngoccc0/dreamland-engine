@@ -1,7 +1,5 @@
 
 import { structureDefinitions } from "../structures";
-import type { TranslationKey } from "@/lib/i18n";
-import { naturePlusForestEnemies } from "./modded/nature_plus";
 
 export const forest_vi = {
     descriptionTemplates: {

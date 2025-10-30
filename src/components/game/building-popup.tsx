@@ -10,7 +10,7 @@ import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/comp
 import { useLanguage } from "@/context/language-context";
 import type { PlayerItem, Structure } from "@/lib/game/types";
 import { getTranslatedText } from '@/lib/utils';
-import type { TranslationKey } from "@/lib/i18n";
+// TranslationKey type not required here
 import { Home } from "./icons";
 
 interface BuildingPopupProps {
@@ -22,7 +22,7 @@ interface BuildingPopupProps {
 }
 
 export function BuildingPopup({ open, onOpenChange, playerItems, buildableStructures, onBuild }: BuildingPopupProps) {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const playerItemsMap = new Map(playerItems.map(item => [getTranslatedText(item.name as any, 'en'), item.quantity]));
 
   const canBuild = (structure: Structure): boolean => {

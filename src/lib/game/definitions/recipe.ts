@@ -1,9 +1,8 @@
 
 import {z} from 'zod';
 import { ItemRelationshipSchema } from './item';
-import { MultilingualTextSchema, TranslatableStringSchema } from './base';
+import { TranslatableStringSchema } from './base';
 import { RecipeUnlockConditionSchema } from './unlock-condition';
-import type { RecipeUnlockCondition } from './unlock-condition';
 
 // Defines an ingredient for a recipe, including its quantity and possible substitutes.
 export const RecipeIngredientSchema = z.object({

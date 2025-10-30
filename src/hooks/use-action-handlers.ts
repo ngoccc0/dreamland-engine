@@ -1,9 +1,8 @@
 
 
 'use client';
-// Temporarily disable exhaustive-deps in this large handler file while we iteratively
-// clean up dependency arrays. We'll re-enable and audit these hooks in a follow-up pass.
-/* eslint-disable react-hooks/exhaustive-deps */
+// NOTE: react-hooks/exhaustive-deps is being audited. Removed the file-level disable
+// so ESLint can report missing/unnecessary deps per-hook. We'll fix each hook's deps in small commits.
 
 import { useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -190,7 +189,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     } finally {
         setIsLoading(false);
     }
-  }, [settings.diceType, settings.aiModel, settings.narrativeLength, finalWorldSetup, weatherZones, gameTime, language, customItemDefinitions, narrativeLogRef, setIsLoading, addNarrativeEntry, setWorld, setCustomItemCatalog, setCustomItemDefinitions, setPlayerStats, advanceGameTime, toast, t]);
+    }, [settings.diceType, settings.aiModel, settings.narrativeLength, finalWorldSetup, weatherZones, gameTime, customItemDefinitions, narrativeLogRef, language, setIsLoading, addNarrativeEntry, setWorld, setCustomItemCatalog, setCustomItemDefinitions, setPlayerStats, advanceGameTime, toast, t]);
 
   const handleOfflineAttack = useCallback(() => {
     const key = `${playerPosition.x},${playerPosition.y}`;
@@ -284,7 +283,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
     setPlayerStats(() => nextPlayerStats);
     advanceGameTime(nextPlayerStats);
-  }, [playerPosition, world, addNarrativeEntry, settings.diceType, t, playerStats, language, customItemDefinitions, advanceGameTime, setWorld, weatherZones, gameTime, setPlayerStats]);
+    }, [playerPosition, world, addNarrativeEntry, settings.diceType, t, playerStats, customItemDefinitions, advanceGameTime, setWorld, weatherZones, gameTime, setPlayerStats, language]);
 
   const handleOfflineItemUse = useCallback((itemName: string, target: string) => {
     const itemDef = customItemDefinitions[itemName];
@@ -372,7 +371,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     newPlayerStats.items = newPlayerStats.items.filter(i => i.quantity > 0);
     setPlayerStats(() => newPlayerStats);
     advanceGameTime(newPlayerStats);
-  }, [playerStats, customItemDefinitions, playerPosition, world, addNarrativeEntry, t, advanceGameTime, setWorld, language, setPlayerStats]);
+    }, [playerStats, customItemDefinitions, playerPosition, world, addNarrativeEntry, t, advanceGameTime, setWorld, setPlayerStats, language]);
 
   const handleOfflineSkillUse = useCallback((skillName: string) => {
 
@@ -435,7 +434,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     if(newEnemy !== currentChunk.enemy) setWorld(prev => ({...prev, [key]: {...prev[key]!, enemy: newEnemy}}));
     setPlayerStats(() => newPlayerStats);
     advanceGameTime(newPlayerStats);
-  }, [playerStats, settings.diceType, t, addNarrativeEntry, playerPosition, world, advanceGameTime, setWorld, language, setPlayerStats]);
+    }, [playerStats, settings.diceType, t, addNarrativeEntry, playerPosition, world, advanceGameTime, setWorld, setPlayerStats, language]);
 
     const handleOfflineAction = useCallback((action: Action) => {
         let newPlayerStats: PlayerStatus = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), t(action.textKey as TranslationKey, action.params)] };
@@ -586,7 +585,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
       setPlayerStats(() => newPlayerStats);
       advanceGameTime(newPlayerStats);
-  }, [addNarrativeEntry, playerStats, t, world, playerPosition, language, toast, advanceGameTime, customItemDefinitions, setWorld, turn, weatherZones, gameTime, setPlayerStats]);
+    }, [addNarrativeEntry, playerStats, t, world, playerPosition, toast, advanceGameTime, customItemDefinitions, setWorld, turn, weatherZones, gameTime, setPlayerStats, language]);
 
   const handleAction = useCallback((actionId: number) => {
     if (isLoading || isGameOver || !isLoaded) return;
@@ -621,7 +620,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
     setPlayerStats(() => newPlayerStats);
     handleOfflineAttack();
-  }, [isLoading, isGameOver, isLoaded, setPlayerBehaviorProfile, world, playerPosition, addNarrativeEntry, t, playerStats, handleOfflineAttack, language, setPlayerStats]);
+    }, [isLoading, isGameOver, isLoaded, setPlayerBehaviorProfile, world, playerPosition, addNarrativeEntry, t, playerStats, handleOfflineAttack, setPlayerStats]);
 
   const handleCustomAction = useCallback((text: string) => {
     if (!text.trim() || isLoading || isGameOver || !isLoaded) return;
@@ -679,7 +678,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     }
     setPlayerStats(() => nextPlayerStats);
     advanceGameTime(nextPlayerStats);
-  }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerStats, customItemDefinitions, addNarrativeEntry, toast, t, advanceGameTime, setPlayerStats, language]);
+    }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerStats, customItemDefinitions, addNarrativeEntry, toast, t, advanceGameTime, setPlayerStats]);
 
   const handleItemUsed = useCallback((itemName: TranslatableString, target: 'player' | TranslatableString) => {
     if (isLoading || isGameOver || !isLoaded) return;
@@ -688,7 +687,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     
     handleOfflineItemUse(getTranslatedText(itemName, 'en'), getTranslatedText(target, 'en'));
 
-  }, [isLoading, isGameOver, isLoaded, t, handleOfflineItemUse, addNarrativeEntry, language]);
+    }, [isLoading, isGameOver, isLoaded, t, handleOfflineItemUse, addNarrativeEntry]);
 
   const handleUseSkill = useCallback((skillName: string) => {
     if (isLoading || isGameOver || !isLoaded) return;
@@ -696,7 +695,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     addNarrativeEntry(actionText, 'action');
 
     handleOfflineSkillUse(skillName);
-  }, [isLoading, isGameOver, isLoaded, t, handleOfflineSkillUse, addNarrativeEntry, language]);
+    }, [isLoading, isGameOver, isLoaded, t, handleOfflineSkillUse, addNarrativeEntry]);
 
   const handleBuild = useCallback((structureName: string) => {
     if (isLoading || isGameOver) return;
@@ -736,7 +735,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     addNarrativeEntry(t('builtStructure', { structureName: t(structureName as TranslationKey) }), 'system');
     setPlayerStats(() => nextPlayerStats);
     advanceGameTime(nextPlayerStats);
-  }, [isLoading, isGameOver, buildableStructures, playerStats, playerPosition, addNarrativeEntry, advanceGameTime, toast, t, setWorld, world, language, setPlayerStats]);
+    }, [isLoading, isGameOver, buildableStructures, playerStats, playerPosition, addNarrativeEntry, advanceGameTime, toast, t, setWorld, world, setPlayerStats]);
 
   const handleRest = useCallback(() => {
     if (isLoading || isGameOver) return;
@@ -772,7 +771,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const nextPlayerStats = { ...playerStats, hp: newHp, stamina: newStamina, bodyTemperature: newTemp, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText] };
     setPlayerStats(() => nextPlayerStats);
     advanceGameTime(nextPlayerStats);
-  }, [isLoading, isGameOver, world, playerPosition, addNarrativeEntry, advanceGameTime, t, toast, playerStats, setPlayerStats, language]);
+    }, [isLoading, isGameOver, world, playerPosition, addNarrativeEntry, advanceGameTime, t, toast, playerStats, setPlayerStats]);
   
   const handleFuseItems = useCallback(async (itemsToFuse: PlayerItem[]) => {
     if (isLoading || isGameOver) return;
@@ -1034,7 +1033,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
     setPlayerStats(() => nextPlayerStats);
     advanceGameTime(nextPlayerStats);
-  }, [isLoading, isGameOver, isLoaded, world, playerPosition, playerStats, toast, t, addNarrativeEntry, customItemDefinitions, advanceGameTime, setWorld, language, setPlayerStats]);
+    }, [isLoading, isGameOver, isLoaded, world, playerPosition, playerStats, toast, t, addNarrativeEntry, customItemDefinitions, advanceGameTime, setWorld, setPlayerStats]);
 
   const handleMove = useCallback((direction: "north" | "south" | "east" | "west") => {
     if (isLoading || isGameOver) return;
@@ -1084,7 +1083,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
       addNarrativeEntry(narrative, 'narrative');
     }
 
-  }, [isLoading, isGameOver, playerPosition, world, addNarrativeEntry, t, playerStats, setPlayerBehaviorProfile, setPlayerPosition, setWorld, settings.narrativeLength, language, advanceGameTime, setPlayerStats]);
+    }, [isLoading, isGameOver, playerPosition, world, addNarrativeEntry, t, playerStats, setPlayerBehaviorProfile, setPlayerPosition, settings.narrativeLength, language, advanceGameTime]);
 
   return {
     handleMove,

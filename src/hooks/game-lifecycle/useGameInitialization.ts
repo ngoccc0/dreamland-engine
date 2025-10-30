@@ -68,10 +68,7 @@ export function useGameInitialization(deps: GameInitializationDeps) {
 
     // Strict slot validation
     if (typeof gameSlot !== 'number' || isNaN(gameSlot) || gameSlot < 0) {
-      // In development, capture a small caller stack to aid debugging where the missing
-      // `gameSlot` came from. Avoid exposing stack in production.
-      const callerStack = (process?.env?.NODE_ENV !== 'production') ? (new Error('Missing gameSlot').stack) : undefined;
-      logger.error('[GameInit] Invalid or missing gameSlot. Aborting initialization.', { gameSlot, deps, callerStack });
+      logger.error('[GameInit] Invalid or missing gameSlot. Aborting initialization.', { gameSlot, deps });
       setIsLoaded(false);
       return;
     }

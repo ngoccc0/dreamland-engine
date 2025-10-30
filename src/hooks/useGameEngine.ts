@@ -99,7 +99,6 @@ export function useGameEngine(props: GameEngineProps) {
         narrativeLogRef,
         addNarrativeEntry,
         advanceGameTime,
-        gameSlot: props.gameSlot,
     } as any);
     
     return {

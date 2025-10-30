@@ -24,8 +24,6 @@ export function usePlayerProgression(deps: PlayerProgressionDeps) {
   // EFFECT: Check for skill unlocks based on player's actions.
   useEffect(() => {
     if (!isLoaded) return;
-
-    const { kills, damageSpells, moves } = playerStats.unlockProgress;
     const currentSkillNames = new Set(playerStats.skills.map(s => s.name));
 
     const newlyUnlockedSkills = skillDefinitions.filter(skillDef => {

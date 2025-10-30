@@ -1,5 +1,5 @@
 import { TerrainManager } from '../implementations/terrain-manager';
-import { TerrainDefinition, TerrainType } from '../../terrain-v2/types';
+import type { TerrainDefinition } from '../../terrain-v2/types';
 
 describe('TerrainManager', () => {
     let manager: TerrainManager;

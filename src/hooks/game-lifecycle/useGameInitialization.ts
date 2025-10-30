@@ -9,12 +9,10 @@ import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
-import type { GameState, PlayerStatusDefinition, WorldDefinition, GeneratedItem, Recipe, StructureDefinition, ItemDefinition } from '@/lib/game/types';
+import type { GameState, PlayerStatusDefinition, WorldDefinition, GeneratedItem, Recipe, ItemDefinition } from '@/lib/game/types';
 import { logger } from '@/lib/logger';
 import { getTranslatedText } from '@/lib/utils';
 import { normalizePlayerStatus } from '@/lib/game/normalize';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase-config';
 import { useAuth } from '@/context/auth-context';
 
 
@@ -239,5 +237,5 @@ export function useGameInitialization(deps: GameInitializationDeps) {
       isMounted = false;
       logger.debug('[GameInit] useGameInitialization effect cleanup (unmount)', { gameSlot });
     };
-  }, [gameSlot, gameStateRepository, language, user]); // Removed finalWorldSetup from deps
+  }, [addNarrativeEntry, deps, finalWorldSetup, gameSlot, gameStateRepository, language, setBuildableStructures, setCurrentSeason, setCustomItemCatalog, setCustomItemDefinitions, setCustomStructures, setDay, setFinalWorldSetup, setGameTime, setIsLoaded, setNarrativeLog, setPlayerBehaviorProfile, setPlayerPosition, setPlayerStats, setRecipes, setRegionCounter, setRegions, setTurn, setWeatherZones, setWorld, setWorldProfile, t, user]);
 }

@@ -1,8 +1,7 @@
-import { 
-    TerrainType,
-    TerrainDefinition, 
-    TerrainFeature, 
-    TerrainAttributes, 
+import {
+    TerrainDefinition,
+    TerrainFeature,
+    TerrainAttributes,
     GridTerrainAttributes,
     AttributeModifier
 } from '../../terrain-v2/types';

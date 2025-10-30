@@ -1,8 +1,5 @@
-import { Position } from '../types/common';
 import { GridPosition } from '../values/grid-position';
-import { Terrain, TerrainType, SoilType } from './terrain';
-import { TerrainAttributes, RegionAttributes } from '../types/world-attributes';
-import { Entity, IEntityContainer } from './entity';
+import { Terrain, SoilType } from './terrain';
 
 /**
  * Thuộc tính môi trường của thế giới, dùng cho mỗi ô hoặc vùng.

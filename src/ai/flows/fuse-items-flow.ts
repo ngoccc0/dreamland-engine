@@ -40,12 +40,12 @@ export async function fuseItems(input: FuseItemsInput): Promise<FuseItemsOutput>
 }
 
 // --- New schema for the prompt's specific input needs ---
-const FuseItemsPromptInputSchema = FuseItemsInputSchema.extend({
+const _FuseItemsPromptInputSchema = FuseItemsInputSchema.extend({
     determinedOutcome: z.enum(['success', 'degraded', 'totalLoss', 'realityGlitch']),
     glitchItem: GeneratedItemSchema.optional().describe("An item pulled from another reality during a 'realityGlitch' event. The AI must invent a narrative for its appearance."),
 });
 
-type FuseItemsPromptInput = z.infer<typeof FuseItemsPromptInputSchema>;
+type FuseItemsPromptInput = z.infer<typeof _FuseItemsPromptInputSchema>;
 
 // --- New schema for the AI's creative output ---
 const AIPartialItemSchema = GeneratedItemSchema.pick({
@@ -60,7 +60,7 @@ const AIPromptOutputSchema = z.object({
     resultItem: AIPartialItemSchema.optional(),
 });
 
-type AIPromptOutput = z.infer<typeof AIPromptOutputSchema>;
+type _AIPromptOutput = z.infer<typeof AIPromptOutputSchema>;
 
 // --- The Genkit Prompt and Flow ---
 const fuseItemsPromptText = `You are the Spirit of the Forge, an ancient entity that governs the laws of alchemy and creation in this world. A player is attempting to fuse items. Your entire response MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.

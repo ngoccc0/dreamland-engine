@@ -54,7 +54,7 @@ export class WeatherEngine {
         }
     }
 
-    private updateRegionalWeather(timeDelta: number): void {
+    private updateRegionalWeather(_timeDelta: number): void {
         // Update each regional variation
         // This could include:
         // - Expanding/contracting weather areas

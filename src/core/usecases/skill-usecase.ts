@@ -1,6 +1,6 @@
-import { Skill, SkillTree } from '../entities/skill';
+import { Skill } from '../entities/skill';
 import { Combatant } from '../entities/combat';
-import { Experience } from '../entities/experience';
+// removed unused type imports (SkillTree, Experience)
 
 export interface ISkillUseCase {
     learnSkill(characterId: string, skillId: string): Promise<boolean>;
@@ -69,26 +69,26 @@ export class SkillUseCase implements ISkillUseCase {
     }
 
     private hasEnoughResource(
-        character: Combatant, 
-        resourceType: 'MANA' | 'STAMINA' | 'HEALTH', 
-        amount: number
+        _character: Combatant, 
+        _resourceType: 'MANA' | 'STAMINA' | 'HEALTH', 
+        _amount: number
     ): boolean {
         // Implementation depends on how resources are stored in Combatant
         return true; // Placeholder
     }
 
     private consumeResource(
-        character: Combatant, 
-        resourceType: 'MANA' | 'STAMINA' | 'HEALTH', 
-        amount: number
+        _character: Combatant, 
+        _resourceType: 'MANA' | 'STAMINA' | 'HEALTH', 
+        _amount: number
     ): void {
         // Implementation depends on how resources are stored in Combatant
     }
 
     private async applyEffect(
-        effect: any,
-        caster: Combatant,
-        target: Combatant
+        _effect: any,
+        _caster: Combatant,
+        _target: Combatant
     ): Promise<void> {
         // Implementation of effect application
     }

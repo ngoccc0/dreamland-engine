@@ -6,7 +6,7 @@ import { useGameState } from "./use-game-state";
 import { useActionHandlers } from "./use-action-handlers";
 import { useGameEffects } from "./useGameEffects"; // Corrected import case
 
-import type { GameState, WorldConcept, PlayerItem, ItemDefinition, GeneratedItem, Structure } from "@/lib/game/types";
+// Removed unused type-only imports to reduce lint noise. Types can be reintroduced if needed.
 
 interface GameEngineProps {
     gameSlot: number;

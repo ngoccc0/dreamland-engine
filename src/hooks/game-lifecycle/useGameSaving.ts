@@ -3,7 +3,6 @@
 
 import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/context/auth-context';
 import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
 import type { GameState } from "@/lib/game/types";
 import { logger } from '@/lib/logger';

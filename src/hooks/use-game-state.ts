@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback, useRef } from "react";
-import type { GameState, NarrativeEntry, Chunk, Season, WorldProfile, Region, PlayerItem, ItemDefinition, WeatherZone, Recipe, WorldConcept, Skill, PlayerBehaviorProfile, Structure, Pet, PlayerAttributes, ItemEffect, Terrain, GeneratedItem, TranslatableString } from "@/lib/game/types";
+import { useState } from "react";
+import type { GameState, NarrativeEntry, Chunk, Season, WorldProfile, Region, ItemDefinition, WeatherZone, Recipe, PlayerBehaviorProfile, Structure, GeneratedItem } from "@/lib/game/types";
 // Temporary type definitions for missing types
 type WorldType = any;
 type PlayerStatus = any;
@@ -10,13 +10,12 @@ interface GameStateProps {
     gameSlot: number;
 }
 // Add missing imports for factories, generators, enums, and static data
-import { TerrainFactory } from "@/core/factories/terrain-factory";
-import { WorldGenerator } from "@/core/generators/world-generator";
-import { WeatherType, WeatherIntensity } from "@/core/types/weather";
+// deferred world generation imports removed — keep placeholder init minimal
 import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
-export function useGameState({ gameSlot }: GameStateProps) {
+// Accept gameSlot but mark as intentionally unused to satisfy lint rule
+export function useGameState({ gameSlot: _gameSlot }: GameStateProps) {
     const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>([]);
     const [currentChunk, setCurrentChunk] = useState<Chunk | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
@@ -38,36 +37,7 @@ export function useGameState({ gameSlot }: GameStateProps) {
     const [weatherZones, setWeatherZones] = useState<{ [zoneId: string]: WeatherZone }>({});
     const [world, setWorld] = useState<WorldType>(() => {
         // Initialize world using WorldUseCase
-        const terrainFactory = new TerrainFactory();
-        const worldGenerator = new WorldGenerator({
-            width: 100,
-            height: 100,
-            minRegionSize: 5,
-            maxRegionSize: 15,
-            terrainDistribution: {
-                "plains": 0.3,
-                "forest": 0.3,
-                "mountain": 0.2,
-                "desert": 0.2
-            },
-            baseAttributes: {}
-        }, terrainFactory);
-        const weatherParams = {
-            type: WeatherType.CLEAR,
-            intensity: WeatherIntensity.NORMAL,
-            conditions: []
-        };
-        const worldAttributes = {
-            worldType: 'normal',
-            magicalPotency: 5,
-            vegetationDensity: 50,
-            moisture: 50,
-            elevation: 50,
-            temperature: 20,
-            windLevel: 5,
-            lightLevel: 70,
-            soilType: "loamy"
-        };
+    // Placeholder world initialization — return minimal default to avoid heavy setup here
         // TODO: Implement world creation logic or use a factory if needed
         // Placeholder: return an empty object or suitable default
         return {} as WorldType;

@@ -1,5 +1,5 @@
 import { Terrain } from '../implementations/terrain';
-import { TerrainDefinition, TerrainFeature, AttributeModifier } from '../../terrain-v2/types';
+import type { TerrainDefinition, TerrainFeature } from '../../terrain-v2/types';
 
 describe('Terrain', () => {
     const mockFeature: TerrainFeature = {

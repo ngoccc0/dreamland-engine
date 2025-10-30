@@ -107,22 +107,22 @@ export class ExplorationUseCase implements IExplorationUseCase {
         }
     }
 
-    private async handleSettlementDiscovery(discovery: Discovery): Promise<void> {
+    private async handleSettlementDiscovery(_discovery: Discovery): Promise<void> {
         // Implement settlement-specific logic
         // e.g., Update world map, trigger quest opportunities, etc.
     }
 
-    private async handleDungeonDiscovery(discovery: Discovery): Promise<void> {
+    private async handleDungeonDiscovery(_discovery: Discovery): Promise<void> {
         // Implement dungeon-specific logic
         // e.g., Generate dungeon layout, populate with monsters, etc.
     }
 
-    private async handleArtifactDiscovery(discovery: Discovery): Promise<void> {
+    private async handleArtifactDiscovery(_discovery: Discovery): Promise<void> {
         // Implement artifact-specific logic
         // e.g., Add to player's collection, trigger related quests, etc.
     }
 
-    private isDiscoveryInCell(discovery: Discovery, cell: GridCell): boolean {
+    private isDiscoveryInCell(_discovery: Discovery, _cell: GridCell): boolean {
         // Implementation would check if the discovery belongs to the given cell
         return true; // Placeholder
     }

@@ -1,6 +1,6 @@
 import { Effect } from '../types/effects';
 import { Item } from '../types/items';
-import { TranslatableString } from '../types/i18n';
+import type { TranslatableString } from '../types/i18n';
 import { Skill } from './skill';
 
 /** Character statistics representing core attributes */

@@ -1,6 +1,6 @@
 import { GridPosition } from '../values/grid-position';
 import { GridCell } from './grid-cell';
-import { TranslatableString } from '../types/i18n';
+import type { TranslatableString } from '../types/i18n';
 
 export enum DiscoveryType {
     LANDMARK = 'landmark',
@@ -177,12 +177,12 @@ export class ExplorationManager {
         return Math.floor(baseXP * difficultyMultiplier);
     }
 
-    private generateRewardItems(type: DiscoveryType, cell: GridCell): string[] {
+    private generateRewardItems(_type: DiscoveryType, _cell: GridCell): string[] {
         // This would be implemented to generate appropriate rewards based on discovery type and cell attributes
         return [];
     }
 
-    private generateUnlocks(type: DiscoveryType, cell: GridCell): string[] {
+    private generateUnlocks(_type: DiscoveryType, _cell: GridCell): string[] {
         // This would be implemented to generate appropriate unlocks based on discovery type and cell attributes
         return [];
     }
@@ -203,7 +203,7 @@ export class ExplorationManager {
     }
 
     private updateSkillLevels(discoveries: Discovery[]): Map<string, number> {
-        const skillGains = new Map<string, number>();
+        const _skillGains = new Map<string, number>();
         
         discoveries.forEach(discovery => {
             switch (discovery.type) {

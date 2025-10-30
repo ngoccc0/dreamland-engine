@@ -63,10 +63,11 @@ export class Terrain implements IEntityContainer {
      * @param weather The weather context
      * @returns The calculated terrain attributes
      */
-    calculateAttributes(position: GridPosition, time: number, weather: any): TerrainAttributes {
+    calculateAttributes(_position: GridPosition, _time: number, _weather: any): TerrainAttributes {
         // This will be implemented to modify base attributes based on context
+        // Parameters prefixed with _ are intentionally unused for now
         return {
-            ...this._attributes
+           ...this._attributes
         };
     }
 }

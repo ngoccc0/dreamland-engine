@@ -60,15 +60,15 @@ export class WeatherUseCase implements IWeatherUseCase {
     }
 
     // Additional methods for weather manipulation
-    async disperseWeather(position: GridPosition): Promise<void> {
+    async disperseWeather(_position: GridPosition): Promise<void> {
         // Logic to gradually disperse weather effects in an area
     }
 
-    async intensifyWeather(position: GridPosition): Promise<void> {
+    async intensifyWeather(_position: GridPosition): Promise<void> {
         // Logic to intensify weather in an area
     }
 
-    async mergeWeatherSystems(position1: GridPosition, position2: GridPosition): Promise<void> {
+    async mergeWeatherSystems(_position1: GridPosition, _position2: GridPosition): Promise<void> {
         // Logic to merge two weather systems
     }
 }

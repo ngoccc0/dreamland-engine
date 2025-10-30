@@ -1,5 +1,5 @@
 
-import type { ItemDefinition, EquipmentSlot } from '@/lib/game/types';
+import type { ItemDefinition } from '@/lib/game/types';
 
 export const naturePlusItems: Record<string, ItemDefinition> = {
     'crystal_water': {

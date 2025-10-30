@@ -32,28 +32,16 @@ export class WorldGenerator {
 
     private async generateRegions(): Promise<any[]> {
         const regions: any[] = [];
-        const gridPositions = this.generateGridPositions();
-        let currentRegionId = 0;
+    const gridPositions = this.generateGridPositions();
 
         while (gridPositions.length > 0) {
             const centerPos = this.selectRandomPosition(gridPositions);
             // terrainEntity is of type Terrain (entity)
             const terrainEntity = await this.selectTerrainForRegion(centerPos);
 
-            const regionSize = this.randomBetween(
-                this.config.minRegionSize,
-                this.config.maxRegionSize
-            );
+                // region size calculation removed for now (unused in current flow)
 
-            const regionCells = this.generateRegionCells( // returns GridCell[]
-                centerPos,
-                regionSize,
-                currentRegionId,
-                terrainEntity, // Pass the Terrain entity
-                gridPositions
-            );
-
-            // Construct RegionAttributes from terrainEntity and regionCells
+            // Construct RegionAttributes for this region (cells generation happens elsewhere when needed)
             const regionAttributes: RegionAttributes = {
                 ...terrainEntity.attributes,
                 regionType: terrainEntity.type,
@@ -64,7 +52,6 @@ export class WorldGenerator {
             };
             // Construct the region without using Region class
             regions.push(regionAttributes);
-            currentRegionId++;
         }
         return regions;
     }
@@ -81,12 +68,12 @@ export class WorldGenerator {
 
     private selectRandomPosition(positions: GridPosition[]): GridPosition {
         const index = Math.floor(Math.random() * positions.length);
-        const [position] = positions.splice(index, 1);
-        return position;
+        const [pos] = positions.splice(index, 1);
+        return pos;
     }
 
     // Use Terrain type for terrain creation and distribution
-    private async selectTerrainForRegion(position: GridPosition): Promise<Terrain> {
+    private async selectTerrainForRegion(_position: GridPosition): Promise<Terrain> {
         // Use weighted random selection based on terrainDistribution
         const random = Math.random();
         let cumulativeWeight = 0;

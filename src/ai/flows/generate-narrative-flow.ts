@@ -17,8 +17,8 @@ import { getTranslatedText } from "@/lib/utils";
 
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
-import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema, GeneratedItemSchema, NpcSchema, TranslatableStringSchema } from '@/ai/schemas';
-import type { TranslatableString } from '@/lib/game/types';
+import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema, GeneratedItemSchema, NpcSchema } from '@/ai/schemas';
+import type { TranslatableString, NarrativeLength, TranslatableStringSchema } from '@/lib/game/types';
 import { LanguageEnum as Language } from '@/lib/i18n'; // Import Language enum
 
 // SỬA: Import các schema đã đặt tên và các tool từ game-actions.ts
@@ -36,7 +36,7 @@ import { generateNewQuest } from './generate-new-quest';
 import { generateLegendaryQuest } from './generate-legendary-quest-flow';
 import { generateNewItem } from './generate-new-item';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
-import type { AiModel, NarrativeLength } from '@/lib/game/types';
+import type { AiModel } from '@/lib/game/types';
 
 
 // == STEP 1: DEFINE THE INPUT SCHEMA ==
@@ -57,7 +57,7 @@ const SuccessLevelSchema = z.enum(['CriticalFailure', 'Failure', 'Success', 'Gre
  * @property {z.string} language - Ngôn ngữ cho nội dung được tạo ('en' hoặc 'vi').
  * @property {z.number} diceRoll - Kết quả của lần tung xúc xắc.
  * @property {z.string} diceType - Loại xúc xắc được sử dụng (ví dụ: 'd20', '2d6').
- * @property {z.string} diceRange - Phạm vi có thể có của lần tung xúc xắc (ví dụ: '1-20', '2-12').
+ * @property {z.string} diceRange - Phạm vi có thể có của lần tung xúc xắc (उदाहरण: '1-20', '2-12').
  * @property {SuccessLevelSchema} successLevel - Kết quả phân loại của lần tung xúc xắc.
  * @property {z.record} [customItemDefinitions] - Map các định nghĩa vật phẩm do AI tạo cho phiên chơi hiện tại.
  * @property {z.enum} aiModel - Ưu tiên mô hình AI để tạo nội dung.
@@ -98,7 +98,7 @@ export type GenerateNarrativeInput = z.infer<typeof GenerateNarrativeInputSchema
  * @property {z.string} [systemMessage] - Một thông báo hệ thống ngắn, tùy chọn cho các sự kiện quan trọng.
  * @property {GeneratedItemSchema} [newlyGeneratedItem] - Một vật phẩm mới được tạo ra để thêm lặng lẽ vào danh mục vật phẩm chính của thế giới.
  */
-const GenerateNarrativeOutputSchema = z.object({
+const _GenerateNarrativeOutputSchema = z.object({
   narrative: z.string().describe("The main narrative description of what happens next."),
   updatedChunk: z.object({
     description: z.string().optional(),
@@ -122,7 +122,7 @@ const GenerateNarrativeOutputSchema = z.object({
 /**
  * @typedef {z.infer<typeof GenerateNarrativeOutputSchema>} GenerateNarrativeOutput
  */
-export type GenerateNarrativeOutput = z.infer<typeof GenerateNarrativeOutputSchema>;
+export type GenerateNarrativeOutput = z.infer<typeof _GenerateNarrativeOutputSchema>;
 
 
 // == STEP 3: DEFINE THE AI PROMPT ==
@@ -133,7 +133,7 @@ export type GenerateNarrativeOutput = z.infer<typeof GenerateNarrativeOutputSche
  * @property {z.string} narrative - Mô tả kể chuyện chính về những gì xảy ra tiếp theo.
  * @property {z.string} [systemMessage] - Một thông báo hệ thống ngắn, tùy chọn cho các sự kiện quan trọng.
  */
-const AINarrativeResponseSchema = z.object({
+const _AINarrativeResponseSchema = z.object({
     narrative: z.string().describe("The main narrative description of what happens next. This should be engaging and based on the player's action, the tool's result, and the requested narrativeLength ('short': 1-2 sentences, 'medium': 2-4, 'long': 5+)."),
     systemMessage: z.string().optional().describe("An optional, short system message for important events (e.g., 'Item added to inventory', 'Quest updated', 'Quest Completed!')."),
 });

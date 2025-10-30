@@ -3,13 +3,11 @@
 
 import { useEffect, useCallback, useState } from 'react';
 import { useLanguage } from '@/context/language-context';
-import { useSettings } from '@/context/settings-context';
 import { randomEvents } from '@/lib/game/events';
 import { getTemplates } from '@/lib/game/templates';
 import { clamp, getTranslatedText } from '@/lib/utils';
 import { rollDice, getSuccessLevel, type SuccessLevel } from '@/lib/game/dice';
-import type { GameState, PlayerStatus, Chunk, Season, WorldProfile, ItemDefinition, GeneratedItem, TranslatableString, Language, Terrain } from "@/lib/game/types";
-import type { TranslationKey } from "@/lib/i18n";
+import type { GameState, PlayerStatus, Season, WorldProfile, ItemDefinition, GeneratedItem, Language, Terrain } from "@/lib/game/types";
 import { generateChunksInRadius } from '@/lib/game/engine/generation';
 import { logger } from '@/lib/logger';
 
@@ -48,7 +46,6 @@ export function useGameEvents(deps: GameEventsDeps) {
   } = deps;
 
   const { t } = useLanguage();
-  const { settings } = useSettings();
   const [turnsSinceLastProactiveGen, setTurnsSinceLastProactiveGen] = useState(0);
 
   const triggerRandomEvent = useCallback(() => {

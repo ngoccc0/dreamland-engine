@@ -13,6 +13,7 @@ import { fuseItems } from '@/ai/flows/fuse-items-flow';
 import { provideQuestHint } from '@/ai/flows/provide-quest-hint';
 import { rollDice, getSuccessLevel, successLevelToTranslationKey } from '@/lib/game/dice';
 import { itemDefinitions } from '@/lib/game/items';
+import { resolveItemDef as resolveItemDefHelper } from '@/lib/game/item-utils';
 import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchAction } from '@/lib/game/engine/offline';
 import { getEffectiveChunk } from '@/lib/game/engine/generation';
 import { getTemplates } from '@/lib/game/templates';
@@ -66,7 +67,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     // Helper to resolve an item definition by name. Prefer custom/generated definitions
     // (world-specific), but fall back to the built-in master item catalog when needed.
     const resolveItemDef = (name: string) => {
-        return customItemDefinitions?.[name] || itemDefinitions?.[name];
+        return resolveItemDefHelper(name, customItemDefinitions);
     };
 
   const { t, language } = useLanguage();
@@ -179,7 +180,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             return newWorld;
         });
         
-        if (result.newlyGeneratedItem && !customItemDefinitions[getTranslatedText(result.newlyGeneratedItem.name, 'en')]) {
+        if (result.newlyGeneratedItem && !resolveItemDef(getTranslatedText(result.newlyGeneratedItem.name, 'en'))) {
             const newItem = result.newlyGeneratedItem;
             logger.info('[AI] A new item was generated for the world', { newItem });
             setCustomItemCatalog(prev => [...prev, newItem]);

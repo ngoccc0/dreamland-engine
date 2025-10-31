@@ -104,8 +104,27 @@ export function generateChunkContent(
     const spawnedItemRefs = selectEntities(allSpawnCandidates, maxItems, chunkData, allItemDefinitions, worldProfile);
     const spawnedItems: ChunkItem[] = [];
 
+    // Helper to resolve an itemRef.name (which may be a display string) to an item definition key
+    const resolveItemByName = (displayOrKey: string) : ItemDefinition | undefined => {
+        // Direct key lookup first
+        if (allItemDefinitions[displayOrKey]) return allItemDefinitions[displayOrKey];
+
+        // Otherwise search definitions for a translated/display name match (en/vi)
+        for (const key of Object.keys(allItemDefinitions)) {
+            const def = allItemDefinitions[key];
+            // def.name can be a TranslatableString or plain string
+            const defNameAny: any = def.name;
+            if (typeof defNameAny === 'string') {
+                if (defNameAny === displayOrKey) return def;
+            } else if (defNameAny) {
+                if (defNameAny.en === displayOrKey || defNameAny.vi === displayOrKey) return def;
+            }
+        }
+        return undefined;
+    };
+
     for (const itemRef of spawnedItemRefs) {
-        const itemDef = allItemDefinitions[itemRef.name];
+        const itemDef = resolveItemByName(itemRef.name);
         if (itemDef) {
             const baseQuantity = getRandomInRange({ min: itemDef.baseQuantity.min, max: itemDef.baseQuantity.max });
             const multiplier = worldProfile.resourceDensity / 50;

@@ -63,6 +63,17 @@ export const selectEntities = <T extends { name?: TranslatableString | string; t
         return m / (1 + (m - 1) * k);
     };
 
+    // Compute a chunk-level resource score (0..1) from several chunk indicators.
+    // Assumptions: chunk metric scales are roughly 0..100. Higher vegetation/moisture
+    // increase resources; higher humanPresence/dangerLevel/predatorPresence reduce it.
+    const clamp01 = (v: number) => Math.max(0, Math.min(1, v / 100));
+    const vegetation = clamp01(chunk.vegetationDensity ?? 50);
+    const moisture = clamp01(chunk.moisture ?? 50);
+    const humanFactor = 1 - clamp01(chunk.humanPresence ?? 50);
+    const dangerFactor = 1 - clamp01(chunk.dangerLevel ?? 50);
+    const predatorFactor = 1 - clamp01(chunk.predatorPresence ?? 50);
+    const chunkResourceScore = (vegetation + moisture + humanFactor + dangerFactor + predatorFactor) / 5; // 0..1
+
     for (const entity of shuffled) {
         if (selected.length >= maxCount) break;
 
@@ -80,22 +91,29 @@ export const selectEntities = <T extends { name?: TranslatableString | string; t
         // Giảm mức độ ảnh hưởng của tier lên tỷ lệ spawn
         if (itemDef) {
             const tier = itemDef.tier;
-            // Thay đổi hệ số giảm từ 0.5 thành 0.8
-            const tierMultiplier = Math.pow(0.8, tier - 1);
+            // Tăng hệ số lũy thừa để giảm mức độ ảnh hưởng của tier lên tỷ lệ spawn
+            const tierMultiplier = Math.pow(0.9, tier - 1); // Changed from 0.8 to 0.9
             spawnChance *= tierMultiplier;
         }
 
+
         // Thêm bonus chance dựa trên world profile
-        // World resource density still provides a small additive bonus
+        // Keep resourceDensity effect small to avoid driving spawnChance negative
         if (worldProfile?.resourceDensity) {
-            const densityBonus = (worldProfile.resourceDensity - 50) / 100; // -0.5 to 0.5
+            // Use original /100 scaling so densityBonus ranges roughly -0.5..+0.5
+            const densityBonus = (worldProfile.resourceDensity - 50) / 100;
             spawnChance = spawnChance + densityBonus;
         }
 
+        // Boost/reduce spawnChance based on chunk resource score so chunk metrics are primary influence
+        // We map chunkResourceScore (0..1) into a multiplier in range [0.6, 1.4] (configurable)
+        const chunkMultiplier = 0.6 + (chunkResourceScore * 0.8);
+        spawnChance *= chunkMultiplier;
         // Apply a global spawn multiplier from the world profile (softcapped)
         const multiplier = worldProfile?.spawnMultiplier ?? 1;
         const effectiveMultiplier = softcap(multiplier);
-        spawnChance = Math.min(0.95, spawnChance * effectiveMultiplier);
+        // Clamp spawnChance into a safe range [0, 0.95] after multiplier so random check is valid
+        spawnChance = Math.max(0, Math.min(0.95, spawnChance * effectiveMultiplier));
 
         if (Math.random() < spawnChance) {
             selected.push(entity);

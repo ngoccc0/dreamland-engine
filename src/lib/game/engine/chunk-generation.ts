@@ -24,6 +24,17 @@ import { selectEntities } from "./entity-generation";
 import { worldConfig } from "../world-config";
 import { generateRegion } from "./region-generation";
 
+interface SpawnConditions {
+    chance?: number;
+    [key: string]: any; // Allow other conditions
+}
+
+interface SpawnCandidate {
+    name: string | TranslationKey;
+    conditions?: SpawnConditions;
+    data?: any; // For NPCs/Enemies
+}
+
 interface ChunkGenerationResult {
     description: string;
     NPCs: Npc[];
@@ -58,6 +69,8 @@ export function generateChunkContent(
     customStructures: Structure[],
     language: Language
 ): ChunkGenerationResult {
+    logger.debug('[generateChunkContent] STARTING', { chunkData, customItemCatalogLength: customItemCatalog.length });
+
     const t = (key: TranslationKey, replacements?: { [key: string]: string | number }): string => {
         let textPool = (translations[language as 'en' | 'vi'] as any)[key] || (translations.en as any)[key] || key;
         let text = Array.isArray(textPool) ? textPool[Math.floor(Math.random() * textPool.length)] : textPool;
@@ -67,6 +80,12 @@ export function generateChunkContent(
             }
         }
         return text;
+    };
+
+    // softcap function moved here to be accessible
+    const softcap = (m: number, k = 0.4) => {
+        if (m <= 1) return m;
+        return m / (1 + (m - 1) * k);
     };
 
     const templates = getTemplates(language);
@@ -89,27 +108,62 @@ export function generateChunkContent(
         .replace('[adjective]', (terrainTemplate.adjectives || ['normal'])[Math.floor(Math.random() * (terrainTemplate.adjectives || ['normal']).length)])
         .replace('[feature]', (terrainTemplate.features || ['nothing special'])[Math.floor(Math.random() * (terrainTemplate.features || ['nothing special']).length)]);
     
-    const staticSpawnCandidates = (terrainTemplate.items || []).filter(Boolean);
-    const customSpawnCandidates = customItemCatalog
+    const effectiveMultiplier = softcap(worldProfile?.spawnMultiplier ?? 1);
+
+    // Ensure staticSpawnCandidates have a 'conditions' object with 'chance'
+    const staticSpawnCandidates: SpawnCandidate[] = (terrainTemplate.items || []).filter(Boolean).map((item: any) => ({
+        ...item,
+        conditions: {
+            ...(item.conditions || {}), // Ensure conditions object exists
+            chance: (item.conditions?.chance ?? 1) // keep raw chance; world multiplier applied later in selectEntities
+        }
+    }));
+
+    const customSpawnCandidates: SpawnCandidate[] = customItemCatalog
         .filter(item => item && item.spawnEnabled !== false && item.spawnBiomes && item.spawnBiomes.includes(chunkData.terrain as Terrain))
-        .map(item => ({ 
-            name: getTranslatedText(item.name, 'en', t), 
-            conditions: { chance: 0.5 } // Tăng tỷ lệ spawn lên 50% cho custom items
-        }));
-    
+        .map(item => {
+            // ItemDefinition stores natural spawn info in `naturalSpawn` entries.
+            // Try to find a matching biome entry and use its chance/conditions when available.
+            const natural = (item as any).naturalSpawn as Array<{ biome?: string; chance?: number; conditions?: any }> | undefined;
+            const matched = natural ? natural.find(s => s && s.biome === chunkData.terrain) : undefined;
+            const baseChance = matched?.chance ?? 0.5;
+            const extraConditions = matched?.conditions ?? undefined;
+            return {
+                name: getTranslatedText(item.name, 'en', t),
+                conditions: {
+                    ...(extraConditions || {}),
+                    chance: baseChance // keep raw chance; world multiplier applied later in selectEntities
+                }
+            };
+        });
+    logger.debug('[generateChunkContent] customSpawnCandidates', { customSpawnCandidatesLength: customSpawnCandidates.length, customSpawnCandidates });
+
     const allSpawnCandidates = [...staticSpawnCandidates, ...customSpawnCandidates];
+    logger.debug('[generateChunkContent] allSpawnCandidates', { allSpawnCandidatesLength: allSpawnCandidates.length, allSpawnCandidates });
 
     // Default to 10 items, scaled by worldProfile.spawnMultiplier but passed
     // through a softcap so extremely large multipliers don't explode counts.
-    const softcap = (m: number, k = 0.4) => {
-        if (m <= 1) return m;
-        return m / (1 + (m - 1) * k);
-    };
     const baseMaxItems = 10;
-    const multiplier = worldProfile?.spawnMultiplier ?? 1;
-    const effectiveMultiplier = softcap(multiplier);
-    const maxItems = Math.max(1, Math.floor(baseMaxItems * effectiveMultiplier));
+    // Compute a chunk-level resource score (0..1) similar to selectEntities so chunk
+    // indicators are the primary influence on how many items spawn here.
+    const clamp01 = (v: number) => Math.max(0, Math.min(1, v / 100));
+    const vegetation = clamp01(chunkData.vegetationDensity ?? 50);
+    const moisture = clamp01(chunkData.moisture ?? 50);
+    const humanFactor = 1 - clamp01(chunkData.humanPresence ?? 50);
+    const dangerFactor = 1 - clamp01(chunkData.dangerLevel ?? 50);
+    const predatorFactor = 1 - clamp01(chunkData.predatorPresence ?? 50);
+    const chunkResourceScore = (vegetation + moisture + humanFactor + dangerFactor + predatorFactor) / 5; // 0..1
+
+    // World-level resourceDensity further scales the chunk score. Default 50 -> neutral.
+    const worldDensityScale = (worldProfile?.resourceDensity ?? 50) / 100;
+
+    // Map chunkResourceScore to a multiplier for item count in range [0.5, 1.5]
+    const chunkCountMultiplier = 0.5 + (chunkResourceScore * 1.0 * worldDensityScale);
+
+    // maxItems now represents the maximum number of *unique* item types to select.
+    const maxItems = Math.max(1, Math.floor(baseMaxItems * effectiveMultiplier * chunkCountMultiplier));
     const spawnedItemRefs = selectEntities(allSpawnCandidates, maxItems, chunkData, allItemDefinitions, worldProfile);
+    logger.debug('[generateChunkContent] spawnedItemRefs', { spawnedItemRefsLength: spawnedItemRefs.length, spawnedItemRefs });
     const spawnedItems: ChunkItem[] = [];
 
     // Helper to resolve an itemRef.name (which may be a display string) to an item definition key
@@ -132,11 +186,15 @@ export function generateChunkContent(
     };
 
     for (const itemRef of spawnedItemRefs) {
+        logger.debug('[generateChunkContent] Processing itemRef', { itemRef });
         const itemDef = resolveItemByName(itemRef.name);
+        logger.debug('[generateChunkContent] Resolved itemDef', { itemDef });
+
         if (itemDef) {
-            const baseQuantity = getRandomInRange({ min: itemDef.baseQuantity.min, max: itemDef.baseQuantity.max });
-            const multiplier = worldProfile.resourceDensity / 50;
-            const finalQuantity = Math.round(baseQuantity * multiplier);
+            logger.debug('[generateChunkContent] Item definition found', { baseQuantityMin: itemDef.baseQuantity.min, baseQuantityMax: itemDef.baseQuantity.max });
+            // Quantity is now directly from baseQuantity range, as multiplier affects chance
+            const finalQuantity = getRandomInRange({ min: itemDef.baseQuantity.min, max: itemDef.baseQuantity.max });
+            logger.debug('[generateChunkContent] Final quantity determined from baseQuantity range', { finalQuantity });
 
             if (finalQuantity > 0) {
                 spawnedItems.push({
@@ -146,7 +204,12 @@ export function generateChunkContent(
                     quantity: finalQuantity,
                     emoji: itemDef.emoji,
                 });
+                logger.debug('[generateChunkContent] Item pushed to spawnedItems', { itemName: getTranslatedText(itemDef.name, 'en'), finalQuantity });
+            } else {
+                logger.debug('[generateChunkContent] finalQuantity is 0, item not spawned (should not happen if baseQuantity.min > 0)', { itemName: getTranslatedText(itemDef.name, 'en'), finalQuantity });
             }
+        } else {
+            logger.warn('[generateChunkContent] Item definition not found for itemRef', { itemRefName: itemRef.name });
         }
     }
     
@@ -162,7 +225,8 @@ export function generateChunkContent(
     for (const structRef of spawnedStructureRefs) {
         if (structRef.loot) {
             for (const lootItem of structRef.loot) {
-                if (Math.random() < lootItem.chance) {
+                // Ensure lootItem.chance exists before using it
+                if (lootItem.chance !== undefined && Math.random() < lootItem.chance) {
                     const definition = allItemDefinitions[lootItem.name];
                     if (definition) {
                         const quantity = getRandomInRange({ min: lootItem.quantity.min, max: lootItem.quantity.max });
@@ -234,6 +298,7 @@ export function generateChunkContent(
         spawnedEnemy: !!spawnedEnemy,
         sampleItems: spawnedItems.slice(0, 3).map(i => getTranslatedText(i.name, 'en')).join(', ')
     });
+    logger.debug('[generateChunkContent] FINAL spawnedItems', { spawnedItemsLength: spawnedItems.length, spawnedItems });
 
     return {
         description: finalDescription,

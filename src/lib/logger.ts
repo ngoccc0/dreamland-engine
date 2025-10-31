@@ -90,7 +90,7 @@ export const logger = {
     debug: (message: string, data?: unknown): void => {
         // In a real app, you might disable debug logs in production based on an environment variable.
         if (process.env.NODE_ENV === 'development') {
-            console.debug(formatMessage('DEBUG', message, data));
+            console.log(formatMessage('DEBUG', message, data));
         }
     }
 };

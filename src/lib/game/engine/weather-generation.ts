@@ -2,7 +2,10 @@ import { WeatherState, Season, Terrain, Chunk, WeatherZone } from "../types";
 import { weatherPresets } from "../weatherPresets";
 import { clamp } from "../../utils";
 
+import { maybeDebug } from '@/lib/debug';
+
 export const generateWeatherForZone = (terrain: Terrain, season: Season, previousWeather?: WeatherState): WeatherState => {
+    maybeDebug('generateWeatherForZone');
     let candidateWeather = weatherPresets.filter(
       w => w.biome_affinity.includes(terrain) &&
            w.season_affinity.includes(season)

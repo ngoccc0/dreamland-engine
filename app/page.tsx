@@ -23,6 +23,7 @@ import type { IGameStateRepository } from '@/lib/game/ports/game-state.repositor
 import { LocalStorageGameStateRepository } from '@/infrastructure/persistence/local-storage.repository';
 import { FirebaseGameStateRepository } from '@/infrastructure/persistence/firebase.repository';
 import { IndexedDbGameStateRepository } from '@/infrastructure/persistence/indexed-db.repository';
+import { logger } from '@/lib/logger';
 
 
 type SaveSlotSummary = Pick<GameState, 'worldSetup' | 'day' | 'gameTime' | 'playerStats'> | null;
@@ -52,6 +53,18 @@ export default function Home() {
     }
     setGameStateRepository(repo);
   }, [user]);
+
+  // Dev-only: log loadState and activeSlot transitions to help diagnose unexpected navigation/unmounts
+  useEffect(() => {
+    logger.debug('[Home] loadState changed', { loadState, activeSlot });
+    // expose for quick console checks
+    try { (window as any).__HOME_LOAD_STATE = { loadState, activeSlot }; } catch {}
+  }, [loadState, activeSlot]);
+
+  useEffect(() => {
+    logger.debug('[Home] gameStateRepository set', { repo: (gameStateRepository as any)?.constructor?.name });
+    try { (window as any).__GAME_STATE_REPO = (gameStateRepository as any)?.constructor?.name || null; } catch {}
+  }, [gameStateRepository]);
 
   const loadSaveSlots = useCallback(async () => {
     setLoadState('loading');

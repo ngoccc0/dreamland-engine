@@ -245,6 +245,8 @@ export function ensureChunkExists(
 /**
  * Creates chunks in a specified radius around a central point if they do not already exist.
  */
+import { maybeDebug } from '@/lib/debug';
+
 export const generateChunksInRadius = (
     currentWorld: World,
     currentRegions: { [id: number]: Region },
@@ -260,6 +262,8 @@ export const generateChunksInRadius = (
     language: Language
 ): { world: World, regions: { [id: number]: Region }, regionCounter: number } => {
     logger.debug(`[generateChunksInRadius] STARTING generation for radius ${radius} around (${center_x}, ${center_y}).`);
+    // Pause here when debugging to inspect large generation inputs/state
+    maybeDebug('generateChunksInRadius:start');
     let newWorld = { ...currentWorld };
     let newRegions = { ...currentRegions };
     let newRegionCounter = currentRegionCounter;
@@ -269,7 +273,9 @@ export const generateChunksInRadius = (
             const chunk_x = center_x + dx;
             const chunk_y = center_y + dy;
             const chunkKey = `${chunk_x},${chunk_y}`;
-            logger.debug(`[generateChunksInRadius] Checking chunk at (${chunk_x}, ${chunk_y}).`);
+              logger.debug(`[generateChunksInRadius] Checking chunk at (${chunk_x}, ${chunk_y}).`);
+              // Short pause to inspect per-chunk processing if needed
+              maybeDebug('generateChunksInRadius:per-chunk');
             if (!newWorld[chunkKey]) {
                 const result = ensureChunkExists(
                     { x: chunk_x, y: chunk_y },
@@ -290,5 +296,6 @@ export const generateChunksInRadius = (
         }
     }
     logger.info(`[generateChunksInRadius] Finished generation for radius ${radius}.`);
+    maybeDebug('generateChunksInRadius:finished');
     return { world: newWorld, regions: newRegions, regionCounter: newRegionCounter };
 };

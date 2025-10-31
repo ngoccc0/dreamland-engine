@@ -87,6 +87,8 @@ export function useGameEngine(props: GameEngineProps) {
         narrativeLogRef,
         addNarrativeEntry,
         advanceGameTime,
+        // Ensure the gameSlot from props is forwarded to effects hooks
+        gameSlot: props.gameSlot,
     } as any);
     
     return {

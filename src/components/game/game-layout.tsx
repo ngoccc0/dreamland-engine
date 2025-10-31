@@ -44,6 +44,12 @@ export default function GameLayout(props: GameLayoutProps) {
         );
     }
     const { t, language } = useLanguage();
+    // Dev-only: track mount/unmount counts to help diagnose unexpected remounts
+    if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const g = globalThis as any;
+        if (!g.__gameLayoutMountCount) g.__gameLayoutMountCount = 0;
+    }
     
     const {
         world,
@@ -76,6 +82,22 @@ export default function GameLayout(props: GameLayoutProps) {
         handleHarvest,
         narrativeContainerRef,
     } = useGameEngine(props);
+
+    // increment mount counter for GameLayout and expose to window for quick checks
+    useEffect(() => {
+        if (process.env.NODE_ENV === 'production') return;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const g = globalThis as any;
+        g.__gameLayoutMountCount = (g.__gameLayoutMountCount || 0) + 1;
+        // also expose on window for console inspection
+        try { (window as any).__GAME_LAYOUT_MOUNT_COUNT = g.__gameLayoutMountCount; } catch {}
+        logger.debug('[GameLayout] mounted - count', { count: g.__gameLayoutMountCount });
+        return () => {
+            g.__gameLayoutMountCount = Math.max(0, (g.__gameLayoutMountCount || 1) - 1);
+            try { (window as any).__GAME_LAYOUT_MOUNT_COUNT = g.__gameLayoutMountCount; } catch {}
+            logger.debug('[GameLayout] unmounted - count', { count: g.__gameLayoutMountCount });
+        };
+    }, []);
 
     const [isStatusOpen, setStatusOpen] = useState(false);
     const [isInventoryOpen, setInventoryOpen] = useState(false);

@@ -99,8 +99,16 @@ export function generateChunkContent(
     
     const allSpawnCandidates = [...staticSpawnCandidates, ...customSpawnCandidates];
 
-    // Default to 6 items if worldProfile is not available
-    const maxItems = 10;
+    // Default to 10 items, scaled by worldProfile.spawnMultiplier but passed
+    // through a softcap so extremely large multipliers don't explode counts.
+    const softcap = (m: number, k = 0.4) => {
+        if (m <= 1) return m;
+        return m / (1 + (m - 1) * k);
+    };
+    const baseMaxItems = 10;
+    const multiplier = worldProfile?.spawnMultiplier ?? 1;
+    const effectiveMultiplier = softcap(multiplier);
+    const maxItems = Math.max(1, Math.floor(baseMaxItems * effectiveMultiplier));
     const spawnedItemRefs = selectEntities(allSpawnCandidates, maxItems, chunkData, allItemDefinitions, worldProfile);
     const spawnedItems: ChunkItem[] = [];
 

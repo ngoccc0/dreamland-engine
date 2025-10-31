@@ -63,6 +63,8 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             customItemDefinitions, setCustomItemCatalog, setCustomItemDefinitions, finalWorldSetup, addNarrativeEntry, advanceGameTime,
             setPlayerBehaviorProfile, playerPosition, setPlayerPosition, weatherZones, turn, gameTime, customItemCatalog, narrativeLogRef
     } = deps;
+    // worldProfile contains global spawn/config modifiers (e.g., spawnMultiplier)
+    const { worldProfile } = deps as any;
 
     // Helper to resolve an item definition by name. Prefer custom/generated definitions
     // (world-specific), but fall back to the built-in master item catalog when needed.
@@ -504,7 +506,9 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
               language,
               t,
               customItemDefinitions,
-              (range) => clamp(Math.floor(Math.random() * (range.max - range.min + 1)) + range.min, 1, Infinity)
+              (range) => clamp(Math.floor(Math.random() * (range.max - range.min + 1)) + range.min, 1, Infinity),
+              // pass optional spawnMultiplier from worldProfile (fallback to 1)
+              (worldProfile && worldProfile.spawnMultiplier) || 1
           );
           
           if (result.toastInfo) {

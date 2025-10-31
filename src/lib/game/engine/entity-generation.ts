@@ -57,6 +57,12 @@ export const selectEntities = <T extends { name?: TranslatableString | string; t
     const selected: any[] = [];
     const shuffled = [...validEntities].sort(() => 0.5 - Math.random());
 
+    // Softcap helper to avoid runaway multiplier effects
+    const softcap = (m: number, k = 0.4) => {
+        if (m <= 1) return m;
+        return m / (1 + (m - 1) * k);
+    };
+
     for (const entity of shuffled) {
         if (selected.length >= maxCount) break;
 
@@ -67,7 +73,7 @@ export const selectEntities = <T extends { name?: TranslatableString | string; t
             continue;
         }
 
-        let spawnChance = entity.conditions?.chance ?? 1.0;
+    let spawnChance = entity.conditions?.chance ?? 1.0;
         const itemName = entityData.name || entityData.type;
         const itemDef = allItemDefinitions[itemName];
 
@@ -80,10 +86,16 @@ export const selectEntities = <T extends { name?: TranslatableString | string; t
         }
 
         // Thêm bonus chance dựa trên world profile
+        // World resource density still provides a small additive bonus
         if (worldProfile?.resourceDensity) {
             const densityBonus = (worldProfile.resourceDensity - 50) / 100; // -0.5 to 0.5
-            spawnChance = Math.min(0.95, spawnChance + densityBonus);
+            spawnChance = spawnChance + densityBonus;
         }
+
+        // Apply a global spawn multiplier from the world profile (softcapped)
+        const multiplier = worldProfile?.spawnMultiplier ?? 1;
+        const effectiveMultiplier = softcap(multiplier);
+        spawnChance = Math.min(0.95, spawnChance * effectiveMultiplier);
 
         if (Math.random() < spawnChance) {
             selected.push(entity);

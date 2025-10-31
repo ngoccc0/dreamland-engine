@@ -279,6 +279,12 @@ export interface WorldProfile {
     tempBias: number; 
     resourceDensity: number; 
     theme: GameTheme;
+        /**
+         * A soft multiplier applied to spawn checks and initial generation counts.
+         * Values >1 increase spawn frequency/amount, values <1 decrease. This value
+         * is passed through a softcap function in generation code to avoid runaway effects.
+         */
+        spawnMultiplier?: number;
 }
 
 export interface SeasonModifiers {

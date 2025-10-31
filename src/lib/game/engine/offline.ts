@@ -397,7 +397,9 @@ export const handleSearchAction = (
     language: Language,
     t: (key: TranslationKey, replacements?: any) => string,
     allItemDefinitions: Record<string, ItemDefinition>,
-    rng: (range: { min: number, max: number }) => number
+    rng: (range: { min: number, max: number }) => number,
+    /** Optional multiplier to scale search find-chance (softcapped). */
+    spawnMultiplier: number = 1
 ) => {
     let newChunk = { ...currentChunk, items: [...currentChunk.items] };
     newChunk.actions = newChunk.actions.filter(a => a.id !== actionId);
@@ -413,8 +415,14 @@ export const handleSearchAction = (
         return itemDef && check_conditions(itemTmpl.conditions, currentChunk);
     });
 
-    if (possibleItems.length > 0 && Math.random() < 0.5) { // 50% chance to find something if possible
-        const foundItemTemplate = possibleItems[Math.floor(Math.random() * possibleItems.length)];
+    if (possibleItems.length > 0) {
+        // base chance can be taken from template condition or fallback to 0.5
+        const baseChance = possibleItems[0].conditions?.chance ?? 0.5;
+        const softcap = (m: number, k = 0.4) => m <= 1 ? m : m / (1 + (m - 1) * k);
+        const effectiveMultiplier = softcap(spawnMultiplier);
+        const finalChance = Math.min(0.95, baseChance * effectiveMultiplier);
+        if (Math.random() < finalChance) {
+            const foundItemTemplate = possibleItems[Math.floor(Math.random() * possibleItems.length)];
         const itemDef = allItemDefinitions[foundItemTemplate.name];
         const quantity = rng(itemDef.baseQuantity);
         
@@ -441,6 +449,16 @@ export const handleSearchAction = (
                 params: { items: `${quantity} ${itemName}` }
             }
         };
+            return {
+                newChunk,
+                narrative: t('exploreFoundItemsNarrative', { items: `${quantity} ${itemName}` }),
+                toastInfo: {
+                    title: 'exploreSuccessTitle',
+                    description: 'exploreFoundItems',
+                    params: { items: `${quantity} ${itemName}` }
+                }
+            };
+        }
     }
 
     return { newChunk, narrative: t('exploreFoundNothing'), toastInfo: null };

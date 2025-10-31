@@ -19,6 +19,7 @@ import { FuseItemsInputSchema, FuseItemsOutputSchema, GeneratedItemSchema, Playe
 import { clamp, getEmojiForItem, getTranslatedText } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 import type { GeneratedItem } from '@/lib/game/types';
+import { resolveItemDef } from '@/lib/game/item-utils';
 
 // --- The Exported Function ---
 
@@ -104,7 +105,7 @@ const fuseItemsFlow = ai.defineFlow(
         logger.info('Executing fuseItemsFlow with input', { items: typedInput.itemsToFuse.map((i: ItemToFuse) => getTranslatedText(i.name, 'en')), persona: typedInput.playerPersona });
 
         const hasTool = typedInput.itemsToFuse.some((item: ItemToFuse) => {
-            const def = typedInput.customItemDefinitions[getTranslatedText(item.name, 'en')];
+            const def = resolveItemDef(getTranslatedText(item.name, 'en'), typedInput.customItemDefinitions);
             return def?.category === 'Tool';
         });
 

@@ -200,6 +200,14 @@ export function generateChunkContent(
     actions.push({ id: actionIdCounter++, textKey: 'exploreAction' });
     actions.push({ id: actionIdCounter++, textKey: 'listenToSurroundingsAction' });
 
+    // Instrumentation: log a compact summary for debugging spawn issues
+    logger.debug('[generateChunkContent] spawn summary', {
+        terrain: chunkData.terrain,
+        spawnedItemsCount: spawnedItems.length,
+        spawnedEnemy: !!spawnedEnemy,
+        sampleItems: spawnedItems.slice(0, 3).map(i => getTranslatedText(i.name, 'en')).join(', ')
+    });
+
     return {
         description: finalDescription,
         NPCs: spawnedNPCs,
@@ -209,6 +217,8 @@ export function generateChunkContent(
         actions: actions,
     };
 }
+
+// end of generateChunkContent
 
 export function ensureChunkExists(
     pos: { x: number; y: number },

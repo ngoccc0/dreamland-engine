@@ -12,6 +12,7 @@ import { generateNarrative, type GenerateNarrativeInput } from '@/ai/flows/gener
 import { fuseItems } from '@/ai/flows/fuse-items-flow';
 import { provideQuestHint } from '@/ai/flows/provide-quest-hint';
 import { rollDice, getSuccessLevel, successLevelToTranslationKey } from '@/lib/game/dice';
+import { itemDefinitions } from '@/lib/game/items';
 import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchAction } from '@/lib/game/engine/offline';
 import { getEffectiveChunk } from '@/lib/game/engine/generation';
 import { getTemplates } from '@/lib/game/templates';
@@ -61,6 +62,12 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             customItemDefinitions, setCustomItemCatalog, setCustomItemDefinitions, finalWorldSetup, addNarrativeEntry, advanceGameTime,
             setPlayerBehaviorProfile, playerPosition, setPlayerPosition, weatherZones, turn, gameTime, customItemCatalog, narrativeLogRef
     } = deps;
+
+    // Helper to resolve an item definition by name. Prefer custom/generated definitions
+    // (world-specific), but fall back to the built-in master item catalog when needed.
+    const resolveItemDef = (name: string) => {
+        return customItemDefinitions?.[name] || itemDefinitions?.[name];
+    };
 
   const { t, language } = useLanguage();
   const { settings } = useSettings();
@@ -228,7 +235,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         if (enemyTemplate?.data?.loot) {
             for (const lootItem of (enemyTemplate.data.loot as any[])) {
                 if (Math.random() < lootItem.chance) {
-                    const definition = customItemDefinitions[lootItem.name];
+                    const definition = resolveItemDef(lootItem.name);
                     if (definition) {
                         lootDrops.push({
                             name: { en: lootItem.name, vi: t(lootItem.name as TranslationKey) },
@@ -286,7 +293,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     }, [playerPosition, world, addNarrativeEntry, settings.diceType, t, playerStats, customItemDefinitions, advanceGameTime, setWorld, weatherZones, gameTime, setPlayerStats, language]);
 
   const handleOfflineItemUse = useCallback((itemName: string, target: string) => {
-    const itemDef = customItemDefinitions[itemName];
+    const itemDef = resolveItemDef(itemName);
     if (!itemDef) return;
 
     let newPlayerStats: PlayerStatus = JSON.parse(JSON.stringify(playerStats));
@@ -663,7 +670,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         const newInventory = [...nextPlayerStats.items];
         const resultItemIndex = newInventory.findIndex(i => getTranslatedText(i.name, 'en') === recipe.result.name);
         if (resultItemIndex > -1) newInventory[resultItemIndex].quantity += recipe.result.quantity;
-        else newInventory.push({ ...(recipe.result as PlayerItem), tier: customItemDefinitions[recipe.result.name]?.tier || 1 });
+    else newInventory.push({ ...(recipe.result as PlayerItem), tier: resolveItemDef(recipe.result.name)?.tier || 1 });
         nextPlayerStats.items = newInventory;
         
         const successKeys: TranslationKey[] = ['craftSuccess1', 'craftSuccess2', 'craftSuccess3'];
@@ -831,7 +838,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                 nextPlayerStats.items.push(itemToAdd);
             }
             
-            if(!customItemDefinitions[resultItemName]) {
+            if(!resolveItemDef(resultItemName)) {
                 const newItem = result.resultItem;
                 setCustomItemCatalog(prev => [...prev, newItem]);
                 setCustomItemDefinitions(prev => ({ ...prev, [resultItemName]: { ...newItem }}));
@@ -869,7 +876,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
     setPlayerStats(prevStats => {
         const newStats: PlayerStatus = JSON.parse(JSON.stringify(prevStats));
-        const itemDef = customItemDefinitions[getTranslatedText(itemName as TranslationKey, 'en')];
+    const itemDef = resolveItemDef(getTranslatedText(itemName as TranslationKey, 'en'));
         if (!itemDef || !itemDef.equipmentSlot) return prevStats;
 
         const itemToEquipIndex = newStats.items.findIndex(i => getTranslatedText(i.name, 'en') === getTranslatedText(itemName as TranslationKey, 'en'));
@@ -899,7 +906,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         let basePhysAtk = 10, baseMagAtk = 5, baseCrit = 5, baseAtkSpd = 1.0, baseCd = 0, basePhysDef = 0, baseMagDef = 0;
     Object.values(newStats.equipment).forEach((equipped: any) => {
             if (equipped) {
-                const def = customItemDefinitions[getTranslatedText(equipped.name, 'en')];
+                const def = resolveItemDef(getTranslatedText(equipped.name, 'en'));
                 if (def?.attributes) {
                     basePhysAtk += def.attributes.physicalAttack || 0;
                     baseMagAtk += def.attributes.magicalAttack || 0;
@@ -937,7 +944,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         let basePhysAtk = 10, baseMagAtk = 5, baseCrit = 5, baseAtkSpd = 1.0, baseCd = 0, basePhysDef = 0, baseMagDef = 0;
     Object.values(newStats.equipment).forEach((equipped: any) => {
             if (equipped) {
-                const def = customItemDefinitions[getTranslatedText(equipped.name, 'en')];
+                const def = resolveItemDef(getTranslatedText(equipped.name, 'en'));
                 if (def?.attributes) {
                     basePhysAtk += def.attributes.physicalAttack || 0;
                     baseMagAtk += def.attributes.magicalAttack || 0;
@@ -996,7 +1003,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const lootItems: ChunkItem[] = [];
     enemy.harvestable.loot.forEach((loot: any) => {
         if (Math.random() < loot.chance) {
-            const itemDef = customItemDefinitions[loot.name];
+        const itemDef = resolveItemDef(loot.name);
             if(itemDef) {
                 lootItems.push({
                     ...itemDef,

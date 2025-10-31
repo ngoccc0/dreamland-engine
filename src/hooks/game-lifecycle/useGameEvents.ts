@@ -6,6 +6,7 @@ import { useLanguage } from '@/context/language-context';
 import { randomEvents } from '@/lib/game/events';
 import { getTemplates } from '@/lib/game/templates';
 import { clamp, getTranslatedText } from '@/lib/utils';
+import { resolveItemDef } from '@/lib/game/item-utils';
 import { rollDice, getSuccessLevel, type SuccessLevel } from '@/lib/game/dice';
 import type { GameState, PlayerStatus, Season, WorldProfile, ItemDefinition, GeneratedItem, Language, Terrain } from "@/lib/game/types";
 import { generateChunksInRadius } from '@/lib/game/engine/generation';
@@ -108,12 +109,12 @@ export function useGameEvents(deps: GameEventsDeps) {
             const existingItem = newItems.find(i => getTranslatedText(i.name, language, t) === itemToAdd.name);
             if (existingItem) {
                 existingItem.quantity += itemToAdd.quantity;
-            } else {
-                const def = customItemDefinitions[itemToAdd.name];
-                if (def) {
-                    newItems.push({ ...itemToAdd, tier: def.tier, emoji: def.emoji });
-                }
-            }
+        } else {
+        const def = resolveItemDef(itemToAdd.name, customItemDefinitions);
+        if (def) {
+          newItems.push({ ...itemToAdd, tier: def.tier, emoji: def.emoji });
+        }
+      }
         });
         newPlayerStats.items = newItems;
       }

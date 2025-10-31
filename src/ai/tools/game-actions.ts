@@ -24,6 +24,7 @@ import { isInlineTranslation, isTranslationObject } from '@/core/types/i18n';
 import { getTemplates } from '@/lib/game/templates';
 import { buildableStructures } from '@/lib/game/structures';
 import { getTranslatedText } from '@/lib/utils';
+import { resolveItemDef } from '@/lib/game/item-utils';
 
 /**
  * Helper function to get a random integer within a specified range.
@@ -175,13 +176,12 @@ export const playerAttackTool = ai.defineTool({
         );
 
         if (enemyTemplate && enemyTemplate.data.loot) {
-            const allItemDefinitions = customItemDefinitions;
             const drops: ChunkItem[] = [];
 
             for (const lootItem of enemyTemplate.data.loot) {
                 if (Math.random() < lootItem.chance) {
                     const itemName = getTranslatedText(lootItem.name, playerStatus.language || 'en');
-                    const definition = allItemDefinitions[itemName];
+                    const definition = resolveItemDef(itemName, customItemDefinitions);
                     if (definition) {
                         const quantity = getRandomInRange(lootItem.quantity);
                         drops.push({
@@ -354,8 +354,8 @@ export const useItemTool = ai.defineTool({
         return { updatedPlayerStatus: playerStatus, wasUsed: false, effectDescription: 'Item not found.' };
     }
 
-    // Fix: Use getTranslatableStringValue for accessing customItemDefinitions
-    const itemDef = customItemDefinitions[getTranslatedText(newStatus.items[itemIndex].name, playerStatus.language || 'en')];
+    // Fix: Use resolveItemDef to access item definitions (prefer custom, fall back to master)
+    const itemDef = resolveItemDef(getTranslatedText(newStatus.items[itemIndex].name, playerStatus.language || 'en'), customItemDefinitions);
     
     if (!itemDef) {
         return { updatedPlayerStatus: playerStatus, wasUsed: false, effectDescription: 'Item has no defined effect.' };
@@ -479,7 +479,7 @@ export const tameEnemyTool = ai.defineTool({
     }
     
     const newEnemyState = { ...enemy };
-    // Fix: Provide default values for satiation and maxSatiation if they are undefined
+        // Fix: Provide default values for satiation and maxSatiation if they are undefined
     newEnemyState.satiation = Math.min((newEnemyState.satiation ?? 0) + 1, (newEnemyState.maxSatiation ?? 1));
 
     const baseTameChance = 0.1; 

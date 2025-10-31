@@ -31,7 +31,12 @@ export function useGameEngine(props: GameEngineProps) {
     const narrativeLogRef = useRef(gameState.narrativeLog || [] as any[]);
 
     const addNarrativeEntry = (text: string, type: 'narrative' | 'action' | 'system', entryId?: string) => {
-        const entry = { id: entryId ?? `${Date.now()}`, text, type } as any;
+        // Use Date.now() plus a short random suffix to avoid collisions when multiple
+        // entries are created within the same millisecond (which can happen when
+        // batching or when the engine emits several entries quickly).
+        // Preserve explicit entryId when provided (e.g., for replay or deterministic tests).
+        const uniqueId = entryId ?? `${Date.now()}_${Math.random().toString(36).slice(2,9)}`;
+        const entry = { id: uniqueId, text, type } as any;
         gameState.setNarrativeLog(prev => {
             const next = [...(prev || []), entry];
             narrativeLogRef.current = next;

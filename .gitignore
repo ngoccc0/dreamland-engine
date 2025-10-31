@@ -37,7 +37,17 @@ yarn-error.log*
 venv/
 .venv/
 env/
-# Ignore GitHub workflows and VSCode settings
-.github/
+# IDE / editor
 .vscode/
+.idea/
+*.suo
+*.ntvs*
+*.user
+*.vs/
+
+# TypeDoc generated output (debug + normal)
+/docs/api
+/docs/api-debug
+
+# TypeScript build info
 tsconfig.tsbuildinfo

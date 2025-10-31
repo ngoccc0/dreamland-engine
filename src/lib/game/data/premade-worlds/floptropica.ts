@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview Defines all unique assets for the "Floptropica" premade world.
- * @description This file contains the item, structure, and starting scenario definitions
+ * Defines all unique assets for the "Floptropica" premade world.
+ * This file contains the item, structure, and starting scenario definitions
  * for a comedic, meme-filled world. Items here are marked with `spawnEnabled: false`
  * to prevent them from appearing in other, more serious game worlds.
  */

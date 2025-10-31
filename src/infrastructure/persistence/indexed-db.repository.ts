@@ -4,14 +4,14 @@ import { db } from './indexed-db.config';
 
 /**
  * @class IndexedDbGameStateRepository
- * @implements {IGameStateRepository}
- * @description An implementation of the game state repository that uses the browser's
+ * Implements IGameStateRepository.
+ * An implementation of the game state repository that uses the browser's
  * IndexedDB for client-side storage. This is the preferred offline storage method
  * due to its larger capacity and asynchronous nature.
  */
 export class IndexedDbGameStateRepository implements IGameStateRepository {
     /**
-     * @description Loads the full game state for a specific slot from IndexedDB.
+     * Loads the full game state for a specific slot from IndexedDB.
      * @param {string} slotId - The identifier for the save slot (e.g., 'slot_0').
      * @returns {Promise<GameState | null>} A promise that resolves to the GameState object or null if not found.
      */
@@ -27,7 +27,7 @@ export class IndexedDbGameStateRepository implements IGameStateRepository {
     }
 
     /**
-     * @description Saves the entire game state to a specific slot in IndexedDB.
+     * Saves the entire game state to a specific slot in IndexedDB.
      * @param {string} slotId - The identifier for the save slot.
      * @param {GameState} state - The complete GameState object to save.
      * @returns {Promise<void>} A promise that resolves when the save is complete.
@@ -43,7 +43,7 @@ export class IndexedDbGameStateRepository implements IGameStateRepository {
     }
 
     /**
-     * @description Deletes the game state for a specific slot from IndexedDB.
+     * Deletes the game state for a specific slot from IndexedDB.
      * @param {string} slotId - The identifier for the save slot to delete.
      * @returns {Promise<void>} A promise that resolves when the deletion is complete.
      */
@@ -57,7 +57,7 @@ export class IndexedDbGameStateRepository implements IGameStateRepository {
     }
 
     /**
-     * @description Retrieves a summary of all available save slots from IndexedDB.
+     * Retrieves a summary of all available save slots from IndexedDB.
      * This is used for the main menu screen to show which slots are occupied.
      * @returns {Promise<Array<Pick<GameState, 'worldSetup' | 'day' | 'gameTime' | 'playerStats'> | null>>} A promise that resolves to an array of up to 3 save slot summaries.
      */

@@ -1,6 +1,6 @@
 /**
- * @fileOverview This file defines the Zod schemas for all item-related types.
- * @description It acts as the single source of truth for the structure of items,
+ * This file defines the Zod schemas for all item-related types.
+ * It acts as the single source of truth for the structure of items,
  * their effects, and their relationships, ensuring type safety and consistency
  * across the game engine and AI flows.
  */
@@ -9,7 +9,7 @@ import { PlayerAttributesSchema, SpawnConditionsSchema, TranslatableStringSchema
 import { allTerrains } from '../types';
 
 /**
- * @description Defines all possible categories for an item. This helps with organization and game logic.
+ * Defines all possible categories for an item. This helps with organization and game logic.
  */
 export const ItemCategorySchema = z.enum([
     'Weapon', 'Armor', 'Accessory', 'Tool',
@@ -23,7 +23,7 @@ export const ItemCategorySchema = z.enum([
 export type ItemCategory = z.infer<typeof ItemCategorySchema>;
 
 /**
- * @description Defines the effect an item can have when used.
+ * Defines the effect an item can have when used.
  */
 // Effect schema is now extensible: allows extra fields for custom effects
 export const ItemEffectSchema = z.object({
@@ -35,7 +35,7 @@ export type ItemEffect = z.infer<typeof ItemEffectSchema>;
 
 
 /**
- * @description Defines the relationship of an item to others, for crafting substitution.
+ * Defines the relationship of an item to others, for crafting substitution.
  */
 export const ItemRelationshipSchema = z.object({
   substituteFor: z.string().optional().describe("The 'base' item ID this item can substitute for (e.g., 'smallHide' can substitute for 'animalHide')."),
@@ -44,7 +44,7 @@ export const ItemRelationshipSchema = z.object({
 export type ItemRelationship = z.infer<typeof ItemRelationshipSchema>;
 
 /**
- * @description The full definition of an item, containing all its properties.
+ * The full definition of an item, containing all its properties.
  */
 export const ItemDefinitionSchema = z.object({
   id: z.string().optional().describe("Unique identifier for the item, e.g., 'healingHerb'. If not provided, the key from the record will be used."),

@@ -1,6 +1,6 @@
 /**
- * @fileOverview This file contains detailed sensory information for specific items and enemies.
- * @description This database provides more flavorful, specific descriptive text
+ * This file contains detailed sensory information for specific items and enemies.
+ * This database provides more flavorful, specific descriptive text
  * for certain entities, allowing the narrative engine to generate richer descriptions
  * than what can be inferred from general templates alone.
  */

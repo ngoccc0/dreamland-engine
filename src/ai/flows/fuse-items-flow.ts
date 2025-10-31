@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview An AI agent for dynamically fusing items based on player experimentation.
+ * An AI agent for dynamically fusing items based on player experimentation.
  *
  * This flow acts as a master alchemist. The core logic (rules for success,
  * failure, degradation, and the resulting item's tier/category) is handled in TypeScript.

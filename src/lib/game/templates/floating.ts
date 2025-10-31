@@ -1,6 +1,6 @@
 /**
- * @fileOverview Deprecated template file.
- * @description This file is unused and can be removed in a future cleanup.
+ * Deprecated template file.
+ * This file is unused and can be removed in a future cleanup.
  * Its functionality is now handled by the 'mountain' biome template at high elevations.
  */
 

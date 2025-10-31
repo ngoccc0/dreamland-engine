@@ -7,7 +7,7 @@ import type { TranslatableString } from "@/core/types/i18n";
 import { isTranslationObject, isInlineTranslation } from "@/core/types/i18n";
 
 /**
- * @description A utility function to merge Tailwind CSS classes conditionally.
+ * A utility function to merge Tailwind CSS classes conditionally.
  * It intelligently combines class strings, handling conflicts and removing duplicates.
  * @param {...ClassValue[]} inputs - A list of class names or conditional class objects.
  * @returns {string} The final, merged class string.
@@ -19,7 +19,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * @description Clamps a number between a minimum and maximum value.
+ * Clamps a number between a minimum and maximum value.
  * @param {number} num - The number to clamp.
  * @param {number} min - The minimum value.
  * @param {number} max - The maximum value.
@@ -28,7 +28,7 @@ export function cn(...inputs: ClassValue[]) {
 export const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
 
 /**
- * @description A helper function to get the correct text string based on the current language.
+ * A helper function to get the correct text string based on the current language.
  * It handles both Translation Keys (strings) and direct multilingual objects.
  * @param {TranslatableString} translatable - The string or object to translate.
  * @param {Language} language - The current language ('en' or 'vi').
@@ -80,7 +80,7 @@ export function getTranslatedText(
 
 
 /**
- * @description Determines an appropriate emoji for a game item based on its name and category.
+ * Determines an appropriate emoji for a game item based on its name and category.
  * It uses a mapping of keywords to emojis for specific matches and falls back to
  * a category-based map for more general cases.
  *
@@ -145,7 +145,7 @@ export function getEmojiForItem(name: string, category: string): string {
 }
 
 /**
- * @description Intelligently joins an array of sentences into a single narrative string.
+ * Intelligently joins an array of sentences into a single narrative string.
  * It adds appropriate connectors based on the desired narrative length and cleans up punctuation.
  * @param {string[]} sentences - An array of sentences to join.
  * @param {NarrativeLength} narrativeLength - The desired length, which influences the choice of connectors.

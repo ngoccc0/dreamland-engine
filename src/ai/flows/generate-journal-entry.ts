@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview An AI agent for writing daily journal entries from the player's perspective.
+ * An AI agent for writing daily journal entries from the player's perspective.
  *
  * This flow is called at the start of each new day to summarize the previous day's events.
  * It takes a log of actions and crafts a reflective, first-person narrative.

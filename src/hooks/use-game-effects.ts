@@ -18,8 +18,8 @@ import { useWorldRendering } from './game-lifecycle/useWorldRendering';
 import { useLanguage } from '@/context/language-context';
 
 /**
- * @fileOverview Orchestrator hook for managing all game side-effects.
- * @description This hook initializes the correct data repository and then delegates
+ * Orchestrator hook for managing all game side-effects.
+ * This hook initializes the correct data repository and then delegates
  * specific lifecycle tasks (initialization, saving, progression, etc.)
  * to specialized child hooks.
  * @param {GameEffectsDeps} deps - A collection of all state variables and updaters from the main game state.
@@ -77,8 +77,8 @@ type GameEffectsDeps = {
 };
 
 /**
- * @fileOverview Orchestrator hook for managing all game side-effects.
- * @description This hook initializes the correct data repository and then delegates
+ * Orchestrator hook for managing all game side-effects.
+ * This hook initializes the correct data repository and then delegates
  * specific lifecycle tasks (initialization, saving, progression, etc.)
  * to specialized child hooks.
  * @param {GameEffectsDeps} deps - A collection of all state variables and updaters from the main game state.

@@ -1,0 +1,15 @@
+{
+  "entryPoints": ["src/"],
+  "entryPointStrategy": "expand",
+  "out": "docs/api-debug",
+  "name": "Dreamland Engine API Documentation (debug)",
+  "excludePrivate": false,
+  "excludeProtected": false,
+  "excludeNotDocumented": false,
+  "excludeExternals": false,
+  "includeVersion": true,
+  "hideGenerator": true,
+  "theme": "default",
+  "tsconfig": "tsconfig.json",
+  "exclude": ["**/node_modules/**"]
+}

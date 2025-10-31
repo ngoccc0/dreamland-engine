@@ -169,7 +169,7 @@ export interface CraftingOutcome {
 
 
 /**
- * @description The supported terrain types in the game world.
+ * The supported terrain types in the game world.
  */
 export const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic", "wall", "floptropica", "tundra", "beach", "mesa", "mushroom_forest", "ocean", "city", "space_station", "underwater"];
 
@@ -178,7 +178,7 @@ export const allTerrains: [Terrain, ...Terrain[]] = ["forest", "grassland", "des
 export type { ItemDefinition, BiomeDefinition, Recipe, StructureDefinition } from './definitions';
 
 /**
- * @description Represents a contiguous region of a single biome in the game world.
+ * Represents a contiguous region of a single biome in the game world.
  */
 export interface Region {
     terrain: Terrain;
@@ -513,7 +513,7 @@ export interface EnemySpawn {
 }
 
 /**
- * @description Defines the output of a crafting calculation.
+ * Defines the output of a crafting calculation.
  */
 export const ExpCurve = [
   { level: 20, increase: 0.25 }, // Levels 1-20: 25% increase

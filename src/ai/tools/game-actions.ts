@@ -1,7 +1,7 @@
 // ai/tools/game-actions.ts
 'use server';
 /**
- * @fileOverview Định nghĩa các công cụ (tools) game logic phía server cho Genkit.
+ * Định nghĩa các công cụ (tools) game logic phía server cho Genkit.
  *
  * File này chứa các hàm logic thuần túy của game, được định nghĩa dưới dạng Genkit tools.
  * Những tools này sẽ được mô hình AI (LLM) gọi để thực hiện các hành động cụ thể trong game
@@ -64,7 +64,7 @@ function ensureTranslatableString(value: string | TranslatableString): Translata
 // --- PlayerAttack Tool Schemas ---
 
 /**
- * @description Schema định nghĩa đầu vào cho công cụ `playerAttackTool`.
+ * Schema định nghĩa đầu vào cho công cụ `playerAttackTool`.
  * @property {PlayerStatusSchema} playerStatus - Trạng thái hiện tại của người chơi.
  * @property {EnemySchema} enemy - Thông tin chi tiết về kẻ thù đang bị tấn công.
  * @property {z.enum} terrain - Loại địa hình hiện tại (ảnh hưởng đến chiến đấu).
@@ -84,7 +84,7 @@ export const PlayerAttackInputSchema = z.object({
 });
 
 /**
- * @description Schema định nghĩa đầu ra cho công cụ `playerAttackTool`.
+ * Schema định nghĩa đầu ra cho công cụ `playerAttackTool`.
  * @property {z.number} playerDamageDealt - Sát thương người chơi gây ra.
  * @property {z.number} enemyDamageDealt - Sát thương kẻ thù gây ra. Có thể là 0 nếu kẻ thù bỏ chạy.
  * @property {z.number} finalPlayerHp - Máu của người chơi sau khi trao đổi.
@@ -106,7 +106,7 @@ export const PlayerAttackOutputSchema = z.object({
 });
 
 /**
- * @description Công cụ để tính toán kết quả của người chơi tấn công một kẻ thù trong một vòng chiến đấu.
+ * Công cụ để tính toán kết quả của người chơi tấn công một kẻ thù trong một vòng chiến đấu.
  * AI nên gọi công cụ này khi hành động của người chơi là một cuộc tấn công.
  * @param {object} input - Dữ liệu đầu vào theo `PlayerAttackInputSchema`.
  * @returns {Promise<object>} - Kết quả chiến đấu theo `PlayerAttackOutputSchema`.
@@ -252,7 +252,7 @@ export const playerAttackTool = ai.defineTool({
 // --- TakeItem Tool Schemas ---
 
 /**
- * @description Schema định nghĩa đầu vào cho công cụ `takeItemTool`.
+ * Schema định nghĩa đầu vào cho công cụ `takeItemTool`.
  * @property {ChunkItemSchema} itemToTake - Vật phẩm cụ thể được lấy từ chunk.
  * @property {z.array} currentChunkItems - Danh sách đầy đủ các vật phẩm hiện có trong chunk.
  * @property {z.array} playerInventory - Túi đồ hiện tại của người chơi.
@@ -264,7 +264,7 @@ export const TakeItemInputSchema = z.object({
 });
 
 /**
- * @description Schema định nghĩa đầu ra cho công cụ `takeItemTool`.
+ * Schema định nghĩa đầu ra cho công cụ `takeItemTool`.
  * @property {z.array} updatedPlayerInventory - Túi đồ của người chơi sau khi hành động.
  * @property {z.array} updatedChunkItems - Các vật phẩm còn lại trong chunk sau khi hành động.
  */
@@ -274,7 +274,7 @@ export const TakeItemOutputSchema = z.object({
 });
 
 /**
- * @description Công cụ để di chuyển toàn bộ một stack vật phẩm từ thế giới game vào túi đồ của người chơi.
+ * Công cụ để di chuyển toàn bộ một stack vật phẩm từ thế giới game vào túi đồ của người chơi.
  * AI nên gọi công cụ này khi hành động của người chơi là nhặt hoặc lấy vật phẩm.
  * @param {object} input - Dữ liệu đầu vào theo `TakeItemInputSchema`.
  * @returns {Promise<object>} - Kết quả cập nhật túi đồ và chunk theo `TakeItemOutputSchema`.
@@ -308,7 +308,7 @@ export const takeItemTool = ai.defineTool({
 // --- UseItem Tool Schemas ---
 
 /**
- * @description Schema định nghĩa đầu vào cho công cụ `useItemTool`.
+ * Schema định nghĩa đầu vào cho công cụ `useItemTool`.
  * @property {z.string} itemName - Tên của vật phẩm cần sử dụng từ túi đồ.
  * @property {PlayerStatusSchema} playerStatus - Trạng thái hiện tại của người chơi.
  * @property {z.record} customItemDefinitions - Map chứa tất cả định nghĩa vật phẩm tùy chỉnh (AI-generated và static).
@@ -320,7 +320,7 @@ export const UseItemInputSchema = z.object({
 });
 
 /**
- * @description Schema định nghĩa đầu ra cho công cụ `useItemTool`.
+ * Schema định nghĩa đầu ra cho công cụ `useItemTool`.
  * @property {PlayerStatusSchema} updatedPlayerStatus - Trạng thái người chơi sau khi vật phẩm được sử dụng.
  * @property {z.boolean} wasUsed - `true` nếu vật phẩm được tìm thấy và sử dụng thành công.
  * @property {z.string} effectDescription - Mô tả thực tế về tác dụng của vật phẩm.
@@ -332,7 +332,7 @@ export const UseItemOutputSchema = z.object({
 });
 
 /**
- * @description Công cụ để sử dụng một vật phẩm từ túi đồ của người chơi, áp dụng hiệu ứng của nó và giảm số lượng.
+ * Công cụ để sử dụng một vật phẩm từ túi đồ của người chơi, áp dụng hiệu ứng của nó và giảm số lượng.
  * AI nên gọi công cụ này khi hành động của người chơi là sử dụng một vật phẩm TRÊN BẢN THÂN (ví dụ: 'ăn quả mọng', 'uống thuốc').
  * @param {object} input - Dữ liệu đầu vào theo `UseItemInputSchema`.
  * @returns {Promise<object>} - Kết quả cập nhật trạng thái người chơi theo `UseItemOutputSchema`.
@@ -405,7 +405,7 @@ export const useItemTool = ai.defineTool({
 // --- TameEnemy Tool Schemas ---
 
 /**
- * @description Schema định nghĩa đầu vào cho công cụ `tameEnemyTool`.
+ * Schema định nghĩa đầu vào cho công cụ `tameEnemyTool`.
  * @property {z.string} itemName - Tên vật phẩm thức ăn dùng để thuần hóa.
  * @property {PlayerStatusSchema} playerStatus - Trạng thái hiện tại của người chơi.
  * @property {EnemySchema} enemy - Kẻ thù đang cố gắng thuần hóa.
@@ -417,7 +417,7 @@ export const TameEnemyInputSchema = z.object({
 });
 
 /**
- * @description Schema định nghĩa đầu ra cho công cụ `tameEnemyTool`.
+ * Schema định nghĩa đầu ra cho công cụ `tameEnemyTool`.
  * @property {z.boolean} wasTamed - `true` nếu nỗ lực thuần hóa thành công.
  * @property {z.boolean} itemConsumed - `true` nếu sinh vật đã ăn vật phẩm.
  * @property {PlayerStatusSchema} updatedPlayerStatus - Trạng thái người chơi sau khi vật phẩm được tiêu thụ.
@@ -435,7 +435,7 @@ export const TameEnemyOutputSchema = z.object({
 });
 
 /**
- * @description Công cụ để cố gắng thuần hóa một kẻ thù bằng cách cho nó một vật phẩm thức ăn từ túi đồ của người chơi.
+ * Công cụ để cố gắng thuần hóa một kẻ thù bằng cách cho nó một vật phẩm thức ăn từ túi đồ của người chơi.
  * AI nên gọi công cụ này khi hành động của người chơi là sử dụng một vật phẩm lên một sinh vật (ví dụ: 'cho thịt sói').
  * @param {object} input - Dữ liệu đầu vào theo `TameEnemyInputSchema`.
  * @returns {Promise<object>} - Kết quả thuần hóa theo `TameEnemyOutputSchema`.
@@ -522,7 +522,7 @@ export const tameEnemyTool = ai.defineTool({
 // --- UseSkill Tool Schemas ---
 
 /**
- * @description Schema định nghĩa đầu vào cho công cụ `useSkillTool`.
+ * Schema định nghĩa đầu vào cho công cụ `useSkillTool`.
  * @property {z.string} skillName - Tên kỹ năng cần sử dụng từ danh sách kỹ năng của người chơi.
  * @property {PlayerStatusSchema} playerStatus - Trạng thái hiện tại của người chơi.
  * @property {EnemySchema} [enemy] - Kẻ thù, nếu kỹ năng nhắm mục tiêu.
@@ -536,7 +536,7 @@ export const UseSkillInputSchema = z.object({
 });
 
 /**
- * @description Schema định nghĩa đầu ra cho công cụ `useSkillTool`.
+ * Schema định nghĩa đầu ra cho công cụ `useSkillTool`.
  * @property {PlayerStatusSchema} updatedPlayerStatus - Trạng thái người chơi sau khi kỹ năng được sử dụng.
  * @property {EnemySchema} [updatedEnemy] - Trạng thái mới của kẻ thù, hoặc `null` nếu bị đánh bại.
  * @property {z.string} log - Nhật ký thực tế về những gì đã xảy ra (ví dụ: 'Người chơi hết mana.', 'Hồi máu 25 HP.'). Nhật ký này nên được AI dùng để kể chuyện.
@@ -548,7 +548,7 @@ export const UseSkillOutputSchema = z.object({
 });
 
 /**
- * @description Công cụ để sử dụng một trong các kỹ năng đã biết của người chơi, xem xét mức độ thành công của lần tung d20.
+ * Công cụ để sử dụng một trong các kỹ năng đã biết của người chơi, xem xét mức độ thành công của lần tung d20.
  * AI nên gọi công cụ này khi hành động của người chơi là sử dụng một kỹ năng (ví dụ: 'sử dụng Hồi máu', 'thi triển Cầu Lửa').
  * @param {object} input - Dữ liệu đầu vào theo `UseSkillInputSchema`.
  * @returns {Promise<object>} - Kết quả sử dụng kỹ năng theo `UseSkillOutputSchema`.
@@ -666,7 +666,7 @@ export const useSkillTool = ai.defineTool({
 // --- CompleteQuest Tool Schemas ---
 
 /**
- * @description Schema định nghĩa đầu vào cho công cụ `completeQuestTool`.
+ * Schema định nghĩa đầu vào cho công cụ `completeQuestTool`.
  * @property {z.string} questText - Văn bản chính xác của nhiệm vụ đang được hoàn thành.
  * @property {PlayerStatusSchema} playerStatus - Trạng thái hiện tại của người chơi, để tham chiếu.
  */
@@ -676,7 +676,7 @@ export const CompleteQuestInputSchema = z.object({
 });
 
 /**
- * @description Schema định nghĩa đầu ra cho công cụ `completeQuestTool`.
+ * Schema định nghĩa đầu ra cho công cụ `completeQuestTool`.
  * @property {z.boolean} isCompleted - Luôn trả về `true` để xác nhận hoàn thành nhiệm vụ.
  * @property {z.string} rewardDescription - Văn bản mô tả phần thưởng, ví dụ: 'Người thợ săn cảm ơn bạn và tặng bạn một nắm thảo mộc quý hiếm.'
  * @property {z.array} [rewardItems] - Mảng các vật phẩm sẽ được trao cho người chơi như một phần thưởng.
@@ -688,7 +688,7 @@ export const CompleteQuestOutputSchema = z.object({
 });
 
 /**
- * @description Công cụ để xác nhận một nhiệm vụ đã hoàn thành và xác định phần thưởng phù hợp.
+ * Công cụ để xác nhận một nhiệm vụ đã hoàn thành và xác định phần thưởng phù hợp.
  * AI chỉ nên gọi công cụ này KHI hành động của người chơi trực tiếp hoàn thành mục tiêu nhiệm vụ.
  * @param {object} input - Dữ liệu đầu vào theo `CompleteQuestInputSchema`.
  * @returns {Promise<object>} - Kết quả hoàn thành nhiệm vụ và phần thưởng theo `CompleteQuestOutputSchema`.
@@ -727,7 +727,7 @@ export const completeQuestTool = ai.defineTool({
 // --- StartQuest Tool Schemas ---
 
 /**
- * @description Schema định nghĩa đầu vào cho công cụ `startQuestTool`.
+ * Schema định nghĩa đầu vào cho công cụ `startQuestTool`.
  * @property {z.string} questText - Văn bản đầy đủ của nhiệm vụ mới sẽ được giao cho người chơi.
  */
 export const StartQuestInputSchema = z.object({
@@ -735,7 +735,7 @@ export const StartQuestInputSchema = z.object({
 });
 
 /**
- * @description Schema định nghĩa đầu ra cho công cụ `startQuestTool`.
+ * Schema định nghĩa đầu ra cho công cụ `startQuestTool`.
  * @property {z.string} questStarted - Văn bản nhiệm vụ đã được bắt đầu thành công.
  */
 export const StartQuestOutputSchema = z.object({
@@ -743,7 +743,7 @@ export const StartQuestOutputSchema = z.object({
 });
 
 /**
- * @description Công cụ để bắt đầu một nhiệm vụ mới cho người chơi.
+ * Công cụ để bắt đầu một nhiệm vụ mới cho người chơi.
  * AI chỉ nên gọi công cụ này KHI một NPC giao cho người chơi một nhiệm vụ mới trong cuộc trò chuyện.
  * @param {object} input - Dữ liệu đầu vào theo `StartQuestInputSchema`.
  * @returns {Promise<object>} - Kết quả bắt đầu nhiệm vụ theo `StartQuestOutputSchema`.

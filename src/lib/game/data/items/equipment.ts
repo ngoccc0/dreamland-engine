@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview Defines all standard equippable items.
- * @description This file contains definitions for weapons, armor, and accessories
+ * Defines all standard equippable items.
+ * This file contains definitions for weapons, armor, and accessories
  * that provide direct stat bonuses or other attributes when equipped by the player.
  */
 

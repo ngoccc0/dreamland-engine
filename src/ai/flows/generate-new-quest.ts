@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview An AI agent for dynamically generating new quests after one is completed.
+ * An AI agent for dynamically generating new quests after one is completed.
  *
  * This flow is called by the narrative flow to inject new objectives,
  * keeping the player engaged.

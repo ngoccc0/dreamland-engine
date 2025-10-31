@@ -2,7 +2,7 @@
 
 'use server';
 /**
- * @fileOverview An AI agent for dynamically generating a new item after a quest is completed.
+ * An AI agent for dynamically generating a new item after a quest is completed.
  *
  * This flow is called by the narrative flow to inject new content into the world,
  * keeping the item pool fresh and surprising. The AI is responsible for the creative

@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview Defines all unique assets for the "Generation Ship" premade world.
- * @description This file contains the item, structure, and starting scenario definitions
+ * Defines all unique assets for the "Generation Ship" premade world.
+ * This file contains the item, structure, and starting scenario definitions
  * for a sci-fi world set on a vast, silent starship. Items here are marked with 
  * `spawnEnabled: false` to prevent them from appearing in other, non-sci-fi game worlds.
  */

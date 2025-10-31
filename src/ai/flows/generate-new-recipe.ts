@@ -2,7 +2,7 @@
 
 'use server';
 /**
- * @fileOverview An AI agent for dynamically generating new crafting recipes during gameplay.
+ * An AI agent for dynamically generating new crafting recipes during gameplay.
  *
  * This flow is called periodically by the game engine to inject new content,
  * keeping the crafting system fresh and surprising for the player. The AI generates the

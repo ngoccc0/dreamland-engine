@@ -1,6 +1,6 @@
 /**
- * @fileOverview Central recipe book for the game's crafting system.
- * @description This file aggregates crafting recipes from various modular files
+ * Central recipe book for the game's crafting system.
+ * This file aggregates crafting recipes from various modular files
  * (e.g., base game recipes, mod-added recipes) into a single, comprehensive
  * `recipes` object that the game engine can use.
  */

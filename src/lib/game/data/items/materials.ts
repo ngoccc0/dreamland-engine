@@ -1,6 +1,6 @@
 /**
- * @fileOverview Defines all standard crafting materials.
- * @description This file contains the definitions for common and rare materials
+ * Defines all standard crafting materials.
+ * This file contains the definitions for common and rare materials
  * gathered from the environment or dropped by creatures. These are the
  * building blocks for crafting recipes.
  */

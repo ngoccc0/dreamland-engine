@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview An AI agent for providing helpful hints for active quests.
+ * An AI agent for providing helpful hints for active quests.
  *
  * This flow is called from the UI to give the player a gentle nudge.
  *

@@ -2,7 +2,7 @@
 'use server';
 
 /**
- * @fileOverview An AI agent for suggesting creative keywords.
+ * An AI agent for suggesting creative keywords.
  *
  * This flow takes a user's initial idea and suggests related keywords
  * to help them expand their concept for world creation. It includes fallback logic

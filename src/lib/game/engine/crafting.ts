@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview Contains the core logic for the game's crafting system.
- * @description This file provides functions to determine the outcome of a crafting attempt,
+ * Contains the core logic for the game's crafting system.
+ * This file provides functions to determine the outcome of a crafting attempt,
  * including checking for required tools, substituting ingredients, and calculating the
  * success chance based on the quality of materials used.
  */
@@ -31,7 +31,7 @@ export interface CraftingOutcome {
 import { getTranslatedText } from "@/lib/utils";
 
 /**
- * @description Calculates the outcome of a crafting attempt based on the player's inventory and a given recipe.
+ * Calculates the outcome of a crafting attempt based on the player's inventory and a given recipe.
  * This function is a pure calculation and does not modify any state. It determines if the craft
  * is possible, what the success chance is, and which items would be consumed.
  *

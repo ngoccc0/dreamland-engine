@@ -1,6 +1,6 @@
 /**
- * @fileOverview Deprecated template file.
- * @description This file is unused and can be removed in a future cleanup.
+ * Deprecated template file.
+ * This file is unused and can be removed in a future cleanup.
  * Its contents were likely moved to a more specific biome template like 'swamp' or 'volcanic'.
  */
 

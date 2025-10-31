@@ -1,6 +1,6 @@
 /**
- * @fileOverview An AI agent for generating game world concepts by distributing tasks across multiple AI models.
- * @description This file defines a sophisticated, parallelized AI workflow for world creation.
+ * An AI agent for generating game world concepts by distributing tasks across multiple AI models.
+ * This file defines a sophisticated, parallelized AI workflow for world creation.
  * It splits the generation process into four distinct, concurrent tasks to leverage the strengths
  * of different AI models, increase speed, and improve reliability with a fallback mechanism.
  */
@@ -32,7 +32,7 @@ const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Mat
 // == INPUT SCHEMA ==
 /**
  * @typedef {object} GenerateWorldSetupInput
- * @description The input schema for the world generation flow.
+ * The input schema for the world generation flow.
  * @property {string} userInput - The user's initial idea, prompt, or description for the game world.
  * @property {string} language - The language code for the generated content (e.g., 'en', 'vi').
  */
@@ -101,7 +101,7 @@ export type GenerateWorldSetupOutput = z.infer<typeof GenerateWorldSetupOutputSc
 
 
 /**
- * @description This is the primary function that the application's frontend will call.
+ * This is the primary function that the application's frontend will call.
  * It orchestrates a complex, multi-model AI workflow to generate rich game world concepts.
  * @param {GenerateWorldSetupInput} input - The user's prompt and language preference.
  * @returns {Promise<GenerateWorldSetupOutput>} A promise resolving to the final structured output for the frontend.
@@ -169,7 +169,7 @@ Based on the user's idea, generate **a small catalog of 2 to 4 unique, thematica
 
 
 /**
- * @description The core Genkit flow that orchestrates parallel AI tasks for world generation.
+ * The core Genkit flow that orchestrates parallel AI tasks for world generation.
  * It combines the results from item, name, narrative, and structure generation into a coherent output.
  */
 const generateWorldSetupFlow = (ai as Genkit).defineFlow(

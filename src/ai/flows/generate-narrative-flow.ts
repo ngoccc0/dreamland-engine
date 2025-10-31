@@ -3,7 +3,7 @@
 import { getTranslatedText } from "@/lib/utils";
 // ai/flows/generate-narrative-flow.ts
 /**
- * @fileOverview Luồng Kể Chuyện AI cho Dreamland Engine.
+ * Luồng Kể Chuyện AI cho Dreamland Engine.
  *
  * File này định nghĩa luồng Genkit chịu trách nhiệm tạo ra các câu chuyện động, nhận biết ngữ cảnh
  * cho game. Nó hoạt động như một AI Game Master, lấy trạng thái game hiện tại và hành động của người chơi
@@ -42,12 +42,12 @@ import type { AiModel } from '@/lib/game/types';
 // == STEP 1: DEFINE THE INPUT SCHEMA ==
 
 /**
- * @description Schema định nghĩa cấp độ thành công của một lần tung xúc xắc.
+ * Schema định nghĩa cấp độ thành công của một lần tung xúc xắc.
  */
 const SuccessLevelSchema = z.enum(['CriticalFailure', 'Failure', 'Success', 'GreatSuccess', 'CriticalSuccess']);
 
 /**
- * @description Schema định nghĩa đầu vào cho luồng `generateNarrative`.
+ * Schema định nghĩa đầu vào cho luồng `generateNarrative`.
  * @property {z.string} worldName - Tên của thế giới game.
  * @property {z.string} playerAction - Hành động người chơi vừa thực hiện.
  * @property {PlayerStatusSchema} playerStatus - Trạng thái hiện tại của người chơi.
@@ -91,7 +91,7 @@ export type GenerateNarrativeInput = z.infer<typeof GenerateNarrativeInputSchema
 // == STEP 2: DEFINE THE OUTPUT SCHEMA ==
 
 /**
- * @description Schema định nghĩa đầu ra cuối cùng, kết hợp từ AI và các công cụ.
+ * Schema định nghĩa đầu ra cuối cùng, kết hợp từ AI và các công cụ.
  * @property {z.string} narrative - Mô tả kể chuyện chính về những gì xảy ra tiếp theo.
  * @property {z.object} [updatedChunk] - Thay đổi tùy chọn đối với chunk game hiện tại dựa trên kết quả hành động.
  * @property {z.object} [updatedPlayerStatus] - Thay đổi tùy chọn đối với trạng thái của người chơi.
@@ -128,7 +128,7 @@ export type GenerateNarrativeOutput = z.infer<typeof _GenerateNarrativeOutputSch
 // == STEP 3: DEFINE THE AI PROMPT ==
 
 /**
- * @description Schema đầu ra đơn giản hơn cho những gì chúng ta mong đợi từ việc tạo văn bản của AI.
+ * Schema đầu ra đơn giản hơn cho những gì chúng ta mong đợi từ việc tạo văn bản của AI.
  * Các thay đổi trạng thái sẽ đến từ các công cụ.
  * @property {z.string} narrative - Mô tả kể chuyện chính về những gì xảy ra tiếp theo.
  * @property {z.string} [systemMessage] - Một thông báo hệ thống ngắn, tùy chọn cho các sự kiện quan trọng.
@@ -139,7 +139,7 @@ const _AINarrativeResponseSchema = z.object({
 });
 
 /**
- * @description Template cho lời nhắc (prompt) AI, hướng dẫn AI cách tạo ra câu chuyện.
+ * Template cho lời nhắc (prompt) AI, hướng dẫn AI cách tạo ra câu chuyện.
  * Sử dụng các biến Mustache để chèn dữ liệu ngữ cảnh.
  */
 const narrativePromptTemplate = `You are the Game Master for a text-based adventure game called '{{worldName}}'. Your role is to be a dynamic, multi-sensory, and creative storyteller. Your entire response MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
@@ -175,7 +175,7 @@ You MUST use the detailed 'Current Environment' context to make your description
 `;
 
 /**
- * @description Map các ưu tiên mô hình AI với các ID mô hình thực tế.
+ * Map các ưu tiên mô hình AI với các ID mô hình thực tế.
  */
 const modelMap: Record<AiModel, string> = {
     balanced: 'googleai/gemini-2.0-flash',

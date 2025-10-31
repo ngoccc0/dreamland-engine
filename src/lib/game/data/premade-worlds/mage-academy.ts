@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview Defines all unique assets for the "Mage Academy" premade world.
- * @description This file contains the item, structure, and starting scenario definitions
+ * Defines all unique assets for the "Mage Academy" premade world.
+ * This file contains the item, structure, and starting scenario definitions
  * for a high-fantasy world set on a magical floating island. Items here are marked with 
  * `spawnEnabled: false` to prevent them from appearing in other, less magical game worlds.
  */

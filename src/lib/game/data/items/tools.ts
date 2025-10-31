@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview Defines all tool items in the game.
- * @description This file contains definitions for items that are primarily used
+ * Defines all tool items in the game.
+ * This file contains definitions for items that are primarily used
  * to perform actions (like crafting, harvesting, or building) rather than for
  * combat or consumption. Some tools may double as weak weapons.
  */

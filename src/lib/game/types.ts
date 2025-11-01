@@ -517,6 +517,8 @@ export interface GameSettings {
 export interface ChunkItem {
     /** The name of the item (translatable). */
     name: TranslatableString;
+    /** Optional canonical id for the item (e.g., 'healingHerb'). Prefer using this for logic/lookups. */
+    id?: string;
     /** The description of the item (translatable). */
     description: TranslatableString; 
     /** The quantity of the item in this chunk. */
@@ -533,6 +535,8 @@ export interface ChunkItem {
 export interface PlayerItem {
     /** The name of the item (translatable). */
     name: TranslatableString;
+    /** Optional canonical id for the item (e.g., 'healingHerb'). Prefer using this for logic/lookups. */
+    id?: string;
     /** The quantity of the item. */
     quantity: number;
     /** The tier/rarity of the item. */

@@ -17,7 +17,7 @@ import { resolveItemDef as resolveItemDefHelper } from '@/lib/game/item-utils';
 import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchAction } from '@/lib/game/engine/offline';
 import { getEffectiveChunk } from '@/lib/game/engine/generation';
 import { getTemplates } from '@/lib/game/templates';
-import { clamp, getTranslatedText } from '@/lib/utils';
+import { clamp, getTranslatedText, resolveItemId } from '@/lib/utils';
 import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem, NarrativeEntry, GeneratedItem, TranslatableString, ItemDefinition, Chunk, Enemy } from '@/lib/game/types';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-config';
@@ -182,13 +182,17 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             return newWorld;
         });
         
-        if (result.newlyGeneratedItem && !resolveItemDef(getTranslatedText(result.newlyGeneratedItem.name, 'en'))) {
+        if (result.newlyGeneratedItem) {
             const newItem = result.newlyGeneratedItem;
-            logger.info('[AI] A new item was generated for the world', { newItem });
-            setCustomItemCatalog(prev => [...prev, newItem]);
-            setCustomItemDefinitions(prev => ({ ...prev, [getTranslatedText(newItem.name, 'en')]: { ...newItem } }));
-            if (db) {
-                await setDoc(doc(db, "world-catalog", "items", "generated", getTranslatedText(newItem.name, 'en')), newItem);
+            // Resolve a canonical id for the generated item (prefer id/key from defs)
+            const newItemId = resolveItemId(newItem.name, customItemDefinitions, t, language) ?? getTranslatedText(newItem.name, 'en');
+            if (!resolveItemDef(newItemId)) {
+                logger.info('[AI] A new item was generated for the world', { newItem, newItemId });
+                setCustomItemCatalog(prev => [...prev, newItem]);
+                setCustomItemDefinitions(prev => ({ ...prev, [newItemId]: { ...newItem } }));
+                if (db) {
+                    await setDoc(doc(db, "world-catalog", "items", "generated", newItemId), newItem);
+                }
             }
         }
         setPlayerStats(() => finalPlayerStats);
@@ -827,10 +831,10 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
         addNarrativeEntry(result.narrative, 'narrative');
         
-        if (result.resultItem) {
+            if (result.resultItem) {
             nextPlayerStats = { ...nextPlayerStats, items: [...nextPlayerStats.items] }; 
-            const resultItemName = getTranslatedText(result.resultItem.name, 'en');
-            const existingItem = nextPlayerStats.items.find((i: PlayerItem) => getTranslatedText(i.name, 'en') === resultItemName);
+            const resultItemId = resolveItemId(result.resultItem.name, customItemDefinitions, t, language) ?? getTranslatedText(result.resultItem.name, 'en');
+            const existingItem = nextPlayerStats.items.find((i: PlayerItem) => i.id === resultItemId || getTranslatedText(i.name, 'en') === resultItemId);
             if (existingItem) {
                 existingItem.quantity += result.resultItem!.baseQuantity.min;
             } else {
@@ -839,16 +843,17 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                     quantity: result.resultItem.baseQuantity.min,
                     tier: result.resultItem.tier,
                     emoji: result.resultItem.emoji
+                    , id: resultItemId
                 };
                 nextPlayerStats.items.push(itemToAdd);
             }
             
-            if(!resolveItemDef(resultItemName)) {
+            if(!resolveItemDef(resultItemId)) {
                 const newItem = result.resultItem;
                 setCustomItemCatalog(prev => [...prev, newItem]);
-                setCustomItemDefinitions(prev => ({ ...prev, [resultItemName]: { ...newItem }}));
+                setCustomItemDefinitions(prev => ({ ...prev, [resultItemId]: { ...newItem }}));
                 if(db) {
-                    await setDoc(doc(db, "world-catalog", "items", "generated", resultItemName), newItem);
+                    await setDoc(doc(db, "world-catalog", "items", "generated", resultItemId), newItem);
                 }
             }
         }

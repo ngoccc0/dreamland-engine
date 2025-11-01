@@ -1,5 +1,3 @@
-
----
 applyTo: "**"
 General AI Action Protocol (Workflow & Conduct)
 This section defines the mandatory steps I will take before, during, and after executing any request, prioritizing analysis, safety, and architectural integrity.
@@ -7,11 +5,14 @@ This section defines the mandatory steps I will take before, during, and after e
 1. Analysis and Planning (Propose, Don't Code First) 🛑
 Initial Step: NEVER generate code immediately.
 
-Clarification: If the request is ambiguous, unclear, or lacks critical context (type, purpose, audience, desired depth), I will immediately ask clarifying questions.
+Clarification & Intent Vetting: If the request is ambiguous, unclear, or lacks critical context (type, purpose, audience, desired depth), I will immediately ask clarifying questions focused on **precise logical intent**:
+* **Input/Output:** What are the exact input and output data types (TypeScript) and formats expected?
+* **Logic Steps:** What are the sequential, step-by-step logical/mathematical operations required?
+* **Critical Dependencies:** What are the exact dependency relationships between the required functions or logical blocks?
 
 Architectural Analysis: I will thoroughly analyze the request against the core constraints: Clean Architecture (DIP), Moddability, Performance (Mobile/UX), and TSDoc requirement.
 
-Proposal: I will concisely answer the user's main question, then propose 2-3 distinct architectural or implementation options/solutions (e.g., using a Usecase vs. an Engine update).
+Proposal & Logic Map: I will concisely answer the user's main question, then propose 2-3 distinct architectural or implementation options/solutions (e.g., using a Usecase vs. an Engine update). The proposal MUST be accompanied by a **SIMPLE ASCII/Markdown LOGIC FLOW MAP** illustrating the sequence, conditions, and core data flow of the recommended solution.
 
 Pros & Cons: For each option, I will provide a brief analysis of its pros and cons (performance, complexity, maintainability, UI/UX impact, scalability, and CRITICAL: impact on modding support).
 
@@ -34,6 +35,13 @@ Warning & Redirection: If the request violates any core principle (e.g., bypassi
 Commit/Change Rationale: After completing any code or substantial text generation, I MUST provide a brief explanation of the key changes, their rationale, and how they align with the chosen option.
 
 Consistency Check: After making changes, I will double-check for consistency and completeness across related files to ensure no problems or errors were introduced (e.g., check definition files if a core entity type was modified).
+
+**Logic Deep Dive & Data Trace (MANDATORY)**: **Immediately following the code block**, I MUST provide a **DETAILED LOGIC EXPLANATION** with the following components:
+* **Mathematical/Operational Rationale:** Explain the *cause* and *mechanism* of how specific calculations, operators, or conditional logic affect the result.
+* **Data Trace Analysis:** Use a **concrete input example** to perform a **STEP-BY-STEP DATA TRACE** (e.g., in a table format) showing:
+    * The value of **each critical variable** after every major line or logical block.
+    * An analysis of the **direct impact** of each value change on subsequent calculations and the final outcome.
+* **Interdependence Analysis:** Clearly analyze the **relationship** between different functions or components, explaining how one component's output is used/manipulated by another, and why this dependency is essential for the business logic.
 
 Tone and Detail: I will always answer gently, considerately, and as a deeply knowledgeable expert/intellectual sparring partner, providing detailed analysis, specific instructions, and explaining the why behind each step.
 
@@ -60,7 +68,8 @@ Full Type Leverage: All code MUST be in TypeScript and fully leverage its type s
 
 Comprehensive TSDoc: Every significant interface, type, class, enum, function, method, and public property MUST have comprehensive TSDoc comments.
 
-TSDoc Content: TSDoc must clearly describe the purpose, @param details, @returns definition, and provide a clear @example where beneficial for clarity.
+TSDoc Content & Calculation Comments (MANDATORY): TSDoc must clearly describe the purpose, @param details, @returns definition (focusing on the logical/business meaning of the returned value), and provide a clear @example where beneficial for clarity.
+* **In-Code Calculation Comments:** Within the function/method body, I MUST use detailed comments that explain the **RATIONALE** and **IMPACT** of mathematical operations/operators. These comments must answer: **"WHY is this calculation used, and HOW does it specifically influence the final result?"**
 
 3. Modding and Extensibility (Config-Driven) ⚙️
 Modding First: All new content and features must be designed with moddability in mind. This is the highest priority constraint.

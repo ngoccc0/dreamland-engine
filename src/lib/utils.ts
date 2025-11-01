@@ -145,6 +145,63 @@ export function getEmojiForItem(name: string, category: string): string {
 }
 
 /**
+ * Resolve a canonical item id from a translatable name or string.
+ *
+ * This helper prefers explicit record keys (when `itemDefs` is provided).
+ * It will fall back to matching English translations to preserve backward
+ * compatibility during migration. Callers should prefer using `id` fields
+ * on items when available.
+ *
+ * @param itemOrName - TranslatableString or string representing the item
+ * @param itemDefs - Optional record of item definitions keyed by id
+ * @param t - Optional translation function used for key-based lookups
+ * @param language - Optional language to use for translation fallbacks (defaults to 'en')
+ * @returns The resolved canonical id if found, otherwise undefined
+ */
+export function resolveItemId(
+    itemOrName: TranslatableString | string | undefined | null,
+    itemDefs?: Record<string, any>,
+    t?: (k: string, opts?: any) => string,
+    language: Language = 'en'
+): string | undefined {
+    if (!itemOrName) return undefined;
+
+    // If given a string and it's directly a key in itemDefs, return it
+    if (typeof itemOrName === 'string') {
+        if (itemDefs && itemDefs[itemOrName]) return itemOrName;
+        // Try to match by definition id or English name
+        if (itemDefs) {
+            for (const [key, def] of Object.entries(itemDefs)) {
+                if (def?.id && def.id === itemOrName) return def.id;
+                try {
+                    const defNameEn = getTranslatedText(def.name, 'en', t as any);
+                    if (defNameEn === itemOrName) return def.id ?? key;
+                } catch (e) {
+                    // ignore malformed defs
+                }
+            }
+        }
+        return undefined;
+    }
+
+    // itemOrName is a TranslatableString-like object
+    if (itemDefs) {
+        const inputNameEn = getTranslatedText(itemOrName as TranslatableString, 'en', t as any);
+        for (const [key, def] of Object.entries(itemDefs)) {
+            if (def?.id && (itemOrName as any).id && def.id === (itemOrName as any).id) return def.id;
+            try {
+                const defNameEn = getTranslatedText(def.name, 'en', t as any);
+                if (defNameEn === inputNameEn) return def.id ?? key;
+            } catch (e) {
+                // ignore and continue
+            }
+        }
+    }
+
+    return undefined;
+}
+
+/**
  * Intelligently joins an array of sentences into a single narrative string.
  * It adds appropriate connectors based on the desired narrative length and cleans up punctuation.
  * @param {string[]} sentences - An array of sentences to join.

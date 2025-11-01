@@ -25,13 +25,13 @@ export const mountain_vi = {
         }
     ],
     items: [
-        { name: 'Quặng Sắt', conditions: { soilType: ['rocky'], chance: 0.25 } },
+        { name: 'Quặng Sắt', conditions: { soilType: ['rocky'], chance: 0.4 } },
         { name: 'Lông Đại Bàng', conditions: { elevation: { min: 8 }, chance: 0.15 } },
         { name: 'Pha Lê Núi', conditions: { magicAffinity: { min: 5 }, elevation: { min: 7 }, chance: 0.1 } },
         { name: 'Cây Thuốc Núi', conditions: { vegetationDensity: { min: 2 }, elevation: { min: 6 }, chance: 0.2 } },
         { name: 'Trứng Griffon', conditions: { elevation: { min: 9 }, magicAffinity: {min: 7}, chance: 0.01 } },
-        { name: 'Đá Vỏ Chai', conditions: { elevation: { min: 6 }, chance: 0.1 } },
-        { name: 'Đá Granit', conditions: { chance: 0.2 } },
+        { name: 'Đá Vỏ Chai', conditions: { elevation: { min: 6 }, chance: 0.25 } },
+        { name: 'Đá Granit', conditions: { chance: 0.35 } },
         { name: 'Tuyết', conditions: { temperature: { max: 2 }, chance: 0.4 } },
         { name: 'Cây Địa Y', conditions: { moisture: { min: 4 }, chance: 0.1 } },
         { name: 'Trứng Đại Bàng', conditions: { elevation: { min: 8 }, chance: 0.1 } }

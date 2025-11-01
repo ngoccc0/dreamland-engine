@@ -34,10 +34,10 @@ export const forest_vi = {
         { name: 'ancient_bark', conditions: { vegetationDensity: { min: 9 }, chance: 0.02 } },
         { name: 'sticky_resin', conditions: { chance: 0.2 } },
         { name: 'wild_honey', conditions: { vegetationDensity: { min: 6 }, chance: 0.05 } },
-        { name: 'pebbles', conditions: { chance: 0.4 } },
+        { name: 'pebbles', conditions: { chance: 0.55 } },
         { name: 'thorny_vine', conditions: { vegetationDensity: { min: 5 }, chance: 0.3 } },
         { name: 'large_leaf', conditions: { vegetationDensity: { min: 6 }, chance: 0.4 } },
-        { name: 'sturdy_branch', conditions: { chance: 0.5 } },
+        { name: 'sturdy_branch', conditions: { chance: 0.65 } },
         { name: 'hollow_wood_core', conditions: { chance: 0.15, moisture: { min: 4 } } },
         { name: 'magic_root', conditions: { chance: 0.05, moisture: { min: 6 }, timeOfDay: 'night' } }
     ],

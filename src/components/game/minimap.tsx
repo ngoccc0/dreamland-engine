@@ -41,10 +41,10 @@ export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
                     <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><Home />{t('structures')}:</h5>
                         <ul className="space-y-1 text-xs pl-5">
-                           {chunk.structures.map((s) => {
+                           {chunk.structures.map((s, idx) => {
                                 const structData = (s as any).data || s;
-                                const name = getTranslatedText(structData.name, 'en');
-                                return <li key={name}>{renderItemEmoji(structData.emoji, 18)} {getTranslatedText(structData.name, language, t)}</li>
+                                // Use index as key here to avoid relying on language-specific strings for React keys
+                                return <li key={idx}>{renderItemEmoji(structData.emoji, 18)} {getTranslatedText(structData.name, language, t)}</li>
                             })}
                         </ul>
                     </div>
@@ -53,7 +53,7 @@ export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
                     <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><Backpack />{t('inventory')}:</h5>
                         <ul className="space-y-1 text-xs pl-5">
-                            {chunk.items.map(item => <li key={getTranslatedText(item.name, 'en')}>{renderItemEmoji(item.emoji, 16)} {getTranslatedText(item.name, language, t)} (x{item.quantity})</li>)}
+                            {chunk.items.map((item, idx) => <li key={idx}>{renderItemEmoji(item.emoji, 16)} {getTranslatedText(item.name, language, t)} (x{item.quantity})</li>)}
                         </ul>
                     </div>
                 )}
@@ -67,7 +67,7 @@ export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
                      <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><NpcIcon />{t('npcs')}:</h5>
                         <ul className="space-y-1 text-xs pl-5">
-                            {chunk.NPCs.map(npc => <li key={getTranslatedText(npc.name, 'en')}>{getTranslatedText(npc.name, language, t)}</li>)}
+                            {chunk.NPCs.map((npc, idx) => <li key={idx}>{getTranslatedText(npc.name, language, t)}</li>)}
                         </ul>
                     </div>
                 )}

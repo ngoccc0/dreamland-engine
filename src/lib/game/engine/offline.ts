@@ -1,7 +1,7 @@
 
 
 import type { Chunk, MoodTag, NarrativeLength, NarrativeTemplate, ConditionType, Language, PlayerStatus, World } from "../types";
-import { getTranslatedText, SmartJoinSentences } from "../../utils"; 
+import { getTranslatedText, SmartJoinSentences, resolveItemId } from "../../utils"; 
 import { getTemplates } from '../templates';
 import type { TranslationKey } from "../../i18n";
 import { logger } from "@/lib/logger";
@@ -429,7 +429,14 @@ export const handleSearchAction = (
         const itemDef = allItemDefinitions[foundItemTemplate.name];
         const quantity = rng(itemDef.baseQuantity);
         
-        const existingItem = newChunk.items.find(i => getTranslatedText(i.name, 'en') === foundItemTemplate.name);
+        const existingItem = newChunk.items.find(i => (
+            // prefer explicit id if present
+            (i as any).id === foundItemTemplate.name ||
+            // resolve item's name to canonical id
+            resolveItemId(i.name, allItemDefinitions) === foundItemTemplate.name ||
+            // legacy fallback: english name
+            getTranslatedText(i.name, 'en') === foundItemTemplate.name
+        ));
         if (existingItem) {
             existingItem.quantity += quantity;
         } else {

@@ -1,9 +1,27 @@
 
 /**
- * Contains the core logic for the game's crafting system.
- * This file provides functions to determine the outcome of a crafting attempt,
- * including checking for required tools, substituting ingredients, and calculating the
- * success chance based on the quality of materials used.
+ * Core implementation of the game's crafting system engine. This module orchestrates
+ * the complex interactions between Recipe schemas, ItemDefinition data, and player inventory
+ * to determine crafting feasibility, success probabilities, and resource consumption.
+ *
+ * Key responsibilities:
+ * - Ingredient validation and substitution matching using ItemRelationshipSchema
+ * - Tool requirement verification against player inventory
+ * - Success probability calculation based on material quality and substitution penalties
+ * - Resource consumption planning and inventory impact assessment
+ * - Crafting feasibility scoring for UI display
+ *
+ * Data flow and interdependencies:
+ * 1. RecipeSchema → provides crafting requirements and constraints
+ * 2. ItemDefinitionSchema → supplies item properties and relationships
+ * 3. Player inventory → checked for available materials and tools
+ * 4. CraftingOutcome → returned to UI for display and execution
+ * 5. Inventory system → updated with consumed ingredients and crafted results
+ *
+ * Algorithm complexity:
+ * - O(n*m) where n=recipe ingredients, m=player inventory items
+ * - Substitution lookup requires full item registry scan
+ * - Quality-based sorting ensures optimal material selection
  */
 
 import type { PlayerItem, Recipe, ItemDefinition, TranslatableString, RecipeIngredient } from "../types";
@@ -28,7 +46,7 @@ export interface CraftingOutcome {
     }[];
     craftability?: CraftabilityInfo;
 }
-import { getTranslatedText } from "@/lib/utils";
+import { getTranslatedText, resolveItemId } from "@/lib/utils";
 
 /**
  * Calculates the outcome of a crafting attempt based on the player's inventory and a given recipe.
@@ -58,39 +76,64 @@ export const calculateCraftingOutcome = (
     const missingIngredients: string[] = [];
     const availableIngredients: string[] = [];
 
-    const hasRequiredTool = !recipe.requiredTool || playerItems.some(item => getTranslatedText(item.name, 'en') === recipe.requiredTool);
+    const hasRequiredTool = !recipe.requiredTool || playerItems.some(item => (
+        // Prefer explicit id comparison
+        (item as any).id === recipe.requiredTool ||
+        // Try resolver to map the player's item to a canonical id
+        resolveItemId(item.name, allItemDefinitions) === recipe.requiredTool ||
+        // Fallback to legacy English name match
+        getTranslatedText(item.name, 'en') === recipe.requiredTool
+    ));
 
     for (const requirement of recipe.ingredients) {
         let bestAvailable: { item: PlayerItem, quality: number } | null = null;
         
         const possibleItems = Object.entries(allItemDefinitions)
-            .filter(([_, def]) => (def.relationship?.substituteFor === requirement.name) || getTranslatedText(def.name, 'en') === requirement.name)
-            .map(([_, def]) => ({ name: getTranslatedText(def.name, 'en'), quality: def.relationship?.quality ?? 1 }));
+            .filter(([key, def]) => (
+                def.relationship?.substituteFor === requirement.name ||
+                def.id === requirement.name ||
+                key === requirement.name ||
+                getTranslatedText(def.name, 'en') === requirement.name
+            ))
+            .map(([key, def]) => ({ id: def.id ?? key, name: getTranslatedText(def.name, 'en'), quality: def.relationship?.quality ?? 1 }));
             
         // Also add the primary ingredient itself if not already included via relationship
-        if (!possibleItems.some(p => p.name === requirement.name)) {
-            possibleItems.push({ name: requirement.name, quality: 1 });
+        if (!possibleItems.some(p => p.id === requirement.name)) {
+            possibleItems.push({ id: requirement.name, name: requirement.name, quality: 1 });
         }
         
         // Find the best quality substitute the player has enough of
         possibleItems.sort((a, b) => a.quality - b.quality);
         
         for (const possible of possibleItems) {
-            const playerItem = playerItems.find(pi => getTranslatedText(pi.name, 'en') === possible.name);
+            const playerItem = playerItems.find(pi => (
+                // Prefer explicit id on player item
+                ((pi as any).id && (pi as any).id === possible.id) ||
+                // Resolve the player's item name to an id and compare
+                resolveItemId(pi.name, allItemDefinitions) === possible.id ||
+                // Legacy fallback to English-name comparison
+                getTranslatedText(pi.name, 'en') === possible.id ||
+                getTranslatedText(pi.name, 'en') === possible.name
+            ));
             if (playerItem && playerItem.quantity >= requirement.quantity) {
                 bestAvailable = { item: playerItem, quality: possible.quality };
                 break;
             }
         }
         
-        const playerItemForQtyCheck = playerItems.find(pi => getTranslatedText(pi.name, 'en') === requirement.name);
+        const playerItemForQtyCheck = playerItems.find(pi => (
+            (pi as any).id === requirement.name ||
+            resolveItemId(pi.name, allItemDefinitions) === requirement.name ||
+            getTranslatedText(pi.name, 'en') === requirement.name
+        ));
         const playerQuantity = playerItemForQtyCheck ? playerItemForQtyCheck.quantity : 0;
 
         if (bestAvailable) {
             resolvedIngredients.push({
                 requirement,
                 usedItem: { name: bestAvailable.item.name, tier: bestAvailable.quality },
-                isSubstitute: getTranslatedText(bestAvailable.item.name, 'en') !== requirement.name,
+                // Determine substitute status by comparing canonical ids when possible
+                isSubstitute: !(((bestAvailable.item as any).id && (bestAvailable.item as any).id === requirement.name) || resolveItemId(bestAvailable.item.name, allItemDefinitions) === requirement.name || getTranslatedText(bestAvailable.item.name, 'en') === requirement.name),
                 hasEnough: true,
                 playerQuantity
             });

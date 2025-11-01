@@ -18,7 +18,7 @@ import type { Enemy } from "../types/enemy";
 import { translations } from "../../i18n";
 import { getTemplates } from "../templates";
 import { logger } from "@/lib/logger";
-import { getTranslatedText } from "../../utils";
+import { getTranslatedText, resolveItemId } from "../../utils";
 import { getRandomInRange, getValidAdjacentTerrains, weightedRandom } from "./world-generation";
 import { selectEntities } from "./entity-generation";
 import { worldConfig } from "../world-config";
@@ -292,7 +292,14 @@ export function generateChunkContent(
                         // Determine the quantity of the loot item.
                         const quantity = getRandomInRange({ min: lootItem.quantity.min, max: lootItem.quantity.max });
                         // If the item already exists in spawnedItems, update its quantity; otherwise, add it as a new item.
-                        const existingItem = spawnedItems.find(i => getTranslatedText(i.name, 'en') === lootItem.name);
+                        const existingItem = spawnedItems.find(i => (
+                            // If spawned item has an explicit id, prefer it
+                            (i as any).id === lootItem.name ||
+                            // Resolve the spawned item's name to a canonical id and compare
+                            resolveItemId(i.name, allItemDefinitions) === lootItem.name ||
+                            // Fallback to legacy English string comparison
+                            getTranslatedText(i.name, 'en') === lootItem.name
+                        ));
                         if (existingItem) {
                             existingItem.quantity += quantity;
                         } else {

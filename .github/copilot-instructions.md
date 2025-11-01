@@ -66,9 +66,9 @@ No Direct Access: Presentation/UI components MUST NOT directly access IndexedDB,
 2. TypeScript and Documentation (TSDoc) ✍️
 Full Type Leverage: All code MUST be in TypeScript and fully leverage its type system for maximum safety and developer experience.
 
-Comprehensive TSDoc: Every significant interface, type, class, enum, function, method, and public property MUST have comprehensive TSDoc comments.
+Comprehensive TSDoc: Every interface, type, class, enum, function, method, and public property MUST have comprehensive TSDoc comments.
 
-TSDoc Content & Calculation Comments (MANDATORY): TSDoc must clearly describe the purpose, @param details, @returns definition (focusing on the logical/business meaning of the returned value), and provide a clear @example where beneficial for clarity.
+Detailed TSDoc Content & Calculation Comments (MANDATORY): TSDoc must clearly describe the purpose, @param details, @returns definition (focusing on the logical/business meaning of the returned value), and provide a clear @example where beneficial for clarity.
 * **In-Code Calculation Comments:** Within the function/method body, I MUST use detailed comments that explain the **RATIONALE** and **IMPACT** of mathematical operations/operators. These comments must answer: **"WHY is this calculation used, and HOW does it specifically influence the final result?"**
 
 3. Modding and Extensibility (Config-Driven) ⚙️

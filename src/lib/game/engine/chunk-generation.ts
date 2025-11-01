@@ -320,7 +320,136 @@ export function generateChunkContent(
 
     let spawnedItemRefs: any[] = [];
     if (Math.random() < chunkFindChance) {
-        spawnedItemRefs = selectEntities(allSpawnCandidates, maxItems, chunkData, allItemDefinitions, worldProfile);
+        // Implement multi-stage selection pipeline:
+        // 1) Two-stage sampling (reduce pool to M candidates)
+        // 2) Budget allocation per chunk (rarity -> cost)
+        // 3) Diminishing chance scaling when many candidates pass the budget
+        // 4) Final roll using finalChance
+
+        // Local helper: resolve item definition from display/key
+        const resolveDef = (displayOrKey: string) : ItemDefinition | undefined => {
+            if (allItemDefinitions[displayOrKey]) return allItemDefinitions[displayOrKey];
+            for (const key of Object.keys(allItemDefinitions)) {
+                const def = allItemDefinitions[key];
+                const defNameAny: any = def.name;
+                if (typeof defNameAny === 'string') {
+                    if (defNameAny === displayOrKey) return def;
+                } else if (defNameAny) {
+                    if (defNameAny.en === displayOrKey || defNameAny.vi === displayOrKey) return def;
+                }
+            }
+            return undefined;
+        };
+
+        const candidateList = allSpawnCandidates.filter(Boolean);
+
+        // Stage 2: two-stage sampling
+        const M = Math.min(6 + Math.floor(Math.log(Math.max(1, candidateList.length))), candidateList.length);
+        const randomSample = (arr: any[], m: number) => {
+            const copy = arr.slice();
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                const tmp = copy[i];
+                copy[i] = copy[j];
+                copy[j] = tmp;
+            }
+            return copy.slice(0, m);
+        };
+
+        const sampledCandidates = randomSample(candidateList, M);
+
+    /**
+     * Stage 3: budget system
+     * - chunkBudget is a soft currency representing how many / how expensive items
+     *   this chunk can support. It is derived from world resource density so richer
+     *   worlds allow more or pricier spawns.
+     * - Each item's "rarity" in [0.05, 1.0] is mapped to a cost. Higher rarity -> higher cost.
+     * - cost formula below is intentionally conservative but scaled down slightly
+     *   (multiplied by costScale) so very-high-tier items still have a non-zero chance
+     *   to appear in resource-rich contexts. We also include a very small fallback
+     *   chance later so a player can occasionally discover a rare item even in
+     *   modest chunks.
+     */
+    let chunkBudget = 1.0 * (worldProfile?.resourceDensity ?? 1);
+    const costScale = 0.6; // reduce raw cost so ultra-rare items aren't categorically impossible
+        const preBudgetSelected: SpawnCandidate[] = [];
+        for (const cand of sampledCandidates) {
+            const def = resolveDef(typeof cand.name === 'string' ? cand.name : String(cand.name));
+            // Derive rarity: prefer explicit rarity, else infer from tier, else fallback
+            let rarity = (def as any)?.rarity as number | undefined;
+            if (rarity === undefined) {
+                if (def && typeof def.tier === 'number') {
+                    rarity = Math.max(0.05, 1 - (def.tier - 1) * 0.15);
+                } else {
+                    rarity = 0.2; // default moderate rarity
+                }
+            }
+            rarity = Math.max(0.05, Math.min(1, rarity)); // normalize
+
+            // cost is inverse-proportional to rarity; use costScale to soften the penalty
+            const cost = (1 / Math.max(0.05, rarity)) * costScale;
+            if (chunkBudget - cost >= 0) {
+                preBudgetSelected.push(cand);
+                chunkBudget -= cost;
+            }
+        }
+
+        // Stage 4: diminishing scaling (reduce final chances when many items passed budget)
+        const N = preBudgetSelected.length;
+        const scaleFactor = 1 / (0.5 + Math.pow(Math.max(0, N), 0.3));
+
+    // Stage 5: final roll
+        for (const cand of preBudgetSelected) {
+            const def = resolveDef(typeof cand.name === 'string' ? cand.name : String(cand.name));
+            let rarity = (def as any)?.rarity as number | undefined;
+            if (rarity === undefined) {
+                if (def && typeof def.tier === 'number') {
+                    rarity = Math.max(0.05, 1 - (def.tier - 1) * 0.15);
+                } else {
+                    rarity = 0.2;
+                }
+            }
+            rarity = Math.max(0.05, Math.min(1, rarity));
+
+            const baseChance = cand.conditions?.chance ?? 1;
+            let finalChance = baseChance * rarity * (worldDensityScale ?? 1) * effectiveMultiplier * scaleFactor;
+            finalChance = Math.max(0, Math.min(0.95, finalChance));
+
+            if (Math.random() < finalChance) {
+                spawnedItemRefs.push(cand);
+            }
+
+            // Enforce hard cap as a final safety net
+            if (spawnedItemRefs.length >= maxItems) break;
+        }
+
+        // Fallback for ultra-rare items: if budget selection produced nothing, allow a
+        // small chance to spawn a top-tier candidate from the sampled pool. This prevents
+        // the system from making tier-5/6 items impossible in practice while still keeping
+        // them rare. The probability is intentionally tiny and scaled by world density
+        // and the global effectiveMultiplier.
+        if (spawnedItemRefs.length === 0 && sampledCandidates.length > 0) {
+            // Find candidate with highest tier (if definitions available)
+            let bestCand: any | null = null;
+            let bestTier = -Infinity;
+            for (const sc of sampledCandidates) {
+                const def = resolveDef(typeof sc.name === 'string' ? sc.name : String(sc.name));
+                const tier = (def as any)?.tier ?? 0;
+                if (tier > bestTier) {
+                    bestTier = tier;
+                    bestCand = sc;
+                }
+            }
+            // If bestTier is high (>=5), give a small fallback chance; otherwise skip.
+            if (bestCand && bestTier >= 5) {
+                const fallbackChance = 0.02 * (worldDensityScale ?? 1) * effectiveMultiplier; // ~2% base
+                if (Math.random() < fallbackChance) {
+                    spawnedItemRefs.push(bestCand);
+                    logger.debug('[generateChunkContent] rare fallback triggered', { bestTier, fallbackChance });
+                }
+            }
+        }
+        logger.debug('[generateChunkContent] multi-stage selection', { candidateCount: candidateList.length, sampled: sampledCandidates.length, preBudget: preBudgetSelected.length, final: spawnedItemRefs.length, chunkBudgetLeft: chunkBudget });
     } else {
         logger.debug('[generateChunkContent] chunkFindChance failed, no items this chunk', { chunkFindChance });
     }

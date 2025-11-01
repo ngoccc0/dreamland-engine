@@ -285,7 +285,8 @@ export function generateChunkContent(
     logger.debug('[generateChunkContent] allSpawnCandidates', { allSpawnCandidatesLength: allSpawnCandidates.length, allSpawnCandidates });
 
     // Determine the maximum number of unique item types to select for this chunk.
-    const baseMaxItems = 10; // Default number of items
+    // Reduced base so chunks do not automatically fill up with many items.
+    const baseMaxItems = 4; // Default (reduced) number of items
     
     // Clamp a value between 0 and 1, typically used for normalizing chunk data values.
     const clamp01 = (v: number) => Math.max(0, Math.min(1, v / 100));
@@ -309,8 +310,20 @@ export function generateChunkContent(
 
     // Calculate the final maximum number of unique items, applying all multipliers and ensuring at least one item.
     const maxItems = Math.max(1, Math.floor(baseMaxItems * effectiveMultiplier * chunkCountMultiplier));
-    
-    const spawnedItemRefs = selectEntities(allSpawnCandidates, maxItems, chunkData, allItemDefinitions, worldProfile);
+
+    // Chunk-level find chance: decide whether this chunk yields any items at all.
+    // This prevents nearly-every-chunk finds when many candidates exist.
+    const baseFindChance = 0.35; // ~35% baseline chance a chunk will contain items
+    // Scale by world density and chunk richness. Clamp to avoid extreme values.
+    const chunkFindMultiplier = 0.6 + (chunkResourceScore * 0.6); // range [0.6,1.2]
+    const chunkFindChance = Math.max(0.01, Math.min(0.9, baseFindChance * (worldDensityScale ?? 1) * chunkFindMultiplier * effectiveMultiplier));
+
+    let spawnedItemRefs: any[] = [];
+    if (Math.random() < chunkFindChance) {
+        spawnedItemRefs = selectEntities(allSpawnCandidates, maxItems, chunkData, allItemDefinitions, worldProfile);
+    } else {
+        logger.debug('[generateChunkContent] chunkFindChance failed, no items this chunk', { chunkFindChance });
+    }
     logger.debug('[generateChunkContent] spawnedItemRefs', { spawnedItemRefsLength: spawnedItemRefs.length, spawnedItemRefs });
     const spawnedItems: ChunkItem[] = [];
 

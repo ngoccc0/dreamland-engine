@@ -32,7 +32,7 @@ const categoryEmojis = {
   Tool: '🛠️',
   Material: '🧱',
   Food: '🍴',
-  Support: '❤️‍🩹',
+  Support: '❤️',
   Magic: '✨',
   Equipment: '🛡️',
   'Energy Source': '⚡',
@@ -115,7 +115,11 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                             <DropdownMenuContent className="w-64">
                 <DropdownMenuLabel className="font-normal">
                   <p className="font-bold">{item.emoji} {getTranslatedText(item.name, language)}</p>
-                  <p className="text-xs text-muted-foreground whitespace-normal">{getTranslatedText(definition?.description ?? '', language)}</p>
+                  {!definition ? (
+                    <p className="text-xs text-red-500 whitespace-normal">Item definition not found!</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground whitespace-normal">{getTranslatedText(definition?.description ?? '', language)}</p>
+                  )}
                 </DropdownMenuLabel>
                                 
                                 {isInteractable && (

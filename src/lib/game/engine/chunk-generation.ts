@@ -374,7 +374,7 @@ export function generateChunkContent(
 
     // Determine the maximum number of unique item types to select for this chunk.
     // Reduced base so chunks do not automatically fill up with many items.
-    const baseMaxItems = 4; // Default (reduced) number of unique item types per chunk.
+    const baseMaxItems = 2; // Default (reduced) number of unique item types per chunk (lowered)
     
     // Clamp a value between 0 and 1, typically used for normalizing chunk data values.
     // This ensures that environmental metrics are within a predictable range for calculations.
@@ -406,7 +406,7 @@ export function generateChunkContent(
 
     // Chunk-level find chance: decide whether this chunk yields any items at all.
     // This prevents nearly every chunk from finding items when many candidates exist, adding variability.
-    const baseFindChance = 0.35; // ~35% baseline chance a chunk will contain items.
+    const baseFindChance = 0.1; // ~10% baseline chance a chunk will contain items (reduced)
     // Scale this chance by world density and chunk richness. Clamp to avoid extreme values (0.01 to 0.9).
     const chunkFindMultiplier = 0.6 + (chunkResourceScore * 0.6); // range [0.6,1.2]
     const chunkFindChance = Math.max(0.01, Math.min(0.9, baseFindChance * (worldDensityScale ?? 1) * chunkFindMultiplier * effectiveMultiplier));
@@ -474,6 +474,20 @@ export function generateChunkContent(
 
         const sampledCandidates = randomSample(candidateList, M); // Get `M` random candidates.
 
+        // Lightweight heuristic to detect essential crafting materials in the sampled pool.
+        // If your item definitions include an explicit flag (e.g. `def.isMaterial` or `def.tags`),
+        // replace this heuristic with that field for a more robust behavior.
+        const ESSENTIAL_KEYWORDS = ['dây', 'dây gai', 'vải', 'vải rách', 'đá', 'cuội', 'mảnh', 'gai', 'thành'];
+        const isEssentialCandidate = (c: any) => {
+            try {
+                const nm = typeof c.name === 'string' ? c.name.toLowerCase() : String(c.name).toLowerCase();
+                return ESSENTIAL_KEYWORDS.some(k => nm.includes(k));
+            } catch {
+                return false;
+            }
+        };
+        const essentialCandidates = sampledCandidates.filter(isEssentialCandidate);
+
     /**
      * Stage 3: Budget system.
      * - `chunkBudget` is a soft currency representing how many or how expensive items this chunk can support.
@@ -487,6 +501,28 @@ export function generateChunkContent(
     let chunkBudget = 1.0 * (worldProfile?.resourceDensity ?? 1); // Initialize budget based on world density.
     const costScale = 0.6; // Scale factor to reduce the raw cost of items, making rarer items more accessible.
         const preBudgetSelected: SpawnCandidate[] = []; // Array to hold candidates that pass the budget check.
+        // Try to prioritize one essential crafting material if present in the sampled pool.
+        let essentialReserved: SpawnCandidate | null = null;
+        if (essentialCandidates && essentialCandidates.length > 0) {
+            // Prefer the first essential candidate (sampledCandidates already randomized).
+            const candidateToTry = essentialCandidates[0];
+            const defTry = resolveDef(typeof candidateToTry.name === 'string' ? candidateToTry.name : String(candidateToTry.name));
+            let rarityTry = (defTry as any)?.rarity as number | undefined;
+            if (rarityTry === undefined) {
+                if (defTry && typeof defTry.tier === 'number') rarityTry = Math.max(0.05, 1 - (defTry.tier - 1) * 0.15);
+                else rarityTry = 0.2;
+            }
+            rarityTry = Math.max(0.05, Math.min(1, rarityTry));
+            const costTry = (1 / Math.max(0.05, rarityTry)) * costScale * 0.6; // apply extra easing for essential
+            if (chunkBudget - costTry >= 0) {
+                preBudgetSelected.push(candidateToTry);
+                chunkBudget -= costTry;
+                essentialReserved = candidateToTry;
+            } else {
+                // keep as fallback if budget couldn't include it now
+                essentialReserved = candidateToTry;
+            }
+        }
         // Iterate through the sampled candidates to determine if they fit within the chunk's budget.
         for (const cand of sampledCandidates) {
             const def = resolveDef(typeof cand.name === 'string' ? cand.name : String(cand.name));
@@ -572,7 +608,17 @@ export function generateChunkContent(
                 }
             }
         }
-        logger.debug('[generateChunkContent] multi-stage selection', { candidateCount: candidateList.length, sampled: sampledCandidates.length, preBudget: preBudgetSelected.length, final: spawnedItemRefs.length, chunkBudgetLeft: chunkBudget });
+            // If an essential candidate was reserved but not added (due to budget), allow a small
+            // fallback probability here to ensure crafting materials occasionally appear.
+            if (essentialReserved && !spawnedItemRefs.includes(essentialReserved) && spawnedItemRefs.length < maxItems) {
+                const essentialFallbackChance = 0.1 * (worldDensityScale ?? 1) * effectiveMultiplier; // ~10% base
+                if (Math.random() < essentialFallbackChance) {
+                    spawnedItemRefs.push(essentialReserved);
+                    logger.debug('[generateChunkContent] essential fallback triggered', { essentialFallbackChance, essentialName: essentialReserved?.name });
+                }
+            }
+
+            logger.debug('[generateChunkContent] multi-stage selection', { candidateCount: candidateList.length, sampled: sampledCandidates.length, preBudget: preBudgetSelected.length, final: spawnedItemRefs.length, chunkBudgetLeft: chunkBudget });
     } else {
         // Log if the initial chunkFindChance roll failed, meaning no items will spawn in this chunk.
         logger.debug('[generateChunkContent] chunkFindChance failed, no items this chunk', { chunkFindChance });

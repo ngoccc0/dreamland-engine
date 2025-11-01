@@ -355,7 +355,7 @@ export default function GameLayout(props: GameLayoutProps) {
             try {
                 handleAction(actionId);
             } catch (e) {
-                logger.error('Pickup action failed for id', actionId, e);
+                logger.error('Pickup action failed for id', { actionId, error: e });
             }
         });
 

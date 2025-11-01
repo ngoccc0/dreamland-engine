@@ -446,10 +446,32 @@ export interface WorldProfile {
     /** A bias applied to temperature during world generation. */
     tempBias: number; 
     /**
-     * The overall density of resources in the world (0-100).
-     * Higher values mean more abundant resources.
+     * The overall resource density multiplier for the world.
+     *
+     * This value is used as a direct multiplier in world/chunk generation and
+     * spawn probability calculations. Historically this field was a 0..100
+     * percentage and used additively; it now behaves multiplicatively to allow
+     * intuitive scaling of abundance without producing large negative bonuses.
+     *
+     * Typical usage and ranges:
+     * - 0.5 : Sparse world (50% of baseline spawn/quantity)
+     * - 1.0 : Baseline / neutral
+     * - 1.5 : Resource-rich world (150% of baseline spawn/quantity)
+     *
+     * Implementation notes:
+     * - Applied directly to per-entity spawnChance (spawnChance *= resourceDensity)
+     *   and to chunk-level item-count scaling in `generateChunkContent`.
+     * - Values outside the suggested range are allowed but may be clamped or
+     *   soft-capped by generation code to avoid runaway behaviour.
+     *
+     * @example
+     * // Neutral world
+     * worldProfile.resourceDensity = 1.0;
+     *
+     * // Sparse world
+     * worldProfile.resourceDensity = 0.6;
      */
-    resourceDensity: number; 
+    resourceDensity: number;
     /** The thematic style of the game world. */
     theme: GameTheme;
     /**

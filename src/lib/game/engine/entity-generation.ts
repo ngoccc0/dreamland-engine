@@ -32,8 +32,22 @@ import { logger } from "@/lib/logger";
 
 /**
  * Validates whether an entity's spawn conditions are met by the current chunk properties.
- * This function implements the core logic for conditional entity spawning, ensuring entities
- * only appear in appropriate environmental contexts.
+ *
+ * This implements the per-entity condition checking used during world/chunk
+ * generation. `conditions` typically comes from an item's `naturalSpawn` entry
+ * or from a template (terrain template, structure loot, etc.). The `chance`
+ * property is deliberately ignored here because probability handling is done in
+ * `selectEntities`.
+ *
+ * Behavior summary:
+ * - Numeric ranges (min/max) on chunk properties are checked strictly.
+ * - Special keys such as `soilType` and `timeOfDay` have bespoke handling.
+ * - Player-related checks (`playerHealth`, `playerStamina`) are supported when
+ *   a `playerState` is supplied to higher-level callers (here we accept chunk-only checks).
+ *
+ * @param conditions - Spawn requirements defined in entity templates or item definitions.
+ * @param chunk - Current chunk properties used for evaluation (a reduced `Chunk` shape is accepted).
+ * @returns `true` when all applicable conditions are satisfied, otherwise `false`.
  *
  * Condition evaluation logic:
  * 1. **Numeric Range Conditions**: Properties like moisture, vegetationDensity, temperature
@@ -81,56 +95,36 @@ export const checkConditions = (conditions: SpawnConditions, chunk: Omit<Chunk, 
 
 /**
  * Probabilistic entity selection algorithm that implements the complete spawn pipeline.
- * This function transforms potential spawn candidates into actual spawned entities through
- * a multi-stage filtering and randomization process.
  *
- * Selection pipeline:
- * 1. **Input Validation**: Filter out null/undefined entities and those missing conditions
- * 2. **Condition Filtering**: Apply checkConditions() to ensure environmental suitability
- * 3. **Randomization**: Shuffle valid entities to prevent deterministic ordering
- * 4. **Chunk Resource Scoring**: Calculate environmental influence on spawn rates
- * 5. **Probability Calculation**: Apply tier modifiers, world bonuses, and chunk multipliers
- * 6. **Random Selection**: Use calculated probabilities to determine final spawns
+ * This function takes an array of candidate entities (items, NPC refs, enemy refs,
+ * structure loot entries) and returns a subset that should actually be spawned in a
+ * chunk. It performs deterministic filtering (condition checks) then probabilistic
+ * selection using per-entity base chance, tier adjustments, chunk-level resource
+ * multipliers, and world-level modifiers.
  *
- * Spawn probability calculation (per entity):
- * ```
- * Base Chance (from conditions.chance, default 1.0)
- * → Tier Modifier: chance *= (0.9)^(tier-1) [reduces high-tier spawn rates]
- * → World Density Bonus: chance += (resourceDensity - 50) / 100 [-0.5 to +0.5]
- * → Chunk Resource Multiplier: chance *= 0.6 + (resourceScore * 0.8) [0.6 to 1.4]
- * → Global Multiplier: chance *= softcap(worldProfile.spawnMultiplier) [prevent runaway]
- * → Final Clamp: max(0, min(0.95, chance)) [safe probability range]
- * ```
+ * Important notes about probability calculation:
+ * - `entity.conditions.chance` (default 1.0) is the base per-entity chance.
+ * - Item tier reduces base chance multiplicatively via a conservative factor
+ *   (0.9^(tier-1)). This reduces high-tier frequency while keeping rarer items
+ *   discoverable.
+ * - The world's `resourceDensity` is applied as a direct multiplier (e.g. 0.5..1.5)
+ *   so world-level abundance scales spawnChance multiplicatively.
+ * - A chunk-level `chunkMultiplier` derived from environmental scores (vegetation,
+ *   moisture, predators, danger, human presence) biases spawn probability toward
+ *   richer chunks.
+ * - A `spawnMultiplier` on `WorldProfile` is soft-capped (via `softcap`) before
+ *   final application to avoid runaway multipliers.
+ * - Final probability is clamped to [0, 0.95] to avoid guaranteed spawns and keep
+ *   some randomness in outcomes.
  *
- * Chunk resource scoring formula:
- * ```
- * vegetationFactor = vegetationDensity / 100
- * moistureFactor = moisture / 100
- * humanFactor = 1 - (humanPresence / 100) [inverse relationship]
- * dangerFactor = 1 - (dangerLevel / 100) [inverse relationship]
- * predatorFactor = 1 - (predatorPresence / 100) [inverse relationship]
- * resourceScore = (veg + moist + human + danger + pred) / 5 [0-1 scale]
- * ```
+ * @template T - Entity type with optional `name`, `type`, `data` and `conditions` properties.
+ * @param availableEntities - Array of potential entities to spawn. May be `undefined`.
+ * @param maxCount - Maximum number of entities to select (capacity limit).
+ * @param chunk - Current chunk properties for condition checking.
+ * @param allItemDefinitions - Complete item registry for tier lookups (optional lookups by name).
+ * @param worldProfile - World generation parameters affecting spawn rates (resourceDensity, spawnMultiplier).
+ * @returns An array of selected entity entries (subset of `availableEntities`) chosen to spawn.
  *
- * Interdependencies:
- * - Consumes ItemDefinition.tier for spawn rate balancing
- * - Uses WorldProfile for global spawn modifications
- * - Calls checkConditions() for environmental validation
- * - Returns entities for integration with chunk/item generation systems
- *
- * Performance characteristics:
- * - O(n log n) due to shuffling operation
- * - Early termination when maxCount is reached
- * - Optimized for world generation with bounded entity counts
- * - Extensive error handling and logging for data integrity
- *
- * @template T - Entity type with optional name/type and conditions properties
- * @param availableEntities - Array of potential entities to spawn
- * @param maxCount - Maximum number of entities to select (capacity limit)
- * @param chunk - Current chunk properties for condition checking
- * @param allItemDefinitions - Complete item registry for tier lookups
- * @param worldProfile - World generation parameters affecting spawn rates
- * @returns Array of selected entities that passed all filters and probability checks
  */
 export const selectEntities = <T extends { name?: TranslatableString | string; type?: string; data?: any; conditions?: any }>(
     availableEntities: T[] | undefined,
@@ -200,13 +194,10 @@ export const selectEntities = <T extends { name?: TranslatableString | string; t
         }
 
 
-        // Thêm bonus chance dựa trên world profile
-        // Keep resourceDensity effect small to avoid driving spawnChance negative
-        if (worldProfile?.resourceDensity) {
-            // Use original /100 scaling so densityBonus ranges roughly -0.5..+0.5
-            const densityBonus = (worldProfile.resourceDensity - 50) / 100;
-            spawnChance = spawnChance + densityBonus;
-        }
+        // Apply world resource density as a direct multiplier instead of an additive bonus.
+        // resourceDensity is expected to be a multiplier in range ~0.5..1.5.
+        const densityMultiplier = worldProfile?.resourceDensity ?? 1;
+        spawnChance *= densityMultiplier;
 
         // Boost/reduce spawnChance based on chunk resource score so chunk metrics are primary influence
         // We map chunkResourceScore (0..1) into a multiplier in range [0.6, 1.4] (configurable)

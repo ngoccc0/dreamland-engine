@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "typecheck:file": "tsc --noEmit",
     "test": "jest",
+    "validate:narrative": "node ./scripts/validate-narrative-placeholders.js",
   "docs:api": "typedoc",
   "docs:api:debug": "typedoc --options typedoc.debug.json",
     "prepare": "husky install",

@@ -408,6 +408,33 @@ export const generateOfflineActionNarrative = (
 };
 
 
+/**
+ * Handle a player's 'search' / 'explore' action inside a chunk.
+ *
+ * The search action uses biome templates (natural candidates) plus a small
+ * sampled set of non-natural (spawnEnabled=false) items so that players can
+ * occasionally discover crafted/rare items via searching. Search is intentionally
+ * more generous than passive natural spawn: a modest `searchBoost` increases
+ * the effective chance, but non-natural finds are capped to avoid being overpowered.
+ *
+ * Implementation details:
+ * - Natural candidates use their defined `conditions.chance` or a sensible
+ *   default. Non-natural candidates are given a very small base chance (e.g. 0.02).
+ * - The function applies a softcapped `spawnMultiplier` before calculating
+ *   the final chance for the search. A `searchBoost` (>1) is applied to make
+ *   searching more effective than passive discovery.
+ * - Non-natural items' final chance is capped (e.g. <= 0.3) so search cannot
+ *   trivially expose high-tier crafted items every time.
+ *
+ * @param currentChunk - Current chunk state where the search occurs.
+ * @param actionId - The id of the search action (removed from chunk.actions after use).
+ * @param language - Language code for localized narrative text.
+ * @param t - Translation function used to build narrative strings.
+ * @param allItemDefinitions - Registry of item definitions used to resolve found items.
+ * @param rng - Random integer helper for quantity selection.
+ * @param spawnMultiplier - Optional multiplier to scale search find-chance (softcapped). Default: 1.
+ * @returns An object containing the updated chunk, narrative string, and optional toast info.
+ */
 export const handleSearchAction = (
     currentChunk: Chunk,
     actionId: number,
@@ -433,15 +460,45 @@ export const handleSearchAction = (
     });
 
     if (possibleItems.length > 0) {
-        // base chance can be taken from template condition or fallback to 0.5
-        const baseChance = possibleItems[0].conditions?.chance ?? 0.5;
+        // Build a combined candidate pool that includes both natural biome items
+        // and a small sampled set of non-natural (spawnEnabled=false) items so
+        // searches can sometimes find rarer or crafted-only gear (but not too often).
+        const extraCandidates = Object.keys(allItemDefinitions)
+            .filter(k => !allItemDefinitions[k].spawnEnabled)
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 3)
+            .map(name => ({ name, conditions: { chance: 0.02 }, __isNatural: false }));
+
+        const naturalCandidates = possibleItems.map((t: any) => ({ ...t, __isNatural: true }));
+        const allCandidates = [...naturalCandidates, ...extraCandidates];
+
+        // Weighted selection based on candidate chance (non-natural items have low base chance)
+        const totalWeight = allCandidates.reduce((s: number, c: any) => s + (c.conditions?.chance ?? (c.__isNatural ? 0.5 : 0.02)), 0);
+        let r = Math.random() * totalWeight;
+        let chosen: any = null;
+        for (const c of allCandidates) {
+            const w = c.conditions?.chance ?? (c.__isNatural ? 0.5 : 0.02);
+            r -= w;
+            if (r <= 0) { chosen = c; break; }
+        }
+        if (!chosen) chosen = allCandidates.length > 0 ? allCandidates[Math.floor(Math.random() * allCandidates.length)] : possibleItems[0];
+
         const softcap = (m: number, k = 0.4) => m <= 1 ? m : m / (1 + (m - 1) * k);
         const effectiveMultiplier = softcap(spawnMultiplier);
-        const finalChance = Math.min(0.95, baseChance * effectiveMultiplier);
+
+        // Search should be more generous than passive natural spawn: add a modest search boost.
+        const searchBoost = 1.4;
+
+        // Base chance depends on whether the item is natural or not. Non-natural items get a very small baseChance.
+        const baseChance = chosen.conditions?.chance ?? (chosen.__isNatural ? 0.5 : 0.02);
+        // If chosen is non-natural, cap how high search can make it (avoid OP finds).
+        let finalChance = Math.min(0.95, baseChance * effectiveMultiplier * searchBoost);
+        if (!chosen.__isNatural) finalChance = Math.min(0.3, finalChance);
+
         if (Math.random() < finalChance) {
-            const foundItemTemplate = possibleItems[Math.floor(Math.random() * possibleItems.length)];
-        const itemDef = allItemDefinitions[foundItemTemplate.name];
-        const quantity = rng(itemDef.baseQuantity);
+            const foundItemTemplate = chosen;
+            const itemDef = allItemDefinitions[foundItemTemplate.name];
+            const quantity = itemDef ? rng(itemDef.baseQuantity) : rng({ min: 1, max: 1 });
         
         const existingItem = newChunk.items.find(i => (
             // prefer explicit id if present
@@ -463,7 +520,7 @@ export const handleSearchAction = (
             });
         }
         
-        const itemName = getTranslatedText(foundItemTemplate.name, language, t);
+            const itemName = getTranslatedText(foundItemTemplate.name, language, t);
         return {
             newChunk,
             narrative: t('exploreFoundItemsNarrative', { items: `${quantity} ${itemName}` }),
@@ -473,15 +530,6 @@ export const handleSearchAction = (
                 params: { items: `${quantity} ${itemName}` }
             }
         };
-            return {
-                newChunk,
-                narrative: t('exploreFoundItemsNarrative', { items: `${quantity} ${itemName}` }),
-                toastInfo: {
-                    title: 'exploreSuccessTitle',
-                    description: 'exploreFoundItems',
-                    params: { items: `${quantity} ${itemName}` }
-                }
-            };
         }
     }
 

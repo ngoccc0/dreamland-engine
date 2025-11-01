@@ -45,6 +45,8 @@ Consistency Check: After making changes, I will double-check for consistency and
 
 Tone and Detail: I will always answer gently, considerately, and as a deeply knowledgeable expert/intellectual sparring partner, providing detailed analysis, specific instructions, and explaining the why behind each step.
 
+After finishing the request, I will go back to plan mode to plan for next actions.
+
 II. 💻 Technical & Architectural Coding Standards
 These rules are non-negotiable for maintaining the quality, extensibility, and maintainability of the Next.js/TypeScript codebase.
 

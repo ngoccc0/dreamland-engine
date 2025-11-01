@@ -119,11 +119,17 @@ interface ChunkBaseData {
  *
  * Resource capacity formula:
  * ```
+ * // chunkResourceScore is a normalized 0..1 score derived from chunk metrics
  * chunkResourceScore = (veg/100 + moist/100 + (1-human/100) + (1-danger/100) + (1-pred/100)) / 5
- * worldDensityScale = worldProfile.resourceDensity / 100
- * chunkCountMultiplier = 0.5 + (chunkResourceScore * worldDensityScale)
+ * // worldProfile.resourceDensity is now a multiplier (0.5..1.5). We apply it directly
+ * // to scale the chunkCountMultiplier so richer worlds yield more items.
+ * chunkCountMultiplier = 0.5 + (chunkResourceScore * worldProfile.resourceDensity)
  * maxItems = max(1, floor(10 * effectiveMultiplier * chunkCountMultiplier))
  * ```
+ *
+ * Remarks:
+ * - This makes per-chunk item counts easily tunable via `WorldProfile.resourceDensity`.
+ * - Use `spawnMultiplier` for global spawn frequency adjustments that are softcapped.
  *
  * Item resolution process:
  * 1. selectEntities() returns entity references with names
@@ -293,8 +299,9 @@ export function generateChunkContent(
     const predatorFactor = 1 - clamp01(chunkData.predatorPresence ?? 50); // Less predators = more resources
     const chunkResourceScore = (vegetation + moisture + humanFactor + dangerFactor + predatorFactor) / 5; // Average score (0..1)
 
-    // Scale the chunk resource score by the world's overall resource density.
-    const worldDensityScale = (worldProfile?.resourceDensity ?? 50) / 100; // Normalize world density (0..1)
+    // Scale the chunk resource score by the world's overall resource density multiplier.
+    // resourceDensity is now expected to be a multiplier (e.g. 0.5..1.5).
+    const worldDensityScale = worldProfile?.resourceDensity ?? 1; // multiplier applied directly
 
     // Map the combined chunk and world resource score to a multiplier for item count.
     // This ensures that resource-rich chunks in resource-rich worlds spawn more items.

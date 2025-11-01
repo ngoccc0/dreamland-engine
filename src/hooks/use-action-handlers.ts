@@ -595,7 +595,19 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
           }
       } else if (textKey === 'analyzeAction') {
           const chunk = getEffectiveChunk(currentChunk, weatherZones, gameTime);
-          const analysis = `[Analysis Report]\nCoordinates: (${chunk.x}, ${chunk.y})\nTerrain: ${t(chunk.terrain as TranslationKey)}\n- Temperature: ${chunk.temperature?.toFixed(1)}°C\n- Moisture: ${chunk.moisture}/100\n- Light Level: ${chunk.lightLevel}/100\n- Danger Level: ${chunk.dangerLevel}/100\n- Explorability: ${chunk.explorability.toFixed(1)}/100\n- Magic Affinity: ${chunk.magicAffinity}/100\n- Human Presence: ${chunk.humanPresence}/100\n- Predator Presence: ${chunk.predatorPresence}/100\nItems: ${chunk.items.map((i: any) => t(i.name) + ` (x${i.quantity})`).join(', ') || 'None'}\nEnemy: ${chunk.enemy ? t(chunk.enemy.type as any) : 'None'}\nNPCs: ${chunk.NPCs.map((n: any) => t(n.name)).join(', ') || 'None'}\nStructures: ${chunk.structures.map((s: any) => t(s.name)).join(', ') || 'None'}`;
+          let analysis = `[Analysis Report]\nCoordinates: (${chunk.x}, ${chunk.y})\nRegion ID: ${chunk.regionId}\nTerrain: ${t(chunk.terrain as TranslationKey)}\nTravel Cost: ${chunk.travelCost}\n\nEnvironmental Factors:\n- Temperature: ${chunk.temperature?.toFixed(1)}°C\n- Moisture: ${chunk.moisture}/100\n- Light Level: ${chunk.lightLevel}/100\n- Danger Level: ${chunk.dangerLevel}/100\n- Explorability: ${chunk.explorability.toFixed(1)}/100\n- Magic Affinity: ${chunk.magicAffinity}/100\n- Human Presence: ${chunk.humanPresence}/100\n- Predator Presence: ${chunk.predatorPresence}/100\n- Vegetation Density: ${chunk.vegetationDensity}/100\n- Soil Type: ${t(chunk.soilType as TranslationKey)}\n- Wind Level: ${chunk.windLevel?.toFixed(1) ?? 'N/A'}/100\n\nEntities:\n- Items: ${chunk.items.map((i: any) => t(i.name) + ` (x${i.quantity})`).join(', ') || 'None'}\n- NPCs: ${chunk.NPCs.map((n: any) => t(n.name)).join(', ') || 'None'}\n- Structures: ${chunk.structures.map((s: any) => t(s.name)).join(', ') || 'None'}`;
+
+          if (chunk.enemy) {
+              const enemy = chunk.enemy;
+              analysis += `\n\nEnemy:\n  Type: ${t(enemy.type as any)}\n  HP: ${enemy.hp}\n  Damage: ${enemy.damage}\n  Behavior: ${enemy.behavior}\n  Size: ${enemy.size}\n  Diet: ${enemy.diet.join(', ')}\n  Satiation: ${enemy.satiation}/${enemy.maxSatiation}`;
+              if (enemy.senseEffect) {
+                  analysis += `\n  Sense Effect: ${enemy.senseEffect.keywords.join(', ')}`;
+              }
+              if (enemy.harvestable) {
+                  analysis += `\n  Harvestable:\n    Difficulty: ${enemy.harvestable.difficulty}\n    Required Tool: ${t(enemy.harvestable.requiredTool as TranslationKey)}\n    Loot: ${enemy.harvestable.loot.map((loot: any) => `${t(loot.name as TranslationKey)} (${loot.chance * 100}% chance)`).join(', ')}`;
+              }
+          }
+
           addNarrativeEntry(analysis, 'system');
       }
 

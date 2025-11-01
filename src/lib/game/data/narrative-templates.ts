@@ -1,6 +1,7 @@
 
 
 import type { BiomeTemplateData, Language, NarrativeLength } from '@/lib/game/types';
+import { validateBiomeTemplatesRecord } from '../schemas/narrativeSchema';
 
 // This file holds structured narrative templates and keyword variations.
 
@@ -209,6 +210,9 @@ export const biomeNarrativeTemplates: Record<string, BiomeTemplateData> = {
   "underwater": { terrain: "underwater", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
   "mushroom_forest": { terrain: "mushroom_forest", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
 };
+
+// Validate the biome templates at module load time
+validateBiomeTemplatesRecord(biomeNarrativeTemplates);
 
 
 // --- EXPORT FUNCTIONS ---

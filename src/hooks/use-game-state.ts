@@ -19,15 +19,25 @@ export function useGameState({ gameSlot: _gameSlot }: GameStateProps) {
     const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>([]);
     const [currentChunk, setCurrentChunk] = useState<Chunk | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
+    /**
+     * The `worldProfile` holds global world configuration used by generation
+     * systems. We initialize `resourceDensity` to a random multiplier between
+     * 0.5 and 1.5 so that new worlds vary in abundance. This value is applied
+     * multiplicatively in generation code (per-entity spawnChance and chunk
+     * item-count scaling).
+     *
+     * If you want deterministic worlds for tests or presets, set `worldProfile`
+     * explicitly via `setWorldProfile` instead of relying on the random default.
+     */
     const [worldProfile, setWorldProfile] = useState<WorldProfile>({
-        climateBase: 'temperate', 
-        magicLevel: 5, 
-        mutationFactor: 2, 
-        sunIntensity: 7, 
+        climateBase: 'temperate',
+        magicLevel: 5,
+        mutationFactor: 2,
+        sunIntensity: 7,
         weatherTypesAllowed: ['clear', 'rain', 'fog'],
-        moistureBias: 0, 
-        tempBias: 0, 
-        resourceDensity: 5, 
+        moistureBias: 0,
+        tempBias: 0,
+        resourceDensity: Math.random() * 1.0 + 0.5, // 0.5 .. 1.5
         theme: 'Normal',
     });
     const [currentSeason, setCurrentSeason] = useState<Season>('spring');

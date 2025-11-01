@@ -472,30 +472,28 @@ export const handleSearchAction = (
         const naturalCandidates = possibleItems.map((t: any) => ({ ...t, __isNatural: true }));
         const allCandidates = [...naturalCandidates, ...extraCandidates];
 
-        // Weighted selection based on candidate chance (non-natural items have low base chance)
-        const totalWeight = allCandidates.reduce((s: number, c: any) => s + (c.conditions?.chance ?? (c.__isNatural ? 0.5 : 0.02)), 0);
-        let r = Math.random() * totalWeight;
-        let chosen: any = null;
-        for (const c of allCandidates) {
-            const w = c.conditions?.chance ?? (c.__isNatural ? 0.5 : 0.02);
-            r -= w;
-            if (r <= 0) { chosen = c; break; }
-        }
-        if (!chosen) chosen = allCandidates.length > 0 ? allCandidates[Math.floor(Math.random() * allCandidates.length)] : possibleItems[0];
-
+        // Compute final chance per candidate and perform per-candidate roll.
+        // This ensures we use each candidate's own base chance and correctly apply
+        // multipliers, search boost, and non-natural caps when evaluating finds.
         const softcap = (m: number, k = 0.4) => m <= 1 ? m : m / (1 + (m - 1) * k);
         const effectiveMultiplier = softcap(spawnMultiplier);
+        const searchBoost = 1.4; // make search more generous than passive discovery
 
-        // Search should be more generous than passive natural spawn: add a modest search boost.
-        const searchBoost = 1.4;
+        // Shuffle candidates to avoid ordering bias when multiple have similar chances.
+        const shuffledCandidates = allCandidates.sort(() => 0.5 - Math.random());
+        let chosen: any = null;
+        for (const c of shuffledCandidates) {
+            const baseChance = c.conditions?.chance ?? (c.__isNatural ? 0.5 : 0.02);
+            let finalChance = Math.min(0.95, baseChance * effectiveMultiplier * searchBoost);
+            if (!c.__isNatural) finalChance = Math.min(0.3, finalChance); // cap non-natural finds
+            // If this candidate passes its own roll, select it and stop.
+            if (Math.random() < finalChance) {
+                chosen = c;
+                break;
+            }
+        }
 
-        // Base chance depends on whether the item is natural or not. Non-natural items get a very small baseChance.
-        const baseChance = chosen.conditions?.chance ?? (chosen.__isNatural ? 0.5 : 0.02);
-        // If chosen is non-natural, cap how high search can make it (avoid OP finds).
-        let finalChance = Math.min(0.95, baseChance * effectiveMultiplier * searchBoost);
-        if (!chosen.__isNatural) finalChance = Math.min(0.3, finalChance);
-
-        if (Math.random() < finalChance) {
+        if (chosen) {
             const foundItemTemplate = chosen;
             const itemDef = allItemDefinitions[foundItemTemplate.name];
             const quantity = itemDef ? rng(itemDef.baseQuantity) : rng({ min: 1, max: 1 });

@@ -16,11 +16,9 @@ export default function ClientInit() {
         regs.forEach(reg => {
           try {
             reg.unregister();
-            // eslint-disable-next-line no-console
             console.debug('[ClientInit] Unregistered service worker', reg);
-          } catch (e) {
-            // eslint-disable-next-line no-console
-            console.warn('[ClientInit] Failed to unregister service worker', e);
+          } catch {
+            console.warn('[ClientInit] Failed to unregister service worker');
           }
         });
       }).catch(() => {/* ignore */});
@@ -31,7 +29,6 @@ export default function ClientInit() {
       caches.keys().then(keys => {
         keys.forEach(key => {
           caches.delete(key).then(() => {
-            // eslint-disable-next-line no-console
             console.debug('[ClientInit] Deleted cache', key);
           }).catch(() => {/* ignore */});
         });
@@ -44,15 +41,13 @@ export default function ClientInit() {
     try {
       if (process.env.NODE_ENV !== 'production' && typeof window !== 'undefined') {
         // Don't override if already set by the developer
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const w = window as any;
         if (w.__DEBUG_BREAK !== true) {
           w.__DEBUG_BREAK = true;
-          // eslint-disable-next-line no-console
           console.info('[ClientInit] Auto-enabled window.__DEBUG_BREAK for first mount (dev only).');
         }
       }
-    } catch (e) {
+    } catch {
       // ignore any issues (this is purely developer convenience)
     }
 
@@ -65,7 +60,7 @@ export default function ClientInit() {
           // Force reload: bypass cache
           window.location.reload();
         }
-      } catch (e) {
+      } catch {
         // noop
       }
     };
@@ -79,7 +74,7 @@ export default function ClientInit() {
           console.warn('[ClientInit] Detected chunk load rejection, reloading page to recover', msg);
           window.location.reload();
         }
-      } catch (e) {
+      } catch {
         // noop
       }
     };

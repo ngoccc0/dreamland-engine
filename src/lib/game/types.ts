@@ -501,6 +501,8 @@ export interface GameSettings {
   theme: Theme;
     /** Optional: A bundle of active mods. */
     mods: ModBundle | null;
+    /** When true, the UI uses the legacy (mobile-oriented) layout: bottom action bar is shown even on desktop. */
+    useLegacyLayout?: boolean;
     /**
      * When true, focusing controls input on desktop will attempt to prevent the
      * browser from auto-scrolling the controls panel into view. Users can toggle

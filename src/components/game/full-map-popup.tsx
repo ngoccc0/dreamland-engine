@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/language-context";
-import type { World, Chunk, Terrain } from "@/lib/game/types";
+import type { World, Terrain } from "@/lib/game/types";
 import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon, renderItemEmoji } from "./icons";
 import { getTranslatedText } from "@/lib/utils";
 import { MapCellDetails } from './minimap';
@@ -65,7 +65,7 @@ const MIN_ZOOM = 1;
 const MAX_ZOOM = 5;
 
 export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }: FullMapPopupProps) {
-  const { t } = useLanguage();
+    const { t, language } = useLanguage();
   const [zoom, setZoom] = React.useState(2);
   const mapRadius = 7;
     const gridRef = React.useRef<HTMLDivElement | null>(null);
@@ -104,6 +104,21 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
     };
   }, [playerPosition.x, playerPosition.y]);
 
+    // Find nearest scrollable ancestor (viewport for panning)
+    const findScrollParent = (el: HTMLElement | null): HTMLElement | null => {
+        let p = el?.parentElement ?? null;
+        while (p && p !== document.body) {
+            try {
+                const style = getComputedStyle(p);
+                if (/auto|scroll/.test(`${style.overflow}${style.overflowY}${style.overflowX}`)) return p;
+            } catch {
+                // ignore
+            }
+            p = p.parentElement;
+        }
+        return document.scrollingElement as HTMLElement | null;
+    };
+
     // Keyboard pan & zoom when the full map is open. Arrow keys / WASD pan the viewport.
     React.useEffect(() => {
         if (!open) return;
@@ -118,7 +133,7 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
 
                 const grid = gridRef.current;
                 if (!grid) return;
-                const viewport = grid.parentElement as HTMLElement | null;
+                const viewport = findScrollParent(grid) ?? (grid.parentElement as HTMLElement | null);
                 if (!viewport) return;
 
                 const firstCell = grid.firstElementChild as HTMLElement | null;
@@ -165,7 +180,7 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
                     e.preventDefault();
                     viewport.scrollBy({ left: dx, top: dy, behavior: 'smooth' });
                 }
-            } catch (err) {
+            } catch {
                 // ignore
             }
         };
@@ -192,13 +207,15 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
                                                 className="p-4 inline-grid border-l border-t border-dashed border-border/50"
                         style={{
                             gridTemplateColumns: `repeat(${mapBounds.width}, auto)`,
+                            touchAction: 'none',
                         }}
                                                 onPointerDown={(e) => {
                                                     // start panning with primary pointer
                                                     try {
                                                         const el = gridRef.current;
                                                         if (!el) return;
-                                                        (e.target as Element).setPointerCapture?.(e.pointerId);
+                                                        // capture pointer on the grid element so we reliably receive move/up events
+                                                        (el as Element).setPointerCapture?.(e.pointerId);
                                                         isPanningRef.current = true;
                                                         activePointerIdRef.current = e.pointerId;
                                                         lastPointerRef.current = { x: e.clientX, y: e.clientY };
@@ -210,7 +227,7 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
                                                         if (activePointerIdRef.current !== null && e.pointerId !== activePointerIdRef.current) return;
                                                         const el = gridRef.current;
                                                         if (!el) return;
-                                                        const viewport = el.parentElement as HTMLElement | null;
+                                                        const viewport = findScrollParent(el) ?? (el.parentElement as HTMLElement | null);
                                                         if (!viewport) return;
                                                         const last = lastPointerRef.current;
                                                         if (!last) return;
@@ -226,7 +243,8 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
                                                         isPanningRef.current = false;
                                                         activePointerIdRef.current = null;
                                                         lastPointerRef.current = null;
-                                                        gridRef.current?.releasePointerCapture?.(e.pointerId);
+                                                        const el = gridRef.current;
+                                                        el?.releasePointerCapture?.(e.pointerId);
                                                     } catch {}
                                                 }}
                                                 onPointerCancel={(e) => {
@@ -262,7 +280,7 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
                                                         // If single touch and not pinching, allow panning via pointer events
                                                     } catch {}
                                                 }}
-                                                onTouchEnd={(e) => {
+                                                onTouchEnd={(_e) => {
                                                     try {
                                                         initialPinchDistanceRef.current = null;
                                                         pinchStartZoomRef.current = null;
@@ -292,15 +310,15 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
                                     );
                                 }
                                 
-                                const mainIcon = (chunk.structures && chunk.structures.length > 0)
-                                    ? <span
-                                        className={cn(currentBiomeIconSize, 'opacity-90 drop-shadow-lg')}
-                                        role="img"
-                                        aria-label={getTranslatedText(chunk.structures[0].name, 'en')}
-                                      >
-                                        {renderItemEmoji(chunk.structures[0].emoji, 28)}
-                                      </span>
-                                    : (biomeIcons[chunk.terrain as keyof typeof biomeIcons] || null);
+                                                                const mainIcon = (chunk.structures && chunk.structures.length > 0)
+                                                                        ? <span
+                                                                                className={cn(currentBiomeIconSize, 'opacity-90 drop-shadow-lg')}
+                                                                                role="img"
+                                                                                aria-label={getTranslatedText(chunk.structures[0].name, language, t)}
+                                                                            >
+                                                                                {renderItemEmoji(chunk.structures[0].emoji, 28)}
+                                                                            </span>
+                                                                        : (biomeIcons[chunk.terrain as keyof typeof biomeIcons] || null);
                                 
                                 return (
                                     <Popover key={chunkKey}>

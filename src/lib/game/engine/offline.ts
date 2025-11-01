@@ -296,7 +296,10 @@ export const generateOfflineNarrative = (
     }
     if (candidateTemplates.length === 0) return currentChunk.description;
 
-    const { max_s } = get_sentence_limits(narrativeLength);
+    const { min_s, max_s } = get_sentence_limits(narrativeLength);
+    // Choose a target sentence count within the allowed range so that
+    // changing the narrativeLength actually affects how verbose the output is.
+    const targetSentences = Math.max(min_s, Math.min(max_s, Math.floor(Math.random() * (max_s - min_s + 1)) + min_s));
     let finalSentences: string[] = [];
     let sentenceCount = 0;
 
@@ -308,7 +311,7 @@ export const generateOfflineNarrative = (
     }
 
     const detailTemplates = candidateTemplates.filter(t => t.type === 'EnvironmentDetail' || t.type === 'SensoryDetail');
-    while (sentenceCount < max_s && detailTemplates.length > 0) {
+    while (sentenceCount < targetSentences && detailTemplates.length > 0) {
         const chosen = select_template_by_weight(detailTemplates);
         finalSentences.push(fill_template(chosen.template, currentChunk, world, playerPosition, t, language, playerState));
         sentenceCount++;

@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -46,6 +47,8 @@ export default function GameLayout(props: GameLayoutProps) {
     }
     const { t, language } = useLanguage();
     const { settings } = useSettings();
+    const [isDesktop, setIsDesktop] = useState(false);
+    const [showNarrativeDesktop, setShowNarrativeDesktop] = useState(true);
     // Dev-only: track mount/unmount counts to help diagnose unexpected remounts
     if (process.env.NODE_ENV !== 'production') {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -80,8 +83,7 @@ export default function GameLayout(props: GameLayoutProps) {
         handleRequestQuestHint,
         handleEquipItem,
         handleUnequipItem,
-        handleReturnToMenu,
-        handleHarvest,
+    handleReturnToMenu,
         narrativeContainerRef,
     } = useGameEngine(props);
 
@@ -101,6 +103,14 @@ export default function GameLayout(props: GameLayoutProps) {
         };
     }, []);
 
+    // Track whether we are on a desktop-sized viewport so we can render the desktop layout
+    useEffect(() => {
+        const onResize = () => setIsDesktop(typeof window !== 'undefined' && window.innerWidth >= 1024);
+        onResize();
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
+
     
 
     const [isStatusOpen, setStatusOpen] = useState(false);
@@ -113,45 +123,54 @@ export default function GameLayout(props: GameLayoutProps) {
     const [isSettingsOpen, setSettingsOpen] = useState(false);
     const [showInstallPopup, setShowInstallPopup] = useState(false);
     const [inputValue, setInputValue] = useState("");
+    const [isAvailableActionsOpen, setAvailableActionsOpen] = useState(false);
+    const [isCustomDialogOpen, setCustomDialogOpen] = useState(false);
+    const [customDialogValue, setCustomDialogValue] = useState("");
     
     const customActionInputRef = useRef<HTMLInputElement>(null);
 
     const focusCustomActionInput = useCallback(() => {
         setTimeout(() => {
-                try {
-                    const el = customActionInputRef.current as (HTMLInputElement | null);
-                    if (!el) return;
-                    const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
-                    // Respect user setting for preventing control-panel scrolling
-                    const { settings } = (window as any).__APP_SETTINGS__ || { settings: { controlsPreventScroll: true } };
-                    const prevent = settings?.controlsPreventScroll ?? true;
-                    if (isDesktop && prevent) {
-                        // @ts-ignore - some TS DOM libs may not include the options overload
-                        el.focus?.({ preventScroll: true });
-                    } else {
-                        el.focus?.();
-                    }
-                } catch (err) {
-                    try { customActionInputRef.current?.focus(); } catch {}
-                }
+                        try {
+                            const el = customActionInputRef.current as (HTMLInputElement | null);
+                            if (!el) return;
+                            const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
+                            // Respect user setting for preventing control-panel scrolling
+                            const prevent = settings?.controlsPreventScroll ?? true;
+                            if (isDesktop && prevent) {
+                                // @ts-ignore - some TS DOM libs may not include the options overload
+                                el.focus?.({ preventScroll: true });
+                            } else {
+                                el.focus?.();
+                            }
+                        } catch {
+                            try { customActionInputRef.current?.focus(); } catch {}
+                        }
         }, 0);
-    }, []);
+            }, [settings]);
 
     // Global keyboard controls: Arrow keys + WASD to move, Space to attack.
-    // Ignore when typing in an input/textarea or when modals/popups are open.
+    // Movement keys take priority over typing: capture them in the capture phase and prevent default so
+    // WASD/Arrow/Space control the player even if the action input has focus.
     useEffect(() => {
         const keyHandler = (e: KeyboardEvent) => {
             try {
+                // Movement and attack keys should always be intercepted by the game controls
+                const movementKeys = new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','W','a','A','s','S','d','D',' ']);
+
+                // If this is not a movement key, and the user is focused on a text input, allow typing normally.
                 const active = document.activeElement as HTMLElement | null;
-                if (active) {
-                    const tag = (active.tagName || '').toUpperCase();
-                    if (tag === 'INPUT' || tag === 'TEXTAREA' || active.isContentEditable) return;
+                if (!movementKeys.has(e.key)) {
+                    if (active) {
+                        const tag = (active.tagName || '').toUpperCase();
+                        if (tag === 'INPUT' || tag === 'TEXTAREA' || active.isContentEditable) return;
+                    }
                 }
 
                 // If any major popup is open, don't intercept keys so users can interact with the UI.
                 if (isSettingsOpen || isFullMapOpen || isInventoryOpen || isStatusOpen || isCraftingOpen || isBuildingOpen || isFusionOpen || isTutorialOpen) return;
 
-                // Map keys to actions
+                // Map keys to actions (movement keys take precedence even when an input is focused)
                 switch (e.key) {
                     case 'ArrowUp':
                     case 'w':
@@ -195,8 +214,9 @@ export default function GameLayout(props: GameLayoutProps) {
             }
         };
 
-        window.addEventListener('keydown', keyHandler);
-        return () => window.removeEventListener('keydown', keyHandler);
+        // Use capture phase so the game controls get priority over other UI handlers (like inputs)
+        window.addEventListener('keydown', keyHandler, { capture: true });
+        return () => window.removeEventListener('keydown', keyHandler, { capture: true });
     }, [handleMove, handleAttack, isSettingsOpen, isFullMapOpen, isInventoryOpen, isStatusOpen, isCraftingOpen, isBuildingOpen, isFusionOpen, isTutorialOpen, focusCustomActionInput]);
 
     const handleActionClick = (actionId: number) => {
@@ -209,6 +229,15 @@ export default function GameLayout(props: GameLayoutProps) {
             handleCustomAction(inputValue);
             setInputValue("");
         }
+        focusCustomActionInput();
+    };
+    const onCustomDialogSubmit = () => {
+        const v = customDialogValue.trim();
+        if (v) {
+            handleCustomAction(v);
+            setCustomDialogValue("");
+        }
+        setCustomDialogOpen(false);
         focusCustomActionInput();
     };
     
@@ -287,10 +316,15 @@ export default function GameLayout(props: GameLayoutProps) {
         <TooltipProvider>
             <div className="flex flex-col md:flex-row md:h-dvh bg-background text-foreground font-body">
                 {/* Left Panel: Narrative */}
-                <div className="w-full md:flex-1 flex flex-col md:overflow-hidden">
+                <div className={`${isDesktop && !showNarrativeDesktop ? 'md:hidden' : ''} w-full md:flex-1 flex flex-col md:overflow-hidden`}>
                     <header className="p-4 border-b flex-shrink-0 flex justify-between items-center">
                         <h1 className="text-2xl font-bold font-headline">{worldNameText}</h1>
-                        <DropdownMenu>
+                        <div className="flex items-center gap-2">
+                            {/* Desktop-only toggle for narrative visibility */}
+                            <Button variant="ghost" size="icon" className="hidden md:inline-flex" onClick={() => setShowNarrativeDesktop(s => !s)} aria-label="Toggle narrative">
+                                {showNarrativeDesktop ? 'Hide' : 'Show'}
+                            </Button>
+                            <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon">
                                     <Menu />
@@ -312,6 +346,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
+                        </div>
                     </header>
 
                     <main ref={narrativeContainerRef} className="flex-grow p-4 md:p-6 overflow-y-auto max-h-[50dvh] md:max-h-full hide-scrollbar">
@@ -332,6 +367,35 @@ export default function GameLayout(props: GameLayoutProps) {
                             )}
                         </div>
                     </main>
+
+                    {/* Desktop horizontal action bar placed inside the left panel so it doesn't overlap the map.
+                        If the user enabled the legacy layout setting, prefer the bottom action bar and hide this desktop bar. */}
+                    {!settings?.useLegacyLayout && (
+                    <div className="hidden md:flex w-full bg-card border-t p-3 items-center gap-3 overflow-x-auto mt-2">
+                        <div className="flex items-center gap-2">
+                            {playerStats.skills?.map((skill: import('@/lib/game/types').Skill) => {
+                                const skillName = getTranslatedText(skill.name, language, t);
+                                return (
+                                    <Button key={skillName} variant="secondary" className="text-xs" onClick={() => { handleUseSkill(skillName); focusCustomActionInput(); }} disabled={isLoading || playerStats.mana < skill.manaCost}>
+                                        {skillName}
+                                    </Button>
+                                );
+                            })}
+                        </div>
+
+                        <div className="ml-auto flex items-center gap-2">
+                            <Button variant="outline" onClick={() => { setStatusOpen(true); focusCustomActionInput(); }}><Shield /></Button>
+                            <Button variant="outline" onClick={() => { setInventoryOpen(true); focusCustomActionInput(); }}><Backpack /></Button>
+                            <Button variant="outline" onClick={() => { setCraftingOpen(true); focusCustomActionInput(); }}><Hammer /></Button>
+                            <Button variant="outline" onClick={() => { setBuildingOpen(true); focusCustomActionInput(); }}><Home /></Button>
+                            <Button variant="outline" onClick={() => { setFusionOpen(true); focusCustomActionInput(); }}><FlaskConical /></Button>
+                            {/* Desktop quick access to available actions and custom action dialog */}
+                            <Button variant="outline" onClick={() => setAvailableActionsOpen(true)}>{t('actions') || 'Actions'}</Button>
+                            <Button variant="outline" onClick={() => setCustomDialogOpen(true)}>{t('customAction') || 'Custom'}</Button>
+                        </div>
+                    </div>
+                    )}
+
                 </div>
 
                 {/* Right Panel: Controls & Actions */}
@@ -372,8 +436,8 @@ export default function GameLayout(props: GameLayoutProps) {
                         </div>
                     </div>
                     
-                    {/* Bottom Section - Actions */}
-                    <div className="flex flex-col gap-4 flex-grow">
+                    {/* Bottom Section - Actions (desktop shows horizontal bar instead unless legacy layout is enabled) */}
+                    <div className={cn("flex flex-col gap-4 flex-grow", isDesktop && !settings?.useLegacyLayout ? 'md:hidden' : '')}>
                         {/* Controls and Skills */}
                         <div className="flex flex-col md:flex-row md:justify-around md:items-start md:gap-x-6 gap-y-4">
                             <Controls onMove={(dir) => { handleMove(dir); focusCustomActionInput(); }} onAttack={() => { handleAttack(); focusCustomActionInput(); }} />
@@ -399,15 +463,61 @@ export default function GameLayout(props: GameLayoutProps) {
                             </div>
                         </div>
 
-                        {/* Main Action Buttons */}
+                        {/* Main Action Buttons (visually improved) */}
                         <div className="space-y-2">
                             <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('mainActions')}</h3>
-                            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setStatusOpen(true); focusCustomActionInput(); }}><Shield /></Button></TooltipTrigger><TooltipContent><p>{t('statusTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setInventoryOpen(true); focusCustomActionInput(); }}><Backpack /></Button></TooltipTrigger><TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setCraftingOpen(true); focusCustomActionInput(); }}><Hammer /></Button></TooltipTrigger><TooltipContent><p>{t('craftingTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setBuildingOpen(true); focusCustomActionInput(); }}><Home /></Button></TooltipTrigger><TooltipContent><p>{t('buildingTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setFusionOpen(true); focusCustomActionInput(); }}><FlaskConical /></Button></TooltipTrigger><TooltipContent><p>{t('fusionTooltip')}</p></TooltipContent></Tooltip>
+                            <div className="bg-card/80 border rounded-xl p-3 shadow-md">
+                                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button variant="ghost" className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg h-16">
+                                                <Shield />
+                                                <span className="text-xs mt-1">{t('statusShort') || 'Status'}</span>
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>{t('statusTooltip')}</p></TooltipContent>
+                                    </Tooltip>
+
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button variant="ghost" className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg h-16" onClick={() => { setInventoryOpen(true); focusCustomActionInput(); }}>
+                                                <Backpack />
+                                                <span className="text-xs mt-1">{t('inventoryShort') || 'Inventory'}</span>
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent>
+                                    </Tooltip>
+
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button variant="ghost" className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg h-16" onClick={() => { setCraftingOpen(true); focusCustomActionInput(); }}>
+                                                <Hammer />
+                                                <span className="text-xs mt-1">{t('craftingShort') || 'Craft'}</span>
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>{t('craftingTooltip')}</p></TooltipContent>
+                                    </Tooltip>
+
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button variant="ghost" className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg h-16" onClick={() => { setBuildingOpen(true); focusCustomActionInput(); }}>
+                                                <Home />
+                                                <span className="text-xs mt-1">{t('buildingShort') || 'Build'}</span>
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>{t('buildingTooltip')}</p></TooltipContent>
+                                    </Tooltip>
+
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button variant="ghost" className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg h-16" onClick={() => { setFusionOpen(true); focusCustomActionInput(); }}>
+                                                <FlaskConical />
+                                                <span className="text-xs mt-1">{t('fusionShort') || 'Fuse'}</span>
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>{t('fusionTooltip')}</p></TooltipContent>
+                                    </Tooltip>
+                                </div>
                             </div>
                         </div>
                         
@@ -437,11 +547,56 @@ export default function GameLayout(props: GameLayoutProps) {
                         </div>
                         
                         <div className="flex flex-col gap-2 mt-auto pt-4">
-                            <Input ref={customActionInputRef} placeholder={t('customActionPlaceholder')} value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={handleKeyDown} disabled={isLoading} />
-                            <Tooltip><TooltipTrigger asChild><Button variant="accent" onClick={onCustomActionSubmit} disabled={isLoading}>{t('submit')}</Button></TooltipTrigger><TooltipContent><p>{t('submitTooltip')}</p></TooltipContent></Tooltip>
+                            <div className="flex gap-2">
+                                <Input ref={customActionInputRef} placeholder={t('customActionPlaceholder')} value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={handleKeyDown} disabled={isLoading} />
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="accent" onClick={onCustomActionSubmit} disabled={isLoading} className="ml-2">{t('submit')}</Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>{t('submitTooltip')}</p></TooltipContent>
+                                </Tooltip>
+                            </div>
                         </div>
                     </div>
                 </aside>
+                {/* Dialog: Available Actions (desktop) */}
+                <Dialog open={isAvailableActionsOpen} onOpenChange={setAvailableActionsOpen}>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>{t('availableActions') || 'Available Actions'}</DialogTitle>
+                            <DialogDescription>{t('availableActionsDesc') || 'Choose an available action.'}</DialogDescription>
+                        </DialogHeader>
+                        <div className="mt-4 grid grid-cols-1 gap-2">
+                            {currentChunk?.actions.length ? (
+                                currentChunk!.actions.map((action: Action) => (
+                                    <Button key={action.id} variant="secondary" className="w-full justify-center" onClick={() => { handleActionClick(action.id); setAvailableActionsOpen(false); }}>
+                                        {getTranslatedText({ key: action.textKey, params: action.params }, language, t)}
+                                    </Button>
+                                ))
+                            ) : (
+                                <p className="text-sm text-muted-foreground">{t('noAvailableActions') || 'No actions available.'}</p>
+                            )}
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Dialog: Custom Action input (desktop) */}
+                <Dialog open={isCustomDialogOpen} onOpenChange={setCustomDialogOpen}>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>{t('customAction') || 'Custom Action'}</DialogTitle>
+                            <DialogDescription>{t('customActionDesc') || 'Type a custom action and submit.'}</DialogDescription>
+                        </DialogHeader>
+                        <div className="mt-4">
+                            <Input placeholder={t('customActionPlaceholder') || 'Describe your action...'} value={customDialogValue} onChange={(e) => setCustomDialogValue((e.target as HTMLInputElement).value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); onCustomDialogSubmit(); } }} />
+                            <div className="flex justify-end mt-3">
+                                <Button variant="ghost" onClick={() => setCustomDialogOpen(false)} className="mr-2">{t('cancel') || 'Cancel'}</Button>
+                                <Button onClick={onCustomDialogSubmit}>{t('submit') || 'Submit'}</Button>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+                
                 
                 <StatusPopup open={isStatusOpen} onOpenChange={setStatusOpen} stats={playerStats} onRequestHint={handleRequestQuestHint} onUnequipItem={handleUnequipItem} />
                 <InventoryPopup open={isInventoryOpen} onOpenChange={setInventoryOpen} items={playerStats.items} itemDefinitions={customItemDefinitions} enemy={currentChunk?.enemy || null} onUseItem={handleItemUsed} onEquipItem={handleEquipItem} />

@@ -123,8 +123,9 @@ const biomeIcons: Record<Exclude<Terrain, 'empty' | 'wall' | 'ocean' | 'city' | 
 
 
 export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
-  const { t, language } = useLanguage();
-  const responsiveCellSize = "w-14 h-14 md:w-16 md:h-16 lg:w-20 lg:h-20";
+    const { t, language } = useLanguage();
+    // Use clamp() so cell sizes scale down on smaller viewports and the full map can fit without panning
+    const responsiveCellSize = "w-[clamp(28px,6vw,48px)] h-[clamp(28px,6vw,48px)]";
 
   useEffect(() => {
     logger.debug("[MINIMAP] Mounted with props:", { grid, playerPosition, turn });
@@ -138,7 +139,7 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
     logger.warn("[MINIMAP] No map data provided.");
     return (
       <div className="flex flex-col items-center gap-2">
-        <div className="grid grid-cols-5 border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-hidden">
+        <div className="grid grid-cols-5 border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-visible">
           {Array.from({ length: 25 }).map((_, i) => (
              <div key={i} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />
           ))}
@@ -149,7 +150,7 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
 
   return (
     <div className="flex flex-col items-center gap-2">
-        <div className="grid grid-cols-5 border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-hidden">
+    <div className="grid grid-cols-5 border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-visible">
         {grid.map((row, rowIndex) =>
             row.map((cell, colIndex) => {
               const key = `${rowIndex}-${colIndex}`;

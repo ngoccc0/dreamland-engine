@@ -19,6 +19,9 @@ export const uiTranslations = {
     // In-Game UI
     mainActions: "Main Actions",
     availableActions: "Available Actions",
+    pickUpItems: "Pick Up Items",
+    actions: "Actions",
+    customAction: "Custom Action",
     status: "Status",
     statusTooltip: "View health, mana, and quests.",
     inventory: "Inventory",
@@ -144,6 +147,8 @@ export const uiTranslations = {
     // Settings Popup
     gameSettings: "Game Settings",
     gameSettingsDesc: "Adjust your game experience.",
+    preventControlsScroll: "Prevent Controls Scroll",
+    preventControlsScrollDesc: "Prevents the game controls from scrolling the page.",
     language: "Language",
     languageDesc: "Choose the display language for the interface and game story.",
     aiStoryteller: "AI Storyteller",

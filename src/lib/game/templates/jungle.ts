@@ -23,6 +23,7 @@ export const jungle_vi = {
     ],
     items: [
         { name: 'Dây leo Titan', conditions: { vegetationDensity: { min: 9 }, chance: 0.25 } },
+        { name: 'thorny_vine', conditions: { vegetationDensity: { min: 7 }, chance: 0.3 } },
         { name: 'Hoa ăn thịt', conditions: { dangerLevel: { min: 6 }, vegetationDensity: { min: 8 }, chance: 0.1 } },
         { name: 'Nọc Ếch độc', conditions: { dangerLevel: { min: 7 }, moisture: { min: 8 }, chance: 0.05 } },
         { name: 'Lông Vẹt Sặc Sỡ', conditions: { chance: 0.35 } },

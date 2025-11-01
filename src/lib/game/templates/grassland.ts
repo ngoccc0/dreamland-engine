@@ -32,7 +32,7 @@ export const grassland_vi = {
         { name: 'Đất Sét', conditions: { moisture: { min: 4 }, chance: 0.2 } },
         { name: 'Cỏ Khô', conditions: { moisture: { max: 3 }, chance: 0.4 } },
         { name: 'Hạt Giống Hoa Dại', conditions: { chance: 0.25 } },
-        { name: 'Mảnh Vải Rách', conditions: { humanPresence: { min: 3 }, chance: 0.1 } },
+    { name: 'Mảnh Vải Rách', conditions: { humanPresence: { min: 1 }, chance: 0.2 } },
         { name: 'Cành Cây Chắc Chắn', conditions: { chance: 0.3 } },
     ],
     structures: [

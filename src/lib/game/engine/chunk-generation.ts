@@ -474,19 +474,9 @@ export function generateChunkContent(
 
         const sampledCandidates = randomSample(candidateList, M); // Get `M` random candidates.
 
-        // Lightweight heuristic to detect essential crafting materials in the sampled pool.
-        // If your item definitions include an explicit flag (e.g. `def.isMaterial` or `def.tags`),
-        // replace this heuristic with that field for a more robust behavior.
-        const ESSENTIAL_KEYWORDS = ['dây', 'dây gai', 'vải', 'vải rách', 'đá', 'cuội', 'mảnh', 'gai', 'thành'];
-        const isEssentialCandidate = (c: any) => {
-            try {
-                const nm = typeof c.name === 'string' ? c.name.toLowerCase() : String(c.name).toLowerCase();
-                return ESSENTIAL_KEYWORDS.some(k => nm.includes(k));
-            } catch {
-                return false;
-            }
-        };
-        const essentialCandidates = sampledCandidates.filter(isEssentialCandidate);
+        // (No heuristic prioritization here) The responsibility for ensuring essential
+        // crafting materials appear in appropriate biomes belongs in terrain templates
+        // and item definitions. We intentionally avoid ad-hoc keyword heuristics.
 
     /**
      * Stage 3: Budget system.
@@ -501,28 +491,6 @@ export function generateChunkContent(
     let chunkBudget = 1.0 * (worldProfile?.resourceDensity ?? 1); // Initialize budget based on world density.
     const costScale = 0.6; // Scale factor to reduce the raw cost of items, making rarer items more accessible.
         const preBudgetSelected: SpawnCandidate[] = []; // Array to hold candidates that pass the budget check.
-        // Try to prioritize one essential crafting material if present in the sampled pool.
-        let essentialReserved: SpawnCandidate | null = null;
-        if (essentialCandidates && essentialCandidates.length > 0) {
-            // Prefer the first essential candidate (sampledCandidates already randomized).
-            const candidateToTry = essentialCandidates[0];
-            const defTry = resolveDef(typeof candidateToTry.name === 'string' ? candidateToTry.name : String(candidateToTry.name));
-            let rarityTry = (defTry as any)?.rarity as number | undefined;
-            if (rarityTry === undefined) {
-                if (defTry && typeof defTry.tier === 'number') rarityTry = Math.max(0.05, 1 - (defTry.tier - 1) * 0.15);
-                else rarityTry = 0.2;
-            }
-            rarityTry = Math.max(0.05, Math.min(1, rarityTry));
-            const costTry = (1 / Math.max(0.05, rarityTry)) * costScale * 0.6; // apply extra easing for essential
-            if (chunkBudget - costTry >= 0) {
-                preBudgetSelected.push(candidateToTry);
-                chunkBudget -= costTry;
-                essentialReserved = candidateToTry;
-            } else {
-                // keep as fallback if budget couldn't include it now
-                essentialReserved = candidateToTry;
-            }
-        }
         // Iterate through the sampled candidates to determine if they fit within the chunk's budget.
         for (const cand of sampledCandidates) {
             const def = resolveDef(typeof cand.name === 'string' ? cand.name : String(cand.name));
@@ -608,15 +576,7 @@ export function generateChunkContent(
                 }
             }
         }
-            // If an essential candidate was reserved but not added (due to budget), allow a small
-            // fallback probability here to ensure crafting materials occasionally appear.
-            if (essentialReserved && !spawnedItemRefs.includes(essentialReserved) && spawnedItemRefs.length < maxItems) {
-                const essentialFallbackChance = 0.1 * (worldDensityScale ?? 1) * effectiveMultiplier; // ~10% base
-                if (Math.random() < essentialFallbackChance) {
-                    spawnedItemRefs.push(essentialReserved);
-                    logger.debug('[generateChunkContent] essential fallback triggered', { essentialFallbackChance, essentialName: essentialReserved?.name });
-                }
-            }
+            // No post-budget heuristics; templates should provide the necessary chance for essentials.
 
             logger.debug('[generateChunkContent] multi-stage selection', { candidateCount: candidateList.length, sampled: sampledCandidates.length, preBudget: preBudgetSelected.length, final: spawnedItemRefs.length, chunkBudgetLeft: chunkBudget });
     } else {

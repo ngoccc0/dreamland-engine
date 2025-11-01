@@ -32,6 +32,7 @@ export const mountain_vi = {
         { name: 'Trứng Griffon', conditions: { elevation: { min: 9 }, magicAffinity: {min: 7}, chance: 0.01 } },
         { name: 'Đá Vỏ Chai', conditions: { elevation: { min: 6 }, chance: 0.25 } },
         { name: 'Đá Granit', conditions: { chance: 0.35 } },
+    { name: 'Đá Cuội', conditions: { chance: 0.25 } },
         { name: 'Tuyết', conditions: { temperature: { max: 2 }, chance: 0.4 } },
         { name: 'Cây Địa Y', conditions: { moisture: { min: 4 }, chance: 0.1 } },
         { name: 'Trứng Đại Bàng', conditions: { elevation: { min: 8 }, chance: 0.1 } }

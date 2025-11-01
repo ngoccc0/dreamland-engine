@@ -21,9 +21,9 @@ export const beach_vi = {
     sky: ['trong xanh', 'đầy mây', 'hoàng hôn'],
     NPCs: [],
     items: [
-        { name: 'Sỏi', conditions: { chance: 0.3 } },
+        { name: 'Sỏi', conditions: { chance: 0.35 } },
         { name: 'Cát Thường', conditions: { chance: 0.5 } },
-        { name: 'Đá Cuội', conditions: { chance: 0.2 } },
+        { name: 'Đá Cuội', conditions: { chance: 0.35 } },
     ],
     structures: [],
     enemies: [],

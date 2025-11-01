@@ -174,8 +174,11 @@ export function resolveItemId(
             for (const [key, def] of Object.entries(itemDefs)) {
                 if (def?.id && def.id === itemOrName) return def.id;
                 try {
+                    // Match against English and Vietnamese names to support localized
+                    // inventory entries that may already be translated.
                     const defNameEn = getTranslatedText(def.name, 'en', t as any);
-                    if (defNameEn === itemOrName) return def.id ?? key;
+                    const defNameVi = getTranslatedText(def.name, 'vi', t as any);
+                    if (defNameEn === itemOrName || defNameVi === itemOrName) return def.id ?? key;
                 } catch (e) {
                     // ignore malformed defs
                 }
@@ -199,6 +202,33 @@ export function resolveItemId(
     }
 
     return undefined;
+}
+
+/**
+ * Ensure a PlayerItem-like object has a canonical id field filled in.
+ * If the item already has an `id` we leave it. Otherwise we try to resolve
+ * a canonical id from the item's name using `resolveItemId`. If resolution
+ * fails we fall back to the English translation string as a best-effort id.
+ *
+ * This is safe to call before inserting items into `playerStats.items` so
+ * game logic can always rely on the presence of an `id` for deterministic
+ * lookups.
+ */
+export function ensurePlayerItemId<T extends { name?: any; id?: string }>(
+    item: T,
+    itemDefs?: Record<string, any>,
+    t?: (k: string, opts?: any) => string,
+    language: Language = 'en'
+): T {
+    if (!item) return item;
+    if (item.id) return item;
+    try {
+        const resolved = resolveItemId(item.name, itemDefs, t, language) ?? getTranslatedText(item.name as any, 'en', t as any);
+        if (resolved) item.id = resolved as any;
+    } catch (e) {
+        // ignore errors and leave item as-is
+    }
+    return item;
 }
 
 /**

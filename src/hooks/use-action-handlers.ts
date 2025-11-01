@@ -17,7 +17,7 @@ import { resolveItemDef as resolveItemDefHelper } from '@/lib/game/item-utils';
 import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchAction } from '@/lib/game/engine/offline';
 import { getEffectiveChunk } from '@/lib/game/engine/generation';
 import { getTemplates } from '@/lib/game/templates';
-import { clamp, getTranslatedText, resolveItemId } from '@/lib/utils';
+import { clamp, getTranslatedText, resolveItemId, ensurePlayerItemId } from '@/lib/utils';
 import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem, NarrativeEntry, GeneratedItem, TranslatableString, ItemDefinition, Chunk, Enemy } from '@/lib/game/types';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-config';
@@ -494,7 +494,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                           (npcDef.rewardItems || []).forEach((reward: PlayerItem) => {
                           const existingItem = newPlayerStats.items.find((i: PlayerItem) => getTranslatedText(i.name, 'en') === getTranslatedText(reward.name, 'en'));
                           if (existingItem) existingItem.quantity += reward.quantity;
-                              else newPlayerStats.items.push({...reward});
+                              else newPlayerStats.items.push(ensurePlayerItemId({...reward}, customItemDefinitions, t, language));
                           });
                           newPlayerStats.quests = newPlayerStats.quests.filter(q => q !== questText);
                           addNarrativeEntry(t('npcQuestCompleted', { npcName: npcName }), 'narrative');
@@ -548,7 +548,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
           if (itemInInventory) {
               itemInInventory.quantity += itemInChunk.quantity;
           } else {
-              newPlayerStats.items.push({...itemInChunk});
+              newPlayerStats.items.push(ensurePlayerItemId({...itemInChunk}, customItemDefinitions, t, language));
           }
           
           addNarrativeEntry(t('pickedUpItemNarrative', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name as TranslationKey) }), 'narrative');
@@ -857,7 +857,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                     emoji: result.resultItem.emoji
                     , id: resultItemId
                 };
-                nextPlayerStats.items.push(itemToAdd);
+                nextPlayerStats.items.push(ensurePlayerItemId(itemToAdd, customItemDefinitions, t, language));
             }
             
             if(!resolveItemDef(resultItemId)) {
@@ -913,7 +913,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             if (existingInInventory) {
                 existingInInventory.quantity += 1;
             } else {
-                newStats.items.push({ ...currentEquipped, quantity: 1 });
+                newStats.items.push(ensurePlayerItemId({ ...currentEquipped, quantity: 1 }, customItemDefinitions, t, language));
             }
         }
     
@@ -958,7 +958,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         if (existingInInventory) {
             existingInInventory.quantity += 1;
         } else {
-            newStats.items.push({ ...itemToUnequip, quantity: 1 });
+            newStats.items.push(ensurePlayerItemId({ ...itemToUnequip, quantity: 1 }, customItemDefinitions, t, language));
         }
 
         (newStats.equipment as any)[slot] = null;
@@ -1045,7 +1045,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             if(existingItem) {
                 existingItem.quantity += lootItem.quantity;
             } else {
-                nextPlayerStats.items.push(lootItem as PlayerItem);
+                nextPlayerStats.items.push(ensurePlayerItemId(lootItem as PlayerItem, customItemDefinitions, t, language));
             }
         });
     } else {

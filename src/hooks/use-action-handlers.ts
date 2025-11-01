@@ -88,7 +88,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
     const { roll, range } = rollDice(settings.diceType);
     const successLevel = getSuccessLevel(roll, settings.diceType);
-    addNarrativeEntry(t('diceRollMessage', { roll, level: t(successLevelToTranslationKey[successLevel]) }), 'system', `${Date.now()}-dice`);
+    addNarrativeEntry(t('diceRollMessage', { diceType: settings.diceType, roll, level: t(successLevelToTranslationKey[successLevel]) }), 'system', `${Date.now()}-dice`);
 
     const currentChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime);
 
@@ -215,7 +215,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
     const { roll } = rollDice(settings.diceType);
     const successLevel = getSuccessLevel(roll, settings.diceType);
-    addNarrativeEntry(t('diceRollMessage', { roll, level: t(successLevelToTranslationKey[successLevel]) }), 'system');
+    addNarrativeEntry(t('diceRollMessage', { diceType: settings.diceType, roll, level: t(successLevelToTranslationKey[successLevel]) }), 'system');
 
     let playerDamage = 0;
     const damageMultiplier = successLevel === 'CriticalFailure' ? 0 : successLevel === 'Failure' ? 0 : successLevel === 'GreatSuccess' ? 1.5 : successLevel === 'CriticalSuccess' ? 2.0 : 1.0;
@@ -399,7 +399,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
     const { roll } = rollDice(settings.diceType);
     const successLevel = getSuccessLevel(roll, settings.diceType);
-    addNarrativeEntry(t('diceRollMessage', { roll, level: t(successLevelToTranslationKey[successLevel]) }), 'system');
+    addNarrativeEntry(t('diceRollMessage', { diceType: settings.diceType, roll, level: t(successLevelToTranslationKey[successLevel]) }), 'system');
     newPlayerStats.mana = (newPlayerStats.mana ?? 0) - skillToUse.manaCost;
 
     const key = `${playerPosition.x},${playerPosition.y}`;

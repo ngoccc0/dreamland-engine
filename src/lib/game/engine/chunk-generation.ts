@@ -1,4 +1,40 @@
-import type { 
+/**
+ * World chunk generation engine responsible for creating diverse, procedurally-generated game environments.
+ * This module orchestrates the complete pipeline from terrain templates to populated chunks with items,
+ * NPCs, structures, enemies, and interactive actions.
+ *
+ * Key responsibilities:
+ * - Terrain-based content generation using template-driven approach
+ * - Probabilistic entity spawning with environmental and world-profile modifiers
+ * - Resource distribution balancing across chunk properties
+ * - Integration of custom-generated content (items, structures) with static templates
+ * - Action generation for player interaction with spawned entities
+ * - Multi-language support for generated descriptions and content
+ *
+ * Generation pipeline:
+ * 1. **Template Selection**: Choose terrain-appropriate templates for base content
+ * 2. **Spawn Candidate Preparation**: Combine static template + custom catalog items
+ * 3. **Environmental Filtering**: Apply chunk conditions to eligible entities
+ * 4. **Probability Calculation**: Factor in world profile, resource scores, and tier modifiers
+ * 5. **Entity Selection**: Use selectEntities() for probabilistic spawning
+ * 6. **Content Assembly**: Generate final chunk with descriptions, actions, and entities
+ *
+ * Data flow and interdependencies:
+ * - Terrain templates → provide base spawn candidates and descriptions
+ * - ItemDefinition.naturalSpawn → defines custom item spawning rules
+ * - WorldProfile → global multipliers for spawn rates and resource density
+ * - Chunk properties → environmental factors affecting spawn probabilities
+ * - selectEntities() → core probabilistic selection algorithm
+ * - Translation system → multi-language content generation
+ *
+ * Performance characteristics:
+ * - O(n*m) complexity where n=spawn candidates, m=chunk filtering operations
+ * - Optimized for world generation with batched chunk processing
+ * - Memory efficient with streaming entity resolution
+ * - Extensive logging for spawn debugging and balance tuning
+ */
+
+import type {
     WorldProfile,
     ItemDefinition,
     GeneratedItem,
@@ -62,19 +98,74 @@ interface ChunkBaseData {
 }
 
 /**
- * Generates the content for a single chunk in the world, including items, NPCs, structures, and enemies.
- * This function orchestrates the spawning logic based on chunk data, world profile, and various definitions.
+ * Core chunk content generation algorithm that transforms environmental data into playable game content.
+ * This function implements the complete procedural generation pipeline, combining terrain templates,
+ * custom content, and probabilistic spawning to create diverse, interactive chunks.
  *
- * @param chunkData - Base data for the chunk, including environmental factors like vegetation, moisture, and danger level.
- * @param worldProfile - The overall world profile, containing global settings like spawn multipliers and resource density.
- * @param allItemDefinitions - A record of all possible item definitions by their key.
- * @param customItemCatalog - A list of custom-generated items that can potentially spawn.
- * @param customStructures - A list of custom-generated structures that can potentially spawn.
- * @param language - The current language for translation purposes.
- * @returns A {@link ChunkGenerationResult} object containing the generated description, NPCs, items, structures, enemy, and actions for the chunk.
+ * Generation pipeline overview:
+ * 1. **Template Resolution**: Select terrain-appropriate template with descriptions and base entities
+ * 2. **Spawn Candidate Assembly**: Merge static template entities with custom-generated content
+ * 3. **Resource Capacity Calculation**: Determine max items based on environmental factors
+ * 4. **Entity Selection**: Apply probabilistic spawning via selectEntities() with world modifiers
+ * 5. **Content Resolution**: Convert entity references to actual game objects with quantities
+ * 6. **Structure Processing**: Handle loot distribution and structure-specific spawning
+ * 7. **Action Generation**: Create interactive actions based on spawned content
+ * 8. **Result Assembly**: Package everything into final ChunkGenerationResult
+ *
+ * Spawn candidate preparation:
+ * - **Static candidates**: From terrain templates (terrainTemplate.items, NPCs, enemies, structures)
+ * - **Custom candidates**: From customItemCatalog filtered by spawnEnabled and spawnBiomes
+ * - **Combined pool**: Merged arrays passed to selectEntities() for unified probabilistic selection
+ *
+ * Resource capacity formula:
+ * ```
+ * chunkResourceScore = (veg/100 + moist/100 + (1-human/100) + (1-danger/100) + (1-pred/100)) / 5
+ * worldDensityScale = worldProfile.resourceDensity / 100
+ * chunkCountMultiplier = 0.5 + (chunkResourceScore * worldDensityScale)
+ * maxItems = max(1, floor(10 * effectiveMultiplier * chunkCountMultiplier))
+ * ```
+ *
+ * Item resolution process:
+ * 1. selectEntities() returns entity references with names
+ * 2. resolveItemByName() converts display names to ItemDefinition objects
+ * 3. Quantity determined from ItemDefinition.baseQuantity range
+ * 4. ChunkItem objects created with resolved properties
+ *
+ * Structure loot handling:
+ * - Loot items have individual spawn chances within structures
+ * - Existing items in chunk get quantity increases (stacking)
+ * - New items added to spawnedItems array
+ *
+ * Action generation rules:
+ * - Enemy observation actions for spawned enemies
+ * - NPC interaction actions for spawned NPCs
+ * - Item pickup actions for all spawned items
+ * - Generic exploration actions always available
+ *
+ * Interdependencies:
+ * - selectEntities() → uses entity-generation.ts for probabilistic selection
+ * - ItemDefinition → provides spawn rules and properties via naturalSpawn
+ * - WorldProfile → global spawn multipliers and resource density scaling
+ * - Terrain templates → base content and spawn candidates
+ * - Translation system → multi-language descriptions and action text
+ *
+ * Performance considerations:
+ * - O(n) for spawn candidate preparation where n = template + custom items
+ * - O(m) for entity selection where m = maxItems parameter
+ * - Extensive debug logging for spawn balance tuning
+ * - Memory efficient with streaming resolution of large item catalogs
+ *
+ * @param chunkData - Environmental properties defining chunk characteristics and spawn conditions
+ * @param worldProfile - Global world settings affecting spawn rates and content density
+ * @param allItemDefinitions - Complete registry of item definitions for resolution and validation
+ * @param customItemCatalog - Procedurally generated items that can spawn in addition to templates
+ * @param customStructures - Custom structures available for spawning in this chunk
+ * @param language - Language code for generating localized descriptions and actions
+ * @returns Complete chunk content ready for game integration
+ *
  * @example
  * ```typescript
- * const result = generateChunkContent(
+ * const chunk = generateChunkContent(
  *   {
  *     vegetationDensity: 70, moisture: 60, elevation: 100, dangerLevel: 30,
  *     magicAffinity: 20, humanPresence: 10, predatorPresence: 40, temperature: 25,
@@ -82,12 +173,12 @@ interface ChunkBaseData {
  *     lightLevel: 100, windLevel: 50
  *   },
  *   { spawnMultiplier: 1.2, resourceDensity: 75, difficulty: 0.5, name: 'Test World' },
- *   itemDefinitions, // Assume this is loaded
- *   [], // No custom items for this example
- *   [], // No custom structures for this example
+ *   itemDefinitions,
+ *   customGeneratedItems,
+ *   customGeneratedStructures,
  *   'en'
  * );
- * console.log(result.description);
+ * // Result contains description, NPCs, items, structures, enemy, and actions
  * ```
  */
 export function generateChunkContent(

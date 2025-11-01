@@ -1,16 +1,22 @@
 import { GridPosition } from '../values/grid-position';
 import { GridCell } from './grid-cell';
-import { TranslatableString } from '../types/i18n';
+import type { TranslatableString } from '../types/i18n';
 
+/**
+ * Defines the various types of discoveries that can be made during exploration.
+ */
 export enum DiscoveryType {
-    LANDMARK = 'landmark',
-    RESOURCE = 'resource',
-    SETTLEMENT = 'settlement',
-    DUNGEON = 'dungeon',
-    ARTIFACT = 'artifact',
-    SECRET = 'secret'
+    LANDMARK = 'landmark',    // A notable geographical or structural feature.
+    RESOURCE = 'resource',    // A source of valuable materials.
+    SETTLEMENT = 'settlement',// A populated area or ruin.
+    DUNGEON = 'dungeon',      // A dangerous area with challenges and rewards.
+    ARTIFACT = 'artifact',    // A rare or unique item of significance.
+    SECRET = 'secret'         // A hidden area or piece of lore.
 }
 
+/**
+ * Defines the difficulty levels for exploration and discoveries.
+ */
 export enum ExplorationDifficulty {
     EASY = 'easy',
     NORMAL = 'normal',
@@ -19,32 +25,59 @@ export enum ExplorationDifficulty {
     LEGENDARY = 'legendary'
 }
 
+/**
+ * Represents a single discovery made during exploration.
+ */
 export interface Discovery {
+    /** Unique identifier for the discovery. */
     id: string;
+    /** The type of discovery. */
     type: DiscoveryType;
+    /** The multilingual name of the discovery. */
     name: TranslatableString;
+    /** The multilingual description of the discovery. */
     description: TranslatableString;
+    /** The difficulty associated with making or interacting with this discovery. */
     difficulty: ExplorationDifficulty;
+    /** Optional: Rewards obtained upon making this discovery. */
     rewards?: {
+        /** Experience points gained. */
         experience: number;
+        /** Optional: List of item IDs obtained. */
         items?: string[];
+        /** Optional: List of features or recipes unlocked. */
         unlocks?: string[];
     };
 }
 
+/**
+ * Tracks the player's overall exploration progress and discoveries.
+ */
 export interface ExplorationProgress {
+    /** A set of string representations of {@link GridPosition} for cells that have been revealed. */
     revealedCells: Set<string>;
+    /** A map of all discoveries made, indexed by their ID. */
     discoveries: Map<string, Discovery>;
+    /** A set of IDs for discoveries that have been fully completed or resolved. */
     completedDiscoveries: Set<string>;
+    /** The total cumulative score from all exploration activities. */
     totalExplorationScore: number;
+    /** A map of exploration-related skill levels, indexed by skill name. */
     skillLevels: Map<string, number>;
 }
 
+/**
+ * Manages the player's exploration activities, including revealing cells,
+ * discovering points of interest, and tracking exploration-related skills.
+ */
 export class ExplorationManager {
     private _progress: ExplorationProgress;
     private _activeCells: Map<string, GridCell>;
     private _discoveryChances: Map<string, number>;
 
+    /**
+     * Creates an instance of ExplorationManager.
+     */
     constructor() {
         this._progress = {
             revealedCells: new Set(),
@@ -62,17 +95,28 @@ export class ExplorationManager {
         this._discoveryChances = new Map();
     }
 
+    /**
+     * Explores a given grid cell, updating exploration progress and checking for new discoveries.
+     * @param cell - The {@link GridCell} to explore.
+     * @param explorationSkills - A map of the player's current exploration skill levels.
+     * @returns An {@link ExplorationResult} detailing the outcome of the exploration.
+     */
     exploreCell(cell: GridCell, explorationSkills: Map<string, number>): ExplorationResult {
+        // If the cell has already been revealed, return 'already_explored' type.
         if (this._progress.revealedCells.has(cell.position.toString())) {
             return { type: 'already_explored', discoveries: [] };
         }
 
+        // Mark the cell as revealed and add it to active cells.
         this._progress.revealedCells.add(cell.position.toString());
         this._activeCells.set(cell.position.toString(), cell);
 
+        // Check for new discoveries within the cell.
         const discoveries = this.checkForDiscoveries(cell, explorationSkills);
+        // Calculate exploration points gained from this action.
         const explorationPoints = this.calculateExplorationPoints(cell, discoveries);
         
+        // Add points to total exploration score.
         this._progress.totalExplorationScore += explorationPoints;
         
         return {
@@ -83,23 +127,33 @@ export class ExplorationManager {
         };
     }
 
+    /**
+     * Checks for potential discoveries within a given grid cell based on its attributes and player skills.
+     * @param cell - The {@link GridCell} to check.
+     * @param skills - A map of the player's current exploration skill levels.
+     * @returns An array of {@link Discovery} objects found in the cell.
+     */
     private checkForDiscoveries(cell: GridCell, skills: Map<string, number>): Discovery[] {
         const discoveries: Discovery[] = [];
         const baseChance = this.calculateBaseDiscoveryChance(cell);
 
-        // Check each discovery type based on cell attributes and skills
+        // Check each discovery type based on cell attributes and relevant skills.
+        // Magic affinity influences artifact discovery, boosted by archaeology skill.
         if (this.rollForDiscovery(baseChance * cell.attributes.magicAffinity / 100, skills.get('archaeology') || 1)) {
             discoveries.push(this.generateDiscovery(DiscoveryType.ARTIFACT, cell));
         }
 
+        // Human presence influences settlement discovery, boosted by archaeology skill.
         if (this.rollForDiscovery(baseChance * cell.attributes.humanPresence / 100, skills.get('archaeology') || 1)) {
             discoveries.push(this.generateDiscovery(DiscoveryType.SETTLEMENT, cell));
         }
 
+        // Danger level influences dungeon discovery, boosted by survival skill.
         if (this.rollForDiscovery(baseChance * cell.attributes.dangerLevel / 100, skills.get('survival') || 1)) {
             discoveries.push(this.generateDiscovery(DiscoveryType.DUNGEON, cell));
         }
 
+        // Vegetation density influences resource discovery, boosted by naturalism skill.
         if (this.rollForDiscovery(baseChance * cell.attributes.vegetationDensity / 100, skills.get('naturalism') || 1)) {
             discoveries.push(this.generateDiscovery(DiscoveryType.RESOURCE, cell));
         }
@@ -107,30 +161,51 @@ export class ExplorationManager {
         return discoveries;
     }
 
+    /**
+     * Calculates the base chance of making a discovery in a given cell.
+     * This chance is influenced by the cell's explorability and whether neighboring cells have already been explored.
+     * @param cell - The {@link GridCell} for which to calculate the chance.
+     * @returns The base discovery chance (0-1).
+     */
     private calculateBaseDiscoveryChance(cell: GridCell): number {
         const key = cell.position.toString();
+        // Cache the calculated chance to avoid redundant computations.
         if (!this._discoveryChances.has(key)) {
-            // Base chance affected by cell attributes
-            let chance = 0.1; // 10% base chance
+            let chance = 0.1; // 10% base chance for any discovery.
+            // Explorability directly scales the chance.
             chance *= (cell.attributes.explorability / 100);
-            chance *= (1 - (this.getNeighborExploredCount(cell.position) * 0.1)); // Reduced chance if neighbors explored
+            // Reduce chance if many neighbors are already explored, simulating less "new" to find.
+            chance *= (1 - (this.getNeighborExploredCount(cell.position) * 0.1)); 
             this._discoveryChances.set(key, chance);
         }
         return this._discoveryChances.get(key)!;
     }
 
+    /**
+     * Rolls a dice to determine if a discovery is made, considering base chance and skill level.
+     * @param chance - The base probability (0-1) of discovery.
+     * @param skillLevel - The player's relevant skill level.
+     * @returns `true` if a discovery is made, `false` otherwise.
+     */
     private rollForDiscovery(chance: number, skillLevel: number): boolean {
-        const skillBonus = (skillLevel - 1) * 0.05; // 5% bonus per skill level
+        // Skill level provides a bonus to the discovery chance.
+        const skillBonus = (skillLevel - 1) * 0.05; // 5% bonus per skill level.
         return Math.random() < (chance + skillBonus);
     }
 
+    /**
+     * Generates a new {@link Discovery} object for a given type and cell.
+     * @param type - The {@link DiscoveryType} to generate.
+     * @param cell - The {@link GridCell} where the discovery was made.
+     * @returns The newly generated {@link Discovery} object.
+     */
     private generateDiscovery(type: DiscoveryType, cell: GridCell): Discovery {
         const id = `${type}_${cell.position.toString()}_${Date.now()}`;
         const discovery: Discovery = {
             id,
             type,
-            name: { key: `discovery.${type}.name` },
-            description: { key: `discovery.${type}.description` },
+            name: { key: `discovery.${type}.name` }, // Placeholder for translatable name.
+            description: { key: `discovery.${type}.description` }, // Placeholder for translatable description.
             difficulty: this.calculateDifficulty(cell),
             rewards: {
                 experience: this.calculateExperienceReward(type, cell),
@@ -143,12 +218,19 @@ export class ExplorationManager {
         return discovery;
     }
 
+    /**
+     * Calculates the {@link ExplorationDifficulty} for a discovery based on cell attributes.
+     * @param cell - The {@link GridCell} where the discovery was made.
+     * @returns The calculated {@link ExplorationDifficulty}.
+     */
     private calculateDifficulty(cell: GridCell): ExplorationDifficulty {
+        // Difficulty is a weighted sum of danger, travel cost, and inverse explorability.
         const difficultyScore = 
             (cell.attributes.dangerLevel * 0.4) +
             (cell.attributes.travelCost * 0.3) +
             ((100 - cell.attributes.explorability) * 0.3);
 
+        // Map the score to an enumeration of difficulty levels.
         if (difficultyScore >= 90) return ExplorationDifficulty.LEGENDARY;
         if (difficultyScore >= 75) return ExplorationDifficulty.EXTREME;
         if (difficultyScore >= 50) return ExplorationDifficulty.HARD;
@@ -156,7 +238,14 @@ export class ExplorationManager {
         return ExplorationDifficulty.EASY;
     }
 
+    /**
+     * Calculates the experience reward for a discovery based on its type and the cell's difficulty.
+     * @param type - The {@link DiscoveryType}.
+     * @param cell - The {@link GridCell} of the discovery.
+     * @returns The calculated experience points.
+     */
     private calculateExperienceReward(type: DiscoveryType, cell: GridCell): number {
+        // Base XP for each discovery type.
         const baseXP = {
             [DiscoveryType.LANDMARK]: 100,
             [DiscoveryType.RESOURCE]: 50,
@@ -166,6 +255,7 @@ export class ExplorationManager {
             [DiscoveryType.SECRET]: 300
         }[type];
 
+        // Difficulty multiplier for XP.
         const difficultyMultiplier = {
             [ExplorationDifficulty.EASY]: 1,
             [ExplorationDifficulty.NORMAL]: 1.5,
@@ -177,18 +267,39 @@ export class ExplorationManager {
         return Math.floor(baseXP * difficultyMultiplier);
     }
 
-    private generateRewardItems(type: DiscoveryType, cell: GridCell): string[] {
+    /**
+     * Generates reward items for a discovery.
+     * @param _type - The {@link DiscoveryType}.
+     * @param _cell - The {@link GridCell} of the discovery.
+     * @returns An array of item IDs to be rewarded.
+     * @todo Implement actual item generation logic based on discovery type and cell attributes.
+     */
+    private generateRewardItems(_type: DiscoveryType, _cell: GridCell): string[] {
         // This would be implemented to generate appropriate rewards based on discovery type and cell attributes
         return [];
     }
 
-    private generateUnlocks(type: DiscoveryType, cell: GridCell): string[] {
+    /**
+     * Generates unlocks (e.g., recipes, skills) for a discovery.
+     * @param _type - The {@link DiscoveryType}.
+     * @param _cell - The {@link GridCell} of the discovery.
+     * @returns An array of unlockable IDs.
+     * @todo Implement actual unlock generation logic based on discovery type and cell attributes.
+     */
+    private generateUnlocks(_type: DiscoveryType, _cell: GridCell): string[] {
         // This would be implemented to generate appropriate unlocks based on discovery type and cell attributes
         return [];
     }
 
+    /**
+     * Calculates exploration points gained from exploring a cell and making discoveries.
+     * @param cell - The {@link GridCell} explored.
+     * @param discoveries - An array of {@link Discovery} objects made in the cell.
+     * @returns The total exploration points gained.
+     */
     private calculateExplorationPoints(cell: GridCell, discoveries: Discovery[]): number {
-        let points = cell.attributes.explorability;
+        let points = cell.attributes.explorability; // Base points from cell's explorability.
+        // Add bonus points for each discovery made.
         discoveries.forEach(discovery => {
             points += {
                 [DiscoveryType.LANDMARK]: 50,
@@ -202,8 +313,13 @@ export class ExplorationManager {
         return points;
     }
 
+    /**
+     * Updates player skill levels based on new discoveries.
+     * @param discoveries - An array of {@link Discovery} objects made.
+     * @returns The updated map of skill levels.
+     */
     private updateSkillLevels(discoveries: Discovery[]): Map<string, number> {
-        const skillGains = new Map<string, number>();
+        const _skillGains = new Map<string, number>(); // This variable is currently unused.
         
         discoveries.forEach(discovery => {
             switch (discovery.type) {
@@ -222,8 +338,15 @@ export class ExplorationManager {
         return this._progress.skillLevels;
     }
 
+    /**
+     * Awards experience to a specific exploration skill.
+     * @param skill - The name of the skill to gain experience for.
+     * @param amount - The amount of experience to award.
+     */
     private gainSkillExp(skill: string, amount: number): void {
         const currentLevel = this._progress.skillLevels.get(skill) || 1;
+        // Simplified experience gain: if amount >= expNeeded, level up.
+        // In a real system, this would involve tracking current XP within a level.
         const expNeeded = Math.floor(100 * Math.pow(1.5, currentLevel - 1));
         
         if (amount >= expNeeded) {
@@ -231,6 +354,11 @@ export class ExplorationManager {
         }
     }
 
+    /**
+     * Counts how many of a cell's immediate neighbors have already been explored.
+     * @param position - The {@link GridPosition} of the cell.
+     * @returns The count of explored neighbors.
+     */
     private getNeighborExploredCount(position: GridPosition): number {
         let count = 0;
         const neighbors = [
@@ -249,6 +377,10 @@ export class ExplorationManager {
         return count;
     }
 
+    /**
+     * Retrieves a copy of the current exploration progress.
+     * @returns A copy of the {@link ExplorationProgress} object.
+     */
     getProgress(): ExplorationProgress {
         return {
             ...this._progress,
@@ -260,9 +392,16 @@ export class ExplorationManager {
     }
 }
 
+/**
+ * Represents the result of an exploration attempt on a single grid cell.
+ */
 export interface ExplorationResult {
+    /** The type of result (e.g., 'success' if new discoveries were made, 'already_explored' if the cell was already known). */
     type: 'success' | 'already_explored';
+    /** Optional: An array of {@link Discovery} objects made during this exploration. */
     discoveries?: Discovery[];
+    /** Optional: The number of exploration points gained from this action. */
     explorationPoints?: number;
+    /** Optional: The updated map of player skill levels if any skills gained experience. */
     newSkillLevels?: Map<string, number>;
 }

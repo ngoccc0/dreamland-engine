@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview Defines all unique assets for the "Space Western" premade world.
- * @description This file contains the item, structure, and starting scenario definitions
+ * Defines all unique assets for the "Space Western" premade world.
+ * This file contains the item, structure, and starting scenario definitions
  * for a sci-fi western world. Items here are marked with `spawnEnabled: false`
  * to prevent them from appearing in other, less futuristic game worlds.
  */

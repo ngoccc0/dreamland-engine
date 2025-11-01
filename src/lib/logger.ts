@@ -1,10 +1,9 @@
 // src/lib/logger.ts
 
 /**
- * @fileOverview A simple, centralized logging service for the application.
+ * A simple, centralized logging service for the application.
  *
- * @description
- * In serverless environments like Vercel or Firebase App Hosting, the standard
+ * * In serverless environments like Vercel or Firebase App Hosting, the standard
  * `console.log`, `console.warn`, and `console.error` streams are automatically
  * captured, indexed, and displayed in the platform's logging dashboard.
  *
@@ -20,7 +19,7 @@
 type LogLevel = 'INFO' | 'WARN' | 'ERROR' | 'DEBUG';
 
 /**
- * @description Formats a log message with a timestamp and log level.
+ * Formats a log message with a timestamp and log level.
  * @param {LogLevel} level - The severity level of the log.
  * @param {string} message - The main log message.
  * @param {unknown} [data] - Optional data to be serialized and included in the log.
@@ -36,8 +35,8 @@ function formatMessage(level: LogLevel, message: string, data?: unknown): string
             // The 'null, 2' argument pretty-prints the JSON.
             const jsonData = JSON.stringify(data, null, 2);
             formattedMessage += `\nData: ${jsonData}`;
-        } catch (error) {
-            // Handle circular references or other stringify errors
+        } catch {
+            // Handle circular references or other stringify errors (we don't need the error object here)
             formattedMessage += `\nData: [Could not serialize data]`;
         }
     }
@@ -46,11 +45,11 @@ function formatMessage(level: LogLevel, message: string, data?: unknown): string
 }
 
 /**
- * @description A simple logger object with methods for different log levels.
+ * A simple logger object with methods for different log levels.
  */
 export const logger = {
     /**
-     * @description Logs informational messages. Use for general application flow events.
+     * Logs informational messages. Use for general application flow events.
      * @param {string} message - The main log message.
      * @param {unknown} [data] - Optional data to include in the log.
      */
@@ -59,7 +58,7 @@ export const logger = {
     },
 
     /**
-     * @description Logs warning messages. Use for non-critical issues that should be noted.
+     * Logs warning messages. Use for non-critical issues that should be noted.
      * @param {string} message - The warning message.
      * @param {unknown} [data] - Optional data to include in the log.
      */
@@ -68,7 +67,7 @@ export const logger = {
     },
 
     /**
-     * @description Logs error messages. Use for critical failures, exceptions, and errors.
+     * Logs error messages. Use for critical failures, exceptions, and errors.
      * @param {string} message - The error message.
      * @param {unknown} [error] - Optional error object or other data to include.
      */
@@ -83,7 +82,7 @@ export const logger = {
     },
 
     /**
-     * @description Logs debug messages. Use for verbose, detailed information useful during development.
+     * Logs debug messages. Use for verbose, detailed information useful during development.
      * These logs will only appear if the NODE_ENV is 'development'.
      * @param {string} message - The debug message.
      * @param {unknown} [data] - Optional data to include in the log.
@@ -91,7 +90,7 @@ export const logger = {
     debug: (message: string, data?: unknown): void => {
         // In a real app, you might disable debug logs in production based on an environment variable.
         if (process.env.NODE_ENV === 'development') {
-            console.debug(formatMessage('DEBUG', message, data));
+            console.log(formatMessage('DEBUG', message, data));
         }
     }
 };

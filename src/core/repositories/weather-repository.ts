@@ -18,7 +18,7 @@ export class InMemoryWeatherRepository implements IWeatherRepository {
     async getCurrentWeather() {
         return this.weather;
     }
-    async getWeatherAtPosition(position: { x: number, y: number }) {
+    async getWeatherAtPosition(_position: { x: number, y: number }) {
         return this.weather;
     }
     async saveWeather(weather: any) {

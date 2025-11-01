@@ -21,6 +21,8 @@ export const gameplayTranslations = {
     // Actions & Results
     observeAction_enemy: 'Observe {enemyType}',
     observeSuccess: 'You begin tracking the {enemyName}. You might get updates on its activity later.',
+    unexploredArea: 'Unexplored Area',
+    unexploredAreaDesc: 'This area has not yet been explored.',
     trackedEnemyHunting: 'The {enemyName} you were tracking seems to be on the hunt.',
     trackedEnemyGeneric: 'The {enemyName} you were tracking is moving about its territory.',
     trackedEnemyLost: 'You lose track of the {enemyName}.',
@@ -54,6 +56,8 @@ export const gameplayTranslations = {
     // System Messages
     craftSuccess: "You successfully crafted: {itemName}",
     craftSuccessTitle: "Crafting Successful!",
+    kills: 'Kills',
+    damageSpells: 'Damage Spells',
     craftFail: "Your attempt to craft {itemName} failed, and the ingredients were lost.",
     craftFailTitle: "Crafting Failed!",
     newRecipeIdea: "New Recipe Idea!",

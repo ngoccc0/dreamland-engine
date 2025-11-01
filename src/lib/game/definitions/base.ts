@@ -2,7 +2,7 @@
 import {z} from 'genkit';
 
 /**
- * @description Defines a multilingual string object.
+ * Defines a multilingual string object.
  * @property {string} en - The English translation.
  * @property {string} vi - The Vietnamese translation.
  */
@@ -13,75 +13,86 @@ export const MultilingualTextSchema = z.object({
 export type MultilingualText = z.infer<typeof MultilingualTextSchema>;
 
 /**
- * @description A schema that can be either a translation key (string) or a translation object with params.
+ * A schema that can be either a translation key (string) or a translation object with params.
  * This provides flexibility for static UI text vs. dynamic game data with variables.
  */
+/**
+ * A schema that can be either a direct translation key (string),
+ * a translation object with a key and optional parameters,
+ * or a direct multilingual object with 'en' and 'vi' properties.
+ * This provides flexibility for static UI text versus dynamic game data with variables.
+ */
 export const TranslatableStringSchema = z.union([
-    z.string(),
+    z.string().describe("A direct translation key (e.g., 'item_name_healing_herb')."),
     z.object({
-        key: z.string(),
-        params: z.record(z.union([z.string(), z.number()])).optional(),
-    }),
+        key: z.string().describe("The translation key."),
+        params: z.record(z.union([z.string(), z.number()])).optional().describe("Parameters to be interpolated into the translated string."),
+    }).describe("A translation object with a key and optional parameters for dynamic text."),
     z.object({
-        en: z.string(),
-        vi: z.string(),
-    })
+        en: z.string().describe("The English translation."),
+        vi: z.string().describe("The Vietnamese translation."),
+    }).describe("A direct multilingual object for text that doesn't require a translation key lookup."),
 ]);
+export type TranslatableString = z.infer<typeof TranslatableStringSchema>;
 
 /**
- * @description A schema for defining a range for environmental conditions, e.g., `{ min: 5, max: 8 }`.
+ * A schema for defining a numerical range for environmental conditions, e.g., `{ min: 5, max: 8 }`.
+ * This is used to specify acceptable bounds for various environmental factors.
  */
 const ConditionRangeSchema = z.object({
-    min: z.number().optional(),
-    max: z.number().optional()
-});
+    min: z.number().optional().describe("The minimum value for the condition (inclusive)."),
+    max: z.number().optional().describe("The maximum value for the condition (inclusive).")
+}).describe("A numerical range with optional minimum and maximum bounds.");
 
 /**
- * @description Defines the environmental conditions under which an entity (item, creature) can spawn.
+ * Defines the environmental and contextual conditions under which an entity (item, creature, structure) can spawn or an event can occur.
+ * All conditions are optional, allowing for flexible and partial condition sets.
  */
 export const SpawnConditionsSchema = z.object({
-  chance: z.number().optional().describe("Base spawn chance, 0.0 to 1.0."),
-  vegetationDensity: ConditionRangeSchema.optional(),
-  moisture: ConditionRangeSchema.optional(),
-  elevation: ConditionRangeSchema.optional(),
-  dangerLevel: ConditionRangeSchema.optional(),
-  magicAffinity: ConditionRangeSchema.optional(),
-  humanPresence: ConditionRangeSchema.optional(),
-  predatorPresence: ConditionRangeSchema.optional(),
-  lightLevel: ConditionRangeSchema.optional(),
-  temperature: ConditionRangeSchema.optional(),
-  soilType: z.array(z.string()).optional(),
-  timeOfDay: z.enum(['day', 'night']).optional(),
-  visibility: ConditionRangeSchema.optional(),
-  humidity: ConditionRangeSchema.optional(),
-}).describe("A set of environmental conditions that must be met for spawning.");
+  chance: z.number().optional().describe("The base probability (0.0 to 1.0) of the entity spawning or event occurring, before other modifiers."),
+  vegetationDensity: ConditionRangeSchema.optional().describe("Required range for the chunk's vegetation density (0-100)."),
+  moisture: ConditionRangeSchema.optional().describe("Required range for the chunk's moisture level (0-100)."),
+  elevation: ConditionRangeSchema.optional().describe("Required range for the chunk's elevation (e.g., 0-255)."),
+  dangerLevel: ConditionRangeSchema.optional().describe("Required range for the chunk's danger level (0-100)."),
+  magicAffinity: ConditionRangeSchema.optional().describe("Required range for the chunk's magic affinity (0-100)."),
+  humanPresence: ConditionRangeSchema.optional().describe("Required range for the chunk's human presence (0-100). Lower values might indicate wilderness."),
+  predatorPresence: ConditionRangeSchema.optional().describe("Required range for the chunk's predator presence (0-100)."),
+  lightLevel: ConditionRangeSchema.optional().describe("Required range for the chunk's light level (0-100), affecting day/night spawns."),
+  temperature: ConditionRangeSchema.optional().describe("Required range for the chunk's temperature (e.g., -20 to 40 Celsius)."),
+  soilType: z.array(z.string()).optional().describe("An array of acceptable soil types for spawning (e.g., ['fertile', 'rocky'])."),
+  timeOfDay: z.enum(['day', 'night']).optional().describe("Specifies if spawning should occur during 'day' or 'night'."),
+  visibility: ConditionRangeSchema.optional().describe("Required range for the chunk's visibility (0-100)."),
+  humidity: ConditionRangeSchema.optional().describe("Required range for the chunk's humidity (0-100)."),
+}).describe("A set of environmental and contextual conditions that must be met for spawning or event triggers.");
 export type SpawnConditions = z.infer<typeof SpawnConditionsSchema>;
 
 
 /**
- * @description Defines the combat attributes that can be applied to a player or an item.
- * All attributes are optional and default to 0 if not specified, allowing for flexible item creation.
+ * Defines the combat and utility attributes that can be applied to a player character or an item.
+ * These attributes directly influence gameplay mechanics such as damage, defense, and action speed.
+ * All attributes are optional, allowing for partial attribute objects (e.g., an item only boosting physicalAttack).
  */
 export const PlayerAttributesSchema = z.object({
-    physicalAttack: z.number().optional().default(0).describe("Damage dealt by physical attacks."),
-    magicalAttack: z.number().optional().default(0).describe("Damage dealt by magical attacks."),
-    physicalDefense: z.number().optional().default(0).describe("Reduces incoming physical damage."),
-    magicalDefense: z.number().optional().default(0).describe("Reduces incoming magical damage."),
-    critChance: z.number().optional().default(0).describe("Chance to deal critical damage (%)."),
-    attackSpeed: z.number().optional().default(0).describe("Speed of attacks (e.g., attacks per second)."),
-    cooldownReduction: z.number().optional().default(0).describe("Reduces skill cooldowns (%)."),
-}).describe("Defines various combat and utility attributes for a player or item.");
+  physicalAttack: z.number().optional().describe("The amount of damage dealt by physical attacks. Increases offensive capability."),
+  magicalAttack: z.number().optional().describe("The amount of damage dealt by magical attacks. Increases magical offensive capability."),
+  physicalDefense: z.number().optional().describe("Reduces incoming physical damage. Increases physical survivability."),
+  magicalDefense: z.number().optional().describe("Reduces incoming magical damage. Increases magical survivability."),
+  critChance: z.number().optional().describe("The percentage chance (0-100) to deal critical damage, which is typically higher damage."),
+  attackSpeed: z.number().optional().describe("The speed of attacks (e.g., attacks per second or turns between attacks). Higher values mean faster attacks."),
+  cooldownReduction: z.number().optional().describe("Reduces the cooldown duration of skills or abilities (%). Higher values mean skills can be used more frequently."),
+}).describe("Defines various combat and utility attributes for a player or item, influencing their effectiveness in combat and other interactions.");
 export type PlayerAttributes = z.infer<typeof PlayerAttributesSchema>;
 
 /**
- * @description Defines the loot dropped by an entity (creature, harvestable node, etc.).
+ * Defines the loot dropped by an entity (e.g., a creature, a harvestable node, or a destructible structure).
+ * This schema specifies what items can be obtained and under what conditions.
  */
 export const LootDropSchema = z.object({
-  name: z.string().describe("The unique ID of the item to drop."),
-  chance: z.number().min(0).max(1).describe("The probability of this item dropping (0 to 1)."),
+  name: z.string().describe("The unique ID of the item definition to drop (e.g., 'healingHerb')."),
+  chance: z.number().min(0).max(1).describe("The probability (0.0 to 1.0) of this specific item dropping."),
   quantity: z.object({
-    min: z.number().int().min(1),
-    max: z.number().int().min(1),
-  }).describe("The range of quantities that can drop."),
-});
+    min: z.number().int().min(1).describe("The minimum number of items to drop."),
+    max: z.number().int().min(1).describe("The maximum number of items to drop."),
+  }).describe("The range of quantities for the item that can be dropped."),
+}).describe("Defines a single item that can be dropped as loot, including its quantity and drop chance.");
 export type LootDrop = z.infer<typeof LootDropSchema>;

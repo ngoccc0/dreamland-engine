@@ -1,13 +1,12 @@
 
 
 import type { Chunk, MoodTag, NarrativeLength, NarrativeTemplate, ConditionType, Language, PlayerStatus, World } from "../types";
-import { getTranslatedText, SmartJoinSentences } from "../../utils"; 
+import { getTranslatedText, SmartJoinSentences, resolveItemId } from "../../utils"; 
 import { getTemplates } from '../templates';
-import { translations } from "../../i18n";
 import type { TranslationKey } from "../../i18n";
 import { logger } from "@/lib/logger";
 import type { ItemDefinition } from "../types";
-import { clamp } from "@/lib/utils";
+// clamp imported elsewhere when needed; not required here
 import { biomeNarrativeTemplates } from "../data/narrative-templates";
 
 /**
@@ -62,11 +61,13 @@ export const analyze_chunk_mood = (chunk: Chunk): MoodTag[] => {
     }
 
     // 7. Nhiệt độ (temperature) - Dải 0-100 (0: đóng băng, 100: cực nóng, 50: dễ chịu)
-    if (chunk.temperature && chunk.temperature >= 80) { // Rất nóng
+    // Use numeric existence checks (Number.isFinite) so that 0 is treated as a valid value.
+    const temp: number = (chunk.temperature ?? NaN) as number;
+    if (Number.isFinite(temp) && temp >= 80) { // Rất nóng
         moods.push("Hot", "Harsh");
-    } else if (chunk.temperature && chunk.temperature <= 20) { // Rất lạnh
+    } else if (Number.isFinite(temp) && temp <= 20) { // Rất lạnh
         moods.push("Cold", "Harsh");
-    } else if (chunk.temperature && chunk.temperature > 35 && chunk.temperature < 65) { // Nhiệt độ dễ chịu
+    } else if (Number.isFinite(temp) && temp > 35 && temp < 65) { // Nhiệt độ dễ chịu
         moods.push("Peaceful");
     }
 
@@ -164,7 +165,7 @@ export const check_conditions = (template_conditions: ConditionType | undefined,
         if (key === 'requiredEntities') {
             const { enemyType, itemType } = conditionValue;
             let entityFound = false;
-            if (enemyType && chunk.enemy && getTranslatedText(chunk.enemy.type, 'vi') === enemyType) {
+            if (enemyType && chunk.enemy && chunk.enemy.type && getTranslatedText(chunk.enemy.type, 'vi') === enemyType) {
                 entityFound = true;
             }
             if (itemType && !entityFound) {
@@ -214,7 +215,16 @@ export const fill_template = (
 ): string => {
     let filled_template = template_string;
     const currentBiomeName: string = chunk.terrain;
-    const biomeTemplateData = biomeNarrativeTemplates[currentBiomeName];
+    // Lookup biome templates in a case-insensitive and flexible way to handle dataset/casing differences.
+    let biomeTemplateData = biomeNarrativeTemplates[currentBiomeName];
+    if (!biomeTemplateData) {
+        const lower = currentBiomeName.toLowerCase();
+        biomeTemplateData = biomeNarrativeTemplates[lower] || biomeNarrativeTemplates[currentBiomeName.charAt(0).toUpperCase() + currentBiomeName.slice(1)];
+    }
+    if (!biomeTemplateData) {
+        // Fallback: try to find a template whose declared terrain matches case-insensitively
+        biomeTemplateData = Object.values(biomeNarrativeTemplates).find((b: any) => b && b.terrain && String(b.terrain).toLowerCase() === String(currentBiomeName).toLowerCase()) as any;
+    }
 
     if (!biomeTemplateData) {
         logger.warn(`Placeholder data not found for ${chunk.terrain}`);
@@ -240,7 +250,7 @@ export const fill_template = (
     filled_template = filled_template.replace('{temp_detail}', () => chunk.temperature && chunk.temperature <= 20 ? t('temp_cold') : chunk.temperature && chunk.temperature >= 80 ? t('temp_hot') : t('temp_mild'));
     filled_template = filled_template.replace('{moisture_detail}', () => chunk.moisture >= 80 ? t('moisture_humid') : chunk.moisture <= 20 ? t('moisture_dry') : t('moisture_normal'));
     filled_template = filled_template.replace('{jungle_feeling_dark}', t('jungle_feeling_dark_phrase'));
-    filled_template = filled_template.replace(/{enemy_name}/g, chunk.enemy ? getTranslatedText(chunk.enemy.type, language, t) : t('no_enemy_found'));
+    filled_template = filled_template.replace(/{enemy_name}/g, chunk.enemy && chunk.enemy.type ? getTranslatedText(chunk.enemy.type, language, t) : t('no_enemy_found'));
     filled_template = filled_template.replace(/{item_found}/g, chunk.items && chunk.items.length > 0 ? getTranslatedText(chunk.items[Math.floor(Math.random() * chunk.items.length)].name, language, t) : t('no_item_found'));
 
     if (playerState) {
@@ -287,6 +297,9 @@ export const generateOfflineNarrative = (
     if (candidateTemplates.length === 0) return currentChunk.description;
 
     const { min_s, max_s } = get_sentence_limits(narrativeLength);
+    // Choose a target sentence count within the allowed range so that
+    // changing the narrativeLength actually affects how verbose the output is.
+    const targetSentences = Math.max(min_s, Math.min(max_s, Math.floor(Math.random() * (max_s - min_s + 1)) + min_s));
     let finalSentences: string[] = [];
     let sentenceCount = 0;
 
@@ -298,7 +311,7 @@ export const generateOfflineNarrative = (
     }
 
     const detailTemplates = candidateTemplates.filter(t => t.type === 'EnvironmentDetail' || t.type === 'SensoryDetail');
-    while (sentenceCount < max_s && detailTemplates.length > 0) {
+    while (sentenceCount < targetSentences && detailTemplates.length > 0) {
         const chosen = select_template_by_weight(detailTemplates);
         finalSentences.push(fill_template(chosen.template, currentChunk, world, playerPosition, t, language, playerState));
         sentenceCount++;
@@ -319,7 +332,7 @@ export const generateOfflineActionNarrative = (
 ) => {
     let narrativeKey: TranslationKey = '';
     let replacements: any = {};
-    const enemyType = currentChunk.enemy ? getTranslatedText(currentChunk.enemy.type, language, t) : ' существо';
+    const enemyType = currentChunk.enemy && currentChunk.enemy.type ? getTranslatedText(currentChunk.enemy.type, language, t) : ' существо';
     const sensoryFeedbackOptions = [
         `sensoryFeedback_${currentChunk.temperature && currentChunk.temperature > 80 ? 'hot' : 'cold'}`,
         `sensoryFeedback_${currentChunk.lightLevel < 20 ? 'dark' : 'normal'}`,
@@ -328,11 +341,25 @@ export const generateOfflineActionNarrative = (
     const sensory_feedback = t(sensoryFeedbackOptions[Math.floor(Math.random() * sensoryFeedbackOptions.length)]);
 
     switch (actionType) {
-        case 'attack':
-            narrativeKey = `actionNarrative_attack_${actionResult.successLevel.toLowerCase()}`;
-            let attack_description = t(`attackNarrative_${actionResult.successLevel.toLowerCase()}`, { enemyType });
+    case 'attack':
+            // Map SuccessLevel values to existing locale suffixes
+            const succ = actionResult.successLevel;
+            const suffixMap: Record<string, string> = {
+                CriticalFailure: 'critFail',
+                Failure: 'fail',
+                Success: 'success',
+                GreatSuccess: 'success', // No separate GreatSuccess key; use 'success'
+                CriticalSuccess: 'critSuccess'
+            };
+            const suffix = suffixMap[succ] ?? succ.toLowerCase();
+            narrativeKey = `actionNarrative_attack_${suffix}`;
+            let attack_description = t(`attackNarrative_${suffix}`, { enemyType });
             let damage_report = actionResult.playerDamage > 0 ? t('attackDamageDealt', { damage: actionResult.playerDamage }) : '';
             let enemy_reaction = '';
+            
+            
+            
+            
             if (actionResult.enemyDefeated) {
                 enemy_reaction = t('enemyDefeatedNarrative', { enemyType });
             } else if (actionResult.fled) {
@@ -381,13 +408,42 @@ export const generateOfflineActionNarrative = (
 };
 
 
+/**
+ * Handle a player's 'search' / 'explore' action inside a chunk.
+ *
+ * The search action uses biome templates (natural candidates) plus a small
+ * sampled set of non-natural (spawnEnabled=false) items so that players can
+ * occasionally discover crafted/rare items via searching. Search is intentionally
+ * more generous than passive natural spawn: a modest `searchBoost` increases
+ * the effective chance, but non-natural finds are capped to avoid being overpowered.
+ *
+ * Implementation details:
+ * - Natural candidates use their defined `conditions.chance` or a sensible
+ *   default. Non-natural candidates are given a very small base chance (e.g. 0.02).
+ * - The function applies a softcapped `spawnMultiplier` before calculating
+ *   the final chance for the search. A `searchBoost` (>1) is applied to make
+ *   searching more effective than passive discovery.
+ * - Non-natural items' final chance is capped (e.g. <= 0.3) so search cannot
+ *   trivially expose high-tier crafted items every time.
+ *
+ * @param currentChunk - Current chunk state where the search occurs.
+ * @param actionId - The id of the search action (removed from chunk.actions after use).
+ * @param language - Language code for localized narrative text.
+ * @param t - Translation function used to build narrative strings.
+ * @param allItemDefinitions - Registry of item definitions used to resolve found items.
+ * @param rng - Random integer helper for quantity selection.
+ * @param spawnMultiplier - Optional multiplier to scale search find-chance (softcapped). Default: 1.
+ * @returns An object containing the updated chunk, narrative string, and optional toast info.
+ */
 export const handleSearchAction = (
     currentChunk: Chunk,
     actionId: number,
     language: Language,
     t: (key: TranslationKey, replacements?: any) => string,
     allItemDefinitions: Record<string, ItemDefinition>,
-    rng: (range: { min: number, max: number }) => number
+    rng: (range: { min: number, max: number }) => number,
+    /** Optional multiplier to scale search find-chance (softcapped). */
+    spawnMultiplier: number = 1
 ) => {
     let newChunk = { ...currentChunk, items: [...currentChunk.items] };
     newChunk.actions = newChunk.actions.filter(a => a.id !== actionId);
@@ -403,12 +459,53 @@ export const handleSearchAction = (
         return itemDef && check_conditions(itemTmpl.conditions, currentChunk);
     });
 
-    if (possibleItems.length > 0 && Math.random() < 0.5) { // 50% chance to find something if possible
-        const foundItemTemplate = possibleItems[Math.floor(Math.random() * possibleItems.length)];
-        const itemDef = allItemDefinitions[foundItemTemplate.name];
-        const quantity = rng(itemDef.baseQuantity);
+    if (possibleItems.length > 0) {
+        // Build a combined candidate pool that includes both natural biome items
+        // and a small sampled set of non-natural (spawnEnabled=false) items so
+        // searches can sometimes find rarer or crafted-only gear (but not too often).
+        const extraCandidates = Object.keys(allItemDefinitions)
+            .filter(k => !allItemDefinitions[k].spawnEnabled)
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 3)
+            .map(name => ({ name, conditions: { chance: 0.02 }, __isNatural: false }));
+
+        const naturalCandidates = possibleItems.map((t: any) => ({ ...t, __isNatural: true }));
+        const allCandidates = [...naturalCandidates, ...extraCandidates];
+
+        // Compute final chance per candidate and perform per-candidate roll.
+        // This ensures we use each candidate's own base chance and correctly apply
+        // multipliers, search boost, and non-natural caps when evaluating finds.
+        const softcap = (m: number, k = 0.4) => m <= 1 ? m : m / (1 + (m - 1) * k);
+        const effectiveMultiplier = softcap(spawnMultiplier);
+        const searchBoost = 1.4; // make search more generous than passive discovery
+
+        // Shuffle candidates to avoid ordering bias when multiple have similar chances.
+        const shuffledCandidates = allCandidates.sort(() => 0.5 - Math.random());
+        let chosen: any = null;
+        for (const c of shuffledCandidates) {
+            const baseChance = c.conditions?.chance ?? (c.__isNatural ? 0.5 : 0.02);
+            let finalChance = Math.min(0.95, baseChance * effectiveMultiplier * searchBoost);
+            if (!c.__isNatural) finalChance = Math.min(0.3, finalChance); // cap non-natural finds
+            // If this candidate passes its own roll, select it and stop.
+            if (Math.random() < finalChance) {
+                chosen = c;
+                break;
+            }
+        }
+
+        if (chosen) {
+            const foundItemTemplate = chosen;
+            const itemDef = allItemDefinitions[foundItemTemplate.name];
+            const quantity = itemDef ? rng(itemDef.baseQuantity) : rng({ min: 1, max: 1 });
         
-        const existingItem = newChunk.items.find(i => getTranslatedText(i.name, 'en') === foundItemTemplate.name);
+        const existingItem = newChunk.items.find(i => (
+            // prefer explicit id if present
+            (i as any).id === foundItemTemplate.name ||
+            // resolve item's name to canonical id
+            resolveItemId(i.name, allItemDefinitions) === foundItemTemplate.name ||
+            // legacy fallback: english name
+            getTranslatedText(i.name, 'en') === foundItemTemplate.name
+        ));
         if (existingItem) {
             existingItem.quantity += quantity;
         } else {
@@ -421,7 +518,7 @@ export const handleSearchAction = (
             });
         }
         
-        const itemName = getTranslatedText(foundItemTemplate.name, language, t);
+            const itemName = getTranslatedText(foundItemTemplate.name, language, t);
         return {
             newChunk,
             narrative: t('exploreFoundItemsNarrative', { items: `${quantity} ${itemName}` }),
@@ -431,6 +528,7 @@ export const handleSearchAction = (
                 params: { items: `${quantity} ${itemName}` }
             }
         };
+        }
     }
 
     return { newChunk, narrative: t('exploreFoundNothing'), toastInfo: null };

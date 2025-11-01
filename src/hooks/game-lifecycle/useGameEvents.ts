@@ -3,13 +3,12 @@
 
 import { useEffect, useCallback, useState } from 'react';
 import { useLanguage } from '@/context/language-context';
-import { useSettings } from '@/context/settings-context';
 import { randomEvents } from '@/lib/game/events';
 import { getTemplates } from '@/lib/game/templates';
 import { clamp, getTranslatedText } from '@/lib/utils';
+import { resolveItemDef } from '@/lib/game/item-utils';
 import { rollDice, getSuccessLevel, type SuccessLevel } from '@/lib/game/dice';
-import type { GameState, PlayerStatus, Chunk, Season, WorldProfile, ItemDefinition, GeneratedItem, TranslatableString, Language } from "@/lib/game/types";
-import type { TranslationKey } from "@/lib/i18n";
+import type { GameState, PlayerStatus, Season, WorldProfile, ItemDefinition, GeneratedItem, Language, Terrain } from "@/lib/game/types";
 import { generateChunksInRadius } from '@/lib/game/engine/generation';
 import { logger } from '@/lib/logger';
 
@@ -48,7 +47,6 @@ export function useGameEvents(deps: GameEventsDeps) {
   } = deps;
 
   const { t } = useLanguage();
-  const { settings } = useSettings();
   const [turnsSinceLastProactiveGen, setTurnsSinceLastProactiveGen] = useState(0);
 
   const triggerRandomEvent = useCallback(() => {
@@ -85,7 +83,7 @@ export function useGameEvents(deps: GameEventsDeps) {
 
     setPlayerStats(prevStats => {
       let newPlayerStats = { ...prevStats };
-      const hasShelter = world[`${playerPosition.x},${playerPosition.y}`]?.structures.some(s => s.providesShelter);
+  const hasShelter = world[`${playerPosition.x},${playerPosition.y}`]?.structures.some((s: any) => s.providesShelter);
 
       if (effects.hpChange) {
         let applyChange = true;
@@ -102,7 +100,7 @@ export function useGameEvents(deps: GameEventsDeps) {
         if (applyChange) newPlayerStats.stamina = clamp(newPlayerStats.stamina + effects.staminaChange, 0, 100);
       }
       if (effects.manaChange) {
-        newPlayerStats.mana = clamp(newPlayerStats.mana + effects.manaChange, 0, 50);
+        newPlayerStats.mana = clamp((newPlayerStats.mana ?? 0) + effects.manaChange, 0, 50);
       }
 
       if (effects.items) {
@@ -111,12 +109,12 @@ export function useGameEvents(deps: GameEventsDeps) {
             const existingItem = newItems.find(i => getTranslatedText(i.name, language, t) === itemToAdd.name);
             if (existingItem) {
                 existingItem.quantity += itemToAdd.quantity;
-            } else {
-                const def = customItemDefinitions[itemToAdd.name];
-                if (def) {
-                    newItems.push({ ...itemToAdd, tier: def.tier, emoji: def.emoji });
-                }
-            }
+        } else {
+        const def = resolveItemDef(itemToAdd.name, customItemDefinitions);
+        if (def) {
+          newItems.push({ ...itemToAdd, tier: def.tier, emoji: def.emoji });
+        }
+      }
         });
         newPlayerStats.items = newItems;
       }
@@ -130,7 +128,7 @@ export function useGameEvents(deps: GameEventsDeps) {
             const chunkToUpdate = newWorld[key];
             if (chunkToUpdate && !chunkToUpdate.enemy) {
                 const templates = getTemplates(language);
-                const enemyTemplate = templates[baseChunk.terrain]?.enemies.find((e: any) => e.data.type === effects.spawnEnemy!.type)?.data;
+                const enemyTemplate = templates[baseChunk.terrain as Terrain]?.enemies.find((e: any) => e.data.type === effects.spawnEnemy!.type)?.data;
                 if (enemyTemplate) {
                     chunkToUpdate.enemy = {
                         ...enemyTemplate,
@@ -161,7 +159,7 @@ export function useGameEvents(deps: GameEventsDeps) {
     // Proactive Chunk Generation
     const nextProactiveTurnCount = turnsSinceLastProactiveGen + 1;
     if (nextProactiveTurnCount >= PROACTIVE_GEN_INTERVAL) {
-      setTimeout(() => {
+  setTimeout(() => {
         const { world: newWorld, regions: newRegions, regionCounter: newRegionCounter } = generateChunksInRadius(
           world,
           regions,
@@ -176,7 +174,7 @@ export function useGameEvents(deps: GameEventsDeps) {
           customStructures,
           language
         );
-        setWorld(newWorld);
+        setWorld(() => newWorld);
         setRegions(newRegions);
         setRegionCounter(newRegionCounter);
         logger.info('Proactive chunk generation completed in background.');

@@ -2,7 +2,7 @@
 
 'use server';
 /**
- * @fileOverview An AI agent for dynamically generating a new item after a quest is completed.
+ * An AI agent for dynamically generating a new item after a quest is completed.
  *
  * This flow is called by the narrative flow to inject new content into the world,
  * keeping the item pool fresh and surprising. The AI is responsible for the creative
@@ -14,6 +14,7 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { generateCompat as aiGenerate } from '@/ai/client';
 import { z } from 'genkit';
 import { GeneratedItemSchema, GenerateNewItemInputSchema } from '@/ai/schemas';
 import { getEmojiForItem } from '@/lib/utils';
@@ -75,13 +76,14 @@ const generateNewItemFlow = ai.defineFlow(
 
         for (const model of modelsToTry) {
             try {
-                llmResponse = await ai.generate({
+                // Use compatibility adapter to support older callsites that pass an options object
+                llmResponse = await aiGenerate({
                     model: model,
                     prompt: promptText,
                     input: input,
                     output: { schema: AI_GeneratedItemSchema },
                 });
-                if (llmResponse.output) break;
+                if (llmResponse?.output) break;
             } catch (error) {
                 lastError = error;
                 console.warn(`[generateNewItem] Model '${model}' failed. Trying next...`);

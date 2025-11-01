@@ -36,36 +36,36 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const t: TFunction = (key, replacements) => {
-    // --- NEW: Handle TranslatableString objects directly ---
-    if (typeof key === 'object' && key !== null && 'en' in key && 'vi' in key) {
-        return key[language] || key['en'] || '';
+    // If key is an object-shaped TranslatableString, return the matching language variant.
+    if (typeof key !== 'string') {
+      if (key && typeof key === 'object' && 'en' in key && 'vi' in key) {
+        return (key as any)[language] || (key as any)['en'] || '';
+      }
+      // Unknown object shape -> coerce to string to satisfy callers that expect a string
+      return String(key);
     }
 
-    // Fallback to English if translation is missing in the current language
-    const primaryTranslation = (translations[language] as any)[key];
-    const fallbackTranslation = (translations.en as any)[key];
+    // At this point TS knows `key` is a string (TranslationKey)
+    const k = key as TranslationKey;
+    const primaryTranslation = (translations[language] as any)[k];
+    const fallbackTranslation = (translations.en as any)[k];
     const translationPool = primaryTranslation || fallbackTranslation;
 
     if (process.env.NODE_ENV === 'development') {
-        if (!translationPool || translationPool === key) {
-             console.warn(`[TRANSLATION_DEBUG] Key not found in any language: '${key}'`);
-        }
+      if (!translationPool || translationPool === k) {
+        console.warn(`[TRANSLATION_DEBUG] Key not found in any language: '${k}'`);
+      }
     }
-    
-    let translation: string;
+
+    let translation: string = '';
     if (Array.isArray(translationPool)) {
-        translation = translationPool[Math.floor(Math.random() * translationPool.length)];
+      translation = translationPool[Math.floor(Math.random() * translationPool.length)];
+    } else if (typeof translationPool === 'string') {
+      translation = translationPool;
+    } else if (translationPool && typeof translationPool === 'object' && replacements && replacements.subKey) {
+      translation = (translationPool as any)[replacements.subKey] || '';
     } else {
-        translation = translationPool || key;
-    }
-    
-    // Handle nested keys for custom action responses
-    if (typeof translation !== 'string') {
-        if (replacements && replacements.subKey && typeof translation === 'object') {
-            translation = (translation as any)[replacements.subKey as any] || key;
-        } else {
-            return key; // or a default error string
-        }
+      translation = k;
     }
 
     if (replacements) {

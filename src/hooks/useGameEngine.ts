@@ -6,7 +6,7 @@ import { useGameState } from "./use-game-state";
 import { useActionHandlers } from "./use-action-handlers";
 import { useGameEffects } from "./useGameEffects"; // Corrected import case
 
-import type { GameState, WorldConcept, PlayerItem, ItemDefinition, GeneratedItem, Structure } from "@/lib/game/types";
+// Removed unused type-only imports to reduce lint noise. Types can be reintroduced if needed.
 
 interface GameEngineProps {
     gameSlot: number;
@@ -28,7 +28,31 @@ interface GameEngineProps {
 export function useGameEngine(props: GameEngineProps) {
     const gameState = useGameState(props);
     const narrativeContainerRef = useRef<HTMLDivElement>(null);
-    
+    const narrativeLogRef = useRef(gameState.narrativeLog || [] as any[]);
+
+    const addNarrativeEntry = (text: string, type: 'narrative' | 'action' | 'system', entryId?: string) => {
+        const entry = { id: entryId ?? `${Date.now()}`, text, type } as any;
+        gameState.setNarrativeLog(prev => {
+            const next = [...(prev || []), entry];
+            narrativeLogRef.current = next;
+            return next;
+        });
+    };
+
+    const advanceGameTime = (stats?: any) => {
+        gameState.setGameTime(prev => {
+            const next = prev + 1;
+            if (next >= 1440) {
+                gameState.setDay(d => d + 1);
+                gameState.setTurn(t => t + 1);
+                return next % 1440;
+            }
+            gameState.setTurn(t => t + 1);
+            return next;
+        });
+        if (stats) gameState.setPlayerStats(() => stats);
+    };
+
     // This effect ensures that whenever the narrativeLog changes, we scroll to the bottom.
     // The dependency array [gameState.narrativeLog] triggers the effect on every new entry.
     useEffect(() => {
@@ -52,12 +76,20 @@ export function useGameEngine(props: GameEngineProps) {
     
 
     const actionHandlers = useActionHandlers({
-        ...gameState
-    });
+        ...gameState,
+        narrativeLogRef,
+        addNarrativeEntry,
+        advanceGameTime,
+    } as any);
 
     useGameEffects({
-        ...gameState
-    });
+        ...gameState,
+        narrativeLogRef,
+        addNarrativeEntry,
+        advanceGameTime,
+        // Ensure the gameSlot from props is forwarded to effects hooks
+        gameSlot: props.gameSlot,
+    } as any);
     
     return {
         ...gameState,

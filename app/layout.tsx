@@ -6,6 +6,7 @@ import { LanguageProvider } from '@/context/language-context';
 import { SettingsProvider } from '@/context/settings-context';
 import { PwaInstallProvider } from '@/context/pwa-install-context';
 import { AuthProvider } from '@/context/auth-context';
+import ClientInit from '@/components/client/client-init';
 
 export const metadata: Metadata = {
   title: 'Dreamland Engine',
@@ -27,6 +28,8 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..900;1,7..72,400..900&family=Inter:wght@400;700&family=Source+Code+Pro:wght@400;700&display=swap" rel="stylesheet" />
       </head>
       <body className="antialiased">
+        {/* Client-side initializer that helps recover from stale chunk/service-worker issues */}
+        <ClientInit />
         <LanguageProvider>
           <SettingsProvider>
             <AuthProvider>

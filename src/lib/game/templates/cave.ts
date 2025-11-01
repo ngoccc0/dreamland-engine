@@ -23,16 +23,16 @@ export const cave_vi = {
         }
     ],
     items: [
-        { name: 'Mảnh Tinh Thể', conditions: { magicAffinity: { min: 6 }, chance: 0.3 } },
+        { name: 'Mảnh Tinh Thể', conditions: { magicAffinity: { min: 6 }, chance: 0.45 } },
         { name: 'Bản Đồ Cổ', conditions: { humanPresence: { min: 3 }, chance: 0.1 } },
-        { name: 'Xương Cổ', conditions: { dangerLevel: { min: 7 }, chance: 0.2 } },
-        { name: 'Mỏ Vàng', conditions: { elevation: { min: -8 }, chance: 0.05 } },
+        { name: 'Xương Cổ', conditions: { dangerLevel: { min: 7 }, chance: 0.35 } },
+        { name: 'Mỏ Vàng', conditions: { elevation: { min: -8 }, chance: 0.2 } },
         { name: 'Nấm Phát Quang', conditions: { lightLevel: { max: -6 }, chance: 0.25 } },
         { name: 'Túi Trứng Nhện', conditions: { dangerLevel: { min: 7 }, chance: 0.1 } },
         { name: 'Nước Ngầm', conditions: { moisture: { min: 7 }, chance: 0.2 } },
         { name: 'Guano (Phân dơi)', conditions: { chance: 0.15 } },
-        { name: 'Đá Vôi', conditions: { chance: 0.2 } },
-        { name: 'Mảnh Xương', conditions: { chance: 0.3 } }
+        { name: 'Đá Vôi', conditions: { chance: 0.35 } },
+        { name: 'Mảnh Xương', conditions: { chance: 0.45 } }
     ],
     structures: [
         structureDefinitions['abandoned_mine_entrance']

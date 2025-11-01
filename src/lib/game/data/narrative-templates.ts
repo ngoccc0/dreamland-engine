@@ -1,7 +1,7 @@
 
 
-import type { BiomeTemplateData, Language, NarrativeLength, NarrativeTemplate, MoodTag } from '@/lib/game/types';
-import { logger } from '@/lib/logger';
+import type { BiomeTemplateData, Language, NarrativeLength } from '@/lib/game/types';
+import { validateBiomeTemplatesRecord } from '../schemas/narrativeSchema';
 
 // This file holds structured narrative templates and keyword variations.
 
@@ -147,13 +147,21 @@ export const biomeNarrativeTemplates: Record<string, BiomeTemplateData> = {
       "jungle_terrain_desc": ["thảm thực vật chằng chịt", "khu rừng bạt ngàn", "tán lá dày đặc", "lối đi rậm rạp"],
       "jungle_terrain_desc_lush": ["những tán lá xanh tươi", "thảm thực vật sum suê", "khu rừng trù phú"],
       "vague_shape_adj": ["kỳ dị", "ma mị", "không rõ ràng", "ẩn hiện"],
+      // Added missing keys referenced by templates
+      "jungle_feeling_dark": ["đang theo dõi bạn", "như thể ai đó đang quan sát bạn"],
+      "feeling_gloomy": ["bất an sâu sắc", "rờn rợn đến sống lưng"],
+      // Compatibility keys expected by tests/templates
+      "jungle_adjective_lush": ["rậm rạp", "xanh tươi"],
+      "jungle_adjective_mysterious": ["bí ẩn", "huyền bí"],
     },
     features: {
         "main_feature": ["một dòng suối nhỏ", "một cụm cây cổ thụ", "một vách đá phủ rêu"],
     },
     smells: {
         "smell_dark": ["mùi ẩm mốc", "mùi đất mục", "mùi nồng của lá chết"],
-        "smell_lush": ["mùi hoa dại", "mùi đất ẩm tươi", "hương vị của sự sống"],
+    "smell_lush": ["mùi hoa dại", "mùi đất ẩm tươi", "hương vị của sự sống"],
+    // Added detail-level smell used by templates
+    "smell_detail_lush": ["mùi hoa dại thoang thoảng", "mùi đất ẩm tươi nồng nàn"],
     },
     sounds: {
         "sound_dark": ["tiếng côn trùng rỉ rả", "tiếng gió rít qua kẽ lá", "âm thanh ghê rợn"],
@@ -163,6 +171,7 @@ export const biomeNarrativeTemplates: Record<string, BiomeTemplateData> = {
         "sky_general": ["bầu trời u ám", "những vệt sáng hiếm hoi", "tán lá che khuất bầu trời"],
     }
   },
+  
   "forest": {
     terrain: "forest",
     descriptionTemplates: [
@@ -201,6 +210,9 @@ export const biomeNarrativeTemplates: Record<string, BiomeTemplateData> = {
   "underwater": { terrain: "underwater", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
   "mushroom_forest": { terrain: "mushroom_forest", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
 };
+
+// Validate the biome templates at module load time
+validateBiomeTemplatesRecord(biomeNarrativeTemplates);
 
 
 // --- EXPORT FUNCTIONS ---

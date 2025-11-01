@@ -1,5 +1,4 @@
-import { Experience, LevelUpResult } from '../entities/experience';
-import { SkillTree } from '../entities/skill';
+import type { LevelUpResult } from '../entities/experience';
 
 export interface IExperienceUseCase {
     gainExperience(characterId: string, amount: number): Promise<LevelUpResult>;
@@ -57,7 +56,7 @@ export class ExperienceUseCase implements IExperienceUseCase {
         }
     }
 
-    private async handleUnlockables(character: any, unlockables: string[]): Promise<void> {
+    private async handleUnlockables(_character: any, _unlockables: string[]): Promise<void> {
         // Implementation for handling unlockable content
     }
 }

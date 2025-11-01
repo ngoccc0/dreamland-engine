@@ -1,69 +1,82 @@
 import { Effect } from '../types/effects';
 import { Item } from '../types/items';
-import { TranslatableString } from '../types/i18n';
+import type { TranslatableString } from '../types/i18n';
 import { Skill } from './skill';
 
-/** Character statistics representing core attributes */
+/**
+ * Character statistics representing core attributes that influence a character's capabilities.
+ */
 export interface CharacterStats {
-    /** Physical power and melee damage */
+    /** Physical power and melee damage. Higher strength increases physical attack power. */
     strength: number;
-    /** Agility and accuracy */
+    /** Agility and accuracy. Higher dexterity improves hit chance and evasion. */
     dexterity: number;
-    /** Magical power and mana capacity */
+    /** Magical power and mana capacity. Higher intelligence increases magical attack and mana pool. */
     intelligence: number;
-    /** Health and defense */
+    /** Health and defense. Higher vitality increases maximum health and physical defense. */
     vitality: number;
-    /** Critical hits and rare item finds */
+    /** Critical hits and rare item finds. Higher luck increases critical hit chance and improves loot quality. */
     luck: number;
 }
 
-/** Represents possible character actions in the game */
+/**
+ * Represents possible character actions in the game, detailing the type of action and its target/parameters.
+ */
 export type CharacterAction = {
-    /** The type of action being performed */
+    /** The type of action being performed (e.g., 'move', 'attack', 'cast', 'use_item', 'interact'). */
     type: 'move' | 'attack' | 'cast' | 'use_item' | 'interact';
-    /** Position or entity ID for the action target */
+    /** Optional: Position (x, y) or entity ID for the action target. */
     target?: { x: number; y: number } | string;
-    /** Item ID when using items */
+    /** Optional: Item ID when the action involves using an item. */
     item?: string;
-    /** Skill ID when casting skills */
+    /** Optional: Skill ID when the action involves casting a skill. */
     skill?: string;
 };
 
-/** Main character class representing both NPCs and player characters */
+/**
+ * Main character class representing both Non-Player Characters (NPCs) and player characters.
+ * This class manages character stats, inventory, skills, and status effects.
+ */
 export class Character {
-    /** Unique identifier for the character */
+    /** Unique identifier for the character. */
     id: string;
-    /** Character's display name */
+    /** Character's display name. */
     name: string;
-    /** Current character level */
+    /** Current character level. */
     level: number;
-    /** Current health points */
+    /** Current health points. */
     health: number;
-    /** Maximum health points */
+    /** Maximum health points the character can have. */
     maxHealth: number;
-    /** Current mana points */
+    /** Current mana points. */
     mana: number;
-    /** Maximum mana points */
+    /** Maximum mana points the character can have. */
     maxMana: number;
-    /** Current experience points */
+    /** Current experience points. */
     experience: number;
-    /** Character's position in the game world */
+    /** Character's position in the game world. */
     position: { x: number; y: number };
-    /** Items carried by the character */
+    /** Items carried by the character in their inventory. */
     inventory: Item[];
-    /** Active status effects on the character */
+    /** Active status effects currently affecting the character. */
     activeEffects: Effect[];
-    /** List of skill IDs the character knows */
+    /** List of skill IDs the character knows. */
     skills: string[];
-    /** Character's base stats */
+    /** Character's base stats. */
     stats: CharacterStats;
-    /** Collection of active status effects */
+    /** Collection of active status effect IDs. */
     private statuses: Set<string>;
-    /** Map of skill instances */
+    /** Map of skill instances, indexed by skill ID. */
     private skillInstances: Map<string, Skill>;
-    /** Character state flags */
+    /** Character state flags (e.g., 'invulnerable', 'stunned'). */
     private flags: { [key: string]: boolean };
 
+    /**
+     * Creates an instance of Character.
+     * @param id - Unique identifier for the character.
+     * @param name - Display name of the character.
+     * @param baseStats - Initial base statistics for the character.
+     */
     constructor(id: string, name: string, baseStats: CharacterStats) {
         this.id = id;
         this.name = name;
@@ -83,69 +96,111 @@ export class Character {
         this.flags = {};
     }
 
-    /** Apply damage to the character if not invulnerable */
+    /**
+     * Applies damage to the character, reducing their health.
+     * Damage is ignored if the character has the 'invulnerable' flag.
+     * @param amount - The amount of damage to take.
+     */
     takeDamage(amount: number): void {
         if (this.flags['invulnerable']) return;
         this.health = Math.max(0, this.health - amount);
     }
 
-    /** Heal the character up to their maximum health */
+    /**
+     * Heals the character, restoring health up to their maximum health.
+     * @param amount - The amount of health to restore.
+     */
     heal(amount: number): void {
         this.health = Math.min(this.maxHealth, this.health + amount);
     }
 
-    /** Modify a character's stat by the given amount */
+    /**
+     * Modifies a character's specific stat by a given amount.
+     * @param stat - The name of the stat to modify (e.g., 'strength', 'dexterity').
+     * @param amount - The amount to add to the stat. Can be positive or negative.
+     */
     modifyStat(stat: keyof CharacterStats, amount: number): void {
         if (stat in this.stats) {
             this.stats[stat] += amount;
         }
     }
 
-    /** Add a status effect to the character */
+    /**
+     * Adds a status effect to the character.
+     * @param statusId - The unique ID of the status effect to add.
+     */
     addStatus(statusId: string): void {
         this.statuses.add(statusId);
     }
 
-    /** Remove a status effect from the character */
+    /**
+     * Removes a status effect from the character.
+     * @param statusId - The unique ID of the status effect to remove.
+     */
     removeStatus(statusId: string): void {
         this.statuses.delete(statusId);
     }
 
-    /** Check if the character has a specific status */
+    /**
+     * Checks if the character currently has a specific status effect.
+     * @param statusId - The unique ID of the status effect to check.
+     * @returns `true` if the character has the status, `false` otherwise.
+     */
     hasStatus(statusId: string): boolean {
         return this.statuses.has(statusId);
     }
 
-    /** Add a new skill to the character's repertoire */
+    /**
+     * Adds a new skill to the character's repertoire.
+     * @param skill - The {@link Skill} instance to add.
+     */
     addSkill(skill: Skill): void {
         this.skills.push(skill.id);
         this.skillInstances.set(skill.id, skill);
     }
 
-    /** Remove a skill from the character */
+    /**
+     * Removes a skill from the character.
+     * @param skillId - The unique ID of the skill to remove.
+     */
     removeSkill(skillId: string): void {
         this.skills = this.skills.filter(id => id !== skillId);
         this.skillInstances.delete(skillId);
     }
 
-    /** Check if the character has a specific skill */
+    /**
+     * Checks if the character has a specific skill.
+     * @param skillId - The unique ID of the skill to check.
+     * @returns `true` if the character has the skill, `false` otherwise.
+     */
     hasSkill(skillId: string): boolean {
         return this.skills.includes(skillId);
     }
 
-    /** Get a skill instance by its ID */
+    /**
+     * Retrieves a skill instance by its ID.
+     * @param skillId - The unique ID of the skill to retrieve.
+     * @returns The {@link Skill} instance if found, otherwise `undefined`.
+     */
     getSkill(skillId: string): Skill | undefined {
         return this.skillInstances.get(skillId);
     }
 
-    /** Check if a skill can be used based on mana cost */
+    /**
+     * Checks if a skill can be used by the character based on mana cost and cooldown.
+     * @param skillId - The unique ID of the skill to check.
+     * @returns `true` if the skill can be used, `false` otherwise.
+     */
     canUseSkill(skillId: string): boolean {
         const skill = this.skillInstances.get(skillId);
         if (!skill) return false;
         return skill.isUsable(this.mana);
     }
 
-    /** Use a skill, consuming mana and starting its cooldown */
+    /**
+     * Uses a skill, consuming mana and starting its cooldown.
+     * @param skillId - The unique ID of the skill to use.
+     */
     useSkill(skillId: string): void {
         const skill = this.skillInstances.get(skillId);
         if (!skill || !this.canUseSkill(skillId)) return;
@@ -154,34 +209,55 @@ export class Character {
         skill.startCooldown();
     }
 
-    /** Add an item to the character's inventory */
+    /**
+     * Adds an item to the character's inventory.
+     * @param item - The {@link Item} to add.
+     */
     addItem(item: Item): void {
         this.inventory.push(item);
     }
 
-    /** Remove and return an item from the inventory */
+    /**
+     * Removes and returns an item from the character's inventory.
+     * @param itemId - The unique ID of the item to remove.
+     * @returns The removed {@link Item} if found, otherwise `undefined`.
+     */
     removeItem(itemId: string): Item | undefined {
         const index = this.inventory.findIndex(item => item.id === itemId);
         if (index === -1) return undefined;
         return this.inventory.splice(index, 1)[0];
     }
 
-    /** Check if the character has a specific item */
+    /**
+     * Checks if the character has a specific item in their inventory.
+     * @param itemId - The unique ID of the item to check for.
+     * @returns `true` if the character has the item, `false` otherwise.
+     */
     hasItem(itemId: string): boolean {
         return this.inventory.some(item => item.id === itemId);
     }
 
-    /** Check if the character is alive */
+    /**
+     * Checks if the character is currently alive (health > 0).
+     * @returns `true` if the character is alive, `false` otherwise.
+     */
     isAlive(): boolean {
         return this.health > 0;
     }
 
-    /** Check if the character can move */
+    /**
+     * Checks if the character can currently move.
+     * Movement is restricted if the character has the 'stunned' flag.
+     * @returns `true` if the character can move, `false` otherwise.
+     */
     canMove(): boolean {
         return !this.flags['stunned'];
     }
 
-    /** Update character state, process effects and cooldowns */
+    /**
+     * Updates the character's state, processing active effects and skill cooldowns.
+     * @param deltaTime - The time elapsed since the last update, in milliseconds.
+     */
     update(deltaTime: number): void {
         // Update skill cooldowns
         this.skillInstances.forEach(skill => {

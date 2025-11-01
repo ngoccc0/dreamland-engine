@@ -1,4 +1,3 @@
-export * from './grid-cell';
 export * from './terrain';
 export * from './weather';
 export * from './region';

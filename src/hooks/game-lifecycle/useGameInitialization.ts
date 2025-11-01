@@ -9,11 +9,10 @@ import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
-import type { GameState, PlayerStatusDefinition, WorldDefinition, GeneratedItem, Recipe, StructureDefinition, ItemDefinition } from '@/lib/game/types';
+import type { GameState, PlayerStatusDefinition, WorldDefinition, GeneratedItem, Recipe, ItemDefinition } from '@/lib/game/types';
 import { logger } from '@/lib/logger';
 import { getTranslatedText } from '@/lib/utils';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase-config';
+import { normalizePlayerStatus } from '@/lib/game/normalize';
 import { useAuth } from '@/context/auth-context';
 
 
@@ -57,6 +56,12 @@ export function useGameInitialization(deps: GameInitializationDeps) {
   const { t, language } = useLanguage();
   const { user } = useAuth();
 
+  // Prevent concurrent initialization for the same slot across remounts/StrictMode double-invoke.
+  // Module-level so it survives hook remounts and avoids overlapping heavy generation.
+  // Key: gameSlot
+  // Note: kept lightweight and only used in dev to avoid accidental production locking.
+  const inProgressKey = `game-init-inprogress-${gameSlot}`;
+
   useEffect(() => {
     logger.debug('[GameInit] useGameInitialization effect triggered', {
       gameSlot,
@@ -73,7 +78,28 @@ export function useGameInitialization(deps: GameInitializationDeps) {
     }
 
     let isMounted = true;
+    // track whether this effect instance registered the in-progress lock
+    let didRegister = false;
+
+    // module-scoped map to avoid duplicate work across mounts
+    // Use a property on globalThis to keep the symbol across HMR and module reloads in dev
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const globalAny = globalThis as any;
+    if (!globalAny.__gameInitInProgress) globalAny.__gameInitInProgress = new Set<number>();
+    const inProgressSet: Set<number> = globalAny.__gameInitInProgress;
+
+    if (inProgressSet.has(gameSlot)) {
+      logger.info(`[GameInit] Initialization for slot ${gameSlot} already in progress elsewhere — skipping this instance.`);
+      // we still return a cleanup to set isMounted false
+      return () => {
+        isMounted = false;
+        logger.debug('[GameInit] useGameInitialization effect cleanup (unmount) - skipped start', { gameSlot });
+      };
+    }
     const loadGame = async () => {
+      // register that we're doing work for this slot
+      inProgressSet.add(gameSlot);
+      didRegister = true;
       setIsLoaded(false);
       logger.info(`[GameInit] Starting to load game for slot ${gameSlot}.`);
       logger.debug('[GameInit] Initial parameters', {
@@ -93,6 +119,8 @@ export function useGameInitialization(deps: GameInitializationDeps) {
 
       if (!isMounted) {
         logger.info(`[GameInit] Component unmounted during load for slot ${gameSlot}. Aborting.`);
+        // remove our registration so future mounts can try again
+        if (didRegister) inProgressSet.delete(gameSlot);
         return;
       }
 
@@ -141,7 +169,7 @@ export function useGameInitialization(deps: GameInitializationDeps) {
         setCustomItemDefinitions(finalDefs);
         setCustomStructures(stateToInitialize.customStructures || []);
         setBuildableStructures(staticBuildableStructures);
-        setPlayerStats(() => stateToInitialize.playerStats);
+  setPlayerStats(() => normalizePlayerStatus(stateToInitialize.playerStats));
         setFinalWorldSetup(() => stateToInitialize.worldSetup);
         setPlayerPosition(stateToInitialize.playerPosition || { x: 0, y: 0 });
         setPlayerBehaviorProfile(stateToInitialize.playerBehaviorProfile || { moves: 0, attacks: 0, crafts: 0, customActions: 0 });
@@ -160,6 +188,8 @@ export function useGameInitialization(deps: GameInitializationDeps) {
             worldProfile: stateToInitialize.worldProfile,
             currentSeason: stateToInitialize.currentSeason
           });
+          // Debug breakpoint: pause before heavy generation (set window.__DEBUG_BREAK = true in browser)
+          try { const { maybeDebug } = await import('@/lib/debug'); maybeDebug('useGameInitialization:before-generate'); } catch {}
           const { world: newWorld, regions: newRegions, regionCounter: newRegionCounter } = generateChunksInRadius(
             {}, {}, 0,
             stateToInitialize.playerPosition.x,
@@ -172,6 +202,8 @@ export function useGameInitialization(deps: GameInitializationDeps) {
             stateToInitialize.customStructures || [],
             language
           );
+          // Debug after generation
+          try { const { maybeDebug } = await import('@/lib/debug'); maybeDebug('useGameInitialization:after-generate'); } catch {}
           worldSnapshot = newWorld;
           regionsSnapshot = newRegions;
           regionCounterSnapshot = newRegionCounter;
@@ -215,7 +247,8 @@ export function useGameInitialization(deps: GameInitializationDeps) {
           logger.debug('[GameInit] Loaded narrative log', stateToInitialize.narrativeLog);
         }
 
-        if (isMounted) setIsLoaded(true);
+    if (isMounted) setIsLoaded(true);
+  try { const { maybeDebug } = await import('@/lib/debug'); maybeDebug('useGameInitialization:setIsLoaded:true'); } catch {}
         logger.info(`[GameInit] Game for slot ${gameSlot} is fully loaded and initialized.`);
         logger.debug('[GameInit] Initialization complete', {
           isLoaded: true,
@@ -230,13 +263,40 @@ export function useGameInitialization(deps: GameInitializationDeps) {
           finalWorldSetup
         });
       }
+
+      // done with work for this slot
+      if (didRegister) inProgressSet.delete(gameSlot);
     };
 
     loadGame();
 
     return () => {
       isMounted = false;
-      logger.debug('[GameInit] useGameInitialization effect cleanup (unmount)', { gameSlot });
+      // if this effect instance registered the in-progress marker, remove it so future mounts can proceed
+      try {
+        if (didRegister && inProgressSet && inProgressSet.has(gameSlot)) {
+          inProgressSet.delete(gameSlot);
+          logger.debug('[GameInit] Cleared in-progress marker during cleanup', { gameSlot });
+        }
+      } catch (e) {
+        // ignore
+      }
+      // include a short stack snippet to help identify what caused the unmount (useful while debugging)
+      const stack = (new Error().stack || '').split('\n').slice(1, 6).map(s => s.trim());
+      logger.debug('[GameInit] useGameInitialization effect cleanup (unmount)', { gameSlot, stack });
     };
-  }, [gameSlot, gameStateRepository, language, user]); // Removed finalWorldSetup from deps
+    // Use a single serialized dependency so the dependency array length is always 1. This avoids
+    // "final argument to useEffect changed size" errors when HMR or parent code changes the
+    // shape/identity of many values across renders. We still only trigger when meaningful inputs
+    // change (gameSlot, finalWorldSetup identity, repository type, language, user id).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    JSON.stringify({
+      gameSlot,
+      finalWorldSetupId: finalWorldSetup ? (finalWorldSetup as any).id || String(finalWorldSetup) : null,
+      repoType: (gameStateRepository && (gameStateRepository as any).constructor && (gameStateRepository as any).constructor.name) || null,
+      language,
+      userUid: user?.uid || null
+    })
+  ]);
 }

@@ -2,14 +2,13 @@
 
 "use client";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogPortal } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuPortal } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
-import type { PlayerItem, Recipe, ItemDefinition, RecipeIngredient, CraftingOutcome } from "@/lib/game/types";
+import type { PlayerItem, Recipe, ItemDefinition, CraftingOutcome } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 import { calculateCraftingOutcome } from "@/lib/game/engine/crafting";
 import { Hammer } from "./icons";

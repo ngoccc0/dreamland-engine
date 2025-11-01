@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview Defines all structures in the game.
- * @description This file contains definitions for both naturally spawning structures
+ * Defines all structures in the game.
+ * This file contains definitions for both naturally spawning structures
  * (like ruins) and structures that can be built by the player (like campfires and shelters).
  */
 

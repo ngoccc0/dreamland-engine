@@ -22,6 +22,8 @@ const defaultSettings: GameSettings = {
   fontSize: 'base',
   theme: 'dark',
   mods: null,
+  controlsPreventScroll: true,
+  useLegacyLayout: false,
 };
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
@@ -53,8 +55,12 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
           }
         }
         // --- VALIDATION END ---
+  // Ensure controlsPreventScroll is a boolean (backwards compatibility)
+  if (typeof parsed.controlsPreventScroll !== 'boolean') parsed.controlsPreventScroll = defaultSettings.controlsPreventScroll;
+  // Ensure useLegacyLayout is a boolean (backwards compatibility)
+  if (typeof parsed.useLegacyLayout !== 'boolean') parsed.useLegacyLayout = defaultSettings.useLegacyLayout;
 
-        setSettingsState(prev => ({...defaultSettings, ...parsed}));
+  setSettingsState(_prev => ({...defaultSettings, ...parsed}));
       }
     } catch (error) {
       console.error("Failed to load game settings from localStorage", error);
@@ -65,7 +71,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setSettingsState(prevSettings => {
       const updatedSettings = { ...prevSettings, ...newSettings };
       try {
-        const { mods, ...settingsToSave } = updatedSettings;
+    const { mods: _mods, ...settingsToSave } = updatedSettings;
         localStorage.setItem('gameSettings', JSON.stringify(settingsToSave));
       } catch (error) {
         console.error("Failed to save game settings to localStorage", error);

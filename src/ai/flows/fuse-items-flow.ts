@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview An AI agent for dynamically fusing items based on player experimentation.
+ * An AI agent for dynamically fusing items based on player experimentation.
  *
  * This flow acts as a master alchemist. The core logic (rules for success,
  * failure, degradation, and the resulting item's tier/category) is handled in TypeScript.
@@ -19,6 +19,7 @@ import { FuseItemsInputSchema, FuseItemsOutputSchema, GeneratedItemSchema, Playe
 import { clamp, getEmojiForItem, getTranslatedText } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 import type { GeneratedItem } from '@/lib/game/types';
+import { resolveItemDef } from '@/lib/game/item-utils';
 
 // --- The Exported Function ---
 
@@ -40,12 +41,12 @@ export async function fuseItems(input: FuseItemsInput): Promise<FuseItemsOutput>
 }
 
 // --- New schema for the prompt's specific input needs ---
-const FuseItemsPromptInputSchema = FuseItemsInputSchema.extend({
+const _FuseItemsPromptInputSchema = FuseItemsInputSchema.extend({
     determinedOutcome: z.enum(['success', 'degraded', 'totalLoss', 'realityGlitch']),
     glitchItem: GeneratedItemSchema.optional().describe("An item pulled from another reality during a 'realityGlitch' event. The AI must invent a narrative for its appearance."),
 });
 
-type FuseItemsPromptInput = z.infer<typeof FuseItemsPromptInputSchema>;
+type FuseItemsPromptInput = z.infer<typeof _FuseItemsPromptInputSchema>;
 
 // --- New schema for the AI's creative output ---
 const AIPartialItemSchema = GeneratedItemSchema.pick({
@@ -60,7 +61,7 @@ const AIPromptOutputSchema = z.object({
     resultItem: AIPartialItemSchema.optional(),
 });
 
-type AIPromptOutput = z.infer<typeof AIPromptOutputSchema>;
+type _AIPromptOutput = z.infer<typeof AIPromptOutputSchema>;
 
 // --- The Genkit Prompt and Flow ---
 const fuseItemsPromptText = `You are the Spirit of the Forge, an ancient entity that governs the laws of alchemy and creation in this world. A player is attempting to fuse items. Your entire response MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
@@ -104,7 +105,7 @@ const fuseItemsFlow = ai.defineFlow(
         logger.info('Executing fuseItemsFlow with input', { items: typedInput.itemsToFuse.map((i: ItemToFuse) => getTranslatedText(i.name, 'en')), persona: typedInput.playerPersona });
 
         const hasTool = typedInput.itemsToFuse.some((item: ItemToFuse) => {
-            const def = typedInput.customItemDefinitions[getTranslatedText(item.name, 'en')];
+            const def = resolveItemDef(getTranslatedText(item.name, 'en'), typedInput.customItemDefinitions);
             return def?.category === 'Tool';
         });
 

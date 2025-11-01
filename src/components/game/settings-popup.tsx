@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -71,6 +71,14 @@ export function SettingsPopup({ open, onOpenChange, isInGame }: SettingsPopupPro
   const handleThemeChange = (checked: boolean) => setSettings({ theme: checked ? 'dark' : 'light' });
   const handleFontFamilyChange = (value: string) => setSettings({ fontFamily: value as FontFamily });
   const handleFontSizeChange = (value: string) => setSettings({ fontSize: value as FontSize });
+    const [isDesktop, setIsDesktop] = useState(false);
+
+    useEffect(() => {
+        const onResize = () => setIsDesktop(typeof window !== 'undefined' && window.innerWidth >= 768);
+        onResize();
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
 
 
   return (
@@ -194,6 +202,26 @@ export function SettingsPopup({ open, onOpenChange, isInGame }: SettingsPopupPro
                         <div><RadioGroupItem value="long" id="long" className="sr-only peer" /><Label htmlFor="long" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">{t('lengthLong')}</Label></div>
                     </RadioGroup>
                 </div>
+                <Separator />
+                <div className="flex items-center justify-between space-x-4">
+                    <Label htmlFor="controls-scroll-switch" className="flex flex-col space-y-1">
+                        <span className="font-semibold">{t('preventControlsScroll') || 'Prevent controls auto-scroll'}</span>
+                        <span className="font-normal leading-snug text-muted-foreground">{t('preventControlsScrollDesc') || 'When enabled, focusing the controls input on desktop will avoid auto-scrolling the controls panel.'}</span>
+                    </Label>
+                    <Switch id="controls-scroll-switch" checked={settings.controlsPreventScroll ?? true} onCheckedChange={(v) => setSettings({ controlsPreventScroll: !!v })} />
+                </div>
+                {isDesktop && (
+                <>
+                <Separator />
+                <div className="flex items-center justify-between space-x-4">
+                    <Label htmlFor="legacy-layout-switch" className="flex flex-col space-y-1">
+                        <span className="font-semibold">{t('useLegacyLayout') || 'Use legacy layout'}</span>
+                        <span className="font-normal leading-snug text-muted-foreground">{t('useLegacyLayoutDesc') || 'Show the mobile-style bottom action bar on desktop (legacy).'} </span>
+                    </Label>
+                    <Switch id="legacy-layout-switch" checked={!!settings.useLegacyLayout} onCheckedChange={(v) => setSettings({ useLegacyLayout: !!v })} />
+                </div>
+                </>
+                )}
             </TabsContent>
             
             <TabsContent value="mods" className="space-y-6">

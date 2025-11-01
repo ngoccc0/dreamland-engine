@@ -8,8 +8,7 @@ import {
 } from './offline'; 
 
 import { SmartJoinSentences } from '../../utils';
-import type { Chunk, NarrativeTemplate, MoodTag, NarrativeLength, BiomeTemplateData, PlayerStatus, World } from '../types';
-import { Language } from '../../i18n'; 
+import type { Chunk, NarrativeTemplate, NarrativeLength, PlayerStatus, World } from '../types';
 
 // Mock translation function
 const mockT = (key: string, replacements?: any) => {
@@ -44,22 +43,7 @@ const mockT = (key: string, replacements?: any) => {
     return text;
 };
 
-// Mock getTranslatedText function for consistency with fill_template
-const mockGetTranslatedText = (translatable: any, lang: Language, t?: any): string => {
-    const actualLang = lang === 'vi' ? 'vi' : 'en'; 
-    if (typeof translatable === 'string') {
-        return (t || mockT)(translatable);
-    }
-    if (typeof translatable === 'object' && translatable !== null) {
-        if ('key' in translatable) {
-            return (t || mockT)(translatable.key, translatable.params);
-        }
-        if ('en' in translatable || 'vi' in translatable) {
-            return translatable[actualLang] || translatable['en'] || 'MISSING_TRANSLATION';
-        }
-    }
-    return 'INVALID_TRANSLATABLE';
-};
+// Note: mockGetTranslatedText was removed — tests use mockT directly for translations.
 
 
 // -------------------- TEST SUITES --------------------

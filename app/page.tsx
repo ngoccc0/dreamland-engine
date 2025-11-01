@@ -4,17 +4,17 @@ import { useState, useEffect, useCallback } from 'react';
 import GameLayout from '@/components/game/game-layout';
 import { WorldSetup } from '@/components/game/world-setup';
 import { SettingsPopup } from '@/components/game/settings-popup';
-import type { GameState, PlayerStatus, ItemDefinition } from '@/lib/game/types';
+import type { GameState, ItemDefinition } from '@/lib/game/types';
 import type { GenerateWorldSetupOutput } from "@/ai/flows/generate-world-setup";
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardTitle, CardDescription } from '@/components/ui/card';
 import { useLanguage } from '@/context/language-context';
 import { usePwaInstall } from '@/context/pwa-install-context';
 import { useAuth } from '@/context/auth-context';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Loader2, Settings, Download, Trash2, Play, PlusCircle, Star, User, Backpack, Swords } from 'lucide-react';
-import { Language, TranslationKey } from '@/lib/i18n';
+import { Language } from '@/lib/i18n';
 import { LanguageSelector } from '@/components/game/language-selector';
 import { cn, getTranslatedText } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +23,7 @@ import type { IGameStateRepository } from '@/lib/game/ports/game-state.repositor
 import { LocalStorageGameStateRepository } from '@/infrastructure/persistence/local-storage.repository';
 import { FirebaseGameStateRepository } from '@/infrastructure/persistence/firebase.repository';
 import { IndexedDbGameStateRepository } from '@/infrastructure/persistence/indexed-db.repository';
+import { logger } from '@/lib/logger';
 
 
 type SaveSlotSummary = Pick<GameState, 'worldSetup' | 'day' | 'gameTime' | 'playerStats'> | null;
@@ -52,6 +53,18 @@ export default function Home() {
     }
     setGameStateRepository(repo);
   }, [user]);
+
+  // Dev-only: log loadState and activeSlot transitions to help diagnose unexpected navigation/unmounts
+  useEffect(() => {
+    logger.debug('[Home] loadState changed', { loadState, activeSlot });
+    // expose for quick console checks
+    try { (window as any).__HOME_LOAD_STATE = { loadState, activeSlot }; } catch {}
+  }, [loadState, activeSlot]);
+
+  useEffect(() => {
+    logger.debug('[Home] gameStateRepository set', { repo: (gameStateRepository as any)?.constructor?.name });
+    try { (window as any).__GAME_STATE_REPO = (gameStateRepository as any)?.constructor?.name || null; } catch {}
+  }, [gameStateRepository]);
 
   const loadSaveSlots = useCallback(async () => {
     setLoadState('loading');
@@ -159,7 +172,9 @@ export default function Home() {
       worldSetup: worldConceptForState,
       playerStats: {
         hp: 100, mana: 50, stamina: 100, bodyTemperature: 37, items: initialPlayerInventory, equipment: { weapon: null, armor: null, accessory: null },
-        quests: selectedConcept.initialQuests, questsCompleted: 0, skills: selectedConcept.startingSkill ? [selectedConcept.startingSkill] : [], pets: [], persona: 'none',
+  // playerStats.quests expects a string[] of quest ids — translate the concept's translatable quests
+  quests: (selectedConcept.initialQuests || []).map(q => getTranslatedText(q as any, language, t)),
+  questsCompleted: 0, skills: selectedConcept.startingSkill ? [selectedConcept.startingSkill] : [], pets: [], persona: 'none',
         attributes: { physicalAttack: 10, magicalAttack: 5, critChance: 5, attackSpeed: 1.0, cooldownReduction: 0, physicalDefense: 0, magicalDefense: 0 },
         unlockProgress: { kills: 0, damageSpells: 0, moves: 0 }, journal: {}, dailyActionLog: [], questHints: {},
         level: 1,
@@ -276,7 +291,7 @@ export default function Home() {
                             <div className="text-sm text-muted-foreground space-y-2">
                                 <div className="flex items-center gap-2">
                                     <Star className="h-4 w-4 text-primary" />
-                                    <span>{t('levelLabel')}: {slot.playerStats.questsCompleted + 1}</span>
+                                    <span>{t('levelLabel')}: {(slot.playerStats.questsCompleted ?? 0) + 1}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <User className="h-4 w-4 text-primary" />

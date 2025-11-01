@@ -1,6 +1,6 @@
 /**
- * @fileOverview Defines all food items in the game.
- * @description These items are primarily used to restore stamina, and sometimes have
+ * Defines all food items in the game.
+ * These items are primarily used to restore stamina, and sometimes have
  * minor healing or other effects. They are organized by raw meats, cooked foods,
  * and gathered foods like fruits and vegetables.
  */

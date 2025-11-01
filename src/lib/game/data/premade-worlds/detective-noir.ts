@@ -1,6 +1,6 @@
 
 import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
-import type { GeneratedItem, Structure, Skill, WorldConcept, ItemDefinition, TranslatableString } from '@/lib/game/types';
+import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
 
 const items: GeneratedItem[] = [
     { id: 'trench_coat', name: { en: 'Trench Coat', vi: 'Áo Khoác Trench' }, description: { en: 'A worn, beige trench coat. Smells of rain and regret.', vi: 'Một chiếc áo khoác trench màu be đã sờn. Phảng phất mùi mưa và sự hối tiếc.' }, emoji: '🧥', category: 'Armor', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, equipmentSlot: 'armor', attributes: { physicalAttack: 0, magicalAttack: 0, physicalDefense: 3, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 }, spawnEnabled: false },

@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview An AI agent for providing helpful hints for active quests.
+ * An AI agent for providing helpful hints for active quests.
  *
  * This flow is called from the UI to give the player a gentle nudge.
  *
@@ -11,6 +11,7 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { generateCompat as aiGenerate } from '@/ai/client';
 import { z } from 'genkit';
 import { ProvideQuestHintInputSchema, ProvideQuestHintOutputSchema } from '@/ai/schemas';
 
@@ -59,13 +60,13 @@ const provideQuestHintFlow = ai.defineFlow(
         let lastError;
         for (const model of modelsToTry) {
             try {
-                const { output } = await ai.generate({
+                const llmResponse = await aiGenerate({
                     model: model,
                     prompt: promptText,
                     input: input,
                     output: { schema: ProvideQuestHintOutputSchema },
                 });
-                if (output) return output;
+                if (llmResponse?.output) return llmResponse.output;
             } catch (error) {
                 lastError = error;
                 console.warn(`[provideQuestHint] Model '${model}' failed. Trying next...`);

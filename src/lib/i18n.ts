@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview Internationalization (i18n) setup for the application.
- * @description This file aggregates all translation strings from modular locale files
+ * Internationalization (i18n) setup for the application.
+ * This file aggregates all translation strings from modular locale files
  * (e.g., `common.ts`, `items.ts`, `ui.ts`) and combines them into a single `translations`
  * object. It provides a structured way to manage multilingual content for both English and Vietnamese.
  */
@@ -91,7 +91,7 @@ export const translations = {
 
 /**
  * @typedef {'en' | 'vi'} Language
- * @description Defines the supported languages for the application.
+ * Defines the supported languages for the application.
  */
 export const LanguageEnum = {
     en: 'en',
@@ -102,7 +102,7 @@ export type Language = typeof LanguageEnum[keyof typeof LanguageEnum];
 
 /**
  * @typedef {string} TranslationKey
- * @description A type alias for a string, representing a key in the translation files.
+ * A type alias for a string, representing a key in the translation files.
  * This simplifies type definitions and makes it clear when a string is intended for translation.
  */
 export type TranslationKey = string;

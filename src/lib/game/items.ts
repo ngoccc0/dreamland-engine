@@ -1,6 +1,6 @@
 /**
- * @fileOverview Central item catalog for the game.
- * @description This file acts as an aggregator, importing item definitions from various
+ * Central item catalog for the game.
+ * This file acts as an aggregator, importing item definitions from various
  * modular files (organized by category) and combining them into a single, comprehensive
  * `itemDefinitions` object. This approach supports easy expansion and modding.
  */

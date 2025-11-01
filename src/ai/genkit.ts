@@ -50,8 +50,14 @@ try {
 // Initialize Genkit with plugins and error handling
 let ai: Genkit;
 try {
+    // Filter out any non-function plugin entries to avoid runtime errors
+    const usablePlugins = plugins.filter(p => typeof p === 'function');
+    if (usablePlugins.length !== plugins.length) {
+        console.warn('Some plugins were not functions and will be ignored by genkit initialization', plugins.map(p => typeof p));
+    }
+
     ai = genkit({
-        plugins,
+        plugins: usablePlugins,
         model: 'googleai/gemini-2.0-flash'
     });
 } catch (error: any) {

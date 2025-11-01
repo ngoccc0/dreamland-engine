@@ -55,6 +55,7 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequi
   const quests = stats.quests;
   const pets = stats.pets || [];
   const bodyTemp = stats.bodyTemperature ?? 37.0;
+  const mana = stats.mana ?? 0;
 
   const [hintFetchStatus, setHintFetchStatus] = useState<Record<string, HintFetchStatus>>({});
 
@@ -94,8 +95,8 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequi
               <Progress id="hp" value={stats.hp} className="h-4" indicatorClassName="bg-destructive" />
             </div>
             <div className="space-y-2">
-              <label htmlFor="mana" className="text-sm font-medium">{t('mana', { mana: stats.mana })}</label>
-              <Progress id="mana" value={(stats.mana / 50) * 100} className="h-4" indicatorClassName="bg-gradient-to-r from-blue-500 to-purple-600" />
+              <label htmlFor="mana" className="text-sm font-medium">{t('mana', { mana })}</label>
+              <Progress id="mana" value={(mana / 50) * 100} className="h-4" indicatorClassName="bg-gradient-to-r from-blue-500 to-purple-600" />
             </div>
             <div className="space-y-2">
               <label htmlFor="stamina" className="text-sm font-medium">{t('stamina', { stamina: stats.stamina.toFixed(0) })}</label>
@@ -167,7 +168,7 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequi
              <div className="p-2 bg-muted rounded-md text-sm">
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                     <span className="text-muted-foreground">{t('moves')}:</span>
-                    <span className="font-medium text-right text-foreground">{stats.unlockProgress.moves}</span>
+                    <span className="font-medium text-right text-foreground">{stats.unlockProgress.moves ?? 0}</span>
                     <span className="text-muted-foreground">{t('kills')}:</span>
                     <span className="font-medium text-right text-foreground">{stats.unlockProgress.kills}</span>
                     <span className="text-muted-foreground">{t('damageSpells')}:</span>
@@ -177,12 +178,12 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequi
                     <>
                         <Separator className="my-2" />
                         <div className="space-y-1">
-                            {nextUnlockableSkills.map(skill => (
-                                <div key={getTranslatedText(skill.name, 'en')}>
-                                    <p className="text-xs text-accent-foreground font-semibold">{t(skill.name)}</p>
-                                    <p className="text-xs text-muted-foreground">({t('unlockCondition')}: {skill.unlockCondition!.count} {t(skill.unlockCondition!.type)})</p>
-                                </div>
-                            ))}
+              {nextUnlockableSkills.map(skill => (
+                <div key={String(skill.name)}>
+                  <p className="text-xs text-accent-foreground font-semibold">{t(skill.name)}</p>
+                  <p className="text-xs text-muted-foreground">({t('unlockCondition')}: {skill.unlockCondition!.count} {t(skill.unlockCondition!.type)})</p>
+                </div>
+              ))}
                         </div>
                     </>
                 )}
@@ -252,8 +253,8 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequi
                     <AccordionTrigger className="py-0 text-left hover:no-underline text-muted-foreground">
                       {t('dayX', { day })}
                     </AccordionTrigger>
-                    <AccordionContent className="pt-2 text-accent-foreground/90 italic whitespace-pre-line">
-                      {entry}
+                      <AccordionContent className="pt-2 text-accent-foreground/90 italic whitespace-pre-line">
+                      {String(entry)}
                     </AccordionContent>
                   </AccordionItem>
                 ))}

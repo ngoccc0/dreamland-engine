@@ -35,7 +35,7 @@ export class WorldUseCase implements IWorldUseCase {
         private readonly worldRepository: any // Will be defined in infrastructure
     ) {}
 
-    async generateWorld(config: WorldGenerationConfig): Promise<World> {
+    async generateWorld(_config: WorldGenerationConfig): Promise<World> {
         // TODO: Replace with real World implementation
         this.world = await this.worldGenerator.generateWorld() as unknown as World;
         await this.worldRepository.save(this.world);

@@ -5,8 +5,8 @@ import type { GameState } from "@/lib/game/types";
 
 /**
  * @class FirebaseGameStateRepository
- * @implements {IGameStateRepository}
- * @description An implementation of the game state repository that uses Firebase Firestore
+ * Implements IGameStateRepository.
+ * An implementation of the game state repository that uses Firebase Firestore
  * for cloud-based persistence. This allows users to sync their game progress across devices.
  *
  * @param {string} userId - The unique ID of the currently authenticated user.
@@ -22,7 +22,7 @@ export class FirebaseGameStateRepository implements IGameStateRepository {
     }
 
     /**
-     * @description Loads the full game state for a specific slot from Firestore.
+     * Loads the full game state for a specific slot from Firestore.
      * @param {string} slotId - The identifier for the save slot (e.g., 'slot_0').
      * @returns {Promise<GameState | null>} A promise that resolves to the GameState object or null if not found.
      */
@@ -42,7 +42,7 @@ export class FirebaseGameStateRepository implements IGameStateRepository {
     }
 
     /**
-     * @description Saves the entire game state to a specific slot in Firestore.
+     * Saves the entire game state to a specific slot in Firestore.
      * @param {string} slotId - The identifier for the save slot.
      * @param {GameState} state - The complete GameState object to save.
      * @returns {Promise<void>} A promise that resolves when the save is complete.
@@ -59,7 +59,7 @@ export class FirebaseGameStateRepository implements IGameStateRepository {
     }
 
     /**
-     * @description Deletes the game state for a specific slot from Firestore.
+     * Deletes the game state for a specific slot from Firestore.
      * @param {string} slotId - The identifier for the save slot to delete.
      * @returns {Promise<void>} A promise that resolves when the deletion is complete.
      */
@@ -75,7 +75,7 @@ export class FirebaseGameStateRepository implements IGameStateRepository {
     }
 
     /**
-     * @description Retrieves a summary of all available save slots from Firestore for the current user.
+     * Retrieves a summary of all available save slots from Firestore for the current user.
      * This is used for the main menu screen to show which slots are occupied.
      * @returns {Promise<Array<Pick<GameState, 'worldSetup' | 'day' | 'gameTime' | 'playerStats'> | null>>} A promise that resolves to an array of up to 3 save slot summaries.
      */

@@ -22,6 +22,7 @@ export const mesa_vi = {
     NPCs: [],
     items: [
         { name: 'Đá Sa Thạch', conditions: { chance: 0.4 } },
+        { name: 'Đá Cuội', conditions: { chance: 0.25 } },
         { name: 'Cỏ Khô', conditions: { chance: 0.3 } },
         { name: 'Lông Đại Bàng', conditions: { chance: 0.1 } },
     ],

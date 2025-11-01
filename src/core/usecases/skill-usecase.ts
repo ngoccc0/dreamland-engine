@@ -1,6 +1,6 @@
-import { Skill, SkillTree } from '../entities/skill';
+import { Skill } from '../entities/skill';
 import { Combatant } from '../entities/combat';
-import { Experience } from '../entities/experience';
+// removed unused type imports (SkillTree, Experience)
 
 export interface ISkillUseCase {
     learnSkill(characterId: string, skillId: string): Promise<boolean>;
@@ -46,14 +46,15 @@ export class SkillUseCase implements ISkillUseCase {
             throw new Error('Skill is on cooldown');
         }
 
-        // Check resource cost
-        const { type: resourceType, value: cost } = skill.resourceCost;
+        // Check resource cost (compat shim: some Skill implementations expose resourceCost/getEffectsAtLevel)
+        const resourceCost = (skill as any).resourceCost || { type: 'MANA', value: 0 };
+        const { type: resourceType, value: cost } = resourceCost;
         if (!this.hasEnoughResource(caster, resourceType, cost)) {
-            throw new Error(`Not enough ${resourceType.toLowerCase()}`);
+            throw new Error(`Not enough ${String(resourceType).toLowerCase()}`);
         }
 
-        // Apply skill effects
-        const effects = skill.getEffectsAtLevel();
+        // Apply skill effects (fallback to the effects array if helper method is missing)
+        const effects = typeof (skill as any).getEffectsAtLevel === 'function' ? (skill as any).getEffectsAtLevel() : (skill.effects || []);
         for (const target of targets) {
             for (const effect of effects) {
                 if (Math.random() <= (effect.chance || 1)) {
@@ -68,26 +69,26 @@ export class SkillUseCase implements ISkillUseCase {
     }
 
     private hasEnoughResource(
-        character: Combatant, 
-        resourceType: 'MANA' | 'STAMINA' | 'HEALTH', 
-        amount: number
+        _character: Combatant, 
+        _resourceType: 'MANA' | 'STAMINA' | 'HEALTH', 
+        _amount: number
     ): boolean {
         // Implementation depends on how resources are stored in Combatant
         return true; // Placeholder
     }
 
     private consumeResource(
-        character: Combatant, 
-        resourceType: 'MANA' | 'STAMINA' | 'HEALTH', 
-        amount: number
+        _character: Combatant, 
+        _resourceType: 'MANA' | 'STAMINA' | 'HEALTH', 
+        _amount: number
     ): void {
         // Implementation depends on how resources are stored in Combatant
     }
 
     private async applyEffect(
-        effect: any,
-        caster: Combatant,
-        target: Combatant
+        _effect: any,
+        _caster: Combatant,
+        _target: Combatant
     ): Promise<void> {
         // Implementation of effect application
     }

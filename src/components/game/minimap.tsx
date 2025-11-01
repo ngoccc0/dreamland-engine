@@ -41,10 +41,10 @@ export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
                     <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><Home />{t('structures')}:</h5>
                         <ul className="space-y-1 text-xs pl-5">
-                           {chunk.structures.map((s) => {
+                           {chunk.structures.map((s, idx) => {
                                 const structData = (s as any).data || s;
-                                const name = getTranslatedText(structData.name, 'en');
-                                return <li key={name}>{renderItemEmoji(structData.emoji, 18)} {getTranslatedText(structData.name, language, t)}</li>
+                                // Use index as key here to avoid relying on language-specific strings for React keys
+                                return <li key={idx}>{renderItemEmoji(structData.emoji, 18)} {getTranslatedText(structData.name, language, t)}</li>
                             })}
                         </ul>
                     </div>
@@ -53,21 +53,21 @@ export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
                     <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><Backpack />{t('inventory')}:</h5>
                         <ul className="space-y-1 text-xs pl-5">
-                            {chunk.items.map(item => <li key={getTranslatedText(item.name, 'en')}>{renderItemEmoji(item.emoji, 16)} {getTranslatedText(item.name, language, t)} (x{item.quantity})</li>)}
+                            {chunk.items.map((item, idx) => <li key={idx}>{renderItemEmoji(item.emoji, 16)} {getTranslatedText(item.name, language, t)} (x{item.quantity})</li>)}
                         </ul>
                     </div>
                 )}
                 {chunk.enemy && (
                     <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><SwordIcon />{t('enemy')}:</h5>
-                        <p className="text-xs pl-5">{renderItemEmoji(chunk.enemy.emoji, 16)} {getTranslatedText(chunk.enemy.type, language, t)} (HP: {chunk.enemy.hp})</p>
+                        <p className="text-xs pl-5">{renderItemEmoji(chunk.enemy.emoji, 16)} {chunk.enemy.type ? getTranslatedText(chunk.enemy.type, language, t) : t('no_enemy_found')} (HP: {chunk.enemy.hp})</p>
                     </div>
                 )}
                 {chunk.NPCs.length > 0 && (
                      <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><NpcIcon />{t('npcs')}:</h5>
                         <ul className="space-y-1 text-xs pl-5">
-                            {chunk.NPCs.map(npc => <li key={getTranslatedText(npc.name, 'en')}>{getTranslatedText(npc.name, language, t)}</li>)}
+                            {chunk.NPCs.map((npc, idx) => <li key={idx}>{getTranslatedText(npc.name, language, t)}</li>)}
                         </ul>
                     </div>
                 )}
@@ -123,8 +123,9 @@ const biomeIcons: Record<Exclude<Terrain, 'empty' | 'wall' | 'ocean' | 'city' | 
 
 
 export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
-  const { t, language } = useLanguage();
-  const responsiveCellSize = "w-14 h-14 md:w-16 md:h-16 lg:w-20 lg:h-20";
+    const { t, language } = useLanguage();
+    // Use clamp() so cell sizes scale down on smaller viewports and the full map can fit without panning
+    const responsiveCellSize = "w-[clamp(28px,6vw,48px)] h-[clamp(28px,6vw,48px)]";
 
   useEffect(() => {
     logger.debug("[MINIMAP] Mounted with props:", { grid, playerPosition, turn });
@@ -138,7 +139,7 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
     logger.warn("[MINIMAP] No map data provided.");
     return (
       <div className="flex flex-col items-center gap-2">
-        <div className="grid grid-cols-5 border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-hidden">
+        <div className="grid grid-cols-5 border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-visible">
           {Array.from({ length: 25 }).map((_, i) => (
              <div key={i} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />
           ))}
@@ -149,7 +150,7 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
 
   return (
     <div className="flex flex-col items-center gap-2">
-        <div className="grid grid-cols-5 border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-hidden">
+    <div className="grid grid-cols-5 border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-visible">
         {grid.map((row, rowIndex) =>
             row.map((cell, colIndex) => {
               const key = `${rowIndex}-${colIndex}`;

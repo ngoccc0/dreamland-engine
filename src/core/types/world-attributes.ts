@@ -1,5 +1,3 @@
-import type { SoilType } from '../entities/terrain';
-
 /**
  * Base attributes for all world objects
  */

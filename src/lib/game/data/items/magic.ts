@@ -1,6 +1,6 @@
 /**
- * @fileOverview Defines all magic-related items in the game.
- * @description This file contains definitions for items that are inherently magical,
+ * Defines all magic-related items in the game.
+ * This file contains definitions for items that are inherently magical,
  * used as crafting components for enchanted gear, or are potent energy sources.
  */
 

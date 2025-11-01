@@ -1,12 +1,12 @@
 /**
- * @fileOverview Central hub for accessing narrative templates.
- * @description This file aggregates biome-specific template data from various modular files.
+ * Central hub for accessing narrative templates.
+ * This file aggregates biome-specific template data from various modular files.
  * It provides a single function, `getTemplates`, to retrieve the correct set of templates
  * based on the current game language. This architecture allows for easy expansion and modding
  * of narrative content.
  */
 
-import type { GameTemplates, Language } from "./types";
+import type { Language } from "./types";
 import { forest_vi, forest_en } from './templates/forest';
 import { grassland_vi, grassland_en } from './templates/grassland';
 import { desert_vi, desert_en } from './templates/desert';

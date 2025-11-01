@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview Defines all unique assets for the "Underwater Kingdom" premade world.
- * @description This file contains the item, structure, and starting scenario definitions
+ * Defines all unique assets for the "Underwater Kingdom" premade world.
+ * This file contains the item, structure, and starting scenario definitions
  * for a world set beneath the ocean. Items here are marked with `spawnEnabled: false`
  * to prevent them from appearing in other, drier game worlds.
  */

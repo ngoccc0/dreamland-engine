@@ -1,4 +1,4 @@
-import { TerrainType, SoilType } from '../../lib/definitions/terrain-definitions';
+import { TerrainType, SoilType } from '../../lib/game/definitions/terrain-definitions';
 import { TerrainAttributes } from '../types/attributes';
 import { Entity } from './entity-factory';
 import { EntityFactory } from './entity-factory';

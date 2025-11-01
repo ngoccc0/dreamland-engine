@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview An AI agent for dynamically generating the first step of a new legendary quest.
+ * An AI agent for dynamically generating the first step of a new legendary quest.
  *
  * This flow is called periodically to inject a grand, multi-step objective into the game,
  * providing a long-term goal for the player.

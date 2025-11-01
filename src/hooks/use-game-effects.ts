@@ -1,8 +1,9 @@
 
 
-'use client';
+ 'use client';
 
 import { useEffect, useState } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import { useAuth } from '@/context/auth-context';
 import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
 import { FirebaseGameStateRepository } from '@/infrastructure/persistence/firebase.repository';
@@ -17,8 +18,8 @@ import { useWorldRendering } from './game-lifecycle/useWorldRendering';
 import { useLanguage } from '@/context/language-context';
 
 /**
- * @fileOverview Orchestrator hook for managing all game side-effects.
- * @description This hook initializes the correct data repository and then delegates
+ * Orchestrator hook for managing all game side-effects.
+ * This hook initializes the correct data repository and then delegates
  * specific lifecycle tasks (initialization, saving, progression, etc.)
  * to specialized child hooks.
  * @param {GameEffectsDeps} deps - A collection of all state variables and updaters from the main game state.
@@ -43,7 +44,7 @@ type GameEffectsDeps = {
   setNarrativeLog: (log: NarrativeEntry[]) => void;
   addNarrativeEntry: (text: string, type: 'narrative' | 'action' | 'system', entryId?: string) => void;
   finalWorldSetup: GameState['worldSetup'] | null;
-  setFinalWorldSetup: (setup: GameState['worldSetup']) => void;
+  setFinalWorldSetup: Dispatch<SetStateAction<GameState['worldSetup'] | null>>;
   turn: number;
   setTurn: (turn: number) => void;
   day: number;
@@ -76,8 +77,8 @@ type GameEffectsDeps = {
 };
 
 /**
- * @fileOverview Orchestrator hook for managing all game side-effects.
- * @description This hook initializes the correct data repository and then delegates
+ * Orchestrator hook for managing all game side-effects.
+ * This hook initializes the correct data repository and then delegates
  * specific lifecycle tasks (initialization, saving, progression, etc.)
  * to specialized child hooks.
  * @param {GameEffectsDeps} deps - A collection of all state variables and updaters from the main game state.

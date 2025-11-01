@@ -1,4 +1,4 @@
-import { TranslatableString } from '../../lib/i18n';
+import { TranslatableString } from './i18n';
 import { PlayerItem } from './items';
 import { Skill } from '../entities/skill';
 import { PlayerPersona } from './game';

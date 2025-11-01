@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview Defines all player skills available in the game.
- * @description This file contains a static array of skill objects, including their
+ * Defines all player skills available in the game.
+ * This file contains a static array of skill objects, including their
  * effects, mana costs, and the conditions required to unlock them.
  */
 

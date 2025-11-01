@@ -13,16 +13,20 @@ import { FusionPopup } from "@/components/game/fusion-popup";
 import { PwaInstallPopup } from "@/components/game/pwa-install-popup";
 import { SettingsPopup } from "@/components/game/settings-popup";
 import { Controls } from "@/components/game/controls";
+import BottomActionBar from "@/components/game/bottom-action-bar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/context/language-context";
+import { useSettings } from "@/context/settings-context";
 import { useGameEngine } from "@/hooks/use-game-engine";
-import type { PlayerItem, Recipe, ItemDefinition, Chunk, CraftingOutcome, Structure, Action, NarrativeEntry } from "@/lib/game/types";
+import type { Structure, Action, NarrativeEntry } from "@/lib/game/types";
 import { cn, getTranslatedText } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
 import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Heart, Zap, Footprints, Loader2, Menu, LogOut } from "./icons";
@@ -44,6 +48,15 @@ export default function GameLayout(props: GameLayoutProps) {
         );
     }
     const { t, language } = useLanguage();
+    const { settings } = useSettings();
+    const [isDesktop, setIsDesktop] = useState(false);
+    const [showNarrativeDesktop, setShowNarrativeDesktop] = useState(true);
+    // Dev-only: track mount/unmount counts to help diagnose unexpected remounts
+    if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const g = globalThis as any;
+        if (!g.__gameLayoutMountCount) g.__gameLayoutMountCount = 0;
+    }
     
     const {
         world,
@@ -72,10 +85,35 @@ export default function GameLayout(props: GameLayoutProps) {
         handleRequestQuestHint,
         handleEquipItem,
         handleUnequipItem,
-        handleReturnToMenu,
-        handleHarvest,
+    handleReturnToMenu,
         narrativeContainerRef,
     } = useGameEngine(props);
+
+    // increment mount counter for GameLayout and expose to window for quick checks
+    useEffect(() => {
+        if (process.env.NODE_ENV === 'production') return;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const g = globalThis as any;
+        g.__gameLayoutMountCount = (g.__gameLayoutMountCount || 0) + 1;
+        // also expose on window for console inspection
+        try { (window as any).__GAME_LAYOUT_MOUNT_COUNT = g.__gameLayoutMountCount; } catch {}
+        logger.debug('[GameLayout] mounted - count', { count: g.__gameLayoutMountCount });
+        return () => {
+            g.__gameLayoutMountCount = Math.max(0, (g.__gameLayoutMountCount || 1) - 1);
+            try { (window as any).__GAME_LAYOUT_MOUNT_COUNT = g.__gameLayoutMountCount; } catch {}
+            logger.debug('[GameLayout] unmounted - count', { count: g.__gameLayoutMountCount });
+        };
+    }, []);
+
+    // Track whether we are on a desktop-sized viewport so we can render the desktop layout
+    useEffect(() => {
+        const onResize = () => setIsDesktop(typeof window !== 'undefined' && window.innerWidth >= 1024);
+        onResize();
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
+
+    
 
     const [isStatusOpen, setStatusOpen] = useState(false);
     const [isInventoryOpen, setInventoryOpen] = useState(false);
@@ -87,12 +125,103 @@ export default function GameLayout(props: GameLayoutProps) {
     const [isSettingsOpen, setSettingsOpen] = useState(false);
     const [showInstallPopup, setShowInstallPopup] = useState(false);
     const [inputValue, setInputValue] = useState("");
+    const [isAvailableActionsOpen, setAvailableActionsOpen] = useState(false);
+    const [isCustomDialogOpen, setCustomDialogOpen] = useState(false);
+    const [customDialogValue, setCustomDialogValue] = useState("");
+    const [isPickupDialogOpen, setPickupDialogOpen] = useState(false);
+    const [selectedPickupIds, setSelectedPickupIds] = useState<number[]>([]);
     
     const customActionInputRef = useRef<HTMLInputElement>(null);
 
     const focusCustomActionInput = useCallback(() => {
-        setTimeout(() => customActionInputRef.current?.focus(), 0);
-    }, []);
+        setTimeout(() => {
+                        try {
+                            const el = customActionInputRef.current as (HTMLInputElement | null);
+                            if (!el) return;
+                            const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
+                            // Respect user setting for preventing control-panel scrolling
+                            const prevent = settings?.controlsPreventScroll ?? true;
+                            if (isDesktop && prevent) {
+                                // @ts-ignore - some TS DOM libs may not include the options overload
+                                el.focus?.({ preventScroll: true });
+                            } else {
+                                el.focus?.();
+                            }
+                        } catch {
+                            try { customActionInputRef.current?.focus(); } catch {}
+                        }
+        }, 0);
+            }, [settings]);
+
+    // Global keyboard controls: Arrow keys + WASD to move, Space to attack.
+    // Movement keys take priority over typing: capture them in the capture phase and prevent default so
+    // WASD/Arrow/Space control the player even if the action input has focus.
+    useEffect(() => {
+        const keyHandler = (e: KeyboardEvent) => {
+            try {
+                // Movement and attack keys should always be intercepted by the game controls
+                const movementKeys = new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','W','a','A','s','S','d','D',' ']);
+
+                // If this is not a movement key, and the user is focused on a text input, allow typing normally.
+                const active = document.activeElement as HTMLElement | null;
+                if (!movementKeys.has(e.key)) {
+                    if (active) {
+                        const tag = (active.tagName || '').toUpperCase();
+                        if (tag === 'INPUT' || tag === 'TEXTAREA' || active.isContentEditable) return;
+                    }
+                }
+
+                // If any major popup is open, don't intercept keys so users can interact with the UI.
+                if (isSettingsOpen || isFullMapOpen || isInventoryOpen || isStatusOpen || isCraftingOpen || isBuildingOpen || isFusionOpen || isTutorialOpen) return;
+
+                // Map keys to actions (movement keys take precedence even when an input is focused)
+                switch (e.key) {
+                    case 'ArrowUp':
+                    case 'w':
+                    case 'W':
+                        e.preventDefault();
+                        handleMove('north');
+                        focusCustomActionInput();
+                        break;
+                    case 'ArrowDown':
+                    case 's':
+                    case 'S':
+                        e.preventDefault();
+                        handleMove('south');
+                        focusCustomActionInput();
+                        break;
+                    case 'ArrowLeft':
+                    case 'a':
+                    case 'A':
+                        e.preventDefault();
+                        handleMove('west');
+                        focusCustomActionInput();
+                        break;
+                    case 'ArrowRight':
+                    case 'd':
+                    case 'D':
+                        e.preventDefault();
+                        handleMove('east');
+                        focusCustomActionInput();
+                        break;
+                    case ' ': // Space to attack
+                        e.preventDefault();
+                        handleAttack();
+                        focusCustomActionInput();
+                        break;
+                    default:
+                        break;
+                }
+            } catch (err) {
+                // swallow any unexpected errors from accessing document in unusual environments
+                logger.debug('[GameLayout] keyboard handler error', err);
+            }
+        };
+
+        // Use capture phase so the game controls get priority over other UI handlers (like inputs)
+        window.addEventListener('keydown', keyHandler, { capture: true });
+        return () => window.removeEventListener('keydown', keyHandler, { capture: true });
+    }, [handleMove, handleAttack, isSettingsOpen, isFullMapOpen, isInventoryOpen, isStatusOpen, isCraftingOpen, isBuildingOpen, isFusionOpen, isTutorialOpen, focusCustomActionInput]);
 
     const handleActionClick = (actionId: number) => {
         handleAction(actionId);
@@ -104,6 +233,15 @@ export default function GameLayout(props: GameLayoutProps) {
             handleCustomAction(inputValue);
             setInputValue("");
         }
+        focusCustomActionInput();
+    };
+    const onCustomDialogSubmit = () => {
+        const v = customDialogValue.trim();
+        if (v) {
+            handleCustomAction(v);
+            setCustomDialogValue("");
+        }
+        setCustomDialogOpen(false);
         focusCustomActionInput();
     };
     
@@ -177,17 +315,111 @@ export default function GameLayout(props: GameLayoutProps) {
     
     const worldNameText = getTranslatedText(finalWorldSetup.worldName, language, t);
 
+    // Consolidated main actions trigger: single button that opens a dropdown with the full action set.
+    const mainActions = (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="ml-2" aria-label={t('mainActions') || 'Main actions'}>
+                    {t('mainActions') || 'Actions'}
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-64">
+                <div className="grid grid-cols-1 gap-2 p-2">
+                    <Button variant="ghost" className="justify-start" onClick={() => { setStatusOpen(true); focusCustomActionInput(); }}>{t('statusShort') || 'Status'}</Button>
+                    <Button variant="ghost" className="justify-start" onClick={() => { setInventoryOpen(true); focusCustomActionInput(); }}>{t('inventoryShort') || 'Inventory'}</Button>
+                    <Button variant="ghost" className="justify-start" onClick={() => { setCraftingOpen(true); focusCustomActionInput(); }}>{t('craftingShort') || 'Craft'}</Button>
+                    <Button variant="ghost" className="justify-start" onClick={() => { setBuildingOpen(true); focusCustomActionInput(); }}>{t('buildingShort') || 'Build'}</Button>
+                    <Button variant="ghost" className="justify-start" onClick={() => { setFusionOpen(true); focusCustomActionInput(); }}>{t('fusionShort') || 'Fuse'}</Button>
+                </div>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+
+    // Pickup action grouping: collect pick-up actions to present in a single dialog
+    const pickUpActions = (currentChunk?.actions || []).filter((a: Action) => a.textKey === 'pickUpAction_item');
+    const otherActions = (currentChunk?.actions || []).filter((a: Action) => a.textKey !== 'pickUpAction_item');
+
+    // Helpers for the pickup dialog selection
+    const togglePickupSelection = (id: number) => {
+        setSelectedPickupIds(prev => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]));
+    };
+
+    const handlePickupConfirm = () => {
+        if (!selectedPickupIds || selectedPickupIds.length === 0) {
+            setPickupDialogOpen(false);
+            return;
+        }
+
+        // Execute each selected pick-up action using the existing action handler
+        selectedPickupIds.forEach((actionId) => {
+            try {
+                handleAction(actionId);
+            } catch (e) {
+                logger.error('Pickup action failed for id', { actionId, error: e });
+            }
+        });
+
+        // Reset dialog state and focus input
+        setSelectedPickupIds([]);
+        setPickupDialogOpen(false);
+        focusCustomActionInput();
+    };
+
 
     return (
         <TooltipProvider>
-            <div className="flex flex-col md:flex-row md:h-dvh bg-background text-foreground font-body">
+            <div className="flex flex-col md:flex-row md:h-dvh bg-background text-foreground font-body" style={{ ['--aside-w' as any]: 'min(462px,36vw)' }}>
                 {/* Left Panel: Narrative */}
-                <div className="w-full md:flex-1 flex flex-col md:overflow-hidden">
-                    <header className="p-4 border-b flex-shrink-0 flex justify-between items-center">
-                        <h1 className="text-2xl font-bold font-headline">{worldNameText}</h1>
-                        <DropdownMenu>
+                <div className={`${isDesktop && !showNarrativeDesktop ? 'md:hidden' : ''} w-full md:flex-1 flex flex-col md:overflow-hidden md:pb-16`}>
+                    <header className="p-4 border-b flex-shrink-0 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                        <div className="flex items-center gap-3 w-full md:max-w-3xl">
+                            <h1 className="text-2xl font-bold font-headline">{worldNameText}</h1>
+                            {/* On desktop (non-legacy layout), show main actions next to the world title as inline icon buttons */}
+                            {isDesktop && !settings?.useLegacyLayout && (
+                                <div className="ml-6 hidden md:flex md:items-center md:flex-1 gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button aria-label={t('statusShort') || 'Status'} variant="outline" size="icon" onClick={() => { setStatusOpen(true); focusCustomActionInput(); }}><Shield /></Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>{t('statusShort') || 'Status'}</p></TooltipContent>
+                                        </Tooltip>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button aria-label={t('inventoryShort') || 'Inventory'} variant="outline" size="icon" onClick={() => { setInventoryOpen(true); focusCustomActionInput(); }}><Backpack /></Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>{t('inventoryShort') || 'Inventory'}</p></TooltipContent>
+                                        </Tooltip>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button aria-label={t('craftingShort') || 'Craft'} variant="outline" size="icon" onClick={() => { setCraftingOpen(true); focusCustomActionInput(); }}><Hammer /></Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>{t('craftingShort') || 'Craft'}</p></TooltipContent>
+                                        </Tooltip>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button aria-label={t('buildingShort') || 'Build'} variant="outline" size="icon" onClick={() => { setBuildingOpen(true); focusCustomActionInput(); }}><Home /></Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>{t('buildingShort') || 'Build'}</p></TooltipContent>
+                                        </Tooltip>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button aria-label={t('fusionShort') || 'Fuse'} variant="outline" size="icon" onClick={() => { setFusionOpen(true); focusCustomActionInput(); }}><FlaskConical /></Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>{t('fusionShort') || 'Fuse'}</p></TooltipContent>
+                                        </Tooltip>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                            {/* Desktop-only toggle for narrative visibility */}
+                            <Button variant="ghost" size="icon" className="hidden md:inline-flex" onClick={() => setShowNarrativeDesktop(s => !s)} aria-label={showNarrativeDesktop ? (t('hideNarrative') || 'Hide narrative') : (t('showNarrative') || 'Show narrative')}>
+                                {showNarrativeDesktop ? 'Hide' : 'Show'}
+                            </Button>
+                            <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" aria-label={t('openMenu') || 'Open menu'}>
                                     <Menu />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -207,6 +439,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
+                        </div>
                     </header>
 
                     <main ref={narrativeContainerRef} className="flex-grow p-4 md:p-6 overflow-y-auto max-h-[50dvh] md:max-h-full hide-scrollbar">
@@ -227,86 +460,170 @@ export default function GameLayout(props: GameLayoutProps) {
                             )}
                         </div>
                     </main>
+
+                    {/* Desktop horizontal action bar removed - main actions are now inline in the header for desktop non-legacy layout */}
+
                 </div>
 
                 {/* Right Panel: Controls & Actions */}
-                <aside className="w-full md:w-[420px] md:flex-shrink-0 bg-card border-l p-4 md:p-6 flex flex-col gap-6 md:overflow-y-auto">
+                <aside className="w-full md:w-[min(462px,36vw)] md:flex-none bg-card border-l pt-4 pb-0 px-4 md:pt-6 md:pb-0 md:px-6 flex flex-col gap-6 min-h-0">
                     {/* Top Section - HUD & Minimap */}
                     <div className="flex-shrink-0 flex flex-col gap-6">
-                        {/* HUD */}
-                        <div className="space-y-3">
-                            <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
-                                <div className="space-y-1">
-                                    <label className="flex items-center gap-1.5 text-muted-foreground"><Heart /> {t('hudHealth')}</label>
-                                    <Progress value={playerStats.hp} className="h-2" indicatorClassName="bg-destructive" />
+                        {isDesktop && !settings?.useLegacyLayout ? (
+                            // Desktop (non-legacy): show map above HUD in the right panel
+                            <>
+                                {/* Minimap */}
+                                <div className="flex flex-col items-center gap-2">
+                                    <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); focusCustomActionInput(); }}>{t('minimap')}</h3>
+                                    <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
+                                        <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
+                                        <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
+                                    </div>
+                                    <Minimap grid={generateMapGrid()} playerPosition={playerPosition} turn={turn} />
                                 </div>
-                                <div className="space-y-1">
-                                    <label className="flex items-center gap-1.5 text-muted-foreground"><Zap /> {t('hudMana')}</label>
-                                    <Progress value={(playerStats.mana / 50) * 100} className="h-2" indicatorClassName="bg-gradient-to-r from-blue-500 to-purple-600" />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="flex items-center gap-1.5 text-muted-foreground"><Footprints /> {t('hudStamina')}</label>
-                                    <Progress value={playerStats.stamina} className="h-2" indicatorClassName="bg-gradient-to-r from-yellow-400 to-orange-500" />
-                                </div>
-                            </div>
-                            <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                <span>{playerStats.hp} / 100</span>
-                                <span>{playerStats.mana} / 50</span>
-                                <span>{playerStats.stamina.toFixed(0)} / 100</span>
-                            </div>
-                        </div>
 
-                        {/* Minimap */}
-                        <div className="flex flex-col items-center gap-2">
-                            <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); focusCustomActionInput(); }}>{t('minimap')}</h3>
-                            <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
-                                <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
-                            </div>
-                            <Minimap grid={generateMapGrid()} playerPosition={playerPosition} turn={turn} />
-                        </div>
+                                {/* HUD */}
+                                <div className="space-y-3">
+                                    <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
+                                        <div className="space-y-1">
+                                            <label className="flex items-center gap-1.5 text-muted-foreground"><Heart /> {t('hudHealth')}</label>
+                                            <Progress value={playerStats.hp} className="h-2" indicatorClassName="bg-destructive" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="flex items-center gap-1.5 text-muted-foreground"><Zap /> {t('hudMana')}</label>
+                                            <Progress value={(playerStats.mana / 50) * 100} className="h-2" indicatorClassName="bg-gradient-to-r from-blue-500 to-purple-600" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="flex items-center gap-1.5 text-muted-foreground"><Footprints /> {t('hudStamina')}</label>
+                                            <Progress value={playerStats.stamina} className="h-2" indicatorClassName="bg-gradient-to-r from-yellow-400 to-orange-500" />
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                        <span>{playerStats.hp} / 100</span>
+                                        <span>{playerStats.mana} / 50</span>
+                                        <span>{playerStats.stamina.toFixed(0)} / 100</span>
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            // Default (mobile / legacy): HUD then Minimap
+                            <>
+                                {/* HUD */}
+                                <div className="space-y-3">
+                                    <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
+                                        <div className="space-y-1">
+                                            <label className="flex items-center gap-1.5 text-muted-foreground"><Heart /> {t('hudHealth')}</label>
+                                            <Progress value={playerStats.hp} className="h-2" indicatorClassName="bg-destructive" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="flex items-center gap-1.5 text-muted-foreground"><Zap /> {t('hudMana')}</label>
+                                            <Progress value={(playerStats.mana / 50) * 100} className="h-2" indicatorClassName="bg-gradient-to-r from-blue-500 to-purple-600" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="flex items-center gap-1.5 text-muted-foreground"><Footprints /> {t('hudStamina')}</label>
+                                            <Progress value={playerStats.stamina} className="h-2" indicatorClassName="bg-gradient-to-r from-yellow-400 to-orange-500" />
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                        <span>{playerStats.hp} / 100</span>
+                                        <span>{playerStats.mana} / 50</span>
+                                        <span>{playerStats.stamina.toFixed(0)} / 100</span>
+                                    </div>
+                                </div>
+
+                                {/* Minimap */}
+                                <div className="flex flex-col items-center gap-2">
+                                    <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); focusCustomActionInput(); }}>{t('minimap')}</h3>
+                                    <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
+                                        <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
+                                        <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
+                                    </div>
+                                    <Minimap grid={generateMapGrid()} playerPosition={playerPosition} turn={turn} />
+                                </div>
+                            </>
+                        )}
                     </div>
                     
-                    {/* Bottom Section - Actions */}
+                    {/* Bottom Section - Actions (desktop shows horizontal bar instead unless legacy layout is enabled) */}
                     <div className="flex flex-col gap-4 flex-grow">
-                        {/* Controls and Skills */}
-                        <div className="flex flex-col md:flex-row md:justify-around md:items-start md:gap-x-6 gap-y-4">
-                            <Controls onMove={(dir) => { handleMove(dir); focusCustomActionInput(); }} onAttack={() => { handleAttack(); focusCustomActionInput(); }} />
-                             <div className="flex flex-col space-y-2 w-full md:max-w-xs">
-                                <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('skills')}</h3>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {playerStats.skills?.map((skill: import('@/lib/game/types').Skill) => {
-                                        const skillName = getTranslatedText(skill.name, language, t);
-                                        const skillDesc = getTranslatedText(skill.description, language, t);
-                                        return (
-                                            <Tooltip key={skillName}>
-                                                <TooltipTrigger asChild>
-                                                    <Button variant="secondary" className="w-full justify-center text-xs" onClick={() => { handleUseSkill(skillName); focusCustomActionInput(); }} disabled={isLoading || playerStats.mana < skill.manaCost}>
-                                                        <WandSparkles className="mr-2 h-3 w-3" />
-                                                        {skillName} ({t('manaCostShort', { cost: skill.manaCost })})
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent><p>{skillDesc}</p><p className="text-muted-foreground">{t('manaCost')}: {skill.manaCost}</p></TooltipContent>
-                                            </Tooltip>
-                                        );
-                                    })}
-                                </div>
+                        {/* Controls (mobile only). On desktop we show the bottom fixed action bar instead. */}
+                        <div className="flex items-center justify-between gap-4">
+                            {!isDesktop && (
+                                <Controls onMove={(dir) => { handleMove(dir); focusCustomActionInput(); }} onAttack={() => { handleAttack(); focusCustomActionInput(); }} />
+                            )}
+                        </div>
+
+                        {/* Horizontal bottom action bar: skills (left), available actions (center), main actions (right) */}
+                        <div className="w-full bg-transparent p-3 flex items-center gap-3 overflow-x-auto md:hidden">
+                            {/* Skills (left) */}
+                            <div className="flex items-center gap-2">
+                                {playerStats.skills?.map((skill: import('@/lib/game/types').Skill) => {
+                                    const skillName = getTranslatedText(skill.name, language, t);
+                                    return (
+                                        <Tooltip key={skillName}>
+                                            <TooltipTrigger asChild>
+                                                <Button variant="secondary" className="text-xs" onClick={() => { handleUseSkill(skillName); focusCustomActionInput(); }} disabled={isLoading || playerStats.mana < skill.manaCost}>
+                                                    <WandSparkles className="h-4 w-4 mr-2" />
+                                                    <span className="hidden sm:inline">{skillName}</span>
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>{getTranslatedText(skill.description, language, t)}</p></TooltipContent>
+                                        </Tooltip>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Available actions (center) */}
+                            <div className="flex-1 flex items-center justify-center gap-2">
+                                {pickUpActions.length > 0 && (
+                                    <Button variant="accent" onClick={() => { setPickupDialogOpen(true); setSelectedPickupIds([]); }}>{t('pickUpItems') || 'Pick up items'}</Button>
+                                )}
+                                {otherActions.map((action: Action) => {
+                                    const actionText = getTranslatedText({ key: action.textKey, params: action.params }, language, t);
+                                    return (
+                                        <Tooltip key={action.id}>
+                                            <TooltipTrigger asChild>
+                                                <Button variant="secondary" className="text-sm" onClick={() => handleActionClick(action.id)} disabled={isLoading}>{actionText}</Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>{actionText}</p></TooltipContent>
+                                        </Tooltip>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Main actions & menu (right) */}
+                            <div className="ml-auto flex items-center gap-2">
+                                <Button aria-label={t('statusShort') || 'Status'} variant="outline" onClick={() => { setStatusOpen(true); focusCustomActionInput(); }}><Shield /></Button>
+                                <Button aria-label={t('inventoryShort') || 'Inventory'} variant="outline" onClick={() => { setInventoryOpen(true); focusCustomActionInput(); }}><Backpack /></Button>
+                                <Button aria-label={t('craftingShort') || 'Crafting'} variant="outline" onClick={() => { setCraftingOpen(true); focusCustomActionInput(); }}><Hammer /></Button>
+                                <Button aria-label={t('buildingShort') || 'Build'} variant="outline" onClick={() => { setBuildingOpen(true); focusCustomActionInput(); }}><Home /></Button>
+                                <Button aria-label={t('fusionShort') || 'Fuse'} variant="outline" onClick={() => { setFusionOpen(true); focusCustomActionInput(); }}><FlaskConical /></Button>
+                                <Button variant="outline" onClick={() => setAvailableActionsOpen(true)}>{t('actions') || 'Actions'}</Button>
+                                {/* Custom action removed from the map/HUD column to keep it map+HUD only */}
                             </div>
                         </div>
 
-                        {/* Main Action Buttons */}
-                        <div className="space-y-2">
-                            <h3 className="text-lg font-headline font-semibold text-center text-foreground/80">{t('mainActions')}</h3>
-                            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setStatusOpen(true); focusCustomActionInput(); }}><Shield /></Button></TooltipTrigger><TooltipContent><p>{t('statusTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setInventoryOpen(true); focusCustomActionInput(); }}><Backpack /></Button></TooltipTrigger><TooltipContent><p>{t('inventoryTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setCraftingOpen(true); focusCustomActionInput(); }}><Hammer /></Button></TooltipTrigger><TooltipContent><p>{t('craftingTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setBuildingOpen(true); focusCustomActionInput(); }}><Home /></Button></TooltipTrigger><TooltipContent><p>{t('buildingTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-14 w-full" onClick={() => { setFusionOpen(true); focusCustomActionInput(); }}><FlaskConical /></Button></TooltipTrigger><TooltipContent><p>{t('fusionTooltip')}</p></TooltipContent></Tooltip>
-                            </div>
-                        </div>
+                        {/* Desktop bottom action bar (fixed) inserted so it doesn't overlap the right HUD/map column. */}
+                        <BottomActionBar
+                            skills={playerStats.skills}
+                            playerStats={playerStats}
+                            language={language}
+                            t={t}
+                            pickUpActions={pickUpActions}
+                            otherActions={otherActions}
+                            isLoading={isLoading}
+                            onUseSkill={(skillName: string) => { handleUseSkill(skillName); focusCustomActionInput(); }}
+                            onActionClick={handleActionClick}
+                            onOpenPickup={() => { setPickupDialogOpen(true); setSelectedPickupIds([]); }}
+                            onOpenAvailableActions={() => setAvailableActionsOpen(true)}
+                            onOpenCustomDialog={() => setCustomDialogOpen(true)}
+                            onOpenStatus={() => { setStatusOpen(true); focusCustomActionInput(); }}
+                            onOpenInventory={() => { setInventoryOpen(true); focusCustomActionInput(); }}
+                            onOpenCrafting={() => { setCraftingOpen(true); focusCustomActionInput(); }}
+                            onOpenBuilding={() => { setBuildingOpen(true); focusCustomActionInput(); }}
+                            onOpenFusion={() => { setFusionOpen(true); focusCustomActionInput(); }}
+                        />
                         
-                        <Separator />
                         
                         {/* Contextual and Custom Actions */}
                         {restingPlace && (
@@ -316,29 +633,108 @@ export default function GameLayout(props: GameLayoutProps) {
                             </div><Separator /></>
                         )}
                         
-                        <div className="space-y-2">
-                            <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('availableActions')}</h2>
-                            <div className="grid grid-cols-2 gap-2">
-                                {currentChunk?.actions.map((action: Action) => {
-                                    const actionText = getTranslatedText({ key: action.textKey, params: action.params }, language, t);
-                                    return (
-                                        <Tooltip key={action.id}>
-                                            <TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => handleActionClick(action.id)} disabled={isLoading}>{actionText}</Button></TooltipTrigger>
-                                            <TooltipContent><p>{actionText}</p></TooltipContent>
-                                        </Tooltip>
-                                    );
-                                })}
+                        {/* Available actions (mobile only): hide on desktop since desktop has the fixed bottom bar */}
+                        {!isDesktop && (
+                            <div className="space-y-2">
+                                <h2 className="font-headline text-lg font-semibold text-center text-foreground/80">{t('availableActions')}</h2>
+                                {/* External pickup button (opens selection dialog) - only visible when there are items */}
+                                {pickUpActions.length > 0 && (
+                                    <div className="flex w-full justify-center mb-2">
+                                        <Button variant="accent" onClick={() => { setPickupDialogOpen(true); setSelectedPickupIds([]); }}>{t('pickUpItems') || 'Pick up items'}</Button>
+                                    </div>
+                                )}
+                                <div className="grid grid-cols-2 gap-2">
+                                    {otherActions.map((action: Action) => {
+                                        const actionText = getTranslatedText({ key: action.textKey, params: action.params }, language, t);
+                                        return (
+                                            <Tooltip key={action.id}>
+                                                <TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => handleActionClick(action.id)} disabled={isLoading}>{actionText}</Button></TooltipTrigger>
+                                                <TooltipContent><p>{actionText}</p></TooltipContent>
+                                            </Tooltip>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
+                        )}
                         
-                        <div className="flex flex-col gap-2 mt-auto pt-4">
-                            <Input ref={customActionInputRef} placeholder={t('customActionPlaceholder')} value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={handleKeyDown} disabled={isLoading} />
-                            <Tooltip><TooltipTrigger asChild><Button variant="accent" onClick={onCustomActionSubmit} disabled={isLoading}>{t('submit')}</Button></TooltipTrigger><TooltipContent><p>{t('submitTooltip')}</p></TooltipContent></Tooltip>
-                        </div>
+                        {/* Custom action input removed from the map/HUD column so the aside only contains map and HUD */}
                     </div>
                 </aside>
+                {/* Dialog: Available Actions (desktop) */}
+                <Dialog open={isAvailableActionsOpen} onOpenChange={setAvailableActionsOpen}>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>{t('availableActions') || 'Available Actions'}</DialogTitle>
+                            <DialogDescription>{t('availableActionsDesc') || 'Choose an available action.'}</DialogDescription>
+                        </DialogHeader>
+                        <div className="mt-4 grid grid-cols-1 gap-2">
+                            {currentChunk?.actions.length ? (
+                                currentChunk!.actions.map((action: Action) => (
+                                    <Button key={action.id} variant="secondary" className="w-full justify-center" onClick={() => { handleActionClick(action.id); setAvailableActionsOpen(false); }}>
+                                        {getTranslatedText({ key: action.textKey, params: action.params }, language, t)}
+                                    </Button>
+                                ))
+                            ) : (
+                                <p className="text-sm text-muted-foreground">{t('noAvailableActions') || 'No actions available.'}</p>
+                            )}
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Dialog: Custom Action input (desktop) */}
+                <Dialog open={isCustomDialogOpen} onOpenChange={setCustomDialogOpen}>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>{t('customAction') || 'Custom Action'}</DialogTitle>
+                            <DialogDescription>{t('customActionDesc') || 'Type a custom action and submit.'}</DialogDescription>
+                        </DialogHeader>
+                        <div className="mt-4">
+                            <Input placeholder={t('customActionPlaceholder') || 'Describe your action...'} value={customDialogValue} onChange={(e) => setCustomDialogValue((e.target as HTMLInputElement).value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); onCustomDialogSubmit(); } }} />
+                            <div className="flex justify-end mt-3">
+                                <Button variant="ghost" onClick={() => setCustomDialogOpen(false)} className="mr-2">{t('cancel') || 'Cancel'}</Button>
+                                <Button onClick={onCustomDialogSubmit}>{t('submit') || 'Submit'}</Button>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+                
                 
                 <StatusPopup open={isStatusOpen} onOpenChange={setStatusOpen} stats={playerStats} onRequestHint={handleRequestQuestHint} onUnequipItem={handleUnequipItem} />
+                {/* Dialog: Pickup items selection */}
+                <Dialog open={isPickupDialogOpen} onOpenChange={setPickupDialogOpen}>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>{t('pickUpItems') || 'Pick up items'}</DialogTitle>
+                            <DialogDescription>{t('pickUpItemsDesc') || 'Select which items to pick up from this location.'}</DialogDescription>
+                        </DialogHeader>
+                        <div className="mt-4 grid grid-cols-1 gap-2">
+                            {pickUpActions.length ? (
+                                pickUpActions.map((action: Action) => {
+                                    // Find the matching item in the chunk by using the same lookup used in handlers
+                                    const item = (currentChunk?.items || []).find((i: any) => getTranslatedText(i.name, 'en') === action.params?.itemName) || (currentChunk?.items?.[0] || null);
+                                    const itemName = item ? getTranslatedText(item.name, language, t) : getTranslatedText({ key: action.textKey, params: action.params }, language, t);
+                                    return (
+                                        <div key={action.id} className="flex items-center justify-between gap-2">
+                                            <label className="flex items-center gap-3 cursor-pointer">
+                                                <Checkbox checked={selectedPickupIds.includes(action.id)} onCheckedChange={() => togglePickupSelection(action.id)} />
+                                                <div className="flex flex-col text-sm">
+                                                    <span className="font-medium">{item?.emoji ? `${item.emoji} ` : ''}{itemName}</span>
+                                                    {item && <span className="text-xs text-muted-foreground">{t('quantityShort') || 'Qty'}: {item.quantity}</span>}
+                                                </div>
+                                            </label>
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                <p className="text-sm text-muted-foreground">{t('noItemsHere') || 'No items to pick up.'}</p>
+                            )}
+                        </div>
+                        <div className="flex justify-end mt-4">
+                            <Button variant="ghost" onClick={() => { setPickupDialogOpen(false); setSelectedPickupIds([]); }} className="mr-2">{t('cancel') || 'Cancel'}</Button>
+                            <Button onClick={handlePickupConfirm} disabled={selectedPickupIds.length === 0}>{t('pickUp') || 'Pick up'}</Button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
                 <InventoryPopup open={isInventoryOpen} onOpenChange={setInventoryOpen} items={playerStats.items} itemDefinitions={customItemDefinitions} enemy={currentChunk?.enemy || null} onUseItem={handleItemUsed} onEquipItem={handleEquipItem} />
                 <CraftingPopup open={isCraftingOpen} onOpenChange={setCraftingOpen} playerItems={playerStats.items} recipes={recipes} onCraft={handleCraft} itemDefinitions={customItemDefinitions} />
                 <BuildingPopup open={isBuildingOpen} onOpenChange={setBuildingOpen} playerItems={playerStats.items} buildableStructures={buildableStructures} onBuild={handleBuild} />

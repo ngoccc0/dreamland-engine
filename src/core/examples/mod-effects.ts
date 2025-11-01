@@ -1,4 +1,5 @@
-import { Effect, EffectType, EffectTarget, CustomEffectDefinition } from '../types/effects';
+import type { Effect } from '../types/effects';
+import { EffectType, EffectTarget, CustomEffectDefinition } from '../types/effects';
 
 // Example weather effect from a mod
 export const RainstormEffect: CustomEffectDefinition = {

@@ -7,7 +7,7 @@ import type { TranslatableString } from "@/core/types/i18n";
 import { isTranslationObject, isInlineTranslation } from "@/core/types/i18n";
 
 /**
- * @description A utility function to merge Tailwind CSS classes conditionally.
+ * A utility function to merge Tailwind CSS classes conditionally.
  * It intelligently combines class strings, handling conflicts and removing duplicates.
  * @param {...ClassValue[]} inputs - A list of class names or conditional class objects.
  * @returns {string} The final, merged class string.
@@ -19,7 +19,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * @description Clamps a number between a minimum and maximum value.
+ * Clamps a number between a minimum and maximum value.
  * @param {number} num - The number to clamp.
  * @param {number} min - The minimum value.
  * @param {number} max - The maximum value.
@@ -28,7 +28,7 @@ export function cn(...inputs: ClassValue[]) {
 export const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
 
 /**
- * @description A helper function to get the correct text string based on the current language.
+ * A helper function to get the correct text string based on the current language.
  * It handles both Translation Keys (strings) and direct multilingual objects.
  * @param {TranslatableString} translatable - The string or object to translate.
  * @param {Language} language - The current language ('en' or 'vi').
@@ -48,10 +48,11 @@ export const clamp = (num: number, min: number, max: number) => Math.min(Math.ma
  * @returns The translated string
  */
 export function getTranslatedText(
-    translatable: TranslatableString,
+    translatable: TranslatableString | undefined | null,
     language: Language,
     t?: (key: TranslationKey, options?: any) => string
 ): string {
+    if (!translatable) return '';
     // Handle direct translation keys
     if (typeof translatable === 'string') {
         if (t) {
@@ -79,7 +80,7 @@ export function getTranslatedText(
 
 
 /**
- * @description Determines an appropriate emoji for a game item based on its name and category.
+ * Determines an appropriate emoji for a game item based on its name and category.
  * It uses a mapping of keywords to emojis for specific matches and falls back to
  * a category-based map for more general cases.
  *
@@ -144,7 +145,94 @@ export function getEmojiForItem(name: string, category: string): string {
 }
 
 /**
- * @description Intelligently joins an array of sentences into a single narrative string.
+ * Resolve a canonical item id from a translatable name or string.
+ *
+ * This helper prefers explicit record keys (when `itemDefs` is provided).
+ * It will fall back to matching English translations to preserve backward
+ * compatibility during migration. Callers should prefer using `id` fields
+ * on items when available.
+ *
+ * @param itemOrName - TranslatableString or string representing the item
+ * @param itemDefs - Optional record of item definitions keyed by id
+ * @param t - Optional translation function used for key-based lookups
+ * @param language - Optional language to use for translation fallbacks (defaults to 'en')
+ * @returns The resolved canonical id if found, otherwise undefined
+ */
+export function resolveItemId(
+    itemOrName: TranslatableString | string | undefined | null,
+    itemDefs?: Record<string, any>,
+    t?: (k: string, opts?: any) => string,
+    language: Language = 'en'
+): string | undefined {
+    if (!itemOrName) return undefined;
+
+    // If given a string and it's directly a key in itemDefs, return it
+    if (typeof itemOrName === 'string') {
+        if (itemDefs && itemDefs[itemOrName]) return itemOrName;
+        // Try to match by definition id or English name
+        if (itemDefs) {
+            for (const [key, def] of Object.entries(itemDefs)) {
+                if (def?.id && def.id === itemOrName) return def.id;
+                try {
+                    // Match against English and Vietnamese names to support localized
+                    // inventory entries that may already be translated.
+                    const defNameEn = getTranslatedText(def.name, 'en', t as any);
+                    const defNameVi = getTranslatedText(def.name, 'vi', t as any);
+                    if (defNameEn === itemOrName || defNameVi === itemOrName) return def.id ?? key;
+                } catch (e) {
+                    // ignore malformed defs
+                }
+            }
+        }
+        return undefined;
+    }
+
+    // itemOrName is a TranslatableString-like object
+    if (itemDefs) {
+        const inputNameEn = getTranslatedText(itemOrName as TranslatableString, 'en', t as any);
+        for (const [key, def] of Object.entries(itemDefs)) {
+            if (def?.id && (itemOrName as any).id && def.id === (itemOrName as any).id) return def.id;
+            try {
+                const defNameEn = getTranslatedText(def.name, 'en', t as any);
+                if (defNameEn === inputNameEn) return def.id ?? key;
+            } catch (e) {
+                // ignore and continue
+            }
+        }
+    }
+
+    return undefined;
+}
+
+/**
+ * Ensure a PlayerItem-like object has a canonical id field filled in.
+ * If the item already has an `id` we leave it. Otherwise we try to resolve
+ * a canonical id from the item's name using `resolveItemId`. If resolution
+ * fails we fall back to the English translation string as a best-effort id.
+ *
+ * This is safe to call before inserting items into `playerStats.items` so
+ * game logic can always rely on the presence of an `id` for deterministic
+ * lookups.
+ */
+export function ensurePlayerItemId<T extends { name?: any; id?: string }>(
+    item: T,
+    itemDefs?: Record<string, any>,
+    t?: (k: string, opts?: any) => string,
+    language: Language = 'en'
+): T {
+    if (!item) return item;
+    if (item.id) return item;
+    try {
+        const resolved = resolveItemId(item.name, itemDefs, t, language) ?? getTranslatedText(item.name as any, 'en', t as any);
+        if (resolved) item.id = resolved as any;
+    } catch (e) {
+        // ignore errors and leave item as-is
+    }
+    return item;
+}
+
+/**
+ * Intelligently joins an array of sentences into a single narrative string.
  * It adds appropriate connectors based on the desired narrative length and cleans up punctuation.
  * @param {string[]} sentences - An array of sentences to join.
  * @param {NarrativeLength} narrativeLength - The desired length, which influences the choice of connectors.

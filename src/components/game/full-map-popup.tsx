@@ -7,11 +7,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/language-context";
-import type { World, Chunk, Terrain } from "@/lib/game/types";
+import type { World, Terrain } from "@/lib/game/types";
 import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon, renderItemEmoji } from "./icons";
 import { getTranslatedText } from "@/lib/utils";
 import { MapCellDetails } from './minimap';
-import type { TranslationKey } from '@/lib/i18n';
 import { Button } from '../ui/button';
 import { Minus, Plus } from 'lucide-react';
 
@@ -66,9 +65,15 @@ const MIN_ZOOM = 1;
 const MAX_ZOOM = 5;
 
 export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }: FullMapPopupProps) {
-  const { t } = useLanguage();
+    const { t, language } = useLanguage();
   const [zoom, setZoom] = React.useState(2);
   const mapRadius = 7;
+    const gridRef = React.useRef<HTMLDivElement | null>(null);
+        const isPanningRef = React.useRef(false);
+        const lastPointerRef = React.useRef<{ x: number; y: number } | null>(null);
+        const activePointerIdRef = React.useRef<number | null>(null);
+        const initialPinchDistanceRef = React.useRef<number | null>(null);
+        const pinchStartZoomRef = React.useRef<number | null>(null);
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
@@ -99,6 +104,91 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
     };
   }, [playerPosition.x, playerPosition.y]);
 
+    // Find nearest scrollable ancestor (viewport for panning)
+    const findScrollParent = (el: HTMLElement | null): HTMLElement | null => {
+        let p = el?.parentElement ?? null;
+        while (p && p !== document.body) {
+            try {
+                const style = getComputedStyle(p);
+                if (/auto|scroll/.test(`${style.overflow}${style.overflowY}${style.overflowX}`)) return p;
+            } catch {
+                // ignore
+            }
+            p = p.parentElement;
+        }
+        return document.scrollingElement as HTMLElement | null;
+    };
+
+    // Keyboard pan & zoom when the full map is open. Arrow keys / WASD pan the viewport.
+    React.useEffect(() => {
+        if (!open) return;
+
+        const handleKey = (e: KeyboardEvent) => {
+            try {
+                const active = document.activeElement as HTMLElement | null;
+                if (active) {
+                    const tag = (active.tagName || '').toUpperCase();
+                    if (tag === 'INPUT' || tag === 'TEXTAREA' || active.isContentEditable) return;
+                }
+
+                const grid = gridRef.current;
+                if (!grid) return;
+                const viewport = findScrollParent(grid) ?? (grid.parentElement as HTMLElement | null);
+                if (!viewport) return;
+
+                const firstCell = grid.firstElementChild as HTMLElement | null;
+                const cellSizePx = firstCell ? Math.max(firstCell.offsetWidth, firstCell.offsetHeight) : 48;
+
+                let dx = 0;
+                let dy = 0;
+
+                switch (e.key) {
+                    case 'ArrowLeft':
+                    case 'a':
+                    case 'A':
+                        dx = -cellSizePx;
+                        break;
+                    case 'ArrowRight':
+                    case 'd':
+                    case 'D':
+                        dx = cellSizePx;
+                        break;
+                    case 'ArrowUp':
+                    case 'w':
+                    case 'W':
+                        dy = -cellSizePx;
+                        break;
+                    case 'ArrowDown':
+                    case 's':
+                    case 'S':
+                        dy = cellSizePx;
+                        break;
+                    case '+':
+                    case '=':
+                        e.preventDefault();
+                        setZoom(z => Math.min(MAX_ZOOM, z + 1));
+                        return;
+                    case '-':
+                        e.preventDefault();
+                        setZoom(z => Math.max(MIN_ZOOM, z - 1));
+                        return;
+                    default:
+                        return;
+                }
+
+                if (dx !== 0 || dy !== 0) {
+                    e.preventDefault();
+                    viewport.scrollBy({ left: dx, top: dy, behavior: 'smooth' });
+                }
+            } catch {
+                // ignore
+            }
+        };
+
+        window.addEventListener('keydown', handleKey);
+        return () => window.removeEventListener('keydown', handleKey);
+    }, [open]);
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-4xl lg:max-w-6xl !p-0">
@@ -111,12 +201,91 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
             </SheetHeader>
             <div className="relative flex-grow">
                 <ScrollArea className="h-full w-full bg-background">
-                    <div 
+                                        <div 
+                        ref={gridRef}
                         onWheel={handleWheel}
-                        className="p-4 inline-grid border-l border-t border-dashed border-border/50"
+                                                className="p-4 inline-grid border-l border-t border-dashed border-border/50"
                         style={{
                             gridTemplateColumns: `repeat(${mapBounds.width}, auto)`,
+                            touchAction: 'none',
                         }}
+                                                onPointerDown={(e) => {
+                                                    // start panning with primary pointer
+                                                    try {
+                                                        const el = gridRef.current;
+                                                        if (!el) return;
+                                                        // capture pointer on the grid element so we reliably receive move/up events
+                                                        (el as Element).setPointerCapture?.(e.pointerId);
+                                                        isPanningRef.current = true;
+                                                        activePointerIdRef.current = e.pointerId;
+                                                        lastPointerRef.current = { x: e.clientX, y: e.clientY };
+                                                    } catch {}
+                                                }}
+                                                onPointerMove={(e) => {
+                                                    try {
+                                                        if (!isPanningRef.current) return;
+                                                        if (activePointerIdRef.current !== null && e.pointerId !== activePointerIdRef.current) return;
+                                                        const el = gridRef.current;
+                                                        if (!el) return;
+                                                        const viewport = findScrollParent(el) ?? (el.parentElement as HTMLElement | null);
+                                                        if (!viewport) return;
+                                                        const last = lastPointerRef.current;
+                                                        if (!last) return;
+                                                        const dx = e.clientX - last.x;
+                                                        const dy = e.clientY - last.y;
+                                                        // move viewport opposite to pointer delta so content follows pointer
+                                                        viewport.scrollBy({ left: -dx, top: -dy });
+                                                        lastPointerRef.current = { x: e.clientX, y: e.clientY };
+                                                    } catch {}
+                                                }}
+                                                onPointerUp={(e) => {
+                                                    try {
+                                                        isPanningRef.current = false;
+                                                        activePointerIdRef.current = null;
+                                                        lastPointerRef.current = null;
+                                                        const el = gridRef.current;
+                                                        el?.releasePointerCapture?.(e.pointerId);
+                                                    } catch {}
+                                                }}
+                                                onPointerCancel={(e) => {
+                                                    try {
+                                                        isPanningRef.current = false;
+                                                        activePointerIdRef.current = null;
+                                                        lastPointerRef.current = null;
+                                                        gridRef.current?.releasePointerCapture?.(e.pointerId);
+                                                    } catch {}
+                                                }}
+                                                onTouchStart={(e) => {
+                                                    try {
+                                                        if (e.touches && e.touches.length === 2) {
+                                                            const dx = e.touches[0].clientX - e.touches[1].clientX;
+                                                            const dy = e.touches[0].clientY - e.touches[1].clientY;
+                                                            initialPinchDistanceRef.current = Math.hypot(dx, dy);
+                                                            pinchStartZoomRef.current = zoom;
+                                                        }
+                                                    } catch {}
+                                                }}
+                                                onTouchMove={(e) => {
+                                                    try {
+                                                        if (e.touches && e.touches.length === 2 && initialPinchDistanceRef.current && pinchStartZoomRef.current != null) {
+                                                            e.preventDefault();
+                                                            const dx = e.touches[0].clientX - e.touches[1].clientX;
+                                                            const dy = e.touches[0].clientY - e.touches[1].clientY;
+                                                            const dist = Math.hypot(dx, dy);
+                                                            const ratio = dist / initialPinchDistanceRef.current;
+                                                            const targetZoom = Math.round(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, (pinchStartZoomRef.current * ratio))));
+                                                            setZoom(targetZoom);
+                                                            return;
+                                                        }
+                                                        // If single touch and not pinching, allow panning via pointer events
+                                                    } catch {}
+                                                }}
+                                                onTouchEnd={(_e) => {
+                                                    try {
+                                                        initialPinchDistanceRef.current = null;
+                                                        pinchStartZoomRef.current = null;
+                                                    } catch {}
+                                                }}
                     >
                         {Array.from({ length: mapBounds.height }).map((_, yIndex) => 
                             Array.from({ length: mapBounds.width }).map((_, xIndex) => {
@@ -126,7 +295,7 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
                                 const chunk = world[chunkKey];
 
                                 if (!chunk) {
-                                    return <div key={chunkKey} className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />;
+                                    return <div key={chunkKey} data-map-cell className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />;
                                 }
 
                                 const isPlayerHere = playerPosition.x === worldX && playerPosition.y === worldY;
@@ -135,26 +304,27 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
 
                                 if (!chunk.explored || (isFoggy && !isPlayerHere)) {
                                     return (
-                                        <div key={chunkKey} className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50 flex items-center justify-center")}>
+                                        <div key={chunkKey} data-map-cell className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50 flex items-center justify-center")}>
                                             {chunk.explored && <span className={cn(currentBiomeIconSize, "opacity-30")} title={t('fogOfWarDesc') as string}>🌫️</span>}
                                         </div>
                                     );
                                 }
                                 
-                                const mainIcon = (chunk.structures && chunk.structures.length > 0)
-                                    ? <span
-                                        className={cn(currentBiomeIconSize, 'opacity-90 drop-shadow-lg')}
-                                        role="img"
-                                        aria-label={getTranslatedText(chunk.structures[0].name, 'en')}
-                                      >
-                                        {renderItemEmoji(chunk.structures[0].emoji, 28)}
-                                      </span>
-                                    : (biomeIcons[chunk.terrain as keyof typeof biomeIcons] || null);
+                                                                const mainIcon = (chunk.structures && chunk.structures.length > 0)
+                                                                        ? <span
+                                                                                className={cn(currentBiomeIconSize, 'opacity-90 drop-shadow-lg')}
+                                                                                role="img"
+                                                                                aria-label={getTranslatedText(chunk.structures[0].name, language, t)}
+                                                                            >
+                                                                                {renderItemEmoji(chunk.structures[0].emoji, 28)}
+                                                                            </span>
+                                                                        : (biomeIcons[chunk.terrain as keyof typeof biomeIcons] || null);
                                 
                                 return (
                                     <Popover key={chunkKey}>
                                         <PopoverTrigger asChild>
                                             <div
+                                                data-map-cell
                                                 className={cn(
                                                     currentCellSize,
                                                     "relative transition-all duration-300 flex items-center justify-center p-1 cursor-pointer hover:ring-2 hover:ring-white border-r border-b border-dashed border-border/50",

@@ -3,7 +3,7 @@
 import { getTranslatedText } from "@/lib/utils";
 // ai/flows/generate-narrative-flow.ts
 /**
- * @fileOverview Luồng Kể Chuyện AI cho Dreamland Engine.
+ * Luồng Kể Chuyện AI cho Dreamland Engine.
  *
  * File này định nghĩa luồng Genkit chịu trách nhiệm tạo ra các câu chuyện động, nhận biết ngữ cảnh
  * cho game. Nó hoạt động như một AI Game Master, lấy trạng thái game hiện tại và hành động của người chơi
@@ -17,8 +17,8 @@ import { getTranslatedText } from "@/lib/utils";
 
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
-import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema, GeneratedItemSchema, NpcSchema, TranslatableStringSchema } from '@/ai/schemas';
-import type { TranslatableString } from '@/lib/game/types';
+import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema, GeneratedItemSchema, NpcSchema } from '@/ai/schemas';
+import type { TranslatableString, NarrativeLength, TranslatableStringSchema } from '@/lib/game/types';
 import { LanguageEnum as Language } from '@/lib/i18n'; // Import Language enum
 
 // SỬA: Import các schema đã đặt tên và các tool từ game-actions.ts
@@ -36,18 +36,18 @@ import { generateNewQuest } from './generate-new-quest';
 import { generateLegendaryQuest } from './generate-legendary-quest-flow';
 import { generateNewItem } from './generate-new-item';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
-import type { AiModel, NarrativeLength } from '@/lib/game/types';
+import type { AiModel } from '@/lib/game/types';
 
 
 // == STEP 1: DEFINE THE INPUT SCHEMA ==
 
 /**
- * @description Schema định nghĩa cấp độ thành công của một lần tung xúc xắc.
+ * Schema định nghĩa cấp độ thành công của một lần tung xúc xắc.
  */
 const SuccessLevelSchema = z.enum(['CriticalFailure', 'Failure', 'Success', 'GreatSuccess', 'CriticalSuccess']);
 
 /**
- * @description Schema định nghĩa đầu vào cho luồng `generateNarrative`.
+ * Schema định nghĩa đầu vào cho luồng `generateNarrative`.
  * @property {z.string} worldName - Tên của thế giới game.
  * @property {z.string} playerAction - Hành động người chơi vừa thực hiện.
  * @property {PlayerStatusSchema} playerStatus - Trạng thái hiện tại của người chơi.
@@ -57,7 +57,7 @@ const SuccessLevelSchema = z.enum(['CriticalFailure', 'Failure', 'Success', 'Gre
  * @property {z.string} language - Ngôn ngữ cho nội dung được tạo ('en' hoặc 'vi').
  * @property {z.number} diceRoll - Kết quả của lần tung xúc xắc.
  * @property {z.string} diceType - Loại xúc xắc được sử dụng (ví dụ: 'd20', '2d6').
- * @property {z.string} diceRange - Phạm vi có thể có của lần tung xúc xắc (ví dụ: '1-20', '2-12').
+ * @property {z.string} diceRange - Phạm vi có thể có của lần tung xúc xắc (उदाहरण: '1-20', '2-12').
  * @property {SuccessLevelSchema} successLevel - Kết quả phân loại của lần tung xúc xắc.
  * @property {z.record} [customItemDefinitions] - Map các định nghĩa vật phẩm do AI tạo cho phiên chơi hiện tại.
  * @property {z.enum} aiModel - Ưu tiên mô hình AI để tạo nội dung.
@@ -77,7 +77,10 @@ export const GenerateNarrativeInputSchema = z.object({
   successLevel: SuccessLevelSchema.describe("The categorized outcome of the dice roll."),
   customItemDefinitions: z.record(ItemDefinitionSchema).optional().describe("A map of AI-generated item definitions for the current game session."),
   aiModel: z.enum(['balanced', 'creative', 'fast', 'quality']).describe("The AI model preference for generation."),
-  narrativeLength: z.enum(['short', 'medium', 'long']).describe("The desired length for the narrative response."),
+    // Include 'detailed' to match engine types (some callers request a more
+    // verbose 'detailed' response). Kept in the allowed set for backward
+    // compatibility with existing saved settings.
+    narrativeLength: z.enum(['short', 'medium', 'long', 'detailed']).describe("The desired length for the narrative response."),
 });
 /**
  * @typedef {z.infer<typeof GenerateNarrativeInputSchema>} GenerateNarrativeInput
@@ -88,14 +91,14 @@ export type GenerateNarrativeInput = z.infer<typeof GenerateNarrativeInputSchema
 // == STEP 2: DEFINE THE OUTPUT SCHEMA ==
 
 /**
- * @description Schema định nghĩa đầu ra cuối cùng, kết hợp từ AI và các công cụ.
+ * Schema định nghĩa đầu ra cuối cùng, kết hợp từ AI và các công cụ.
  * @property {z.string} narrative - Mô tả kể chuyện chính về những gì xảy ra tiếp theo.
  * @property {z.object} [updatedChunk] - Thay đổi tùy chọn đối với chunk game hiện tại dựa trên kết quả hành động.
  * @property {z.object} [updatedPlayerStatus] - Thay đổi tùy chọn đối với trạng thái của người chơi.
  * @property {z.string} [systemMessage] - Một thông báo hệ thống ngắn, tùy chọn cho các sự kiện quan trọng.
  * @property {GeneratedItemSchema} [newlyGeneratedItem] - Một vật phẩm mới được tạo ra để thêm lặng lẽ vào danh mục vật phẩm chính của thế giới.
  */
-const GenerateNarrativeOutputSchema = z.object({
+const _GenerateNarrativeOutputSchema = z.object({
   narrative: z.string().describe("The main narrative description of what happens next."),
   updatedChunk: z.object({
     description: z.string().optional(),
@@ -119,24 +122,24 @@ const GenerateNarrativeOutputSchema = z.object({
 /**
  * @typedef {z.infer<typeof GenerateNarrativeOutputSchema>} GenerateNarrativeOutput
  */
-export type GenerateNarrativeOutput = z.infer<typeof GenerateNarrativeOutputSchema>;
+export type GenerateNarrativeOutput = z.infer<typeof _GenerateNarrativeOutputSchema>;
 
 
 // == STEP 3: DEFINE THE AI PROMPT ==
 
 /**
- * @description Schema đầu ra đơn giản hơn cho những gì chúng ta mong đợi từ việc tạo văn bản của AI.
+ * Schema đầu ra đơn giản hơn cho những gì chúng ta mong đợi từ việc tạo văn bản của AI.
  * Các thay đổi trạng thái sẽ đến từ các công cụ.
  * @property {z.string} narrative - Mô tả kể chuyện chính về những gì xảy ra tiếp theo.
  * @property {z.string} [systemMessage] - Một thông báo hệ thống ngắn, tùy chọn cho các sự kiện quan trọng.
  */
-const AINarrativeResponseSchema = z.object({
+const _AINarrativeResponseSchema = z.object({
     narrative: z.string().describe("The main narrative description of what happens next. This should be engaging and based on the player's action, the tool's result, and the requested narrativeLength ('short': 1-2 sentences, 'medium': 2-4, 'long': 5+)."),
     systemMessage: z.string().optional().describe("An optional, short system message for important events (e.g., 'Item added to inventory', 'Quest updated', 'Quest Completed!')."),
 });
 
 /**
- * @description Template cho lời nhắc (prompt) AI, hướng dẫn AI cách tạo ra câu chuyện.
+ * Template cho lời nhắc (prompt) AI, hướng dẫn AI cách tạo ra câu chuyện.
  * Sử dụng các biến Mustache để chèn dữ liệu ngữ cảnh.
  */
 const narrativePromptTemplate = `You are the Game Master for a text-based adventure game called '{{worldName}}'. Your role is to be a dynamic, multi-sensory, and creative storyteller. Your entire response MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
@@ -172,7 +175,7 @@ You MUST use the detailed 'Current Environment' context to make your description
 `;
 
 /**
- * @description Map các ưu tiên mô hình AI với các ID mô hình thực tế.
+ * Map các ưu tiên mô hình AI với các ID mô hình thực tế.
  */
 const modelMap: Record<AiModel, string> = {
     balanced: 'googleai/gemini-2.0-flash',

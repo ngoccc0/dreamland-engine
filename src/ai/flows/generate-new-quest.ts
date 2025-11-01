@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview An AI agent for dynamically generating new quests after one is completed.
+ * An AI agent for dynamically generating new quests after one is completed.
  *
  * This flow is called by the narrative flow to inject new objectives,
  * keeping the player engaged.
@@ -12,6 +12,7 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { generateCompat as aiGenerate } from '@/ai/client';
 import { z } from 'genkit';
 import { GenerateNewQuestInputSchema, GenerateNewQuestOutputSchema } from '@/ai/schemas';
 
@@ -68,13 +69,13 @@ const generateNewQuestFlow = ai.defineFlow(
         let lastError;
         for (const model of modelsToTry) {
             try {
-                const { output } = await ai.generate({
+                const llmResponse = await aiGenerate({
                     model: model,
                     prompt: promptText,
                     input: input,
                     output: { schema: GenerateNewQuestOutputSchema },
                 });
-                if (output) return output;
+                if (llmResponse?.output) return llmResponse.output;
             } catch (error) {
                 lastError = error;
                 console.warn(`[generateNewQuest] Model '${model}' failed. Trying next...`);

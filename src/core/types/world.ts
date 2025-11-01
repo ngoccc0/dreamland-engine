@@ -1,4 +1,3 @@
-import { TranslatableString } from '../types/i18n';
 import { Terrain, SoilType } from './terrain';
 
 export interface Position {

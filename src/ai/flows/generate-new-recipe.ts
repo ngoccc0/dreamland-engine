@@ -2,7 +2,7 @@
 
 'use server';
 /**
- * @fileOverview An AI agent for dynamically generating new crafting recipes during gameplay.
+ * An AI agent for dynamically generating new crafting recipes during gameplay.
  *
  * This flow is called periodically by the game engine to inject new content,
  * keeping the crafting system fresh and surprising for the player. The AI generates the
@@ -14,6 +14,7 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { generateCompat as aiGenerate } from '@/ai/client';
 import { z } from 'genkit';
 import { GeneratedItemSchema, RecipeSchema, RecipeResultSchema, type Recipe } from '@/ai/schemas';
 import { getEmojiForItem } from '@/lib/utils';
@@ -79,13 +80,13 @@ const generateNewRecipeFlow = ai.defineFlow(
 
         for (const model of modelsToTry) {
             try {
-                llmResponse = await ai.generate({
+                llmResponse = await aiGenerate({
                     model: model,
                     prompt: promptText,
                     input: input,
                     output: { schema: AI_RecipeSchema },
                 });
-                if (llmResponse.output) break;
+                if (llmResponse?.output) break;
             } catch (error) {
                 lastError = error;
                 console.warn(`[generateNewRecipe] Model '${model}' failed. Trying next...`);

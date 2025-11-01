@@ -8,7 +8,7 @@ import type { GameState, Chunk } from "@/lib/game/types";
 
 /**
  * @typedef {object} WorldRenderingDeps
- * @description Dependencies for the useWorldRendering hook.
+ * Dependencies for the useWorldRendering hook.
  */
 type WorldRenderingDeps = {
   isLoaded: boolean;
@@ -20,8 +20,8 @@ type WorldRenderingDeps = {
 };
 
 /**
- * @fileOverview Manages the calculation of the "effective" chunk based on environmental factors.
- * @description This hook is responsible for taking the base chunk data and applying dynamic
+ * Manages the calculation of the "effective" chunk based on environmental factors.
+ * This hook is responsible for taking the base chunk data and applying dynamic
  * modifiers like weather and time of day to produce the final, "effective" chunk that the
 * player actually experiences and that the narrative is based on.
  *

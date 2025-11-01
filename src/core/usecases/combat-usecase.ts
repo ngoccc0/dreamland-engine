@@ -112,12 +112,12 @@ export class CombatUseCase implements ICombatUseCase {
         };
     }
 
-    private calculateExperience(winner: Combatant, loser: Combatant): number {
+    private calculateExperience(_winner: Combatant, _loser: Combatant): number {
         // Implement experience calculation logic
         return 100; // Placeholder
     }
 
-    private async generateLoot(loser: Combatant): Promise<any[]> {
+    private async generateLoot(_loser: Combatant): Promise<any[]> {
         // Implement loot generation logic
         return []; // Placeholder
     }

@@ -30,6 +30,7 @@ export const swamp_vi = {
         { name: 'Hoa Độc', conditions: { vegetationDensity: { min: 6 }, chance: 0.15 } },
         { name: 'Cây Sậy', conditions: { moisture: { min: 7 }, chance: 0.2 } },
         { name: 'Lá cây lớn', conditions: { vegetationDensity: { min: 6 }, chance: 0.3 } },
+    { name: 'thorny_vine', conditions: { moisture: { min: 5 }, chance: 0.25 } },
         { name: 'Lõi Gỗ Rỗng', conditions: { chance: 0.2, humidity: { min: 6 } } },
     ],
     structures: [],

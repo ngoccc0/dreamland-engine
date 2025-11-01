@@ -58,7 +58,7 @@ export class GridCell {
         }
     }
 
-    private calculateNewAttributes(hoursPassed: number): GridCellAttributes {
+    private calculateNewAttributes(_hoursPassed: number): GridCellAttributes {
         // This will implement the actual attribute evolution over time
         // For now, return current attributes
         return { ...this._attributes };

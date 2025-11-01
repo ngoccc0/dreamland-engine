@@ -406,7 +406,7 @@ export function generateChunkContent(
 
     // Chunk-level find chance: decide whether this chunk yields any items at all.
     // This prevents nearly every chunk from finding items when many candidates exist, adding variability.
-    const baseFindChance = 0.1; // ~10% baseline chance a chunk will contain items (reduced)
+    const baseFindChance = 0.05; // ~5% baseline chance a chunk will contain items (reduced)
     // Scale this chance by world density and chunk richness. Clamp to avoid extreme values (0.01 to 0.9).
     const chunkFindMultiplier = 0.6 + (chunkResourceScore * 0.6); // range [0.6,1.2]
     const chunkFindChance = Math.max(0.01, Math.min(0.9, baseFindChance * (worldDensityScale ?? 1) * chunkFindMultiplier * effectiveMultiplier));
@@ -643,15 +643,33 @@ export function generateChunkContent(
         }
     }
     
-    // Select and map NPCs to be spawned in the chunk using `selectEntities`.
-    // Limits the number of NPCs to 3.
-    const spawnedNPCs: Npc[] = selectEntities(terrainTemplate.NPCs, 3, chunkData, allItemDefinitions, worldProfile).map(ref => ref.data);
+    // NPC spawn gating: avoid NPCs in nearly every chunk. Use a per-chunk gate
+    // so only a fraction of chunks attempt to spawn NPCs. When they do, limit to 1.
+    const npcBaseFindChance = 0.01; // ~1% baseline a chunk will try to spawn NPCs
+    const npcFindMultiplier = 0.5 + (chunkResourceScore * 0.5); // range [0.5,1.0]
+    const npcFindChance = Math.max(0.01, Math.min(0.6, npcBaseFindChance * (worldDensityScale ?? 1) * npcFindMultiplier * effectiveMultiplier));
+    let spawnedNPCs: Npc[] = [];
+    if (Math.random() < npcFindChance) {
+        spawnedNPCs = selectEntities(terrainTemplate.NPCs, 1, chunkData, allItemDefinitions, worldProfile).map(ref => ref.data);
+    } else {
+        logger.debug('[generateChunkContent] npcFindChance failed, no NPCs this chunk', { npcFindChance });
+    }
 
     // Filter out any null/undefined enemy candidates from the terrain template.
     let allEnemyCandidates = [...(terrainTemplate.enemies || [])].filter(Boolean);
 
-    // Select potential enemies to spawn. Limits to 1 primary enemy.
-    const spawnedEnemies = selectEntities(allEnemyCandidates, 3, chunkData, allItemDefinitions, worldProfile);
+    // Enemy spawn gating: keep enemies relatively rare per-chunk. Use a smaller base chance
+    // and only allow at most 1 enemy to spawn per chunk to avoid battlefield-like density.
+    const enemyBaseFindChance = 0.006; // ~6% baseline a chunk will try to spawn an enemy
+    // enemyMultiplier increases with dangerLevel so dangerous areas are more likely to have enemies.
+    const enemyMultiplier = 0.5 + (clamp01(chunkData.dangerLevel ?? 50) * 0.8); // range [0.5,1.3]
+    const enemyFindChance = Math.max(0.005, Math.min(0.5, enemyBaseFindChance * (worldDensityScale ?? 1) * enemyMultiplier * effectiveMultiplier));
+    let spawnedEnemies: any[] = [];
+    if (Math.random() < enemyFindChance) {
+        spawnedEnemies = selectEntities(allEnemyCandidates, 1, chunkData, allItemDefinitions, worldProfile);
+    } else {
+        logger.debug('[generateChunkContent] enemyFindChance failed, no enemies this chunk', { enemyFindChance });
+    }
     
     let spawnedStructures: Structure[] = [];
     // Select structures to spawn based on terrain template. Limits to 2 structures.

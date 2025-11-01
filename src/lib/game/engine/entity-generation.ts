@@ -204,15 +204,10 @@ export const selectEntities = <T extends { name?: TranslatableString | string; t
         const chunkMultiplier = 0.6 + (chunkResourceScore * 0.8);
         spawnChance *= chunkMultiplier;
         
-    // Global tuning: apply a spawn rate scale to reduce overall selection frequency.
-    // This dampens per-entity chances so that a 10% raw chance doesn't translate
-    // into finds every few chunks when many candidates exist.
-    const spawnRateScale = 0.6; // tuneable (0..1), lower => fewer spawns
-    spawnChance *= spawnRateScale;
-
-    // Skip very-small probabilities to avoid wasteful checks and near-certain no-spawn outcomes
-    const minSpawnThreshold = 0.05; // entities with lower final chance are ignored
-    if (spawnChance < minSpawnThreshold) continue;
+    // Note: previous tuning applied a global spawnRateScale and ignored
+    // very-small probabilities. That was reverted to allow very-rare
+    // items to keep a (small) non-zero chance of spawning. Final
+    // clamping is handled later after applying the world spawnMultiplier.
         // Apply a global spawn multiplier from the world profile (softcapped)
         const multiplier = worldProfile?.spawnMultiplier ?? 1;
         const effectiveMultiplier = softcap(multiplier);

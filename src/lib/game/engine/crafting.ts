@@ -26,42 +26,91 @@
 
 import type { PlayerItem, Recipe, ItemDefinition, TranslatableString, RecipeIngredient } from "../types";
 
+/**
+ * Assessment of how craftable a recipe is based on current player inventory.
+ * Used by UI to show crafting progress and missing requirements.
+ *
+ * Score calculation: available_ingredients / total_required_ingredients
+ * - 1.0 = all ingredients available (ready to craft)
+ * - 0.5 = half ingredients available (partially ready)
+ * - 0.0 = no ingredients available (cannot craft)
+ */
 export interface CraftabilityInfo {
-    score: number;  // Percentage of available ingredients (0-1)
-    missingIngredients: string[];  // Names of missing ingredients
-    availableIngredients: string[];  // Names of available ingredients
+    score: number;  // Percentage of available ingredients (0-1), used for UI progress bars
+    missingIngredients: string[];  // Names of ingredients not available in sufficient quantity
+    availableIngredients: string[];  // Names of ingredients that are available and sufficient
 }
 
+/**
+ * Comprehensive result of crafting feasibility analysis. This interface encapsulates
+ * all information needed to display crafting status and execute the craft.
+ *
+ * Data flow: RecipeSchema + PlayerInventory + ItemDefinitions → CraftingOutcome → UI/CraftingExecution
+ *
+ * Key calculations within this structure:
+ * - canCraft: canCraftAllIngredients AND hasRequiredTool
+ * - chance: Based on worst substitution quality (1=100%, 2=50%, 3=10%)
+ * - ingredientsToConsume: Deduplicated list of actual items to remove from inventory
+ * - resolvedIngredients: Detailed mapping of requirements to available substitutes
+ */
 export interface CraftingOutcome {
-    canCraft: boolean;
-    chance: number;
-    hasRequiredTool: boolean;
-    ingredientsToConsume: { name: string; quantity: number }[];
-    resolvedIngredients: {
-        requirement: RecipeIngredient;
-        usedItem: { name: TranslatableString, tier: number };
-        isSubstitute: boolean;
-        hasEnough: boolean;
-        playerQuantity: number;
+    canCraft: boolean;  // True if all requirements met and craft can proceed
+    chance: number;  // Success probability percentage (0-100), affected by material quality
+    hasRequiredTool: boolean;  // Whether player has the tool specified in recipe.requiredTool
+    ingredientsToConsume: { name: string; quantity: number }[];  // Actual items to remove from inventory
+    resolvedIngredients: {  // Detailed breakdown of each ingredient requirement
+        requirement: RecipeIngredient;  // Original recipe requirement
+        usedItem: { name: TranslatableString, tier: number };  // Item that will be used (may be substitute)
+        isSubstitute: boolean;  // Whether this is a substitute rather than exact match
+        hasEnough: boolean;  // Whether player has sufficient quantity
+        playerQuantity: number;  // How many of this item the player actually has
     }[];
-    craftability?: CraftabilityInfo;
+    craftability?: CraftabilityInfo;  // Optional UI helper for showing crafting readiness
 }
 import { getTranslatedText, resolveItemId } from "@/lib/utils";
 
 /**
- * Calculates the outcome of a crafting attempt based on the player's inventory and a given recipe.
- * This function is a pure calculation and does not modify any state. It determines if the craft
- * is possible, what the success chance is, and which items would be consumed.
+ * Core crafting feasibility algorithm that analyzes player inventory against recipe requirements.
+ * This pure function performs complex substitution matching and quality-based calculations
+ * to determine crafting viability without modifying any game state.
  *
- * @param {PlayerItem[]} playerItems - The player's current inventory.
- * @param {Recipe} recipe - The recipe the player is attempting to craft.
- * @param {Record<string, ItemDefinition>} allItemDefinitions - A map of all available item definitions for looking up relationships.
- * @returns {CraftingOutcome} An object detailing the potential outcome of the craft.
+ * Algorithm breakdown:
+ * 1. **Tool Verification**: Checks recipe.requiredTool against player inventory using multiple ID resolution strategies
+ * 2. **Ingredient Resolution Loop**: For each recipe ingredient:
+ *    - Finds all possible substitutes via ItemRelationshipSchema.substituteFor
+ *    - Sorts substitutes by quality (lower = better)
+ *    - Selects best available substitute that meets quantity requirements
+ *    - Tracks worst quality used for success chance calculation
+ * 3. **Success Probability**: Based on substitution quality tiers:
+ *    - Quality 1 (perfect/exact match): 100% success
+ *    - Quality 2 (good substitute): 50% success
+ *    - Quality 3 (poor substitute): 10% success
+ * 4. **Consumption Planning**: Deduplicates ingredients and calculates total quantities to remove
+ * 5. **Craftability Scoring**: Percentage of ingredients available for UI feedback
+ *
+ * Item matching complexity:
+ * - Supports 4 identification methods: explicit ID, resolved ID, English name, relationship lookup
+ * - Handles legacy data migration with fallback matching strategies
+ * - Prioritizes exact matches over substitutes, quality over availability
+ *
+ * Performance characteristics:
+ * - O(n*m*p) where n=ingredients, m=player items, p=item registry size
+ * - Substitution lookup is the most expensive operation
+ * - Results are cached by calling systems for repeated calculations
+ *
+ * @param {PlayerItem[]} playerItems - The player's current inventory items with quantities
+ * @param {Recipe} recipe - The recipe schema defining crafting requirements
+ * @param {Record<string, ItemDefinition>} allItemDefinitions - Complete item registry for relationship lookups
+ * @returns {CraftingOutcome} Comprehensive analysis of crafting feasibility and requirements
+ *
  * @example
+ * ```typescript
  * const outcome = calculateCraftingOutcome(player.items, recipes['torch'], allItems);
- * if (outcome.canCraft) {
- *   console.log(`Success chance: ${outcome.chance}%`);
+ * if (outcome.canCraft && outcome.chance > 50) {
+ *   console.log(`Ready to craft with ${outcome.chance}% success rate`);
+ *   // outcome.ingredientsToConsume shows exactly what will be used
  * }
+ * ```
  */
 export const calculateCraftingOutcome = (
     playerItems: PlayerItem[], 

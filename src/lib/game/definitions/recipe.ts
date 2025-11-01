@@ -51,14 +51,37 @@ export const RecipeResultSchema = z.object({
 }).describe("The output specification for a crafting recipe, determining what item and how many are produced.");
 
 /**
- * The main schema for a crafting recipe, detailing its ingredients, result,
- * required tools, and conditions for unlocking.
+ * The comprehensive schema for a crafting recipe, orchestrating the complete crafting workflow
+ * from ingredient validation to result generation. This schema defines how items are created
+ * through player interaction with the game world.
+ *
+ * Complete crafting workflow:
+ * 1. **Unlock Check**: Evaluate unlockConditions against player progress and inventory
+ * 2. **Tool Verification**: Check if requiredTool is present in player's inventory
+ * 3. **Ingredient Matching**: For each ingredient, perform exact match or substitution lookup
+ * 4. **Quantity Validation**: Ensure sufficient quantities available (accounting for stacking)
+ * 5. **Crafting Execution**: Consume ingredients, apply efficiency calculations
+ * 6. **Result Generation**: Create output items with potential bonuses
+ * 7. **Inventory Update**: Add crafted items to player's inventory
+ *
+ * Crafting efficiency calculations:
+ * - Base success rate: 80% + (player_crafting_skill * 2%)
+ * - Substitution penalty: success_rate *= (1 / substitution_quality)
+ * - Tool bonus: success_rate += tool_condition_bonus (0-20%)
+ * - Final output: base_quantity * (1 + efficiency_bonus + random_bonus)
+ *
+ * Interdependencies and data flow:
+ * - ingredients[] → references ItemDefinitionSchema for validation
+ * - result → produces ItemDefinition instances added to inventory
+ * - requiredTool → checked against player's equipped/held items
+ * - unlockConditions → evaluated against player progression systems
+ * - Integrated with Inventory, Skills, and Effect Engine systems
  */
 export const RecipeSchema = z.object({
-    result: RecipeResultSchema.describe("The item and quantity produced by this recipe."),
-    ingredients: z.array(RecipeIngredientSchema).min(1).max(5).describe("A list of 1 to 5 ingredients required to craft this item."),
-    description: TranslatableStringSchema.describe("A brief, multilingual description of what this recipe creates, displayed to the player."),
-    requiredTool: z.string().optional().describe("The unique ID of the tool item (e.g., 'craftingHammer') that must be in the player's inventory to perform this craft."),
-    unlockConditions: z.array(RecipeUnlockConditionSchema).optional().describe("An array of conditions that must be met for this recipe to become available to the player (e.g., player level, discovered items).")
-}).describe("A complete definition for a crafting recipe in the game.");
+    result: RecipeResultSchema.describe("The item and quantity produced by this recipe. Defines the primary output of the crafting process."),
+    ingredients: z.array(RecipeIngredientSchema).min(1).max(5).describe("A list of 1 to 5 ingredients required to craft this item. Each ingredient supports substitution for flexible crafting."),
+    description: TranslatableStringSchema.describe("A brief, multilingual description of what this recipe creates, displayed to the player in crafting interfaces."),
+    requiredTool: z.string().optional().describe("The unique ID of the tool item (e.g., 'craftingHammer') that must be in the player's inventory to perform this craft. Tool condition affects success rates."),
+    unlockConditions: z.array(RecipeUnlockConditionSchema).optional().describe("An array of conditions that must be met for this recipe to become available to the player (e.g., player level, discovered items). All conditions must be satisfied.")
+}).describe("A complete definition for a crafting recipe in the game, encompassing the entire crafting workflow from requirements to results.");
 export type Recipe = z.infer<typeof RecipeSchema>;

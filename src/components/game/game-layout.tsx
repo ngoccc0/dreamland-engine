@@ -21,6 +21,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Progress } from "@/components/ui/progress";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/context/language-context";
+import { useSettings } from "@/context/settings-context";
 import { useGameEngine } from "@/hooks/use-game-engine";
 import type { Structure, Action, NarrativeEntry } from "@/lib/game/types";
 import { cn, getTranslatedText } from "@/lib/utils";
@@ -44,6 +45,7 @@ export default function GameLayout(props: GameLayoutProps) {
         );
     }
     const { t, language } = useLanguage();
+    const { settings } = useSettings();
     // Dev-only: track mount/unmount counts to help diagnose unexpected remounts
     if (process.env.NODE_ENV !== 'production') {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -99,6 +101,8 @@ export default function GameLayout(props: GameLayoutProps) {
         };
     }, []);
 
+    
+
     const [isStatusOpen, setStatusOpen] = useState(false);
     const [isInventoryOpen, setInventoryOpen] = useState(false);
     const [isCraftingOpen, setCraftingOpen] = useState(false);
@@ -113,8 +117,87 @@ export default function GameLayout(props: GameLayoutProps) {
     const customActionInputRef = useRef<HTMLInputElement>(null);
 
     const focusCustomActionInput = useCallback(() => {
-        setTimeout(() => customActionInputRef.current?.focus(), 0);
+        setTimeout(() => {
+                try {
+                    const el = customActionInputRef.current as (HTMLInputElement | null);
+                    if (!el) return;
+                    const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
+                    // Respect user setting for preventing control-panel scrolling
+                    const { settings } = (window as any).__APP_SETTINGS__ || { settings: { controlsPreventScroll: true } };
+                    const prevent = settings?.controlsPreventScroll ?? true;
+                    if (isDesktop && prevent) {
+                        // @ts-ignore - some TS DOM libs may not include the options overload
+                        el.focus?.({ preventScroll: true });
+                    } else {
+                        el.focus?.();
+                    }
+                } catch (err) {
+                    try { customActionInputRef.current?.focus(); } catch {}
+                }
+        }, 0);
     }, []);
+
+    // Global keyboard controls: Arrow keys + WASD to move, Space to attack.
+    // Ignore when typing in an input/textarea or when modals/popups are open.
+    useEffect(() => {
+        const keyHandler = (e: KeyboardEvent) => {
+            try {
+                const active = document.activeElement as HTMLElement | null;
+                if (active) {
+                    const tag = (active.tagName || '').toUpperCase();
+                    if (tag === 'INPUT' || tag === 'TEXTAREA' || active.isContentEditable) return;
+                }
+
+                // If any major popup is open, don't intercept keys so users can interact with the UI.
+                if (isSettingsOpen || isFullMapOpen || isInventoryOpen || isStatusOpen || isCraftingOpen || isBuildingOpen || isFusionOpen || isTutorialOpen) return;
+
+                // Map keys to actions
+                switch (e.key) {
+                    case 'ArrowUp':
+                    case 'w':
+                    case 'W':
+                        e.preventDefault();
+                        handleMove('north');
+                        focusCustomActionInput();
+                        break;
+                    case 'ArrowDown':
+                    case 's':
+                    case 'S':
+                        e.preventDefault();
+                        handleMove('south');
+                        focusCustomActionInput();
+                        break;
+                    case 'ArrowLeft':
+                    case 'a':
+                    case 'A':
+                        e.preventDefault();
+                        handleMove('west');
+                        focusCustomActionInput();
+                        break;
+                    case 'ArrowRight':
+                    case 'd':
+                    case 'D':
+                        e.preventDefault();
+                        handleMove('east');
+                        focusCustomActionInput();
+                        break;
+                    case ' ': // Space to attack
+                        e.preventDefault();
+                        handleAttack();
+                        focusCustomActionInput();
+                        break;
+                    default:
+                        break;
+                }
+            } catch (err) {
+                // swallow any unexpected errors from accessing document in unusual environments
+                logger.debug('[GameLayout] keyboard handler error', err);
+            }
+        };
+
+        window.addEventListener('keydown', keyHandler);
+        return () => window.removeEventListener('keydown', keyHandler);
+    }, [handleMove, handleAttack, isSettingsOpen, isFullMapOpen, isInventoryOpen, isStatusOpen, isCraftingOpen, isBuildingOpen, isFusionOpen, isTutorialOpen, focusCustomActionInput]);
 
     const handleActionClick = (actionId: number) => {
         handleAction(actionId);

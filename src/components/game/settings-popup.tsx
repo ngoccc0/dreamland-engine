@@ -194,6 +194,14 @@ export function SettingsPopup({ open, onOpenChange, isInGame }: SettingsPopupPro
                         <div><RadioGroupItem value="long" id="long" className="sr-only peer" /><Label htmlFor="long" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">{t('lengthLong')}</Label></div>
                     </RadioGroup>
                 </div>
+                <Separator />
+                <div className="flex items-center justify-between space-x-4">
+                    <Label htmlFor="controls-scroll-switch" className="flex flex-col space-y-1">
+                        <span className="font-semibold">{t('preventControlsScroll') || 'Prevent controls auto-scroll'}</span>
+                        <span className="font-normal leading-snug text-muted-foreground">{t('preventControlsScrollDesc') || 'When enabled, focusing the controls input on desktop will avoid auto-scrolling the controls panel.'}</span>
+                    </Label>
+                    <Switch id="controls-scroll-switch" checked={settings.controlsPreventScroll ?? true} onCheckedChange={(v) => setSettings({ controlsPreventScroll: !!v })} />
+                </div>
             </TabsContent>
             
             <TabsContent value="mods" className="space-y-6">

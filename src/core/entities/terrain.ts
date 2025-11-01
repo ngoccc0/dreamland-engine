@@ -1,7 +1,8 @@
 export type { TerrainType, SoilType };
 /**
- * Terrain entity for the world system.
- * Merged and refactored for clarity, modding, and clean architecture.
+ * Represents a terrain entity within the world system.
+ * This class has been merged and refactored for clarity, modding support, and adherence to clean architecture principles.
+ * It manages terrain-specific attributes and contains entities present on it.
  * @module src/core/entities/terrain
  */
 
@@ -12,16 +13,18 @@ import { Entity, IEntityContainer } from './entity';
 import { TerrainAttributes } from '../types/attributes';
 
 /**
- * Represents a terrain type in the world, with attributes and modding support.
+ * Represents a terrain type in the world, with its base attributes and support for containing entities.
+ * This class is designed to be extensible for modding.
  */
 export class Terrain implements IEntityContainer {
     private _entities: Entity[] = [];
 
     /**
-     * @param _type The terrain type (e.g., 'forest', 'desert')
-     * @param _attributes The base attributes for this terrain
-     * @param _name The translatable name of the terrain
-     * @param _description The translatable description of the terrain
+     * Creates an instance of Terrain.
+     * @param _type - The specific type of terrain (e.g., 'forest', 'desert').
+     * @param _attributes - The base {@link TerrainAttributes} for this terrain.
+     * @param _name - The {@link TranslatableString} name of the terrain, displayed to the player.
+     * @param _description - The {@link TranslatableString} description of the terrain, providing lore and details.
      */
     constructor(
         private readonly _type: TerrainType,
@@ -30,38 +33,49 @@ export class Terrain implements IEntityContainer {
         private readonly _description: TranslatableString
     ) {}
 
-    /** Terrain type (e.g., 'forest', 'desert') */
+    /** Gets the specific type of terrain (e.g., 'forest', 'desert'). */
     get type(): TerrainType { return this._type; }
-    /** Base attributes for this terrain */
+    /** Gets the base {@link TerrainAttributes} for this terrain. */
     get attributes(): Readonly<TerrainAttributes> { return this._attributes; }
-    /** Entities present in this terrain */
+    /** Gets an array of {@link Entity} objects currently present in this terrain. */
     get entities(): Entity[] { return [...this._entities]; }
-    /** Translatable name */
+    /** Gets the {@link TranslatableString} name of the terrain. */
     get name(): TranslatableString { return this._name; }
-    /** Translatable description */
+    /** Gets the {@link TranslatableString} description of the terrain. */
     get description(): TranslatableString { return this._description; }
 
-    /** Add an entity to this terrain */
+    /**
+     * Adds an entity to this terrain.
+     * @param entity - The {@link Entity} to add.
+     */
     addEntity(entity: Entity): void {
         this._entities.push(entity);
     }
 
-    /** Remove an entity by ID */
+    /**
+     * Removes an entity from this terrain by its ID.
+     * @param entityId - The unique ID of the entity to remove.
+     */
     removeEntity(entityId: string): void {
         this._entities = this._entities.filter(e => e.id !== entityId);
     }
 
-    /** Get all entities in this terrain */
+    /**
+     * Retrieves all entities currently in this terrain.
+     * @returns An array of {@link Entity} objects.
+     */
     getEntities(): Entity[] {
         return this.entities;
     }
 
     /**
-     * Calculate final attributes based on position, time, weather, etc.
-     * @param position The grid position
-     * @param time The current time
-     * @param weather The weather context
-     * @returns The calculated terrain attributes
+     * Calculates the final, dynamic attributes of the terrain based on various contextual factors.
+     * This method allows for environmental effects (e.g., weather, time of day) to modify base terrain attributes.
+     * @param _position - The {@link GridPosition} of the terrain cell.
+     * @param _time - The current in-game time.
+     * @param _weather - The current weather context.
+     * @returns The calculated {@link TerrainAttributes} for this terrain at the given context.
+     * @todo Implement actual attribute modification logic based on context.
      */
     calculateAttributes(_position: GridPosition, _time: number, _weather: any): TerrainAttributes {
         // This will be implemented to modify base attributes based on context

@@ -22,6 +22,7 @@ const defaultSettings: GameSettings = {
   fontSize: 'base',
   theme: 'dark',
   mods: null,
+  controlsPreventScroll: true,
 };
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
@@ -53,6 +54,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
           }
         }
         // --- VALIDATION END ---
+  // Ensure controlsPreventScroll is a boolean (backwards compatibility)
+  if (typeof parsed.controlsPreventScroll !== 'boolean') parsed.controlsPreventScroll = defaultSettings.controlsPreventScroll;
 
         setSettingsState(prev => ({...defaultSettings, ...parsed}));
       }

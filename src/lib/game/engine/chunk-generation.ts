@@ -61,6 +61,35 @@ interface ChunkBaseData {
     windLevel: number;
 }
 
+/**
+ * Generates the content for a single chunk in the world, including items, NPCs, structures, and enemies.
+ * This function orchestrates the spawning logic based on chunk data, world profile, and various definitions.
+ *
+ * @param chunkData - Base data for the chunk, including environmental factors like vegetation, moisture, and danger level.
+ * @param worldProfile - The overall world profile, containing global settings like spawn multipliers and resource density.
+ * @param allItemDefinitions - A record of all possible item definitions by their key.
+ * @param customItemCatalog - A list of custom-generated items that can potentially spawn.
+ * @param customStructures - A list of custom-generated structures that can potentially spawn.
+ * @param language - The current language for translation purposes.
+ * @returns A {@link ChunkGenerationResult} object containing the generated description, NPCs, items, structures, enemy, and actions for the chunk.
+ * @example
+ * ```typescript
+ * const result = generateChunkContent(
+ *   {
+ *     vegetationDensity: 70, moisture: 60, elevation: 100, dangerLevel: 30,
+ *     magicAffinity: 20, humanPresence: 10, predatorPresence: 40, temperature: 25,
+ *     terrain: 'forest', explorability: 80, soilType: 'fertile', travelCost: 1,
+ *     lightLevel: 100, windLevel: 50
+ *   },
+ *   { spawnMultiplier: 1.2, resourceDensity: 75, difficulty: 0.5, name: 'Test World' },
+ *   itemDefinitions, // Assume this is loaded
+ *   [], // No custom items for this example
+ *   [], // No custom structures for this example
+ *   'en'
+ * );
+ * console.log(result.description);
+ * ```
+ */
 export function generateChunkContent(
     chunkData: ChunkBaseData,
     worldProfile: WorldProfile,
@@ -71,6 +100,12 @@ export function generateChunkContent(
 ): ChunkGenerationResult {
     logger.debug('[generateChunkContent] STARTING', { chunkData, customItemCatalogLength: customItemCatalog.length });
 
+    /**
+     * Local translation helper function.
+     * @param key - The translation key.
+     * @param replacements - Optional replacements for placeholders in the translated text.
+     * @returns The translated string.
+     */
     const t = (key: TranslationKey, replacements?: { [key: string]: string | number }): string => {
         let textPool = (translations[language as 'en' | 'vi'] as any)[key] || (translations.en as any)[key] || key;
         let text = Array.isArray(textPool) ? textPool[Math.floor(Math.random() * textPool.length)] : textPool;
@@ -82,7 +117,13 @@ export function generateChunkContent(
         return text;
     };
 
-    // softcap function moved here to be accessible
+    /**
+     * Applies a softcap to a given multiplier.
+     * This prevents multipliers from scaling linearly indefinitely, making the game balance more manageable.
+     * @param m - The raw multiplier.
+     * @param k - The softcap constant, controlling the curve. A higher `k` means a stronger softcap.
+     * @returns The softcapped multiplier.
+     */
     const softcap = (m: number, k = 0.4) => {
         if (m <= 1) return m;
         return m / (1 + (m - 1) * k);
@@ -103,14 +144,16 @@ export function generateChunkContent(
         };
     }
     
+    // Generate a descriptive text for the chunk based on available templates and adjectives/features.
     const descriptionTemplates = (terrainTemplate.descriptionTemplates?.short || ["A generic area."]).filter(Boolean);
     const finalDescription = descriptionTemplates[Math.floor(Math.random() * descriptionTemplates.length)]
         .replace('[adjective]', (terrainTemplate.adjectives || ['normal'])[Math.floor(Math.random() * (terrainTemplate.adjectives || ['normal']).length)])
         .replace('[feature]', (terrainTemplate.features || ['nothing special'])[Math.floor(Math.random() * (terrainTemplate.features || ['nothing special']).length)]);
     
+    // Apply a softcap to the world's spawn multiplier to prevent excessive spawning.
     const effectiveMultiplier = softcap(worldProfile?.spawnMultiplier ?? 1);
 
-    // Ensure staticSpawnCandidates have a 'conditions' object with 'chance'
+    // Prepare static spawn candidates from the terrain template, ensuring a 'conditions' object and 'chance' are present.
     const staticSpawnCandidates: SpawnCandidate[] = (terrainTemplate.items || []).filter(Boolean).map((item: any) => ({
         ...item,
         conditions: {
@@ -119,6 +162,8 @@ export function generateChunkContent(
         }
     }));
 
+    // Prepare custom spawn candidates from the custom item catalog.
+    // Items must be spawn-enabled and match the current chunk's terrain.
     const customSpawnCandidates: SpawnCandidate[] = customItemCatalog
         .filter(item => item && item.spawnEnabled !== false && item.spawnBiomes && item.spawnBiomes.includes(chunkData.terrain as Terrain))
         .map(item => {
@@ -138,35 +183,46 @@ export function generateChunkContent(
         });
     logger.debug('[generateChunkContent] customSpawnCandidates', { customSpawnCandidatesLength: customSpawnCandidates.length, customSpawnCandidates });
 
+    // Combine static and custom spawn candidates for item selection.
     const allSpawnCandidates = [...staticSpawnCandidates, ...customSpawnCandidates];
     logger.debug('[generateChunkContent] allSpawnCandidates', { allSpawnCandidatesLength: allSpawnCandidates.length, allSpawnCandidates });
 
-    // Default to 10 items, scaled by worldProfile.spawnMultiplier but passed
-    // through a softcap so extremely large multipliers don't explode counts.
-    const baseMaxItems = 10;
-    // Compute a chunk-level resource score (0..1) similar to selectEntities so chunk
-    // indicators are the primary influence on how many items spawn here.
+    // Determine the maximum number of unique item types to select for this chunk.
+    const baseMaxItems = 10; // Default number of items
+    
+    // Clamp a value between 0 and 1, typically used for normalizing chunk data values.
     const clamp01 = (v: number) => Math.max(0, Math.min(1, v / 100));
+
+    // Calculate a chunk-level resource score based on various environmental factors.
+    // This score influences how many items can spawn in this specific chunk.
     const vegetation = clamp01(chunkData.vegetationDensity ?? 50);
     const moisture = clamp01(chunkData.moisture ?? 50);
-    const humanFactor = 1 - clamp01(chunkData.humanPresence ?? 50);
-    const dangerFactor = 1 - clamp01(chunkData.dangerLevel ?? 50);
-    const predatorFactor = 1 - clamp01(chunkData.predatorPresence ?? 50);
-    const chunkResourceScore = (vegetation + moisture + humanFactor + dangerFactor + predatorFactor) / 5; // 0..1
+    const humanFactor = 1 - clamp01(chunkData.humanPresence ?? 50); // Less human presence = more resources
+    const dangerFactor = 1 - clamp01(chunkData.dangerLevel ?? 50);   // Less danger = more resources
+    const predatorFactor = 1 - clamp01(chunkData.predatorPresence ?? 50); // Less predators = more resources
+    const chunkResourceScore = (vegetation + moisture + humanFactor + dangerFactor + predatorFactor) / 5; // Average score (0..1)
 
-    // World-level resourceDensity further scales the chunk score. Default 50 -> neutral.
-    const worldDensityScale = (worldProfile?.resourceDensity ?? 50) / 100;
+    // Scale the chunk resource score by the world's overall resource density.
+    const worldDensityScale = (worldProfile?.resourceDensity ?? 50) / 100; // Normalize world density (0..1)
 
-    // Map chunkResourceScore to a multiplier for item count in range [0.5, 1.5]
-    const chunkCountMultiplier = 0.5 + (chunkResourceScore * 1.0 * worldDensityScale);
+    // Map the combined chunk and world resource score to a multiplier for item count.
+    // This ensures that resource-rich chunks in resource-rich worlds spawn more items.
+    const chunkCountMultiplier = 0.5 + (chunkResourceScore * 1.0 * worldDensityScale); // Range [0.5, 1.5]
 
-    // maxItems now represents the maximum number of *unique* item types to select.
+    // Calculate the final maximum number of unique items, applying all multipliers and ensuring at least one item.
     const maxItems = Math.max(1, Math.floor(baseMaxItems * effectiveMultiplier * chunkCountMultiplier));
+    
     const spawnedItemRefs = selectEntities(allSpawnCandidates, maxItems, chunkData, allItemDefinitions, worldProfile);
     logger.debug('[generateChunkContent] spawnedItemRefs', { spawnedItemRefsLength: spawnedItemRefs.length, spawnedItemRefs });
     const spawnedItems: ChunkItem[] = [];
 
-    // Helper to resolve an itemRef.name (which may be a display string) to an item definition key
+    /**
+     * Helper function to resolve an item reference name (which might be a display string)
+     * to its corresponding {@link ItemDefinition} object.
+     * It first attempts a direct key lookup, then searches by translated display name.
+     * @param displayOrKey - The display name or key of the item to resolve.
+     * @returns The {@link ItemDefinition} if found, otherwise `undefined`.
+     */
     const resolveItemByName = (displayOrKey: string) : ItemDefinition | undefined => {
         // Direct key lookup first
         if (allItemDefinitions[displayOrKey]) return allItemDefinitions[displayOrKey];
@@ -213,23 +269,29 @@ export function generateChunkContent(
         }
     }
     
+    // Select and map NPCs to be spawned in the chunk.
     const spawnedNPCs: Npc[] = selectEntities(terrainTemplate.NPCs, 3, chunkData, allItemDefinitions, worldProfile).map(ref => ref.data);
 
+    // Filter out any null/undefined enemy candidates.
     let allEnemyCandidates = [...(terrainTemplate.enemies || [])].filter(Boolean);
 
+    // Select potential enemies to spawn.
     const spawnedEnemies = selectEntities(allEnemyCandidates, 3, chunkData, allItemDefinitions, worldProfile);
     
     let spawnedStructures: Structure[] = [];
+    // Select structures to spawn based on terrain template.
     const spawnedStructureRefs = selectEntities((terrainTemplate.structures || []).filter(Boolean), 2, chunkData, allItemDefinitions, worldProfile);
     
     for (const structRef of spawnedStructureRefs) {
         if (structRef.loot) {
             for (const lootItem of structRef.loot) {
-                // Ensure lootItem.chance exists before using it
+                // Check if the loot item should spawn based on its chance.
                 if (lootItem.chance !== undefined && Math.random() < lootItem.chance) {
                     const definition = allItemDefinitions[lootItem.name];
                     if (definition) {
+                        // Determine the quantity of the loot item.
                         const quantity = getRandomInRange({ min: lootItem.quantity.min, max: lootItem.quantity.max });
+                        // If the item already exists in spawnedItems, update its quantity; otherwise, add it as a new item.
                         const existingItem = spawnedItems.find(i => getTranslatedText(i.name, 'en') === lootItem.name);
                         if (existingItem) {
                             existingItem.quantity += quantity;
@@ -249,6 +311,7 @@ export function generateChunkContent(
         spawnedStructures.push(structRef);
     }
    
+    // Determine the final enemy to spawn, if any.
     const enemyData = spawnedEnemies.length > 0 ? spawnedEnemies[0].data : null;
     const spawnedEnemy = enemyData ? {
         type: enemyData.type,
@@ -266,9 +329,11 @@ export function generateChunkContent(
         } : undefined
     } : null;
     
+    // Initialize actions available in this chunk.
     const actions: Action[] = [];
     let actionIdCounter = 1;
 
+    // Add 'observe enemy' action if an enemy is spawned.
     if (spawnedEnemy) {
         actions.push({ 
             id: actionIdCounter++, 
@@ -276,6 +341,7 @@ export function generateChunkContent(
             params: { enemyType: getTranslatedText(spawnedEnemy.type, 'en') }
         });
     }
+    // Add 'talk to NPC' action if NPCs are spawned.
     if (spawnedNPCs.length > 0) {
         actions.push({ 
             id: actionIdCounter++, 
@@ -284,10 +350,12 @@ export function generateChunkContent(
         });
     }
 
+    // Add 'pick up item' actions for all spawned items.
     spawnedItems.forEach(item => {
         actions.push({ id: actionIdCounter++, textKey: 'pickUpAction_item', params: { itemName: getTranslatedText(item.name, 'en') } });
     });
     
+    // Add general exploration and listening actions.
     actions.push({ id: actionIdCounter++, textKey: 'exploreAction' });
     actions.push({ id: actionIdCounter++, textKey: 'listenToSurroundingsAction' });
 

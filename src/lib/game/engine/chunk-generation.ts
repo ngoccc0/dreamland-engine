@@ -650,7 +650,8 @@ export function generateChunkContent(
     const npcFindChance = Math.max(0.01, Math.min(0.6, npcBaseFindChance * (worldDensityScale ?? 1) * npcFindMultiplier * effectiveMultiplier));
     let spawnedNPCs: Npc[] = [];
     if (Math.random() < npcFindChance) {
-        spawnedNPCs = selectEntities(terrainTemplate.NPCs, 1, chunkData, allItemDefinitions, worldProfile).map(ref => ref.data);
+        // Map defensively in case `selectEntities` returns refs without `data`.
+        spawnedNPCs = (selectEntities(terrainTemplate.NPCs, 1, chunkData, allItemDefinitions, worldProfile) || []).map(ref => ref?.data);
     } else {
         logger.debug('[generateChunkContent] npcFindChance failed, no NPCs this chunk', { npcFindChance });
     }
@@ -748,11 +749,13 @@ export function generateChunkContent(
         });
     }
     // Add 'talk to NPC' action if NPCs are spawned. Prioritize the first NPC for the action.
-    if (spawnedNPCs.length > 0) {
-        actions.push({ 
-            id: actionIdCounter++, 
-            textKey: 'talkToAction_npc', 
-            params: { npcName: getTranslatedText(spawnedNPCs[0].name, 'en') } // Use translated NPC name.
+    // Choose the first defined NPC (if any) for conversation actions.
+    const firstNPC = spawnedNPCs.find(n => n && (n as any).name);
+    if (firstNPC) {
+        actions.push({
+            id: actionIdCounter++,
+            textKey: 'talkToAction_npc',
+            params: { npcName: getTranslatedText((firstNPC as any).name, 'en') }
         });
     }
 

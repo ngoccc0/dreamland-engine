@@ -341,11 +341,25 @@ export const generateOfflineActionNarrative = (
     const sensory_feedback = t(sensoryFeedbackOptions[Math.floor(Math.random() * sensoryFeedbackOptions.length)]);
 
     switch (actionType) {
-        case 'attack':
-            narrativeKey = `actionNarrative_attack_${actionResult.successLevel.toLowerCase()}`;
-            let attack_description = t(`attackNarrative_${actionResult.successLevel.toLowerCase()}`, { enemyType });
+    case 'attack':
+            // Map SuccessLevel values to existing locale suffixes
+            const succ = actionResult.successLevel;
+            const suffixMap: Record<string, string> = {
+                CriticalFailure: 'critFail',
+                Failure: 'fail',
+                Success: 'success',
+                GreatSuccess: 'success', // No separate GreatSuccess key; use 'success'
+                CriticalSuccess: 'critSuccess'
+            };
+            const suffix = suffixMap[succ] ?? succ.toLowerCase();
+            narrativeKey = `actionNarrative_attack_${suffix}`;
+            let attack_description = t(`attackNarrative_${suffix}`, { enemyType });
             let damage_report = actionResult.playerDamage > 0 ? t('attackDamageDealt', { damage: actionResult.playerDamage }) : '';
             let enemy_reaction = '';
+            
+            
+            
+            
             if (actionResult.enemyDefeated) {
                 enemy_reaction = t('enemyDefeatedNarrative', { enemyType });
             } else if (actionResult.fled) {

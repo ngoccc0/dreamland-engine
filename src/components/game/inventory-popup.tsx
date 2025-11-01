@@ -90,7 +90,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                     const categoryEmoji = itemCategory ? categoryEmojis[itemCategory as keyof typeof categoryEmojis] : '❓';
 
                     return (
-                      <li key={getTranslatedText(item.name, 'en') + index}>
+                      <li key={index}>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <button

@@ -178,12 +178,12 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequi
                     <>
                         <Separator className="my-2" />
                         <div className="space-y-1">
-                            {nextUnlockableSkills.map(skill => (
-                                <div key={getTranslatedText(skill.name, 'en')}>
-                                    <p className="text-xs text-accent-foreground font-semibold">{t(skill.name)}</p>
-                                    <p className="text-xs text-muted-foreground">({t('unlockCondition')}: {skill.unlockCondition!.count} {t(skill.unlockCondition!.type)})</p>
-                                </div>
-                            ))}
+              {nextUnlockableSkills.map(skill => (
+                <div key={String(skill.name)}>
+                  <p className="text-xs text-accent-foreground font-semibold">{t(skill.name)}</p>
+                  <p className="text-xs text-muted-foreground">({t('unlockCondition')}: {skill.unlockCondition!.count} {t(skill.unlockCondition!.type)})</p>
+                </div>
+              ))}
                         </div>
                     </>
                 )}

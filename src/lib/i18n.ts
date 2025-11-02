@@ -76,8 +76,19 @@ let translations_en = {};
 let translations_vi = {};
 
 modules.forEach(module => {
-  translations_en = mergeDeep(translations_en, module.en);
-  translations_vi = mergeDeep(translations_vi, module.vi);
+  // Some translation modules may only expose a subset of languages.
+  // Guard access to `en`/`vi` to keep TypeScript happy and avoid runtime errors.
+  if (module && 'en' in module) {
+    translations_en = mergeDeep(translations_en, (module as any).en);
+  }
+  if (module && 'vi' in module) {
+    translations_vi = mergeDeep(translations_vi, (module as any).vi);
+  } else if (module && 'en' in module) {
+    // If a module doesn't provide Vietnamese translations yet, fall back to
+    // using the English keys as a placeholder in `vi`. This keeps the
+    // translation shape consistent and avoids missing-key errors at runtime.
+    translations_vi = mergeDeep(translations_vi, (module as any).en);
+  }
 });
 
 /**

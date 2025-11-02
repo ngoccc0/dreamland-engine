@@ -128,9 +128,7 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
     const responsiveCellSize = "w-[clamp(28px,6vw,48px)] h-[clamp(28px,6vw,48px)]";
 
   useEffect(() => {
-    logger.debug("[MINIMAP] Mounted with props:", { grid, playerPosition, turn });
     if (grid?.length > 0) {
-      logger.debug("[MINIMAP] Calculated map size:", `${grid[0].length}x${grid.length}`);
     }
   }, [grid, playerPosition, turn]);
 
@@ -170,8 +168,6 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
 
               // Shorter fog of war timing (25 turns)
               const isFoggy = turnDifference > 25 && cell.lastVisited !== 0;
-
-              logger.debug(`[MINIMAP-RENDER] Tile (${cell.x},${cell.y}) → terrain=${cell.terrain}, explored=${cell.explored}, foggy=${isFoggy}, visible=${isInVisibleRange}`);
 
               // Unexplored tiles should still be rendered but with a fog effect
               if (!cell.explored) {

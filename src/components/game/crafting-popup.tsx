@@ -14,7 +14,7 @@ import { calculateCraftingOutcome } from "@/lib/game/engine/crafting";
 import { Hammer } from "./icons";
 import { cn, getTranslatedText } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface CraftingPopupProps {
   open: boolean;
@@ -31,6 +31,20 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
   const [sortByCraftability, setSortByCraftability] = useState(false);
 
   // Process recipes with craftability scores
+  // DEBUG: Log player items and the calculated outcome for the simple stone axe
+  useEffect(() => {
+    try {
+      console.debug('[debug][CraftingPopup] playerItems:', playerItems.map(it => ({ id: it.id, nameEn: getTranslatedText(it.name, 'en', t), nameVi: getTranslatedText(it.name, 'vi', t), quantity: it.quantity })));
+      const stoneAxe = recipes['simple_stone_axe_recipe'];
+      if (stoneAxe) {
+        const stoneOutcome = calculateCraftingOutcome(playerItems, stoneAxe, itemDefinitions);
+        console.debug('[debug][CraftingPopup] simple_stone_axe outcome:', stoneOutcome);
+      }
+    } catch (e) {
+      console.debug('[debug][CraftingPopup] debug log failed', e);
+    }
+  }, [playerItems, recipes, itemDefinitions, language, t]);
+
   const processedRecipes = Object.values(recipes).map(recipe => {
     const outcome = calculateCraftingOutcome(playerItems, recipe, itemDefinitions);
     const craftabilityScore = outcome.resolvedIngredients.filter(ing => ing.hasEnough).length / recipe.ingredients.length;

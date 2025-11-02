@@ -96,8 +96,8 @@ export function FusionPopup({ open, onOpenChange, playerItems, itemDefinitions, 
                   <div className="h-72 border rounded-md p-2 bg-muted/20 overflow-y-auto">
                       <div className="space-y-2">
                         {getAvailablePlayerItems().map((item) => (
-                          // Use the item's translation key (stable) as the React key instead of an English string
-                          <TooltipProvider key={String(item.name)}>
+                          // Use a stable unique key: prefer the canonical id, fall back to the English string
+                          <TooltipProvider key={item.id ?? getTranslatedText(item.name as any, 'en')}>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <button

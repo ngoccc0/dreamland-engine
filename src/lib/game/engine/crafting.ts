@@ -117,6 +117,41 @@ export const calculateCraftingOutcome = (
     recipe: Recipe,
     allItemDefinitions: Record<string, ItemDefinition>
 ): CraftingOutcome => {
+    // Helper to robustly resolve a player's item to a canonical id.
+    // Try explicit `id`, then resolver using English and Vietnamese fallbacks,
+    // then fall back to translated text strings. This helps handle items stored
+    // as localized strings or inline translation objects.
+    const getPlayerItemId = (pi: PlayerItem | { name?: any; id?: string } | undefined): string | undefined => {
+        if (!pi) return undefined;
+        // If item already has an id, validate it against known definitions.
+        // Some saved/legacy items may have an `id` that is actually a translated string
+        // (e.g., "Sturdy Branch") which will not match recipe ids like `sturdy_branch`.
+        // Only accept the existing id if it exists in the provided definitions.
+        const existingId = (pi as any).id;
+        if (existingId) {
+            if (allItemDefinitions && allItemDefinitions[existingId]) return existingId;
+            // otherwise fall through to attempt resolving from the item's name
+        }
+        // Try resolver with English then Vietnamese
+        const byEn = resolveItemId((pi as any).name, allItemDefinitions, undefined, 'en');
+        if (byEn) return byEn;
+        const byVi = resolveItemId((pi as any).name, allItemDefinitions, undefined, 'vi');
+        if (byVi) return byVi;
+        // Fallback to raw translations
+        try {
+            const nameEn = getTranslatedText((pi as any).name as TranslatableString, 'en');
+            if (nameEn && allItemDefinitions[nameEn]) return nameEn;
+        } catch (e) {
+            // ignore
+        }
+        try {
+            const nameVi = getTranslatedText((pi as any).name as TranslatableString, 'vi');
+            if (nameVi && allItemDefinitions[nameVi]) return nameVi;
+        } catch (e) {
+            // ignore
+        }
+        return undefined;
+    };
     const resolvedIngredients: CraftingOutcome['resolvedIngredients'] = [];
     const ingredientsToConsumeMap = new Map<string, number>();
     let worstTier = 1;
@@ -128,8 +163,8 @@ export const calculateCraftingOutcome = (
     const hasRequiredTool = !recipe.requiredTool || playerItems.some(item => (
         // Prefer explicit id comparison
         (item as any).id === recipe.requiredTool ||
-        // Try resolver to map the player's item to a canonical id
-        resolveItemId(item.name, allItemDefinitions) === recipe.requiredTool ||
+        // Try robust resolver to map the player's item to a canonical id (checks en/vi)
+        getPlayerItemId(item) === recipe.requiredTool ||
         // Fallback to legacy English name match
         getTranslatedText(item.name, 'en') === recipe.requiredTool
     ));
@@ -155,26 +190,30 @@ export const calculateCraftingOutcome = (
         possibleItems.sort((a, b) => a.quality - b.quality);
         
         for (const possible of possibleItems) {
-            const playerItem = playerItems.find(pi => (
+            const playerItem = playerItems.find(pi => {
                 // Prefer explicit id on player item
-                ((pi as any).id && (pi as any).id === possible.id) ||
-                // Resolve the player's item name to an id and compare
-                resolveItemId(pi.name, allItemDefinitions) === possible.id ||
+                if ((pi as any).id && (pi as any).id === possible.id) return true;
+                // Resolve the player's item name to an id using robust resolver
+                const playerId = getPlayerItemId(pi);
+                if (playerId && playerId === possible.id) return true;
                 // Legacy fallback to English-name comparison
-                getTranslatedText(pi.name, 'en') === possible.id ||
-                getTranslatedText(pi.name, 'en') === possible.name
-            ));
+                if (getTranslatedText(pi.name, 'en') === possible.id) return true;
+                if (getTranslatedText(pi.name, 'en') === possible.name) return true;
+                return false;
+            });
             if (playerItem && playerItem.quantity >= requirement.quantity) {
                 bestAvailable = { item: playerItem, quality: possible.quality };
                 break;
             }
         }
         
-        const playerItemForQtyCheck = playerItems.find(pi => (
-            (pi as any).id === requirement.name ||
-            resolveItemId(pi.name, allItemDefinitions) === requirement.name ||
-            getTranslatedText(pi.name, 'en') === requirement.name
-        ));
+        const playerItemForQtyCheck = playerItems.find(pi => {
+            if ((pi as any).id === requirement.name) return true;
+            const playerId = getPlayerItemId(pi);
+            if (playerId && playerId === requirement.name) return true;
+            if (getTranslatedText(pi.name, 'en') === requirement.name) return true;
+            return false;
+        });
         const playerQuantity = playerItemForQtyCheck ? playerItemForQtyCheck.quantity : 0;
 
         if (bestAvailable) {

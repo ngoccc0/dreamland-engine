@@ -193,104 +193,82 @@ const generateWorldSetupFlow = (ai as Genkit).defineFlow(
         const promptInput = { ...input, existingItemNames: itemNamesList, validCategories: ItemCategorySchema.options };
         const renderedPrompt = template(promptInput);
 
-        const modelsToTry = ['openai/gpt-4o', 'googleai/gemini-1.5-pro', 'deepseek/deepseek-chat', 'googleai/gemini-2.0-flash'];
-        const errorLogs: string[] = [];
-
-        for (const modelName of modelsToTry) {
-            try {
-                logger.debug(`[Task A] Attempting item catalog generation with model: ${modelName}`, { prompt: renderedPrompt });
-                const result = await (ai as Genkit).generate<typeof ItemCatalogCreativeOutputSchema>([
-                    {
-                        text: renderedPrompt,
-                        custom: {}
-                    }
-                ]);
-                logger.info(`[Task A] SUCCESS with ${modelName}.`);
-                logger.debug(`[Task A] Parsed AI output from ${modelName}:`, result.output);
-                return result;
-            } catch (error: any) {
-                const errorMessage = `Model ${modelName} failed. Reason: ${error.message || error}`;
-                logger.warn(`[Task A] ${errorMessage}`);
-                errorLogs.push(errorMessage);
-            }
+        try {
+            logger.debug(`[Task A] Generating item catalog with configured Gemini prompt`, { prompt: renderedPrompt });
+            const result = await (ai as Genkit).generate<typeof ItemCatalogCreativeOutputSchema>([
+                {
+                    text: renderedPrompt,
+                    custom: {}
+                }
+            ]);
+            logger.info('[Task A] SUCCESS with configured Gemini.');
+            logger.debug('[Task A] Parsed AI output:', result.output);
+            return result;
+        } catch (error: any) {
+            const errorMessage = `Gemini failed for item catalog generation. Reason: ${error.message || error}`;
+            logger.error('[Task A] ' + errorMessage);
+            throw new Error(errorMessage);
         }
-        
-        const detailedError = `All AI models failed for item catalog generation. \n\nThis is often due to an invalid API key, insufficient balance on a paid account (like OpenAI or Deepseek), or network problems. Please check your .env file and billing settings for your AI providers. \n\nIndividual model errors:\n- ${errorLogs.join('\n- ')}`;
-        logger.error(detailedError);
-        throw new Error(detailedError);
     })();
     
     // Task B: Generate world names.
     const worldNamesTask = (async () => {
         const template = Handlebars.compile(worldNamesPromptTemplate);
         const renderedPrompt = template(input);
-        const modelsToTry = ['googleai/gemini-2.0-flash', 'deepseek/deepseek-chat'];
-        for (const modelName of modelsToTry) {
-            try {
-                logger.debug(`[Task B] Attempting world name generation with model: ${modelName}`, { prompt: renderedPrompt });
-                const result = await (ai as Genkit).generate<typeof WorldNamesOutputSchema>([
-                    {
-                        text: renderedPrompt,
-                        custom: {}
-                    }
-                ]);
-                logger.info(`[Task B] SUCCESS with ${modelName}.`);
-                return result;
-            } catch (error: any) {
-                logger.warn(`[Task B] Model ${modelName} failed. Reason: ${error.message || error}. Trying next...`);
-            }
+        try {
+            logger.debug('[Task B] Generating world names with configured Gemini prompt', { prompt: renderedPrompt });
+            const result = await (ai as Genkit).generate<typeof WorldNamesOutputSchema>([
+                {
+                    text: renderedPrompt,
+                    custom: {}
+                }
+            ]);
+            logger.info('[Task B] SUCCESS with configured Gemini.');
+            return result;
+        } catch (error: any) {
+            logger.error('[Task B] Gemini failed for world name generation: ' + (error.message || error));
+            throw error;
         }
-        logger.error("All models failed for world name generation.");
-        throw new Error("All models failed for world name generation.");
     })();
 
     // Task C: Generate narrative concepts.
     const narrativeConceptsTask = (async () => {
         const template = Handlebars.compile(narrativeConceptsPromptTemplate);
         const renderedPrompt = template(input);
-        const modelsToTry = ['deepseek/deepseek-chat', 'googleai/gemini-2.0-flash', 'openai/gpt-4o'];
-        for (const modelName of modelsToTry) {
-            try {
-                logger.debug(`[Task C] Attempting narrative concepts generation with model: ${modelName}`, { prompt: renderedPrompt });
-                const result = await (ai as Genkit).generate<typeof NarrativeConceptsOutputSchema>([
-                    {
-                        text: renderedPrompt,
-                        custom: {}
-                    }
-                ]);
-                logger.info(`[Task C] SUCCESS with ${modelName}.`);
-                return result;
-            } catch (error: any) {
-                logger.warn(`[Task C] Model ${modelName} failed. Reason: ${error.message || error}. Trying next...`);
-            }
+        try {
+            logger.debug('[Task C] Generating narrative concepts with configured Gemini prompt', { prompt: renderedPrompt });
+            const result = await (ai as Genkit).generate<typeof NarrativeConceptsOutputSchema>([
+                {
+                    text: renderedPrompt,
+                    custom: {}
+                }
+            ]);
+            logger.info('[Task C] SUCCESS with configured Gemini.');
+            return result;
+        } catch (error: any) {
+            logger.error('[Task C] Gemini failed for narrative concepts generation: ' + (error.message || error));
+            throw error;
         }
-        logger.error("All models failed for narrative concepts generation.");
-        throw new Error("All models failed for narrative concepts generation.");
     })();
     
     // Task D: Generate custom structures.
     const structureCatalogTask = (async () => {
         const template = Handlebars.compile(structureCatalogPromptTemplate);
         const renderedPrompt = template(input);
-        const modelsToTry = ['openai/gpt-4o', 'googleai/gemini-1.5-pro'];
-        for (const modelName of modelsToTry) {
-            try {
-                logger.debug(`[Task D] Attempting structure catalog generation with model: ${modelName}`, { prompt: renderedPrompt });
-                const result = await (ai as Genkit).generate<typeof StructureCatalogCreativeOutputSchema>([
-                    {
-                        text: renderedPrompt,
-                        custom: {}
-                    }
-                ]);
-                logger.info(`[Task D] SUCCESS with ${modelName}.`);
-                return result;
-            } catch (error: any) {
-                logger.warn(`[Task D] Model ${modelName} failed. Reason: ${error.message || error}. Trying next...`);
-            }
+        try {
+            logger.debug('[Task D] Generating structure catalog with configured Gemini prompt', { prompt: renderedPrompt });
+            const result = await (ai as Genkit).generate<typeof StructureCatalogCreativeOutputSchema>([
+                {
+                    text: renderedPrompt,
+                    custom: {}
+                }
+            ]);
+            logger.info('[Task D] SUCCESS with configured Gemini.');
+            return result;
+        } catch (error: any) {
+            logger.warn('[Task D] Gemini failed to generate structures. Proceeding without custom structures: ' + (error.message || error));
+            return { output: { customStructures: [] } };
         }
-        logger.warn("[Task D] All models failed. Proceeding without custom structures.");
-        // Return a valid empty structure to prevent crashes
-        return { output: { customStructures: [] } };
     })();
 
 

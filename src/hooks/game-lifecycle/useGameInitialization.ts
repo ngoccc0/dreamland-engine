@@ -11,7 +11,7 @@ import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
 import type { GameState, PlayerStatusDefinition, WorldDefinition, GeneratedItem, Recipe, ItemDefinition } from '@/lib/game/types';
 import { logger } from '@/lib/logger';
-import { getTranslatedText } from '@/lib/utils';
+import { getTranslatedText, ensurePlayerItemId } from '@/lib/utils';
 import { normalizePlayerStatus } from '@/lib/game/normalize';
 import { useAuth } from '@/context/auth-context';
 
@@ -169,7 +169,12 @@ export function useGameInitialization(deps: GameInitializationDeps) {
         setCustomItemDefinitions(finalDefs);
         setCustomStructures(stateToInitialize.customStructures || []);
         setBuildableStructures(staticBuildableStructures);
-  setPlayerStats(() => normalizePlayerStatus(stateToInitialize.playerStats));
+        // Normalize player stats and ensure each inventory item has a canonical id
+        const normalizedStats = normalizePlayerStatus(stateToInitialize.playerStats);
+        if (Array.isArray(normalizedStats.items) && normalizedStats.items.length > 0) {
+          normalizedStats.items = normalizedStats.items.map((it: any) => ensurePlayerItemId(it, finalDefs, t, language));
+        }
+        setPlayerStats(() => normalizedStats);
         setFinalWorldSetup(() => stateToInitialize.worldSetup);
         setPlayerPosition(stateToInitialize.playerPosition || { x: 0, y: 0 });
         setPlayerBehaviorProfile(stateToInitialize.playerBehaviorProfile || { moves: 0, attacks: 0, crafts: 0, customActions: 0 });

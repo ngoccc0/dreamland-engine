@@ -2,8 +2,6 @@
 import 'dotenv/config';
 import { genkit, type Genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
-import { openAI } from 'genkitx-openai';
-import { deepseekPlugin } from './plugins/deepseek';
 
 /**
  * This file configures the Genkit AI object.
@@ -18,51 +16,35 @@ import { deepseekPlugin } from './plugins/deepseek';
  * - DEEPSEEK_API_KEY
  */
 
+// Only initialize Google Gemini (Gemini API). Other providers (OpenAI, Deepseek)
+// were intentionally removed so all LLM behavior is driven by Gemini and by
+// varying prompts (storytellers are implemented as prompt templates).
+
 const plugins = [];
 
 try {
-    // Initialize Google AI Plugin
     if (process.env.GEMINI_API_KEY_PRIMARY || process.env.GEMINI_API_KEY_SECONDARY) {
         const plugin = googleAI({
-            apiKey: process.env.GEMINI_API_KEY_PRIMARY || process.env.GEMINI_API_KEY_SECONDARY
+            apiKey: process.env.GEMINI_API_KEY_PRIMARY || process.env.GEMINI_API_KEY_SECONDARY,
         });
         plugins.push(plugin);
-        console.log('Google AI Plugin initialized');
-    }
-
-    // Initialize OpenAI Plugin
-    if (process.env.OPENAI_API_KEY) {
-        const plugin = openAI();
-        plugins.push(plugin);
-        console.log('OpenAI Plugin initialized');
-    }
-
-    // Initialize Deepseek Plugin
-    if (process.env.DEEPSEEK_API_KEY) {
-        const plugin = deepseekPlugin();
-        plugins.push(plugin);
-        console.log('Deepseek Plugin initialized');
+        console.log('Google Gemini Plugin initialized');
+    } else {
+        console.warn('No Gemini API key found (GEMINI_API_KEY_PRIMARY / GEMINI_API_KEY_SECONDARY). Genkit will be initialized without a Gemini plugin.');
     }
 } catch (error) {
-    console.error('Error initializing plugins:', error);
+    console.error('Error initializing Gemini plugin:', error);
 }
 
-// Initialize Genkit with plugins and error handling
 let ai: Genkit;
 try {
-    // Filter out any non-function plugin entries to avoid runtime errors
-    const usablePlugins = plugins.filter(p => typeof p === 'function');
-    if (usablePlugins.length !== plugins.length) {
-        console.warn('Some plugins were not functions and will be ignored by genkit initialization', plugins.map(p => typeof p));
-    }
-
+    const usablePlugins = plugins.filter(Boolean);
     ai = genkit({
         plugins: usablePlugins,
-        model: 'googleai/gemini-2.0-flash'
+        model: 'googleai/gemini-2.0-flash',
     });
 } catch (error: any) {
     console.error('Error initializing Genkit:', error);
-    // Provide a fallback or throw a more informative error
     throw new Error(`Failed to initialize AI system: ${error.message || 'Unknown error'}`);
 }
 

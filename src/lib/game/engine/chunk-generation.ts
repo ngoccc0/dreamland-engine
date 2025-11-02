@@ -519,8 +519,8 @@ export function generateChunkContent(
         // Reduce final spawn chances when many items have passed the budget, preventing over-saturation.
         const N = preBudgetSelected.length; // Number of items that passed the budget.
         // The scale factor decreases as N increases, reducing the probability of each item.
-        // `Math.pow(Math.max(0, N), 0.3)` ensures the exponent is non-negative.
-        const scaleFactor = 1 / (0.5 + Math.pow(Math.max(0, N), 0.3));
+        // `Math.pow(Math.max(0, N), 0.6)` ensures the exponent is non-negative.
+        const scaleFactor = 1 / (0.5 + Math.pow(Math.max(0, N), 0.6));
 
     // Stage 5: Final roll.
     // Iterate through the candidates that passed the budget and perform a final random check to determine if they spawn.

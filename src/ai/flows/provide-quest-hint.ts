@@ -11,7 +11,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { generateCompat as aiGenerate } from '@/ai/client';
+import Handlebars from 'handlebars';
 import { z } from 'genkit';
 import { ProvideQuestHintInputSchema, ProvideQuestHintOutputSchema } from '@/ai/schemas';
 
@@ -50,30 +50,23 @@ const provideQuestHintFlow = ai.defineFlow(
         outputSchema: ProvideQuestHintOutputSchema,
     },
     async (input) => {
-        const modelsToTry = [
-            'openai/gpt-4o',
-            'googleai/gemini-1.5-pro',
-            'deepseek/deepseek-chat',
-            'googleai/gemini-2.0-flash',
-        ];
-
-        let lastError;
-        for (const model of modelsToTry) {
             try {
-                const llmResponse = await aiGenerate({
-                    model: model,
-                    prompt: promptText,
-                    input: input,
-                    output: { schema: ProvideQuestHintOutputSchema },
-                });
-                if (llmResponse?.output) return llmResponse.output;
+                // Render the prompt template with Handlebars so we pass a fully
+                // rendered text to Gemini. Storyteller voices are different
+                // prompt templates, not different providers.
+                const template = Handlebars.compile(promptText);
+                const renderedPrompt = template(input as any);
+
+                const result = await ai.generate([
+                    { text: renderedPrompt, custom: {} }
+                ]);
+
+                if (result?.output) return result.output as ProvideQuestHintOutput;
+                // If no structured output exists, try to coerce / validate.
+                throw new Error('AI returned no structured output for quest hint');
             } catch (error) {
-                lastError = error;
-                console.warn(`[provideQuestHint] Model '${model}' failed. Trying next...`);
+                console.error('AI failed to generate a hint (Gemini):', error);
+                throw error;
             }
-        }
-        
-        console.error("All AI models failed for quest hint generation.", lastError);
-        throw lastError || new Error("AI failed to generate a hint.");
     }
 );

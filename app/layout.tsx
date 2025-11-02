@@ -28,6 +28,28 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..900;1,7..72,400..900&family=Inter:wght@400;700&family=Source+Code+Pro:wght@400;700&display=swap" rel="stylesheet" />
       </head>
       <body className="antialiased">
+        {/* Inline pre-init script: attempt to unregister any stale service workers and clear caches
+            before the client bundles load. This helps recover from a stale SW that serves old
+            chunk filenames (common during local development). Only runs in non-production.
+         */}
+        {process.env.NODE_ENV !== 'production' && (
+          <script dangerouslySetInnerHTML={{ __html: `
+            (function(){
+              try {
+                if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+                  navigator.serviceWorker.getRegistrations().then(regs => {
+                    regs.forEach(reg => { try { reg.unregister(); console.debug('[inline ClientInit] Unregistered service worker', reg); } catch(e){} });
+                  }).catch(()=>{});
+                }
+                if (typeof caches !== 'undefined' && caches.keys) {
+                  caches.keys().then(keys => { keys.forEach(k => { try { caches.delete(k).then(()=>console.debug('[inline ClientInit] Deleted cache', k)).catch(()=>{}); } catch(e){} }); }).catch(()=>{});
+                }
+              } catch(e) {
+                // don't block render
+              }
+            })();
+          ` }} />
+        )}
         {/* Client-side initializer that helps recover from stale chunk/service-worker issues */}
         <ClientInit />
         <LanguageProvider>

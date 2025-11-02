@@ -58,32 +58,16 @@ const suggestKeywordsFlow = ai.defineFlow(
     outputSchema: SuggestKeywordsOutputSchema,
   },
   async (input) => {
-    // This flow needs a fast model. Let's try a few and use the first one that works.
-    const modelsToTry = [
-      'googleai/gemini-2.0-flash',
-      'deepseek/deepseek-chat',
-      'openai/gpt-4o',
-    ];
-
-    let lastError: any;
-    
-    for (const modelName of modelsToTry) {
-      try {
-        // Call the defined prompt and override the model for each attempt.
-        const { output } = await keywordSuggestionPrompt(input, { model: modelName });
-        
-        if (output) {
-            return output;
-        }
-
-      } catch (e: any) {
-        lastError = e;
-        console.warn(`Model '${modelName}' failed for keyword suggestion. Trying next... Error: ${e.message}`);
-      }
+    try {
+      // Use the configured Genkit instance (Gemini). Different keyword voices
+      // or styles should be implemented by changing the prompt text, not
+      // by switching providers.
+      const { output } = await keywordSuggestionPrompt(input);
+      if (output) return output;
+      throw new Error('AI returned no output for keyword suggestion');
+    } catch (e: any) {
+      console.error('AI failed to generate keyword suggestions (Gemini):', e);
+      throw e;
     }
-
-    // If all models failed, throw the last recorded error.
-    console.error("All models failed for keyword suggestion.");
-    throw lastError || new Error("All models for keyword suggestion failed to generate a response.");
   }
 );

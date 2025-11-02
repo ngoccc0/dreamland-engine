@@ -140,21 +140,24 @@ export function useGameInitialization(deps: GameInitializationDeps) {
         logger.debug('[GameInit] State to initialize', stateToInitialize);
 
         const finalCatalogMap = new Map<string, GeneratedItem>();
-        Object.values(staticItemDefinitions).forEach((def) => {
-          const defId = getTranslatedText(def.name, 'en');
-          if (defId) finalCatalogMap.set(defId, def);
+        // Preserve canonical ids when constructing the runtime item catalog.
+        // For static definitions the canonical key is the object key; for generated/custom
+        // items prefer any explicit `id` on the item, otherwise fall back to the English name.
+        Object.entries(staticItemDefinitions).forEach(([key, def]) => {
+          const defId = (def as any).id ?? key;
+          finalCatalogMap.set(defId, { ...(def as any), id: defId } as GeneratedItem);
         });
         (stateToInitialize.customItemCatalog || []).forEach(item => {
-          const itemId = getTranslatedText(item.name, 'en');
-          if (itemId) finalCatalogMap.set(itemId, item);
+          const itemId = (item as any).id ?? getTranslatedText(item.name, 'en');
+          if (itemId) finalCatalogMap.set(itemId, { ...(item as any), id: itemId } as GeneratedItem);
         });
 
         const finalCatalogArray: GeneratedItem[] = Array.from(finalCatalogMap.values());
         const finalRecipes = { ...staticRecipes, ...(stateToInitialize.recipes || {}) };
 
         const finalDefs = finalCatalogArray.reduce((acc, item) => {
-          const itemId = getTranslatedText(item.name, 'en');
-          if (itemId) acc[itemId] = item;
+          const itemId = (item as any).id ?? getTranslatedText(item.name, 'en');
+          if (itemId) acc[itemId] = { ...(item as any), id: itemId } as ItemDefinition;
           return acc;
         }, {} as Record<string, ItemDefinition>);
 

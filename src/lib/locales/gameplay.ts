@@ -1,4 +1,3 @@
-
 // src/lib/locales/gameplay.ts
 
 export const gameplayTranslations = {
@@ -101,7 +100,7 @@ export const gameplayTranslations = {
     criticalSuccess: "Thành công Xuất sắc",
 
     // Time & Events
-    timeUpdate: "🕖 Bây giờ là {time}.",
+    timeUpdate: "🕖Bây giờ là {time}.",
     newDay: "Một ngày mới đã bắt đầu.",
     dynamicDay: "Mặt trời mọc, bắt đầu một ngày mới.",
     journalUpdated: "Nhật ký của bạn đã được cập nhật.",

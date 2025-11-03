@@ -1,4 +1,3 @@
-
 // src/lib/locales/recipes.ts
 
 export const recipeTranslations = {

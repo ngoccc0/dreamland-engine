@@ -150,6 +150,11 @@ export const biomeNarrativeTemplates: Record<string, BiomeTemplateData> = {
       // Added missing keys referenced by templates
       "jungle_feeling_dark": ["đang theo dõi bạn", "như thể ai đó đang quan sát bạn"],
       "feeling_gloomy": ["bất an sâu sắc", "rờn rợn đến sống lưng"],
+      // temperature/moisture detail placeholders used by some templates
+      "temp_detail_gloomy": ["trong cái lạnh buốt", "se lạnh khẽ"],
+      "moisture_detail_gloomy": ["trong không khí ẩm ướt nặng nề", "ẩm mốc, nặng nề"],
+      "temp_detail": ["trong thời tiết dễ chịu", "trong hơi ấm nhẹ"],
+      "moisture_detail": ["trong không khí ẩm ướt", "trong không khí khô ráo"],
       // Compatibility keys expected by tests/templates
       "jungle_adjective_lush": ["rậm rạp", "xanh tươi"],
       "jungle_adjective_mysterious": ["bí ẩn", "huyền bí"],

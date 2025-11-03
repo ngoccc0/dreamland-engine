@@ -1,0 +1,26 @@
+[
+  {
+    "id": "jungle_opening_gloomy",
+    "terrain": "Jungle",
+    "tags": ["opening","gloomy"],
+    "conditions": { "all": [ { "path": "chunk.lightLevel", "op": "<=", "value": 10 } ] },
+    "lengthHint": 4,
+    "weight": 0.8,
+    "patterns": [
+      { "id": "p1", "template": "A curtain of {{adjective_dark}} covers {{jungle_terrain_desc}}. {{opening_sensory}}", "slots": ["adjective_dark","jungle_terrain_desc","opening_sensory"] },
+      { "id": "p2", "template": "{{continuation_fragment}} {{jungle_terrain_desc}} lies ahead, {{opening_sensory}}", "slots": ["continuation_fragment","jungle_terrain_desc","opening_sensory"] }
+    ]
+  },
+  {
+    "id": "jungle_opening_lush",
+    "terrain": "Jungle",
+    "tags": ["opening","lush"],
+    "conditions": { "all": [ { "path": "chunk.lightLevel", "op": ">=", "value": 5 }, { "path": "chunk.moisture", "op": ">=", "value": 5 } ] },
+    "lengthHint": 2,
+    "weight": 0.6,
+    "patterns": [
+      { "id": "p1", "template": "You weave through {{jungle_terrain_desc_lush}}. The air is {{temp_detail}} and {{moisture_detail}}, carrying {{smell_detail_lush}}.", "slots": ["jungle_terrain_desc_lush","temp_detail","moisture_detail","smell_detail_lush"] },
+      { "id": "p2", "template": "{{continuation_fragment}} {{jungle_terrain_desc_lush}} brushes past you; {{smell_detail_lush}}", "slots": ["continuation_fragment","jungle_terrain_desc_lush","smell_detail_lush"] }
+    ]
+  }
+]

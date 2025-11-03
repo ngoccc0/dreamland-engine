@@ -1,0 +1,24 @@
+{
+  "adjective_dark": [{ "id": "vi.adj.d1", "text": "âm u", "weight": 1, "detailLevel": 1, "biomes": ["Jungle"] }],
+  "jungle_terrain_desc": [{ "id": "vi.jungle.desc1", "text": "thảm thực vật chằng chịt", "weight": 1 }],
+  "opening_sensory": [{ "id": "vi.sens.s1", "text": "Ánh sáng {{light_level_detail}} chỉ soi lộ những hình hài {{vague_shape_adj}}.", "weight": 1 }],
+  "jungle_terrain_desc_lush": [{ "id": "vi.jungle.lush1", "text": "những tán lá xanh tươi", "weight": 1 }],
+  "temp_detail": [{ "id": "vi.temp.mild", "text": "trong thời tiết dễ chịu", "weight": 1 }],
+  "moisture_detail": [{ "id": "vi.moist.normal", "text": "trong không khí trong lành", "weight": 1 }],
+  "smell_detail_lush": [{ "id": "vi.smell.lush1", "text": "mùi hoa dại", "weight": 1 }],
+  "vague_shape_adj": [{ "id": "vi.vague.s1", "text": "những hình dạng mơ hồ", "weight": 1 }],
+  "light_level_detail": [{ "id": "vi.light.dim", "text": "trong ánh sáng mờ ảo", "weight": 1 }]
+  ,"continuation_phrase": [
+    { "id": "vi.cont.1", "text": "Bạn tiếp tục bước đi,", "weight": 1, "voice": ["neutral"] },
+    { "id": "vi.cont.2", "text": "Bạn tiếp tục tiến về phía trước,", "weight": 1, "voice": ["warm"] },
+    { "id": "vi.cont.3", "text": "Bạn bước tiếp, như thể chẳng còn gì đáng bận tâm,", "weight": 1, "voice": ["sarcastic"] },
+    { "id": "vi.cont.4", "text": "Bạn lặng lẽ tiến bước, suy tư trong lòng,", "weight": 1, "voice": ["thoughtful"] }
+  ],
+  "internal_monologue": [
+    { "id": "vi.int.1", "text": "Bạn tự hỏi liệu đây có phải là con đường đúng.", "voice": ["thoughtful"], "weight": 1 },
+    { "id": "vi.int.2", "text": "Như thể thế giới đang hỏi và bạn không có câu trả lời.", "voice": ["melancholy"], "weight": 1 },
+    { "id": "vi.int.3", "text": "Ồ, lại bước nữa. Thật thú vị.", "voice": ["sarcastic"], "weight": 1 }
+  ]
+}
+
+

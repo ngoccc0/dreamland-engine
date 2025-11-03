@@ -1,0 +1,5 @@
+[
+  { "id": "p_neutral", "name": "Neutral Traveler", "voice": "neutral" },
+  { "id": "p_sarcastic", "name": "Sarcastic Wanderer", "voice": "sarcastic" },
+  { "id": "p_thoughtful", "name": "Thoughtful Seeker", "voice": "thoughtful" }
+]

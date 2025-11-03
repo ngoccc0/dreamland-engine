@@ -1,12 +1,12 @@
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
-import { getAuth, onAuthStateChanged, signInWithPopup, signOut, type Auth, type User } from 'firebase/auth';
-import { auth, googleProvider } from '@/lib/firebase-config';
+// Note: firebase is dynamically imported at runtime to avoid inflating the client bundle
+// when Firebase is not configured or when auth features are not used.
 import { Loader2 } from 'lucide-react';
 
 interface AuthContextType {
-  user: User | null;
+  user: any | null;
   loading: boolean;
   login: () => Promise<void>;
   logout: () => Promise<void>;
@@ -16,44 +16,62 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
-  const isFirebaseConfigured = !!auth;
+  const [isFirebaseConfigured, setIsFirebaseConfigured] = useState(false);
 
   useEffect(() => {
-    if (!isFirebaseConfigured) {
-      setLoading(false);
-      return;
-    }
-    const unsubscribe = onAuthStateChanged(auth as Auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [isFirebaseConfigured]);
+    let unsub: (() => void) | undefined;
+    const init = async () => {
+      try {
+        const fc = await import('@/lib/firebase-config');
+        if (!fc || !fc.auth) {
+          setIsFirebaseConfigured(false);
+          setLoading(false);
+          return;
+        }
+        setIsFirebaseConfigured(true);
+        const { onAuthStateChanged } = await import('firebase/auth');
+        unsub = onAuthStateChanged(fc.auth as any, (u: any) => {
+          setUser(u);
+          setLoading(false);
+        });
+      } catch (e) {
+        // If anything fails, treat as not configured
+        setLoading(false);
+      }
+    };
+    init();
+    return () => {
+      try { if (typeof unsub === 'function') unsub(); } catch {};
+    };
+  }, []);
 
   const login = async () => {
-    if (!isFirebaseConfigured || !auth || !googleProvider) {
-        console.error("Firebase is not configured. Cannot log in.");
-        return;
-    }
     try {
-      await signInWithPopup(auth, googleProvider);
+      const fc = await import('@/lib/firebase-config');
+      if (!fc || !fc.auth || !fc.googleProvider) {
+        console.error('Firebase is not configured. Cannot log in.');
+        return;
+      }
+      const { signInWithPopup } = await import('firebase/auth');
+      await signInWithPopup(fc.auth as any, fc.googleProvider as any);
     } catch (error) {
-      console.error("Error during sign-in:", error);
+      console.error('Error during sign-in:', error);
     }
   };
 
   const logout = async () => {
-    if (!isFirebaseConfigured || !auth) {
-        console.error("Firebase is not configured. Cannot log out.");
-        return;
-    }
     try {
-      await signOut(auth);
+      const fc = await import('@/lib/firebase-config');
+      if (!fc || !fc.auth) {
+        console.error('Firebase is not configured. Cannot log out.');
+        return;
+      }
+      const { signOut } = await import('firebase/auth');
+      await signOut(fc.auth as any);
     } catch (error) {
-      console.error("Error during sign-out:", error);
+      console.error('Error during sign-out:', error);
     }
   };
 

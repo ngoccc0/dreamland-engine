@@ -73,9 +73,13 @@ export function useGameState({ gameSlot: _gameSlot }: GameStateProps) {
         level: 1,
         experience: 0,
         hp: 100,
+        maxHp: 100,
         mana: 50,
+        maxMana: 50,
         stamina: 100,
-        hunger: 100, // Initialize hunger to 100 as requested
+        maxStamina: 100,
+        hunger: 100,
+        maxHunger: 100,
         bodyTemperature: 37,
         items: [],
         equipment: { 

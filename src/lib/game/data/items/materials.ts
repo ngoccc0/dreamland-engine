@@ -376,7 +376,8 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '💧',
         effects: [],
-        senseEffect: { tactile: { en: 'sticky and tacky', vi: 'dính và bám' } },
+        // converted to translation-key form for i18n
+        senseEffect: { keywords: ['tactile:sensory.tactile.sticky'] },
         baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
@@ -517,10 +518,8 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '⛏️',
         effects: [],
-        senseEffect: {
-            tactile: { en: 'rough and gritty', vi: 'thô ráp và sần sùi' },
-            visual: { en: 'dull metallic sheen', vi: 'ánh kim mờ' }
-        },
+        // converted to translation-key form for i18n
+        senseEffect: { keywords: ['tactile:sensory.tactile.rough', 'visual:sensory.visual.metallic_dull'] },
         baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },

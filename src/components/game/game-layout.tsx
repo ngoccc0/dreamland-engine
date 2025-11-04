@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -21,8 +20,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Progress } from "@/components/ui/progress";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { HudIconProgress } from "@/components/game/hud-icon-progress";
 import { useLanguage } from "@/context/language-context";
 import { useSettings } from "@/context/settings-context";
 import { useGameEngine } from "@/hooks/use-game-engine";
@@ -494,62 +493,22 @@ export default function GameLayout(props: GameLayoutProps) {
                                 </div>
 
                                 {/* HUD */}
-                                <div className="space-y-3">
-                                    <div className="grid grid-cols-4 gap-x-4 gap-y-2 text-sm">
-                                        <div className="space-y-1">
-                                            <label className="flex items-center gap-1.5 text-muted-foreground"><Heart /> {t('hudHealth')}</label>
-                                            <Progress value={playerStats.hp} className="h-2" indicatorClassName="bg-destructive" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="flex items-center gap-1.5 text-muted-foreground"><Zap /> {t('hudMana')}</label>
-                                            <Progress value={(playerStats.mana / 50) * 100} className="h-2" indicatorClassName="bg-gradient-to-r from-blue-500 to-purple-600" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="flex items-center gap-1.5 text-muted-foreground"><Footprints /> {t('hudStamina')}</label>
-                                            <Progress value={playerStats.stamina} className="h-2" indicatorClassName="bg-gradient-to-r from-yellow-400 to-orange-500" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="flex items-center gap-1.5 text-muted-foreground"><Beef /> {t('hudHunger')}</label>
-                                            <Progress value={playerStats.hunger} className="h-2" indicatorClassName="bg-gradient-to-r from-amber-400 to-orange-500" />
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                        <span>{playerStats.hp} / 100</span>
-                                        <span>{playerStats.mana} / 50</span>
-                                        <span>{playerStats.stamina.toFixed(0)} / 100</span>
-                                        <span>{(playerStats.hunger || 0).toFixed(0)} / 100</span>
-                                    </div>
+                                <div className="grid grid-cols-4 gap-x-4 gap-y-2 text-sm justify-items-center">
+                                    <HudIconProgress Icon={Heart} value={playerStats.hp} maxValue={playerStats.maxHp ?? 100} fillColor="text-destructive" statName={t('hudHealth') || 'Health'} />
+                                    <HudIconProgress Icon={Zap} value={playerStats.mana} maxValue={playerStats.maxMana ?? 50} fillColor="text-blue-500" statName={t('hudMana') || 'Mana'} />
+                                    <HudIconProgress Icon={Footprints} value={playerStats.stamina} maxValue={playerStats.maxStamina ?? 100} fillColor="text-yellow-400" statName={t('hudStamina') || 'Stamina'} />
+                                    <HudIconProgress Icon={Beef} value={playerStats.hunger} maxValue={playerStats.maxHunger ?? 100} fillColor="text-amber-500" statName={t('hudHunger') || 'Hunger'} />
                                 </div>
                             </>
                         ) : (
                             // Default (mobile / legacy): HUD then Minimap
                             <>
                                 {/* HUD */}
-                                <div className="space-y-3">
-                                    <div className="grid grid-cols-4 gap-x-4 gap-y-2 text-sm">
-                                        <div className="space-y-1">
-                                            <label className="flex items-center gap-1.5 text-muted-foreground"><Heart /> {t('hudHealth')}</label>
-                                            <Progress value={playerStats.hp} className="h-2" indicatorClassName="bg-destructive" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="flex items-center gap-1.5 text-muted-foreground"><Zap /> {t('hudMana')}</label>
-                                            <Progress value={(playerStats.mana / 50) * 100} className="h-2" indicatorClassName="bg-gradient-to-r from-blue-500 to-purple-600" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="flex items-center gap-1.5 text-muted-foreground"><Footprints /> {t('hudStamina')}</label>
-                                            <Progress value={playerStats.stamina} className="h-2" indicatorClassName="bg-gradient-to-r from-yellow-400 to-orange-500" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="flex items-center gap-1.5 text-muted-foreground"><Beef /> {t('hudHunger')}</label>
-                                            <Progress value={playerStats.hunger} className="h-2" indicatorClassName="bg-gradient-to-r from-amber-400 to-orange-500" />
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                        <span>{playerStats.hp} / 100</span>
-                                        <span>{playerStats.mana} / 50</span>
-                                        <span>{playerStats.stamina.toFixed(0)} / 100</span>
-                                        <span>{(playerStats.hunger || 0).toFixed(0)} / 100</span>
-                                    </div>
+                                <div className="grid grid-cols-4 gap-x-4 gap-y-2 text-sm justify-items-center">
+                                    <HudIconProgress Icon={Heart} value={playerStats.hp} maxValue={playerStats.maxHp ?? 100} fillColor="text-destructive" statName={t('hudHealth') || 'Health'} />
+                                    <HudIconProgress Icon={Zap} value={playerStats.mana} maxValue={playerStats.maxMana ?? 50} fillColor="text-blue-500" statName={t('hudMana') || 'Mana'} />
+                                    <HudIconProgress Icon={Footprints} value={playerStats.stamina} maxValue={playerStats.maxStamina ?? 100} fillColor="text-yellow-400" statName={t('hudStamina') || 'Stamina'} />
+                                    <HudIconProgress Icon={Beef} value={playerStats.hunger} maxValue={playerStats.maxHunger ?? 100} fillColor="text-amber-500" statName={t('hudHunger') || 'Hunger'} />
                                 </div>
 
                                 {/* Minimap */}
@@ -614,11 +573,11 @@ export default function GameLayout(props: GameLayoutProps) {
 
                             {/* Main actions & menu (right) */}
                             <div className="ml-auto flex items-center gap-2">
-                                <Button aria-label={t('statusShort') || 'Status'} variant="outline" onClick={() => { setStatusOpen(true); focusCustomActionInput(); }}><Shield /></Button>
-                                <Button aria-label={t('inventoryShort') || 'Inventory'} variant="outline" onClick={() => { setInventoryOpen(true); focusCustomActionInput(); }}><Backpack /></Button>
-                                <Button aria-label={t('craftingShort') || 'Crafting'} variant="outline" onClick={() => { setCraftingOpen(true); focusCustomActionInput(); }}><Hammer /></Button>
-                                <Button aria-label={t('buildingShort') || 'Build'} variant="outline" onClick={() => { setBuildingOpen(true); focusCustomActionInput(); }}><Home /></Button>
-                                <Button aria-label={t('fusionShort') || 'Fuse'} variant="outline" onClick={() => { setFusionOpen(true); focusCustomActionInput(); }}><FlaskConical /></Button>
+                                <Button aria-label={t('statusShort') || 'Status'} variant="outline" size="icon" onClick={() => { setStatusOpen(true); focusCustomActionInput(); }}><Shield /></Button>
+                                <Button aria-label={t('inventoryShort') || 'Inventory'} variant="outline" size="icon" onClick={() => { setInventoryOpen(true); focusCustomActionInput(); }}><Backpack /></Button>
+                                <Button aria-label={t('craftingShort') || 'Crafting'} variant="outline" size="icon" onClick={() => { setCraftingOpen(true); focusCustomActionInput(); }}><Hammer /></Button>
+                                <Button aria-label={t('buildingShort') || 'Build'} variant="outline" size="icon" onClick={() => { setBuildingOpen(true); focusCustomActionInput(); }}><Home /></Button>
+                                <Button aria-label={t('fusionShort') || 'Fuse'} variant="outline" size="icon" onClick={() => { setFusionOpen(true); focusCustomActionInput(); }}><FlaskConical /></Button>
                                 <Button variant="outline" onClick={() => setAvailableActionsOpen(true)}>{t('actions') || 'Actions'}</Button>
                                 {/* Custom action removed from the map/HUD column to keep it map+HUD only */}
                             </div>

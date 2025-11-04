@@ -69,6 +69,15 @@ const keyword_variations_vi: PlaceholderMap = {
   // Biome-flavored random lines (VI)
   jungle_monologue: ["Độ ẩm làm tôi mệt mỏi.", "Cái nóng khiến mỗi bước nặng nề hơn.", "Hơi thở trở nên gấp gáp và dính.", "Nên tìm bóng mát sớm thôi."],
   forest_monologue: ["Sự yên ắng dễ chịu, nhưng tôi bắt đầu mệt.", "Chân tôi đau sau quãng đường này.", "Nghỉ dưới gốc cây có lẽ sẽ giúp.", "Tôi cần một lát để lấy lại sức."],
+  // Continuation/linking lines for repeated movement inside same biome (VI)
+  jungle_continuation: ["Bạn tiếp tục lần mò trong khu rừng này; lần này không có gì khác lạ.", "Bạn vẫn tiến sâu trong rừng, lần này mọi thứ im ắng hơn.", "Bạn tiếp tục bước qua những tán lá; mọi thứ vẫn không thay đổi."],
+  forest_continuation: ["Bạn tiếp tục len qua khu rừng; lần này có vài tiếng động xa xa.", "Bạn tiếp tục con đường trong rừng này, thấy vài chiếc lá chuyển động nhẹ.", "Bạn tiếp tục bước đi, cảnh vật vẫn giữ vẻ yên ắng."],
+  beach_continuation: ["Bạn dạo dọc theo bờ, lần này sóng nhẹ và không gì mới.", "Bạn tiếp tục đi trên bãi cát; mùi biển vẫn đồng đều.", "Bạn bước tiếp dọc bờ, những vệt cát kéo dài trước mắt."],
+  desert_continuation: ["Bạn tiếp tục tiến trên sa mạc; cát trải dài vô tận.", "Bạn bước qua cồn cát lần nữa, không có dấu hiệu thay đổi.", "Bạn vẫn tiếp tục đi giữa cái nắng khô cằn."],
+  swamp_continuation: ["Bạn tiếp tục mò qua đầm lầy; bùn vẫn nhão dưới chân.", "Bạn bước tiếp, tiếng vo ve không dứt.", "Bạn vẫn di chuyển giữa lớp sương mỏng của đầm lầy."],
+  mountain_continuation: ["Bạn tiếp tục leo lên sườn núi, hơi thở vẫn gấp.", "Bạn tiếp tục vượt qua những mỏm đá, không thấy dấu hiệu khác.", "Bạn tiếp tục bước lên đỉnh cao, cảm giác mệt mỏi theo từng bước."],
+  tundra_continuation: ["Bạn tiếp tục băng qua đồng băng, gió lạnh không thay đổi.", "Bạn tiếp tục bước trên băng giá; cảnh vật trắng xoá.", "Bạn vẫn đi trong cái lạnh, không có gì khác lạ."],
+  cave_continuation: ["Bạn tiếp tục dò dẫm trong hang; tiếng giọt nước vẫn văng vẳng.", "Bạn bước thêm chút nữa trong bóng tối, cảm giác yên tĩnh vẫn vậy.", "Bạn vẫn len lỏi qua những hành lang đá, im lặng xung quanh."],
   // Additional biome monologue pools (VI)
   beach_monologue: ["Không khí mặn khiến tôi mệt.", "Tiếng sóng êm nhưng tôi mệt dần.", "Cát làm chân tôi nặng nề.", "Nên trú bóng mát một lát."],
   desert_monologue: ["Cái nóng rút cạn sức lực.", "Mặt trời thiêu đốt không ngừng.", "Nước có vẻ xa vời.", "Nên giữ sức và tìm bóng râm."],
@@ -104,7 +113,16 @@ const keyword_variations_en: PlaceholderMap = {
   // Biome-flavored random lines (EN)
   jungle_monologue: ["The humidity is wearing me down.", "This heat makes every step feel heavier.", "My breath comes in short, sticky gasps.", "I should find some shade soon."],
   forest_monologue: ["The quiet is soothing, but I'm getting tired.", "My legs ache from all this walking.", "A short rest beneath that tree would help.", "I could use a moment to gather my strength."],
-  // Additional biome monologue pools (EN)
+  // Continuation/linking lines for repeated movement inside same biome (EN)
+  jungle_continuation: ["You continue to push through the jungle; this time, nothing seems different.", "You press on through the undergrowth, and it feels quieter this time.", "You move deeper among the leaves; the scene remains unchanged."],
+  forest_continuation: ["You continue along the forest path; this time you hear a distant rustle.", "You press on through the trees, noticing a few leaves stir.", "You keep moving; the forest remains hushed."],
+  beach_continuation: ["You stroll along the shore; the waves are calm and nothing new appears.", "You continue across the sand; the salt air is steady.", "You walk on the beach, the horizon unchanged."],
+  desert_continuation: ["You continue across the dunes; sand rolls on inexorably.", "You trudge through the desert again; there is no sign of change.", "You press forward beneath the relentless sun."],
+  swamp_continuation: ["You continue through the swamp; the mud clings to your boots.", "You push on, the buzzing never stops.", "You move ahead among the murky water, nothing new emerges."],
+  mountain_continuation: ["You continue up the mountain path; your breath still comes short.", "You pick your way over rocks again, no obvious change.", "You climb on, each step wearing at your legs."],
+  tundra_continuation: ["You continue across the tundra; the wind and whiteness persist.", "You keep walking on the frozen plain, the landscape unchanged.", "You trudge onward through the cold; nothing seems different."],
+  cave_continuation: ["You continue to grope through the cave; dripping water echoes as before.", "You move further into the dark tunnel; the silence holds.", "You press on through the caverns, the passage unchanged."]
+  , // Additional biome monologue pools (EN)
   beach_monologue: ["The salt air is tiring me.", "The waves lull me but my energy fades.", "Sand between my toes weighs on me.", "I should rest away from the sun."],
   desert_monologue: ["The heat saps my strength.", "The sun beats down relentlessly.", "My water feels too far away.", "I should conserve my energy."],
   swamp_monologue: ["This muck drags at my feet.", "The air is thick and exhausting.", "Every step feels heavier here.", "I should move carefully and rest."],

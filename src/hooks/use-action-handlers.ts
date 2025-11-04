@@ -4,7 +4,7 @@
 // NOTE: react-hooks/exhaustive-deps is being audited. Removed the file-level disable
 // so ESLint can report missing/unnecessary deps per-hook. We'll fix each hook's deps in small commits.
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
 import { useSettings } from '@/context/settings-context';
@@ -20,6 +20,8 @@ import { analyze_chunk_mood } from '@/lib/game/engine/offline';
 import { useAudio } from '@/lib/audio/useAudio';
 import { getTemplates } from '@/lib/game/templates';
 import { clamp, getTranslatedText, resolveItemId, ensurePlayerItemId } from '@/lib/utils';
+import { getKeywordVariations } from '@/lib/game/data/narrative-templates';
+import { buildNarrative } from '@/lib/narrative/assembler';
 import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem, NarrativeEntry, GeneratedItem, TranslatableString, ItemDefinition, Chunk, Enemy } from '@/lib/game/types';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-config';
@@ -40,7 +42,7 @@ type ActionHandlerDeps = {
     setCustomItemCatalog: React.Dispatch<React.SetStateAction<GeneratedItem[]>>;
     setCustomItemDefinitions: React.Dispatch<React.SetStateAction<Record<string, ItemDefinition>>>;
   finalWorldSetup: GameState['worldSetup'] | null;
-  addNarrativeEntry: (text: string, type: NarrativeEntry['type'], entryId?: string) => void;
+    addNarrativeEntry: (text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string) => void;
   advanceGameTime: (stats?: PlayerStatus, pos?: { x: number, y: number }) => void;
   setPlayerBehaviorProfile: (fn: (prev: any) => any) => void;
   playerPosition: { x: number, y: number };
@@ -82,6 +84,69 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     // audio: auto-play background based on mood when player moves or environment changes
     // useAudio must be used inside AudioProvider (layouts already wrap the app)
     const audio = useAudio();
+
+    // Track last move biome/time so we can emit a shorter "continuation" narrative when
+    // the player moves repeatedly within the same biome.
+    const lastMoveRef = useRef<{ biome?: string; time?: number }>({});
+
+    // Buffer pick-up events that occur within a short window so we aggregate multi-pick
+    // events into a single summary narrative instead of spamming detailed lines per item.
+    const pickupBufferRef = useRef<{ items: Array<any>; timer?: ReturnType<typeof setTimeout> }>({ items: [] });
+    const lastPickupMonologueAt = useRef(0);
+
+    const flushPickupBuffer = () => {
+        const buf = pickupBufferRef.current;
+        if (!buf || !buf.items || buf.items.length === 0) return;
+        const items = buf.items.splice(0, buf.items.length);
+        if (buf.timer) { clearTimeout(buf.timer); buf.timer = undefined; }
+
+        try {
+            // If only one distinct item and qty ===1, render the detailed single-pick template
+            if (items.length === 1 && items[0].quantity <= 1) {
+                const it = items[0];
+                // try to recreate the previous single-item detailed narrative path
+                const resolvedDef = resolveItemDef(getTranslatedText(it.name, 'en'));
+                const buildSensoryText = (def: ItemDefinition | undefined, itemName?: string) => {
+                    if (!def || !def.senseEffect || !Array.isArray(def.senseEffect.keywords) || def.senseEffect.keywords.length === 0) return '';
+                    const raw = def.senseEffect.keywords[Math.floor(Math.random() * def.senseEffect.keywords.length)];
+                    const [kindRaw, ...rest] = raw.split(':');
+                    const kind = kindRaw || 'generic';
+                    const valRaw = rest.join(':') || '';
+                    // fallback translation helper (keep minimal)
+                    const sensory = valRaw || raw;
+                    return sensory;
+                };
+                const itemNameText = t(it.name as TranslationKey);
+                const sensory = buildSensoryText(resolvedDef, itemNameText);
+                const narrativeText = t('pickedUpItem_single_1' as TranslationKey, { itemName: itemNameText, sensory });
+                addNarrativeEntry(narrativeText, 'narrative');
+                return;
+            }
+
+            // Multi-summary: group by name and sum quantities
+            const grouped: Record<string, number> = {};
+            items.forEach((it: any) => { const key = getTranslatedText(it.name, language); grouped[key] = (grouped[key] || 0) + (it.quantity || 1); });
+            const summaryList = Object.keys(grouped).map(k => `${grouped[k]} ${k}`).slice(0, 6).join(', ');
+            const totalCount = Object.values(grouped).reduce((s, v) => s + v, 0);
+            const summaryText = language === 'vi' ? `Bạn gom được ${summaryList}.` : `You picked up ${summaryList}.`;
+            addNarrativeEntry(summaryText, 'narrative');
+
+            // Optionally add a brief monologue if many distinct items found, but throttle it
+            const distinct = Object.keys(grouped).length;
+            const now = Date.now();
+            if (distinct >= 3 && now - lastPickupMonologueAt.current > 60_000) {
+                const db = getKeywordVariations(language as any);
+                const pool = (db as any)['monologue_tired'] || [];
+                if (pool.length > 0) {
+                    const line = pool[Math.floor(Math.random() * pool.length)];
+                    addNarrativeEntry(line, 'monologue');
+                    lastPickupMonologueAt.current = now;
+                }
+            }
+        } catch (e) {
+            // fallback: nothing
+        }
+    };
 
     // When the player's current chunk or environment changes, prefer playing
     // biome-specific ambience (files named like Ambience_<Biome>) and fall back
@@ -621,155 +686,18 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
               newPlayerStats.items.push(ensurePlayerItemId({...itemInChunk}, customItemDefinitions, t, language));
           }
           
-          // Build a richer pickup narrative using item sensory metadata when available
+          // Buffer pickup narratives: collect into a short window and flush a single
+          // aggregated narrative to avoid spamming a long sequence of per-item details.
           try {
               const resolvedDef = resolveItemDef(getTranslatedText(itemInChunk.name, 'en'));
-              const buildSensoryText = (def: ItemDefinition | undefined, itemName?: string) => {
-                  // returns a short, language-aware sensory sentence for a given item definition
-                  if (!def || !def.senseEffect || !Array.isArray(def.senseEffect.keywords) || def.senseEffect.keywords.length === 0) return '';
-                  const raw = def.senseEffect.keywords[Math.floor(Math.random() * def.senseEffect.keywords.length)];
-                  const [kindRaw, ...rest] = raw.split(':');
-                  const kind = kindRaw || 'generic';
-                  const valRaw = rest.join(':') || '';
-
-                  // small translation map for common adjectives / nouns to Vietnamese
-                  const viMap: Record<string, string> = {
-                      sweet: 'ngọt',
-                      smoky: 'khói',
-                      earthy: 'mùi đất',
-                      fruity: 'thơm trái cây',
-                      sticky: 'dính',
-                      syrupy: 'ngọt sệt',
-                      golden: 'vàng óng',
-                      glowing: 'phát sáng',
-                      seared: 'cháy xém',
-                      shiny: 'bóng',
-                      liquid: 'lỏng',
-                      small: 'nhỏ',
-                      soft: 'mềm'
-                  };
-
-                  const translateVal = (v: string) => {
-                      if (!v) return v;
-                      const normalized = v.toLowerCase().trim();
-                      return language === 'vi' ? (viMap[normalized] || v) : v;
-                  };
-
-                  const val = translateVal(valRaw || raw);
-
-                  const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
-
-                  const patterns: Record<string, { en: string[]; vi: string[] }> = {
-                      smell: {
-                          en: [
-                              "You can smell something {v} in the air.",
-                              "A faint, {v} scent lingers here.",
-                              "The air carries something {v} that catches your attention.",
-                              "You notice a {v} scent nearby.",
-                              "There is a faint {v} smell around here."
-                          ],
-                          vi: [
-                              "Bạn cảm nhận thấy mùi gì đó {v} trong không khí.",
-                              "Có mùi {v} thoang thoảng ở đây.",
-                              "Không khí mang mùi gì đó {v}, dễ nhận thấy.",
-                              "Bạn nhận ra mùi {v} gần đó.",
-                              "Có một hương {v} lảng vảng quanh đây."
-                          ]
-                      },
-                      sound: {
-                          en: [
-                              "You hear {v} nearby.",
-                              "A {v} can be heard from here.",
-                              "There is a {v} sound in the surroundings.",
-                              "You catch the sound of {v}.",
-                              "The air carries a {v} noise." 
-                          ],
-                          vi: [
-                              "Bạn nghe thấy {v} gần đây.",
-                              "Nghe tiếng {v} vọng lại từ đây.",
-                              "Có âm thanh {v} xung quanh.",
-                              "Bạn nghe tiếng {v}.",
-                              "Không khí vang lên tiếng {v}."
-                          ]
-                      },
-                      visual: {
-                          en: [
-                              "The {item} looks {v}.",
-                              "You notice the {item} is {v}.",
-                              "Visually, the {item} appears {v}.",
-                              "You catch sight of the {item}, it looks {v}.",
-                              "The {item} has a {v} appearance."
-                          ],
-                          vi: [
-                              "{item} trông {v}.",
-                              "Bạn nhận thấy {item} {v}.",
-                              "Về mặt hình ảnh, {item} có vẻ {v}.",
-                              "Bạn bắt gặp {item}, nó trông {v}.",
-                              "{item} mang vẻ {v}."
-                          ]
-                      },
-                      tactile: {
-                          en: [
-                              "The {item} feels {v} in your hand.",
-                              "You can feel the {item} is {v} to the touch.",
-                              "Holding the {item}, you notice it is {v}.",
-                              "The {item}'s texture feels {v}.",
-                              "Your fingers find the {item} {v}."
-                          ],
-                          vi: [
-                              "Bạn cầm {item} trong tay; cảm giác khá {v}.",
-                              "Khi cầm {item}, bạn nhận thấy bề mặt {v}.",
-                              "Cảm giác khi cầm {item} là {v}.",
-                              "Kết cấu của {item} có vẻ {v}.",
-                              "Bạn chạm vào {item} và thấy nó {v}."
-                          ]
-                      },
-                      taste: {
-                          en: [
-                              "It tastes {v}.",
-                              "A {v} flavor greets your palate.",
-                              "You taste a {v} note.",
-                              "It has a {v} taste.",
-                              "A {v} tang lingers on your tongue."
-                          ],
-                          vi: [
-                              "Nó có vị {v}.",
-                              "Hương vị {v} chạm vào khẩu vị bạn.",
-                              "Bạn cảm nhận vị {v}.",
-                              "Nó có vị {v}.",
-                              "Hương {v} vương trên lưỡi bạn."
-                          ]
-                      },
-                      generic: {
-                          en: ["It is {v}.", "You notice {v}.", "There is something {v} about it."],
-                          vi: ["Nó {v}.", "Bạn nhận thấy {v}.", "Có điều gì đó {v} về nó."]
-                      }
-                  };
-
-                  const bucket = patterns[kind] || patterns.generic;
-                  const template = language === 'vi' ? pick(bucket.vi) : pick(bucket.en);
-                  return template.replace('{v}', val).replace('{item}', itemName || '').trim();
-              };
-
-              const itemNameText = t(itemInChunk.name as TranslationKey);
-              const sensory = buildSensoryText(resolvedDef, itemNameText);
-              let narrativeText = '';
-              if ((itemInChunk.quantity || 1) <= 1) {
-                  const keys: TranslationKey[] = ['pickedUpItem_single_1','pickedUpItem_single_2','pickedUpItem_single_3','pickedUpItem_single_4','pickedUpItem_single_5'];
-                  const pick = keys[Math.floor(Math.random() * keys.length)];
-                  narrativeText = t(pick, { itemName: itemNameText, sensory });
-              } else {
-                  const keys: TranslationKey[] = ['pickedUpItem_multi_1','pickedUpItem_multi_2','pickedUpItem_multi_3','pickedUpItem_multi_4','pickedUpItem_multi_5'];
-                  const pick = keys[Math.floor(Math.random() * keys.length)];
-                  narrativeText = t(pick, { quantity: itemInChunk.quantity, itemName: itemNameText, sensory });
+              const senseKey = resolvedDef?.senseEffect?.keywords?.[0] || undefined;
+              pickupBufferRef.current.items.push({ name: itemInChunk.name, quantity: itemInChunk.quantity || 1, senseKey, emoji: itemInChunk.emoji });
+              // schedule flush in 250ms if not already scheduled
+              if (!pickupBufferRef.current.timer) {
+                  pickupBufferRef.current.timer = setTimeout(() => flushPickupBuffer(), 250) as any;
               }
-              // fallback if template somehow missing
-              if (!narrativeText || narrativeText.indexOf('{') !== -1) {
-                  narrativeText = t('pickedUpItemNarrative', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name as TranslationKey) });
-              }
-              addNarrativeEntry(narrativeText, 'narrative');
           } catch (e) {
-              // on any failure, fall back to the safe legacy text
+              // If buffering fails, fall back to adding a safe single-line narrative
               addNarrativeEntry(t('pickedUpItemNarrative', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name as TranslationKey) }), 'narrative');
           }
 
@@ -1430,6 +1358,27 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                 // non-fatal: if computing brief sensory fails, continue to orchestrator/fallback
                 // eslint-disable-next-line no-console
                 console.warn('[narrative] brief sensory computation failed', e);
+            }
+
+            // If the player moved repeatedly inside the same biome, prefer a short
+            // "continuation" template (a smaller, linking sentence) rather than
+            // loading a full descriptive template. This keeps movement prose compact.
+            try {
+                const prevChunk = worldSnapshot[`${playerPosition.x},${playerPosition.y}`];
+                if (prevChunk && prevChunk.terrain && finalChunk.terrain && String(prevChunk.terrain) === String(finalChunk.terrain)) {
+                    const db = getKeywordVariations(language as any);
+                    const pool = (db as any)[`${String(finalChunk.terrain).toLowerCase()}_continuation`] || (db as any)['continuation'];
+                    if (pool && Array.isArray(pool) && pool.length > 0) {
+                        const pick = pool[Math.floor(Math.random() * pool.length)];
+                        // Replace simple tokens
+                        const text = String(pick).replace('{direction}', directionText).replace('{biome}', t(finalChunk.terrain as TranslationKey));
+                        addNarrativeEntry(text, 'narrative', placeholderId);
+                        lastMoveRef.current = { biome: finalChunk.terrain, time: Date.now() };
+                        return;
+                    }
+                }
+            } catch (e) {
+                // non-fatal
             }
 
             // Try to use precomputed bundle + runtime orchestrator first (lazy-loaded).

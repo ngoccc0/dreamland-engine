@@ -25,10 +25,11 @@ interface SettingsPopupProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isInGame: boolean;
+    currentBiome?: string | null;
 }
 
-export function SettingsPopup({ open, onOpenChange, isInGame }: SettingsPopupProps) {
-  const { t, language, setLanguage } = useLanguage();
+export function SettingsPopup({ open, onOpenChange, isInGame, currentBiome }: SettingsPopupProps) {
+    const { t, language, setLanguage } = useLanguage();
   const { settings, setSettings, applyMods, clearMods } = useSettings();
   const { installPrompt, setInstallPrompt } = usePwaInstall();
   const { user, login, logout, isFirebaseConfigured } = useAuth();
@@ -63,7 +64,7 @@ export function SettingsPopup({ open, onOpenChange, isInGame }: SettingsPopupPro
       alert(t('modsCleared'));
   }
 
-  const handleLanguageChange = (value: string) => setLanguage(value as Language);
+        const handleLanguageChange = (value: string) => setLanguage(value as Language, currentBiome ?? undefined);
   const handleGameModeChange = (checked: boolean) => setSettings({ gameMode: checked ? 'ai' : 'offline' });
   const handleDiceTypeChange = (value: string) => setSettings({ diceType: value as DiceType });
   const handleAiModelChange = (value: string) => setSettings({ aiModel: value as AiModel });

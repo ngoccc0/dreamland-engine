@@ -1,4 +1,5 @@
 import type { RNG } from './rng';
+import type Lexicon from './lexicon';
 
 export type NarrativeState = {
   lastBiome?: string | null;
@@ -53,7 +54,7 @@ export class StateManager {
    * The RNG parameter is optional and may be used to rotate connectors or
    * pick a variation deterministically when needed.
    */
-  updateWithSnapshot(snapshot: any, decision?: any, rng?: RNG): Partial<NarrativeState> {
+  updateWithSnapshot(snapshot: any, decision?: any, lex?: Lexicon, rng?: RNG): Partial<NarrativeState> {
     const prevBiome = this.state.lastBiome;
     const newBiome = snapshot?.chunk?.terrain ?? null;
 
@@ -90,11 +91,22 @@ export class StateManager {
       }
     }
 
-    // rotate connector if rng provided
-    if (rng) {
-      const connectors = ['và', 'rồi', 'sau đó', 'đồng thời'];
-      const pick = rng.choice(connectors);
-      this.state.lastConnector = pick || this.state.lastConnector;
+    // Cập nhật connector dựa trên ngữ cảnh
+    const biomeChanged = newBiome && prevBiome !== newBiome;
+    const actionRepeated = this.state.repeatCount > 0 && snapshot?.action?.id;
+
+    let connectorCondition = 'default';
+    if (biomeChanged) {
+      connectorCondition = 'biome_change';
+    } else if (actionRepeated) {
+      connectorCondition = 'action_repeat';
+    }
+
+    if (lex && rng) {
+      const pick = lex.pick('narrative_connector', { condition: connectorCondition }, rng);
+      if (pick) {
+        this.state.lastConnector = pick.text;
+      }
     }
 
     return this.getState();

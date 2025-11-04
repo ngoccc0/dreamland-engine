@@ -1,11 +1,53 @@
 
 # Dreamland Engine
 
-
-
 **Dreamland Engine** mở ra một thế giới phiêu lưu nơi mọi lựa chọn của bạn đều có sức mạnh thay đổi vận mệnh, cảnh vật, và cả những câu chuyện chưa từng được kể. Được dẫn dắt bởi AI kể chuyện, bạn sẽ khám phá một vũ trụ sống động, nơi từng vùng đất, từng sinh vật, và từng thử thách đều phản ứng linh hoạt với hành động của bạn.
 
 Không chỉ là một game text-based, Dreamland Engine là nơi bạn có thể tự do sáng tạo, khám phá, sinh tồn, và viết nên câu chuyện của riêng mình. Thế giới không ngừng biến đổi, các hệ thống thời gian, thời tiết, và tâm trạng tạo ra những trải nghiệm mới mẻ mỗi lần chơi. Bạn có thể mở rộng game bằng mod, tự tạo vật phẩm, kẻ thù, hoặc thậm chí cả những vùng đất mới chỉ với vài dòng JSON hoặc TypeScript.
+
+## 🚀 Công nghệ sử dụng
+
+- **Framework:** Next.js 14 (App Router)
+- **Ngôn ngữ:** TypeScript
+- **Giao diện:** React, Tailwind CSS, Shadcn/UI
+- **AI:** Genkit (Google AI, OpenAI)
+- **Mobile:** Capacitor (hỗ trợ build ra app Android)
+- **Lưu trữ phía Client:** Dexie.js (IndexedDB wrapper)
+- **Kiểm thử:** Jest
+- **Tài liệu:** TypeDoc
+
+## 🛠️ Cài đặt & Chạy dự án
+
+1.  **Clone repository:**
+    ```bash
+    git clone https://github.com/your-username/dreamland-engine.git
+    cd dreamland-engine
+    ```
+
+2.  **Cài đặt dependencies:**
+    ```bash
+    npm install
+    ```
+
+3.  **Chạy môi trường phát triển:**
+    Để chạy ứng dụng Next.js và các flow AI cùng lúc, bạn cần mở hai terminal:
+
+    *   **Terminal 1: Chạy app Next.js**
+        ```bash
+        npm run dev
+        ```
+        Ứng dụng sẽ có sẵn tại `http://localhost:9003`.
+
+    *   **Terminal 2: Chạy Genkit AI flows**
+        ```bash
+        npm run genkit:watch
+        ```
+        Thao tác này sẽ khởi động và theo dõi các flow AI, cho phép narrative được sinh ra tự động.
+
+4.  **Các script hữu ích khác:**
+    *   `npm run build`: Build ứng dụng cho môi trường production.
+    *   `npm run test`: Chạy các bài test bằng Jest.
+    *   `npm run docs`: Tạo tài liệu từ mã nguồn TypeScript bằng TypeDoc.
 
 ## 🎮 Cách chơi & trải nghiệm
 
@@ -16,22 +58,23 @@ Không chỉ là một game text-based, Dreamland Engine là nơi bạn có th�
 5. **Modding:** Có thể thêm nội dung mới (items, recipes, enemies) bằng cách paste JSON mod bundle vào game. Mod có thể viết bằng TypeScript để kiểm tra kiểu dữ liệu trước khi sử dụng.
 6. **Tiến trình & sự kiện:** Thế giới thay đổi theo thời gian, thời tiết, và hành động của người chơi. Các sự kiện đặc biệt, trạng thái môi trường, và mood sẽ ảnh hưởng đến narrative và gameplay.
 
+## 🏗️ Kiến trúc & Cơ chế cốt lõi
 
-## Kiến trúc & Cơ chế cốt lõi
-
+- **AI Narrative Generation:** Phần lõi của trải nghiệm được vận hành bởi **Genkit**, một framework AI cho phép tạo ra các flow sinh nội dung (như nhiệm vụ, mô tả, sự kiện) một cách linh hoạt, có thể kết hợp nhiều model ngôn ngữ khác nhau (Google AI, OpenAI).
+- **Cross-Platform:** Dự án được xây dựng trên nền tảng web với **Next.js** và có thể được đóng gói thành ứng dụng di động cho Android bằng **Capacitor**.
 - **Hệ thống thời gian:** Mỗi hành động = 1 turn, mỗi turn = +10 phút. Ngày/đêm động, lightLevel ảnh hưởng bởi biome, thời gian, thời tiết, thảm thực vật.
 - **Chunk & World Generation:** Chunk là tile chứa địa hình, vật phẩm, kẻ thù, chỉ số môi trường. Sinh chủ động 15x15 quanh người chơi, bất đồng bộ để mượt UX. Có hệ thống Region và LOD cho chunk xa.
 - **Chỉ số & Mood:** Chunk có các chỉ số (dangerLevel, lightLevel, moisture, elevation, magicAffinity, ...), player có hp, mana, stamina, bodyTemperature. MoodTag được sinh từ stats, dùng cho narrative động.
 - **Engines & Usecases:** EffectEngine (buff/debuff, stacking, conditions), WeatherEngine (thời tiết động, hiệu ứng vùng), Usecase điều phối hành động (exploration, combat, weather, experience).
 
-## Modding & mở rộng
+## 🧩 Modding & mở rộng
 
 - Mod viết bằng TypeScript, paste JSON vào game.
 - Data schemas versioned, extensible, validated bằng Zod.
 - Nội dung mới luôn modular, tránh hardcode.
 - Xem `docs/core_mechanics_report.md` và `docs/dreamland_engine_report.md` để cập nhật conventions và kiến trúc.
 
-## Ví dụ & best practices
+## 📝 Ví dụ & best practices
 
 - **Mod Bundle:** Viết bằng TypeScript, paste JSON vào game. Xem `docs/core_mechanics_report.md` để biết cấu trúc.
 - **Entity Extension:** Mở rộng interface ở `src/core/types/attributes.ts`, implement logic ở `src/core/entities/`.

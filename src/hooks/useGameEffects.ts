@@ -41,7 +41,7 @@ type GameEffectsDeps = {
   setPlayerPosition: (pos: GameState['playerPosition']) => void;
   narrativeLogRef: React.RefObject<NarrativeEntry[]>;
   setNarrativeLog: (log: NarrativeEntry[]) => void;
-  addNarrativeEntry: (text: string, type: 'narrative' | 'action' | 'system', entryId?: string) => void;
+  addNarrativeEntry: (text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string) => void;
   finalWorldSetup: GameState['worldSetup'] | null;
   setFinalWorldSetup: React.Dispatch<React.SetStateAction<GameState['worldSetup'] | null>>;
   turn: number;
@@ -112,6 +112,8 @@ export function useGameEffects(deps: GameEffectsDeps) {
     setPlayerStats: deps.setPlayerStats,
     playerBehaviorProfile: deps.playerBehaviorProfile,
     addNarrativeEntry: deps.addNarrativeEntry,
+    world: deps.world,
+    playerPosition: deps.playerPosition,
   });
 
   useGameEvents({

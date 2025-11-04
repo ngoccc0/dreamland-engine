@@ -1,24 +1,99 @@
 {
-  "adjective_dark": [{ "id": "vi.adj.d1", "text": "âm u", "weight": 1, "detailLevel": 1, "biomes": ["Jungle"] }],
-  "jungle_terrain_desc": [{ "id": "vi.jungle.desc1", "text": "thảm thực vật chằng chịt", "weight": 1 }],
-  "opening_sensory": [{ "id": "vi.sens.s1", "text": "Ánh sáng {{light_level_detail}} chỉ soi lộ những hình hài {{vague_shape_adj}}.", "weight": 1 }],
-  "jungle_terrain_desc_lush": [{ "id": "vi.jungle.lush1", "text": "những tán lá xanh tươi", "weight": 1 }],
-  "temp_detail": [{ "id": "vi.temp.mild", "text": "trong thời tiết dễ chịu", "weight": 1 }],
-  "moisture_detail": [{ "id": "vi.moist.normal", "text": "trong không khí trong lành", "weight": 1 }],
-  "smell_detail_lush": [{ "id": "vi.smell.lush1", "text": "mùi hoa dại", "weight": 1 }],
-  "vague_shape_adj": [{ "id": "vi.vague.s1", "text": "những hình dạng mơ hồ", "weight": 1 }],
-  "light_level_detail": [{ "id": "vi.light.dim", "text": "trong ánh sáng mờ ảo", "weight": 1 }]
+  "adjective_dark": [
+    { "id": "vi.adj.d1", "text": "âm u", "weight": 1, "detailLevel": 1, "biomes": ["Jungle"] },
+    { "id": "vi.adj.d2", "text": "tăm tối", "weight": 0.8, "detailLevel": 2, "biomes": ["Jungle"] },
+    { "id": "vi.adj.d3", "text": "u tối", "weight": 1, "detailLevel": 1, "biomes": ["Jungle"] },
+    { "id": "vi.adj.d4", "text": "mờ mịt", "weight": 0.7, "detailLevel": 1, "biomes": ["Jungle", "Swamp"] }
+  ],
+  "jungle_terrain_desc": [
+    { "id": "vi.jungle.desc1", "text": "thảm thực vật chằng chịt", "weight": 1 },
+    { "id": "vi.jungle.desc2", "text": "khu rừng rậm rạp", "weight": 1 },
+    { "id": "vi.jungle.desc3", "text": "những lùm cây dày đặc", "weight": 0.8 }
+  ],
+  "opening_sensory": [
+    { "id": "vi.sens.s1", "text": "Ánh sáng {{light_level_detail}} chỉ soi lộ những hình hài {{vague_shape_adj}}.", "weight": 1 },
+    { "id": "vi.sens.s2", "text": "Xung quanh chỉ có {{sound_dark}} và cảm giác như có thứ gì đó {{jungle_feeling_dark}}.", "weight": 0.8 },
+    { "id": "vi.sens.s3", "text": "Không khí {{moisture_detail}} mang theo {{smell_lush}}.", "weight": 1 }
+  ],
+  "jungle_terrain_desc_lush": [
+    { "id": "vi.jungle.lush1", "text": "những tán lá xanh tươi", "weight": 1 },
+    { "id": "vi.jungle.lush2", "text": "thảm cỏ xanh mướt", "weight": 0.8 },
+    { "id": "vi.jungle.lush3", "text": "cây cối sum suê", "weight": 1 }
+  ],
+  "temp_detail": [
+    { "id": "vi.temp.mild", "text": "dễ chịu", "weight": 1 },
+    { "id": "vi.temp.cool", "text": "mát mẻ", "weight": 1 },
+    { "id": "vi.temp.warm", "text": "ấm áp", "weight": 1 }
+  ],
+  "moisture_detail": [
+    { "id": "vi.moist.normal", "text": "trong lành", "weight": 1 },
+    { "id": "vi.moist.humid", "text": "ẩm ướt", "weight": 1, "biomes": ["Jungle", "Swamp"] },
+    { "id": "vi.moist.dry", "text": "khô ráo", "weight": 1, "biomes": ["Mesa", "Beach"] }
+  ],
+  "smell_detail_lush": [
+    { "id": "vi.smell.lush1", "text": "hương hoa dại", "weight": 1 },
+    { "id": "vi.smell.lush2", "text": "mùi cỏ cây tươi mới", "weight": 1 }
+  ],
+  "vague_shape_adj": [
+    { "id": "vi.vague.s1", "text": "mơ hồ", "weight": 1 },
+    { "id": "vi.vague.s2", "text": "không rõ ràng", "weight": 1 },
+    { "id": "vi.vague.s3", "text": "mờ ảo", "weight": 1 }
+  ],
+  "light_level_detail": [
+    { "id": "vi.light.dim", "text": "mờ ảo", "weight": 1 },
+    { "id": "vi.light.faint", "text": "yếu ớt", "weight": 1 },
+    { "id": "vi.light.dark", "text": "le lói", "weight": 0.8 }
+  ]
   ,"continuation_phrase": [
     { "id": "vi.cont.1", "text": "Bạn tiếp tục bước đi,", "weight": 1, "voice": ["neutral"] },
-    { "id": "vi.cont.2", "text": "Bạn tiếp tục tiến về phía trước,", "weight": 1, "voice": ["warm"] },
+    { "id": "vi.cont.2", "text": "Bạn tiến về phía trước,", "weight": 1, "voice": ["warm"] },
     { "id": "vi.cont.3", "text": "Bạn bước tiếp, như thể chẳng còn gì đáng bận tâm,", "weight": 1, "voice": ["sarcastic"] },
-    { "id": "vi.cont.4", "text": "Bạn lặng lẽ tiến bước, suy tư trong lòng,", "weight": 1, "voice": ["thoughtful"] }
+    { "id": "vi.cont.4", "text": "Bạn lặng lẽ tiến bước, suy tư trong lòng,", "weight": 1, "voice": ["thoughtful"] },
+    { "id": "vi.cont.5", "text": "Hành trình của bạn tiếp diễn,", "weight": 0.7, "voice": ["neutral", "warm"] }
   ],
   "internal_monologue": [
     { "id": "vi.int.1", "text": "Bạn tự hỏi liệu đây có phải là con đường đúng.", "voice": ["thoughtful"], "weight": 1 },
     { "id": "vi.int.2", "text": "Như thể thế giới đang hỏi và bạn không có câu trả lời.", "voice": ["melancholy"], "weight": 1 },
-    { "id": "vi.int.3", "text": "Ồ, lại bước nữa. Thật thú vị.", "voice": ["sarcastic"], "weight": 1 }
+    { "id": "vi.int.3", "text": "Ồ, lại bước nữa. Thật thú vị.", "voice": ["sarcastic"], "weight": 1 },
+    { "id": "vi.int.4", "text": "Một cảm giác kỳ lạ len lỏi trong tâm trí.", "voice": ["thoughtful", "melancholy"], "weight": 0.8 }
+  ]
+  ,"jungle_feeling_dark": [
+    { "id": "vi.jungle.feel.dark1", "text": "đang theo dõi bạn", "weight": 1 },
+    { "id": "vi.jungle.feel.dark2", "text": "đang ẩn nấp đâu đó gần đây", "weight": 0.8 }
+  ]
+  ,"feeling_gloomy": [
+    { "id": "vi.feel.gloomy1", "text": "u ám", "weight": 1 },
+    { "id": "vi.feel.gloomy2", "text": "ảm đạm", "weight": 1 },
+    { "id": "vi.feel.gloomy3", "text": "trĩu nặng", "weight": 0.7 }
+  ]
+  ,"adjective_lush": [
+    { "id": "vi.adj.lush1", "text": "xum xuê", "weight": 1 },
+    { "id": "vi.adj.lush2", "text": "tươi tốt", "weight": 1 },
+    { "id": "vi.adj.lush3", "text": "trù phú", "weight": 0.8 }
+  ]
+  ,"feature_tree": [
+    { "id": "vi.feature.tree1", "text": "những cây cổ thụ cao vút", "weight": 1 },
+    { "id": "vi.feature.tree2", "text": "những thân cây khẳng khiu", "weight": 0.8, "biomes": ["Swamp", "Mesa"] }
+  ]
+  ,"sky_general": [
+    { "id": "vi.sky.general1", "text": "bầu trời xám xịt", "weight": 1 },
+    { "id": "vi.sky.general2", "text": "bầu trời trong xanh", "weight": 1 },
+    { "id": "vi.sky.general3", "text": "chân trời xa tít", "weight": 0.7 }
+  ]
+  ,"smell_lush": [
+    { "id": "vi.smell.lush2", "text": "mùi đất ẩm và cây cỏ", "weight": 1 },
+    { "id": "vi.smell.lush3", "text": "hương thơm của nhựa cây", "weight": 0.8 }
+  ]
+  ,"sound_dark": [
+    { "id": "vi.sound.dark1", "text": "tiếng xào xạc đáng ngại", "weight": 1 },
+    { "id": "vi.sound.dark2", "text": "sự im lặng đến rợn người", "weight": 0.9 },
+    { "id": "vi.sound.dark3", "text": "tiếng thì thầm của gió", "weight": 1 }
+  ],
+  "narrative_connector": [
+    { "id": "vi.conn.biome.change", "text": "Khi bạn đi sâu hơn, khung cảnh dần thay đổi.", "weight": 1, "condition": "biome_change" },
+    { "id": "vi.conn.action.repeat", "text": "Một lần nữa, bạn lại...", "weight": 1, "condition": "action_repeat" },
+    { "id": "vi.conn.time.pass", "text": "Thời gian trôi qua.", "weight": 1, "condition": "time_passage" },
+    { "id": "vi.conn.default.1", "text": "Sau đó,", "weight": 1, "condition": "default" },
+    { "id": "vi.conn.default.2", "text": "Tiếp theo,", "weight": 1, "condition": "default" }
   ]
 }
-
-

@@ -96,6 +96,8 @@ export interface PlayerStatusDefinition {
     hp: number;
     /** The current stamina points of the player, used for actions and movement. */
     stamina: number;
+    /** The current hunger level of the player. */
+    hunger?: number;
     /** The current mana points of the player, used for magical abilities. */
     mana?: number;
     /** A list of items currently in the player's inventory. */

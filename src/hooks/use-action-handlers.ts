@@ -341,6 +341,30 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                 newPlayerStats.stamina = Math.min(100, newPlayerStats.stamina + amt);
                 if (newPlayerStats.stamina > old) effectDescriptions.push(t('itemStaminaEffect', { amount: (newPlayerStats.stamina - old).toFixed(0) }));
             }
+            if (effect.type === 'RESTORE_HUNGER') {
+                if (newPlayerStats.hunger === undefined) newPlayerStats.hunger = 100;
+                const old = newPlayerStats.hunger;
+                newPlayerStats.hunger = Math.min(100, newPlayerStats.hunger + amt);
+                if (newPlayerStats.hunger > old) effectDescriptions.push(t('itemHungerEffect', { amount: (newPlayerStats.hunger - old).toFixed(0) }));
+            }
+            if (effect.type === 'APPLY_EFFECT') {
+                // Apply a status effect instance to the player (makes the item grant a timed effect)
+                if (effect.effectType) {
+                    const newEffect = {
+                        id: `item-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
+                        type: effect.effectType,
+                        duration: effect.effectDuration ?? 0,
+                        magnitude: effect.effectMagnitude,
+                        // lightweight description: use the effect type as fallback text
+                        description: { en: String(effect.effectType), vi: String(effect.effectType) },
+                        appliedTurn: (turn ?? 0),
+                        source: itemName,
+                    } as any;
+                    newPlayerStats.statusEffects = newPlayerStats.statusEffects || [];
+                    newPlayerStats.statusEffects.push(newEffect);
+                    effectDescriptions.push(`${t('appliedEffect') || 'Applied effect'}: ${String(effect.effectType)}`);
+                }
+            }
         });
         narrativeResult.wasUsed = effectDescriptions.length > 0;
         narrativeResult.effectDescription = effectDescriptions.join(', ');
@@ -551,7 +575,157 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
               newPlayerStats.items.push(ensurePlayerItemId({...itemInChunk}, customItemDefinitions, t, language));
           }
           
-          addNarrativeEntry(t('pickedUpItemNarrative', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name as TranslationKey) }), 'narrative');
+          // Build a richer pickup narrative using item sensory metadata when available
+          try {
+              const resolvedDef = resolveItemDef(getTranslatedText(itemInChunk.name, 'en'));
+              const buildSensoryText = (def: ItemDefinition | undefined, itemName?: string) => {
+                  // returns a short, language-aware sensory sentence for a given item definition
+                  if (!def || !def.senseEffect || !Array.isArray(def.senseEffect.keywords) || def.senseEffect.keywords.length === 0) return '';
+                  const raw = def.senseEffect.keywords[Math.floor(Math.random() * def.senseEffect.keywords.length)];
+                  const [kindRaw, ...rest] = raw.split(':');
+                  const kind = kindRaw || 'generic';
+                  const valRaw = rest.join(':') || '';
+
+                  // small translation map for common adjectives / nouns to Vietnamese
+                  const viMap: Record<string, string> = {
+                      sweet: 'ngọt',
+                      smoky: 'khói',
+                      earthy: 'mùi đất',
+                      fruity: 'thơm trái cây',
+                      sticky: 'dính',
+                      syrupy: 'ngọt sệt',
+                      golden: 'vàng óng',
+                      glowing: 'phát sáng',
+                      seared: 'cháy xém',
+                      shiny: 'bóng',
+                      liquid: 'lỏng',
+                      small: 'nhỏ',
+                      soft: 'mềm'
+                  };
+
+                  const translateVal = (v: string) => {
+                      if (!v) return v;
+                      const normalized = v.toLowerCase().trim();
+                      return language === 'vi' ? (viMap[normalized] || v) : v;
+                  };
+
+                  const val = translateVal(valRaw || raw);
+
+                  const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
+
+                  const patterns: Record<string, { en: string[]; vi: string[] }> = {
+                      smell: {
+                          en: [
+                              "You can smell something {v} in the air.",
+                              "A faint, {v} scent lingers here.",
+                              "The air carries something {v} that catches your attention.",
+                              "You notice a {v} scent nearby.",
+                              "There is a faint {v} smell around here."
+                          ],
+                          vi: [
+                              "Bạn cảm nhận thấy mùi gì đó {v} trong không khí.",
+                              "Có mùi {v} thoang thoảng ở đây.",
+                              "Không khí mang mùi gì đó {v}, dễ nhận thấy.",
+                              "Bạn nhận ra mùi {v} gần đó.",
+                              "Có một hương {v} lảng vảng quanh đây."
+                          ]
+                      },
+                      sound: {
+                          en: [
+                              "You hear {v} nearby.",
+                              "A {v} can be heard from here.",
+                              "There is a {v} sound in the surroundings.",
+                              "You catch the sound of {v}.",
+                              "The air carries a {v} noise." 
+                          ],
+                          vi: [
+                              "Bạn nghe thấy {v} gần đây.",
+                              "Nghe tiếng {v} vọng lại từ đây.",
+                              "Có âm thanh {v} xung quanh.",
+                              "Bạn nghe tiếng {v}.",
+                              "Không khí vang lên tiếng {v}."
+                          ]
+                      },
+                      visual: {
+                          en: [
+                              "The {item} looks {v}.",
+                              "You notice the {item} is {v}.",
+                              "Visually, the {item} appears {v}.",
+                              "You catch sight of the {item}, it looks {v}.",
+                              "The {item} has a {v} appearance."
+                          ],
+                          vi: [
+                              "{item} trông {v}.",
+                              "Bạn nhận thấy {item} {v}.",
+                              "Về mặt hình ảnh, {item} có vẻ {v}.",
+                              "Bạn bắt gặp {item}, nó trông {v}.",
+                              "{item} mang vẻ {v}."
+                          ]
+                      },
+                      tactile: {
+                          en: [
+                              "The {item} feels {v} in your hand.",
+                              "You can feel the {item} is {v} to the touch.",
+                              "Holding the {item}, you notice it is {v}.",
+                              "The {item}'s texture feels {v}.",
+                              "Your fingers find the {item} {v}."
+                          ],
+                          vi: [
+                              "Bạn cầm {item} trong tay; cảm giác khá {v}.",
+                              "Khi cầm {item}, bạn nhận thấy bề mặt {v}.",
+                              "Cảm giác khi cầm {item} là {v}.",
+                              "Kết cấu của {item} có vẻ {v}.",
+                              "Bạn chạm vào {item} và thấy nó {v}."
+                          ]
+                      },
+                      taste: {
+                          en: [
+                              "It tastes {v}.",
+                              "A {v} flavor greets your palate.",
+                              "You taste a {v} note.",
+                              "It has a {v} taste.",
+                              "A {v} tang lingers on your tongue."
+                          ],
+                          vi: [
+                              "Nó có vị {v}.",
+                              "Hương vị {v} chạm vào khẩu vị bạn.",
+                              "Bạn cảm nhận vị {v}.",
+                              "Nó có vị {v}.",
+                              "Hương {v} vương trên lưỡi bạn."
+                          ]
+                      },
+                      generic: {
+                          en: ["It is {v}.", "You notice {v}.", "There is something {v} about it."],
+                          vi: ["Nó {v}.", "Bạn nhận thấy {v}.", "Có điều gì đó {v} về nó."]
+                      }
+                  };
+
+                  const bucket = patterns[kind] || patterns.generic;
+                  const template = language === 'vi' ? pick(bucket.vi) : pick(bucket.en);
+                  return template.replace('{v}', val).replace('{item}', itemName || '').trim();
+              };
+
+              const itemNameText = t(itemInChunk.name as TranslationKey);
+              const sensory = buildSensoryText(resolvedDef, itemNameText);
+              let narrativeText = '';
+              if ((itemInChunk.quantity || 1) <= 1) {
+                  const keys: TranslationKey[] = ['pickedUpItem_single_1','pickedUpItem_single_2','pickedUpItem_single_3','pickedUpItem_single_4','pickedUpItem_single_5'];
+                  const pick = keys[Math.floor(Math.random() * keys.length)];
+                  narrativeText = t(pick, { itemName: itemNameText, sensory });
+              } else {
+                  const keys: TranslationKey[] = ['pickedUpItem_multi_1','pickedUpItem_multi_2','pickedUpItem_multi_3','pickedUpItem_multi_4','pickedUpItem_multi_5'];
+                  const pick = keys[Math.floor(Math.random() * keys.length)];
+                  narrativeText = t(pick, { quantity: itemInChunk.quantity, itemName: itemNameText, sensory });
+              }
+              // fallback if template somehow missing
+              if (!narrativeText || narrativeText.indexOf('{') !== -1) {
+                  narrativeText = t('pickedUpItemNarrative', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name as TranslationKey) });
+              }
+              addNarrativeEntry(narrativeText, 'narrative');
+          } catch (e) {
+              // on any failure, fall back to the safe legacy text
+              addNarrativeEntry(t('pickedUpItemNarrative', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name as TranslationKey) }), 'narrative');
+          }
 
           setWorld(prev => {
               const newWorld = { ...prev };
@@ -1088,9 +1262,19 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     
     setPlayerBehaviorProfile(prev => ({ ...prev, moves: prev.moves + 1 }));
     
-    const actionText = t('wentDirection', { direction: t(`direction${direction.charAt(0).toUpperCase() + direction.slice(1)}` as TranslationKey) });
+    const dirKey = `direction${direction.charAt(0).toUpperCase() + direction.slice(1)}` as TranslationKey;
+    const directionText = t(dirKey);
+    const actionText = t('wentDirection', { direction: directionText });
     addNarrativeEntry(actionText, 'action');
-    
+
+    // optimistic placeholder: add a low-detail movement narrative immediately
+    const placeholderId = `${Date.now()}-move-${x}-${y}`;
+    // choose short vs long placeholder based on narrative length setting
+    const movingKey = settings.narrativeLength === 'long' ? 'movingLong' : 'movingShort';
+    // brief_sensory will be computed after we read finalChunk (best-effort)
+    const placeholderText = t(movingKey as TranslationKey, { direction: directionText, brief_sensory: '' });
+    addNarrativeEntry(placeholderText, 'narrative', placeholderId);
+
     setPlayerPosition({ x, y });
     
     const staminaCost = worldSnapshot[nextChunkKey]?.travelCost ?? 1;
@@ -1107,10 +1291,139 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     advanceGameTime(newPlayerStats, { x, y });
 
     const finalChunk = worldSnapshot[`${x},${y}`];
-    if (finalChunk) {
-      const narrative = generateOfflineNarrative(finalChunk, settings.narrativeLength, worldSnapshot, {x, y}, t, language);
-      addNarrativeEntry(narrative, 'narrative');
-    }
+        if (finalChunk) {
+            // Best-effort: compute a short, localized sensory hint from the chunk
+            try {
+                const computeBriefSensory = (c: any) => {
+                    // Pick the single most prominent sensory condition (temperature/moisture/light)
+                    // to avoid chaining multiple 'in the X, in the Y' fragments. We choose the
+                    // condition with the largest deviation from neutral and render one concise
+                    // localized phrase based on that.
+                    const scores: { key: string; score: number }[] = [];
+                    if (typeof c.temperature === 'number') {
+                        // score = distance from comfortable (50) biasing extremes
+                        const temp = c.temperature;
+                        const score = Math.abs(temp - 50) + (temp >= 80 || temp <= 10 ? 20 : 0);
+                        scores.push({ key: 'temperature', score });
+                    }
+                    if (typeof c.moisture === 'number') {
+                        const m = c.moisture;
+                        const score = Math.abs(m - 50) + (m >= 80 || m <= 20 ? 15 : 0);
+                        scores.push({ key: 'moisture', score });
+                    }
+                    if (typeof c.lightLevel === 'number') {
+                        // lightLevel in this project is typically -100..100; treat low values as dark
+                        const l = c.lightLevel;
+                        // light extremes get a boost
+                        const score = Math.abs((l <= 0 ? 0 - l : 100 - l)) + (l <= 10 ? 10 : 0);
+                        scores.push({ key: 'light', score });
+                    }
+
+                    // fallback: if nothing numeric present, return empty
+                    if (scores.length === 0) return '';
+
+                    scores.sort((a, b) => b.score - a.score);
+                    const primary = scores[0].key;
+
+                    // language-aware short patterns (keep these short so optimistic placeholder is not verbose)
+                    const patternsEn = [
+                        "it's {adj}.",
+                        "the air feels {adj}.",
+                        "a {adj} hush falls over the area.",
+                        "{adj} surrounds you.",
+                        "you notice it is {adj}."
+                    ];
+                    const patternsVi = [
+                        "{adj}.",
+                        "không khí có cảm giác {adj}.",
+                        "một bầu không khí {adj} bao trùm.",
+                        "bạn nhận thấy nơi này {adj}.",
+                        "cảm giác chiếc {adj} len lỏi." // intentionally short
+                    ];
+
+                    // Helper: pick a localized adjective based on the primary condition
+                    const pickAdj = () => {
+                        try {
+                            // Use the shared keyword variations DB if available on window scope via import
+                            // but to avoid extra imports here, prefer existing translation keys for simple mapping.
+                            if (primary === 'temperature') {
+                                if (c.temperature >= 80) return t('temp_hot') || 'scorching';
+                                if (c.temperature <= 10) return t('temp_cold') || 'freezing';
+                                return t('temp_mild') || 'mild';
+                            }
+                            if (primary === 'moisture') {
+                                if (c.moisture >= 80) return t('moisture_humid') || 'humid';
+                                if (c.moisture <= 20) return t('moisture_dry') || 'dry';
+                                return t('moisture_normal') || 'fresh';
+                            }
+                            if (primary === 'light') {
+                                if (c.lightLevel <= 10) return t('light_level_dark') || 'dark';
+                                if (c.lightLevel <= 40) return t('light_level_dim') || 'dim';
+                                return t('light_level_normal') || 'bright';
+                            }
+                        } catch (e) {
+                            // fallback
+                        }
+                        return '';
+                    };
+
+                    const adj = pickAdj();
+                    const patterns = language === 'vi' ? patternsVi : patternsEn;
+                    const chosenPattern = patterns[Math.floor(Math.random() * patterns.length)];
+                    // Insert adjective into pattern; keep result short and trimmed.
+                    return chosenPattern.replace('{adj}', adj).replace(/\s+/g, ' ').trim();
+                };
+
+                const brief = computeBriefSensory(finalChunk);
+                if (brief && brief.length > 0) {
+                    const updatedPlaceholder = t(movingKey as TranslationKey, { direction: directionText, brief_sensory: brief });
+                    // replace the optimistic placeholder with the improved brief sensory text
+                    addNarrativeEntry(String(updatedPlaceholder).replace(/\{[^}]+\}/g, '').trim(), 'narrative', placeholderId);
+                }
+            } catch (e) {
+                // non-fatal: if computing brief sensory fails, continue to orchestrator/fallback
+                // eslint-disable-next-line no-console
+                console.warn('[narrative] brief sensory computation failed', e);
+            }
+
+            // Try to use precomputed bundle + runtime orchestrator first (lazy-loaded).
+            (async () => {
+                try {
+                    const loaderMod = await import('@/lib/narrative/loader');
+                    const orchestrator = await import('@/lib/narrative/runtime-orchestrator');
+                    const biomeKey = finalChunk.terrain || finalChunk.biome || 'default';
+                    const bundle = await loaderMod.loadPrecomputedBundle(biomeKey, language);
+                    if (bundle && bundle.templates && bundle.templates.length > 0) {
+                        // choose a template deterministically using position-based seed
+                        const seed = `${x},${y}`;
+                        const idx = Math.abs(seed.split('').reduce((s, c) => s + c.charCodeAt(0), 0)) % bundle.templates.length;
+                        const tplId = bundle.templates[idx].id;
+                        const res = orchestrator.pickVariantFromBundle(bundle as any, tplId, { seed, persona: undefined });
+                        if (res && res.text) {
+                            // cleanup leftover placeholders like {sensory_details}
+                            const finalText = String(res.text).replace(/\{[^}]+\}/g, '').trim();
+                            addNarrativeEntry(finalText, 'narrative', placeholderId);
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    // If anything fails, fall back to legacy offline generator
+                    // eslint-disable-next-line no-console
+                    console.warn('[narrative] precomputed load failed, falling back', String(e));
+                }
+                // fallback: use offline generator but reduce verbosity if this is a repeated movement
+                const recent = narrativeLogRef.current?.slice(-6) || [];
+                const repeatCount = recent.reduce((acc, e) => {
+                    const txt = (typeof e === 'string' ? e : (e.text || '')).toLowerCase();
+                    if (txt.includes(directionText.toLowerCase()) || txt.includes((finalChunk.terrain || '').toLowerCase())) return acc + 1;
+                    return acc;
+                }, 0);
+                const effectiveLength = (repeatCount >= 3) ? 'short' : settings.narrativeLength;
+                let narrative = generateOfflineNarrative(finalChunk, effectiveLength as any, worldSnapshot, { x, y }, t, language);
+                narrative = String(narrative).replace(/\{[^}]+\}/g, '').trim();
+                addNarrativeEntry(narrative, 'narrative', placeholderId);
+            })();
+        }
 
     }, [isLoading, isGameOver, playerPosition, world, addNarrativeEntry, t, playerStats, setPlayerBehaviorProfile, setPlayerPosition, settings.narrativeLength, language, advanceGameTime]);
 

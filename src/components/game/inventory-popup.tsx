@@ -16,12 +16,13 @@ import { useLanguage } from "@/context/language-context";
 import type { PlayerItem, ItemDefinition, Chunk, ItemCategory, PlayerAttributes, TranslatableString, ItemEffect } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 import { cn, getTranslatedText } from "@/lib/utils";
+import { resolveItemDef } from '@/lib/game/item-utils';
 
 interface InventoryPopupProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   items: PlayerItem[];
-  itemDefinitions: Record<string, ItemDefinition>;
+  itemDefinitions?: Record<string, ItemDefinition> | null;
   enemy: Chunk['enemy'];
   onUseItem: (itemName: TranslatableString, target: TranslatableString | 'player') => void;
   onEquipItem: (itemName: string) => void;
@@ -80,7 +81,8 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
               {items.length > 0 ? (
                 <ul className="space-y-2">
                   {items.map((item, index) => {
-                    const definition = itemDefinitions[getTranslatedText(item.name, 'en')];
+                    // Resolve using helper which supports both keys and display names
+                    const definition = resolveItemDef(getTranslatedText(item.name, 'en'), itemDefinitions || undefined);
                     const isUsableOnSelf = !!(definition && definition.effects && definition.effects.length > 0);
                     const isUsableOnEnemy = !!(enemy && definition && enemy.diet && enemy.diet.includes(getTranslatedText(item.name, 'en')));
                     const isEquippable = definition && definition.equipmentSlot;

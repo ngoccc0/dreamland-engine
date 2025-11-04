@@ -29,7 +29,7 @@ import { useGameEngine } from "@/hooks/use-game-engine";
 import type { Structure, Action, NarrativeEntry } from "@/lib/game/types";
 import { cn, getTranslatedText } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
-import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Heart, Zap, Footprints, Loader2, Menu, LogOut } from "./icons";
+import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Heart, Zap, Footprints, Loader2, Menu, LogOut, Beef } from "./icons";
 import { logger } from "@/lib/logger";
 
 
@@ -444,14 +444,25 @@ export default function GameLayout(props: GameLayoutProps) {
 
                     <main ref={narrativeContainerRef} className="flex-grow p-4 md:p-6 overflow-y-auto max-h-[50dvh] md:max-h-full hide-scrollbar">
                         <div className="prose prose-stone dark:prose-invert max-w-4xl mx-auto">
-                            {narrativeLog.map((entry: NarrativeEntry) => (
-                                <p key={entry.id} id={entry.id} className={cn("animate-in fade-in duration-500 whitespace-pre-line",
-                                    entry.type === 'action' ? 'italic text-muted-foreground' : '',
-                                    entry.type === 'system' ? 'font-semibold text-accent' : ''
-                                )}>
-                                    {getTranslatedText(entry.text, language, t)}
-                                </p>
-                            ))}
+                            {(() => {
+                                // Defensive render-time dedupe: ensure we never render multiple elements with the same key.
+                                // If duplicates exist in state due to a transient race, keep the last occurrence (most recent)
+                                // and log the condition to aid debugging.
+                                const map = new Map(narrativeLog.map((e: NarrativeEntry) => [e.id, e]));
+                                const deduped = Array.from(map.values());
+                                if (deduped.length !== narrativeLog.length) {
+                                    // eslint-disable-next-line no-console
+                                    console.warn('[GameLayout] narrativeLog contained duplicate ids; rendering deduped list.');
+                                }
+                                return deduped.map((entry: NarrativeEntry) => (
+                                    <p key={entry.id} id={entry.id} className={cn("animate-in fade-in duration-500 whitespace-pre-line",
+                                        (String(entry.type) === 'action' || String(entry.type) === 'monologue') ? 'italic text-muted-foreground' : '',
+                                        entry.type === 'system' ? 'font-semibold text-accent' : ''
+                                    )}>
+                                        {getTranslatedText(entry.text, language, t)}
+                                    </p>
+                                ));
+                            })()}
                             {isLoading && (
                                 <div className="flex items-center gap-2 text-muted-foreground italic mt-4">
                                     <Cpu className="h-4 w-4 animate-pulse" />
@@ -484,7 +495,7 @@ export default function GameLayout(props: GameLayoutProps) {
 
                                 {/* HUD */}
                                 <div className="space-y-3">
-                                    <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
+                                    <div className="grid grid-cols-4 gap-x-4 gap-y-2 text-sm">
                                         <div className="space-y-1">
                                             <label className="flex items-center gap-1.5 text-muted-foreground"><Heart /> {t('hudHealth')}</label>
                                             <Progress value={playerStats.hp} className="h-2" indicatorClassName="bg-destructive" />
@@ -497,11 +508,16 @@ export default function GameLayout(props: GameLayoutProps) {
                                             <label className="flex items-center gap-1.5 text-muted-foreground"><Footprints /> {t('hudStamina')}</label>
                                             <Progress value={playerStats.stamina} className="h-2" indicatorClassName="bg-gradient-to-r from-yellow-400 to-orange-500" />
                                         </div>
+                                        <div className="space-y-1">
+                                            <label className="flex items-center gap-1.5 text-muted-foreground"><Beef /> {t('hudHunger')}</label>
+                                            <Progress value={playerStats.hunger} className="h-2" indicatorClassName="bg-gradient-to-r from-amber-400 to-orange-500" />
+                                        </div>
                                     </div>
                                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                                         <span>{playerStats.hp} / 100</span>
                                         <span>{playerStats.mana} / 50</span>
                                         <span>{playerStats.stamina.toFixed(0)} / 100</span>
+                                        <span>{playerStats.hunger.toFixed(0)} / 100</span>
                                     </div>
                                 </div>
                             </>
@@ -510,7 +526,7 @@ export default function GameLayout(props: GameLayoutProps) {
                             <>
                                 {/* HUD */}
                                 <div className="space-y-3">
-                                    <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
+                                    <div className="grid grid-cols-4 gap-x-4 gap-y-2 text-sm">
                                         <div className="space-y-1">
                                             <label className="flex items-center gap-1.5 text-muted-foreground"><Heart /> {t('hudHealth')}</label>
                                             <Progress value={playerStats.hp} className="h-2" indicatorClassName="bg-destructive" />
@@ -523,11 +539,16 @@ export default function GameLayout(props: GameLayoutProps) {
                                             <label className="flex items-center gap-1.5 text-muted-foreground"><Footprints /> {t('hudStamina')}</label>
                                             <Progress value={playerStats.stamina} className="h-2" indicatorClassName="bg-gradient-to-r from-yellow-400 to-orange-500" />
                                         </div>
+                                        <div className="space-y-1">
+                                            <label className="flex items-center gap-1.5 text-muted-foreground"><Beef /> {t('hudHunger')}</label>
+                                            <Progress value={playerStats.hunger} className="h-2" indicatorClassName="bg-gradient-to-r from-amber-400 to-orange-500" />
+                                        </div>
                                     </div>
                                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                                         <span>{playerStats.hp} / 100</span>
                                         <span>{playerStats.mana} / 50</span>
                                         <span>{playerStats.stamina.toFixed(0)} / 100</span>
+                                        <span>{(playerStats.hunger || 0).toFixed(0)} / 100</span>
                                     </div>
                                 </div>
 
@@ -741,7 +762,7 @@ export default function GameLayout(props: GameLayoutProps) {
                 <FusionPopup open={isFusionOpen} onOpenChange={setFusionOpen} playerItems={playerStats.items} itemDefinitions={customItemDefinitions} onFuse={handleFuseItems} isLoading={isLoading} />
                 <FullMapPopup open={isFullMapOpen} onOpenChange={setIsFullMapOpen} world={world} playerPosition={playerPosition} turn={turn} />
                 <TutorialPopup open={isTutorialOpen} onOpenChange={setTutorialOpen} />
-                <SettingsPopup open={isSettingsOpen} onOpenChange={setSettingsOpen} isInGame={true} />
+                <SettingsPopup open={isSettingsOpen} onOpenChange={setSettingsOpen} isInGame={true} currentBiome={currentChunk?.terrain ?? null} />
                 <PwaInstallPopup open={showInstallPopup} onOpenChange={setShowInstallPopup} />
                 
                 <AlertDialog open={isGameOver}>

@@ -64,6 +64,18 @@ const keyword_variations_vi: PlaceholderMap = {
     temp_adj: { hot: ["nóng bỏng", "oi ả", "ngột ngạt"], mild: ["dịu mát", "ấm áp"], cold: ["se lạnh", "giá buốt"] },
     moisture_adj: { high: ["đặc quánh", "như súp", "ẩm ướt"], medium: ["trong lành", "thoáng đãng"], low: ["khô hanh"] },
     light_adj: { dark: ["mờ ảo", "leo lét", "chập choạng"], medium: ["lấp lánh", "le lói"], bright: ["chói chang", "rực rỡ"] },
+  // Monologue / short player self-talk lines (VI)
+  monologue_tired: ["Tôi cần nghỉ một chút.", "Tôi mệt quá — nên ngồi nghỉ một lát.", "Cơ thể nặng nề. Cần nghỉ ngơi ngắn.", "Phải nghỉ một chút để hồi sức."],
+  // Biome-flavored random lines (VI)
+  jungle_monologue: ["Độ ẩm làm tôi mệt mỏi.", "Cái nóng khiến mỗi bước nặng nề hơn.", "Hơi thở trở nên gấp gáp và dính.", "Nên tìm bóng mát sớm thôi."],
+  forest_monologue: ["Sự yên ắng dễ chịu, nhưng tôi bắt đầu mệt.", "Chân tôi đau sau quãng đường này.", "Nghỉ dưới gốc cây có lẽ sẽ giúp.", "Tôi cần một lát để lấy lại sức."],
+  // Additional biome monologue pools (VI)
+  beach_monologue: ["Không khí mặn khiến tôi mệt.", "Tiếng sóng êm nhưng tôi mệt dần.", "Cát làm chân tôi nặng nề.", "Nên trú bóng mát một lát."],
+  desert_monologue: ["Cái nóng rút cạn sức lực.", "Mặt trời thiêu đốt không ngừng.", "Nước có vẻ xa vời.", "Nên giữ sức và tìm bóng râm."],
+  swamp_monologue: ["Bùn đất níu chân tôi.", "Không khí nặng nề làm mệt.", "Mỗi bước nặng nề hơn.", "Cần đi chậm và nghỉ ngơi."],
+  mountain_monologue: ["Không khí loãng khiến tôi khó thở.", "Mỗi bước là một cuộc đấu; cần nghỉ.", "Leo núi làm chân tôi mỏi.", "Nên dừng lại lấy lại sức."],
+  tundra_monologue: ["Cái lạnh cắn sâu vào xương.", "Hơi thở đóng băng, tay chân nặng nề.", "Cần sưởi ấm sớm.", "Cái lạnh khiến bước chân nặng nề."],
+  cave_monologue: ["Độ ẩm trong hang làm tôi mệt.", "Bóng tối hút đi năng lượng của tôi.", "Nên tìm chỗ ấm.", "Sự im lặng làm tôi cạn kiệt sức lực."],
 };
 
 const keyword_variations_en: PlaceholderMap = {
@@ -87,6 +99,18 @@ const keyword_variations_en: PlaceholderMap = {
     temp_adj: { hot: ["scorching", "sweltering", "oppressive"], mild: ["mild", "warm"], cold: ["chilly", "freezing"] },
     moisture_adj: { high: ["soupy", "cloying", "damp"], medium: ["fresh", "pleasant"], low: ["dry"] },
     light_adj: { dark: ["dim", "flickering", "eerie"], medium: ["dappled", "mottled"], bright: ["blazing", "vivid"] },
+  // Monologue / short player self-talk lines (EN)
+  monologue_tired: ["I need to rest.", "I'm exhausted — I should sit down for a moment.", "My limbs are heavy. Time for a short rest.", "I need to take a break and recover my strength."],
+  // Biome-flavored random lines (EN)
+  jungle_monologue: ["The humidity is wearing me down.", "This heat makes every step feel heavier.", "My breath comes in short, sticky gasps.", "I should find some shade soon."],
+  forest_monologue: ["The quiet is soothing, but I'm getting tired.", "My legs ache from all this walking.", "A short rest beneath that tree would help.", "I could use a moment to gather my strength."],
+  // Additional biome monologue pools (EN)
+  beach_monologue: ["The salt air is tiring me.", "The waves lull me but my energy fades.", "Sand between my toes weighs on me.", "I should rest away from the sun."],
+  desert_monologue: ["The heat saps my strength.", "The sun beats down relentlessly.", "My water feels too far away.", "I should conserve my energy."],
+  swamp_monologue: ["This muck drags at my feet.", "The air is thick and exhausting.", "Every step feels heavier here.", "I should move carefully and rest."],
+  mountain_monologue: ["Thin air makes me breathless.", "Each step is a fight; I need rest.", "The climb wears on my legs.", "I should pause and regroup."],
+  tundra_monologue: ["The cold gnaws at my bones.", "My breath fogs and my limbs slow.", "I need to warm up soon.", "This cold makes every step harder."],
+  cave_monologue: ["The damp chill saps my strength.", "This darkness eats at my energy.", "I should find a warm spot.", "I feel drained by the silence."],
 };
 
 

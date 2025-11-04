@@ -2,6 +2,8 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
+import { useLanguage } from '@/context/language-context';
+import { applyTickEffects } from '@/lib/game/effect-engine';
 import { useGameState } from "./use-game-state";
 import { useActionHandlers } from "./use-action-handlers";
 import { useGameEffects } from "./useGameEffects";
@@ -29,18 +31,27 @@ export function useGameEngine(props: GameEngineProps) {
     const gameState = useGameState(props);
     const narrativeContainerRef = useRef<HTMLDivElement>(null);
     const narrativeLogRef = useRef(gameState.narrativeLog || [] as any[]);
+    const { t } = useLanguage();
 
-    const addNarrativeEntry = (text: string, type: 'narrative' | 'action' | 'system', entryId?: string) => {
-        // Use Date.now() plus a short random suffix to avoid collisions when multiple
-        // entries are created within the same millisecond (which can happen when
-        // batching or when the engine emits several entries quickly).
-        // Preserve explicit entryId when provided (e.g., for replay or deterministic tests).
-        const uniqueId = entryId ?? `${Date.now()}_${Math.random().toString(36).slice(2,9)}`;
-        const entry = { id: uniqueId, text, type } as any;
+    const addNarrativeEntry = (text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string) => {
+        // Preserve explicit entryId when provided (placeholders use predictable ids).
+        // If no id provided, generate a stable unique id.
+        const id = entryId ?? `${Date.now()}_${Math.random().toString(36).slice(2,9)}`;
+        const entry = { id, text, type } as any;
         gameState.setNarrativeLog(prev => {
-            const next = [...(prev || []), entry];
-            narrativeLogRef.current = next;
-            return next;
+            const arr = (prev || []);
+            const existingIdx = arr.findIndex((e: any) => e.id === id);
+            let next: any[];
+            if (existingIdx >= 0) {
+                // Replace existing entry in-place to avoid duplicates when updating placeholders
+                next = arr.map((e: any) => e.id === id ? { ...e, text: entry.text, type: entry.type } : e);
+            } else {
+                next = [...arr, entry];
+            }
+            // Defensive dedupe: keep last occurrence for each id (handles race conditions)
+            const deduped = Array.from(new Map(next.map((e: any) => [e.id, e])).values());
+            narrativeLogRef.current = deduped;
+            return deduped;
         });
     };
 
@@ -55,8 +66,13 @@ export function useGameEngine(props: GameEngineProps) {
             gameState.setTurn(t => t + 1);
             return next;
         });
+
+        // If caller provided a candidate stats object, apply per-tick effects
         if (stats) {
-            gameState.setPlayerStats(() => stats);
+            const newStats = { ...stats } as any;
+            const { newStats: updated, messages } = applyTickEffects(newStats, gameState.turn || 0, t as any);
+            for (const m of messages) addNarrativeEntry(m.text, m.type as any);
+            gameState.setPlayerStats(() => updated);
         }
     };
     

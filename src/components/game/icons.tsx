@@ -51,6 +51,7 @@ export {
   Map,
   BaggageClaim,
   ListTodo,
+  Beef,
 } from 'lucide-react';
 
 

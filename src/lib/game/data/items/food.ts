@@ -41,6 +41,7 @@ export const foodItems: Record<string, ItemDefinition> = {
         effects: [{ type: 'RESTORE_STAMINA', amount: 8 }, { type: 'RESTORE_MANA', amount: 2 }],
         baseQuantity: { min: 1, max: 2 },
         spawnEnabled: false,
+        senseEffect: { keywords: ['smell:sensory.smell.sweet', 'visual:sensory.visual.golden', 'tactile:sensory.tactile.sticky'] },
     },
     'mountain_goat_meat': {
         name: {en: "Mountain Goat Meat", vi: "Thịt Dê Núi"},
@@ -52,6 +53,7 @@ export const foodItems: Record<string, ItemDefinition> = {
         effects: [{ type: 'RESTORE_STAMINA', amount: 20 }, { type: 'RESTORE_MANA', amount: 5 }],
         baseQuantity: { min: 1, max: 2 },
         spawnEnabled: false,
+        senseEffect: { keywords: ['smell:sensory.smell.smoky', 'visual:sensory.visual.seared', 'taste:sensory.taste.syrupy'] },
     },
     'snow_leopard_meat': {
         name: {en: "Snow Leopard Meat", vi: "Thịt Báo Tuyết"},
@@ -63,10 +65,12 @@ export const foodItems: Record<string, ItemDefinition> = {
         effects: [{ type: 'RESTORE_STAMINA', amount: 25 }, { type: 'RESTORE_MANA', amount: 7 }],
         baseQuantity: { min: 1, max: 2 },
         spawnEnabled: false,
+        senseEffect: { keywords: ['taste:sensory.taste.fruity', 'visual:sensory.visual.shiny', 'smell:sensory.smell.fruity'] },
     },
     'nutrient_paste': { 
         name: {en: "Nutrient Paste", vi: "Bột Dinh dưỡng"},
-        description: {en: 'A tube of beige paste. Tasteless, but provides all necessary nutrients.', vi: 'Một tuýp bột nhão màu be. Vô vị, nhưng cung cấp tất cả các chất dinh dưỡng cần thiết.'}, 
+        description: { en: 'A paste of concentrated nutrients.', vi: 'Bột cô đặc dinh dưỡng.' },
+        senseEffect: { keywords: ['smell:sensory.smell.earthy', 'visual:sensory.visual.shiny', 'tactile:sensory.tactile.soft'] },
         emoji: '🧪', 
         category: 'Food', tier: 1, 
         effects: [{ type: 'RESTORE_STAMINA', amount: 20 }, { type: 'RESTORE_MANA', amount: 5 }], 
@@ -80,10 +84,11 @@ export const foodItems: Record<string, ItemDefinition> = {
         category: 'Food',
         emoji: '🐟🔥',
         effects: [{ type: 'HEAL', amount: 10 }, {type: 'RESTORE_STAMINA', amount: 30}],
+    // sensory metadata used by narrator when generating pickup messages
+    senseEffect: { keywords: ['smell:sensory.smell.smoky', 'visual:sensory.visual.seared', 'taste:sensory.taste.smoky'] },
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
-
     // --- COOKED FOODS (Higher recovery) ---
     'cooked_meat': {
         name: {en: "Cooked Meat", vi: "Thịt Nướng"},
@@ -117,6 +122,7 @@ export const foodItems: Record<string, ItemDefinition> = {
         subCategory: 'Fruit',
         emoji: '🍓',
         effects: [{ type: 'RESTORE_STAMINA', amount: 10 }, { type: 'RESTORE_MANA', amount: 2 }],
+    senseEffect: { keywords: ['taste:sensory.taste.fruity', 'visual:sensory.visual.juicy', 'smell:sensory.smell.fruity'] },
         baseQuantity: { min: 2, max: 6 },
         growthConditions: {
             optimal: { moisture: { min: 5 }, vegetationDensity: { min: 7 } },
@@ -154,6 +160,7 @@ export const foodItems: Record<string, ItemDefinition> = {
         subCategory: 'Vegetable',
         emoji: '🍄',
         effects: [{ type: 'RESTORE_STAMINA', amount: 8 }, { type: 'RESTORE_MANA', amount: 1 }],
+    senseEffect: { keywords: ['smell:sensory.smell.earthy', 'visual:sensory.visual.small', 'tactile:sensory.tactile.soft'] },
         baseQuantity: { min: 2, max: 5 },
         spawnEnabled: true,
     },
@@ -211,6 +218,7 @@ export const foodItems: Record<string, ItemDefinition> = {
         emoji: '🥤', 
         category: 'Food', tier: 1, 
         effects: [{ type: 'RESTORE_STAMINA', amount: 30 }], 
+    senseEffect: { keywords: ['taste:sensory.taste.syrupy', 'visual:sensory.visual.shiny', 'tactile:sensory.tactile.liquid'] },
         baseQuantity: { min: 1, max: 2 },
         spawnEnabled: false,
     },
@@ -246,6 +254,7 @@ export const foodItems: Record<string, ItemDefinition> = {
         subCategory: 'Misc',
         emoji: '🍯',
         effects: [{ type: 'HEAL', amount: 5 }, { type: 'RESTORE_STAMINA', amount: 12 }, { type: 'RESTORE_MANA', amount: 8 }],
+    senseEffect: { keywords: ['smell:sensory.smell.sweet', 'visual:sensory.visual.golden', 'tactile:sensory.tactile.sticky'] },
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: true,
     },

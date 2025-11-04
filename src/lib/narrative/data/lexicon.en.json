@@ -19,6 +19,13 @@
     { "id": "en.int.2", "text": "As if the world asks for an answer you don't have.", "voice": ["melancholy"], "weight": 1 },
     { "id": "en.int.3", "text": "Right, another step. Exciting.", "voice": ["sarcastic"], "weight": 1 }
   ]
+  ,"jungle_feeling_dark": [ { "id": "en.jungle.feel.dark1", "text": "is watching you", "weight": 1 } ]
+  ,"feeling_gloomy": [ { "id": "en.feel.gloomy1", "text": "gloomy", "weight": 1 } ]
+  ,"adjective_lush": [ { "id": "en.adj.lush1", "text": "lush", "weight": 1 } ]
+  ,"feature_tree": [ { "id": "en.feature.tree1", "text": "towering trees", "weight": 1 } ]
+  ,"sky_general": [ { "id": "en.sky.general1", "text": "a low grey sky", "weight": 1 } ]
+  ,"smell_lush": [ { "id": "en.smell.lush2", "text": "earthy, green scent", "weight": 1 } ]
+  ,"sound_dark": [ { "id": "en.sound.dark1", "text": "an ominous rustling", "weight": 1 } ]
 }
 
 

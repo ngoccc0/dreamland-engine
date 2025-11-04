@@ -25,7 +25,7 @@ type GameEventsDeps = {
   regionCounter: number;
   setRegionCounter: (counter: number) => void;
   playerPosition: GameState['playerPosition'];
-  addNarrativeEntry: (text: string, type: 'narrative' | 'action' | 'system', entryId?: string) => void;
+  addNarrativeEntry: (text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string) => void;
   currentSeason: Season;
   worldProfile: WorldProfile;
   customItemDefinitions: Record<string, ItemDefinition>;

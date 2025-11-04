@@ -13,6 +13,7 @@
     "typecheck:file": "tsc --noEmit",
     "test": "jest",
     "validate:narrative": "node ./scripts/validate-narrative-placeholders.js",
+  "precompute:copy": "node ./scripts/copy-precomputed-to-public.js",
     "docs:api": "typedoc",
     "docs:api:debug": "typedoc --options typedoc.debug.json",
     "prepare": "husky install",

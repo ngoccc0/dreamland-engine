@@ -121,6 +121,7 @@ export const PlayerStatusSchema = z.object({
     // breaking lots of saved fixtures during migration.
     mana: z.number().optional(),
     stamina: z.number().describe("Player's stamina, used for physical actions."),
+    hunger: z.number().optional().describe("Player's hunger level."),
     items: z.array(PlayerItemSchema).describe("Player's inventory with item names, quantities and tiers."),
     equipment: z.object({ 
         weapon: PlayerItemSchema.nullable().optional(), 

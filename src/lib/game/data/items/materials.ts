@@ -466,6 +466,8 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '✨',
         effects: [],
+        // sensory metadata: helps narration mention the glow or scent when picked
+    senseEffect: { keywords: ['visual:sensory.visual.glowing', 'smell:sensory.smell.earthy'] },
         baseQuantity: { min: 1, max: 4 },
         growthConditions: {
             optimal: { moisture: { min: 8 }, lightLevel: { max: -5 } },

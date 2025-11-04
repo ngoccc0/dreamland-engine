@@ -13,6 +13,7 @@ import type { TranslationKey } from "@/lib/i18n";
 import { calculateCraftingOutcome } from "@/lib/game/engine/crafting";
 import { Hammer } from "./icons";
 import { cn, getTranslatedText } from "@/lib/utils";
+import { resolveItemDef } from '@/lib/game/item-utils';
 import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
 
@@ -97,7 +98,7 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
               const hasRequiredTool = outcome.hasRequiredTool;
               const resultName = getTranslatedText(recipe.result.name, language, t);
               const resultDescText = getTranslatedText(recipe.description, language, t);
-              const requiredToolName = recipe.requiredTool ? t(recipe.requiredTool as TranslationKey) : '';
+              const requiredToolName = recipe.requiredTool ? getTranslatedText(recipe.requiredTool as any, language, t) : '';
 
               return (
                 <div key={index} 
@@ -148,7 +149,7 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
 
                              const usedItemName = itemToShow ? getTranslatedText(itemToShow.name, language, t) : '';
                              const requirementName = getTranslatedText(requirement.name, language, t);
-                             const reqDef = itemDefinitions[getTranslatedText(requirement.name, 'en')];
+                             const reqDef = resolveItemDef(getTranslatedText(requirement.name, 'en'), itemDefinitions);
                              const reqDesc = reqDef ? getTranslatedText(reqDef.description, language, t) : '';
 
                             return (

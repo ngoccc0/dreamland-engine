@@ -7,8 +7,9 @@
     "lengthHint": 4,
     "weight": 0.8,
     "patterns": [
-      { "id": "p1", "template": "A curtain of {{adjective_dark}} covers {{jungle_terrain_desc}}. {{opening_sensory}}", "slots": ["adjective_dark","jungle_terrain_desc","opening_sensory"] },
-      { "id": "p2", "template": "{{continuation_fragment}} {{jungle_terrain_desc}} lies ahead, {{opening_sensory}}", "slots": ["continuation_fragment","jungle_terrain_desc","opening_sensory"] }
+      { "id": "p1", "template": "Một bức màn {{adjective_dark}} bao trùm lấy {{jungle_terrain_desc}}. {{opening_sensory}}", "slots": ["adjective_dark","jungle_terrain_desc","opening_sensory"] },
+      { "id": "p2", "template": "{{continuation_fragment}} {{jungle_terrain_desc}} ở phía trước, {{opening_sensory}}", "slots": ["continuation_fragment","jungle_terrain_desc","opening_sensory"] },
+      { "id": "p3", "template": "{{opening_sensory}} Khung cảnh {{adjective_dark}} của {{jungle_terrain_desc}} hiện ra.", "slots": ["opening_sensory", "adjective_dark", "jungle_terrain_desc"] }
     ]
   },
   {
@@ -19,8 +20,9 @@
     "lengthHint": 2,
     "weight": 0.6,
     "patterns": [
-      { "id": "p1", "template": "You weave through {{jungle_terrain_desc_lush}}. The air is {{temp_detail}} and {{moisture_detail}}, carrying {{smell_detail_lush}}.", "slots": ["jungle_terrain_desc_lush","temp_detail","moisture_detail","smell_detail_lush"] },
-      { "id": "p2", "template": "{{continuation_fragment}} {{jungle_terrain_desc_lush}} brushes past you; {{smell_detail_lush}}", "slots": ["continuation_fragment","jungle_terrain_desc_lush","smell_detail_lush"] }
+      { "id": "p1", "template": "Bạn len lỏi qua {{jungle_terrain_desc_lush}}. Không khí {{temp_detail}} và {{moisture_detail}}, mang theo {{smell_detail_lush}}.", "slots": ["jungle_terrain_desc_lush","temp_detail","moisture_detail","smell_detail_lush"] },
+      { "id": "p2", "template": "{{continuation_fragment}} {{jungle_terrain_desc_lush}} lướt qua bạn; {{smell_detail_lush}} thoang thoảng.", "slots": ["continuation_fragment","jungle_terrain_desc_lush","smell_detail_lush"] },
+      { "id": "p3", "template": "Không khí {{temp_detail}} và {{moisture_detail}}. {{jungle_terrain_desc_lush}} bao quanh bạn, cùng với {{smell_detail_lush}}.", "slots": ["temp_detail", "moisture_detail", "jungle_terrain_desc_lush", "smell_detail_lush"] }
     ]
   }
 ]

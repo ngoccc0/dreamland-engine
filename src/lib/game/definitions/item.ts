@@ -48,7 +48,7 @@ export type ItemCategory = z.infer<typeof ItemCategorySchema>;
  */
 // Effect schema is now extensible: allows extra fields for custom effects via modding
 export const ItemEffectSchema = z.object({
-    type: z.string().describe("The type of effect the item has. Can be a built-in or custom effect type. Built-in types include 'health', 'strength', 'speed', 'defense', etc."),
+    type: z.enum(['HEAL', 'RESTORE_STAMINA', 'RESTORE_HUNGER', 'RESTORE_MANA', 'DAMAGE', 'APPLY_EFFECT', 'TELEPORT']).describe("The type of effect the item has. Built-in types include 'HEAL', 'RESTORE_STAMINA', 'RESTORE_HUNGER', 'RESTORE_MANA', 'DAMAGE', 'APPLY_EFFECT', 'TELEPORT'."),
     amount: z.number().optional().describe("The numerical value of the effect (e.g., amount of health restored). Positive values buff, negative values debuff. Magnitude affects potency."),
     duration: z.number().optional().describe("Duration of the effect in game turns, if applicable. Undefined means instant effect. Duration effects are tracked by the game's time system."),
 }).passthrough();

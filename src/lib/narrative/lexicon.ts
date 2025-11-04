@@ -2,7 +2,16 @@ import fs from 'fs';
 import path from 'path';
 import type { RNG } from './rng';
 
-export type LexiconEntry = { id: string; text: string; toneTags?: string[]; voice?: string[]; detailLevel?: number; biomes?: string[]; weight?: number };
+export type LexiconEntry = {
+  id: string;
+  text: string;
+  toneTags?: string[];
+  voice?: string[];
+  detailLevel?: number;
+  biomes?: string[];
+  weight?: number;
+  condition?: string;
+};
 
 export class Lexicon {
   private data: Record<string, LexiconEntry[]> = {};
@@ -19,12 +28,26 @@ export class Lexicon {
     return this.data[slotName] ?? [];
   }
 
-  pick(slotName: string, options: { tone?: string; voice?: string; detail?: number; biome?: string } = {}, rng?: RNG): LexiconEntry | null {
+  pick(
+    slotName: string,
+    options: { tone?: string; voice?: string; detail?: number; biome?: string; [key: string]: any } = {},
+    rng?: RNG,
+  ): LexiconEntry | null {
     const pool = this.getSlot(slotName);
     if (!pool || pool.length === 0) return null;
-    // simple filtering by detail/biome
-    let candidates = pool.filter(e => (options.detail == null || e.detailLevel == null || e.detailLevel <= options.detail));
-    if (options.biome) candidates = candidates.filter(e => !e.biomes || e.biomes.length === 0 || e.biomes.includes(options.biome as string));
+
+    let candidates = pool.filter(e => {
+      if (options.detail != null && e.detailLevel != null && e.detailLevel > options.detail) {
+        return false;
+      }
+      if (options.biome && e.biomes && e.biomes.length > 0 && !e.biomes.includes(options.biome)) {
+        return false;
+      }
+      if (options.condition && e.condition && e.condition !== options.condition) {
+        return false;
+      }
+      return true;
+    });
 
     // If a voice is requested, prefer entries matching that voice. If none
     // match, fall back to tone filter or full candidate set.

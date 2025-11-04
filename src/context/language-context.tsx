@@ -11,7 +11,8 @@ type TFunction = (key: TranslationKey | TranslatableString, replacements?: { [ke
 
 interface LanguageContextType {
   language: Language;
-  setLanguage: (language: Language) => void;
+  // Optionally accept a currentBiome so the purge can preserve bundles for the current biome.
+  setLanguage: (language: Language, currentBiome?: string) => void;
   t: TFunction;
 }
 
@@ -30,9 +31,41 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const setLanguage = (lang: Language) => {
+  const setLanguage = (lang: Language, currentBiome?: string) => {
     localStorage.setItem('gameLanguage', lang);
     setLanguageState(lang);
+
+    // Lazy-clear precomputed bundles for other locales to free cache and avoid keeping
+    // unused language bundles in memory. We'll perform this asynchronously so it
+    // doesn't block rendering. Also attempt to prefetch a small 'default' bundle
+    // for the newly selected language.
+    (async () => {
+      try {
+        // lazy-require to avoid adding IndexedDB code to server bundles
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const cache = require('@/lib/narrative/cache').default as { keys: () => Promise<string[]>; del: (k: string) => Promise<boolean> };
+        const loader = require('@/lib/narrative/loader') as any;
+        const keys = await cache.keys();
+        for (const k of keys) {
+          // our cache keys are in the shape 'nl_precomputed_v1:biome:locale'
+          const parts = k.split(':');
+          const localePart = parts[parts.length - 1];
+          const biomePart = parts.length >= 3 ? parts[parts.length - 2] : undefined;
+          // Delete if the key is for a different locale AND not for the current biome (if provided).
+          if (localePart && localePart !== lang && biomePart !== currentBiome) {
+            await cache.del(k);
+          }
+        }
+        // warm a default bundle for the language; non-blocking
+        try {
+          loader.loadPrecomputedBundle('default', lang).catch(() => {});
+        } catch (_e) {
+          // ignore
+        }
+      } catch (_e) {
+        // ignore any cache errors
+      }
+    })();
   };
   
   const t: TFunction = (key, replacements) => {

@@ -12,6 +12,7 @@ import { useLanguage } from "@/context/language-context";
 import type { PlayerItem, ItemDefinition } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 import { getTranslatedText } from "@/lib/utils";
+import { resolveItemDef } from '@/lib/game/item-utils';
 import { FlaskConical, X } from "./icons";
 
 interface FusionPopupProps {
@@ -63,7 +64,7 @@ export function FusionPopup({ open, onOpenChange, playerItems, itemDefinitions, 
   const canFuse = (): boolean => {
     if (selectedItems.length < 2 || selectedItems.length > 3) return false;
     const hasTool = selectedItems.some(item => {
-      const def = itemDefinitions[getTranslatedText(item.name as any, 'en')];
+      const def = resolveItemDef(getTranslatedText(item.name as any, 'en'), itemDefinitions);
       return def?.category === 'Tool';
     });
     return hasTool;
@@ -104,16 +105,21 @@ export function FusionPopup({ open, onOpenChange, playerItems, itemDefinitions, 
                                   className="w-full flex justify-between items-center p-2 bg-muted rounded-md text-left text-sm cursor-pointer hover:bg-accent/20"
                                   onClick={() => handleSelectItem(item)}
                                 >
-                                  <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2">
                                     <span className="text-xl">{item.emoji}</span>
-                                    <span>{t(item.name as TranslationKey)}</span>
+                                    <span>{getTranslatedText(item.name as any, 'en') /* EN label for layout; use language if desired */}</span>
                                   </div>
                                   <span className="font-mono text-sm font-bold">x{item.quantity}</span>
                                 </button>
                               </TooltipTrigger>
-                     <TooltipContent>
-                       <p>{t(itemDefinitions[getTranslatedText(item.name as any, 'en')]?.description as TranslationKey)}</p>
-                    </TooltipContent>
+              <TooltipContent>
+                {
+                  (() => {
+                    const def = resolveItemDef(getTranslatedText(item.name as any, 'en'), itemDefinitions);
+                    return <p>{getTranslatedText(def?.description ?? '', 'en', t)}</p>;
+                  })()
+                }
+              </TooltipContent>
                              </Tooltip>
                           </TooltipProvider>
                         ))}
@@ -131,7 +137,7 @@ export function FusionPopup({ open, onOpenChange, playerItems, itemDefinitions, 
                                       <>
                                           <div className="flex items-center gap-2">
                                               <span className="text-xl">{selectedItems[index].emoji}</span>
-                                              <span className="text-sm">{t(selectedItems[index].name as TranslationKey)}</span>
+                                              <span className="text-sm">{getTranslatedText(selectedItems[index].name as any, 'en', t)}</span>
                                           </div>
                                           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveItem(index)}>
                                               <X className="h-4 w-4"/>

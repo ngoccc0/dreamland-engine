@@ -35,6 +35,12 @@ export function scoreTemplate(
   const detailPenalty = Math.exp(-Math.abs(lenHint - desiredDetail) * 0.5);
   let final = base * cond.score * moodScore * novelty * detailPenalty;
 
+  // Boost transition templates when biome changes
+  const biomeChanged = state?.lastBiome && context?.chunk?.terrain && state.lastBiome !== context.chunk.terrain;
+  if (biomeChanged && tmplTags.includes('transition')) {
+    final *= 2.0; // strong boost for transition templates
+  }
+
   // If the player is repeating actions, prefer templates that include a
   // continuation fragment slot so the phrasing can reflect continuation
   // instead of a fresh description.

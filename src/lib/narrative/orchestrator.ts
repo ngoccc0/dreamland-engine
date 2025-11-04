@@ -36,7 +36,7 @@ export function generateNarrative(snapshot: any, templates: any[], options: Gene
 
   const pattern = primary.patterns && primary.patterns[0] ? primary.patterns[0].template : primary.id;
 
-  const text = fillTemplate(pattern, lex as any, snapshot, {
+  let text = fillTemplate(pattern, lex as any, snapshot, {
     lang,
     detail: desiredDetail,
     biome: snapshot?.chunk?.terrain,
@@ -47,7 +47,16 @@ export function generateNarrative(snapshot: any, templates: any[], options: Gene
   });
 
   // update state based on decision
-  stateManager.updateWithSnapshot(snapshot, { templateIds: [primary.id], detailLevel: desiredDetail }, rng as any);
+  const newState = stateManager.updateWithSnapshot(
+    snapshot,
+    { templateIds: [primary.id], detailLevel: desiredDetail },
+    lex,
+    rng as any,
+  );
+
+  if (newState.lastConnector) {
+    text = `${newState.lastConnector} ${text}`;
+  }
 
   return { text, meta: { templateId: primary.id, seed, persona: options.persona } };
 }

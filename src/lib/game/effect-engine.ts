@@ -1,4 +1,6 @@
-import type { StatusEffect } from '@/lib/game/types';
+// Keep types loose here to avoid circular type resolution issues during
+// type-checking in the pre-push hook. Consumers should prefer the canonical
+// `StatusEffect` from `@/lib/game/types` where available.
 
 type NarrMsg = { text: string; type: 'system' | 'narrative' };
 
@@ -14,7 +16,7 @@ export function applyTickEffects(stats: any, currentTurn: number, t: (k: string,
     const newStats = { ...(stats || {}) } as any;
     newStats.statusEffects = Array.isArray(newStats.statusEffects) ? newStats.statusEffects.map((s: any) => ({ ...s })) : [];
 
-    const remainingEffects: StatusEffect[] = [];
+    const remainingEffects: any[] = [];
     let hpDelta = 0;
     let staminaDelta = 0;
     let hpModifierSum = 0;

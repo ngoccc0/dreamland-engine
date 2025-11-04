@@ -54,7 +54,26 @@ export class StateManager {
    * The RNG parameter is optional and may be used to rotate connectors or
    * pick a variation deterministically when needed.
    */
-  updateWithSnapshot(snapshot: any, decision?: any, lex?: Lexicon, rng?: RNG): Partial<NarrativeState> {
+  // Backwards-compatible signature: older callers sometimes pass RNG as the
+  // third parameter (lexicon missing). Accept either a Lexicon or RNG as the
+  // third argument and normalize to (lex, rng).
+  updateWithSnapshot(snapshot: any, decision?: any, lexOrRng?: Lexicon | RNG, maybeRng?: RNG): Partial<NarrativeState> {
+    let lex: Lexicon | undefined;
+    let rng: RNG | undefined;
+    if (lexOrRng) {
+      // Heuristic: Lexicon has a `pick` method; RNG likely exposes `random` or is a function
+      if ((lexOrRng as any).pick && typeof (lexOrRng as any).pick === 'function') {
+        lex = lexOrRng as Lexicon;
+        rng = maybeRng;
+      } else {
+        // third argument is RNG
+        rng = lexOrRng as RNG;
+        lex = maybeRng as unknown as Lexicon | undefined;
+      }
+    } else {
+      lex = undefined;
+      rng = maybeRng;
+    }
     const prevBiome = this.state.lastBiome;
     const newBiome = snapshot?.chunk?.terrain ?? null;
 

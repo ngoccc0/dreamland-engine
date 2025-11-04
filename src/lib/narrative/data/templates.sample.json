@@ -24,5 +24,13 @@
       { "id": "p2", "template": "{{continuation_fragment}} {{jungle_terrain_desc_lush}} lướt qua bạn; {{smell_detail_lush}} thoang thoảng.", "slots": ["continuation_fragment","jungle_terrain_desc_lush","smell_detail_lush"] },
       { "id": "p3", "template": "Không khí {{temp_detail}} và {{moisture_detail}}. {{jungle_terrain_desc_lush}} bao quanh bạn, cùng với {{smell_detail_lush}}.", "slots": ["temp_detail", "moisture_detail", "jungle_terrain_desc_lush", "smell_detail_lush"] }
     ]
+  },
+  {
+    "id": "biome_transition",
+    "tags": ["transition"],
+    "weight": 1.5,
+    "patterns": [
+      { "id": "p1", "template": "Bạn rời khỏi {{old_biome_desc}} và bước vào {{new_biome_desc}}.", "slots": ["old_biome_desc", "new_biome_desc"] }
+    ]
   }
 ]

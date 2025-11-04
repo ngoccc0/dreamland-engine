@@ -126,6 +126,13 @@ export class StateManager {
       if (pick) {
         this.state.lastConnector = pick.text;
       }
+    } else if (rng) {
+      // No lexicon available but RNG provided (some older callers/tests pass
+      // only an RNG). Pick a deterministic short connector string using the
+      // RNG so callers receive a string result (tests assert typeof string).
+      const defaultConnectors = ['...', 'then', 'meanwhile', 'after a while', 'and then'];
+      const picked = rng.choice(defaultConnectors) || '...';
+      this.state.lastConnector = String(picked);
     }
 
     return this.getState();

@@ -48,9 +48,17 @@ export type ItemCategory = z.infer<typeof ItemCategorySchema>;
  */
 // Effect schema is now extensible: allows extra fields for custom effects via modding
 export const ItemEffectSchema = z.object({
-    type: z.enum(['HEAL', 'RESTORE_STAMINA', 'RESTORE_HUNGER', 'RESTORE_MANA', 'DAMAGE', 'APPLY_EFFECT', 'TELEPORT']).describe("The type of effect the item has. Built-in types include 'HEAL', 'RESTORE_STAMINA', 'RESTORE_HUNGER', 'RESTORE_MANA', 'DAMAGE', 'APPLY_EFFECT', 'TELEPORT'."),
+    type: z.enum([
+        'HEAL', 'RESTORE_STAMINA', 'RESTORE_HUNGER', 'RESTORE_MANA', 'DAMAGE', 'APPLY_EFFECT', 'TELEPORT',
+        'TEMPORARY_STRENGTH_BOOST', 'TEMPORARY_SPEED_BOOST', 'TEMPORARY_AGILITY_BOOST',
+        'TEMPORARY_POISON_RESISTANCE', 'REGENERATE_HEALTH', 'CONFUSION', 'WEAKNESS'
+    ]).describe("The type of effect the item has. Built-in types include 'HEAL', 'RESTORE_STAMINA', 'RESTORE_HUNGER', 'RESTORE_MANA', 'DAMAGE', 'APPLY_EFFECT', 'TELEPORT', and various temporary boosts/effects."),
     amount: z.number().optional().describe("The numerical value of the effect (e.g., amount of health restored). Positive values buff, negative values debuff. Magnitude affects potency."),
     duration: z.number().optional().describe("Duration of the effect in game turns, if applicable. Undefined means instant effect. Duration effects are tracked by the game's time system."),
+  // Fields used by APPLY_EFFECT items. Kept optional so other effect types remain simple.
+  effectType: z.string().optional().describe("A string key for the status effect to apply (e.g., 'poison', 'exhaustion')."),
+  effectDuration: z.number().optional().describe("Duration (in turns) for the applied effect. If omitted, `duration` may be used.") ,
+  effectMagnitude: z.number().optional().describe("Numeric magnitude for the applied effect (e.g., damage per turn).") ,
 }).passthrough();
 export type ItemEffect = z.infer<typeof ItemEffectSchema>;
 

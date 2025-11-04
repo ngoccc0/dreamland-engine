@@ -74,7 +74,7 @@ export const foodItems: Record<string, ItemDefinition> = {
         emoji: '🧪', 
         category: 'Food', tier: 1, 
         effects: [{ type: 'RESTORE_STAMINA', amount: 20 }, { type: 'RESTORE_MANA', amount: 5 }], 
-        baseQuantity: { min: 2, max: 4 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: false, 
     },
     'grilled_fish_meat': {
@@ -97,7 +97,7 @@ export const foodItems: Record<string, ItemDefinition> = {
         category: 'Food',
         subCategory: 'Meat',
         emoji: '🍗',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 35 }, { type: 'RESTORE_MANA', amount: 10 }],
+        effects: [{ type: 'RESTORE_STAMINA', amount: 35 }, { type: 'RESTORE_MANA', amount: 10 }, { type: 'TEMPORARY_STRENGTH_BOOST', amount: 5, duration: 10 }],
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
@@ -121,9 +121,9 @@ export const foodItems: Record<string, ItemDefinition> = {
         category: 'Food',
         subCategory: 'Fruit',
         emoji: '🍓',
-        effects: [{ type: 'RESTORE_STAMINA', amount: 10 }, { type: 'RESTORE_MANA', amount: 2 }],
+        effects: [{ type: 'RESTORE_STAMINA', amount: 10 }, { type: 'RESTORE_MANA', amount: 2 }, { type: 'TEMPORARY_SPEED_BOOST', amount: 1, duration: 10 }],
     senseEffect: { keywords: ['taste:sensory.taste.fruity', 'visual:sensory.visual.juicy', 'smell:sensory.smell.fruity'] },
-        baseQuantity: { min: 2, max: 6 },
+        baseQuantity: { min: 1, max: 2 },
         growthConditions: {
             optimal: { moisture: { min: 5 }, vegetationDensity: { min: 7 } },
             subOptimal: { moisture: { min: 3, max: 4 } }
@@ -138,7 +138,7 @@ export const foodItems: Record<string, ItemDefinition> = {
         subCategory: 'Vegetable',
         emoji: '🌾',
         effects: [{ type: 'RESTORE_STAMINA', amount: 4 }, { type: 'RESTORE_MANA', amount: 1 }],
-        baseQuantity: { min: 2, max: 5 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'edible_tuber': {
@@ -149,7 +149,7 @@ export const foodItems: Record<string, ItemDefinition> = {
         subCategory: 'Vegetable',
         emoji: '🥔',
         effects: [{ type: 'RESTORE_STAMINA', amount: 18 }, { type: 'RESTORE_MANA', amount: 2 }],
-        baseQuantity: { min: 1, max: 3 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'field_mushroom': {
@@ -161,7 +161,18 @@ export const foodItems: Record<string, ItemDefinition> = {
         emoji: '🍄',
         effects: [{ type: 'RESTORE_STAMINA', amount: 8 }, { type: 'RESTORE_MANA', amount: 1 }],
     senseEffect: { keywords: ['smell:sensory.smell.earthy', 'visual:sensory.visual.small', 'tactile:sensory.tactile.soft'] },
-        baseQuantity: { min: 2, max: 5 },
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: true,
+    },
+    'healing_herb': {
+        name: { en: 'Healing Herb', vi: 'Thảo dược hồi máu' },
+        description: { en: 'A common herb used to staunch wounds and restore health.', vi: 'Một loại thảo dược thông thường dùng để cầm máu và hồi phục sức khỏe.' },
+        tier: 1,
+        category: 'Food',
+        subCategory: 'Herb',
+        emoji: '🌿',
+        effects: [{ type: 'HEAL', amount: 15 }, { type: 'RESTORE_HUNGER', amount: 5 }, { type: 'REGENERATE_HEALTH', amount: 2, duration: 5 }],
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'cactus_flower': {
@@ -183,7 +194,7 @@ export const foodItems: Record<string, ItemDefinition> = {
         subCategory: 'Vegetable',
         emoji: '🌵',
         effects: [{ type: 'RESTORE_STAMINA', amount: 5 }, { type: 'RESTORE_MANA', amount: 1 }],
-        baseQuantity: { min: 1, max: 3 },
+        baseQuantity: { min: 1, max: 2 },
         growthConditions: {
             optimal: { temperature: { min: 8 }, moisture: { max: 1 } },
             subOptimal: { temperature: { min: 6, max: 7 }, moisture: { min: 2, max: 3 } }
@@ -198,7 +209,19 @@ export const foodItems: Record<string, ItemDefinition> = {
         subCategory: 'Vegetable',
         emoji: '🍄',
         effects: [{ type: 'RESTORE_STAMINA', amount: 8 }, { type: 'RESTORE_MANA', amount: 2 }],
-        baseQuantity: { min: 2, max: 4 },
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: true,
+    },
+    'poisonous_mushroom': {
+        name: { en: 'Poisonous Mushroom', vi: 'Nấm Độc' },
+        description: { en: 'A deceptive mushroom that causes sickness when consumed.', vi: 'Một loại nấm đánh lừa, khi ăn vào sẽ gây ngộ độc.' },
+        tier: 1,
+        category: 'Food',
+        subCategory: 'Vegetable',
+        emoji: '☠️',
+        // Use APPLY_EFFECT to attach a timed poison effect handled by the Effect Engine
+        effects: [{ type: 'APPLY_EFFECT', effectType: 'poison', effectDuration: 5, effectMagnitude: 2 }, { type: 'CONFUSION', duration: 5 }],
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'strange_fruit': {
@@ -209,7 +232,7 @@ export const foodItems: Record<string, ItemDefinition> = {
         subCategory: 'Fruit',
         emoji: '🥥',
         effects: [{ type: 'RESTORE_STAMINA', amount: 12 }, { type: 'RESTORE_MANA', amount: 3 }],
-        baseQuantity: { min: 1, max: 3 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'gusher': { 
@@ -232,7 +255,7 @@ export const foodItems: Record<string, ItemDefinition> = {
         subCategory: 'Misc',
         emoji: '🥚',
         effects: [{ type: 'RESTORE_STAMINA', amount: 15 }, { type: 'RESTORE_MANA', amount: 5 }],
-        baseQuantity: { min: 2, max: 4 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'eagle_egg': {

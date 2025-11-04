@@ -4,6 +4,7 @@
 import { useRef, useEffect } from 'react';
 import { useLanguage } from '@/context/language-context';
 import { applyTickEffects } from '@/lib/game/effect-engine';
+import type { PlayerStatusDefinition } from '@/lib/game/types';
 import { useGameState } from "./use-game-state";
 import { useActionHandlers } from "./use-action-handlers";
 import { useGameEffects } from "./useGameEffects";
@@ -69,9 +70,9 @@ export function useGameEngine(props: GameEngineProps) {
 
         // If caller provided a candidate stats object, apply per-tick effects
         if (stats) {
-            const newStats = { ...stats } as any;
-            const { newStats: updated, messages } = applyTickEffects(newStats, gameState.turn || 0, t as any);
-            for (const m of messages) addNarrativeEntry(m.text, m.type as any);
+            const newStats = { ...stats } as PlayerStatusDefinition;
+            const { newStats: updated, messages } = applyTickEffects(newStats, gameState.turn || 0, t);
+            for (const m of messages) addNarrativeEntry(m.text, m.type);
             gameState.setPlayerStats(() => updated);
         }
     };

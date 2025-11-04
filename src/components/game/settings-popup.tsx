@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -16,6 +16,9 @@ import type { DiceType, AiModel, NarrativeLength, FontFamily, FontSize, Theme } 
 import { Language } from "@/lib/i18n";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
+import { Slider } from "../ui/slider";
+import { useAudio } from "@/lib/audio/useAudio";
+import { BACKGROUND_MUSIC, MENU_MUSIC } from "@/lib/audio/assets";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Settings, BrainCircuit, Dice6, Bot, Feather, Languages, Download, LogIn, LogOut, UserCircle2, Home, Palette, Type, BookOpen } from "./icons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -73,6 +76,9 @@ export function SettingsPopup({ open, onOpenChange, isInGame, currentBiome }: Se
   const handleFontFamilyChange = (value: string) => setSettings({ fontFamily: value as FontFamily });
   const handleFontSizeChange = (value: string) => setSettings({ fontSize: value as FontSize });
     const [isDesktop, setIsDesktop] = useState(false);
+        const audio = useAudio();
+        const allBackground = useMemo(() => BACKGROUND_MUSIC.concat(MENU_MUSIC), []);
+        const [selectedTrack, setSelectedTrack] = useState<string | undefined>(allBackground[0]);
 
     useEffect(() => {
         const onResize = () => setIsDesktop(typeof window !== 'undefined' && window.innerWidth >= 768);
@@ -161,6 +167,86 @@ export function SettingsPopup({ open, onOpenChange, isInGame, currentBiome }: Se
                         <div><RadioGroupItem value="base" id="base" className="sr-only peer" /><Label htmlFor="base" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">{t('fontSizeMedium')}</Label></div>
                         <div><RadioGroupItem value="lg" id="lg" className="sr-only peer" /><Label htmlFor="lg" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">{t('fontSizeLarge')}</Label></div>
                     </RadioGroup>
+                </div>
+                <Separator />
+                <div className="space-y-3">
+                    <Label className="font-semibold flex items-center gap-2">🔊 Âm thanh</Label>
+                    <p className="text-sm leading-snug text-muted-foreground">Điều chỉnh nhạc nền và hiệu ứng âm thanh.</p>
+                    <div className="rounded-lg border p-3 shadow-sm">
+                        <div className="mb-3">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="font-medium">Nhạc</div>
+                                <div className="flex gap-2">
+                                    <Button variant="ghost" size="sm" onClick={() => audio.setMuted(!audio.muted)}>
+                                        {audio.muted ? 'Bật âm' : 'Tắt âm'}
+                                    </Button>
+                                </div>
+                            </div>
+                            <div className="mb-2">
+                                <label className="text-xs text-muted-foreground">Chọn bài</label>
+                                <select className="w-full mt-1 p-1 rounded bg-popover" value={selectedTrack} onChange={(e) => setSelectedTrack(e.target.value)}>
+                                    {allBackground.map(ti => (<option key={ti} value={ti}>{ti}</option>))}
+                                </select>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Button size="sm" onClick={() => audio.playMusic(selectedTrack)}>{'Phát'}</Button>
+                                <Button size="sm" onClick={() => audio.pauseMusic()}>Tạm dừng</Button>
+                                <Button size="sm" onClick={() => audio.stopMusic()}>Dừng</Button>
+                            </div>
+                            <div className="mt-3">
+                                <div className="text-xs text-muted-foreground mb-1">Âm lượng nhạc</div>
+                                <Slider value={[audio.musicVolume]} onValueChange={(v) => audio.setMusicVolume(v[0] ?? 0.5)} step={0.01} min={0} max={1} />
+                            </div>
+                            {/* Autoplay safety CTA: if browser blocked autoplay, allow the user to retry */}
+                            {audio.autoplayBlocked && (
+                                <div className="mt-3 p-2 border rounded bg-yellow-50">
+                                    <div className="text-sm font-medium">Autoplay bị chặn</div>
+                                    <div className="text-xs text-muted-foreground mb-2">Trình duyệt đã chặn tự động phát nhạc menu. Nhấn "Bật âm" để cho phép phát ngay khi bạn tương tác.</div>
+                                    <div className="flex gap-2">
+                                        <Button size="sm" onClick={() => audio.tryEnableAutoplay()}>Bật âm</Button>
+                                        <Button size="sm" variant="ghost" onClick={() => { try { localStorage.setItem('dl_auto_menu', '0'); audio.setMuted(true); } catch {} }}>Tạm hoãn</Button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mt-4">
+                            <div className="text-xs text-muted-foreground mb-1">Hiệu ứng (SFX)</div>
+                            <Slider value={[audio.sfxVolume]} onValueChange={(v) => audio.setSfxVolume(v[0] ?? 0.9)} step={0.01} min={0} max={1} />
+                            <div className="flex gap-2 mt-3">
+                                <Button size="sm" onClick={() => audio.playSfx('Menu_Select_00.mp3')}>Play select</Button>
+                                <Button size="sm" onClick={() => audio.playSfx('Pickup_Gold_00.mp3')}>Play pickup</Button>
+                            </div>
+                        </div>
+
+                        <div className="mt-4">
+                            <div className="text-xs text-muted-foreground mb-1">Tần suất nhạc nền</div>
+                            <div className="flex items-center gap-4 mb-2">
+                                <label className="flex items-center gap-1">
+                                    <input type="radio" name="playbackMode" checked={audio.playbackMode === 'off'} onChange={() => audio.setPlaybackMode('off')} />
+                                    <span className="ml-1">Không</span>
+                                </label>
+                                <label className="flex items-center gap-1">
+                                    <input type="radio" name="playbackMode" checked={audio.playbackMode === 'occasional'} onChange={() => audio.setPlaybackMode('occasional')} />
+                                    <span className="ml-1">Thỉnh thoảng</span>
+                                </label>
+                                <label className="flex items-center gap-1">
+                                    <input type="radio" name="playbackMode" checked={audio.playbackMode === 'always'} onChange={() => audio.setPlaybackMode('always')} />
+                                    <span className="ml-1">Luôn luôn</span>
+                                </label>
+                            </div>
+                            {audio.playbackMode === 'occasional' && (
+                                <div className="flex items-center gap-2">
+                                    <label className="text-xs text-muted-foreground">Khoảng (phút)</label>
+                                    <input type="number" min={1} value={audio.playbackIntervalMinutes} onChange={(e) => audio.setPlaybackIntervalMinutes(Number(e.target.value) || 1)} className="w-20 p-1 rounded bg-popover" />
+                                    <div className="text-xs text-muted-foreground">Một bài sẽ tự phát sau mỗi khoảng đã chọn.</div>
+                                </div>
+                            )}
+                            {audio.playbackMode === 'always' && (
+                                <div className="text-xs text-muted-foreground">Luôn phát liên tiếp: sau khi 1 bài kết thúc sẽ phát tiếp sau 5 giây.</div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </TabsContent>
 

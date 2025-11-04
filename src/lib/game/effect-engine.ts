@@ -2,6 +2,21 @@
 // type-checking in the pre-push hook. Consumers should prefer the canonical
 // `StatusEffect` from `@/lib/game/types` where available.
 
+import type { PlayerStatusDefinition } from './types';
+
+// Local minimal StatusEffect shape used here to avoid circular type-resolution
+// problems during type-checking. Keep in sync with the exported interface in
+// `src/lib/game/types.ts`.
+type LocalStatusEffect = {
+    id: string;
+    type: 'exhaustion' | 'hungry' | 'poison' | 'strength_buff' | 'weakness';
+    duration: number;
+    magnitude?: number;
+    description: any;
+    appliedTurn: number;
+    source?: string;
+};
+
 type NarrMsg = { text: string; type: 'system' | 'narrative' };
 
 /**
@@ -12,11 +27,11 @@ type NarrMsg = { text: string; type: 'system' | 'narrative' };
  * the current turn number, and a translation function `t` used to produce localized
  * messages. Returns the updated stats and an array of narrative messages.
  */
-export function applyTickEffects(stats: any, currentTurn: number, t: (k: string, p?: any) => string) {
-    const newStats = { ...(stats || {}) } as any;
-    newStats.statusEffects = Array.isArray(newStats.statusEffects) ? newStats.statusEffects.map((s: any) => ({ ...s })) : [];
+export function applyTickEffects(stats: PlayerStatusDefinition, currentTurn: number, t: (k: string, p?: any) => string) {
+    const newStats: PlayerStatusDefinition = { ...(stats || {}) } as PlayerStatusDefinition;
+    newStats.statusEffects = Array.isArray(newStats.statusEffects) ? newStats.statusEffects.map((s: LocalStatusEffect) => ({ ...s })) : [];
 
-    const remainingEffects: any[] = [];
+    const remainingEffects: LocalStatusEffect[] = [];
     let hpDelta = 0;
     let staminaDelta = 0;
     let hpModifierSum = 0;
@@ -24,7 +39,7 @@ export function applyTickEffects(stats: any, currentTurn: number, t: (k: string,
     const messages: NarrMsg[] = [];
 
     for (const eff of newStats.statusEffects) {
-        const e = { ...eff } as any;
+        const e = { ...eff } as LocalStatusEffect;
         if (e.type === 'poison' && (e.magnitude || 0) > 0) {
             const dmg = Math.max(0, Math.round(e.magnitude || 0));
             hpDelta -= dmg;

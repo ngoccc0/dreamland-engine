@@ -517,7 +517,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                         <span>{playerStats.hp} / 100</span>
                                         <span>{playerStats.mana} / 50</span>
                                         <span>{playerStats.stamina.toFixed(0)} / 100</span>
-                                        <span>{playerStats.hunger.toFixed(0)} / 100</span>
+                                        <span>{(playerStats.hunger || 0).toFixed(0)} / 100</span>
                                     </div>
                                 </div>
                             </>

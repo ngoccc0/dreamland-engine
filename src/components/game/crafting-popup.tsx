@@ -29,6 +29,7 @@ interface CraftingPopupProps {
 export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions, recipes, onCraft }: CraftingPopupProps) {
   const { t, language } = useLanguage();
   const [showOnlyCraftable, setShowOnlyCraftable] = useState(false);
+  const [showOnlyWithAnyIngredient, setShowOnlyWithAnyIngredient] = useState(false);
   const [sortByCraftability, setSortByCraftability] = useState(false);
 
   // Process recipes with craftability scores
@@ -54,7 +55,15 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
 
   // Filter and sort recipes
   const filteredRecipes = processedRecipes
-    .filter(({ craftabilityScore }) => !showOnlyCraftable || craftabilityScore === 1)
+    .filter(({ craftabilityScore, outcome }) => {
+      if (showOnlyCraftable && craftabilityScore < 1) {
+        return false;
+      }
+      if (showOnlyWithAnyIngredient && outcome.resolvedIngredients.every(ing => ing.playerQuantity === 0)) {
+        return false;
+      }
+      return true;
+    })
     .sort((a, b) => {
       if (sortByCraftability) {
         return b.craftabilityScore - a.craftabilityScore;
@@ -80,6 +89,16 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
             />
             <label htmlFor="craftable-filter" className="text-sm">
               {t('showOnlyCraftable')}
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={showOnlyWithAnyIngredient}
+              onCheckedChange={setShowOnlyWithAnyIngredient}
+              id="any-ingredient-filter"
+            />
+            <label htmlFor="any-ingredient-filter" className="text-sm">
+              {t('showOnlyWithAnyIngredient')}
             </label>
           </div>
           <Button

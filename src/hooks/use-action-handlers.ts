@@ -4,7 +4,7 @@
 // NOTE: react-hooks/exhaustive-deps is being audited. Removed the file-level disable
 // so ESLint can report missing/unnecessary deps per-hook. We'll fix each hook's deps in small commits.
 
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
 import { useSettings } from '@/context/settings-context';
@@ -16,6 +16,8 @@ import { itemDefinitions } from '@/lib/game/items';
 import { resolveItemDef as resolveItemDefHelper } from '@/lib/game/item-utils';
 import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchAction } from '@/lib/game/engine/offline';
 import { getEffectiveChunk } from '@/lib/game/engine/generation';
+import { analyze_chunk_mood } from '@/lib/game/engine/offline';
+import { useAudio } from '@/lib/audio/useAudio';
 import { getTemplates } from '@/lib/game/templates';
 import { clamp, getTranslatedText, resolveItemId, ensurePlayerItemId } from '@/lib/utils';
 import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem, NarrativeEntry, GeneratedItem, TranslatableString, ItemDefinition, Chunk, Enemy } from '@/lib/game/types';
@@ -64,7 +66,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             setPlayerBehaviorProfile, playerPosition, setPlayerPosition, weatherZones, turn, gameTime, customItemCatalog, narrativeLogRef
     } = deps;
     // worldProfile contains global spawn/config modifiers (e.g., spawnMultiplier)
-    const { worldProfile } = deps as any;
+    const { worldProfile } = deps;
 
     // Helper to resolve an item definition by name. Prefer custom/generated definitions
     // (world-specific), but fall back to the built-in master item catalog when needed.
@@ -75,7 +77,37 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
   const { t, language } = useLanguage();
   const { settings } = useSettings();
   const { toast } = useToast();
-  const isOnline = settings.gameMode === 'ai';
+    const isOnline = settings.gameMode === 'ai';
+
+    // audio: auto-play background based on mood when player moves or environment changes
+    // useAudio must be used inside AudioProvider (layouts already wrap the app)
+    const audio = useAudio();
+
+    // When the player's current chunk or environment changes, prefer playing
+    // biome-specific ambience (files named like Ambience_<Biome>) and fall back
+    // to mood-based background tracks when a matching ambience isn't available.
+    // We respect the playbackMode in the provider by checking it before
+    // triggering playback.
+    useEffect(() => {
+        try {
+            if (!audio || audio.playbackMode === 'off') return;
+            const key = `${playerPosition.x},${playerPosition.y}`;
+            const baseChunk = world[key];
+            if (!baseChunk) return;
+            const currentChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime);
+            // prefer biome-based ambience when possible (matches filenames like Ambience_Cave_00.mp3)
+            const biome = (currentChunk.terrain || (currentChunk as any).biome) as string | undefined | null;
+            if (biome) {
+                // playAmbienceForBiome will no-op if no matching file exists
+                audio.playAmbienceForBiome(biome);
+            } else {
+                const moods = analyze_chunk_mood(currentChunk);
+                audio.playBackgroundForMoods(moods);
+            }
+        } catch (e) {
+            // non-fatal: don't block game logic if audio fails
+        }
+    }, [world, playerPosition.x, playerPosition.y, weatherZones, gameTime, audio]);
 
   const handleOnlineNarrative = useCallback(async (action: string, worldCtx: World, playerPosCtx: { x: number, y: number }, playerStatsCtx: PlayerStatus) => {
     setIsLoading(true);
@@ -92,7 +124,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
     const currentChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime);
 
-    const surroundingChunks: any[] = [];
+    const surroundingChunks: Chunk[] = [];
     if (settings.narrativeLength === 'long') {
         for (let dy = 1; dy >= -1; dy--) {
             for (let dx = -1; dx <= 1; dx++) {
@@ -125,21 +157,25 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             questsCompleted: playerStatsCtx.questsCompleted ?? 0,
         };
 
-        const normalizeChunkForAI = (c: any) => {
-            if (!c) return c;
-            const enemy = c.enemy ? { ...c.enemy, type: getTranslatedText(c.enemy.type ?? { en: '' }, language) } : null;
-            return { ...c, enemy };
+    const normalizeChunkForAI = (c: Chunk): Chunk => {
+            // Force the enemy.type translation to a plain string for AI inputs.
+            // Use the declared enemy.type (TranslatableString) directly when translating.
+            const enemy = c.enemy
+                ? ({ ...c.enemy, type: getTranslatedText(c.enemy.type ?? { en: '' }, language) } as any)
+                : null;
+            return { ...c, enemy } as any as Chunk;
         };
 
-        const normalizedCurrentChunk = normalizeChunkForAI(currentChunk);
-        const normalizedSurrounding = surroundingChunks.length > 0 ? surroundingChunks.map(normalizeChunkForAI) : undefined;
+    const normalizedCurrentChunk = normalizeChunkForAI(currentChunk as Chunk);
+    const normalizedSurrounding = surroundingChunks.length > 0 ? surroundingChunks.map(normalizeChunkForAI) : undefined;
 
         const input: GenerateNarrativeInput = {
             worldName: t(finalWorldSetup.worldName as TranslationKey),
             playerAction: action,
             playerStatus: normalizedPlayerStatus,
-            currentChunk: normalizedCurrentChunk,
-            surroundingChunks: normalizedSurrounding,
+            // normalizedCurrentChunk has been massaged for AI; cast to any to satisfy the Zod-derived input shape
+            currentChunk: normalizedCurrentChunk as any,
+            surroundingChunks: normalizedSurrounding as any,
             recentNarrative,
             language,
             customItemDefinitions,
@@ -240,7 +276,8 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         const templates = getTemplates(language);
         const enemyTemplate = templates[currentChunk.terrain]?.enemies.find((e: any) => getTranslatedText(e.data.type as TranslatableString, 'en') === getTranslatedText(currentChunk.enemy!.type as TranslatableString, 'en'));
         if (enemyTemplate?.data?.loot) {
-            for (const lootItem of (enemyTemplate.data.loot as any[])) {
+            type LootEntry = { name: string; chance: number };
+            for (const lootItem of (enemyTemplate.data.loot as LootEntry[])) {
                 if (Math.random() < lootItem.chance) {
                     const definition = resolveItemDef(lootItem.name);
                     if (definition) {
@@ -350,20 +387,29 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             if (effect.type === 'APPLY_EFFECT') {
                 // Apply a status effect instance to the player (makes the item grant a timed effect)
                 if (effect.effectType) {
-                    const newEffect = {
-                        id: `item-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
-                        type: effect.effectType,
-                        duration: effect.effectDuration ?? 0,
-                        magnitude: effect.effectMagnitude,
-                        // lightweight description: use the effect type as fallback text
-                        description: { en: String(effect.effectType), vi: String(effect.effectType) },
-                        appliedTurn: (turn ?? 0),
-                        source: itemName,
-                    } as any;
-                    newPlayerStats.statusEffects = newPlayerStats.statusEffects || [];
-                    newPlayerStats.statusEffects.push(newEffect);
-                    effectDescriptions.push(`${t('appliedEffect') || 'Applied effect'}: ${String(effect.effectType)}`);
-                }
+                        type LocalStatusEffect = {
+                            id: string;
+                            type: string;
+                            duration: number;
+                            magnitude?: number;
+                            description: TranslatableString;
+                            appliedTurn: number;
+                            source?: string;
+                        };
+                        const newEffect: LocalStatusEffect = {
+                            id: `item-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
+                            type: String(effect.effectType),
+                            duration: Number(effect.effectDuration ?? 0),
+                            magnitude: typeof effect.effectMagnitude === 'number' ? effect.effectMagnitude : undefined,
+                            // lightweight description: use the effect type as fallback text
+                            description: { en: String(effect.effectType), vi: String(effect.effectType) },
+                            appliedTurn: (turn ?? 0),
+                            source: itemName,
+                        };
+                        newPlayerStats.statusEffects = newPlayerStats.statusEffects || [];
+                        newPlayerStats.statusEffects.push(newEffect as any);
+                        effectDescriptions.push(`${t('appliedEffect') || 'Applied effect'}: ${String(effect.effectType)}`);
+                    }
             }
         });
         narrativeResult.wasUsed = effectDescriptions.length > 0;
@@ -1000,16 +1046,16 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     setPlayerStats(() => nextPlayerStats);
 
     try {
-        const normalizeChunkForAI = (c: any) => {
-            if (!c) return c;
+        const normalizeChunkForAI = (c?: Chunk | null): Chunk | null => {
+            if (!c) return null;
             const enemy = c.enemy ? { ...c.enemy, type: getTranslatedText(c.enemy.type ?? { en: '' }, language) } : null;
-            return { ...c, enemy };
+            return { ...c, enemy } as Chunk;
         };
 
-        const normalizedEffectiveChunk = normalizeChunkForAI(effectiveChunk);
+    const normalizedEffectiveChunk = normalizeChunkForAI(effectiveChunk as Chunk);
 
         const result = await fuseItems({
-            itemsToFuse, playerPersona: playerStats.persona, currentChunk: normalizedEffectiveChunk,
+            itemsToFuse, playerPersona: playerStats.persona, currentChunk: normalizedEffectiveChunk as any,
             environmentalContext: { biome: effectiveChunk.terrain, weather: t(weather?.name as TranslationKey) || 'clear' },
             environmentalModifiers: { successChanceBonus, elementalAffinity, chaosFactor: clamp(chaosFactor, 0, 100) },
             language, customItemDefinitions, fullItemCatalog: customItemCatalog,

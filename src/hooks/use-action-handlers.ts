@@ -1271,6 +1271,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const finalChunk = worldSnapshot[`${x},${y}`];
         if (finalChunk) {
             // Best-effort: compute a short, localized sensory hint from the chunk
+            let briefSensory = '';
             try {
                 const computeBriefSensory = (c: any) => {
                     // Pick the single most prominent sensory condition (temperature/moisture/light)
@@ -1352,12 +1353,12 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                     return chosenPattern.replace('{adj}', adj).replace(/\s+/g, ' ').trim();
                 };
 
-                const brief = computeBriefSensory(finalChunk);
-                if (brief && brief.length > 0) {
-                    const updatedPlaceholder = t(movingKey as TranslationKey, { direction: directionText, brief_sensory: brief });
-                    // replace the optimistic placeholder with the improved brief sensory text
-                    addNarrativeEntry(String(updatedPlaceholder).replace(/\{[^}]+\}/g, '').trim(), 'narrative', placeholderId);
-                }
+                    briefSensory = computeBriefSensory(finalChunk);
+                    if (briefSensory && briefSensory.length > 0) {
+                        const updatedPlaceholder = t(movingKey as TranslationKey, { direction: directionText, brief_sensory: briefSensory });
+                        // replace the optimistic placeholder with the improved brief sensory text
+                        addNarrativeEntry(String(updatedPlaceholder).replace(/\{[^}]+\}/g, '').trim(), 'narrative', placeholderId);
+                    }
             } catch (e) {
                 // non-fatal: if computing brief sensory fails, continue to orchestrator/fallback
                 // eslint-disable-next-line no-console
@@ -1385,24 +1386,55 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                 // non-fatal
             }
 
-            // Try to use precomputed bundle + runtime orchestrator first (lazy-loaded).
-            (async () => {
+                // Try to use precomputed bundle + runtime orchestrator first (lazy-loaded).
+                (async () => {
+                // First, attempt conditional movement templates (fast, local)
+                try {
+                    try {
+                        const mn = await import('@/lib/game/movement-narrative');
+                        const conditional = mn.selectMovementNarrative({ chunk: finalChunk, playerStats: newPlayerStats || playerStats, directionText, language, briefSensory });
+                        if (conditional) {
+                            addNarrativeEntry(String(conditional).replace(/\{[^}]+\}/g, '').trim(), 'narrative', placeholderId);
+                            return;
+                        }
+                    } catch (e) {
+                        // non-fatal: if selector import or execution fails, continue to loader
+                    }
+                } catch (e) {
+                    // ignore and fallthrough to precomputed loader
+                }
                 try {
                     const loaderMod = await import('@/lib/narrative/loader');
                     const orchestrator = await import('@/lib/narrative/runtime-orchestrator');
                     const biomeKey = finalChunk.terrain || finalChunk.biome || 'default';
                     const bundle = await loaderMod.loadPrecomputedBundle(biomeKey, language);
                     if (bundle && bundle.templates && bundle.templates.length > 0) {
-                        // choose a template deterministically using position-based seed
-                        const seed = `${x},${y}`;
-                        const idx = Math.abs(seed.split('').reduce((s, c) => s + c.charCodeAt(0), 0)) % bundle.templates.length;
-                        const tplId = bundle.templates[idx].id;
-                        const res = orchestrator.pickVariantFromBundle(bundle as any, tplId, { seed, persona: undefined });
-                        if (res && res.text) {
-                            // cleanup leftover placeholders like {sensory_details}
-                            const finalText = String(res.text).replace(/\{[^}]+\}/g, '').trim();
-                            addNarrativeEntry(finalText, 'narrative', placeholderId);
-                            return;
+                        // Use conditional-aware orchestrator pick if available
+                        try {
+                            const res = orchestrator.pickVariantFromBundleWithConditions
+                                ? orchestrator.pickVariantFromBundleWithConditions(bundle as any, { chunk: finalChunk, playerStats: newPlayerStats || playerStats, briefSensory }, { seed: `${x},${y}`, persona: undefined })
+                                : null;
+                            if (res && res.text) {
+                                let finalText = String(res.text);
+                                // Replace brief_sensory placeholder if present
+                                if (briefSensory && briefSensory.length > 0) {
+                                    finalText = finalText.replace(/\{\s*brief_sensory\s*\}/g, briefSensory).replace(/{{\s*brief_sensory\s*}}/g, briefSensory);
+                                }
+                                finalText = finalText.replace(/\{[^}]+\}/g, '').trim();
+                                addNarrativeEntry(finalText, 'narrative', placeholderId);
+                                return;
+                            }
+                        } catch (e) {
+                            // fall back to deterministic index-based pick
+                            const seed = `${x},${y}`;
+                            const idx = Math.abs(seed.split('').reduce((s, c) => s + c.charCodeAt(0), 0)) % bundle.templates.length;
+                            const tplId = bundle.templates[idx].id;
+                            const res = orchestrator.pickVariantFromBundle(bundle as any, tplId, { seed, persona: undefined });
+                            if (res && res.text) {
+                                const finalText = String(res.text).replace(/\{[^}]+\}/g, '').trim();
+                                addNarrativeEntry(finalText, 'narrative', placeholderId);
+                                return;
+                            }
                         }
                     }
                 } catch (e) {

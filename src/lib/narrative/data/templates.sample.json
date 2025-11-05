@@ -33,4 +33,23 @@
       { "id": "p1", "template": "Bạn rời khỏi {{old_biome_desc}} và bước vào {{new_biome_desc}}.", "slots": ["old_biome_desc", "new_biome_desc"] }
     ]
   }
+  ,
+  {
+    "id": "movement_night_conditional",
+    "tags": ["movement","night"],
+    "weight": 1,
+    "conditions": { "lightMax": 10, "requireNoLight": true },
+    "patterns": [
+      { "id": "p1", "template": "Bóng đêm dày đặc khi bạn tiến về phía {direction}. Bạn dò dẫm cẩn thận. {brief_sensory}", "slots": ["direction","brief_sensory"] }
+    ]
+  },
+  {
+    "id": "movement_swamp_muddy",
+    "tags": ["movement","swamp"],
+    "weight": 0.8,
+    "conditions": { "moistureMin": 80 },
+    "patterns": [
+      { "id": "p1", "template": "Mặt đất lầy lội khi bạn lội về phía {direction}. Giày bị hút xuống; mỗi bước là một kháng cự. {brief_sensory}", "slots": ["direction","brief_sensory"] }
+    ]
+  }
 ]

@@ -14,6 +14,8 @@ export type PrecomputedBundle = {
     id: string;
     weight?: number;
     patterns?: any[];
+    // optional conditions metadata that can guide runtime selection
+    conditions?: any;
     variants: Array<{ patternId: string | null; seed: string; text: string; picks: (string | null)[] }>;
   }>;
 };

@@ -6,6 +6,7 @@ import { getTemplates } from '../templates';
 import type { TranslationKey } from "../../i18n";
 import { logger } from "@/lib/logger";
 import type { ItemDefinition } from "../types";
+import { isDay, isNight } from "../time/time-utils"; // Import new time utilities
 // clamp imported elsewhere when needed; not required here
 import { biomeNarrativeTemplates, getKeywordVariations, selectRandom } from "../data/narrative-templates";
 
@@ -138,10 +139,15 @@ export const check_conditions = (template_conditions: ConditionType | undefined,
         // Handle special string-based conditions
         if (key === 'timeOfDay') {
             const gameTime = (chunk as any).gameTime;
+            // We need world settings to determine day/night, but chunk doesn't have it.
+            // For now, we'll assume default day/night cycle for offline mode.
+            // In a real game, this would be passed down from a global game state or settings.
+            const defaultStartTime = 360; // 6 AM
+            const defaultDayDuration = 1440; // 24 hours
             if (gameTime === undefined) continue;
-            const isDay = gameTime >= 360 && gameTime < 1080;
-            if (conditionValue === 'day' && !isDay) return false;
-            if (conditionValue === 'night' && isDay) return false;
+            const isCurrentDay = isDay(gameTime, defaultStartTime, defaultDayDuration);
+            if (conditionValue === 'day' && !isCurrentDay) return false;
+            if (conditionValue === 'night' && isCurrentDay) return false;
             continue;
         }
 
@@ -620,5 +626,3 @@ export const handleSearchAction = (
 
     return { newChunk, narrative: t('exploreFoundNothing'), toastInfo: null };
 };
-
-    

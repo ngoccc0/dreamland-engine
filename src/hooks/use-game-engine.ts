@@ -8,8 +8,7 @@ import type { PlayerStatusDefinition } from '@/lib/game/types';
 import { useGameState } from "./use-game-state";
 import { useActionHandlers } from "./use-action-handlers";
 import { useGameEffects } from "./useGameEffects";
-
-// Remove unused type imports to satisfy lint
+import { useSettings } from "@/context/settings-context"; // Import useSettings
 
 interface GameEngineProps {
     gameSlot: number;
@@ -33,6 +32,7 @@ export function useGameEngine(props: GameEngineProps) {
     const narrativeContainerRef = useRef<HTMLDivElement>(null);
     const narrativeLogRef = useRef(gameState.narrativeLog || [] as any[]);
     const { t } = useLanguage();
+    const { settings } = useSettings(); // Use settings context
 
     const addNarrativeEntry = (text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string) => {
         // Preserve explicit entryId when provided (placeholders use predictable ids).
@@ -58,11 +58,11 @@ export function useGameEngine(props: GameEngineProps) {
 
     const advanceGameTime = (stats?: any) => {
         gameState.setGameTime(prev => {
-            const next = prev + 1;
-            if (next >= 1440) {
-                gameState.setDay(d => d + 1);
-                gameState.setTurn(t => t + 1);
-                return next % 1440;
+                const next = prev + (settings as any).timePerTurn; // Use timePerTurn from settings
+                if (next >= (settings as any).dayDuration) { // Use dayDuration from settings
+                    gameState.setDay(d => d + 1);
+                    gameState.setTurn(t => t + 1);
+                    return next % (settings as any).dayDuration; // Use dayDuration from settings
             }
             gameState.setTurn(t => t + 1);
             return next;

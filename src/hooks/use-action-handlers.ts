@@ -78,6 +78,10 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
   const { t, language } = useLanguage();
   const { settings } = useSettings();
+    // Defensive typed aliases for legacy fields that may be missing from GameSettings type
+    // Some code expects startTime/dayDuration to exist; cast to any and provide sensible defaults
+    const sStart = (settings as any).startTime ?? 0;
+    const sDayDuration = (settings as any).dayDuration ?? 24000;
   const { toast } = useToast();
     const isOnline = settings.gameMode === 'ai';
 
@@ -159,7 +163,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             const key = `${playerPosition.x},${playerPosition.y}`;
             const baseChunk = world[key];
             if (!baseChunk) return;
-            const currentChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime);
+            const currentChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime, sStart, sDayDuration);
             // prefer biome-based ambience when possible (matches filenames like Ambience_Cave_00.mp3)
             const biome = (currentChunk.terrain || (currentChunk as any).biome) as string | undefined | null;
             if (biome) {
@@ -172,7 +176,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         } catch (e) {
             // non-fatal: don't block game logic if audio fails
         }
-    }, [world, playerPosition.x, playerPosition.y, weatherZones, gameTime, audio]);
+    }, [world, playerPosition.x, playerPosition.y, weatherZones, gameTime, audio, sStart, sDayDuration]);
 
   const handleOnlineNarrative = useCallback(async (action: string, worldCtx: World, playerPosCtx: { x: number, y: number }, playerStatsCtx: PlayerStatus) => {
     setIsLoading(true);
@@ -187,7 +191,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const successLevel = getSuccessLevel(roll, settings.diceType);
     addNarrativeEntry(t('diceRollMessage', { diceType: settings.diceType, roll, level: t(successLevelToTranslationKey[successLevel]) }), 'system', `${Date.now()}-dice`);
 
-    const currentChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime);
+    const currentChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime, sStart, sDayDuration);
 
     const surroundingChunks: Chunk[] = [];
     if (settings.narrativeLength === 'long') {
@@ -197,7 +201,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                 const key = `${playerPosCtx.x + dx},${playerPosCtx.y + dy}`;
                 const adjacentChunk = worldCtx[key];
                 if (adjacentChunk && adjacentChunk.explored) {
-                    surroundingChunks.push(getEffectiveChunk(adjacentChunk, weatherZones, gameTime));
+                    surroundingChunks.push(getEffectiveChunk(adjacentChunk, weatherZones, gameTime, sStart, sDayDuration));
                 }
             }
         }
@@ -312,7 +316,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     if (!baseChunk || !baseChunk.enemy) { addNarrativeEntry(t('noTarget'), 'system'); return; }
     
     logger.debug('[Offline] Starting attack sequence', { playerPosition, enemy: baseChunk.enemy });
-    const currentChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime);
+    const currentChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime, sStart, sDayDuration);
 
     const { roll } = rollDice(settings.diceType);
     const successLevel = getSuccessLevel(roll, settings.diceType);
@@ -742,7 +746,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
               }
           }
       } else if (textKey === 'analyzeAction') {
-          const chunk = getEffectiveChunk(currentChunk, weatherZones, gameTime);
+          const chunk = getEffectiveChunk(currentChunk, weatherZones, gameTime, sStart, sDayDuration);
           let analysis = `[Analysis Report]\nCoordinates: (${chunk.x}, ${chunk.y})\nRegion ID: ${chunk.regionId}\nTerrain: ${t(chunk.terrain as TranslationKey)}\nTravel Cost: ${chunk.travelCost}\n\nEnvironmental Factors:\n- Temperature: ${chunk.temperature?.toFixed(1)}°C\n- Moisture: ${chunk.moisture}/100\n- Light Level: ${chunk.lightLevel}/100\n- Danger Level: ${chunk.dangerLevel}/100\n- Explorability: ${chunk.explorability.toFixed(1)}/100\n- Magic Affinity: ${chunk.magicAffinity}/100\n- Human Presence: ${chunk.humanPresence}/100\n- Predator Presence: ${chunk.predatorPresence}/100\n- Vegetation Density: ${chunk.vegetationDensity}/100\n- Soil Type: ${t(chunk.soilType as TranslationKey)}\n- Wind Level: ${chunk.windLevel?.toFixed(1) ?? 'N/A'}/100\n\nEntities:\n- Items: ${chunk.items.map((i: any) => t(i.name) + ` (x${i.quantity})`).join(', ') || 'None'}\n- NPCs: ${chunk.NPCs.map((n: any) => t(n.name)).join(', ') || 'None'}\n- Structures: ${chunk.structures.map((s: any) => t(s.name)).join(', ') || 'None'}`;
 
           if (chunk.enemy) {
@@ -956,7 +960,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
     if (!baseChunk) { setIsLoading(false); return; }
 
-    const effectiveChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime);
+    const effectiveChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime, sStart, sDayDuration);
     const weather = weatherZones[effectiveChunk.regionId]?.currentWeather;
     let successChanceBonus = playerStats.persona === 'artisan' ? 10 : 0;
     let elementalAffinity: any = 'none';

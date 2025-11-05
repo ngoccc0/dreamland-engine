@@ -62,8 +62,37 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
   const { t, language } = useLanguage();
 
   const handleAction = (callback: () => void) => {
-    callback();
-    onOpenChange(false); // Close popup after any action
+    // Close the popup first to ensure any modal overlay is removed before
+    // executing the action callback which may trigger toasts, state updates
+    // or other UI that could be affected by an overlay still present.
+    // This ordering avoids transient UI-blocking issues where a dialog
+    // overlay remains in the DOM while other components update.
+    onOpenChange(false);
+    try {
+      callback();
+    } catch (e) {
+      // swallow to avoid breaking UI; errors should still be visible in console
+      // but don't leave the popup open or block further interactions.
+      // eslint-disable-next-line no-console
+      console.error('Inventory action callback failed', e);
+    } finally {
+      // Safety: some third-party floating/dismiss layers temporarily set
+      // document.body.style.pointerEvents = 'none' to block outside clicks.
+      // If a library failed to restore that style (e.g. due to an exception
+      // or an interrupted lifecycle) the whole UI will become unclickable.
+      // Clear any residual pointer-events on the root elements here as a
+      // low-risk recovery measure.
+      try {
+        if (typeof document !== 'undefined' && document?.body) {
+          document.body.style.pointerEvents = '';
+        }
+        if (typeof document !== 'undefined' && document?.documentElement) {
+          document.documentElement.style.pointerEvents = '';
+        }
+      } catch (e) {
+        // ignore; defensive best-effort only
+      }
+    }
   }
 
   return (

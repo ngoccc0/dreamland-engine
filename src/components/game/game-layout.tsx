@@ -24,6 +24,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescript
 import { HudIconProgress } from "@/components/game/hud-icon-progress";
 import { useLanguage } from "@/context/language-context";
 import { useSettings } from "@/context/settings-context";
+import useKeyboardBindings from "@/hooks/use-keyboard-bindings";
 import { useGameEngine } from "@/hooks/use-game-engine";
 import type { Structure, Action, NarrativeEntry } from "@/lib/game/types";
 import { cn, getTranslatedText } from "@/lib/utils";
@@ -152,75 +153,43 @@ export default function GameLayout(props: GameLayoutProps) {
         }, 0);
             }, [settings]);
 
-    // Global keyboard controls: Arrow keys + WASD to move, Space to attack.
-    // Movement keys take priority over typing: capture them in the capture phase and prevent default so
-    // WASD/Arrow/Space control the player even if the action input has focus.
-    useEffect(() => {
-        const keyHandler = (e: KeyboardEvent) => {
-            try {
-                // Movement and attack keys should always be intercepted by the game controls
-                const movementKeys = new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','W','a','A','s','S','d','D',' ']);
-
-                // If this is not a movement key, and the user is focused on a text input, allow typing normally.
-                const active = document.activeElement as HTMLElement | null;
-                if (!movementKeys.has(e.key)) {
-                    if (active) {
-                        const tag = (active.tagName || '').toUpperCase();
-                        if (tag === 'INPUT' || tag === 'TEXTAREA' || active.isContentEditable) return;
+    // Use centralized keyboard bindings hook for all global key handling
+    useKeyboardBindings({
+        handlers: {
+            move: (dir: 'north' | 'south' | 'west' | 'east') => handleMove(dir),
+            attack: () => handleAttack(),
+            openInventory: () => setInventoryOpen(true),
+            openStatus: () => setStatusOpen(true),
+            openMap: () => setIsFullMapOpen(true),
+            customAction: () => setCustomDialogOpen(true),
+            pickUp: () => { setPickupDialogOpen(true); setSelectedPickupIds([]); },
+            hotkey: (index: number) => {
+                // Prefer skills mapped to hotkeys (leftmost skills). If missing, fall back to available actions.
+                try {
+                    const idx = index - 1;
+                    const skill = playerStats?.skills?.[idx];
+                    if (skill) {
+                        const skillName = getTranslatedText(skill.name, language, t);
+                        handleUseSkill(skillName);
+                        return;
                     }
-                }
 
-                // If any major popup is open, don't intercept keys so users can interact with the UI.
-                if (isSettingsOpen || isFullMapOpen || isInventoryOpen || isStatusOpen || isCraftingOpen || isBuildingOpen || isFusionOpen || isTutorialOpen) return;
-
-                // Map keys to actions (movement keys take precedence even when an input is focused)
-                switch (e.key) {
-                    case 'ArrowUp':
-                    case 'w':
-                    case 'W':
-                        e.preventDefault();
-                        handleMove('north');
-                        focusCustomActionInput();
-                        break;
-                    case 'ArrowDown':
-                    case 's':
-                    case 'S':
-                        e.preventDefault();
-                        handleMove('south');
-                        focusCustomActionInput();
-                        break;
-                    case 'ArrowLeft':
-                    case 'a':
-                    case 'A':
-                        e.preventDefault();
-                        handleMove('west');
-                        focusCustomActionInput();
-                        break;
-                    case 'ArrowRight':
-                    case 'd':
-                    case 'D':
-                        e.preventDefault();
-                        handleMove('east');
-                        focusCustomActionInput();
-                        break;
-                    case ' ': // Space to attack
-                        e.preventDefault();
-                        handleAttack();
-                        focusCustomActionInput();
-                        break;
-                    default:
-                        break;
+                    // If no skill in that slot, attempt to trigger the corresponding available action
+                    const action = otherActions[idx] || pickUpActions[idx];
+                    if (action) {
+                        handleAction(action.id);
+                        return;
+                    }
+                } catch (e) {
+                    logger.debug('[GameLayout] hotkey handler error', e);
                 }
-            } catch (err) {
-                // swallow any unexpected errors from accessing document in unusual environments
-                logger.debug('[GameLayout] keyboard handler error', err);
             }
-        };
-
-        // Use capture phase so the game controls get priority over other UI handlers (like inputs)
-        window.addEventListener('keydown', keyHandler, { capture: true });
-        return () => window.removeEventListener('keydown', keyHandler, { capture: true });
-    }, [handleMove, handleAttack, isSettingsOpen, isFullMapOpen, isInventoryOpen, isStatusOpen, isCraftingOpen, isBuildingOpen, isFusionOpen, isTutorialOpen, focusCustomActionInput]);
+        },
+        popupOpen: isSettingsOpen || isFullMapOpen || isInventoryOpen || isStatusOpen || isCraftingOpen || isBuildingOpen || isFusionOpen || isTutorialOpen,
+        focusCustomActionInput: focusCustomActionInput,
+        enabled: true,
+        movementWhileTyping: true,
+    });
 
     const handleActionClick = (actionId: number) => {
         handleAction(actionId);

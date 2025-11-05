@@ -4,6 +4,7 @@
 
 import { useEffect } from 'react';
 import { getEffectiveChunk } from '@/lib/game/engine/generation';
+import { useSettings } from '@/context/settings-context';
 import type { GameState, Chunk } from "@/lib/game/types";
 
 /**
@@ -32,13 +33,17 @@ export function useWorldRendering(deps: WorldRenderingDeps) {
     isLoaded, world, playerPosition, weatherZones, gameTime, setCurrentChunk
   } = deps;
 
+  const { settings } = useSettings();
+  const sStart = (settings as any).startTime ?? 0;
+  const sDayDuration = (settings as any).dayDuration ?? 24000;
+
   // EFFECT: Update the visual representation of the current chunk whenever the environment changes.
   useEffect(() => {
     if (!isLoaded) return;
     
     const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
     if (baseChunk) {
-        const newEffectiveChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime);
+  const newEffectiveChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime, sStart, sDayDuration);
         setCurrentChunk(newEffectiveChunk);
     } else {
         setCurrentChunk(null);

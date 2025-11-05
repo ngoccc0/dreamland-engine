@@ -113,18 +113,10 @@ import { getTranslatedText, resolveItemId } from "@/lib/utils";
  * ```
  */
 export const calculateCraftingOutcome = (
-    playerItems: PlayerItem[], 
+    playerItems: PlayerItem[],
     recipe: Recipe,
     allItemDefinitions: Record<string, ItemDefinition>
 ): CraftingOutcome => {
-    const isDebug = process.env.NODE_ENV !== 'production' && recipe?.result?.name === 'simple_stone_axe';
-    if (isDebug) {
-        try {
-            console.debug('[debug][calculateCraftingOutcome] recipe=', recipe.result?.name);
-            console.debug('[debug][calculateCraftingOutcome] allItemDefinitions keys sample=', Object.keys(allItemDefinitions).slice(0,20));
-            console.debug('[debug][calculateCraftingOutcome] playerItems before resolution=', playerItems.map(pi => ({ id: (pi as any).id, nameEn: getTranslatedText(pi.name as TranslatableString, 'en'), nameVi: getTranslatedText(pi.name as TranslatableString, 'vi'), quantity: pi.quantity })));
-        } catch (e) { /* ignore */ }
-    }
     // Helper to robustly resolve a player's item to a canonical id.
     // Try explicit `id`, then resolver using English and Vietnamese fallbacks,
     // then fall back to translated text strings. This helps handle items stored
@@ -177,8 +169,6 @@ export const calculateCraftingOutcome = (
         getTranslatedText(item.name, 'en') === recipe.requiredTool
     ));
 
-    if (isDebug) console.debug('[debug][calculateCraftingOutcome] hasRequiredTool=', hasRequiredTool);
-
     for (const requirement of recipe.ingredients) {
         let bestAvailable: { item: PlayerItem, quality: number } | null = null;
         
@@ -198,9 +188,6 @@ export const calculateCraftingOutcome = (
         
         // Find the best quality substitute the player has enough of
         possibleItems.sort((a, b) => a.quality - b.quality);
-        if (isDebug) {
-            console.debug('[debug][calculateCraftingOutcome] requirement=', requirement.name, 'possibleItems=', possibleItems);
-        }
         
         for (const possible of possibleItems) {
             const playerItem = playerItems.find(pi => {
@@ -214,12 +201,6 @@ export const calculateCraftingOutcome = (
                 if (getTranslatedText(pi.name, 'en') === possible.name) return true;
                 return false;
             });
-            if (isDebug) {
-                try {
-                    const sample = playerItems.map(pi => ({ rawId: (pi as any).id, nameEn: getTranslatedText(pi.name as TranslatableString, 'en'), resolvedId: getPlayerItemId(pi) }));
-                    console.debug('[debug][calculateCraftingOutcome] checking possible=', possible, 'playerItems sample resolution=', sample.slice(0,10));
-                } catch (e) {}
-            }
             if (playerItem && playerItem.quantity >= requirement.quantity) {
                 bestAvailable = { item: playerItem, quality: possible.quality };
                 break;

@@ -297,6 +297,11 @@ export function SettingsPopup({ open, onOpenChange, isInGame, currentBiome }: Se
                     </Label>
                     <Switch id="controls-scroll-switch" checked={settings.controlsPreventScroll ?? true} onCheckedChange={(v) => setSettings({ controlsPreventScroll: !!v })} />
                 </div>
+                <div>
+                    <Label className="font-semibold mt-4">{t('keyBindings') || 'Key bindings'}</Label>
+                    <p className="text-sm text-muted-foreground mb-2">{t('keyBindingsDesc') || 'Customize keyboard shortcuts for movement and common actions.'}</p>
+                    <KeyBindingsEditor settings={settings} setSettings={setSettings} />
+                </div>
                 {isDesktop && (
                 <>
                 <Separator />
@@ -345,4 +350,76 @@ export function SettingsPopup({ open, onOpenChange, isInGame, currentBiome }: Se
       </DialogContent>
     </Dialog>
   );
+}
+
+// Simple key bindings editor used inside SettingsPopup. It listens for a single key press
+// when the user clicks "Change" and persists the result into settings via setSettings.
+function KeyBindingsEditor({ settings, setSettings }: { settings: any; setSettings: (s: any) => void }) {
+    const { t } = useLanguage();
+    const [listeningFor, setListeningFor] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!listeningFor) return;
+        const handler = (e: KeyboardEvent) => {
+            e.preventDefault?.();
+            const key = e.key;
+            // update the specific binding
+            setSettings({ keyBindings: { ...(settings.keyBindings || {}), [listeningFor]: [key] } });
+            setListeningFor(null);
+        };
+        const cancel = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setListeningFor(null);
+        };
+        window.addEventListener('keydown', handler, { capture: true });
+        window.addEventListener('keydown', cancel);
+        return () => {
+            window.removeEventListener('keydown', handler, { capture: true });
+            window.removeEventListener('keydown', cancel);
+        };
+    }, [listeningFor, setSettings, settings.keyBindings]);
+
+    const getLabel = (k: string) => {
+        const val = settings?.keyBindings?.[k];
+        if (!val) return '(unset)';
+        return Array.isArray(val) ? val.join(', ') : String(val);
+    };
+
+    const resetDefaults = () => {
+        localStorage.removeItem('gameSettings');
+        // Reload page so SettingsProvider rehydrates defaults
+        window.location.reload();
+    };
+
+    return (
+        <div className="space-y-2">
+            {[
+                { key: 'moveUp', label: t('moveUp') || 'Move Up' },
+                { key: 'moveDown', label: t('moveDown') || 'Move Down' },
+                { key: 'moveLeft', label: t('moveLeft') || 'Move Left' },
+                { key: 'moveRight', label: t('moveRight') || 'Move Right' },
+                { key: 'attack', label: t('attack') || 'Attack' },
+                { key: 'openInventory', label: t('inventoryShort') || 'Inventory' },
+                { key: 'openStatus', label: t('statusShort') || 'Status' },
+                { key: 'openMap', label: t('minimap') || 'Map' },
+                { key: 'pickUp', label: t('pickUpItems') || 'Pick up items' },
+                { key: 'hot1', label: 'Hotkey 1' },
+                { key: 'hot2', label: 'Hotkey 2' },
+                { key: 'hot3', label: 'Hotkey 3' },
+                { key: 'hot4', label: 'Hotkey 4' },
+                { key: 'hot5', label: 'Hotkey 5' },
+            ].map((row) => (
+                <div key={row.key} className="flex items-center justify-between">
+                    <div className="text-sm">{row.label}</div>
+                    <div className="flex items-center gap-2">
+                        <div className="text-xs text-muted-foreground">{getLabel(row.key)}</div>
+                        <Button size="sm" onClick={() => setListeningFor(row.key)}>{listeningFor === row.key ? (t('pressAnyKey') || 'Press any key...') : (t('change') || 'Change')}</Button>
+                    </div>
+                </div>
+            ))}
+            <div className="flex gap-2">
+                <Button variant="ghost" onClick={() => setSettings({ keyBindings: settings.keyBindings })}>{t('save') || 'Save'}</Button>
+                <Button variant="destructive" onClick={resetDefaults}>{t('resetToDefaults') || 'Reset to defaults'}</Button>
+            </div>
+        </div>
+    );
 }

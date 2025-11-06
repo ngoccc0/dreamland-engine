@@ -70,7 +70,7 @@ function fillTemplate(
       detail: filters.detailLevel ?? opts.detail,
       biome: filters.biomeTags?.includes(opts.biome || '') ? opts.biome : undefined,
       tone: filters.toneTags?.find((t: string) => t === opts.tone) ? opts.tone : undefined,
-      voice: filters.voice?.find((v: string) => v === opts.persona?.voice) ? opts.persona?.voice : undefined,
+      voice: opts.persona?.voice,  // Use persona voice directly
     };
 
     const pick = lex.pick(slotName, pickOpts, opts.rng as any);

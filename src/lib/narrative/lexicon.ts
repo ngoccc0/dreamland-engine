@@ -49,18 +49,34 @@ export class Lexicon {
       return true;
     });
 
-    // If a voice is requested, prefer entries matching that voice. If none
-    // match, fall back to tone filter or full candidate set.
+    let voiceFilteredCandidates = candidates; // Keep a copy before voice filtering
+
+    // If a voice is requested, try to filter by voice
     if (options.voice) {
-      const voiceMatches = candidates.filter(e => Array.isArray(e.voice) && e.voice.includes(options.voice as string));
-      if (voiceMatches.length > 0) candidates = voiceMatches;
+      const matches = candidates.filter(e => Array.isArray(e.voice) && e.voice.includes(options.voice as string));
+      if (matches.length > 0) {
+        voiceFilteredCandidates = matches; // Use voice-matched candidates
+      } else {
+        // If no voice matches, revert to original candidates for further filtering (e.g., by tone)
+        // This ensures we don't filter out everything if a specific voice isn't found.
+        voiceFilteredCandidates = candidates;
+      }
     }
 
-    // Tone fallback: if a tone is requested, prefer entries matching toneTags
-    if ((options.voice == null || candidates.length === 0) && options.tone) {
-      const toneMatches = candidates.filter(e => Array.isArray(e.toneTags) && e.toneTags.includes(options.tone as string));
-      if (toneMatches.length > 0) candidates = toneMatches;
+    // Now apply tone filter to the (potentially voice-filtered or reverted) candidates
+    let toneFilteredCandidates = voiceFilteredCandidates; // Keep a copy before tone filtering
+    if (options.tone) {
+      const matches = voiceFilteredCandidates.filter(e => Array.isArray(e.toneTags) && e.toneTags.includes(options.tone as string));
+      if (matches.length > 0) {
+        toneFilteredCandidates = matches; // Use tone-matched candidates
+      } else {
+        // If no tone matches, revert to candidates before tone filtering
+        toneFilteredCandidates = voiceFilteredCandidates;
+      }
     }
+
+    // Use the final filtered candidates
+    candidates = toneFilteredCandidates;
     const weights = candidates.map(e => e.weight ?? 1);
     if (!rng) {
       // fallback to Math.random

@@ -51,7 +51,7 @@ export const ItemEffectSchema = z.object({
     type: z.enum([
         'HEAL', 'RESTORE_STAMINA', 'RESTORE_HUNGER', 'RESTORE_MANA', 'DAMAGE', 'APPLY_EFFECT', 'TELEPORT',
         'TEMPORARY_STRENGTH_BOOST', 'TEMPORARY_SPEED_BOOST', 'TEMPORARY_AGILITY_BOOST',
-        'TEMPORARY_POISON_RESISTANCE', 'REGENERATE_HEALTH', 'CONFUSION', 'WEAKNESS'
+        'TEMPORARY_POISON_RESISTANCE', 'REGENERATE_HEALTH', 'CONFUSION', 'WEAKNESS', 'GAMBLE_EFFECT'
     ]).describe("The type of effect the item has. Built-in types include 'HEAL', 'RESTORE_STAMINA', 'RESTORE_HUNGER', 'RESTORE_MANA', 'DAMAGE', 'APPLY_EFFECT', 'TELEPORT', and various temporary boosts/effects."),
     amount: z.number().optional().describe("The numerical value of the effect (e.g., amount of health restored). Positive values buff, negative values debuff. Magnitude affects potency."),
     duration: z.number().optional().describe("Duration of the effect in game turns, if applicable. Undefined means instant effect. Duration effects are tracked by the game's time system."),
@@ -133,7 +133,13 @@ export const ItemDefinitionSchema = z.object({
   tier: z.number().describe("The rarity or power level of the item. Higher tiers generally mean more valuable or potent items, affecting drop rates and crafting difficulty."),
   category: ItemCategorySchema.describe("The primary category of the item, influencing inventory sorting, crafting recipes, and general game logic."),
   subCategory: z.string().optional().describe("A more specific category like 'Meat', 'Fruit', 'Potion'. Used for finer-grained filtering and game mechanics."),
-  emoji: z.string().describe("A single emoji, SVG filename, or image name representing the item. Used for visual representation in UI."),
+  emoji: z.union([
+    z.string(),
+    z.object({
+      type: z.literal('image'),
+      url: z.string()
+    })
+  ]).describe("A single emoji, SVG filename, or image object representing the item. Used for visual representation in UI."),
   effects: z.array(ItemEffectSchema).describe("An array of effects the item provides when used. These effects directly impact player attributes, status, or the game world."),
   baseQuantity: z.object({ min: z.number(), max: z.number() }).describe("The base quantity range (min and max) of this item that typically spawns or is found. This is scaled by world and chunk multipliers."),
   /**

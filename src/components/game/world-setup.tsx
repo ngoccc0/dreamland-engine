@@ -404,7 +404,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps): JSX.Element {
                                         const allItems = [...(premadeWorlds[userInput.toLowerCase()]?.customItemCatalog || []), ...(generatedData?.customItemCatalog || [])];
                                         const def = allItems.find(d => getTranslatedText(d.name, 'en') === getTranslatedText(item.name, 'en'));
                                         const emoji = def?.emoji || '📦';
-                                        return <span key={i} className="flex items-center gap-1">{emoji} {getTranslatedText(item.name, language, t)} x{item.quantity}</span>
+                                        return <span key={i} className="flex items-center gap-1">{typeof emoji === 'string' ? emoji : '📦'} {getTranslatedText(item.name, language, t)} x{item.quantity}</span>
                                     })}
                                 </div>
                             }

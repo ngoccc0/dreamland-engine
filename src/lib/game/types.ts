@@ -1,4 +1,10 @@
 /**
+ * Represents an icon that can be either an emoji string or an external image.
+ * This allows for flexible visual representation of game entities.
+ */
+export type Icon = string | { type: 'image'; url: string };
+
+/**
  * Represents an enemy entity in the game world.
  * This interface is designed for extensibility and modding, allowing for diverse enemy types.
  *
@@ -39,7 +45,7 @@ export interface Enemy {
     diet: string[];
     satiation: number;
     maxSatiation: number;
-    emoji: string;
+    emoji: Icon;
     harvestable?: {
         difficulty: number;
         requiredTool: string;
@@ -75,7 +81,8 @@ import type {
     ItemDefinition,
     BiomeDefinition,
     Recipe,
-    StructureDefinition
+    StructureDefinition,
+    Emoji
 } from "./definitions";
 /**
  * Represents the serializable state of the game world.
@@ -101,7 +108,7 @@ export interface PlayerStatusDefinition {
     /** The current mana points of the player, used for magical abilities. */
     mana?: number;
     /** A list of items currently in the player's inventory. */
-    items: PlayerItem[];
+    items: { name: TranslatableString; quantity: number; tier: number; emoji: Icon }[];
     /** A list of quest IDs the player is currently undertaking or has completed. */
     quests: string[];
     /** A list of skills the player has acquired. */
@@ -393,6 +400,8 @@ export type BiomeTemplateData = {
     sounds: BiomeAdjectiveCategory;
     /** Optional: Sky descriptions for this biome. */
     sky?: BiomeAdjectiveCategory;
+    /** Optional: Visual representation of the biome. */
+    emoji?: Emoji;
 };
 
 /**
@@ -544,13 +553,13 @@ export interface ChunkItem {
     /** Optional canonical id for the item (e.g., 'healingHerb'). Prefer using this for logic/lookups. */
     id?: string;
     /** The description of the item (translatable). */
-    description: TranslatableString; 
+    description: TranslatableString;
     /** The quantity of the item in this chunk. */
     quantity: number;
     /** The tier/rarity of the item. */
     tier: number;
     /** An emoji representing the item for UI. */
-    emoji: string;
+    emoji: Icon;
 }
 
 /**
@@ -566,7 +575,7 @@ export interface PlayerItem {
     /** The tier/rarity of the item. */
     tier: number;
     /** An emoji representing the item for UI. */
-    emoji: string;
+    emoji: Icon;
 }
 
 /**

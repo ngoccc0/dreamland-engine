@@ -84,11 +84,19 @@ export type RecipeUnlockCondition = z.infer<typeof RecipeUnlockConditionSchema>;
 
 // --- Player & World State Schemas (used as input for AI) ---
 
+export const IconSchema = z.union([
+    z.string(),
+    z.object({
+        type: z.literal('image'),
+        url: z.string(),
+    }),
+]);
+
 export const PlayerItemSchema = z.object({
     name: z.custom<TranslatableString>(),
     quantity: z.number().int().min(1),
     tier: z.number(),
-    emoji: z.string(),
+    emoji: IconSchema,
 });
 
 export const PetSchema = z.object({
@@ -159,7 +167,7 @@ export const ChunkItemSchema = z.object({
     description: z.custom<TranslatableString>(),
     quantity: z.number().int(),
     tier: z.number(),
-    emoji: z.string(),
+    emoji: IconSchema,
 });
 
 export const NpcSchema = z.object({

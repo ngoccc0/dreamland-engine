@@ -74,7 +74,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: { en: 'A thorny vine, strong and flexible.', vi: 'Một sợi dây leo có gai, chắc và dẻo.' },
         tier: 1,
         category: 'Material',
-        emoji: '🌿',
+        emoji: { type: 'image', url: '/assets/images/thorny_vine.png' },
         effects: [],
         baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,

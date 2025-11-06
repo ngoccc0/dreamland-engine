@@ -2,6 +2,7 @@ import createRng from './rng';
 import Lexicon from './lexicon';
 import { selectPrimaryTemplate } from './selector';
 import { fillTemplate } from './assembler';
+import { compileCondition } from './condition';
 import StateManager from './state-manager';
 import path from 'path';
 import fs from 'fs';
@@ -35,6 +36,7 @@ export function generateNarrative(snapshot: any, templates: any[], options: Gene
   if (!primary) return { text: 'No template matched', meta: { templateId: null, seed } };
 
   const pattern = primary.patterns && primary.patterns[0] ? primary.patterns[0].template : primary.id;
+  const slots = primary.patterns && primary.patterns[0] ? primary.patterns[0].slots : undefined;
 
   let text = fillTemplate(pattern, lex as any, snapshot, {
     lang,
@@ -44,7 +46,38 @@ export function generateNarrative(snapshot: any, templates: any[], options: Gene
     state,
     persona: options.persona,
     tone: options.tone,
+    slots,
   });
+
+  // Handle reaction patterns if available
+  if (primary.reactionPatterns && primary.reactionPatterns.length > 0) {
+    // Filter reaction patterns based on their conditions
+    const availableReactions = primary.reactionPatterns.filter(rp => {
+      if (!rp.conditions) return true; // No conditions means always available
+      const condFn = compileCondition(rp.conditions);
+      return condFn(snapshot, state).matches;
+    });
+
+    if (availableReactions.length > 0) {
+      // Select a reaction pattern based on weights
+      const reactionWeights = availableReactions.map(rp => rp.weight ?? 1);
+      const selectedReaction = rng.weightedChoice(availableReactions, reactionWeights) || availableReactions[0];
+
+      const reactionText = fillTemplate(selectedReaction.template, lex as any, snapshot, {
+        lang,
+        detail: desiredDetail,
+        biome: snapshot?.chunk?.terrain,
+        rng,
+        state,
+        persona: options.persona,
+        tone: options.tone,
+        slots: selectedReaction.slots,
+      });
+
+      // Combine narrative and reaction with a line break
+      text = `${text}\n\n${reactionText}`;
+    }
+  }
 
   // update state based on decision
   const newState = stateManager.updateWithSnapshot(

@@ -1,14 +1,22 @@
 
 "use client";
 // Helper: render emoji or image file
-function renderItemEmoji(emoji: string, size: number = 24) {
+function renderItemEmoji(emoji: string | { type: 'image'; url: string }, size: number = 24) {
   if (!emoji) return null;
+
+  // Nếu là object với type 'image'
+  if (typeof emoji === 'object' && emoji.type === 'image') {
+    return <img src={emoji.url.startsWith('/') ? emoji.url : `/assets/${emoji.url}`} alt="icon" style={{ width: size, height: size, display: 'inline-block', verticalAlign: 'middle' }} />;
+  }
+
+  // Nếu là string
+  const emojiStr = emoji as string;
   // Nếu là emoji unicode (không có dấu chấm, không phải đường dẫn)
-  if (/^[^./\\]{1,3}$/.test(emoji)) {
-    return <span>{emoji}</span>;
+  if (/^[^./\\]{1,3}$/.test(emojiStr)) {
+    return <span>{emojiStr}</span>;
   }
   // Nếu là tên file hình ảnh (svg/png/jpg...)
-  return <img src={emoji.startsWith('/') ? emoji : `/assets/${emoji}`} alt="icon" style={{ width: size, height: size, display: 'inline-block', verticalAlign: 'middle' }} />;
+  return <img src={emojiStr.startsWith('/') ? emojiStr : `/assets/${emojiStr}`} alt="icon" style={{ width: size, height: size, display: 'inline-block', verticalAlign: 'middle' }} />;
 }
 
 import { cn } from "@/lib/utils";

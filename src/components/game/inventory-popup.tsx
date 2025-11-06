@@ -17,6 +17,7 @@ import type { PlayerItem, ItemDefinition, Chunk, ItemCategory, PlayerAttributes,
 import type { TranslationKey } from "@/lib/i18n";
 import { cn, getTranslatedText } from "@/lib/utils";
 import { resolveItemDef } from '@/lib/game/item-utils';
+import { IconRenderer } from "@/components/ui/icon-renderer";
 
 interface InventoryPopupProps {
   open: boolean;
@@ -130,7 +131,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                                     )}
                                 >
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        <span className="text-2xl mr-2">{item.emoji}</span>
+                                        <IconRenderer icon={item.emoji} size={32} alt={getTranslatedText(item.name, language)} />
                                         <div className="flex flex-col items-start">
                                             <span className="text-foreground">{getTranslatedText(item.name, language)}</span>
                                             <div className="flex items-center gap-2">
@@ -145,7 +146,10 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                             
                             <DropdownMenuContent className="w-64">
                 <DropdownMenuLabel className="font-normal">
-                  <p className="font-bold">{item.emoji} {getTranslatedText(item.name, language)}</p>
+                  <p className="font-bold flex items-center gap-2">
+                    <IconRenderer icon={item.emoji} size={20} alt={getTranslatedText(item.name, language)} />
+                    {getTranslatedText(item.name, language)}
+                  </p>
                   {!definition ? (
                     <p className="text-xs text-red-500 whitespace-normal">Item definition not found!</p>
                   ) : (

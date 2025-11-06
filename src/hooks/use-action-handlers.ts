@@ -480,6 +480,56 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                         effectDescriptions.push(`${t('appliedEffect') || 'Applied effect'}: ${String(effect.effectType)}`);
                     }
             }
+            if (effect.type === 'GAMBLE_EFFECT') {
+                // Gamble effect: 50/50 chance between positive and negative outcomes
+                const gambleType = effect.gambleType || 'balanced';
+                const isPositive = Math.random() < 0.5;
+
+                if (isPositive) {
+                    if (gambleType === 'mana') {
+                        const healAmount = 30; // Large mana restoration
+                        const old = newPlayerStats.mana ?? 0;
+                        newPlayerStats.mana = Math.min(100, (newPlayerStats.mana ?? 0) + healAmount);
+                        if (newPlayerStats.mana > old) effectDescriptions.push(t('itemManaEffect', { amount: newPlayerStats.mana - old }));
+                    } else if (gambleType === 'health') {
+                        const healAmount = 30; // Large health restoration
+                        const old = newPlayerStats.hp;
+                        newPlayerStats.hp = Math.min(100, newPlayerStats.hp + healAmount);
+                        if (newPlayerStats.hp > old) effectDescriptions.push(t('itemHealEffect', { amount: newPlayerStats.hp - old }));
+                    } else { // balanced
+                        const healAmount = 20; // Medium restoration for both
+                        const oldHp = newPlayerStats.hp;
+                        const oldMana = newPlayerStats.mana ?? 0;
+                        newPlayerStats.hp = Math.min(100, newPlayerStats.hp + healAmount);
+                        newPlayerStats.mana = Math.min(100, (newPlayerStats.mana ?? 0) + healAmount);
+                        if (newPlayerStats.hp > oldHp) effectDescriptions.push(t('itemHealEffect', { amount: newPlayerStats.hp - oldHp }));
+                        if (newPlayerStats.mana > oldMana) effectDescriptions.push(t('itemManaEffect', { amount: newPlayerStats.mana - oldMana }));
+                    }
+                } else {
+                    // Apply poison effect (negative outcome)
+                    type LocalStatusEffect = {
+                        id: string;
+                        type: string;
+                        duration: number;
+                        magnitude?: number;
+                        description: TranslatableString;
+                        appliedTurn: number;
+                        source?: string;
+                    };
+                    const poisonEffect: LocalStatusEffect = {
+                        id: `item-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
+                        type: 'poison',
+                        duration: 5,
+                        magnitude: 2,
+                        description: { en: 'Poisoned', vi: 'Bị độc' },
+                        appliedTurn: (turn ?? 0),
+                        source: itemName,
+                    };
+                    newPlayerStats.statusEffects = newPlayerStats.statusEffects || [];
+                    newPlayerStats.statusEffects.push(poisonEffect as any);
+                    effectDescriptions.push(t('appliedEffect') || 'Applied effect: Poison');
+                }
+            }
         });
         narrativeResult.wasUsed = effectDescriptions.length > 0;
         narrativeResult.effectDescription = effectDescriptions.join(', ');
@@ -641,6 +691,54 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                       } else addNarrativeEntry(t('npcQuestNotEnoughItems', { npcName: npcName, needed: npcDef.questItem.quantity - (itemInInventory?.quantity || 0), itemName: t(npcDef.questItem.name as TranslationKey) }), 'narrative');
                   } else { newPlayerStats.quests.push(questText); addNarrativeEntry(t('npcQuestGive', { npcName: npcName, questText: questText }), 'narrative'); }
               } else addNarrativeEntry(t('npcNoQuest', { npcName: npcName }), 'narrative');
+          }
+      } else if (textKey === 'useItemOnNpcAction') {
+          const npcName = t(action.params!.npcName as TranslationKey);
+          const itemName = action.params!.itemName as string;
+          const npc = currentChunk.NPCs.find((n: any) => t(n.name as TranslationKey) === npcName);
+          if (npc && itemName === 'cvnt_essence') {
+              // Special logic for Floptropica quest completion
+              const questText = t('floptropica_quest2');
+              if (newPlayerStats.quests.includes(questText)) {
+                  const itemInInventory = newPlayerStats.items.find((i: PlayerItem) => getTranslatedText(i.name, 'en') === 'cvnt_essence');
+                  if (itemInInventory && itemInInventory.quantity >= 1) {
+                      // Consume the item
+                      itemInInventory.quantity -= 1;
+                      if (itemInInventory.quantity <= 0) {
+                          newPlayerStats.items = newPlayerStats.items.filter(i => getTranslatedText(i.name, 'en') !== 'cvnt_essence');
+                      }
+
+                      // Complete the quest
+                      newPlayerStats.quests = newPlayerStats.quests.filter(q => q !== questText);
+
+                      // Add reward item (meme_template)
+                      const rewardItemName = 'meme_template';
+                      const existingRewardItem = newPlayerStats.items.find((i: PlayerItem) => getTranslatedText(i.name, 'en') === rewardItemName);
+                      if (existingRewardItem) {
+                          existingRewardItem.quantity += 1;
+                      } else {
+                          const rewardItemDef = resolveItemDef(rewardItemName);
+                          if (rewardItemDef) {
+                              newPlayerStats.items.push(ensurePlayerItemId({
+                                  name: { en: rewardItemName, vi: t(rewardItemName as TranslationKey) },
+                                  quantity: 1,
+                                  tier: rewardItemDef.tier,
+                                  emoji: rewardItemDef.emoji
+                              }, customItemDefinitions, t, language));
+                          }
+                      }
+
+                      // Add narrative and toast
+                      addNarrativeEntry(t('floptropicaQuest2Completed', { npcName: npcName }), 'narrative');
+                      toast({ title: t('questCompletedTitle'), description: questText });
+                  } else {
+                      addNarrativeEntry(t('itemNotFound'), 'system');
+                  }
+              } else {
+                  addNarrativeEntry(t('npcNoQuest', { npcName: npcName }), 'narrative');
+              }
+          } else {
+              addNarrativeEntry(t('invalidAction'), 'system');
           }
       } else if (textKey === 'exploreAction') {
           const result = handleSearchAction(

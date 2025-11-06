@@ -1,4 +1,5 @@
 import type { TranslatableString } from "@/core/types/i18n";
+import type { Icon } from "../types";
 
 export type EnemyBehavior = 'aggressive' | 'passive' | 'defensive' | 'territorial' | 'immobile' | 'ambush';
 export type EnemySize = 'medium' | 'small' | 'large';
@@ -9,7 +10,7 @@ export interface Enemy {
     damage: number;
     behavior: EnemyBehavior;
     size: EnemySize;
-    emoji: string;
+    emoji: Icon;
     satiation: number;
     maxSatiation: number;
     diet: string[];

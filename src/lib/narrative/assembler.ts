@@ -51,7 +51,7 @@ function fillTemplate(
   template: string,
   lex: Lexicon,
   context: any,
-  opts: { lang?: string; detail?: number; biome?: string; rng?: RNG; state?: any; persona?: any; tone?: string } = {},
+  opts: { lang?: string; detail?: number; biome?: string; rng?: RNG; state?: any; persona?: any; tone?: string; slots?: any[] } = {},
 ) {
   // If the player is repeating an action (state.repeatCount >= 2), try to
   // include a continuation fragment. If template already contains
@@ -60,8 +60,20 @@ function fillTemplate(
   const repeatCount = opts.state?.repeatCount ?? 0;
 
   const replaced = template.replace(/{{\s*([^}]+?)\s*}}/g, (m, p1) => {
-    const slot = p1.trim();
-    const pick = lex.pick(slot, { detail: opts.detail, biome: opts.biome, tone: opts.tone, voice: opts.persona?.voice }, opts.rng as any);
+    const slotName = p1.trim();
+    // Find slot definition if available
+    const slotDef = opts.slots?.find((s: any) => s.id === slotName);
+    const filters = slotDef?.filters || {};
+
+    // Build pick options from slot filters and global options
+    const pickOpts = {
+      detail: filters.detailLevel ?? opts.detail,
+      biome: filters.biomeTags?.includes(opts.biome || '') ? opts.biome : undefined,
+      tone: filters.toneTags?.find((t: string) => t === opts.tone) ? opts.tone : undefined,
+      voice: filters.voice?.find((v: string) => v === opts.persona?.voice) ? opts.persona?.voice : undefined,
+    };
+
+    const pick = lex.pick(slotName, pickOpts, opts.rng as any);
     if (!pick) return m; // leave placeholder if not found
     return pick.text;
   });

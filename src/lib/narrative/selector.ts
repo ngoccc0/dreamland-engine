@@ -1,5 +1,8 @@
 import compileCondition, { EvalResult } from './condition';
 import type { RNG } from './rng';
+import type { SlotSchema } from './schemas';
+
+type Slot = typeof SlotSchema._type;
 
 export type Template = {
   id: string;
@@ -8,7 +11,8 @@ export type Template = {
   conditions?: any;
   lengthHint?: number;
   weight?: number;
-  patterns?: { id?: string; template: string; slots?: string[] }[];
+  patterns?: { id?: string; template: string; slots?: Slot[] }[];
+  reactionPatterns?: { id?: string; template: string; weight?: number; slots?: Slot[]; conditions?: any }[];
 };
 
 export function scoreTemplate(
@@ -46,7 +50,7 @@ export function scoreTemplate(
   // instead of a fresh description.
   const repeatCount = state?.repeatCount ?? 0;
   const hasContinuation = (tmpl.patterns || []).some(p => {
-    if (p.slots && p.slots.includes('continuation_fragment')) return true;
+    if (p.slots && p.slots.some(slot => slot.id === 'continuation_fragment')) return true;
     if (typeof p.template === 'string' && /{{\s*continuation_fragment\s*}}/.test(p.template)) return true;
     return false;
   });

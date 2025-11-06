@@ -96,3 +96,17 @@ export const LootDropSchema = z.object({
   }).describe("The range of quantities for the item that can be dropped."),
 }).describe("Defines a single item that can be dropped as loot, including its quantity and drop chance.");
 export type LootDrop = z.infer<typeof LootDropSchema>;
+
+/**
+ * Defines the visual representation of an item or biome, either as a simple emoji string
+ * or as an image object with a URL. This schema is reused across different game entities
+ * to maintain consistency in visual representation.
+ */
+export const EmojiSchema = z.union([
+  z.string(),
+  z.object({
+    type: z.literal('image'),
+    url: z.string()
+  })
+]).describe("A single emoji, SVG filename, or image object representing the entity. Used for visual representation in UI.");
+export type Emoji = z.infer<typeof EmojiSchema>;

@@ -7,9 +7,33 @@
     "lengthHint": 4,
     "weight": 0.8,
     "patterns": [
-      { "id": "p1", "template": "Một bức màn {{adjective_dark}} bao trùm lấy {{jungle_terrain_desc}}. {{opening_sensory}}", "slots": ["adjective_dark","jungle_terrain_desc","opening_sensory"] },
-      { "id": "p2", "template": "{{continuation_fragment}} {{jungle_terrain_desc}} ở phía trước, {{opening_sensory}}", "slots": ["continuation_fragment","jungle_terrain_desc","opening_sensory"] },
-      { "id": "p3", "template": "{{opening_sensory}} Khung cảnh {{adjective_dark}} của {{jungle_terrain_desc}} hiện ra.", "slots": ["opening_sensory", "adjective_dark", "jungle_terrain_desc"] }
+      {
+        "id": "p1",
+        "template": "Một bức màn {{adjective_dark}} bao trùm lấy {{jungle_terrain_desc}}. {{opening_sensory}}",
+        "slots": [
+          { "id": "adjective_dark", "filters": { "toneTags": ["gloomy"], "biomeTags": ["jungle"] } },
+          { "id": "jungle_terrain_desc", "filters": { "biomeTags": ["jungle"] } },
+          { "id": "opening_sensory", "filters": { "toneTags": ["gloomy"] } }
+        ]
+      },
+      {
+        "id": "p2",
+        "template": "{{continuation_fragment}} {{jungle_terrain_desc}} ở phía trước, {{opening_sensory}}",
+        "slots": [
+          { "id": "continuation_fragment" },
+          { "id": "jungle_terrain_desc", "filters": { "biomeTags": ["jungle"] } },
+          { "id": "opening_sensory", "filters": { "toneTags": ["gloomy"] } }
+        ]
+      },
+      {
+        "id": "p3",
+        "template": "{{opening_sensory}} Khung cảnh {{adjective_dark}} của {{jungle_terrain_desc}} hiện ra.",
+        "slots": [
+          { "id": "opening_sensory", "filters": { "toneTags": ["gloomy"] } },
+          { "id": "adjective_dark", "filters": { "toneTags": ["gloomy"], "biomeTags": ["jungle"] } },
+          { "id": "jungle_terrain_desc", "filters": { "biomeTags": ["jungle"] } }
+        ]
+      }
     ]
   },
   {
@@ -20,9 +44,46 @@
     "lengthHint": 2,
     "weight": 0.6,
     "patterns": [
-      { "id": "p1", "template": "Bạn len lỏi qua {{jungle_terrain_desc_lush}}. Không khí {{temp_detail}} và {{moisture_detail}}, mang theo {{smell_detail_lush}}.", "slots": ["jungle_terrain_desc_lush","temp_detail","moisture_detail","smell_detail_lush"] },
-      { "id": "p2", "template": "{{continuation_fragment}} {{jungle_terrain_desc_lush}} lướt qua bạn; {{smell_detail_lush}} thoang thoảng.", "slots": ["continuation_fragment","jungle_terrain_desc_lush","smell_detail_lush"] },
-      { "id": "p3", "template": "Không khí {{temp_detail}} và {{moisture_detail}}. {{jungle_terrain_desc_lush}} bao quanh bạn, cùng với {{smell_detail_lush}}.", "slots": ["temp_detail", "moisture_detail", "jungle_terrain_desc_lush", "smell_detail_lush"] }
+      {
+        "id": "p1",
+        "template": "Bạn len lỏi qua {{jungle_terrain_desc_lush}}. Không khí {{temp_detail}} và {{moisture_detail}}.",
+        "slots": [
+          { "id": "jungle_terrain_desc_lush", "filters": { "biomeTags": ["jungle"], "toneTags": ["lush", "vibrant"] } },
+          { "id": "temp_detail", "filters": { "toneTags": ["warm", "humid"] } },
+          { "id": "moisture_detail", "filters": { "toneTags": ["humid"] } }
+        ]
+      },
+      {
+        "id": "p2",
+        "template": "{{continuation_fragment}} {{jungle_terrain_desc_lush}} lướt qua bạn.",
+        "slots": [
+          { "id": "continuation_fragment" },
+          { "id": "jungle_terrain_desc_lush", "filters": { "biomeTags": ["jungle"], "toneTags": ["lush", "vibrant"] } }
+        ]
+      },
+      {
+        "id": "p3",
+        "template": "Không khí {{temp_detail}} và {{moisture_detail}}. {{jungle_terrain_desc_lush}} bao quanh bạn.",
+        "slots": [
+          { "id": "temp_detail", "filters": { "toneTags": ["warm", "humid"] } },
+          { "id": "moisture_detail", "filters": { "toneTags": ["humid"] } },
+          { "id": "jungle_terrain_desc_lush", "filters": { "biomeTags": ["jungle"], "toneTags": ["lush", "vibrant"] } }
+        ]
+      }
+    ],
+    "reactionPatterns": [
+      {
+        "id": "r1_refreshed",
+        "template": "Thật sảng khoái!",
+        "slots": [],
+        "conditions": { "path": "player.mood", "op": "==", "value": "refreshed" }
+      },
+      {
+        "id": "r2_uncomfortable",
+        "template": "Lại nóng ẩm nữa rồi...",
+        "slots": [],
+        "conditions": { "path": "player.mood", "op": "==", "value": "uncomfortable" }
+      }
     ]
   },
   {
@@ -30,7 +91,28 @@
     "tags": ["transition"],
     "weight": 1.5,
     "patterns": [
-      { "id": "p1", "template": "Bạn rời khỏi {{old_biome_desc}} và bước vào {{new_biome_desc}}.", "slots": ["old_biome_desc", "new_biome_desc"] }
+      {
+        "id": "p1",
+        "template": "Bạn rời khỏi {{old_biome_desc}} và bước vào {{new_biome_desc}}.",
+        "slots": [
+          { "id": "old_biome_desc", "filters": { "biomeTags": ["transition"] } },
+          { "id": "new_biome_desc", "filters": { "biomeTags": ["transition"] } }
+        ]
+      }
+    ],
+    "reactionPatterns": [
+      {
+        "id": "r1_adventurous_player",
+        "template": "Cuộc phiêu lưu mới!",
+        "slots": [],
+        "conditions": { "path": "player.personality", "op": "==", "value": "adventurous" }
+      },
+      {
+        "id": "r2_cautious_player",
+        "template": "Không biết có gì phía trước...",
+        "slots": [],
+        "conditions": { "path": "player.personality", "op": "==", "value": "cautious" }
+      }
     ]
   }
   ,
@@ -38,18 +120,199 @@
     "id": "movement_night_conditional",
     "tags": ["movement","night"],
     "weight": 1,
-    "conditions": { "lightMax": 10, "requireNoLight": true },
+    "conditions": { "path": "chunk.lightLevel", "op": "<=", "value": 10 },
     "patterns": [
-      { "id": "p1", "template": "Bóng đêm dày đặc khi bạn tiến về phía {direction}. Bạn dò dẫm cẩn thận. {brief_sensory}", "slots": ["direction","brief_sensory"] }
+      {
+        "id": "p1",
+        "template": "Bóng đêm dày đặc khi bạn tiến về phía {{direction}}. Bạn dò dẫm cẩn thận.",
+        "slots": [
+          { "id": "direction" },
+          { "id": "brief_sensory", "filters": { "toneTags": ["dark", "mysterious"] } }
+        ]
+      }
+    ],
+    "reactionPatterns": [
+      {
+        "id": "r1_fearful_player",
+        "template": "Không ổn rồi...",
+        "slots": [],
+        "conditions": { "path": "player.bravery", "op": "<=", "value": 3 }
+      },
+      {
+        "id": "r2_cautious_player",
+        "template": "Phải cẩn thận.",
+        "slots": [],
+        "conditions": { "path": "player.bravery", "op": ">", "value": 3 }
+      }
     ]
   },
   {
     "id": "movement_swamp_muddy",
     "tags": ["movement","swamp"],
     "weight": 0.8,
-    "conditions": { "moistureMin": 80 },
+    "conditions": { "path": "chunk.moisture", "op": ">=", "value": 80 },
     "patterns": [
-      { "id": "p1", "template": "Mặt đất lầy lội khi bạn lội về phía {direction}. Giày bị hút xuống; mỗi bước là một kháng cự. {brief_sensory}", "slots": ["direction","brief_sensory"] }
+      {
+        "id": "p1",
+        "template": "Mặt đất lầy lội khi bạn lội về phía {{direction}}. Giày bị hút xuống; mỗi bước là một kháng cự.",
+        "slots": [
+          { "id": "direction" },
+          { "id": "brief_sensory", "filters": { "toneTags": ["difficult", "unpleasant"] } }
+        ]
+      }
+    ],
+    "reactionPatterns": [
+      {
+        "id": "r1_frustrated_player",
+        "template": "Thật mệt mỏi!",
+        "slots": [],
+        "conditions": { "path": "player.stamina", "op": "<=", "value": 30 }
+      },
+      {
+        "id": "r2_determined_player",
+        "template": "Khi nào mới thoát khỏi đây?",
+        "slots": [],
+        "conditions": { "path": "player.stamina", "op": ">", "value": 30 }
+      }
+    ]
+  },
+  {
+    "id": "weather_change_impact",
+    "terrain": ["Forest", "Grassland", "Mountain"],
+    "tags": ["weather", "event"],
+    "conditions": {
+      "all": [
+        { "path": "weather.type", "op": "==", "value": "storm" },
+        { "path": "player.isOutdoors", "op": "==", "value": true }
+      ]
+    },
+    "lengthHint": 3,
+    "weight": 1.2,
+    "patterns": [
+      {
+        "id": "p1",
+        "template": "Bầu trời đột ngột tối sầm, một cơn bão {{weather_intensity_adjective}} ập đến. Gió rít lên, mang theo hơi lạnh buốt.",
+        "slots": [
+          { "id": "weather_intensity_adjective", "filters": { "toneTags": ["intense", "gloomy"], "detailLevel": 3 } }
+        ]
+      }
+    ],
+    "reactionPatterns": [
+      {
+        "id": "r1_gloomy_player",
+        "template": "Lại nữa rồi sao...",
+        "slots": [],
+        "conditions": { "path": "player.mood", "op": "==", "value": "gloomy" }
+      },
+      {
+        "id": "r2_frustrated_player",
+        "template": "Trời ơi, không thể tin được là lại {{bad_weather_phrase}}!",
+        "slots": [
+          { "id": "bad_weather_phrase", "filters": { "toneTags": ["frustrated"] } }
+        ],
+        "conditions": { "path": "player.mood", "op": "==", "value": "frustrated" }
+      },
+      {
+        "id": "r3_stoic_player",
+        "template": "Chà, thời tiết thật khắc nghiệt.",
+        "slots": [],
+        "conditions": { "path": "player.personality", "op": "==", "value": "stoic" }
+      }
+    ]
+  },
+  {
+    "id": "rare_item_discovery",
+    "tags": ["discovery", "item"],
+    "conditions": {
+      "all": [
+        { "path": "item.rarity", "op": ">=", "value": 8 },
+        { "path": "player.luck", "op": ">=", "value": 5 }
+      ]
+    },
+    "lengthHint": 2,
+    "weight": 1.5,
+    "patterns": [
+      {
+        "id": "p1",
+        "template": "Bạn tình cờ phát hiện một {{item_descriptor}} lấp lánh. Một cảm giác {{discovery_emotion}} dâng trào khi bạn nhận ra giá trị của nó.",
+        "slots": [
+          { "id": "item_descriptor", "filters": { "toneTags": ["mysterious", "valuable"], "detailLevel": 4 } },
+          { "id": "discovery_emotion", "filters": { "toneTags": ["joy", "surprise"] } }
+        ]
+      },
+      {
+        "id": "p2",
+        "template": "Ánh sáng từ vật phẩm {{item_descriptor}} thu hút sự chú ý của bạn. Bạn {{discovery_emotion}} nhặt nó lên.",
+        "slots": [
+          { "id": "item_descriptor", "filters": { "toneTags": ["unique", "ancient"], "detailLevel": 3 } },
+          { "id": "discovery_emotion", "filters": { "toneTags": ["curiosity", "awe"] } }
+        ]
+      }
+    ],
+    "reactionPatterns": [
+      {
+        "id": "r1_excited_player",
+        "template": "May mắn quá!",
+        "slots": [],
+        "conditions": { "path": "player.luck", "op": ">=", "value": 8 }
+      },
+      {
+        "id": "r2_cautious_player",
+        "template": "Hy vọng đây không phải là cái bẫy...",
+        "slots": [],
+        "conditions": { "path": "player.personality", "op": "==", "value": "cautious" }
+      }
+    ]
+  },
+  {
+    "id": "npc_greeting_persona",
+    "tags": ["dialogue", "npc"],
+    "conditions": {
+      "all": [
+        { "path": "npc.isFriendly", "op": "==", "value": true },
+        { "path": "player.reputationWithNpc", "op": ">=", "value": 60 }
+      ],
+      "any": [
+        { "path": "npc.persona.voice", "op": "==", "value": "sarcastic" },
+        { "path": "npc.persona.voice", "op": "==", "value": "friendly" }
+      ]
+    },
+    "lengthHint": 1,
+    "weight": 1.0,
+    "patterns": [
+      {
+        "id": "p1",
+        "template": "NPC {{npc_name}} nói: '{{greeting_phrase}} {{player_name}}!'",
+        "slots": [
+          { "id": "npc_name" },
+          { "id": "greeting_phrase", "filters": { "voice": ["sarcastic", "friendly"], "toneTags": ["playful", "warm"] } },
+          { "id": "player_name" }
+        ]
+      },
+      {
+        "id": "p2",
+        "template": "Với một nụ cười {{npc_tone_adjective}}, NPC {{npc_name}} chào: '{{greeting_phrase}} {{player_name}}.'",
+        "slots": [
+          { "id": "npc_tone_adjective", "filters": { "voice": ["friendly"], "toneTags": ["gentle"] } },
+          { "id": "npc_name" },
+          { "id": "greeting_phrase", "filters": { "voice": ["friendly"], "toneTags": ["polite"] } },
+          { "id": "player_name" }
+        ]
+      }
+    ],
+    "reactionPatterns": [
+      {
+        "id": "r1_player_response",
+        "template": "Bạn mỉm cười đáp lại.",
+        "slots": [],
+        "conditions": { "path": "player.mood", "op": "==", "value": "friendly" }
+      },
+      {
+        "id": "r2_player_response",
+        "template": "Bạn gật đầu chào lại.",
+        "slots": [],
+        "conditions": { "path": "player.personality", "op": "==", "value": "polite" }
+      }
     ]
   }
 ]

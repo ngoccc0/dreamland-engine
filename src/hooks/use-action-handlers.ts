@@ -941,7 +941,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         const newInventory = [...nextPlayerStats.items];
         const resultItemIndex = newInventory.findIndex(i => getTranslatedText(i.name, 'en') === recipe.result.name);
         if (resultItemIndex > -1) newInventory[resultItemIndex].quantity += recipe.result.quantity;
-    else newInventory.push({ ...(recipe.result as PlayerItem), tier: resolveItemDef(recipe.result.name)?.tier || 1 });
+    else newInventory.push({ ...(recipe.result as PlayerItem), tier: resolveItemDef(recipe.result.name)?.tier || 1, emoji: recipe.result.emoji || resolveItemDef(recipe.result.name)?.emoji || '📦' });
         nextPlayerStats.items = newInventory;
         
         const successKeys: TranslationKey[] = ['craftSuccess1', 'craftSuccess2', 'craftSuccess3'];
@@ -1104,8 +1104,8 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                     name: result.resultItem.name,
                     quantity: result.resultItem.baseQuantity.min,
                     tier: result.resultItem.tier,
-                    emoji: result.resultItem.emoji
-                    , id: resultItemId
+                    emoji: result.resultItem.emoji,
+                    id: resultItemId
                 };
                 nextPlayerStats.items.push(ensurePlayerItemId(itemToAdd, customItemDefinitions, t, language));
             }
@@ -1167,7 +1167,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             }
         }
     
-        (newStats.equipment as any)[slot] = { name: itemToEquip.name, quantity: 1, tier: itemToEquip.tier, emoji: itemToEquip.emoji };
+        (newStats.equipment as any)[slot] = { name: itemToEquip.name, quantity: 1, tier: itemToEquip.tier, emoji: itemDef.emoji };
     
         if (itemToEquip.quantity > 1) {
             itemToEquip.quantity -= 1;
@@ -1208,7 +1208,8 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         if (existingInInventory) {
             existingInInventory.quantity += 1;
         } else {
-            newStats.items.push(ensurePlayerItemId({ ...itemToUnequip, quantity: 1 }, customItemDefinitions, t, language));
+            const itemDef = resolveItemDef(getTranslatedText(itemToUnequip.name, 'en'));
+            newStats.items.push(ensurePlayerItemId({ ...itemToUnequip, quantity: 1, emoji: itemDef?.emoji || '📦' }, customItemDefinitions, t, language));
         }
 
         (newStats.equipment as any)[slot] = null;

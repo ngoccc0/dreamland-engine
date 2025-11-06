@@ -18,8 +18,9 @@ import { SettingsPopup } from "./settings-popup";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 import { Sparkles, ArrowRight, BrainCircuit, Loader2, Settings, ArrowLeft, ChevronLeft, ChevronRight, BookOpen, Map, WandSparkles, BaggageClaim, ListTodo } from "./icons";
 import { ScrollArea } from "../ui/scroll-area";
-import { cn, getTranslatedText } from "@/lib/utils";
+import { cn, getTranslatedText, convertItemArrayToRecord } from "@/lib/utils";
 import type { GenerateWorldSetupOutput } from "@/ai/flows/generate-world-setup";
+import { resolveItemDef } from '@/lib/game/item-utils';
 
 interface WorldSetupProps {
     onWorldCreated: (worldSetupData: GenerateWorldSetupOutput) => void;
@@ -207,12 +208,16 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps): JSX.Element {
             worldName: generatedData.concepts[selection.worldName].worldName,
             initialNarrative: generatedData.concepts[selection.initialNarrative].initialNarrative,
             startingBiome: generatedData.concepts[selection.startingBiome].startingBiome,
-            playerInventory: generatedData.concepts[selection.playerInventory].playerInventory.map(item => ({
-                name: typeof item.name === 'object' && 'en' in item.name ? item.name[language] : item.name,
-                quantity: item.quantity,
-                tier: 1,
-                emoji: '📦'
-            })),
+            playerInventory: generatedData.concepts[selection.playerInventory].playerInventory.map(item => {
+                const itemName = typeof item.name === 'object' && 'en' in item.name ? item.name[language] : item.name;
+                const itemDef = resolveItemDef(typeof itemName === 'string' ? itemName : itemName.key, convertItemArrayToRecord(generatedData.customItemCatalog));
+                return {
+                    name: itemName,
+                    quantity: item.quantity,
+                    tier: 1,
+                    emoji: itemDef?.emoji || '📦'
+                };
+            }),
             initialQuests: generatedData.concepts[selection.initialQuests].initialQuests,
             startingSkill: generatedData.concepts[selection.startingSkill].startingSkill,
             customStructures: generatedData.customStructures, // Shared across concepts

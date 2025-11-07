@@ -68,6 +68,12 @@ export const creatureTranslations = {
     'Lava Blacksmith': 'Lava Blacksmith',
     'Trapped Fire Elemental': 'Trapped Fire Elemental',
     'A Panicked Stan': 'A Panicked Stan',
+
+    // Creature Actions
+    'creatureHungry': 'The {creature} looks hungry and restless.',
+    'creatureFleeing': 'The {creature} flees in panic.',
+    'creatureHunting': 'The {creature} stalks its prey intently.',
+    'creatureMoving': 'The {creature} moves about cautiously.',
   },
   vi: {
     'Sói': 'Sói',
@@ -134,5 +140,11 @@ export const creatureTranslations = {
     'Thợ rèn dung nham': 'Thợ rèn dung nham',
     'Hỏa tinh bị mắc kẹt': 'Hỏa tinh bị mắc kẹt',
     'Một Stan đang hoảng loạn': 'Một Stan đang hoảng loạn',
+
+    // Creature Actions
+    'creatureHungry': '{creature} trông đói và bồn chồn.',
+    'creatureFleeing': '{creature} bỏ chạy trong hoảng loạn.',
+    'creatureHunting': '{creature} rón rén rình mồi.',
+    'creatureMoving': '{creature} di chuyển một cách thận trọng.',
   }
 };

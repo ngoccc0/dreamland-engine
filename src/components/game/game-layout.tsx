@@ -22,6 +22,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { HudIconProgress } from "@/components/game/hud-icon-progress";
+import HudIconStamina from "@/components/game/hud-icon-stamina";
+import HudIconMana from "@/components/game/hud-icon-mana";
+import HudIconHunger from "@/components/game/hud-icon-hunger";
 import { useLanguage } from "@/context/language-context";
 import { useSettings } from "@/context/settings-context";
 import useKeyboardBindings from "@/hooks/use-keyboard-bindings";
@@ -30,6 +33,8 @@ import type { Structure, Action, NarrativeEntry } from "@/lib/game/types";
 import { cn, getTranslatedText } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
 import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Heart, Zap, Footprints, Loader2, Menu, LogOut, Beef } from "./icons";
+import { IconRenderer } from "@/components/ui/icon-renderer";
+import { resolveItemDef } from '@/lib/game/item-utils';
 import { logger } from "@/lib/logger";
 
 
@@ -71,6 +76,7 @@ export default function GameLayout(props: GameLayoutProps) {
         customItemDefinitions,
         currentChunk,
         turn,
+    biomeDefinitions,
         isLoaded,
         handleMove,
         handleAttack,
@@ -458,15 +464,15 @@ export default function GameLayout(props: GameLayoutProps) {
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
                                     </div>
-                                    <Minimap grid={generateMapGrid()} playerPosition={playerPosition} turn={turn} />
+                                    <Minimap grid={generateMapGrid()} playerPosition={playerPosition} turn={turn} biomeDefinitions={biomeDefinitions} />
                                 </div>
 
                                 {/* HUD */}
                                 <div className="grid grid-cols-4 gap-x-4 gap-y-2 text-sm justify-items-center">
                                     <HudIconProgress Icon={Heart} value={playerStats.hp} maxValue={playerStats.maxHp ?? 100} fillColor="text-destructive" statName={t('hudHealth') || 'Health'} />
-                                    <HudIconProgress Icon={Zap} value={playerStats.mana} maxValue={playerStats.maxMana ?? 50} fillColor="text-blue-500" statName={t('hudMana') || 'Mana'} />
-                                    <HudIconProgress Icon={Footprints} value={playerStats.stamina} maxValue={playerStats.maxStamina ?? 100} fillColor="text-yellow-400" statName={t('hudStamina') || 'Stamina'} />
-                                    <HudIconProgress Icon={Beef} value={playerStats.hunger} maxValue={playerStats.maxHunger ?? 100} fillColor="text-amber-500" statName={t('hudHunger') || 'Hunger'} />
+                                    <HudIconMana percent={(playerStats.mana ?? 0) / (playerStats.maxMana ?? 50)} size={40} />
+                                    <HudIconStamina percent={(playerStats.stamina ?? 0) / (playerStats.maxStamina ?? 100)} size={40} className="" />
+                                    <HudIconHunger percent={(playerStats.hunger ?? 0) / (playerStats.maxHunger ?? 100)} size={40} />
                                 </div>
                             </>
                         ) : (
@@ -475,9 +481,9 @@ export default function GameLayout(props: GameLayoutProps) {
                                 {/* HUD */}
                                 <div className="grid grid-cols-4 gap-x-4 gap-y-2 text-sm justify-items-center">
                                     <HudIconProgress Icon={Heart} value={playerStats.hp} maxValue={playerStats.maxHp ?? 100} fillColor="text-destructive" statName={t('hudHealth') || 'Health'} />
-                                    <HudIconProgress Icon={Zap} value={playerStats.mana} maxValue={playerStats.maxMana ?? 50} fillColor="text-blue-500" statName={t('hudMana') || 'Mana'} />
-                                    <HudIconProgress Icon={Footprints} value={playerStats.stamina} maxValue={playerStats.maxStamina ?? 100} fillColor="text-yellow-400" statName={t('hudStamina') || 'Stamina'} />
-                                    <HudIconProgress Icon={Beef} value={playerStats.hunger} maxValue={playerStats.maxHunger ?? 100} fillColor="text-amber-500" statName={t('hudHunger') || 'Hunger'} />
+                                    <HudIconMana percent={(playerStats.mana ?? 0) / (playerStats.maxMana ?? 50)} size={40} />
+                                    <HudIconStamina percent={(playerStats.stamina ?? 0) / (playerStats.maxStamina ?? 100)} size={40} className="" />
+                                    <HudIconHunger percent={(playerStats.hunger ?? 0) / (playerStats.maxHunger ?? 100)} size={40} />
                                 </div>
 
                                 {/* Minimap */}
@@ -487,7 +493,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
                                     </div>
-                                    <Minimap grid={generateMapGrid()} playerPosition={playerPosition} turn={turn} />
+                                    <Minimap grid={generateMapGrid()} playerPosition={playerPosition} turn={turn} biomeDefinitions={biomeDefinitions} />
                                 </div>
                             </>
                         )}
@@ -667,7 +673,10 @@ export default function GameLayout(props: GameLayoutProps) {
                                             <label className="flex items-center gap-3 cursor-pointer">
                                                 <Checkbox checked={selectedPickupIds.includes(action.id)} onCheckedChange={() => togglePickupSelection(action.id)} />
                                                 <div className="flex flex-col text-sm">
-                                                    <span className="font-medium">{item?.emoji ? `${item.emoji} ` : ''}{itemName}</span>
+                                                    <span className="font-medium flex items-center gap-1">
+                                                        <IconRenderer icon={resolveItemDef(getTranslatedText(item.name, 'en'), customItemDefinitions)?.emoji || item.emoji} size={16} alt={itemName} />
+                                                        {itemName}
+                                                    </span>
                                                     {item && <span className="text-xs text-muted-foreground">{t('quantityShort') || 'Qty'}: {item.quantity}</span>}
                                                 </div>
                                             </label>

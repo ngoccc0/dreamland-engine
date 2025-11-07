@@ -21,11 +21,14 @@ import type { TranslationKey } from "@/lib/i18n";
 import { cn, getTranslatedText } from "@/lib/utils";
 import { Heart, Loader2, Book, Star, Sparkles, SwordIcon } from "./icons";
 import { Button } from "../ui/button";
+import { IconRenderer } from "@/components/ui/icon-renderer";
+import { resolveItemDef } from '@/lib/game/item-utils';
 
 interface StatusPopupProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   stats: PlayerStatus;
+  itemDefinitions?: Record<string, any>;
   onRequestHint: (questText: string) => Promise<void>;
   onUnequipItem: (slot: EquipmentSlot) => void;
 }
@@ -50,7 +53,7 @@ const getNextUnlockableSkills = (currentSkills: Skill[]): Skill[] => {
 };
 
 
-export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequipItem }: StatusPopupProps) {
+export function StatusPopup({ open, onOpenChange, stats, itemDefinitions, onRequestHint, onUnequipItem }: StatusPopupProps) {
   const { t, language } = useLanguage();
   const quests = stats.quests;
   const pets = stats.pets || [];
@@ -128,7 +131,10 @@ export function StatusPopup({ open, onOpenChange, stats, onRequestHint, onUnequi
                         <span className="capitalize text-muted-foreground">{t(slot)}:</span>
                         {item ? (
                         <div className="flex items-center gap-2">
-                            <span className="font-semibold text-foreground">{require("./icons").renderItemEmoji(item.emoji, 18)} {getTranslatedText(item.name, language, t)}</span>
+                            <span className="font-semibold text-foreground flex items-center gap-1">
+                                <IconRenderer icon={resolveItemDef(getTranslatedText(item.name, 'en'), itemDefinitions)?.emoji || item.emoji} size={18} alt={getTranslatedText(item.name, language)} />
+                                {getTranslatedText(item.name, language, t)}
+                            </span>
                             <Button variant="ghost" size="sm" onClick={() => onUnequipItem(slot as EquipmentSlot)}>
                             {t('unequipItem')}
                             </Button>

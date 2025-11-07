@@ -61,6 +61,12 @@ const attributeLabels: Record<keyof PlayerAttributes, TranslationKey> = {
 
 export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, enemy, onUseItem, onEquipItem }: InventoryPopupProps) {
   const { t, language } = useLanguage();
+  const pickIcon = (definition: any, item: any) => {
+    if (definition?.emoji && typeof definition.emoji === 'object' && definition.emoji.type === 'image') return definition.emoji;
+    if (definition && (definition as any).image) return (definition as any).image;
+    if (item?.emoji && typeof item.emoji === 'object' && item.emoji.type === 'image') return item.emoji;
+    return definition?.emoji ?? item?.emoji ?? '❓';
+  };
 
   const handleAction = (callback: () => void) => {
     // Close the popup first to ensure any modal overlay is removed before
@@ -131,7 +137,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                                     )}
                                 >
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        <IconRenderer icon={item.emoji} size={32} alt={getTranslatedText(item.name, language)} />
+                                        <IconRenderer icon={pickIcon(definition, item)} size={32} alt={getTranslatedText(item.name, language)} />
                                         <div className="flex flex-col items-start">
                                             <span className="text-foreground">{getTranslatedText(item.name, language)}</span>
                                             <div className="flex items-center gap-2">
@@ -147,7 +153,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                             <DropdownMenuContent className="w-64">
                 <DropdownMenuLabel className="font-normal">
                   <p className="font-bold flex items-center gap-2">
-                    <IconRenderer icon={item.emoji} size={20} alt={getTranslatedText(item.name, language)} />
+                    <IconRenderer icon={pickIcon(definition, item)} size={20} alt={getTranslatedText(item.name, language)} />
                     {getTranslatedText(item.name, language)}
                   </p>
                   {!definition ? (

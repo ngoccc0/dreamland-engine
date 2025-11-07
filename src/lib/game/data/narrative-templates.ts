@@ -85,6 +85,8 @@ const keyword_variations_vi: PlaceholderMap = {
   mountain_monologue: ["Không khí loãng khiến tôi khó thở.", "Mỗi bước là một cuộc đấu; cần nghỉ.", "Leo núi làm chân tôi mỏi.", "Nên dừng lại lấy lại sức."],
   tundra_monologue: ["Cái lạnh cắn sâu vào xương.", "Hơi thở đóng băng, tay chân nặng nề.", "Cần sưởi ấm sớm.", "Cái lạnh khiến bước chân nặng nề."],
   cave_monologue: ["Độ ẩm trong hang làm tôi mệt.", "Bóng tối hút đi năng lượng của tôi.", "Nên tìm chỗ ấm.", "Sự im lặng làm tôi cạn kiệt sức lực."],
+  grassland_monologue: ["Cái nóng từ mặt trời làm tôi mệt.", "Đồng cỏ rộng lớn khiến tôi cảm thấy nhỏ bé.", "Gió nhẹ giúp tôi tỉnh táo.", "Nên tìm bóng mát nghỉ ngơi."],
+  grassland_continuation: ["Bạn tiếp tục bước qua đồng cỏ; lần này gió nhẹ hơn.", "Bạn vẫn đi giữa những ngọn cỏ cao, cảnh vật không thay đổi.", "Bạn tiếp tục băng qua cánh đồng xanh mướt."],
 };
 
 const keyword_variations_en: PlaceholderMap = {
@@ -129,6 +131,8 @@ const keyword_variations_en: PlaceholderMap = {
   mountain_monologue: ["Thin air makes me breathless.", "Each step is a fight; I need rest.", "The climb wears on my legs.", "I should pause and regroup."],
   tundra_monologue: ["The cold gnaws at my bones.", "My breath fogs and my limbs slow.", "I need to warm up soon.", "This cold makes every step harder."],
   cave_monologue: ["The damp chill saps my strength.", "This darkness eats at my energy.", "I should find a warm spot.", "I feel drained by the silence."],
+  grassland_monologue: ["The sun's heat is wearing me down.", "This vast grassland makes me feel small.", "The gentle breeze keeps me alert.", "I should find some shade to rest."],
+  grassland_continuation: ["You continue across the grassland; this time the wind is gentler.", "You keep walking through the tall grass, the scenery unchanged.", "You press on through the lush green field."],
 };
 
 
@@ -241,7 +245,84 @@ export const biomeNarrativeTemplates: Record<string, BiomeTemplateData> = {
     },
     sky: {}
   },
-  "grassland": { terrain: "grassland", emoji: { type: 'image', url: '/assets/images/grass_field.png' }, descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
+  "grassland": {
+    terrain: "grassland",
+    emoji: { type: 'image', url: '/assets/images/grass_field.png' },
+    descriptionTemplates: [
+      {
+        id: "grassland_opening_vast",
+        type: "Opening",
+        mood: ["Peaceful", "Vast"],
+        length: "medium",
+        conditions: {"lightLevel": {"min": 5}},
+        weight: 0.8,
+        template: "Bạn bước vào một cánh đồng cỏ {{adjective_vast}} trải dài vô tận, nơi bầu trời {{sky_vast}} mở rộng trên đầu. Không khí {{temp_detail}} và {{moisture_detail}} mang theo {{smell_vast}}."
+      },
+      {
+        id: "grassland_opening_windy",
+        type: "Opening",
+        mood: ["Peaceful", "Vast"],
+        length: "long",
+        conditions: {"lightLevel": {"min": 5}},
+        weight: 0.7,
+        template: "Gió {{wind_adj}} lướt qua những ngọn cỏ {{grass_adj}} cao, tạo nên những làn sóng xanh rì rào khắp không gian. Bạn cảm nhận được {{feeling_windy}} khi đứng giữa {{grassland_feature}}."
+      },
+      {
+        id: "grassland_sensory_detail_calm",
+        type: "SensoryDetail",
+        mood: ["Peaceful", "Serene"],
+        length: "medium",
+        conditions: {"dangerLevel": {"max": 2}},
+        weight: 0.9,
+        template: "Tiếng {{sound_calm}} hòa cùng tiếng gió vi vu, mang theo mùi {{smell_calm}}. Ánh nắng {{light_adj}} chiếu xuống, làm nổi bật vẻ đẹp tự nhiên của đồng cỏ."
+      },
+      {
+        id: "grassland_entity_report_wildlife",
+        type: "EntityReport",
+        mood: ["Peaceful"],
+        length: "short",
+        conditions: {"humanPresence": {"max": 1}, "predatorPresence": {"max": 2}},
+        weight: 0.6,
+        template: "Xa xa, bạn thấy {{wildlife_detail}} đang {{wildlife_action}}, tạo nên một khung cảnh bình yên và sống động."
+      },
+      {
+        id: "grassland_closing_reflective",
+        type: "Closing",
+        mood: ["Peaceful", "Serene"],
+        length: "medium",
+        conditions: {},
+        weight: 0.7,
+        template: "Một cảm giác {{feeling_closing}} bao trùm lấy bạn khi bạn ngắm nhìn khung cảnh {{adjective_reflective}} này. Đồng cỏ như một tấm thảm xanh trải dài, mời gọi bạn khám phá thêm."
+      }
+    ],
+    adjectives: {
+      "adjective_vast": ["bao la", "rộng lớn", "trải dài"],
+      "adjective_windy": ["lộng gió", "thoáng đãng", "tự do"],
+      "adjective_reflective": ["rộng lớn", "yên bình", "tự nhiên"],
+      "grass_adj": ["xanh mướt", "cao vút", "đung đưa"],
+      "wind_adj": ["nhẹ nhàng", "mạnh mẽ", "liều trai"],
+      "light_adj": ["vàng ấm", "trắng dịu", "rực rỡ"],
+      "temp_detail": ["trong thời tiết dễ chịu", "trong hơi ấm nhẹ"],
+      "moisture_detail": ["trong không khí khô ráo", "trong không khí trong lành"]
+    },
+    features: {
+      "grassland_feature": ["cánh đồng xanh mướt", "những ngọn cỏ cao", "không gian rộng mở"],
+      "wildlife_detail": ["một đàn động vật ăn cỏ", "những chú chim bay lượn", "một con thú nhỏ đang lẩn khuất"],
+      "wildlife_action": ["thong thả gặm cỏ", "bay lượn trên bầu trời", "chạy nhảy vui vẻ"]
+    },
+    smells: {
+      "smell_vast": ["mùi cỏ tươi mát", "mùi đất ẩm sau mưa", "hương hoa dại thoang thoảng"],
+      "smell_calm": ["cỏ khô và đất ẩm", "hoa dại nở rộ", "không khí trong lành"]
+    },
+    sounds: {
+      "sound_calm": ["côn trùng rỉ rả", "chim hót líu lo", "gió xào xạc qua cỏ"]
+    },
+    sky: {
+      "sky_vast": ["xanh ngắt", "rộng mở", "trong trẻo"],
+      "feeling_windy": ["sự tự do", "năng lượng dồi dào", "sự sống động"],
+      "feeling_closing": ["bình yên và tự do", "yên tĩnh sâu sắc", "hòa hợp với thiên nhiên"]
+    }
+  },
   "beach": { terrain: "beach", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
   "desert": { terrain: "desert", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
   "swamp": { terrain: "swamp", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },

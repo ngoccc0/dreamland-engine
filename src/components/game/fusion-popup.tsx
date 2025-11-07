@@ -107,7 +107,7 @@ export function FusionPopup({ open, onOpenChange, playerItems, itemDefinitions, 
                                   onClick={() => handleSelectItem(item)}
                                 >
                                     <div className="flex items-center gap-2">
-                                    <IconRenderer icon={item.emoji} size={20} alt={getTranslatedText(item.name as any, 'en')} />
+                                    <IconRenderer icon={resolveItemDef(getTranslatedText(item.name as any, 'en'), itemDefinitions)?.emoji || item.emoji} size={20} alt={getTranslatedText(item.name as any, 'en')} />
                                     <span>{getTranslatedText(item.name as any, 'en') /* EN label for layout; use language if desired */}</span>
                                   </div>
                                   <span className="font-mono text-sm font-bold">x{item.quantity}</span>
@@ -137,7 +137,7 @@ export function FusionPopup({ open, onOpenChange, playerItems, itemDefinitions, 
                                   {selectedItems[index] ? (
                                       <>
                                           <div className="flex items-center gap-2">
-                                              <IconRenderer icon={selectedItems[index].emoji} size={20} alt={getTranslatedText(selectedItems[index].name as any, 'en')} />
+                                              <IconRenderer icon={resolveItemDef(getTranslatedText(selectedItems[index].name as any, 'en'), itemDefinitions)?.emoji || selectedItems[index].emoji} size={20} alt={getTranslatedText(selectedItems[index].name as any, 'en')} />
                                               <span className="text-sm">{getTranslatedText(selectedItems[index].name as any, 'en', t)}</span>
                                           </div>
                                           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveItem(index)}>

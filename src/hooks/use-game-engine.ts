@@ -5,6 +5,8 @@ import { useRef, useEffect } from 'react';
 import { useLanguage } from '@/context/language-context';
 import { applyTickEffects } from '@/lib/game/effect-engine';
 import type { PlayerStatusDefinition } from '@/lib/game/types';
+import { CreatureEngine } from '@/core/engines/creature-engine';
+import { GridPosition } from '@/core/values/grid-position';
 import { useGameState } from "./use-game-state";
 import { useActionHandlers } from "./use-action-handlers";
 import { useGameEffects } from "./useGameEffects";
@@ -29,10 +31,14 @@ interface GameEngineProps {
  */
 export function useGameEngine(props: GameEngineProps) {
     const gameState = useGameState(props);
+    const { biomeDefinitions } = gameState as any;
     const narrativeContainerRef = useRef<HTMLDivElement>(null);
     const narrativeLogRef = useRef(gameState.narrativeLog || [] as any[]);
     const { t } = useLanguage();
     const { settings } = useSettings(); // Use settings context
+
+    // Initialize creature engine
+    const creatureEngineRef = useRef(new CreatureEngine(t));
 
     const addNarrativeEntry = (text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string) => {
         // Preserve explicit entryId when provided (placeholders use predictable ids).
@@ -57,6 +63,8 @@ export function useGameEngine(props: GameEngineProps) {
     };
 
     const advanceGameTime = (stats?: any) => {
+        const currentTurn = gameState.turn || 0;
+
         gameState.setGameTime(prev => {
                 const next = prev + (settings as any).timePerTurn; // Use timePerTurn from settings
                 if (next >= (settings as any).dayDuration) { // Use dayDuration from settings
@@ -71,9 +79,47 @@ export function useGameEngine(props: GameEngineProps) {
         // If caller provided a candidate stats object, apply per-tick effects
         if (stats) {
             const newStats = { ...stats } as PlayerStatusDefinition;
-            const { newStats: updated, messages } = applyTickEffects(newStats, gameState.turn || 0, t);
+            const { newStats: updated, messages } = applyTickEffects(newStats, currentTurn, t);
             for (const m of messages) addNarrativeEntry(m.text, m.type);
             gameState.setPlayerStats(() => updated);
+        }
+
+        // Update creatures
+        const playerPosition = new GridPosition(gameState.playerPosition.x, gameState.playerPosition.y);
+        // Get visible chunks around the player for creature simulation
+        const visibleChunks = new Map<string, any>();
+        const viewRadius = 5; // Include chunks within 5 tiles of the player
+
+        // Add current chunk if it exists
+        if (gameState.currentChunk) {
+            const chunkKey = `${gameState.currentChunk.x},${gameState.currentChunk.y}`;
+            visibleChunks.set(chunkKey, gameState.currentChunk);
+        }
+
+        // Add surrounding chunks if world data is available
+        if (gameState.world && typeof gameState.world.getChunksInArea === 'function') {
+            try {
+                const surroundingChunks = gameState.world.getChunksInArea(playerPosition, viewRadius);
+                for (const chunk of surroundingChunks) {
+                    const chunkKey = `${chunk.x},${chunk.y}`;
+                    visibleChunks.set(chunkKey, chunk);
+                }
+            } catch (error) {
+                // Fallback to just current chunk if world methods are not available
+                console.warn('World getChunksInArea method not available, using only current chunk for creature updates');
+            }
+        }
+
+        const creatureMessages = creatureEngineRef.current.updateCreatures(
+            currentTurn,
+            playerPosition,
+            gameState.playerStats,
+            visibleChunks
+        );
+
+        // Add creature messages to narrative
+        for (const message of creatureMessages) {
+            addNarrativeEntry(message.text, message.type);
         }
     };
     
@@ -118,5 +164,6 @@ export function useGameEngine(props: GameEngineProps) {
         ...gameState,
         ...actionHandlers,
         narrativeContainerRef,
+        biomeDefinitions
     };
 }

@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
@@ -13,7 +12,7 @@ interface SettingsContextType {
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
-const defaultSettings: GameSettings = {
+const defaultSettings = {
   gameMode: 'ai',
   diceType: 'd20',
   aiModel: 'balanced',
@@ -24,7 +23,27 @@ const defaultSettings: GameSettings = {
   mods: null,
   controlsPreventScroll: true,
   useLegacyLayout: false,
-};
+  startTime: 360, // 6 AM
+  dayDuration: 1440, // 24 hours
+  timePerTurn: 5, // 5 minutes per turn
+  keyBindings: {
+    moveUp: ['w', 'ArrowUp'],
+    moveDown: ['s', 'ArrowDown'],
+    moveLeft: ['a', 'ArrowLeft'],
+    moveRight: ['d', 'ArrowRight'],
+    attack: [' '],
+    openInventory: ['e'],
+    openStatus: ['p'],
+    openMap: ['m'],
+    customAction: ['/'],
+    pickUp: ['Tab'],
+    hot1: ['1'],
+    hot2: ['2'],
+    hot3: ['3'],
+    hot4: ['4'],
+    hot5: ['5']
+  }
+} as GameSettings;
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [settings, setSettingsState] = useState<GameSettings>(defaultSettings);
@@ -45,6 +64,11 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         const validFontSizes: FontSize[] = ['sm', 'base', 'lg'];
         if (!validFontSizes.includes(parsed.fontSize)) parsed.fontSize = defaultSettings.fontSize;
         
+  // Ensure time settings are numbers
+  if (typeof parsed.startTime !== 'number') parsed.startTime = (defaultSettings as any).startTime;
+  if (typeof parsed.dayDuration !== 'number') parsed.dayDuration = (defaultSettings as any).dayDuration;
+  if (typeof parsed.timePerTurn !== 'number') parsed.timePerTurn = (defaultSettings as any).timePerTurn;
+
         // Also load mods from localStorage
         const savedMods = localStorage.getItem('gameMods');
         if (savedMods) {
@@ -59,6 +83,23 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   if (typeof parsed.controlsPreventScroll !== 'boolean') parsed.controlsPreventScroll = defaultSettings.controlsPreventScroll;
   // Ensure useLegacyLayout is a boolean (backwards compatibility)
   if (typeof parsed.useLegacyLayout !== 'boolean') parsed.useLegacyLayout = defaultSettings.useLegacyLayout;
+
+        // Validate keyBindings shape if present
+        if (parsed.keyBindings && typeof parsed.keyBindings === 'object') {
+          const kb = parsed.keyBindings;
+          const ensureList = (v: any) => (Array.isArray(v) ? v : (typeof v === 'string' ? [v] : undefined));
+          parsed.keyBindings = {
+            moveUp: ensureList(kb.moveUp) ?? (defaultSettings as any).keyBindings.moveUp,
+            moveDown: ensureList(kb.moveDown) ?? (defaultSettings as any).keyBindings.moveDown,
+            moveLeft: ensureList(kb.moveLeft) ?? (defaultSettings as any).keyBindings.moveLeft,
+            moveRight: ensureList(kb.moveRight) ?? (defaultSettings as any).keyBindings.moveRight,
+            attack: ensureList(kb.attack) ?? (defaultSettings as any).keyBindings.attack,
+            openInventory: ensureList(kb.openInventory) ?? (defaultSettings as any).keyBindings.openInventory,
+            openStatus: ensureList(kb.openStatus) ?? (defaultSettings as any).keyBindings.openStatus,
+            openMap: ensureList(kb.openMap) ?? (defaultSettings as any).keyBindings.openMap,
+            customAction: ensureList(kb.customAction) ?? (defaultSettings as any).keyBindings.customAction,
+          };
+        }
 
   setSettingsState(_prev => ({...defaultSettings, ...parsed}));
       }

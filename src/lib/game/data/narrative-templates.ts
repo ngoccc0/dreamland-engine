@@ -44,6 +44,11 @@ export function selectByRange(map: { [key: string]: string[] }, value: number | 
 // These hold different ways to say the same thing.
 
 const keyword_variations_vi: PlaceholderMap = {
+    // CREATURE BEHAVIORS 
+    creatureEating: ["{{creature}} gặm nhấm thảm thực vật", "{{creature}} đang kiếm ăn", "{{creature}} nhai nuốt lá cây"],
+    creatureHungry: ["{{creature}} có vẻ đang đói", "{{creature}} tìm kiếm thức ăn quanh đây", "{{creature}} ngó nghiêng tìm thức ăn"],
+    
+    // DANGER & THREATS
     danger_feeling_high: ["nguy hiểm rình rập", "bất an sâu sắc", "rờn rợn đến sống lưng"],
     danger_source: ["một hiểm họa khôn lường", "những ánh mắt không mời", "một thế lực thù địch"],
     danger_feeling_moderate: ["căng thẳng", "cảnh giác cao độ", "bất ổn"],
@@ -64,9 +69,37 @@ const keyword_variations_vi: PlaceholderMap = {
     temp_adj: { hot: ["nóng bỏng", "oi ả", "ngột ngạt"], mild: ["dịu mát", "ấm áp"], cold: ["se lạnh", "giá buốt"] },
     moisture_adj: { high: ["đặc quánh", "như súp", "ẩm ướt"], medium: ["trong lành", "thoáng đãng"], low: ["khô hanh"] },
     light_adj: { dark: ["mờ ảo", "leo lét", "chập choạng"], medium: ["lấp lánh", "le lói"], bright: ["chói chang", "rực rỡ"] },
+  // Monologue / short player self-talk lines (VI)
+  monologue_tired: ["Tôi cần nghỉ một chút.", "Tôi mệt quá — nên ngồi nghỉ một lát.", "Cơ thể nặng nề. Cần nghỉ ngơi ngắn.", "Phải nghỉ một chút để hồi sức."],
+  // Biome-flavored random lines (VI)
+  jungle_monologue: ["Độ ẩm làm tôi mệt mỏi.", "Cái nóng khiến mỗi bước nặng nề hơn.", "Hơi thở trở nên gấp gáp và dính.", "Nên tìm bóng mát sớm thôi."],
+  forest_monologue: ["Sự yên ắng dễ chịu, nhưng tôi bắt đầu mệt.", "Chân tôi đau sau quãng đường này.", "Nghỉ dưới gốc cây có lẽ sẽ giúp.", "Tôi cần một lát để lấy lại sức."],
+  // Continuation/linking lines for repeated movement inside same biome (VI)
+  jungle_continuation: ["Bạn tiếp tục lần mò trong khu rừng này; lần này không có gì khác lạ.", "Bạn vẫn tiến sâu trong rừng, lần này mọi thứ im ắng hơn.", "Bạn tiếp tục bước qua những tán lá; mọi thứ vẫn không thay đổi."],
+  forest_continuation: ["Bạn tiếp tục len qua khu rừng; lần này có vài tiếng động xa xa.", "Bạn tiếp tục con đường trong rừng này, thấy vài chiếc lá chuyển động nhẹ.", "Bạn tiếp tục bước đi, cảnh vật vẫn giữ vẻ yên ắng."],
+  beach_continuation: ["Bạn dạo dọc theo bờ, lần này sóng nhẹ và không gì mới.", "Bạn tiếp tục đi trên bãi cát; mùi biển vẫn đồng đều.", "Bạn bước tiếp dọc bờ, những vệt cát kéo dài trước mắt."],
+  desert_continuation: ["Bạn tiếp tục tiến trên sa mạc; cát trải dài vô tận.", "Bạn bước qua cồn cát lần nữa, không có dấu hiệu thay đổi.", "Bạn vẫn tiếp tục đi giữa cái nắng khô cằn."],
+  swamp_continuation: ["Bạn tiếp tục mò qua đầm lầy; bùn vẫn nhão dưới chân.", "Bạn bước tiếp, tiếng vo ve không dứt.", "Bạn vẫn di chuyển giữa lớp sương mỏng của đầm lầy."],
+  mountain_continuation: ["Bạn tiếp tục leo lên sườn núi, hơi thở vẫn gấp.", "Bạn tiếp tục vượt qua những mỏm đá, không thấy dấu hiệu khác.", "Bạn tiếp tục bước lên đỉnh cao, cảm giác mệt mỏi theo từng bước."],
+  tundra_continuation: ["Bạn tiếp tục băng qua đồng băng, gió lạnh không thay đổi.", "Bạn tiếp tục bước trên băng giá; cảnh vật trắng xoá.", "Bạn vẫn đi trong cái lạnh, không có gì khác lạ."],
+  cave_continuation: ["Bạn tiếp tục dò dẫm trong hang; tiếng giọt nước vẫn văng vẳng.", "Bạn bước thêm chút nữa trong bóng tối, cảm giác yên tĩnh vẫn vậy.", "Bạn vẫn len lỏi qua những hành lang đá, im lặng xung quanh."],
+  // Additional biome monologue pools (VI)
+  beach_monologue: ["Không khí mặn khiến tôi mệt.", "Tiếng sóng êm nhưng tôi mệt dần.", "Cát làm chân tôi nặng nề.", "Nên trú bóng mát một lát."],
+  desert_monologue: ["Cái nóng rút cạn sức lực.", "Mặt trời thiêu đốt không ngừng.", "Nước có vẻ xa vời.", "Nên giữ sức và tìm bóng râm."],
+  swamp_monologue: ["Bùn đất níu chân tôi.", "Không khí nặng nề làm mệt.", "Mỗi bước nặng nề hơn.", "Cần đi chậm và nghỉ ngơi."],
+  mountain_monologue: ["Không khí loãng khiến tôi khó thở.", "Mỗi bước là một cuộc đấu; cần nghỉ.", "Leo núi làm chân tôi mỏi.", "Nên dừng lại lấy lại sức."],
+  tundra_monologue: ["Cái lạnh cắn sâu vào xương.", "Hơi thở đóng băng, tay chân nặng nề.", "Cần sưởi ấm sớm.", "Cái lạnh khiến bước chân nặng nề."],
+  cave_monologue: ["Độ ẩm trong hang làm tôi mệt.", "Bóng tối hút đi năng lượng của tôi.", "Nên tìm chỗ ấm.", "Sự im lặng làm tôi cạn kiệt sức lực."],
+  grassland_monologue: ["Cái nóng từ mặt trời làm tôi mệt.", "Đồng cỏ rộng lớn khiến tôi cảm thấy nhỏ bé.", "Gió nhẹ giúp tôi tỉnh táo.", "Nên tìm bóng mát nghỉ ngơi."],
+  grassland_continuation: ["Bạn tiếp tục bước qua đồng cỏ; lần này gió nhẹ hơn.", "Bạn vẫn đi giữa những ngọn cỏ cao, cảnh vật không thay đổi.", "Bạn tiếp tục băng qua cánh đồng xanh mướt."],
 };
 
 const keyword_variations_en: PlaceholderMap = {
+    // CREATURE BEHAVIORS
+    creatureEating: ["{{creature}} nibbles at the vegetation", "{{creature}} is foraging", "{{creature}} chews on leaves"],
+    creatureHungry: ["{{creature}} seems hungry", "{{creature}} searches for food", "{{creature}} looks around for sustenance"],
+    
+    // DANGER & THREATS
     danger_feeling_high: ["imminent danger", "deep unease", "a chill down your spine"],
     danger_source: ["an unseen threat", "unwelcome eyes", "a hostile force"],
     danger_feeling_moderate: ["tension", "high alert", "instability"],
@@ -87,6 +120,29 @@ const keyword_variations_en: PlaceholderMap = {
     temp_adj: { hot: ["scorching", "sweltering", "oppressive"], mild: ["mild", "warm"], cold: ["chilly", "freezing"] },
     moisture_adj: { high: ["soupy", "cloying", "damp"], medium: ["fresh", "pleasant"], low: ["dry"] },
     light_adj: { dark: ["dim", "flickering", "eerie"], medium: ["dappled", "mottled"], bright: ["blazing", "vivid"] },
+  // Monologue / short player self-talk lines (EN)
+  monologue_tired: ["I need to rest.", "I'm exhausted — I should sit down for a moment.", "My limbs are heavy. Time for a short rest.", "I need to take a break and recover my strength."],
+  // Biome-flavored random lines (EN)
+  jungle_monologue: ["The humidity is wearing me down.", "This heat makes every step feel heavier.", "My breath comes in short, sticky gasps.", "I should find some shade soon."],
+  forest_monologue: ["The quiet is soothing, but I'm getting tired.", "My legs ache from all this walking.", "A short rest beneath that tree would help.", "I could use a moment to gather my strength."],
+  // Continuation/linking lines for repeated movement inside same biome (EN)
+  jungle_continuation: ["You continue to push through the jungle; this time, nothing seems different.", "You press on through the undergrowth, and it feels quieter this time.", "You move deeper among the leaves; the scene remains unchanged."],
+  forest_continuation: ["You continue along the forest path; this time you hear a distant rustle.", "You press on through the trees, noticing a few leaves stir.", "You keep moving; the forest remains hushed."],
+  beach_continuation: ["You stroll along the shore; the waves are calm and nothing new appears.", "You continue across the sand; the salt air is steady.", "You walk on the beach, the horizon unchanged."],
+  desert_continuation: ["You continue across the dunes; sand rolls on inexorably.", "You trudge through the desert again; there is no sign of change.", "You press forward beneath the relentless sun."],
+  swamp_continuation: ["You continue through the swamp; the mud clings to your boots.", "You push on, the buzzing never stops.", "You move ahead among the murky water, nothing new emerges."],
+  mountain_continuation: ["You continue up the mountain path; your breath still comes short.", "You pick your way over rocks again, no obvious change.", "You climb on, each step wearing at your legs."],
+  tundra_continuation: ["You continue across the tundra; the wind and whiteness persist.", "You keep walking on the frozen plain, the landscape unchanged.", "You trudge onward through the cold; nothing seems different."],
+  cave_continuation: ["You continue to grope through the cave; dripping water echoes as before.", "You move further into the dark tunnel; the silence holds.", "You press on through the caverns, the passage unchanged."]
+  , // Additional biome monologue pools (EN)
+  beach_monologue: ["The salt air is tiring me.", "The waves lull me but my energy fades.", "Sand between my toes weighs on me.", "I should rest away from the sun."],
+  desert_monologue: ["The heat saps my strength.", "The sun beats down relentlessly.", "My water feels too far away.", "I should conserve my energy."],
+  swamp_monologue: ["This muck drags at my feet.", "The air is thick and exhausting.", "Every step feels heavier here.", "I should move carefully and rest."],
+  mountain_monologue: ["Thin air makes me breathless.", "Each step is a fight; I need rest.", "The climb wears on my legs.", "I should pause and regroup."],
+  tundra_monologue: ["The cold gnaws at my bones.", "My breath fogs and my limbs slow.", "I need to warm up soon.", "This cold makes every step harder."],
+  cave_monologue: ["The damp chill saps my strength.", "This darkness eats at my energy.", "I should find a warm spot.", "I feel drained by the silence."],
+  grassland_monologue: ["The sun's heat is wearing me down.", "This vast grassland makes me feel small.", "The gentle breeze keeps me alert.", "I should find some shade to rest."],
+  grassland_continuation: ["You continue across the grassland; this time the wind is gentler.", "You keep walking through the tall grass, the scenery unchanged.", "You press on through the lush green field."],
 };
 
 
@@ -95,6 +151,7 @@ const keyword_variations_en: PlaceholderMap = {
 export const biomeNarrativeTemplates: Record<string, BiomeTemplateData> = {
   "Jungle": {
     terrain: "Jungle",
+    emoji: { type: 'image', url: '/assets/images/jungle.png' },
     descriptionTemplates: [
       {
         id: "jungle_opening_gloomy",
@@ -150,6 +207,11 @@ export const biomeNarrativeTemplates: Record<string, BiomeTemplateData> = {
       // Added missing keys referenced by templates
       "jungle_feeling_dark": ["đang theo dõi bạn", "như thể ai đó đang quan sát bạn"],
       "feeling_gloomy": ["bất an sâu sắc", "rờn rợn đến sống lưng"],
+      // temperature/moisture detail placeholders used by some templates
+      "temp_detail_gloomy": ["trong cái lạnh buốt", "se lạnh khẽ"],
+      "moisture_detail_gloomy": ["trong không khí ẩm ướt nặng nề", "ẩm mốc, nặng nề"],
+      "temp_detail": ["trong thời tiết dễ chịu", "trong hơi ấm nhẹ"],
+      "moisture_detail": ["trong không khí ẩm ướt", "trong không khí khô ráo"],
       // Compatibility keys expected by tests/templates
       "jungle_adjective_lush": ["rậm rạp", "xanh tươi"],
       "jungle_adjective_mysterious": ["bí ẩn", "huyền bí"],
@@ -193,7 +255,84 @@ export const biomeNarrativeTemplates: Record<string, BiomeTemplateData> = {
     },
     sky: {}
   },
-  "grassland": { terrain: "grassland", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
+  "grassland": {
+    terrain: "grassland",
+    emoji: { type: 'image', url: '/assets/images/grass_field.png' },
+    descriptionTemplates: [
+      {
+        id: "grassland_opening_vast",
+        type: "Opening",
+        mood: ["Peaceful", "Vast"],
+        length: "medium",
+        conditions: {"lightLevel": {"min": 5}},
+        weight: 0.8,
+        template: "Bạn bước vào một cánh đồng cỏ {{adjective_vast}} trải dài vô tận, nơi bầu trời {{sky_vast}} mở rộng trên đầu. Không khí {{temp_detail}} và {{moisture_detail}} mang theo {{smell_vast}}."
+      },
+      {
+        id: "grassland_opening_windy",
+        type: "Opening",
+        mood: ["Peaceful", "Vast"],
+        length: "long",
+        conditions: {"lightLevel": {"min": 5}},
+        weight: 0.7,
+        template: "Gió {{wind_adj}} lướt qua những ngọn cỏ {{grass_adj}} cao, tạo nên những làn sóng xanh rì rào khắp không gian. Bạn cảm nhận được {{feeling_windy}} khi đứng giữa {{grassland_feature}}."
+      },
+      {
+        id: "grassland_sensory_detail_calm",
+        type: "SensoryDetail",
+        mood: ["Peaceful", "Serene"],
+        length: "medium",
+        conditions: {"dangerLevel": {"max": 2}},
+        weight: 0.9,
+        template: "Tiếng {{sound_calm}} hòa cùng tiếng gió vi vu, mang theo mùi {{smell_calm}}. Ánh nắng {{light_adj}} chiếu xuống, làm nổi bật vẻ đẹp tự nhiên của đồng cỏ."
+      },
+      {
+        id: "grassland_entity_report_wildlife",
+        type: "EntityReport",
+        mood: ["Peaceful"],
+        length: "short",
+        conditions: {"humanPresence": {"max": 1}, "predatorPresence": {"max": 2}},
+        weight: 0.6,
+        template: "Xa xa, bạn thấy {{wildlife_detail}} đang {{wildlife_action}}, tạo nên một khung cảnh bình yên và sống động."
+      },
+      {
+        id: "grassland_closing_reflective",
+        type: "Closing",
+        mood: ["Peaceful", "Serene"],
+        length: "medium",
+        conditions: {},
+        weight: 0.7,
+        template: "Một cảm giác {{feeling_closing}} bao trùm lấy bạn khi bạn ngắm nhìn khung cảnh {{adjective_reflective}} này. Đồng cỏ như một tấm thảm xanh trải dài, mời gọi bạn khám phá thêm."
+      }
+    ],
+    adjectives: {
+      "adjective_vast": ["bao la", "rộng lớn", "trải dài"],
+      "adjective_windy": ["lộng gió", "thoáng đãng", "tự do"],
+      "adjective_reflective": ["rộng lớn", "yên bình", "tự nhiên"],
+      "grass_adj": ["xanh mướt", "cao vút", "đung đưa"],
+      "wind_adj": ["nhẹ nhàng", "mạnh mẽ", "liều trai"],
+      "light_adj": ["vàng ấm", "trắng dịu", "rực rỡ"],
+      "temp_detail": ["trong thời tiết dễ chịu", "trong hơi ấm nhẹ"],
+      "moisture_detail": ["trong không khí khô ráo", "trong không khí trong lành"]
+    },
+    features: {
+      "grassland_feature": ["cánh đồng xanh mướt", "những ngọn cỏ cao", "không gian rộng mở"],
+      "wildlife_detail": ["một đàn động vật ăn cỏ", "những chú chim bay lượn", "một con thú nhỏ đang lẩn khuất"],
+      "wildlife_action": ["thong thả gặm cỏ", "bay lượn trên bầu trời", "chạy nhảy vui vẻ"]
+    },
+    smells: {
+      "smell_vast": ["mùi cỏ tươi mát", "mùi đất ẩm sau mưa", "hương hoa dại thoang thoảng"],
+      "smell_calm": ["cỏ khô và đất ẩm", "hoa dại nở rộ", "không khí trong lành"]
+    },
+    sounds: {
+      "sound_calm": ["côn trùng rỉ rả", "chim hót líu lo", "gió xào xạc qua cỏ"]
+    },
+    sky: {
+      "sky_vast": ["xanh ngắt", "rộng mở", "trong trẻo"],
+      "feeling_windy": ["sự tự do", "năng lượng dồi dào", "sự sống động"],
+      "feeling_closing": ["bình yên và tự do", "yên tĩnh sâu sắc", "hòa hợp với thiên nhiên"]
+    }
+  },
   "beach": { terrain: "beach", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
   "desert": { terrain: "desert", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },
   "swamp": { terrain: "swamp", descriptionTemplates: [], adjectives: {}, features: {}, smells: {}, sounds: {}, sky: {} },

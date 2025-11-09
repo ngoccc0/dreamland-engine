@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 /**
  * ClientInit: small client-only initializer mounted in RootLayout.
@@ -9,6 +10,8 @@ import { useEffect } from 'react';
  * - Listens for chunk load errors and attempts a full reload so the client can fetch the latest bundles.
  */
 export default function ClientInit() {
+  const pathname = usePathname?.() ?? null;
+
   useEffect(() => {
     // Unregister service workers (helpful in dev when a previously-registered SW is interfering)
     if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
@@ -87,6 +90,25 @@ export default function ClientInit() {
       window.removeEventListener('unhandledrejection', onRejection);
     };
   }, []);
+
+  // Clear any residual pointer-events on mount and whenever the route changes.
+  // Some floating/dismissable layers (Radix or other libs) temporarily set
+  // `document.body.style.pointerEvents = 'none'` to block outside clicks while
+  // a layer is open. If that value is not restored (e.g. due to an exception or
+  // interrupted lifecycle) the UI becomes unclickable. This effect is a
+  // defensive measure to recover from that state on navigation.
+  useEffect(() => {
+    try {
+      if (typeof document !== 'undefined' && document?.body) {
+        document.body.style.pointerEvents = '';
+      }
+      if (typeof document !== 'undefined' && document?.documentElement) {
+        document.documentElement.style.pointerEvents = '';
+      }
+    } catch {
+      // noop - defensive only
+    }
+  }, [pathname]);
 
   return null;
 }

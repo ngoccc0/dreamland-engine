@@ -6,8 +6,9 @@ import { getTemplates } from '../templates';
 import type { TranslationKey } from "../../i18n";
 import { logger } from "@/lib/logger";
 import type { ItemDefinition } from "../types";
+import { isDay, isNight } from "../time/time-utils"; // Import new time utilities
 // clamp imported elsewhere when needed; not required here
-import { biomeNarrativeTemplates } from "../data/narrative-templates";
+import { biomeNarrativeTemplates, getKeywordVariations, selectRandom } from "../data/narrative-templates";
 
 /**
  * Phân tích các thuộc tính của chunk để xác định các MoodTag chủ đạo.
@@ -138,10 +139,15 @@ export const check_conditions = (template_conditions: ConditionType | undefined,
         // Handle special string-based conditions
         if (key === 'timeOfDay') {
             const gameTime = (chunk as any).gameTime;
+            // We need world settings to determine day/night, but chunk doesn't have it.
+            // For now, we'll assume default day/night cycle for offline mode.
+            // In a real game, this would be passed down from a global game state or settings.
+            const defaultStartTime = 360; // 6 AM
+            const defaultDayDuration = 1440; // 24 hours
             if (gameTime === undefined) continue;
-            const isDay = gameTime >= 360 && gameTime < 1080;
-            if (conditionValue === 'day' && !isDay) return false;
-            if (conditionValue === 'night' && isDay) return false;
+            const isCurrentDay = isDay(gameTime, defaultStartTime, defaultDayDuration);
+            if (conditionValue === 'day' && !isCurrentDay) return false;
+            if (conditionValue === 'night' && isCurrentDay) return false;
             continue;
         }
 
@@ -311,7 +317,94 @@ export const generateOfflineNarrative = (
     }
 
     const detailTemplates = candidateTemplates.filter(t => t.type === 'EnvironmentDetail' || t.type === 'SensoryDetail');
+    // Helper: synthesize a condition-aware detail sentence when templates are sparse
+    const synthesizeDetailSentence = () => {
+        try {
+            const kv = getKeywordVariations(language);
+            // Score prominence for temperature/moisture/light
+            const scores: { key: string; score: number }[] = [];
+            if (typeof currentChunk.temperature === 'number') {
+                const temp = currentChunk.temperature;
+                const score = Math.abs(temp - 50) + (temp >= 80 || temp <= 10 ? 20 : 0);
+                scores.push({ key: 'temperature', score });
+            }
+            if (typeof currentChunk.moisture === 'number') {
+                const m = currentChunk.moisture;
+                const score = Math.abs(m - 50) + (m >= 80 || m <= 20 ? 15 : 0);
+                scores.push({ key: 'moisture', score });
+            }
+            if (typeof currentChunk.lightLevel === 'number') {
+                const l = currentChunk.lightLevel;
+                const score = Math.abs((l <= 0 ? 0 - l : 100 - l)) + (l <= 10 ? 10 : 0);
+                scores.push({ key: 'light', score });
+            }
+            // Determine primary condition
+            scores.sort((a, b) => b.score - a.score);
+            const primary = scores[0]?.key;
+
+            // pick an adjective from kv if available
+            let adj = '';
+            if (primary === 'temperature' && kv.temp_adj) {
+                if (typeof currentChunk.temperature === 'number' && currentChunk.temperature >= 80) adj = selectRandom((kv.temp_adj as any).hot as string[]);
+                else if (typeof currentChunk.temperature === 'number' && currentChunk.temperature <= 10) adj = selectRandom((kv.temp_adj as any).cold as string[]);
+                else adj = selectRandom((kv.temp_adj as any).mild as string[]);
+            } else if (primary === 'moisture' && kv.moisture_adj) {
+                if (typeof currentChunk.moisture === 'number' && currentChunk.moisture >= 80) adj = selectRandom((kv.moisture_adj as any).high as string[]);
+                else if (typeof currentChunk.moisture === 'number' && currentChunk.moisture <= 20) adj = selectRandom((kv.moisture_adj as any).low as string[]);
+                else adj = selectRandom((kv.moisture_adj as any).medium as string[]);
+            } else if (primary === 'light' && kv.light_adj) {
+                if (typeof currentChunk.lightLevel === 'number' && currentChunk.lightLevel <= 10) adj = selectRandom((kv.light_adj as any).dark as string[]);
+                else if (typeof currentChunk.lightLevel === 'number' && currentChunk.lightLevel <= 40) adj = selectRandom((kv.light_adj as any).medium as string[]);
+                else adj = selectRandom((kv.light_adj as any).bright as string[]);
+            }
+
+            // Feature: prefer biome feature, then enemy, then item
+            let featureText = '';
+            if (currentBiomeData && currentBiomeData.features && Object.keys(currentBiomeData.features).length > 0) {
+                // pick first non-empty feature list
+                const keys = Object.keys(currentBiomeData.features);
+                for (const k of keys) {
+                    const arr = (currentBiomeData.features as any)[k];
+                    if (Array.isArray(arr) && arr.length > 0) { featureText = selectRandom(arr as string[]); break; }
+                }
+            }
+            if (!featureText) {
+                if (currentChunk.enemy && currentChunk.enemy.type) featureText = getTranslatedText(currentChunk.enemy.type, language, t);
+                else if (currentChunk.items && currentChunk.items.length > 0) featureText = getTranslatedText(currentChunk.items[0].name, language, t);
+            }
+
+            const patternsEn = [
+                `You notice ${featureText || 'something'}. ${adj}`,
+                `${adj} — you catch sight of ${featureText || 'something nearby'}.`,
+                `As you move, ${adj} and ${featureText ? `you see ${featureText}` : 'there is a change in the scene'}.`,
+                `You step forward; ${featureText ? `${featureText} comes into view` : 'the surroundings shift'}, ${adj}.`,
+                `${featureText ? featureText + ',' : ''} ${adj}`
+            ];
+            const patternsVi = [
+                `${featureText || 'một thứ gì đó'} được chú ý. ${adj}`,
+                `${adj} — bạn chợt thấy ${featureText || 'một điều gì đó'}.`,
+                `Khi bạn tiến lên, ${adj} và ${featureText ? `bạn nhìn thấy ${featureText}` : 'cảnh vật thay đổi'}.`,
+                `Bạn tiến thêm một bước; ${featureText ? `${featureText} hiện ra` : 'cảnh vật thay đổi'}, ${adj}.`,
+                `${featureText ? featureText + ',' : ''} ${adj}`
+            ];
+
+            const picks = language === 'vi' ? patternsVi : patternsEn;
+            return picks[Math.floor(Math.random() * picks.length)];
+        } catch (e) {
+            // fallback to a simple sensory phrase
+            if (currentChunk.temperature && currentChunk.temperature >= 80) return t('temp_hot') || 'it is hot';
+            if (currentChunk.lightLevel && currentChunk.lightLevel <= 10) return t('light_level_dark') || 'it is dark';
+            return '';
+        }
+    };
+
     while (sentenceCount < targetSentences && detailTemplates.length > 0) {
+        // If templates are sparse or to inject more varied phrasing, synthesize a sentence
+        if (detailTemplates.length < 3 || Math.random() < 0.4) {
+            finalSentences.push(synthesizeDetailSentence());
+            sentenceCount++;
+            continue;
+        }
         const chosen = select_template_by_weight(detailTemplates);
         finalSentences.push(fill_template(chosen.template, currentChunk, world, playerPosition, t, language, playerState));
         sentenceCount++;
@@ -533,5 +626,3 @@ export const handleSearchAction = (
 
     return { newChunk, narrative: t('exploreFoundNothing'), toastInfo: null };
 };
-
-    

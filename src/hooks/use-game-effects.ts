@@ -42,7 +42,7 @@ type GameEffectsDeps = {
   setPlayerPosition: (pos: GameState['playerPosition']) => void;
   narrativeLogRef: React.RefObject<NarrativeEntry[]>;
   setNarrativeLog: (log: NarrativeEntry[]) => void;
-  addNarrativeEntry: (text: string, type: 'narrative' | 'action' | 'system', entryId?: string) => void;
+  addNarrativeEntry: (text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string) => void;
   finalWorldSetup: GameState['worldSetup'] | null;
   setFinalWorldSetup: Dispatch<SetStateAction<GameState['worldSetup'] | null>>;
   turn: number;

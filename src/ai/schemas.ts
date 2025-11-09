@@ -8,25 +8,22 @@
  */
 
 import {z} from 'genkit';
-import { 
+import {
     ItemDefinitionSchema,
-    ItemCategorySchema, 
-    ItemEffectSchema, 
-    PlayerAttributesSchema, 
+    ItemCategorySchema,
+    ItemEffectSchema,
+    PlayerAttributesSchema,
     SpawnConditionsSchema,
     RecipeSchema,
     RecipeResultSchema,
     RecipeIngredientSchema,
     StructureDefinitionSchema, // Use correct name without alias
-    MultilingualTextSchema,
     CreatureDefinitionSchema,
     TranslatableStringSchema
 } from '@/lib/game/definitions';
 
-// Get terrains from the game definitions
-import { BiomeDefinitionSchema } from '@/lib/game/definitions';
 import { LanguageEnum as Language } from '@/lib/i18n'; // Correct import and alias to Language
-import type { TranslatableString, SoilType } from '@/lib/game/types';
+import type { TranslatableString } from '@/lib/game/types';
 import { allTerrains, SoilTypeEnum } from '@/lib/game/types'; // Import allTerrains and SoilTypeEnum
 // Re-export the canonical terrain list so AI flows can import it from this adapter
 export { allTerrains };
@@ -84,11 +81,19 @@ export type RecipeUnlockCondition = z.infer<typeof RecipeUnlockConditionSchema>;
 
 // --- Player & World State Schemas (used as input for AI) ---
 
+export const IconSchema = z.union([
+    z.string(),
+    z.object({
+        type: z.literal('image'),
+        url: z.string(),
+    }),
+]);
+
 export const PlayerItemSchema = z.object({
     name: z.custom<TranslatableString>(),
     quantity: z.number().int().min(1),
     tier: z.number(),
-    emoji: z.string(),
+    emoji: IconSchema,
 });
 
 export const PetSchema = z.object({
@@ -121,6 +126,7 @@ export const PlayerStatusSchema = z.object({
     // breaking lots of saved fixtures during migration.
     mana: z.number().optional(),
     stamina: z.number().describe("Player's stamina, used for physical actions."),
+    hunger: z.number().optional().describe("Player's hunger level."),
     items: z.array(PlayerItemSchema).describe("Player's inventory with item names, quantities and tiers."),
     equipment: z.object({ 
         weapon: PlayerItemSchema.nullable().optional(), 
@@ -158,7 +164,7 @@ export const ChunkItemSchema = z.object({
     description: z.custom<TranslatableString>(),
     quantity: z.number().int(),
     tier: z.number(),
-    emoji: z.string(),
+    emoji: IconSchema,
 });
 
 export const NpcSchema = z.object({

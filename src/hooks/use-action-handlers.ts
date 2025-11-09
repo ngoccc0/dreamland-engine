@@ -4,7 +4,7 @@
 // NOTE: react-hooks/exhaustive-deps is being audited. Removed the file-level disable
 // so ESLint can report missing/unnecessary deps per-hook. We'll fix each hook's deps in small commits.
 
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
 import { useSettings } from '@/context/settings-context';
@@ -16,8 +16,12 @@ import { itemDefinitions } from '@/lib/game/items';
 import { resolveItemDef as resolveItemDefHelper } from '@/lib/game/item-utils';
 import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchAction } from '@/lib/game/engine/offline';
 import { getEffectiveChunk } from '@/lib/game/engine/generation';
+import { analyze_chunk_mood } from '@/lib/game/engine/offline';
+import { useAudio } from '@/lib/audio/useAudio';
 import { getTemplates } from '@/lib/game/templates';
 import { clamp, getTranslatedText, resolveItemId, ensurePlayerItemId } from '@/lib/utils';
+import { getKeywordVariations } from '@/lib/game/data/narrative-templates';
+import { buildNarrative } from '@/lib/narrative/assembler';
 import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem, NarrativeEntry, GeneratedItem, TranslatableString, ItemDefinition, Chunk, Enemy } from '@/lib/game/types';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-config';
@@ -38,7 +42,7 @@ type ActionHandlerDeps = {
     setCustomItemCatalog: React.Dispatch<React.SetStateAction<GeneratedItem[]>>;
     setCustomItemDefinitions: React.Dispatch<React.SetStateAction<Record<string, ItemDefinition>>>;
   finalWorldSetup: GameState['worldSetup'] | null;
-  addNarrativeEntry: (text: string, type: NarrativeEntry['type'], entryId?: string) => void;
+    addNarrativeEntry: (text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string) => void;
   advanceGameTime: (stats?: PlayerStatus, pos?: { x: number, y: number }) => void;
   setPlayerBehaviorProfile: (fn: (prev: any) => any) => void;
   playerPosition: { x: number, y: number };
@@ -64,7 +68,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             setPlayerBehaviorProfile, playerPosition, setPlayerPosition, weatherZones, turn, gameTime, customItemCatalog, narrativeLogRef
     } = deps;
     // worldProfile contains global spawn/config modifiers (e.g., spawnMultiplier)
-    const { worldProfile } = deps as any;
+    const { worldProfile } = deps;
 
     // Helper to resolve an item definition by name. Prefer custom/generated definitions
     // (world-specific), but fall back to the built-in master item catalog when needed.
@@ -74,8 +78,105 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
   const { t, language } = useLanguage();
   const { settings } = useSettings();
+    // Defensive typed aliases for legacy fields that may be missing from GameSettings type
+    // Some code expects startTime/dayDuration to exist; cast to any and provide sensible defaults
+    const sStart = (settings as any).startTime ?? 0;
+    const sDayDuration = (settings as any).dayDuration ?? 24000;
   const { toast } = useToast();
-  const isOnline = settings.gameMode === 'ai';
+    const isOnline = settings.gameMode === 'ai';
+
+    // audio: auto-play background based on mood when player moves or environment changes
+    // useAudio must be used inside AudioProvider (layouts already wrap the app)
+    const audio = useAudio();
+
+    // Track last move biome/time so we can emit a shorter "continuation" narrative when
+    // the player moves repeatedly within the same biome.
+    const lastMoveRef = useRef<{ biome?: string; time?: number }>({});
+
+    // Buffer pick-up events that occur within a short window so we aggregate multi-pick
+    // events into a single summary narrative instead of spamming detailed lines per item.
+    const pickupBufferRef = useRef<{ items: Array<any>; timer?: ReturnType<typeof setTimeout> }>({ items: [] });
+    const lastPickupMonologueAt = useRef(0);
+
+    const flushPickupBuffer = () => {
+        const buf = pickupBufferRef.current;
+        if (!buf || !buf.items || buf.items.length === 0) return;
+        const items = buf.items.splice(0, buf.items.length);
+        if (buf.timer) { clearTimeout(buf.timer); buf.timer = undefined; }
+
+        try {
+            // If only one distinct item and qty ===1, render the detailed single-pick template
+            if (items.length === 1 && items[0].quantity <= 1) {
+                const it = items[0];
+                // try to recreate the previous single-item detailed narrative path
+                const resolvedDef = resolveItemDef(getTranslatedText(it.name, 'en'));
+                const buildSensoryText = (def: ItemDefinition | undefined, itemName?: string) => {
+                    if (!def || !def.senseEffect || !Array.isArray(def.senseEffect.keywords) || def.senseEffect.keywords.length === 0) return '';
+                    const raw = def.senseEffect.keywords[Math.floor(Math.random() * def.senseEffect.keywords.length)];
+                    const [kindRaw, ...rest] = raw.split(':');
+                    const kind = kindRaw || 'generic';
+                    const valRaw = rest.join(':') || '';
+                    // fallback translation helper (keep minimal)
+                    const sensory = valRaw || raw;
+                    return sensory;
+                };
+                const itemNameText = t(it.name as TranslationKey);
+                const sensory = buildSensoryText(resolvedDef, itemNameText);
+                const narrativeText = t('pickedUpItem_single_1' as TranslationKey, { itemName: itemNameText, sensory });
+                addNarrativeEntry(narrativeText, 'narrative');
+                return;
+            }
+
+            // Multi-summary: group by name and sum quantities
+            const grouped: Record<string, number> = {};
+            items.forEach((it: any) => { const key = getTranslatedText(it.name, language); grouped[key] = (grouped[key] || 0) + (it.quantity || 1); });
+            const summaryList = Object.keys(grouped).map(k => `${grouped[k]} ${k}`).slice(0, 6).join(', ');
+            const totalCount = Object.values(grouped).reduce((s, v) => s + v, 0);
+            const summaryText = language === 'vi' ? `Bạn gom được ${summaryList}.` : `You picked up ${summaryList}.`;
+            addNarrativeEntry(summaryText, 'narrative');
+
+            // Optionally add a brief monologue if many distinct items found, but throttle it
+            const distinct = Object.keys(grouped).length;
+            const now = Date.now();
+            if (distinct >= 3 && now - lastPickupMonologueAt.current > 60_000) {
+                const db = getKeywordVariations(language as any);
+                const pool = (db as any)['monologue_tired'] || [];
+                if (pool.length > 0) {
+                    const line = pool[Math.floor(Math.random() * pool.length)];
+                    addNarrativeEntry(line, 'monologue');
+                    lastPickupMonologueAt.current = now;
+                }
+            }
+        } catch (e) {
+            // fallback: nothing
+        }
+    };
+
+    // When the player's current chunk or environment changes, prefer playing
+    // biome-specific ambience (files named like Ambience_<Biome>) and fall back
+    // to mood-based background tracks when a matching ambience isn't available.
+    // We respect the playbackMode in the provider by checking it before
+    // triggering playback.
+    useEffect(() => {
+        try {
+            if (!audio || audio.playbackMode === 'off') return;
+            const key = `${playerPosition.x},${playerPosition.y}`;
+            const baseChunk = world[key];
+            if (!baseChunk) return;
+            const currentChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime, sStart, sDayDuration);
+            // prefer biome-based ambience when possible (matches filenames like Ambience_Cave_00.mp3)
+            const biome = (currentChunk.terrain || (currentChunk as any).biome) as string | undefined | null;
+            if (biome) {
+                // playAmbienceForBiome will no-op if no matching file exists
+                audio.playAmbienceForBiome(biome);
+            } else {
+                const moods = analyze_chunk_mood(currentChunk);
+                audio.playBackgroundForMoods(moods);
+            }
+        } catch (e) {
+            // non-fatal: don't block game logic if audio fails
+        }
+    }, [world, playerPosition.x, playerPosition.y, weatherZones, gameTime, audio, sStart, sDayDuration]);
 
   const handleOnlineNarrative = useCallback(async (action: string, worldCtx: World, playerPosCtx: { x: number, y: number }, playerStatsCtx: PlayerStatus) => {
     setIsLoading(true);
@@ -90,9 +191,9 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const successLevel = getSuccessLevel(roll, settings.diceType);
     addNarrativeEntry(t('diceRollMessage', { diceType: settings.diceType, roll, level: t(successLevelToTranslationKey[successLevel]) }), 'system', `${Date.now()}-dice`);
 
-    const currentChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime);
+    const currentChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime, sStart, sDayDuration);
 
-    const surroundingChunks: any[] = [];
+    const surroundingChunks: Chunk[] = [];
     if (settings.narrativeLength === 'long') {
         for (let dy = 1; dy >= -1; dy--) {
             for (let dx = -1; dx <= 1; dx++) {
@@ -100,7 +201,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                 const key = `${playerPosCtx.x + dx},${playerPosCtx.y + dy}`;
                 const adjacentChunk = worldCtx[key];
                 if (adjacentChunk && adjacentChunk.explored) {
-                    surroundingChunks.push(getEffectiveChunk(adjacentChunk, weatherZones, gameTime));
+                    surroundingChunks.push(getEffectiveChunk(adjacentChunk, weatherZones, gameTime, sStart, sDayDuration));
                 }
             }
         }
@@ -125,21 +226,25 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             questsCompleted: playerStatsCtx.questsCompleted ?? 0,
         };
 
-        const normalizeChunkForAI = (c: any) => {
-            if (!c) return c;
-            const enemy = c.enemy ? { ...c.enemy, type: getTranslatedText(c.enemy.type ?? { en: '' }, language) } : null;
-            return { ...c, enemy };
+    const normalizeChunkForAI = (c: Chunk): Chunk => {
+            // Force the enemy.type translation to a plain string for AI inputs.
+            // Use the declared enemy.type (TranslatableString) directly when translating.
+            const enemy = c.enemy
+                ? ({ ...c.enemy, type: getTranslatedText(c.enemy.type ?? { en: '' }, language) } as any)
+                : null;
+            return { ...c, enemy } as any as Chunk;
         };
 
-        const normalizedCurrentChunk = normalizeChunkForAI(currentChunk);
-        const normalizedSurrounding = surroundingChunks.length > 0 ? surroundingChunks.map(normalizeChunkForAI) : undefined;
+    const normalizedCurrentChunk = normalizeChunkForAI(currentChunk as Chunk);
+    const normalizedSurrounding = surroundingChunks.length > 0 ? surroundingChunks.map(normalizeChunkForAI) : undefined;
 
         const input: GenerateNarrativeInput = {
             worldName: t(finalWorldSetup.worldName as TranslationKey),
             playerAction: action,
             playerStatus: normalizedPlayerStatus,
-            currentChunk: normalizedCurrentChunk,
-            surroundingChunks: normalizedSurrounding,
+            // normalizedCurrentChunk has been massaged for AI; cast to any to satisfy the Zod-derived input shape
+            currentChunk: normalizedCurrentChunk as any,
+            surroundingChunks: normalizedSurrounding as any,
             recentNarrative,
             language,
             customItemDefinitions,
@@ -211,7 +316,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     if (!baseChunk || !baseChunk.enemy) { addNarrativeEntry(t('noTarget'), 'system'); return; }
     
     logger.debug('[Offline] Starting attack sequence', { playerPosition, enemy: baseChunk.enemy });
-    const currentChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime);
+    const currentChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime, sStart, sDayDuration);
 
     const { roll } = rollDice(settings.diceType);
     const successLevel = getSuccessLevel(roll, settings.diceType);
@@ -240,7 +345,8 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         const templates = getTemplates(language);
         const enemyTemplate = templates[currentChunk.terrain]?.enemies.find((e: any) => getTranslatedText(e.data.type as TranslatableString, 'en') === getTranslatedText(currentChunk.enemy!.type as TranslatableString, 'en'));
         if (enemyTemplate?.data?.loot) {
-            for (const lootItem of (enemyTemplate.data.loot as any[])) {
+            type LootEntry = { name: string; chance: number };
+            for (const lootItem of (enemyTemplate.data.loot as LootEntry[])) {
                 if (Math.random() < lootItem.chance) {
                     const definition = resolveItemDef(lootItem.name);
                     if (definition) {
@@ -340,6 +446,89 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                 const old = newPlayerStats.stamina;
                 newPlayerStats.stamina = Math.min(100, newPlayerStats.stamina + amt);
                 if (newPlayerStats.stamina > old) effectDescriptions.push(t('itemStaminaEffect', { amount: (newPlayerStats.stamina - old).toFixed(0) }));
+            }
+            if (effect.type === 'RESTORE_HUNGER') {
+                if (newPlayerStats.hunger === undefined) newPlayerStats.hunger = 100;
+                const old = newPlayerStats.hunger;
+                newPlayerStats.hunger = Math.min(100, newPlayerStats.hunger + amt);
+                if (newPlayerStats.hunger > old) effectDescriptions.push(t('itemHungerEffect', { amount: (newPlayerStats.hunger - old).toFixed(0) }));
+            }
+            if (effect.type === 'APPLY_EFFECT') {
+                // Apply a status effect instance to the player (makes the item grant a timed effect)
+                if (effect.effectType) {
+                        type LocalStatusEffect = {
+                            id: string;
+                            type: string;
+                            duration: number;
+                            magnitude?: number;
+                            description: TranslatableString;
+                            appliedTurn: number;
+                            source?: string;
+                        };
+                        const newEffect: LocalStatusEffect = {
+                            id: `item-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
+                            type: String(effect.effectType),
+                            duration: Number(effect.effectDuration ?? 0),
+                            magnitude: typeof effect.effectMagnitude === 'number' ? effect.effectMagnitude : undefined,
+                            // lightweight description: use the effect type as fallback text
+                            description: { en: String(effect.effectType), vi: String(effect.effectType) },
+                            appliedTurn: (turn ?? 0),
+                            source: itemName,
+                        };
+                        newPlayerStats.statusEffects = newPlayerStats.statusEffects || [];
+                        newPlayerStats.statusEffects.push(newEffect as any);
+                        effectDescriptions.push(`${t('appliedEffect') || 'Applied effect'}: ${String(effect.effectType)}`);
+                    }
+            }
+            if (effect.type === 'GAMBLE_EFFECT') {
+                // Gamble effect: 50/50 chance between positive and negative outcomes
+                const gambleType = effect.gambleType || 'balanced';
+                const isPositive = Math.random() < 0.5;
+
+                if (isPositive) {
+                    if (gambleType === 'mana') {
+                        const healAmount = 30; // Large mana restoration
+                        const old = newPlayerStats.mana ?? 0;
+                        newPlayerStats.mana = Math.min(100, (newPlayerStats.mana ?? 0) + healAmount);
+                        if (newPlayerStats.mana > old) effectDescriptions.push(t('itemManaEffect', { amount: newPlayerStats.mana - old }));
+                    } else if (gambleType === 'health') {
+                        const healAmount = 30; // Large health restoration
+                        const old = newPlayerStats.hp;
+                        newPlayerStats.hp = Math.min(100, newPlayerStats.hp + healAmount);
+                        if (newPlayerStats.hp > old) effectDescriptions.push(t('itemHealEffect', { amount: newPlayerStats.hp - old }));
+                    } else { // balanced
+                        const healAmount = 20; // Medium restoration for both
+                        const oldHp = newPlayerStats.hp;
+                        const oldMana = newPlayerStats.mana ?? 0;
+                        newPlayerStats.hp = Math.min(100, newPlayerStats.hp + healAmount);
+                        newPlayerStats.mana = Math.min(100, (newPlayerStats.mana ?? 0) + healAmount);
+                        if (newPlayerStats.hp > oldHp) effectDescriptions.push(t('itemHealEffect', { amount: newPlayerStats.hp - oldHp }));
+                        if (newPlayerStats.mana > oldMana) effectDescriptions.push(t('itemManaEffect', { amount: newPlayerStats.mana - oldMana }));
+                    }
+                } else {
+                    // Apply poison effect (negative outcome)
+                    type LocalStatusEffect = {
+                        id: string;
+                        type: string;
+                        duration: number;
+                        magnitude?: number;
+                        description: TranslatableString;
+                        appliedTurn: number;
+                        source?: string;
+                    };
+                    const poisonEffect: LocalStatusEffect = {
+                        id: `item-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
+                        type: 'poison',
+                        duration: 5,
+                        magnitude: 2,
+                        description: { en: 'Poisoned', vi: 'Bị độc' },
+                        appliedTurn: (turn ?? 0),
+                        source: itemName,
+                    };
+                    newPlayerStats.statusEffects = newPlayerStats.statusEffects || [];
+                    newPlayerStats.statusEffects.push(poisonEffect as any);
+                    effectDescriptions.push(t('appliedEffect') || 'Applied effect: Poison');
+                }
             }
         });
         narrativeResult.wasUsed = effectDescriptions.length > 0;
@@ -503,6 +692,54 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                   } else { newPlayerStats.quests.push(questText); addNarrativeEntry(t('npcQuestGive', { npcName: npcName, questText: questText }), 'narrative'); }
               } else addNarrativeEntry(t('npcNoQuest', { npcName: npcName }), 'narrative');
           }
+      } else if (textKey === 'useItemOnNpcAction') {
+          const npcName = t(action.params!.npcName as TranslationKey);
+          const itemName = action.params!.itemName as string;
+          const npc = currentChunk.NPCs.find((n: any) => t(n.name as TranslationKey) === npcName);
+          if (npc && itemName === 'cvnt_essence') {
+              // Special logic for Floptropica quest completion
+              const questText = t('floptropica_quest2');
+              if (newPlayerStats.quests.includes(questText)) {
+                  const itemInInventory = newPlayerStats.items.find((i: PlayerItem) => getTranslatedText(i.name, 'en') === 'cvnt_essence');
+                  if (itemInInventory && itemInInventory.quantity >= 1) {
+                      // Consume the item
+                      itemInInventory.quantity -= 1;
+                      if (itemInInventory.quantity <= 0) {
+                          newPlayerStats.items = newPlayerStats.items.filter(i => getTranslatedText(i.name, 'en') !== 'cvnt_essence');
+                      }
+
+                      // Complete the quest
+                      newPlayerStats.quests = newPlayerStats.quests.filter(q => q !== questText);
+
+                      // Add reward item (meme_template)
+                      const rewardItemName = 'meme_template';
+                      const existingRewardItem = newPlayerStats.items.find((i: PlayerItem) => getTranslatedText(i.name, 'en') === rewardItemName);
+                      if (existingRewardItem) {
+                          existingRewardItem.quantity += 1;
+                      } else {
+                          const rewardItemDef = resolveItemDef(rewardItemName);
+                          if (rewardItemDef) {
+                              newPlayerStats.items.push(ensurePlayerItemId({
+                                  name: { en: rewardItemName, vi: t(rewardItemName as TranslationKey) },
+                                  quantity: 1,
+                                  tier: rewardItemDef.tier,
+                                  emoji: rewardItemDef.emoji
+                              }, customItemDefinitions, t, language));
+                          }
+                      }
+
+                      // Add narrative and toast
+                      addNarrativeEntry(t('floptropicaQuest2Completed', { npcName: npcName }), 'narrative');
+                      toast({ title: t('questCompletedTitle'), description: questText });
+                  } else {
+                      addNarrativeEntry(t('itemNotFound'), 'system');
+                  }
+              } else {
+                  addNarrativeEntry(t('npcNoQuest', { npcName: npcName }), 'narrative');
+              }
+          } else {
+              addNarrativeEntry(t('invalidAction'), 'system');
+          }
       } else if (textKey === 'exploreAction') {
           const result = handleSearchAction(
               currentChunk,
@@ -551,7 +788,20 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
               newPlayerStats.items.push(ensurePlayerItemId({...itemInChunk}, customItemDefinitions, t, language));
           }
           
-          addNarrativeEntry(t('pickedUpItemNarrative', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name as TranslationKey) }), 'narrative');
+          // Buffer pickup narratives: collect into a short window and flush a single
+          // aggregated narrative to avoid spamming a long sequence of per-item details.
+          try {
+              const resolvedDef = resolveItemDef(getTranslatedText(itemInChunk.name, 'en'));
+              const senseKey = resolvedDef?.senseEffect?.keywords?.[0] || undefined;
+              pickupBufferRef.current.items.push({ name: itemInChunk.name, quantity: itemInChunk.quantity || 1, senseKey, emoji: itemInChunk.emoji });
+              // schedule flush in 250ms if not already scheduled
+              if (!pickupBufferRef.current.timer) {
+                  pickupBufferRef.current.timer = setTimeout(() => flushPickupBuffer(), 250) as any;
+              }
+          } catch (e) {
+              // If buffering fails, fall back to adding a safe single-line narrative
+              addNarrativeEntry(t('pickedUpItemNarrative', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name as TranslationKey) }), 'narrative');
+          }
 
           setWorld(prev => {
               const newWorld = { ...prev };
@@ -594,7 +844,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
               }
           }
       } else if (textKey === 'analyzeAction') {
-          const chunk = getEffectiveChunk(currentChunk, weatherZones, gameTime);
+          const chunk = getEffectiveChunk(currentChunk, weatherZones, gameTime, sStart, sDayDuration);
           let analysis = `[Analysis Report]\nCoordinates: (${chunk.x}, ${chunk.y})\nRegion ID: ${chunk.regionId}\nTerrain: ${t(chunk.terrain as TranslationKey)}\nTravel Cost: ${chunk.travelCost}\n\nEnvironmental Factors:\n- Temperature: ${chunk.temperature?.toFixed(1)}°C\n- Moisture: ${chunk.moisture}/100\n- Light Level: ${chunk.lightLevel}/100\n- Danger Level: ${chunk.dangerLevel}/100\n- Explorability: ${chunk.explorability.toFixed(1)}/100\n- Magic Affinity: ${chunk.magicAffinity}/100\n- Human Presence: ${chunk.humanPresence}/100\n- Predator Presence: ${chunk.predatorPresence}/100\n- Vegetation Density: ${chunk.vegetationDensity}/100\n- Soil Type: ${t(chunk.soilType as TranslationKey)}\n- Wind Level: ${chunk.windLevel?.toFixed(1) ?? 'N/A'}/100\n\nEntities:\n- Items: ${chunk.items.map((i: any) => t(i.name) + ` (x${i.quantity})`).join(', ') || 'None'}\n- NPCs: ${chunk.NPCs.map((n: any) => t(n.name)).join(', ') || 'None'}\n- Structures: ${chunk.structures.map((s: any) => t(s.name)).join(', ') || 'None'}`;
 
           if (chunk.enemy) {
@@ -691,7 +941,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         const newInventory = [...nextPlayerStats.items];
         const resultItemIndex = newInventory.findIndex(i => getTranslatedText(i.name, 'en') === recipe.result.name);
         if (resultItemIndex > -1) newInventory[resultItemIndex].quantity += recipe.result.quantity;
-    else newInventory.push({ ...(recipe.result as PlayerItem), tier: resolveItemDef(recipe.result.name)?.tier || 1 });
+    else newInventory.push({ ...(recipe.result as PlayerItem), tier: resolveItemDef(recipe.result.name)?.tier || 1, emoji: recipe.result.emoji || resolveItemDef(recipe.result.name)?.emoji || '📦' });
         nextPlayerStats.items = newInventory;
         
         const successKeys: TranslationKey[] = ['craftSuccess1', 'craftSuccess2', 'craftSuccess3'];
@@ -808,7 +1058,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
     if (!baseChunk) { setIsLoading(false); return; }
 
-    const effectiveChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime);
+    const effectiveChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime, sStart, sDayDuration);
     const weather = weatherZones[effectiveChunk.regionId]?.currentWeather;
     let successChanceBonus = playerStats.persona === 'artisan' ? 10 : 0;
     let elementalAffinity: any = 'none';
@@ -826,16 +1076,16 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     setPlayerStats(() => nextPlayerStats);
 
     try {
-        const normalizeChunkForAI = (c: any) => {
-            if (!c) return c;
+        const normalizeChunkForAI = (c?: Chunk | null): Chunk | null => {
+            if (!c) return null;
             const enemy = c.enemy ? { ...c.enemy, type: getTranslatedText(c.enemy.type ?? { en: '' }, language) } : null;
-            return { ...c, enemy };
+            return { ...c, enemy } as Chunk;
         };
 
-        const normalizedEffectiveChunk = normalizeChunkForAI(effectiveChunk);
+    const normalizedEffectiveChunk = normalizeChunkForAI(effectiveChunk as Chunk);
 
         const result = await fuseItems({
-            itemsToFuse, playerPersona: playerStats.persona, currentChunk: normalizedEffectiveChunk,
+            itemsToFuse, playerPersona: playerStats.persona, currentChunk: normalizedEffectiveChunk as any,
             environmentalContext: { biome: effectiveChunk.terrain, weather: t(weather?.name as TranslationKey) || 'clear' },
             environmentalModifiers: { successChanceBonus, elementalAffinity, chaosFactor: clamp(chaosFactor, 0, 100) },
             language, customItemDefinitions, fullItemCatalog: customItemCatalog,
@@ -854,8 +1104,8 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                     name: result.resultItem.name,
                     quantity: result.resultItem.baseQuantity.min,
                     tier: result.resultItem.tier,
-                    emoji: result.resultItem.emoji
-                    , id: resultItemId
+                    emoji: result.resultItem.emoji,
+                    id: resultItemId
                 };
                 nextPlayerStats.items.push(ensurePlayerItemId(itemToAdd, customItemDefinitions, t, language));
             }
@@ -917,7 +1167,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             }
         }
     
-        (newStats.equipment as any)[slot] = { name: itemToEquip.name, quantity: 1, tier: itemToEquip.tier, emoji: itemToEquip.emoji };
+        (newStats.equipment as any)[slot] = { name: itemToEquip.name, quantity: 1, tier: itemToEquip.tier, emoji: itemDef.emoji };
     
         if (itemToEquip.quantity > 1) {
             itemToEquip.quantity -= 1;
@@ -958,7 +1208,8 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         if (existingInInventory) {
             existingInInventory.quantity += 1;
         } else {
-            newStats.items.push(ensurePlayerItemId({ ...itemToUnequip, quantity: 1 }, customItemDefinitions, t, language));
+            const itemDef = resolveItemDef(getTranslatedText(itemToUnequip.name, 'en'));
+            newStats.items.push(ensurePlayerItemId({ ...itemToUnequip, quantity: 1, emoji: itemDef?.emoji || '📦' }, customItemDefinitions, t, language));
         }
 
         (newStats.equipment as any)[slot] = null;
@@ -1088,9 +1339,19 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     
     setPlayerBehaviorProfile(prev => ({ ...prev, moves: prev.moves + 1 }));
     
-    const actionText = t('wentDirection', { direction: t(`direction${direction.charAt(0).toUpperCase() + direction.slice(1)}` as TranslationKey) });
+    const dirKey = `direction${direction.charAt(0).toUpperCase() + direction.slice(1)}` as TranslationKey;
+    const directionText = t(dirKey);
+    const actionText = t('wentDirection', { direction: directionText });
     addNarrativeEntry(actionText, 'action');
-    
+
+    // optimistic placeholder: add a low-detail movement narrative immediately
+    const placeholderId = `${Date.now()}-move-${x}-${y}`;
+    // choose short vs long placeholder based on narrative length setting
+    const movingKey = settings.narrativeLength === 'long' ? 'movingLong' : 'movingShort';
+    // brief_sensory will be computed after we read finalChunk (best-effort)
+    const placeholderText = t(movingKey as TranslationKey, { direction: directionText, brief_sensory: '' });
+    addNarrativeEntry(placeholderText, 'narrative', placeholderId);
+
     setPlayerPosition({ x, y });
     
     const staminaCost = worldSnapshot[nextChunkKey]?.travelCost ?? 1;
@@ -1107,10 +1368,192 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     advanceGameTime(newPlayerStats, { x, y });
 
     const finalChunk = worldSnapshot[`${x},${y}`];
-    if (finalChunk) {
-      const narrative = generateOfflineNarrative(finalChunk, settings.narrativeLength, worldSnapshot, {x, y}, t, language);
-      addNarrativeEntry(narrative, 'narrative');
-    }
+        if (finalChunk) {
+            // Best-effort: compute a short, localized sensory hint from the chunk
+            let briefSensory = '';
+            try {
+                const computeBriefSensory = (c: any) => {
+                    // Pick the single most prominent sensory condition (temperature/moisture/light)
+                    // to avoid chaining multiple 'in the X, in the Y' fragments. We choose the
+                    // condition with the largest deviation from neutral and render one concise
+                    // localized phrase based on that.
+                    const scores: { key: string; score: number }[] = [];
+                    if (typeof c.temperature === 'number') {
+                        // score = distance from comfortable (50) biasing extremes
+                        const temp = c.temperature;
+                        const score = Math.abs(temp - 50) + (temp >= 80 || temp <= 10 ? 20 : 0);
+                        scores.push({ key: 'temperature', score });
+                    }
+                    if (typeof c.moisture === 'number') {
+                        const m = c.moisture;
+                        const score = Math.abs(m - 50) + (m >= 80 || m <= 20 ? 15 : 0);
+                        scores.push({ key: 'moisture', score });
+                    }
+                    if (typeof c.lightLevel === 'number') {
+                        // lightLevel in this project is typically -100..100; treat low values as dark
+                        const l = c.lightLevel;
+                        // light extremes get a boost
+                        const score = Math.abs((l <= 0 ? 0 - l : 100 - l)) + (l <= 10 ? 10 : 0);
+                        scores.push({ key: 'light', score });
+                    }
+
+                    // fallback: if nothing numeric present, return empty
+                    if (scores.length === 0) return '';
+
+                    scores.sort((a, b) => b.score - a.score);
+                    const primary = scores[0].key;
+
+                    // language-aware short patterns (keep these short so optimistic placeholder is not verbose)
+                    const patternsEn = [
+                        "it's {adj}.",
+                        "the air feels {adj}.",
+                        "a {adj} hush falls over the area.",
+                        "{adj} surrounds you.",
+                        "you notice it is {adj}."
+                    ];
+                    const patternsVi = [
+                        "{adj}.",
+                        "không khí có cảm giác {adj}.",
+                        "một bầu không khí {adj} bao trùm.",
+                        "bạn nhận thấy nơi này {adj}.",
+                        "cảm giác chiếc {adj} len lỏi." // intentionally short
+                    ];
+
+                    // Helper: pick a localized adjective based on the primary condition
+                    const pickAdj = () => {
+                        try {
+                            // Use the shared keyword variations DB if available on window scope via import
+                            // but to avoid extra imports here, prefer existing translation keys for simple mapping.
+                            if (primary === 'temperature') {
+                                if (c.temperature >= 80) return t('temp_hot') || 'scorching';
+                                if (c.temperature <= 10) return t('temp_cold') || 'freezing';
+                                return t('temp_mild') || 'mild';
+                            }
+                            if (primary === 'moisture') {
+                                if (c.moisture >= 80) return t('moisture_humid') || 'humid';
+                                if (c.moisture <= 20) return t('moisture_dry') || 'dry';
+                                return t('moisture_normal') || 'fresh';
+                            }
+                            if (primary === 'light') {
+                                if (c.lightLevel <= 10) return t('light_level_dark') || 'dark';
+                                if (c.lightLevel <= 40) return t('light_level_dim') || 'dim';
+                                return t('light_level_normal') || 'bright';
+                            }
+                        } catch (e) {
+                            // fallback
+                        }
+                        return '';
+                    };
+
+                    const adj = pickAdj();
+                    const patterns = language === 'vi' ? patternsVi : patternsEn;
+                    const chosenPattern = patterns[Math.floor(Math.random() * patterns.length)];
+                    // Insert adjective into pattern; keep result short and trimmed.
+                    return chosenPattern.replace('{adj}', adj).replace(/\s+/g, ' ').trim();
+                };
+
+                    briefSensory = computeBriefSensory(finalChunk);
+                    if (briefSensory && briefSensory.length > 0) {
+                        const updatedPlaceholder = t(movingKey as TranslationKey, { direction: directionText, brief_sensory: briefSensory });
+                        // replace the optimistic placeholder with the improved brief sensory text
+                        addNarrativeEntry(String(updatedPlaceholder).replace(/\{[^}]+\}/g, '').trim(), 'narrative', placeholderId);
+                    }
+            } catch (e) {
+                // non-fatal: if computing brief sensory fails, continue to orchestrator/fallback
+                // eslint-disable-next-line no-console
+                console.warn('[narrative] brief sensory computation failed', e);
+            }
+
+            // If the player moved repeatedly inside the same biome, prefer a short
+            // "continuation" template (a smaller, linking sentence) rather than
+            // loading a full descriptive template. This keeps movement prose compact.
+            try {
+                const prevChunk = worldSnapshot[`${playerPosition.x},${playerPosition.y}`];
+                if (prevChunk && prevChunk.terrain && finalChunk.terrain && String(prevChunk.terrain) === String(finalChunk.terrain)) {
+                    const db = getKeywordVariations(language as any);
+                    const pool = (db as any)[`${String(finalChunk.terrain).toLowerCase()}_continuation`] || (db as any)['continuation'];
+                    if (pool && Array.isArray(pool) && pool.length > 0) {
+                        const pick = pool[Math.floor(Math.random() * pool.length)];
+                        // Replace simple tokens
+                        const text = String(pick).replace('{direction}', directionText).replace('{biome}', t(finalChunk.terrain as TranslationKey));
+                        addNarrativeEntry(text, 'narrative', placeholderId);
+                        lastMoveRef.current = { biome: finalChunk.terrain, time: Date.now() };
+                        return;
+                    }
+                }
+            } catch (e) {
+                // non-fatal
+            }
+
+                // Try to use precomputed bundle + runtime orchestrator first (lazy-loaded).
+                (async () => {
+                // First, attempt conditional movement templates (fast, local)
+                try {
+                    try {
+                        const mn = await import('@/lib/game/movement-narrative');
+                        const conditional = mn.selectMovementNarrative({ chunk: finalChunk, playerStats: newPlayerStats || playerStats, directionText, language, briefSensory });
+                        if (conditional) {
+                            addNarrativeEntry(String(conditional).replace(/\{[^}]+\}/g, '').trim(), 'narrative', placeholderId);
+                            return;
+                        }
+                    } catch (e) {
+                        // non-fatal: if selector import or execution fails, continue to loader
+                    }
+                } catch (e) {
+                    // ignore and fallthrough to precomputed loader
+                }
+                try {
+                    const loaderMod = await import('@/lib/narrative/loader');
+                    const orchestrator = await import('@/lib/narrative/runtime-orchestrator');
+                    const biomeKey = finalChunk.terrain || finalChunk.biome || 'default';
+                    const bundle = await loaderMod.loadPrecomputedBundle(biomeKey, language);
+                    if (bundle && bundle.templates && bundle.templates.length > 0) {
+                        // Use conditional-aware orchestrator pick if available
+                        try {
+                            const res = orchestrator.pickVariantFromBundleWithConditions
+                                ? orchestrator.pickVariantFromBundleWithConditions(bundle as any, { chunk: finalChunk, playerStats: newPlayerStats || playerStats, briefSensory }, { seed: `${x},${y}`, persona: undefined })
+                                : null;
+                            if (res && res.text) {
+                                let finalText = String(res.text);
+                                // Replace brief_sensory placeholder if present
+                                if (briefSensory && briefSensory.length > 0) {
+                                    finalText = finalText.replace(/\{\s*brief_sensory\s*\}/g, briefSensory).replace(/{{\s*brief_sensory\s*}}/g, briefSensory);
+                                }
+                                finalText = finalText.replace(/\{[^}]+\}/g, '').trim();
+                                addNarrativeEntry(finalText, 'narrative', placeholderId);
+                                return;
+                            }
+                        } catch (e) {
+                            // fall back to deterministic index-based pick
+                            const seed = `${x},${y}`;
+                            const idx = Math.abs(seed.split('').reduce((s, c) => s + c.charCodeAt(0), 0)) % bundle.templates.length;
+                            const tplId = bundle.templates[idx].id;
+                            const res = orchestrator.pickVariantFromBundle(bundle as any, tplId, { seed, persona: undefined });
+                            if (res && res.text) {
+                                const finalText = String(res.text).replace(/\{[^}]+\}/g, '').trim();
+                                addNarrativeEntry(finalText, 'narrative', placeholderId);
+                                return;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    // If anything fails, fall back to legacy offline generator
+                    // eslint-disable-next-line no-console
+                    console.warn('[narrative] precomputed load failed, falling back', String(e));
+                }
+                // fallback: use offline generator but reduce verbosity if this is a repeated movement
+                const recent = narrativeLogRef.current?.slice(-6) || [];
+                const repeatCount = recent.reduce((acc, e) => {
+                    const txt = (typeof e === 'string' ? e : (e.text || '')).toLowerCase();
+                    if (txt.includes(directionText.toLowerCase()) || txt.includes((finalChunk.terrain || '').toLowerCase())) return acc + 1;
+                    return acc;
+                }, 0);
+                const effectiveLength = (repeatCount >= 3) ? 'short' : settings.narrativeLength;
+                let narrative = generateOfflineNarrative(finalChunk, effectiveLength as any, worldSnapshot, { x, y }, t, language);
+                narrative = String(narrative).replace(/\{[^}]+\}/g, '').trim();
+                addNarrativeEntry(narrative, 'narrative', placeholderId);
+            })();
+        }
 
     }, [isLoading, isGameOver, playerPosition, world, addNarrativeEntry, t, playerStats, setPlayerBehaviorProfile, setPlayerPosition, settings.narrativeLength, language, advanceGameTime]);
 

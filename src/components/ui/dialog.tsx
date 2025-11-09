@@ -21,7 +21,12 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      // Make overlay non-interactive when closed to avoid it blocking clicks while
+      // it's animating out or otherwise not visible. When open, allow pointer events.
+      // RATIONALE: Radix keeps overlay in the DOM during open/close animations which
+      // can briefly trap pointer events if the overlay remains interactive while
+      // visually hidden. This class ensures only the open state receives pointer events.
+      "fixed inset-0 z-50 bg-black/80 pointer-events-none data-[state=open]:pointer-events-auto data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
     {...props}

@@ -18,7 +18,7 @@ import { getTranslatedText } from "@/lib/utils";
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema, GeneratedItemSchema, NpcSchema } from '@/ai/schemas';
-import type { TranslatableString, NarrativeLength, TranslatableStringSchema } from '@/lib/game/types';
+
 import { LanguageEnum as Language } from '@/lib/i18n'; // Import Language enum
 
 // SỬA: Import các schema đã đặt tên và các tool từ game-actions.ts
@@ -98,45 +98,30 @@ export type GenerateNarrativeInput = z.infer<typeof GenerateNarrativeInputSchema
  * @property {z.string} [systemMessage] - Một thông báo hệ thống ngắn, tùy chọn cho các sự kiện quan trọng.
  * @property {GeneratedItemSchema} [newlyGeneratedItem] - Một vật phẩm mới được tạo ra để thêm lặng lẽ vào danh mục vật phẩm chính của thế giới.
  */
-const _GenerateNarrativeOutputSchema = z.object({
-  narrative: z.string().describe("The main narrative description of what happens next."),
-  updatedChunk: z.object({
-    description: z.string().optional(),
-    items: z.array(z.lazy(() => ChunkItemSchema)).optional(),
-    NPCs: z.array(z.lazy(() => NpcSchema)).optional(),
-    enemy: z.lazy(() => EnemySchema).nullable().optional(),
-    structures: z.array(z.any()).optional(),
-  }).optional().describe("Optional: Changes to the current game chunk based on the action's outcome."),
-  updatedPlayerStatus: z.object({
-    items: z.array(PlayerItemSchema).optional(),
-    quests: z.array(z.string()).optional(),
-    questsCompleted: z.number().optional(),
-    hp: z.number().optional(),
-    mana: z.number().optional(),
-    stamina: z.number().optional(),
-    pets: z.array(z.any()).optional(),
-  }).optional().describe("Optional: Changes to the player's status."),
-  systemMessage: z.string().optional().describe("An optional, short system message for important events."),
-  newlyGeneratedItem: GeneratedItemSchema.optional().describe("A newly generated item to be added silently to the world's master item catalog."),
-});
-/**
- * @typedef {z.infer<typeof GenerateNarrativeOutputSchema>} GenerateNarrativeOutput
- */
-export type GenerateNarrativeOutput = z.infer<typeof _GenerateNarrativeOutputSchema>;
+export type GenerateNarrativeOutput = {
+  narrative: string;
+  updatedChunk?: {
+    description?: string;
+    items?: z.infer<typeof ChunkItemSchema>[];
+    NPCs?: z.infer<typeof NpcSchema>[];
+    enemy?: z.infer<typeof EnemySchema> | null;
+    structures?: any[];
+  };
+  updatedPlayerStatus?: {
+    items?: z.infer<typeof PlayerItemSchema>[];
+    quests?: string[];
+    questsCompleted?: number;
+    hp?: number;
+    mana?: number;
+    stamina?: number;
+    pets?: any[];
+  };
+  systemMessage?: string;
+  newlyGeneratedItem?: z.infer<typeof GeneratedItemSchema>;
+};
 
 
 // == STEP 3: DEFINE THE AI PROMPT ==
-
-/**
- * Schema đầu ra đơn giản hơn cho những gì chúng ta mong đợi từ việc tạo văn bản của AI.
- * Các thay đổi trạng thái sẽ đến từ các công cụ.
- * @property {z.string} narrative - Mô tả kể chuyện chính về những gì xảy ra tiếp theo.
- * @property {z.string} [systemMessage] - Một thông báo hệ thống ngắn, tùy chọn cho các sự kiện quan trọng.
- */
-const _AINarrativeResponseSchema = z.object({
-    narrative: z.string().describe("The main narrative description of what happens next. This should be engaging and based on the player's action, the tool's result, and the requested narrativeLength ('short': 1-2 sentences, 'medium': 2-4, 'long': 5+)."),
-    systemMessage: z.string().optional().describe("An optional, short system message for important events (e.g., 'Item added to inventory', 'Quest updated', 'Quest Completed!')."),
-});
 
 /**
  * Template cho lời nhắc (prompt) AI, hướng dẫn AI cách tạo ra câu chuyện.

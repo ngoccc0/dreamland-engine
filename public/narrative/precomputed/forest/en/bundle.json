@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "biome": "forest",
+  "locale": "en",
+  "generatedAt": "2025-11-05T00:00:00Z",
+  "templates": [
+    {
+      "id": "movement_night_conditional",
+      "weight": 1,
+      "variants": [
+        {
+          "patternId": null,
+          "seed": "v1",
+          "text": "The darkness presses in as you make for the {direction}. Your steps are cautious; senses stretched thin. {brief_sensory}",
+          "picks": []
+        }
+      ],
+      "conditions": { "lightMax": 10, "requireNoLight": true }
+    },
+    {
+      "id": "movement_swamp_muddy",
+      "weight": 0.8,
+      "variants": [
+        {
+          "patternId": null,
+          "seed": "v1",
+          "text": "The ground turns to muck underfoot as you wade {direction}. Your boots sink; every step pulls at you. {brief_sensory}",
+          "picks": []
+        }
+      ],
+      "conditions": { "moistureMin": 80 }
+    },
+    {
+      "id": "movement_default",
+      "weight": 1,
+      "variants": [
+        {
+          "patternId": null,
+          "seed": "v1",
+          "text": "You continue {direction}. {brief_sensory}",
+          "picks": []
+        }
+      ],
+      "conditions": {}
+    }
+  ]
+}

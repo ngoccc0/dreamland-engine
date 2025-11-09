@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { MultilingualTextSchema, SpawnConditionsSchema } from './base';
+import { MultilingualTextSchema, SpawnConditionsSchema, EmojiSchema } from './base';
 import type { Terrain, BiomeTemplateData } from '../types';
 
 /**
@@ -69,6 +69,7 @@ export const BiomeDefinitionSchema = z.object({
     temperature: z.object({ min: z.number(), max: z.number() }).describe("The default random range for temperature in chunks within this biome."),
   }).describe("Defines the base random value ranges for various chunk attributes when generating chunks within this biome."),
   soilType: z.array(z.string()).describe("An array of possible soil types that can be found in this biome (e.g., ['fertile', 'sandy', 'rocky'])."),
+  emoji: EmojiSchema.optional().describe("A single emoji, SVG filename, or image object representing the biome. Used for visual representation in UI."),
   templates: z.custom<BiomeTemplateData>().optional().describe("The templates used to procedurally generate the specific content (items, NPCs, structures) of a chunk within this biome."),
 });
 

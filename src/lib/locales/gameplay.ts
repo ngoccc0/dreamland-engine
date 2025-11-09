@@ -1,4 +1,3 @@
-
 // src/lib/locales/gameplay.ts
 
 export const gameplayTranslations = {
@@ -47,7 +46,9 @@ export const gameplayTranslations = {
     craftAction: "Craft {itemName}",
     buildConfirm: "Build {structureName}",
     fuseAction: "Fuse {items}",
-    wentDirection: "You went {direction}.",
+  wentDirection: "You went {direction}.",
+  movingShort: "You head {direction}, keeping your steps steady.",
+  movingLong: "As you move {direction}, you notice the surroundings shift: {brief_sensory}.",
     directionNorth: "north",
     directionSouth: "south",
     directionEast: "east",
@@ -74,6 +75,10 @@ export const gameplayTranslations = {
     gameOverMessage: "Darkness envelops you. Your journey ends here.",
     itemHealEffect: "Healed for {amount} HP.",
     itemStaminaEffect: "Restored {amount} stamina.",
+  appliedEffect: "Applied effect: {effect}",
+  poisonDamage: "You suffer {amount} poison damage.",
+  effectWornOff: "The {effect} effect has worn off.",
+  youAreStarving: "You are starving.",
     gaveItemToNpc: "You give {quantity} {itemName} to {npcName}.",
     npcQuestCompleted: "{npcName} seems pleased and gives you a reward.",
     npcQuestNotEnoughItems: "{npcName} looks at your meager offering. You still need {needed} more {itemName}.",
@@ -101,7 +106,7 @@ export const gameplayTranslations = {
     criticalSuccess: "Thành công Xuất sắc",
 
     // Time & Events
-    timeUpdate: "🕖 Bây giờ là {time}.",
+    timeUpdate: "🕖Bây giờ là {time}.",
     newDay: "Một ngày mới đã bắt đầu.",
     dynamicDay: "Mặt trời mọc, bắt đầu một ngày mới.",
     journalUpdated: "Nhật ký của bạn đã được cập nhật.",
@@ -134,7 +139,9 @@ export const gameplayTranslations = {
     craftAction: "Chế tạo {itemName}",
     buildConfirm: "Xây {structureName}",
     fuseAction: "Hợp nhất {items}",
-    wentDirection: "Bạn đã đi về phía {direction}.",
+  wentDirection: "Bạn lần bước về phía {direction}, để lại dấu chân trên mặt đất ẩm ướt.",
+  movingShort: "Bạn tiến về phía {direction}, mỗi bước chân như đang khám phá một thế giới mới.",
+  movingLong: "Khi bạn tiến về phía {direction}, bạn nhận thấy xung quanh thay đổi: {brief_sensory}.",
     directionNorth: "bắc",
     directionSouth: "nam",
     directionEast: "đông",
@@ -159,6 +166,10 @@ export const gameplayTranslations = {
     gameOverMessage: "Bóng tối bao trùm bạn. Hành trình của bạn kết thúc tại đây.",
     itemHealEffect: "Hồi phục {amount} HP.",
     itemStaminaEffect: "Phục hồi {amount} thể lực.",
+  appliedEffect: "Đã áp dụng hiệu ứng: {effect}",
+  poisonDamage: "Bạn chịu {amount} sát thương do đầu độc.",
+  effectWornOff: "Hiệu ứng {effect} đã hết.",
+  youAreStarving: "Bạn đang đói quá mức.",
     gaveItemToNpc: "Bạn đưa {quantity} {itemName} cho {npcName}.",
     npcQuestCompleted: "{npcName} có vẻ hài lòng và đưa cho bạn một phần thưởng.",
     npcQuestNotEnoughItems: "{npcName} nhìn vào món đồ ít ỏi của bạn. Bạn vẫn cần thêm {needed} {itemName}.",

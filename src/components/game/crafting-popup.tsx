@@ -13,6 +13,7 @@ import type { TranslationKey } from "@/lib/i18n";
 import { calculateCraftingOutcome } from "@/lib/game/engine/crafting";
 import { Hammer } from "./icons";
 import { cn, getTranslatedText } from "@/lib/utils";
+import { resolveItemDef } from '@/lib/game/item-utils';
 import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
 
@@ -28,23 +29,10 @@ interface CraftingPopupProps {
 export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions, recipes, onCraft }: CraftingPopupProps) {
   const { t, language } = useLanguage();
   const [showOnlyCraftable, setShowOnlyCraftable] = useState(false);
+  const [showOnlyWithAnyIngredient, setShowOnlyWithAnyIngredient] = useState(false);
   const [sortByCraftability, setSortByCraftability] = useState(false);
 
   // Process recipes with craftability scores
-  // DEBUG: Log player items and the calculated outcome for the simple stone axe
-  useEffect(() => {
-    try {
-      console.debug('[debug][CraftingPopup] playerItems:', playerItems.map(it => ({ id: it.id, nameEn: getTranslatedText(it.name, 'en', t), nameVi: getTranslatedText(it.name, 'vi', t), quantity: it.quantity })));
-      const stoneAxe = recipes['simple_stone_axe_recipe'];
-      if (stoneAxe) {
-        const stoneOutcome = calculateCraftingOutcome(playerItems, stoneAxe, itemDefinitions);
-        console.debug('[debug][CraftingPopup] simple_stone_axe outcome:', stoneOutcome);
-      }
-    } catch (e) {
-      console.debug('[debug][CraftingPopup] debug log failed', e);
-    }
-  }, [playerItems, recipes, itemDefinitions, language, t]);
-
   const processedRecipes = Object.values(recipes).map(recipe => {
     const outcome = calculateCraftingOutcome(playerItems, recipe, itemDefinitions);
     const craftabilityScore = outcome.resolvedIngredients.filter(ing => ing.hasEnough).length / recipe.ingredients.length;
@@ -53,7 +41,15 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
 
   // Filter and sort recipes
   const filteredRecipes = processedRecipes
-    .filter(({ craftabilityScore }) => !showOnlyCraftable || craftabilityScore === 1)
+    .filter(({ craftabilityScore, outcome }) => {
+      if (showOnlyCraftable && craftabilityScore < 1) {
+        return false;
+      }
+      if (showOnlyWithAnyIngredient && outcome.resolvedIngredients.every(ing => ing.playerQuantity === 0)) {
+        return false;
+      }
+      return true;
+    })
     .sort((a, b) => {
       if (sortByCraftability) {
         return b.craftabilityScore - a.craftabilityScore;
@@ -81,6 +77,16 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
               {t('showOnlyCraftable')}
             </label>
           </div>
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={showOnlyWithAnyIngredient}
+              onCheckedChange={setShowOnlyWithAnyIngredient}
+              id="any-ingredient-filter"
+            />
+            <label htmlFor="any-ingredient-filter" className="text-sm">
+              {t('showOnlyWithAnyIngredient')}
+            </label>
+          </div>
           <Button
             variant="outline"
             size="sm"
@@ -97,7 +103,7 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
               const hasRequiredTool = outcome.hasRequiredTool;
               const resultName = getTranslatedText(recipe.result.name, language, t);
               const resultDescText = getTranslatedText(recipe.description, language, t);
-              const requiredToolName = recipe.requiredTool ? t(recipe.requiredTool as TranslationKey) : '';
+              const requiredToolName = recipe.requiredTool ? getTranslatedText(recipe.requiredTool as any, language, t) : '';
 
               return (
                 <div key={index} 
@@ -148,7 +154,7 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
 
                              const usedItemName = itemToShow ? getTranslatedText(itemToShow.name, language, t) : '';
                              const requirementName = getTranslatedText(requirement.name, language, t);
-                             const reqDef = itemDefinitions[getTranslatedText(requirement.name, 'en')];
+                             const reqDef = resolveItemDef(getTranslatedText(requirement.name, 'en'), itemDefinitions);
                              const reqDesc = reqDef ? getTranslatedText(reqDef.description, language, t) : '';
 
                             return (

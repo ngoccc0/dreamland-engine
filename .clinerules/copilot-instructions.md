@@ -82,6 +82,28 @@ Avoid Hardcoding: Absolutely avoid hardcoding game content, rules, or system con
 
 Data Schemas: Data schemas must be versioned and extensible.
 
+Icon and Visual Assets: All visual representations (items, biomes, enemies) support both emoji and image assets for maximum flexibility and modding support.
+* **Image Assets:** Use object format `{ type: 'image', url: '/asset/images/filename.png' }` for custom images
+* **Emoji Fallback:** Use string format `'🍎'` for emoji-only representations
+* **Priority Order:** Image assets take precedence over emoji when both are available
+* **Asset Location:** Images should be placed in `/asset/images/` directory and referenced with `/asset/images/filename.png` path
+* **Example Usage:**
+  ```typescript
+  // Correct: Image asset
+  someItem: {
+    name: { en: 'My Item' },
+    emoji: { type: 'image', url: '/asset/images/my-item.png' },
+    // ...
+  }
+
+  // Incorrect: Emoji only (will display emoji)
+  someItem: {
+    name: { en: 'My Item' },
+    emoji: '🍎', // Will show emoji, not image
+    // ...
+  }
+  ```
+
 4. Quality, Performance, and Data Handling 🚀
 Performance: Code must be optimized for performance, especially targeting a "Premium" UX on mobile. Use Next.js/React optimizations (memo, useCallback, useMemo, code splitting).
 

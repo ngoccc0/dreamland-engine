@@ -1,0 +1,34 @@
+{
+  "adjective_dark": [{ "id": "en.adj.d1", "text": "a dim gloom", "weight": 1, "detailLevel": 1, "biomes": ["Jungle"] }],
+  "jungle_terrain_desc": [{ "id": "en.jungle.desc1", "text": "a tangled undergrowth", "weight": 1 }],
+  "opening_sensory": [{ "id": "en.sens.s1", "text": "The {{light_level_detail}} reveals {{vague_shape_adj}}.", "weight": 1 }],
+  "jungle_terrain_desc_lush": [{ "id": "en.jungle.lush1", "text": "canopies of vibrant leaves", "weight": 1 }],
+  "temp_detail": [{ "id": "en.temp.mild", "text": "in the pleasant weather", "weight": 1 }],
+  "moisture_detail": [{ "id": "en.moist.normal", "text": "in the fresh air", "weight": 1 }],
+  "smell_detail_lush": [{ "id": "en.smell.lush1", "text": "the scent of wildflowers", "weight": 1 }],
+  "vague_shape_adj": [{ "id": "en.vague.s1", "text": "vague, shifting forms", "weight": 1 }],
+  "light_level_detail": [{ "id": "en.light.dim", "text": "in the dim light", "weight": 1 }]
+  ,"continuation_phrase": [
+    { "id": "en.cont.1", "text": "You keep going,", "weight": 1, "voice": ["neutral"] },
+    { "id": "en.cont.2", "text": "You continue on,", "weight": 1, "voice": ["warm"] },
+    { "id": "en.cont.3", "text": "You trudge on, as if it's all a joke,", "weight": 1, "voice": ["sarcastic"] },
+    { "id": "en.cont.4", "text": "You press onward, lost in thought,", "weight": 1, "voice": ["thoughtful"] }
+  ],
+  "internal_monologue": [
+    { "id": "en.int.1", "text": "You wonder if this is the right path.", "voice": ["thoughtful"], "weight": 1 },
+    { "id": "en.int.2", "text": "As if the world asks for an answer you don't have.", "voice": ["melancholy"], "weight": 1 },
+    { "id": "en.int.3", "text": "Right, another step. Exciting.", "voice": ["sarcastic"], "weight": 1 }
+  ]
+  ,"jungle_feeling_dark": [ { "id": "en.jungle.feel.dark1", "text": "is watching you", "weight": 1 } ]
+  ,"feeling_gloomy": [ { "id": "en.feel.gloomy1", "text": "gloomy", "weight": 1 } ]
+  ,"adjective_lush": [ { "id": "en.adj.lush1", "text": "lush", "weight": 1 } ]
+  ,"feature_tree": [ { "id": "en.feature.tree1", "text": "towering trees", "weight": 1 } ]
+  ,"sky_general": [ { "id": "en.sky.general1", "text": "a low grey sky", "weight": 1 } ]
+  ,"smell_lush": [ { "id": "en.smell.lush2", "text": "earthy, green scent", "weight": 1 } ]
+  ,"sound_dark": [ { "id": "en.sound.dark1", "text": "an ominous rustling", "weight": 1 } ]
+}
+
+
+
+
+

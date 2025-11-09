@@ -21,7 +21,9 @@ const SheetOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Overlay
     className={cn(
-      "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      // Make overlay non-interactive when closed so it doesn't block clicks while
+      // animating out or when hidden. Allow pointer events only when open.
+      "fixed inset-0 z-50 bg-black/80 pointer-events-none data-[state=open]:pointer-events-auto  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
     {...props}

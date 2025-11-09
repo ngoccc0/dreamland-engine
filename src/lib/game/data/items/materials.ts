@@ -15,7 +15,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🍃',
         effects: [],
-        baseQuantity: { min: 2, max: 5 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
         spawnBiomes: ['forest', 'jungle']
     },
@@ -26,7 +26,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🪨',
         effects: [],
-        baseQuantity: { min: 2, max: 4 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'cobblestone': {
@@ -36,7 +36,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🗿',
         effects: [],
-        baseQuantity: { min: 1, max: 3 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'clay': {
@@ -46,7 +46,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🧱',
         effects: [],
-        baseQuantity: { min: 1, max: 3 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'plain_sand': {
@@ -56,7 +56,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '⏳',
         effects: [],
-        baseQuantity: { min: 2, max: 5 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'bone_fragment': {
@@ -66,7 +66,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🦴',
         effects: [],
-        baseQuantity: { min: 1, max: 4 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'thorny_vine': {
@@ -74,9 +74,9 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: { en: 'A thorny vine, strong and flexible.', vi: 'Một sợi dây leo có gai, chắc và dẻo.' },
         tier: 1,
         category: 'Material',
-        emoji: '🌿',
+        emoji: { type: 'image', url: '/asset/images/thorny_vine.png' },
         effects: [],
-        baseQuantity: { min: 1, max: 3 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'small_animal_hide': {
@@ -136,7 +136,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🕸️',
         effects: [],
-        baseQuantity: { min: 1, max: 3 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: false,
     },
     'spider_eye': {
@@ -146,7 +146,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '👁️',
         effects: [],
-        baseQuantity: { min: 2, max: 8 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: false,
     },
     'boar_hide': {
@@ -166,7 +166,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🐾',
         effects: [],
-        baseQuantity: { min: 2, max: 4 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: false,
     },
     'bear_hide': {
@@ -196,7 +196,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🦗',
         effects: [],
-        baseQuantity: { min: 2, max: 4 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: false,
     },
     'hyena_tooth': {
@@ -206,7 +206,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🦷',
         effects: [],
-        baseQuantity: { min: 1, max: 3 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: false,
     },
     'snake_skin': {
@@ -236,7 +236,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🪶',
         effects: [],
-        baseQuantity: { min: 2, max: 5 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: false,
     },
     'leech_slime': {
@@ -266,7 +266,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🦷',
         effects: [],
-        baseQuantity: { min: 1, max: 4 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: false,
     },
     'mosquito_wing': {
@@ -276,7 +276,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🦟',
         effects: [],
-        baseQuantity: { min: 2, max: 4 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: false,
     },
     'mountain_goat_horn': {
@@ -296,7 +296,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🪶',
         effects: [],
-        baseQuantity: { min: 3, max: 6 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: false,
     },
     'snow_leopard_pelt': {
@@ -336,7 +336,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '💧',
         effects: [],
-        baseQuantity: { min: 1, max: 3 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: false,
     },
     'crawler_tooth': {
@@ -354,7 +354,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: { en: 'A sturdy, reliable tree branch.', vi: 'Một cành cây chắc chắn, đáng tin cậy.' },
         tier: 1,
         category: 'Material',
-        emoji: '🪵',
+        emoji: { type: 'image', url: '/asset/images/sturdy_branch.png' },
         effects: [],
         baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
@@ -376,6 +376,8 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '💧',
         effects: [],
+        // converted to translation-key form for i18n
+        senseEffect: { keywords: ['tactile:sensory.tactile.sticky'] },
         baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
@@ -386,7 +388,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🌿',
         effects: [],
-        baseQuantity: { min: 1, max: 3 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'wildflower': {
@@ -394,9 +396,9 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: { en: 'A common wildflower. Can be pretty.', vi: 'Một bông hoa dại thông thường. Có thể đẹp.' },
         tier: 1,
         category: 'Material',
-        emoji: '🌻',
+        emoji: { type: 'image', url: '/asset/images/blazing_flower.png' },
         effects: [],
-        baseQuantity: { min: 2, max: 4 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'hawk_feather': {
@@ -416,7 +418,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🌱',
         effects: [],
-        baseQuantity: { min: 1, max: 3 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'dry_grass': {
@@ -426,7 +428,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🌿',
         effects: [],
-        baseQuantity: { min: 1, max: 4 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'sandstone': {
@@ -466,7 +468,13 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '✨',
         effects: [],
-        baseQuantity: { min: 1, max: 4 },
+        // sensory metadata: helps narration mention the glow or scent when picked
+    senseEffect: {
+        keywords: ['visual:sensory.visual.glowing', 'smell:sensory.smell.earthy'],
+        auditory: { en: 'a soft hum', vi: 'tiếng vo ve nhẹ' },
+        tactile: { en: 'damp and cool', vi: 'ẩm và mát' }
+    },
+        baseQuantity: { min: 1, max: 2 },
         growthConditions: {
             optimal: { moisture: { min: 8 }, lightLevel: { max: -5 } },
             subOptimal: { moisture: { min: 6, max: 7 }, lightLevel: { min: -4, max: -2 } }
@@ -480,7 +488,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🌿',
         effects: [],
-        baseQuantity: { min: 3, max: 7 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'poisonous_flower': {
@@ -508,9 +516,11 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: { en: 'A rock containing raw iron ore.', vi: 'Một tảng đá chứa quặng sắt thô.' },
         tier: 2,
         category: 'Material',
-        emoji: '⛏️',
+        emoji: { type: 'image', url: '/asset/images/stone.png' },
         effects: [],
-        baseQuantity: { min: 1, max: 3 },
+        // converted to translation-key form for i18n
+        senseEffect: { keywords: ['tactile:sensory.tactile.rough', 'visual:sensory.visual.metallic_dull'] },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'eagle_feather': {
@@ -528,7 +538,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: { en: 'A shard of volcanic glass.', vi: 'Một mảnh thủy tinh núi lửa.' },
         tier: 3,
         category: 'Material',
-        emoji: '🪨',
+        emoji: { type: 'image', url: '/asset/images/stone.png' },
         effects: [],
         baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
@@ -538,7 +548,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: { en: 'A hard, igneous rock.', vi: 'Một loại đá mácma cứng.' },
         tier: 2,
         category: 'Material',
-        emoji: '🪨',
+        emoji: { type: 'image', url: '/asset/images/stone.png' },
         effects: [],
         baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
@@ -550,7 +560,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🌿',
         effects: [],
-        baseQuantity: { min: 2, max: 4 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'ancient_bones': {
@@ -578,9 +588,9 @@ export const materialItems: Record<string, ItemDefinition> = {
         description: { en: 'A sedimentary rock rich in calcium carbonate.', vi: 'Một loại đá trầm tích giàu canxi cacbonat.' },
         tier: 2,
         category: 'Material',
-        emoji: '🪨',
+        emoji: { type: 'image', url: '/asset/images/stone.png' },
         effects: [],
-        baseQuantity: { min: 1, max: 3 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'guano': {
@@ -623,6 +633,16 @@ export const materialItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
+    'animal_bone': {
+        name: { en: 'Animal Bone', vi: 'Xương Động Vật' },
+        description: { en: 'Bones scattered from deceased animals; useful for crafting and bait.', vi: 'Xương rải rác của các con vật đã chết; hữu ích để chế tạo và làm mồi.' },
+        tier: 1,
+        category: 'Material',
+        emoji: { type: 'image', url: '/asset/images/bone_fragment.png' },
+        effects: [],
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: true,
+    },
     'colorful_parrot_feather': {
         name: { en: 'Colorful Parrot Feather', vi: 'Lông Vẹt Sặc Sỡ' },
         description: { en: 'A vibrantly colored feather from a parrot.', vi: 'Một chiếc lông vũ có màu sắc rực rỡ từ một con vẹt.' },
@@ -630,7 +650,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🦜',
         effects: [],
-        baseQuantity: { min: 2, max: 5 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: false,
     },
     'obsidian': {
@@ -640,7 +660,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🪨',
         effects: [],
-        baseQuantity: { min: 2, max: 4 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'sulfur': {
@@ -650,7 +670,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '✨',
         effects: [],
-        baseQuantity: { min: 1, max: 3 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
     'volcanic_ash': {
@@ -660,7 +680,7 @@ export const materialItems: Record<string, ItemDefinition> = {
         category: 'Material',
         emoji: '🌋',
         effects: [],
-        baseQuantity: { min: 1, max: 5 },
+        baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,
     },
 };

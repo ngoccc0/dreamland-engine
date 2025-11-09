@@ -30,12 +30,22 @@ export function useGameEngine(props: GameEngineProps) {
     const narrativeContainerRef = useRef<HTMLDivElement>(null);
     const narrativeLogRef = useRef(gameState.narrativeLog || [] as any[]);
 
-    const addNarrativeEntry = (text: string, type: 'narrative' | 'action' | 'system', entryId?: string) => {
-        const entry = { id: entryId ?? `${Date.now()}`, text, type } as any;
+    const addNarrativeEntry = (text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string) => {
+        const id = entryId ?? `${Date.now()}`;
+        const entry = { id, text, type } as any;
         gameState.setNarrativeLog(prev => {
-            const next = [...(prev || []), entry];
-            narrativeLogRef.current = next;
-            return next;
+            const existingIdx = (prev || []).findIndex((e: any) => e.id === id);
+            let next: any[];
+            if (existingIdx >= 0) {
+                // Replace the existing entry in-place to preserve ordering and avoid duplicates
+                next = (prev || []).map((e: any) => e.id === id ? { ...e, text: entry.text, type: entry.type } : e);
+            } else {
+                next = [...(prev || []), entry];
+            }
+            // Defensive dedupe: ensure there are no duplicate ids even under race conditions
+            const deduped = Array.from(new Map(next.map((e: any) => [e.id, e])).values());
+            narrativeLogRef.current = deduped;
+            return deduped;
         });
     };
 

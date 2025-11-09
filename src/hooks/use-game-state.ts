@@ -14,6 +14,7 @@ interface GameStateProps {
 import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
+import { biomeDefinitions as staticBiomeDefinitions } from '@/lib/game/biomes';
 // Accept gameSlot but mark as intentionally unused to satisfy lint rule
 export function useGameState({ gameSlot: _gameSlot }: GameStateProps) {
     const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>([]);
@@ -54,6 +55,7 @@ export function useGameState({ gameSlot: _gameSlot }: GameStateProps) {
     });
     const [recipes, setRecipes] = useState<Record<string, Recipe>>(staticRecipes);
     const [buildableStructures, setBuildableStructures] = useState<Record<string, Structure>>(staticBuildableStructures);
+    const [biomeDefinitions, setBiomeDefinitions] = useState<any>(staticBiomeDefinitions);
     const [regions, setRegions] = useState<{ [id: number]: Region }>({});
     const [regionCounter, setRegionCounter] = useState<number>(0);
     const [playerPosition, setPlayerPosition] = useState({ x: 0, y: 0 });
@@ -73,8 +75,13 @@ export function useGameState({ gameSlot: _gameSlot }: GameStateProps) {
         level: 1,
         experience: 0,
         hp: 100,
+        maxHp: 100,
         mana: 50,
+        maxMana: 50,
         stamina: 100,
+        maxStamina: 100,
+        hunger: 100,
+        maxHunger: 100,
         bodyTemperature: 37,
         items: [],
         equipment: { 
@@ -161,5 +168,8 @@ export function useGameState({ gameSlot: _gameSlot }: GameStateProps) {
         setNarrativeLog,
         currentChunk,
         setCurrentChunk
+        ,
+        biomeDefinitions,
+        setBiomeDefinitions
     };
 }

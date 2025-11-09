@@ -16,7 +16,7 @@ export const naturePlusForestEnemies: EnemySpawn[] = [
                 { name: 'Lông Sói Đen', chance: 0.6, quantity: { min: 1, max: 2 } },
                 { name: 'Thịt Sói Sống', chance: 0.8, quantity: { min: 1, max: 1 } }
             ],
-            senseEffect: { keywords: ['silent', 'swift', 'dark'] },
+            senseEffect: { keywords: ['sound:sensory.sound.silent', 'motion:sensory.motion.swift', 'visual:sensory.visual.dark'] },
         },
         conditions: { timeOfDay: 'night', chance: 0.2 }
     },
@@ -32,7 +32,7 @@ export const naturePlusForestEnemies: EnemySpawn[] = [
             satiation: 0,
             maxSatiation: 0,
             loot: [],
-            senseEffect: { keywords: ['glowing', 'fluttering', 'tiny'] },
+            senseEffect: { keywords: ['visual:sensory.visual.glowing', 'motion:sensory.motion.fluttering', 'visual:sensory.visual.small'] },
         },
         conditions: { timeOfDay: 'night', chance: 0.3, humidity: { min: 5 } }
     },
@@ -76,7 +76,7 @@ export const naturePlusJungleEnemies: EnemySpawn[] = [
                 { name: 'Nọc Rắn Độc', chance: 0.6, quantity: { min: 1, max: 1 } },
                 { name: 'Da Rắn', chance: 0.8, quantity: { min: 1, max: 1 } }
             ],
-            senseEffect: { keywords: ['slithering', 'hissing', 'venomous'] },
+            senseEffect: { keywords: ['motion:sensory.motion.slithering', 'sound:sensory.sound.hissing', 'trait:sensory.trait.venomous'] },
         },
         conditions: { humidity: { min: 8 }, visibility: { max: 3 }, chance: 0.2 }
     },
@@ -98,7 +98,7 @@ export const naturePlusSwampEnemies: EnemySpawn[] = [
                 { name: 'Da Cá Sấu Cổ Đại', chance: 0.7, quantity: { min: 1, max: 2 } },
                 { name: 'Thịt Cá Nướng', chance: 0.9, quantity: { min: 2, max: 4 } }
             ],
-            senseEffect: { keywords: ['scaly', 'slow', 'powerful'] },
+            senseEffect: { keywords: ['visual:sensory.visual.scaly', 'motion:sensory.motion.slow', 'trait:sensory.trait.powerful'] },
         },
         conditions: { humidity: { min: 8 }, visibility: { max: 5 }, temperature: { min: 8 }, chance: 0.1 }
     },

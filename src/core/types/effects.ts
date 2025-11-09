@@ -12,6 +12,8 @@ export enum EffectType {
     TEMPERATURE = 'temperature',
     MOISTURE = 'moisture',
     WIND = 'wind',
+    HYPOTHERMIA = 'hypothermia',
+    HEATSTROKE = 'heatstroke',
     
     // Other Effects
     STATUS = 'status',

@@ -40,7 +40,7 @@ type GameInitializationDeps = {
   setRegions: (regions: GameState['regions']) => void;
   setRegionCounter: (counter: number) => void;
   setNarrativeLog: (log: GameState['narrativeLog']) => void;
-  addNarrativeEntry: (text: string, type: 'narrative' | 'action' | 'system', entryId?: string) => void;
+  addNarrativeEntry: (text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string) => void;
 };
 
 export function useGameInitialization(deps: GameInitializationDeps) {

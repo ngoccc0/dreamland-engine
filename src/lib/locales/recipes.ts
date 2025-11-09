@@ -1,4 +1,3 @@
-
 // src/lib/locales/recipes.ts
 
 export const recipeTranslations = {
@@ -59,6 +58,8 @@ export const recipeTranslations = {
     'recipe_thermos_flask_desc': 'Construct a flask that can maintain the temperature of liquids.',
     'recipe_strong_recovery_potion_desc': 'Brew a powerful elixir that restores both health and stamina.',
     'recipe_plant_fiber_desc': 'Weave together dried grass and leaves to create basic plant fibers.',
+    'recipe_shade_bomb_desc': 'Combine CVNT essence with a meme template to create a devastating shade bomb.',
+    'recipe_jiafei_elixir_desc': 'Mix tropical fruits with CVNT essence to brew Jiafei\'s legendary elixir.',
   },
   vi: {
     recipe_simple_stone_axe_desc: 'Chế tạo một chiếc rìu đá cơ bản. Một công cụ cần thiết để sinh tồn.',
@@ -117,5 +118,7 @@ export const recipeTranslations = {
     recipe_thermos_flask_desc: 'Chế tạo một bình giữ nhiệt có thể duy trì nhiệt độ của chất lỏng.',
     recipe_strong_recovery_potion_desc: 'Pha một loại thuốc tiên mạnh mẽ giúp phục hồi cả máu và thể lực.',
     recipe_plant_fiber_desc: 'Dệt cỏ khô và lá cây lại với nhau để tạo ra sợi thực vật cơ bản.',
+    recipe_shade_bomb_desc: 'Kết hợp tinh chất CVNT với một khung meme để tạo ra một quả bom shade tàn khốc.',
+    recipe_jiafei_elixir_desc: 'Trộn trái cây nhiệt đới với tinh chất CVNT để pha chế thuốc tiên huyền thoại của Jiafei.',
   }
 };

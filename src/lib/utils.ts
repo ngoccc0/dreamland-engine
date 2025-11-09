@@ -232,6 +232,25 @@ export function ensurePlayerItemId<T extends { name?: any; id?: string }>(
 }
 
 /**
+ * Converts an array of GeneratedItem (ItemDefinition) to a Record<string, ItemDefinition>.
+ * Uses the English name of the item as the key for the record.
+ * @param items - Array of GeneratedItem objects
+ * @returns Record<string, ItemDefinition> where keys are English item names
+ */
+export function convertItemArrayToRecord(items: any[]): Record<string, any> {
+    const record: Record<string, any> = {};
+    for (const item of items) {
+        if (item && item.name) {
+            const englishName = getTranslatedText(item.name, 'en');
+            if (englishName) {
+                record[englishName] = item;
+            }
+        }
+    }
+    return record;
+}
+
+/**
  * Intelligently joins an array of sentences into a single narrative string.
  * It adds appropriate connectors based on the desired narrative length and cleans up punctuation.
  * @param {string[]} sentences - An array of sentences to join.

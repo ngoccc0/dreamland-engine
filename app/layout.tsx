@@ -7,6 +7,7 @@ import { SettingsProvider } from '@/context/settings-context';
 import { PwaInstallProvider } from '@/context/pwa-install-context';
 import { AuthProvider } from '@/context/auth-context';
 import ClientInit from '@/components/client/client-init';
+import { AudioProvider } from '@/lib/audio/AudioProvider';
 
 export const metadata: Metadata = {
   title: 'Dreamland Engine',
@@ -56,7 +57,9 @@ export default function RootLayout({
           <SettingsProvider>
             <AuthProvider>
               <PwaInstallProvider>
-                {children}
+                <AudioProvider>
+                  {children}
+                </AudioProvider>
               </PwaInstallProvider>
             </AuthProvider>
           </SettingsProvider>

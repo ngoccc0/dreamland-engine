@@ -70,8 +70,8 @@ export const narrativeTranslations = {
         no_item_found: "no items",
     },
     vi: {
-        itemUsePlayerSuccessNarrative: "Bạn sử dụng {item}. {effect}. {sensory_feedback}",
-        itemUsePlayerFailNarrative: "Bạn cố gắng sử dụng {item}, nhưng nó không có tác dụng. {sensory_feedback}",
+        itemUsePlayerSuccessNarrative: "Trong không gian tĩnh mịch, bạn nhẹ nhàng sử dụng {item}. {effect}. {sensory_feedback}",
+        itemUsePlayerFailNarrative: "Bạn cẩn thận sử dụng {item}, nhưng dường như thời điểm chưa thích hợp. {sensory_feedback}",
         itemTameSuccessNarrative: "Bạn đưa {item} cho {target}. Nó thận trọng chấp nhận, và dường như tạo ra một mối liên kết với bạn! {sensory_feedback}",
         itemTameFailNarrative: "Bạn đưa {item} cho {target}. Nó ăn món quà nhưng vẫn cảnh giác với bạn. {sensory_feedback}",
         skillCritFailNarrative: "Ma thuật phản phệ! Phép thuật {skillName} của bạn bị hỏng và thay vào đó gây cho bạn {damage} sát thương. {sensory_feedback}",

@@ -1,31 +1,30 @@
 
 "use client";
-// Helper: render emoji or image file
-function renderItemEmoji(emoji: string, size: number = 24) {
-  if (!emoji) return null;
-  // Nếu là emoji unicode (không có dấu chấm, không phải đường dẫn)
-  if (/^[^./\\]{1,3}$/.test(emoji)) {
-    return <span>{emoji}</span>;
-  }
-  // Nếu là tên file hình ảnh (svg/png/jpg...)
-  return <img src={emoji.startsWith('/') ? emoji : `/assets/${emoji}`} alt="icon" style={{ width: size, height: size, display: 'inline-block', verticalAlign: 'middle' }} />;
-}
 
 import { cn } from "@/lib/utils";
-import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon, Home, MapPin } from "./icons";
+import { PlayerIcon, NpcIcon, Home, MapPin } from "./icons";
 import { useLanguage } from "@/context/language-context";
 import React, { useEffect } from "react";
-import type { Chunk, Terrain, Structure } from "@/lib/game/types";
+import type { Chunk, Terrain, BiomeDefinition } from "@/lib/game/types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "../ui/separator";
 import { SwordIcon } from "./icons";
 import { Backpack } from "lucide-react";
 import { getTranslatedText } from "@/lib/utils";
 import { logger } from "@/lib/logger";
+import { resolveItemDef } from '@/lib/game/item-utils';
+import { IconRenderer } from "@/components/ui/icon-renderer";
 
 
-export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
+export const MapCellDetails = ({ chunk, itemDefinitions }: { chunk: Chunk; itemDefinitions?: Record<string, any> }) => {
     const { t, language } = useLanguage();
+    const pickIcon = (definition: any, item: any) => {
+        // Prefer image objects when available
+        if (definition?.emoji && typeof definition.emoji === 'object' && definition.emoji.type === 'image') return definition.emoji;
+        if (definition && (definition as any).image) return (definition as any).image;
+        if (item?.emoji && typeof item.emoji === 'object' && item.emoji.type === 'image') return item.emoji;
+        return definition?.emoji ?? item?.emoji ?? '❓';
+    };
     return (
         <div className="p-1 space-y-2">
             <div className="flex items-center gap-2">
@@ -44,7 +43,7 @@ export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
                            {chunk.structures.map((s, idx) => {
                                 const structData = (s as any).data || s;
                                 // Use index as key here to avoid relying on language-specific strings for React keys
-                                return <li key={idx}>{renderItemEmoji(structData.emoji, 18)} {getTranslatedText(structData.name, language, t)}</li>
+                                return <li key={idx} className="flex items-center gap-1"><IconRenderer icon={structData.emoji} size={16} /> {getTranslatedText(structData.name, language, t)}</li>
                             })}
                         </ul>
                     </div>
@@ -53,14 +52,18 @@ export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
                     <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><Backpack />{t('inventory')}:</h5>
                         <ul className="space-y-1 text-xs pl-5">
-                            {chunk.items.map((item, idx) => <li key={idx}>{renderItemEmoji(item.emoji, 16)} {getTranslatedText(item.name, language, t)} (x{item.quantity})</li>)}
+                            {chunk.items.map((item, idx) => {
+                                const definition = itemDefinitions ? resolveItemDef(getTranslatedText(item.name, 'en'), itemDefinitions) : null;
+                                const emoji = pickIcon(definition, item);
+                                return <li key={idx} className="flex items-center gap-1"><IconRenderer icon={emoji} size={16} /> {getTranslatedText(item.name, language, t)} (x{item.quantity})</li>;
+                            })}
                         </ul>
                     </div>
                 )}
                 {chunk.enemy && (
                     <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><SwordIcon />{t('enemy')}:</h5>
-                        <p className="text-xs pl-5">{renderItemEmoji(chunk.enemy.emoji, 16)} {chunk.enemy.type ? getTranslatedText(chunk.enemy.type, language, t) : t('no_enemy_found')} (HP: {chunk.enemy.hp})</p>
+                        <p className="text-xs pl-5 flex items-center gap-1"><IconRenderer icon={chunk.enemy.emoji} size={16} /> {chunk.enemy.type ? getTranslatedText(chunk.enemy.type, language, t) : t('no_enemy_found')} (HP: {chunk.enemy.hp})</p>
                     </div>
                 )}
                 {chunk.NPCs.length > 0 && (
@@ -78,9 +81,10 @@ export const MapCellDetails = ({ chunk }: { chunk: Chunk }) => {
 
 
 interface MinimapProps {
-  grid: (Chunk | null)[][];
-  playerPosition: { x: number; y: number };
-  turn: number;
+    grid: (Chunk | null)[][];
+    playerPosition: { x: number; y: number };
+    turn: number;
+    biomeDefinitions: Record<string, BiomeDefinition>;
 }
 
 const biomeColors: Record<Terrain | 'empty', string> = {
@@ -105,24 +109,10 @@ const biomeColors: Record<Terrain | 'empty', string> = {
   empty: "bg-map-empty",
 };
 
-const biomeIcons: Record<Exclude<Terrain, 'empty' | 'wall' | 'ocean' | 'city' | 'space_station' | 'underwater'>, React.ReactNode> = {
-    forest: <span className="text-3xl opacity-80" role="img" aria-label="forest">🌳</span>,
-    grassland: <span className="text-3xl opacity-80" role="img" aria-label="grassland">🌾</span>,
-    desert: <span className="text-3xl opacity-80" role="img" aria-label="desert">🏜️</span>,
-    swamp: <span className="text-3xl opacity-80" role="img" aria-label="swamp">🌿</span>,
-    mountain: <span className="text-3xl opacity-80" role="img" aria-label="mountain">⛰️</span>,
-    cave: <span className="text-3xl opacity-80" role="img" aria-label="cave">🪨</span>,
-    jungle: <span className="text-3xl opacity-80" role="img" aria-label="jungle">🦜</span>,
-    volcanic: <span className="text-3xl opacity-80" role="img" aria-label="volcanic">🌋</span>,
-    floptropica: <span className="text-3xl opacity-80" role="img" aria-label="floptropica">💅</span>,
-    tundra: <span className="text-3xl opacity-80" role="img" aria-label="tundra">❄️</span>,
-    beach: <span className="text-3xl opacity-80" role="img" aria-label="beach">🏖️</span>,
-    mesa: <span className="text-3xl opacity-80" role="img" aria-label="mesa">🏞️</span>,
-    mushroom_forest: <span className="text-3xl opacity-80" role="img" aria-label="mushroom forest">🍄</span>,
-};
 
 
-export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
+
+export function Minimap({ grid, playerPosition, turn, biomeDefinitions }: MinimapProps) {
     const { t, language } = useLanguage();
     // Use clamp() so cell sizes scale down on smaller viewports and the full map can fit without panning
     const responsiveCellSize = "w-[clamp(28px,6vw,48px)] h-[clamp(28px,6vw,48px)]";
@@ -223,11 +213,22 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
                 );
               }
               
-              const firstStructure = cell.structures && cell.structures.length > 0 ? (cell.structures[0] as any) : null;
-              const structData = firstStructure?.data || firstStructure;
-              const mainIcon = structData
-                ? <span className="text-3xl opacity-90 drop-shadow-lg" role="img" aria-label={getTranslatedText(structData.name, language, t)}>{renderItemEmoji(structData.emoji, 28)}</span>
-                : (biomeIcons[cell.terrain as keyof typeof biomeIcons] || null);
+                            const firstStructure = cell.structures && cell.structures.length > 0 ? (cell.structures[0] as any) : null;
+                            const structData = firstStructure?.data || firstStructure;
+                                            const lookupBiomeDef = (terrain: string | undefined) => {
+                                                if (!terrain) return undefined;
+                                                if (!biomeDefinitions) return undefined;
+                                                if (biomeDefinitions[terrain]) return biomeDefinitions[terrain];
+                                                const keyLower = String(terrain).toLowerCase();
+                                                if (biomeDefinitions[keyLower]) return biomeDefinitions[keyLower];
+                                                const underscored = keyLower.replace(/\s+/g, '_');
+                                                if (biomeDefinitions[underscored]) return biomeDefinitions[underscored];
+                                                return undefined;
+                                            };
+                                            const biomeDef = lookupBiomeDef(cell.terrain as string);
+                            const mainIcon = structData
+                                ? <IconRenderer icon={structData.emoji} size={28} className="text-3xl opacity-90 drop-shadow-lg" alt={getTranslatedText(structData.name, language, t)} />
+                                : (biomeDef?.emoji ? <IconRenderer icon={biomeDef.emoji} size={28} className="text-3xl opacity-90 drop-shadow-lg" alt={getTranslatedText(cell.terrain as any, language, t)} /> : null);
 
               return (
                  <Popover key={key}>
@@ -257,13 +258,14 @@ export function Minimap({ grid, playerPosition, turn }: MinimapProps) {
                             
                             {cell.enemy && (
                                 <div className="absolute bottom-px left-px">
-                                    {renderItemEmoji(cell.enemy.emoji, 20)}
+                                    <IconRenderer icon={cell.enemy.emoji} size={20} />
                                 </div>
                             )}
 
                             {cell.items.length > 0 && (
                                 <div className="absolute bottom-px right-px">
-                                    {renderItemEmoji(cell.items[0].emoji, 20)}
+                                    {/* Prefer item's emoji (which may be an image object) */}
+                                    <IconRenderer icon={cell.items[0].emoji} size={20} />
                                 </div>
                             )}
                         </div>

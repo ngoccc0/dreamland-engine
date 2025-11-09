@@ -49,7 +49,7 @@ export const equipmentItems: Record<string, ItemDefinition> = {
         description: { en: 'A simple stone axe. An essential tool for survival.', vi: 'Một chiếc rìu đá cơ bản. Một công cụ cần thiết để sinh tồn.' },
         tier: 1,
         category: 'Tool',
-        emoji: '🪓',
+        emoji: { type: 'image', url: '/asset/images/simple_axe.png' },
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         equipmentSlot: 'weapon',

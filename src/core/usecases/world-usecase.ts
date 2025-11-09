@@ -1,22 +1,24 @@
 
 // Minimal World interface for usecase compatibility (should be replaced with real implementation)
 interface World {
-    getChunk(position: any): GridCell | undefined;
-    getChunksInArea(position: any, viewRadius: number): GridCell[];
-    getChunksByTerrain(terrainType: any): GridCell[];
+    getChunk(position: any): Chunk | undefined;
+    getChunksInArea(position: any, viewRadius: number): Chunk[];
+    getChunksByTerrain(terrainType: any): Chunk[];
     update(): void;
     getExploredPercentage(): number;
     getRegion(regionId: number): any;
 }
 import { GridPosition } from '../values/grid-position';
-import { GridCell } from '../entities/world';
+import { GridCell, GridCellAttributes } from '../entities/world';
 import { TerrainType } from '../entities/terrain';
 import { WorldGenerator } from '../generators/world-generator';
+import { CreatureEngine } from '../engines/creature-engine';
+import type { Enemy, Chunk } from '@/lib/game/types';
 
 export interface IWorldUseCase {
     generateWorld(config: WorldGenerationConfig): Promise<World>;
-    exploreChunk(position: GridPosition): Promise<GridCell>;
-    getVisibleChunks(position: GridPosition, viewRadius: number): Promise<GridCell[]>;
+    exploreChunk(position: GridPosition): Promise<Chunk>;
+    getVisibleChunks(position: GridPosition, viewRadius: number): Promise<Chunk[]>;
     updateWorld(): Promise<void>;
 }
 
@@ -32,7 +34,8 @@ export class WorldUseCase implements IWorldUseCase {
     constructor(
         private world: World,
         private readonly worldGenerator: WorldGenerator,
-        private readonly worldRepository: any // Will be defined in infrastructure
+        private readonly worldRepository: any, // Will be defined in infrastructure
+        private readonly creatureEngine: CreatureEngine
     ) {}
 
     async generateWorld(_config: WorldGenerationConfig): Promise<World> {
@@ -42,18 +45,26 @@ export class WorldUseCase implements IWorldUseCase {
         return this.world;
     }
 
-    async exploreChunk(position: GridPosition): Promise<GridCell> {
+    async exploreChunk(position: GridPosition): Promise<Chunk> {
         const chunk = this.world.getChunk(position);
         if (!chunk) {
             throw new Error(`No chunk found at position ${position.toString()}`);
         }
 
-        chunk.markExplored();
+        // Mark chunk as explored (using the explored property instead of markExplored method)
+        chunk.explored = true;
+
+        // Register creature if present in the chunk
+        if (chunk.enemy) {
+            const creatureId = `creature_${chunk.x}_${chunk.y}`;
+            this.creatureEngine.registerCreature(creatureId, chunk.enemy, position, chunk);
+        }
+
         await this.worldRepository.save(this.world);
         return chunk;
     }
 
-    async getVisibleChunks(position: GridPosition, viewRadius: number): Promise<GridCell[]> {
+    async getVisibleChunks(position: GridPosition, viewRadius: number): Promise<Chunk[]> {
         return this.world.getChunksInArea(position, viewRadius);
     }
 
@@ -66,7 +77,7 @@ export class WorldUseCase implements IWorldUseCase {
         return this.world.getExploredPercentage();
     }
 
-    async getChunksByTerrain(terrainType: TerrainType): Promise<GridCell[]> {
+    async getChunksByTerrain(terrainType: TerrainType): Promise<Chunk[]> {
         return this.world.getChunksByTerrain(terrainType);
     }
 

@@ -22,7 +22,58 @@ export const CreatureDefinitionSchema = z.object({
   hp: z.number().describe("Health points of the creature. For non-combat entities like trees or mineral veins, this represents their harvesting durability."),
   damage: z.number().describe("Base damage dealt by the creature in combat. Set to 0 for non-aggressive or passive entities."),
 
-  // --- Behavior ---
+  // --- Behavior & Trophic Metadata ---
+  /**
+   * Broad feeding/trophic category for the creature. This is used by engines to
+   * determine whether the creature should attempt to eat plants or other entities
+   * in the world.
+   * - 'herbivore' : primarily eats plants
+   * - 'carnivore' : primarily eats meat
+   * - 'omnivore'  : eats both
+   * This field is intentionally separate from `diet` which is used for taming
+   * and harvesting logic.
+   */
+  trophic: z.enum(['herbivore', 'carnivore', 'omnivore']).optional().describe("Broad feeding category for engine logic (herbivore/carnivore/omnivore)."),
+
+  /**
+   * Numeric trophic level. Primary producers/plants are level 1, primary consumers
+   * (herbivores) are ~2, and predators are higher. This can be used for simple
+   * food-web calculations and balancing.
+   */
+  trophicLevel: z.number().optional().describe("Numeric trophic level (1 = producer, higher = higher trophic level)."),
+
+  /**
+   * Radius (in tiles/units) the creature will search for food or exert trophic
+   * influence. Engines use this to build local trophic fields.
+   */
+  trophicRange: z.number().optional().describe("Search/influence radius for trophic interactions (in tiles)."),
+
+  /**
+   * A set of trophic tags this creature emits or responds to. Examples: ['plant',
+   * 'herbivore', 'nectarivore']. Engines use tags to quickly match resources and
+   * construct simple food-web relationships.
+   */
+  trophicTags: z.array(z.string()).optional().describe("List of trophic tags for matching resources and predators/prey."),
+
+  /**
+   * Amount of food (arbitrary units) consumed per successful eating action. Used
+   * by engines to deduct resource/vegetation density and increase creature satiation.
+   */
+  feedingRate: z.number().optional().describe("Amount of food consumed per eat action; applied against resource density."),
+
+  /**
+   * Probability (0-1) the creature will attempt to eat when hungry and food is
+   * available. Allows tuning of opportunistic vs. selective feeders.
+   */
+  eatChance: z.number().min(0).max(1).optional().describe("Chance (0-1) to attempt eating when hungry and food is nearby."),
+
+  /**
+   * Preference map for food item IDs or trophic tags. Higher numeric weight means
+   * the creature prefers that food source and will select it more often.
+   * Example: { 'grass': 1.0, 'berries': 2.0 }
+   */
+  foodPreferences: z.record(z.number()).optional().describe("Map of food item ID or tag => preference weight (higher = preferred)."),
+
   behavior: z.enum(['aggressive', 'passive', 'defensive', 'territorial', 'immobile', 'ambush'])
     .describe("Defines how the creature behaves in the world. 'immobile' is used for static resources like trees or mineral veins that cannot move."),
   size: z.enum(['small', 'medium', 'large']).describe("The physical size of the creature, influencing interactions and visual representation."),

@@ -3,7 +3,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { WandSparkles, Shield, Backpack, Hammer, Home, FlaskConical } from "./icons";
+import { WandSparkles } from "./icons";
 import { getTranslatedText } from "@/lib/utils";
 
 interface Skill {
@@ -38,8 +38,8 @@ interface Props {
   onOpenFusion: () => void;
 }
 
-export function BottomActionBar({ skills = [], playerStats, language, t, pickUpActions, otherActions, isLoading,
-  onUseSkill, onActionClick, onOpenPickup, onOpenAvailableActions, onOpenCustomDialog, onOpenStatus, onOpenInventory, onOpenCrafting, onOpenBuilding, onOpenFusion
+export function BottomActionBar({ skills = [], playerStats, language, t, pickUpActions, otherActions: _otherActions, isLoading,
+  onUseSkill, onActionClick: _onActionClick, onOpenPickup, onOpenAvailableActions, onOpenCustomDialog, onOpenStatus: _onOpenStatus, onOpenInventory: _onOpenInventory, onOpenCrafting: _onOpenCrafting, onOpenBuilding: _onOpenBuilding, onOpenFusion: _onOpenFusion
 }: Props) {
   return (
     <TooltipProvider>

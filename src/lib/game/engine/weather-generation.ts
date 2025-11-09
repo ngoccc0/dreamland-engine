@@ -1,6 +1,7 @@
 import { WeatherState, Season, Terrain, Chunk, WeatherZone } from "../types";
 import { weatherPresets } from "../weatherPresets";
 import { clamp } from "../../utils";
+import { isDay } from "../time/time-utils"; // Import isDay from new time utilities
 
 import { maybeDebug } from '@/lib/debug';
 
@@ -37,7 +38,7 @@ export const generateWeatherForZone = (terrain: Terrain, season: Season, previou
     return candidateWeather[0]; 
 };
 
-export function getEffectiveChunk(baseChunk: Chunk, weatherZones: Record<string, WeatherZone>, gameTime: number): Chunk {
+export function getEffectiveChunk(baseChunk: Chunk, weatherZones: Record<string, WeatherZone>, gameTime: number, startTime: number, dayDuration: number): Chunk {
     const effectiveChunk = { ...baseChunk };
     const weatherZone = weatherZones[baseChunk.regionId];
     if (weatherZone) {
@@ -48,8 +49,8 @@ export function getEffectiveChunk(baseChunk: Chunk, weatherZones: Record<string,
         effectiveChunk.windLevel = clamp((effectiveChunk.windLevel ?? 0) + weather.wind_delta, 0, 100);
     }
 
-    const isDay = gameTime >= 360 && gameTime < 1080;
-    if (!isDay && baseChunk.terrain !== 'cave') {
+    const isCurrentDay = isDay(gameTime, startTime, dayDuration);
+    if (!isCurrentDay && baseChunk.terrain !== 'cave') {
         effectiveChunk.lightLevel = Math.min(effectiveChunk.lightLevel, -20);
     }
     

@@ -46,7 +46,10 @@ export const premadeWorldTranslations = {
     item_floatstone_desc: 'A lightweight rock that hums with anti-gravitational energy.',
     item_stardust_desc: 'Shimmering dust collected from cosmic winds. A potent magical catalyst.',
     item_academy_robe_desc: 'A simple robe worn by students, enchanted to aid in focus.',
-    
+    item_jiafei_product_desc: 'A shimmering bottle of Jiafei\'s latest elixir. Rumored to grant temporary invincibility to \'flops\'.',
+    item_cvnt_essence_desc: 'A rare, glowing essence found in the deepest jungles. Essential for \'serving cvnt\'.',
+    item_meme_template_desc: 'A blank frame for your next viral masterpiece. Requires creativity and a bit of \'shade\'.',
+
     // Structure Descriptions
     structure_gumshoe_office_desc: 'Your office. A dusty room with a desk, a chair, and a view of a brick wall.',
     structure_neon_dragon_bar_desc: 'A shady bar where information is traded as freely as currency.',
@@ -66,6 +69,8 @@ export const premadeWorldTranslations = {
     structure_observatory_desc: 'A grand observatory with a massive telescope pointed at the endless sky.',
     structure_infinite_library_desc: 'A library whose shelves seem to stretch into impossible dimensions.',
     structure_alchemy_lab_desc: 'A laboratory filled with bubbling beakers and the smell of strange reagents.',
+    structure_jiafei_spa_desc: 'A luxurious spa where Jiafei\'s products are created and celebrities come to \'detox\' from \'flop\'.',
+    structure_meme_factory_desc: 'A secret underground factory where the most viral memes are crafted and disseminated across Floptropica.',
 
     // Narratives
     detective_narrative1: "Rain lashes against the window of your office. Another night in the Neon City. A new case file appears on your desk, slid under the door by a mysterious figure. It seems this case is more dangerous than most.",
@@ -81,6 +86,7 @@ export const premadeWorldTranslations = {
     floptropica_narrative1: "You awaken on a vibrant, slightly chaotic island. The air smells of Jiafei's products and faint screams of 'ATE!'. A strange pop song emanates from the jungle. You feel a strange urge to 'serve cvnt'.",
     floptropica_narrative2: "Washed ashore, you find yourself in a land where memes are currency and shade is the deadliest weapon. A distant palace blares the sounds of Nicki Minaj.",
     floptropica_narrative3: "You've been exiled to the Bad Bussy Wasteland. Here, only the most iconic can survive. The ground trembles with the bass of powerful remixes.",
+    floptropica_narrative4: "A brutal 'Flop War' has erupted between the Barbz and Baddies. You must choose a side, or forge your own path to legendary status.",
 
     // Quests
     detective_quest1: "Investigate the Neon Dragon Bar for clues.",
@@ -108,12 +114,20 @@ export const premadeWorldTranslations = {
     floptropica_quest4: "Craft a stan-worthy meme.",
     floptropica_quest5: "Survive the night.",
     floptropica_quest6: "Find Deborah's C.V.N.T. University.",
+    floptropica_quest7: "Gather 'Receipts' (evidence) against rival fandoms.",
+    floptropica_quest8: "Engage in a 'Shade Battle' (verbal sparring) to gain influence.",
+    floptropica_quest9: "Unite the 'Flop Houses' under one banner.",
     quest_hunter_wolf_fangs: 'Bring me 5 Wolf Fangs to prove your mettle.',
     quest_stan_onika_coupon: 'Find me an Onika Burger Coupon!',
     dialogueSeed_hunter: 'A seasoned hunter, weary but watchful, who speaks in short, clipped sentences.',
     dialogueSeed_stan: 'Desperately needs to find an "Onika Burger Coupon" to prove their Barbz loyalty.',
     npc_panicked_stan_name: 'A Panicked Stan',
     npc_panicked_stan_desc: 'He looks distressed, scrolling frantically on his phone.',
+    npc_panicked_stan_quest: 'Help me serve my first cvnt!',
+    npc_panicked_stan_quest_item_name: 'cvnt_essence',
+    npc_panicked_stan_quest_item_quantity: 1,
+    npc_panicked_stan_reward_item_name: 'meme_template',
+    npc_panicked_stan_reward_item_quantity: 1,
   },
   vi: {
     // World Names
@@ -160,7 +174,10 @@ export const premadeWorldTranslations = {
     item_floatstone_desc: 'Một tảng đá nhẹ phát ra năng lượng chống trọng lực.',
     item_stardust_desc: 'Bụi lung linh được thu thập từ gió vũ trụ. Một chất xúc tác ma thuật mạnh mẽ.',
     item_academy_robe_desc: 'Một chiếc áo choàng đơn giản được học sinh mặc, được phù phép để hỗ trợ sự tập trung.',
-    
+    item_jiafei_product_desc: 'Một chai thuốc tiên lấp lánh mới nhất của Jiafei. Có tin đồn sẽ ban cho sự bất khả chiến bại tạm thời cho những \'flops\'.',
+    item_cvnt_essence_desc: 'Một tinh chất quý hiếm, phát sáng được tìm thấy trong những khu rừng sâu nhất. Cần thiết để \'phục vụ cvnt\'.',
+    item_meme_template_desc: 'Một khung trống cho kiệt tác viral tiếp theo của bạn. Yêu cầu sự sáng tạo và một chút \'shade\'.',
+
     // Structure Descriptions
     structure_gumshoe_office_desc: 'Văn phòng của bạn. Một căn phòng bụi bặm với một cái bàn, một cái ghế và một tầm nhìn ra bức tường gạch.',
     structure_neon_dragon_bar_desc: 'Một quán bar mờ ám nơi thông tin được trao đổi tự do như tiền tệ.',
@@ -180,6 +197,8 @@ export const premadeWorldTranslations = {
     structure_observatory_desc: 'Một đài quan sát lớn với một kính thiên văn khổng lồ hướng lên bầu trời vô tận.',
     structure_infinite_library_desc: 'Một thư viện có những kệ sách dường như kéo dài đến những không gian không thể tưởng tượng được.',
     structure_alchemy_lab_desc: 'Một phòng thí nghiệm chứa đầy những cốc thủy tinh sủi bọt và mùi của những loại thuốc thử kỳ lạ.',
+    structure_jiafei_spa_desc: 'Một spa sang trọng nơi các sản phẩm của Jiafei được tạo ra và những người nổi tiếng đến để \'detox\' khỏi sự \'flop\'.',
+    structure_meme_factory_desc: 'Một nhà máy ngầm bí mật nơi những meme viral nhất được chế tạo và phát tán khắp Floptropica.',
 
     // Narratives
     detective_narrative1: "Mưa quất vào cửa sổ văn phòng của bạn. Một đêm nữa ở Thành phố Neon. Một hồ sơ vụ án mới xuất hiện trên bàn của bạn, được luồn dưới cửa bởi một nhân vật bí ẩn. Có vẻ như vụ án này nguy hiểm hơn hầu hết các vụ khác.",
@@ -228,5 +247,10 @@ export const premadeWorldTranslations = {
     dialogueSeed_stan: 'Tuyệt vọng cần tìm một "Phiếu giảm giá Onika Burger" để chứng minh lòng trung thành của Barbz.',
     npc_panicked_stan_name: 'Một Stan đang hoảng loạn',
     npc_panicked_stan_desc: 'Anh ta trông đau khổ, cuộn điên cuồng trên điện thoại của mình.',
+    npc_panicked_stan_quest: 'Giúp tôi phục vụ cvnt đầu tiên của mình!',
+    npc_panicked_stan_quest_item_name: 'cvnt_essence',
+    npc_panicked_stan_quest_item_quantity: 1,
+    npc_panicked_stan_reward_item_name: 'meme_template',
+    npc_panicked_stan_reward_item_quantity: 1,
   }
 };

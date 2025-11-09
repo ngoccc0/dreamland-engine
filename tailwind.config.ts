@@ -124,8 +124,7 @@ const config = {
   plugins: [
     require('tailwindcss-animate'),
     require('@tailwindcss/typography'),
-    function(plugin: any) {
-      const { addUtilities } = plugin
+    function({ addUtilities }: { addUtilities: (utilities: Record<string, Record<string, string>>) => void }) {
       addUtilities({
         '.text-shadow-black': {
           textShadow: '0 0 5px rgba(0, 0, 0, 0.8)',

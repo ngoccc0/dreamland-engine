@@ -260,7 +260,7 @@ export function convertItemArrayToRecord(items: any[]): Record<string, any> {
  * const sentences = ["It's getting dark.", "You should find shelter."];
  * SmartJoinSentences(sentences, 'medium'); // "It's getting dark. Suddenly, you should find shelter."
  */
-export const SmartJoinSentences = (sentences: string[], narrativeLength: NarrativeLength): string => {
+export const SmartJoinSentences = (sentences: string[], narrativeLength: NarrativeLength, language: 'vi' | 'en' = 'vi'): string => {
     if (!sentences || sentences.length === 0) return "";
     if (sentences.length === 1) return sentences[0];
 
@@ -277,25 +277,46 @@ export const SmartJoinSentences = (sentences: string[], narrativeLength: Narrati
         }
 
         let connector = "";
-        switch (narrativeLength) {
-            case "short":
-                connector = " và "; // Ít từ nối, đơn giản
-                break;
-            case "medium":
-                const mediumConnectors = [" và ", ". Bỗng nhiên, ", ". Ngoài ra, ", "."];
-                connector = mediumConnectors[Math.floor(Math.random() * mediumConnectors.length)];
-                break;
-            case "long":
-            case "detailed":
-                const longConnectors = [
-                    ", thêm vào đó ", ". Hơn thế nữa, ", ". Không chỉ vậy, ", ". Đáng chú ý là, ",
-                    ". Trong khi đó, ", ". Tuy nhiên, "
-                ];
-                connector = longConnectors[Math.floor(Math.random() * longConnectors.length)];
-                break;
-            default:
-                connector = ". ";
-                break;
+        // Choose connectors based on language so English narratives are assembled correctly.
+        if (language === 'vi') {
+            switch (narrativeLength) {
+                case "short":
+                    connector = " và "; // Ít từ nối, đơn giản
+                    break;
+                case "medium":
+                    connector = [" và ", ". Bỗng nhiên, ", ". Ngoài ra, ", "."][Math.floor(Math.random() * 4)];
+                    break;
+                case "long":
+                case "detailed":
+                    connector = [
+                        ", thêm vào đó ", ". Hơn thế nữa, ", ". Không chỉ vậy, ", ". Đáng chú ý là, ",
+                        ". Trong khi đó, ", ". Tuy nhiên, "
+                    ][Math.floor(Math.random() * 6)];
+                    break;
+                default:
+                    connector = ". ";
+                    break;
+            }
+        } else {
+            // English connectors
+            switch (narrativeLength) {
+                case "short":
+                    connector = " and ";
+                    break;
+                case "medium":
+                    connector = [" and ", ". Suddenly, ", ". Additionally, ", "."][Math.floor(Math.random() * 4)];
+                    break;
+                case "long":
+                case "detailed":
+                    connector = [
+                        ", moreover, ", ". Furthermore, ", ". Not only that, ", ". Notably, ",
+                        ". Meanwhile, ", ". However, "
+                    ][Math.floor(Math.random() * 6)];
+                    break;
+                default:
+                    connector = ". ";
+                    break;
+            }
         }
 
         // Đảm bảo có khoảng trắng sau dấu câu nếu nối

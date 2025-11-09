@@ -412,7 +412,7 @@ export const generateOfflineNarrative = (
         if (index > -1) detailTemplates.splice(index, 1);
     }
 
-    return SmartJoinSentences(finalSentences, narrativeLength);
+    return SmartJoinSentences(finalSentences, narrativeLength, language);
 };
 
 

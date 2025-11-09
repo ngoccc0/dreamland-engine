@@ -11,12 +11,13 @@ import { Separator } from "../ui/separator";
 import { SwordIcon } from "./icons";
 import { Backpack } from "lucide-react";
 import { getTranslatedText } from "@/lib/utils";
+import { generateOfflineNarrative } from '@/lib/game/engine/offline';
 import { logger } from "@/lib/logger";
 import { resolveItemDef } from '@/lib/game/item-utils';
 import { IconRenderer } from "@/components/ui/icon-renderer";
 
 
-export const MapCellDetails = ({ chunk, itemDefinitions }: { chunk: Chunk; itemDefinitions?: Record<string, any> }) => {
+export const MapCellDetails = ({ chunk, itemDefinitions, playerPosition }: { chunk: Chunk; itemDefinitions?: Record<string, any>; playerPosition?: { x: number; y: number } }) => {
     const { t, language } = useLanguage();
     const pickIcon = (definition: any, item: any) => {
         // Prefer image objects when available
@@ -25,13 +26,23 @@ export const MapCellDetails = ({ chunk, itemDefinitions }: { chunk: Chunk; itemD
         if (item?.emoji && typeof item.emoji === 'object' && item.emoji.type === 'image') return item.emoji;
         return definition?.emoji ?? item?.emoji ?? '❓';
     };
+    // Try to produce a language-appropriate description. If generation fails, fall back to the stored chunk.description.
+    let displayedDescription = chunk.description;
+    try {
+        const pos = playerPosition ?? { x: chunk.x, y: chunk.y };
+        const regen = generateOfflineNarrative(chunk, 'short', {} as any, pos, t, language as any);
+        if (regen && regen.length > 0) displayedDescription = regen;
+    } catch (e) {
+        // ignore and use existing chunk.description
+    }
+
     return (
         <div className="p-1 space-y-2">
             <div className="flex items-center gap-2">
                  <MapPin className="h-4 w-4 text-muted-foreground" />
                  <h4 className="font-bold capitalize">{chunk.terrain === 'wall' ? t('wall') : t(chunk.terrain as any)} ({chunk.x}, {chunk.y})</h4>
             </div>
-            <p className="text-xs text-muted-foreground italic line-clamp-3">{chunk.description}</p>
+            <p className="text-xs text-muted-foreground italic line-clamp-3">{displayedDescription}</p>
             
             {(chunk.structures && chunk.structures.length > 0 || chunk.items.length > 0 || chunk.enemy || chunk.NPCs.length > 0) && <Separator />}
 
@@ -270,9 +281,9 @@ export function Minimap({ grid, playerPosition, turn, biomeDefinitions }: Minima
                             )}
                         </div>
                     </PopoverTrigger>
-                    <PopoverContent className="w-80">
-                      <MapCellDetails chunk={cell} />
-                    </PopoverContent>
+                                        <PopoverContent className="w-80">
+                                            <MapCellDetails chunk={cell} playerPosition={playerPosition} />
+                                        </PopoverContent>
                   </Popover>
               );
             })

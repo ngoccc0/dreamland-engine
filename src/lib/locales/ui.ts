@@ -60,9 +60,10 @@ export const uiTranslations = {
     mainMenu: "Main Menu",
     returnToMenu: "Return to Main Menu",
     returnToMenuDesc: "Save your progress and return to the world selection screen.",
-    hudHealth: "Health",
-    hudMana: "Mana",
-    hudStamina: "Stamina",
+        hudHealth: "Health",
+        hudMana: "Mana",
+        hudStamina: "Stamina",
+        hudHunger: "Hunger",
 
 
     playerStatus: "Player Status",

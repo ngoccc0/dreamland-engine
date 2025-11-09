@@ -203,7 +203,7 @@ export function StatusPopup({ open, onOpenChange, stats, itemDefinitions, onRequ
             {pets.length > 0 ? (
               <ul className="space-y-2">
                 {pets.map((pet, index) => (
-                  <li key={index} className="p-2 bg-muted rounded-md text-muted-foreground">
+                  <li key={`${pet.name}-${pet.type}-${index}`} className="p-2 bg-muted rounded-md text-muted-foreground">
                     <div className="font-semibold text-foreground">{pet.name || t(pet.type)}</div>
                     <div className="text-xs">{t('levelLabel')} {pet.level} {t(pet.type)}</div>
                   </li>

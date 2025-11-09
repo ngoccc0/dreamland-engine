@@ -1,4 +1,5 @@
 import type { Enemy, Chunk, PlayerStatusDefinition } from '@/lib/game/types';
+import defaultGameConfig from '@/lib/config/game-config';
 import { GridPosition } from '../values/grid-position';
 
 /**
@@ -25,7 +26,18 @@ interface CreatureState extends Enemy {
 export class CreatureEngine {
     private creatures: Map<string, CreatureState> = new Map();
 
-    constructor(private t: (key: string, params?: any) => string) {}
+    private config = defaultGameConfig;
+
+    constructor(private t: (key: string, params?: any) => string, config?: Partial<typeof defaultGameConfig>) {
+        if (config) {
+            this.config = {
+                ...this.config,
+                ...config,
+                plant: { ...this.config.plant, ...(config as any).plant },
+                creature: { ...this.config.creature, ...(config as any).creature }
+            } as any;
+        }
+    }
 
     /**
      * Registers a creature in the simulation.
@@ -39,6 +51,7 @@ export class CreatureEngine {
             ...creature,
             position: new GridPosition(position.x, position.y),
             currentChunk: chunk,
+            // lastMoveTick is measured in game ticks (not Date.now)
             lastMoveTick: 0,
             currentBehavior: 'idle'
         };
@@ -109,15 +122,48 @@ export class CreatureEngine {
             });
         }
 
-        // Update behavior based on current state and surroundings
-        this.updateBehavior(updatedCreature, playerPosition, playerStats);
+    // Update behavior based on current state and surroundings
+    this.updateBehavior(updatedCreature, playerPosition, playerStats);
+
+        // If creature is hunting the player and is in melee range, perform an attack
+        try {
+            const searchRange = (updatedCreature as any).trophicRange ?? 2; // default 2 -> 5x5 area
+            const inSearchSquare = this.isWithinSquareRange(updatedCreature.position, playerPosition, searchRange);
+            const isAdjacent = this.isWithinSquareRange(updatedCreature.position, playerPosition, 1);
+
+            if (updatedCreature.currentBehavior === 'hunting' && inSearchSquare) {
+                // If creature is a carnivore (or aggressive predator) and is adjacent, attack the player
+                if ((updatedCreature.trophic === 'carnivore' || updatedCreature.behavior === 'aggressive') && isAdjacent) {
+                    // Apply damage to player
+                    const damage = updatedCreature.damage || 0;
+                    playerStats.hp = Math.max(0, (playerStats.hp || 0) - damage);
+
+                    const creatureName = (updatedCreature as any).name?.en || updatedCreature.type || 'creature';
+                    const attackText = `${creatureName} ${this.t('creatureHunting', { creature: creatureName })} and attacks you (-${damage} HP).`;
+                    messages.push({ text: attackText, type: 'narrative' });
+                }
+            }
+        } catch (err) {
+            // ignore attack errors
+        }
 
         // Execute movement if needed
         if (this.shouldMove(updatedCreature, currentTick)) {
-            const moveResult = this.executeMovement(updatedCreature, chunks);
+            const moveResult = this.executeMovement(updatedCreature, chunks, playerPosition, currentTick);
             if (moveResult.message) {
                 messages.push(moveResult.message);
             }
+        }
+
+        // After movement, if creature is hungry and allowed to eat plants, attempt to eat
+        try {
+            const eatResult = this.attemptEatPlants(updatedCreature);
+            if (eatResult && eatResult.message) {
+                messages.push(eatResult.message);
+            }
+        } catch (err) {
+            // swallow errors in optional behaviour
+            console.warn('CreatureEngine: eating attempt failed', err);
         }
 
         return { creature: updatedCreature, message: messages[0] };
@@ -128,8 +174,9 @@ export class CreatureEngine {
      */
     private updateHunger(creature: CreatureState, currentTick: number): void {
         // Hunger decay every 10 ticks
-        if (currentTick % 10 === 0) {
-            creature.satiation = Math.max(0, creature.satiation - 1);
+
+        if (currentTick % this.config.creature.hungerDecayInterval === 0) {
+            creature.satiation = Math.max(0, creature.satiation - this.config.creature.hungerDecayPerTick);
 
             // If very hungry, creature becomes more aggressive
             if (creature.satiation < creature.maxSatiation * 0.2) {
@@ -141,6 +188,66 @@ export class CreatureEngine {
     }
 
     /**
+     * Determine if the creature is allowed to eat plants based on trophic tag or diet keywords.
+     */
+    private canEatPlants(creature: CreatureState): boolean {
+        if (creature.trophic === 'herbivore') return true;
+        if (creature.trophic === 'carnivore') return false;
+        if (creature.trophic === 'omnivore') return true;
+
+        // Fallback: look for plant-like keywords in diet
+        const plantKeywords = ['plant', 'berry', 'grass', 'herb', 'leaf'];
+        if (Array.isArray(creature.diet)) {
+            for (const d of creature.diet) {
+                if (!d) continue;
+                const lower = d.toString().toLowerCase();
+                if (plantKeywords.some(k => lower.includes(k))) return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Attempt to eat plants in the creature's current chunk. Returns narrative info when eating occurs.
+     */
+    private attemptEatPlants(creature: CreatureState): { eaten: boolean; message?: { text: string; type: 'narrative' | 'system' } } | null {
+        try {
+            if (!this.canEatPlants(creature)) return null;
+
+            // Only attempt eating when hungry
+            const hungry = creature.satiation < (creature.maxSatiation * 0.6);
+            if (!hungry) return null;
+
+            const chunk = creature.currentChunk;
+            if (!chunk || typeof chunk.vegetationDensity !== 'number') return null;
+
+            const veg = chunk.vegetationDensity;
+            if (veg <= 0) return null;
+
+            // Chance to eat
+            if (Math.random() > (this.config.plant.eatChance ?? 0.6)) return null;
+
+            const amount = Math.min(veg, this.config.plant.consumptionPerEat ?? 5);
+            if (amount <= 0) return null;
+
+            // Apply consumption
+            chunk.vegetationDensity = Math.max(0, veg - amount);
+
+            // Increase satiation based on plantNutrition per vegetation unit
+            const nutritionPerUnit = this.config.plant.plantNutrition ?? 0.5;
+            const satiationGain = amount * nutritionPerUnit;
+            creature.satiation = Math.min(creature.maxSatiation, creature.satiation + satiationGain);
+
+            const creatureName = (creature as any).name?.en || creature.type || 'creature';
+            const text = this.t('creatureEating', { creature: creatureName });
+            return { eaten: true, message: { text, type: 'narrative' } };
+        } catch (err) {
+            return null;
+        }
+    }
+
+    /**
      * Updates creature behavior based on current state and player proximity.
      */
     private updateBehavior(
@@ -148,29 +255,36 @@ export class CreatureEngine {
         playerPosition: GridPosition,
         playerStats: PlayerStatusDefinition
     ): void {
-        const distanceToPlayer = this.calculateDistance(creature.position, playerPosition);
+        // Use per-creature search radius when available. Default to 2 tiles (5x5 area) for predators.
+        const searchRange = (creature as any).trophicRange ?? 2;
+        const inSquareRange = this.isWithinSquareRange(creature.position, playerPosition, searchRange);
 
         switch (creature.behavior) {
             case 'aggressive':
-                if (distanceToPlayer <= 3) {
+                if (inSquareRange) {
                     creature.currentBehavior = 'hunting';
+                    creature.targetPosition = new GridPosition(playerPosition.x, playerPosition.y);
                 } else if (creature.satiation < creature.maxSatiation * 0.5) {
-                    creature.currentBehavior = 'hunting'; // Hunt for food
+                    // If hungry, expand hunting scope (still prefer local player if in range)
+                    creature.currentBehavior = 'hunting';
+                    creature.targetPosition = new GridPosition(playerPosition.x, playerPosition.y);
                 } else {
                     creature.currentBehavior = 'idle';
                 }
                 break;
 
             case 'passive':
-                if (distanceToPlayer <= 2) {
+                // Passive creatures try to flee if the player gets too close (use smaller radius)
+                if (this.isWithinSquareRange(creature.position, playerPosition, 2)) {
                     creature.currentBehavior = 'fleeing';
+                    creature.targetPosition = new GridPosition(playerPosition.x, playerPosition.y);
                 } else {
                     creature.currentBehavior = 'idle';
                 }
                 break;
 
             case 'defensive':
-                if (distanceToPlayer <= 2) {
+                if (this.isWithinSquareRange(creature.position, playerPosition, 2)) {
                     creature.currentBehavior = 'idle'; // Stand ground
                 } else {
                     creature.currentBehavior = 'idle';
@@ -178,7 +292,7 @@ export class CreatureEngine {
                 break;
 
             case 'territorial':
-                if (distanceToPlayer <= 4) {
+                if (inSquareRange) {
                     creature.currentBehavior = 'hunting';
                 } else {
                     creature.currentBehavior = 'idle';
@@ -186,8 +300,9 @@ export class CreatureEngine {
                 break;
 
             case 'ambush':
-                if (distanceToPlayer <= 1) {
+                if (this.isWithinSquareRange(creature.position, playerPosition, 1)) {
                     creature.currentBehavior = 'hunting';
+                    creature.targetPosition = new GridPosition(playerPosition.x, playerPosition.y);
                 } else {
                     creature.currentBehavior = 'idle';
                 }
@@ -198,6 +313,16 @@ export class CreatureEngine {
                 creature.currentBehavior = 'idle';
                 break;
         }
+    }
+
+    /**
+     * Return true if two positions are within a square (Chebyshev) distance <= range.
+     * This models an N x N tile search box centered on the creature (e.g., range=2 -> 5x5).
+     */
+    private isWithinSquareRange(a: GridPosition, b: GridPosition, range: number): boolean {
+        const dx = Math.abs(a.x - b.x);
+        const dy = Math.abs(a.y - b.y);
+        return Math.max(dx, dy) <= range;
     }
 
     /**
@@ -213,19 +338,21 @@ export class CreatureEngine {
      */
     private executeMovement(
         creature: CreatureState,
-        chunks: Map<string, Chunk>
+        chunks: Map<string, Chunk>,
+        playerPosition: GridPosition,
+        currentTick: number
     ): { moved: boolean; message?: { text: string; type: 'narrative' | 'system' } } {
         let newPosition: GridPosition;
 
         switch (creature.currentBehavior) {
             case 'fleeing':
-                // Move away from player
-                newPosition = this.calculateFleePosition(creature);
+                // Move away from target (usually player)
+                newPosition = this.calculateFleePosition(creature, creature.targetPosition ?? playerPosition);
                 break;
 
             case 'hunting':
                 // Move towards target (player or food)
-                newPosition = this.calculateHuntPosition(creature);
+                newPosition = this.calculateHuntPosition(creature, creature.targetPosition ?? playerPosition);
                 break;
 
             case 'moving':
@@ -239,7 +366,8 @@ export class CreatureEngine {
         // Check if movement is valid
         if (this.isValidMove(newPosition, chunks)) {
             creature.position = newPosition;
-            creature.lastMoveTick = Date.now(); // Use current tick in real implementation
+            // Record tick at which movement happened
+            creature.lastMoveTick = currentTick;
 
             // Update current chunk if moved to a different one
             const newChunkKey = `${newPosition.x},${newPosition.y}`;
@@ -281,33 +409,25 @@ export class CreatureEngine {
     /**
      * Calculates a position for fleeing behavior.
      */
-    private calculateFleePosition(creature: CreatureState): GridPosition {
-        // Simple flee: move in opposite direction of player
-        // In real implementation, this would use player position
-        const directions = [
-            { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }, { x: 0, y: 1 }
-        ];
-        const randomDir = directions[Math.floor(Math.random() * directions.length)];
-        return new GridPosition(
-            creature.position.x + randomDir.x,
-            creature.position.y + randomDir.y
-        );
+    private calculateFleePosition(creature: CreatureState, threatPosition: GridPosition): GridPosition {
+        // Move away from the threat position (player or predator)
+        const dx = creature.position.x - threatPosition.x;
+        const dy = creature.position.y - threatPosition.y;
+        const nx = Math.sign(dx) || (Math.random() < 0.5 ? -1 : 1);
+        const ny = Math.sign(dy) || (Math.random() < 0.5 ? -1 : 1);
+        return new GridPosition(creature.position.x + nx, creature.position.y + ny);
     }
 
     /**
      * Calculates a position for hunting behavior.
      */
-    private calculateHuntPosition(creature: CreatureState): GridPosition {
-        // Simple hunt: move towards player or food
-        // In real implementation, this would use pathfinding
-        const directions = [
-            { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }, { x: 0, y: 1 }
-        ];
-        const randomDir = directions[Math.floor(Math.random() * directions.length)];
-        return new GridPosition(
-            creature.position.x + randomDir.x,
-            creature.position.y + randomDir.y
-        );
+    private calculateHuntPosition(creature: CreatureState, targetPosition: GridPosition): GridPosition {
+        // Move towards the target position (player or food)
+        const dx = targetPosition.x - creature.position.x;
+        const dy = targetPosition.y - creature.position.y;
+        const nx = Math.sign(dx) || (Math.random() < 0.5 ? -1 : 1);
+        const ny = Math.sign(dy) || (Math.random() < 0.5 ? -1 : 1);
+        return new GridPosition(creature.position.x + nx, creature.position.y + ny);
     }
 
     /**

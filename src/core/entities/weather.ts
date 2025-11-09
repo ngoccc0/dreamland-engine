@@ -187,14 +187,17 @@ export class WeatherImpl implements Weather {
         const effects: Effect[] = [];
         const intensity = this.getIntensityMultiplier(); // Get the numerical multiplier for intensity.
 
+        // Get the base temperature from the primary condition
+        const baseTemperature = this.conditions[0]?.temperature || 20; // Default to 20°C if no condition set
+
         // Apply specific effects based on weather type.
         switch(this.type) {
             case WeatherType.RAIN:
                 effects.push(createWeatherEffect(EffectType.MOISTURE as WeatherEffectType, 10, intensity));
-                effects.push(createWeatherEffect(EffectType.TEMPERATURE as WeatherEffectType, -5, intensity));
+                effects.push(createWeatherEffect(EffectType.TEMPERATURE as WeatherEffectType, baseTemperature - 5, intensity));
                 break;
             case WeatherType.SNOW:
-                effects.push(createWeatherEffect(EffectType.TEMPERATURE as WeatherEffectType, -15, intensity));
+                effects.push(createWeatherEffect(EffectType.TEMPERATURE as WeatherEffectType, baseTemperature - 15, intensity));
                 effects.push(createWeatherEffect(EffectType.MOISTURE as WeatherEffectType, 5, intensity));
                 break;
             case WeatherType.WIND:
@@ -203,6 +206,9 @@ export class WeatherImpl implements Weather {
             case WeatherType.STORM:
                 effects.push(createWeatherEffect(EffectType.WIND as WeatherEffectType, 30, intensity));
                 effects.push(createWeatherEffect(EffectType.MOISTURE as WeatherEffectType, 15, intensity));
+                break;
+            case WeatherType.HEATWAVE:
+                effects.push(createWeatherEffect(EffectType.TEMPERATURE as WeatherEffectType, baseTemperature + 10, intensity));
                 break;
             // Add other weather types and their effects here.
         }
@@ -375,4 +381,3 @@ export class WeatherSystem implements Weather {
         }
     }
 }
- 

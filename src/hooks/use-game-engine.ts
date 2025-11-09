@@ -6,6 +6,10 @@ import { useLanguage } from '@/context/language-context';
 import { applyTickEffects } from '@/lib/game/effect-engine';
 import type { PlayerStatusDefinition } from '@/lib/game/types';
 import { CreatureEngine } from '@/core/engines/creature-engine';
+import { PlantEngine } from '@/core/engines/plant-engine';
+import { EffectEngine } from '@/core/engines/effect-engine';
+import { WeatherEngine } from '@/core/engines/weather-engine';
+import { WeatherType, WeatherIntensity, WeatherCondition } from '@/core/types/weather';
 import { GridPosition } from '@/core/values/grid-position';
 import { useGameState } from "./use-game-state";
 import { useActionHandlers } from "./use-action-handlers";
@@ -39,6 +43,115 @@ export function useGameEngine(props: GameEngineProps) {
 
     // Initialize creature engine
     const creatureEngineRef = useRef(new CreatureEngine(t));
+
+    // Initialize effect engine
+    const effectEngineRef = useRef(new EffectEngine());
+
+    // Define weather data with realistic base temperatures
+    const weatherData: Map<WeatherType, WeatherCondition> = new Map([
+        [WeatherType.CLEAR, {
+            type: WeatherType.CLEAR,
+            intensity: WeatherIntensity.NORMAL,
+            duration: 3600, // 1 hour
+            effects: [],
+            temperature: 22, // Average grassland temperature
+            windSpeed: 10,
+            precipitation: 0,
+            cloudCover: 0,
+            visibility: 100,
+            transitions: []
+        }],
+        [WeatherType.CLOUDY, {
+            type: WeatherType.CLOUDY,
+            intensity: WeatherIntensity.NORMAL,
+            duration: 3600,
+            effects: [],
+            temperature: 20, // Slightly cooler
+            windSpeed: 15,
+            precipitation: 0,
+            cloudCover: 60,
+            visibility: 80,
+            transitions: []
+        }],
+        [WeatherType.RAIN, {
+            type: WeatherType.RAIN,
+            intensity: WeatherIntensity.NORMAL,
+            duration: 3600,
+            effects: [],
+            temperature: 17, // Cooler during rain
+            windSpeed: 20,
+            precipitation: 50,
+            cloudCover: 80,
+            visibility: 70,
+            transitions: []
+        }],
+        [WeatherType.SNOW, {
+            type: WeatherType.SNOW,
+            intensity: WeatherIntensity.NORMAL,
+            duration: 3600,
+            effects: [],
+            temperature: 0, // Cold during snow
+            windSpeed: 25,
+            precipitation: 30,
+            cloudCover: 90,
+            visibility: 50,
+            transitions: []
+        }],
+        [WeatherType.WIND, {
+            type: WeatherType.WIND,
+            intensity: WeatherIntensity.NORMAL,
+            duration: 3600,
+            effects: [],
+            temperature: 20, // Neutral temperature
+            windSpeed: 35,
+            precipitation: 0,
+            cloudCover: 20,
+            visibility: 85,
+            transitions: []
+        }],
+        [WeatherType.STORM, {
+            type: WeatherType.STORM,
+            intensity: WeatherIntensity.NORMAL,
+            duration: 3600,
+            effects: [],
+            temperature: 15, // Stormy and cool
+            windSpeed: 40,
+            precipitation: 70,
+            cloudCover: 95,
+            visibility: 40,
+            transitions: []
+        }],
+        [WeatherType.FOG, {
+            type: WeatherType.FOG,
+            intensity: WeatherIntensity.NORMAL,
+            duration: 3600,
+            effects: [],
+            temperature: 18, // Cool and damp
+            windSpeed: 5,
+            precipitation: 10,
+            cloudCover: 100,
+            visibility: 30,
+            transitions: []
+        }],
+        [WeatherType.HEATWAVE, {
+            type: WeatherType.HEATWAVE,
+            intensity: WeatherIntensity.NORMAL,
+            duration: 3600,
+            effects: [],
+            temperature: 35, // Hot during heatwave
+            windSpeed: 10,
+            precipitation: 0,
+            cloudCover: 20,
+            visibility: 90,
+            transitions: []
+        }]
+    ]);
+
+    // Initialize weather engine
+    const weatherEngineRef = useRef(new WeatherEngine(effectEngineRef.current, weatherData));
+
+    // Initialize plant engine
+    const plantEngineRef = useRef(new PlantEngine(t));
 
     const addNarrativeEntry = (text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string) => {
         // Preserve explicit entryId when provided (placeholders use predictable ids).
@@ -84,8 +197,25 @@ export function useGameEngine(props: GameEngineProps) {
             gameState.setPlayerStats(() => updated);
         }
 
-        // Update creatures
+        // Update weather engine
+        weatherEngineRef.current.update(gameState.gameTime);
+
+        // Apply weather effects to player's current cell
         const playerPosition = new GridPosition(gameState.playerPosition.x, gameState.playerPosition.y);
+        if (gameState.world && typeof gameState.world.getCellAt === 'function') {
+            try {
+                const playerCurrentCell = gameState.world.getCellAt(playerPosition);
+                if (playerCurrentCell) {
+                    weatherEngineRef.current.applyWeatherEffects(playerCurrentCell, gameState.playerStats);
+                }
+            } catch (error) {
+                console.warn('World getCellAt method not available or failed, skipping weather effects');
+            }
+        }
+
+        // (Plant updates moved after visibleChunks are assembled)
+
+        // Update creatures
         // Get visible chunks around the player for creature simulation
         const visibleChunks = new Map<string, any>();
         const viewRadius = 5; // Include chunks within 5 tiles of the player
@@ -106,9 +236,37 @@ export function useGameEngine(props: GameEngineProps) {
                 }
             } catch (error) {
                 // Fallback to just current chunk if world methods are not available
-                console.warn('World getChunksInArea method not available, using only current chunk for creature updates');
+                console.warn('World getChunksInArea method not available, attempting per-cell getCellAt fallback for visibleChunks');
+                // Try to fill visibleChunks by querying getCellAt for each coordinate in viewRadius
+                if (gameState.world && typeof gameState.world.getCellAt === 'function' && gameState.currentChunk) {
+                    const cx = gameState.currentChunk.x;
+                    const cy = gameState.currentChunk.y;
+                    for (let dx = -viewRadius; dx <= viewRadius; dx++) {
+                        for (let dy = -viewRadius; dy <= viewRadius; dy++) {
+                            try {
+                                const cell = gameState.world.getCellAt(new GridPosition(cx + dx, cy + dy));
+                                if (cell) {
+                                    const key = `${cell.x},${cell.y}`;
+                                    visibleChunks.set(key, cell);
+                                }
+                            } catch (innerErr) {
+                                // ignore missing cells
+                            }
+                        }
+                    }
+                } else {
+                    console.warn('World getCellAt not available; visibleChunks will contain only currentChunk');
+                }
             }
         }
+
+            // Update plants in visible area
+            try {
+                const plantMessages = plantEngineRef.current.updatePlants(currentTurn, visibleChunks, gameState.currentSeason, gameState.worldProfile);
+                for (const m of plantMessages) addNarrativeEntry(m.text, m.type);
+            } catch (err) {
+                console.warn('PlantEngine update failed', err);
+            }
 
         const creatureMessages = creatureEngineRef.current.updateCreatures(
             currentTurn,

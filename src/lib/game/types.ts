@@ -41,6 +41,20 @@ export interface Enemy {
     hp: number;
     damage: number;
     behavior: 'aggressive' | 'passive' | 'defensive' | 'territorial' | 'immobile' | 'ambush';
+    /** Broad feeding category used by simulation engines (optional) */
+    trophic?: 'herbivore' | 'carnivore' | 'omnivore';
+    /** Optional numeric trophic level (1 = producer, >1 = higher-level consumer) */
+    trophicLevel?: number;
+    /** Optional search/influence radius used by AI (in tiles). When absent, engines may use sensible defaults (carnivores default to 2 for a 5x5 area). */
+    trophicRange?: number;
+    /** Optional tags describing feeding/foraging categories, e.g. ['plant','nectarivore'] */
+    trophicTags?: string[];
+    /** Optional amount of food consumed per eat action (arbitrary units) */
+    feedingRate?: number;
+    /** Optional chance (0-1) to attempt to eat when hungry */
+    eatChance?: number;
+    /** Optional preference map for foods (id/tag => weight) */
+    foodPreferences?: Record<string, number>;
     size: 'small' | 'medium' | 'large';
     diet: string[];
     satiation: number;

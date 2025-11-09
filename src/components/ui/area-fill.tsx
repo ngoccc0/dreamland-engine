@@ -12,6 +12,8 @@ interface AreaFillProps {
   fill?: string;
   /** Optional filter url to apply to the filled group, e.g. 'url(#myFilter)' */
   fillGroupFilter?: string;
+  /** Optional inner scale to inset the filled shape (scale about center). Useful to render the fill slightly inset from the outline. */
+  innerScale?: number;
   /** Optional className for wrapper */
   className?: string;
 }
@@ -31,14 +33,13 @@ interface AreaFillProps {
  * - The component is client-only (uses DOM APIs) and will render nothing
  *   until the mapping is computed.
  */
-export function AreaFill({ pathD, percent, size = 48, fill = '#ff5a76', fillGroupFilter, className }: AreaFillProps) {
+export function AreaFill({ pathD, percent, size = 48, fill = '#ff5a76', fillGroupFilter, innerScale = 1, className }: AreaFillProps) {
   const [map, setMap] = useState<number[] | null>(null);
   const idRef = useRef(`area-fill-${Math.random().toString(36).slice(2, 9)}`);
 
   useEffect(() => {
     // Only run in browser
     if (typeof document === 'undefined') return;
-
     const pixelSize = Math.max(32, Math.min(256, Math.round(size * 2))); // clamp resolution
     const canvas = document.createElement('canvas');
     canvas.width = pixelSize;
@@ -60,16 +61,20 @@ export function AreaFill({ pathD, percent, size = 48, fill = '#ff5a76', fillGrou
       return;
     }
 
-    // Scale path to fit canvas
-    // We'll apply a transform so that viewBox [0..size] -> [0..pixelSize]
-    const scale = pixelSize / size;
+    // Scale path to fit canvas. Support optional innerScale to inset the
+    // filled shape by scaling about the center of the viewBox.
+    const pixelScale = pixelSize / size;
+    const totalScale = pixelScale * (innerScale ?? 1);
+    // draw with scaling about center
     ctx.save();
-    ctx.scale(scale, scale);
+    ctx.translate(pixelSize / 2, pixelSize / 2);
+    ctx.scale(totalScale, totalScale);
+    ctx.translate(-size / 2, -size / 2);
     ctx.fillStyle = '#000';
     ctx.fill(path);
     ctx.restore();
 
-    // Read pixels row by row and build cumulative alpha counts
+  // Read pixels row by row and build cumulative alpha counts
     const img = ctx.getImageData(0, 0, pixelSize, pixelSize);
     const alpha = img.data;
     const rows = pixelSize;
@@ -109,7 +114,7 @@ export function AreaFill({ pathD, percent, size = 48, fill = '#ff5a76', fillGrou
     }
 
     setMap(table);
-  }, [pathD, size]);
+  }, [pathD, size, innerScale]);
 
   // If mapping not ready, render a placeholder silhouette (unfilled)
   const clipId = `${idRef.current}-clip`;
@@ -146,9 +151,11 @@ export function AreaFill({ pathD, percent, size = 48, fill = '#ff5a76', fillGrou
         {/* Background silhouette (stroke) */}
         <path d={pathD} fill="none" stroke="currentColor" strokeWidth={1.5} style={{ color: '#444' }} />
 
-        {/* Filled portion clipped by area-aware rect */}
+        {/* Filled portion clipped by area-aware rect. When innerScale != 1 we
+            render the filled path scaled about the viewBox center so the fill
+            sits slightly inset from the outline. */}
         <g clipPath={`url(#${clipId})`} filter={fillGroupFilter}>
-          <path d={pathD} fill={fill} stroke="none" />
+          <path d={pathD} fill={fill} stroke="none" transform={innerScale !== 1 ? `translate(${size / 2} ${size / 2}) scale(${innerScale}) translate(${-size / 2} ${-size / 2})` : undefined} />
         </g>
       </svg>
     </div>

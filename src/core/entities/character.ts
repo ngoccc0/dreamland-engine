@@ -52,6 +52,8 @@ export class Character {
     mana: number;
     /** Maximum mana points the character can have. */
     maxMana: number;
+    /** Current body temperature in Celsius. */
+    bodyTemperature: number;
     /** Current experience points. */
     experience: number;
     /** Character's position in the game world. */
@@ -85,6 +87,7 @@ export class Character {
         this.maxHealth = 100;
         this.mana = 100;
         this.maxMana = 100;
+        this.bodyTemperature = 37; // Normal human body temperature in Celsius
         this.experience = 0;
         this.position = { x: 0, y: 0 };
         this.inventory = [];
@@ -112,6 +115,15 @@ export class Character {
      */
     heal(amount: number): void {
         this.health = Math.min(this.maxHealth, this.health + amount);
+    }
+
+    /**
+     * Modifies the character's body temperature by a given amount.
+     * Temperature is clamped between 30°C and 45°C to prevent unrealistic values.
+     * @param amount - The amount to change the body temperature by.
+     */
+    modifyBodyTemperature(amount: number): void {
+        this.bodyTemperature = Math.max(30, Math.min(45, this.bodyTemperature + amount));
     }
 
     /**

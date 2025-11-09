@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- SVG favicon placeholder served at /favicon.ico to avoid 500 errors -->
-<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
-  <rect width="48" height="48" rx="8" fill="#1a110f" />
-  <g fill="#ffd39f">
-    <circle cx="24" cy="20" r="9" />
-    <rect x="20" y="26" width="8" height="12" rx="2" />
-  </g>
-</svg>

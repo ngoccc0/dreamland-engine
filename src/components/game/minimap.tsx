@@ -43,7 +43,7 @@ export const MapCellDetails = ({ chunk, itemDefinitions }: { chunk: Chunk; itemD
                            {chunk.structures.map((s, idx) => {
                                 const structData = (s as any).data || s;
                                 // Use index as key here to avoid relying on language-specific strings for React keys
-                                return <li key={idx}><IconRenderer icon={structData.emoji} size={18} /> {getTranslatedText(structData.name, language, t)}</li>
+                                return <li key={idx} className="flex items-center gap-1"><IconRenderer icon={structData.emoji} size={16} /> {getTranslatedText(structData.name, language, t)}</li>
                             })}
                         </ul>
                     </div>
@@ -55,7 +55,7 @@ export const MapCellDetails = ({ chunk, itemDefinitions }: { chunk: Chunk; itemD
                             {chunk.items.map((item, idx) => {
                                 const definition = itemDefinitions ? resolveItemDef(getTranslatedText(item.name, 'en'), itemDefinitions) : null;
                                 const emoji = pickIcon(definition, item);
-                                return <li key={idx}><IconRenderer icon={emoji} size={16} /> {getTranslatedText(item.name, language, t)} (x{item.quantity})</li>;
+                                return <li key={idx} className="flex items-center gap-1"><IconRenderer icon={emoji} size={16} /> {getTranslatedText(item.name, language, t)} (x{item.quantity})</li>;
                             })}
                         </ul>
                     </div>
@@ -63,7 +63,7 @@ export const MapCellDetails = ({ chunk, itemDefinitions }: { chunk: Chunk; itemD
                 {chunk.enemy && (
                     <div>
                         <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><SwordIcon />{t('enemy')}:</h5>
-                        <p className="text-xs pl-5"><IconRenderer icon={chunk.enemy.emoji} size={16} /> {chunk.enemy.type ? getTranslatedText(chunk.enemy.type, language, t) : t('no_enemy_found')} (HP: {chunk.enemy.hp})</p>
+                        <p className="text-xs pl-5 flex items-center gap-1"><IconRenderer icon={chunk.enemy.emoji} size={16} /> {chunk.enemy.type ? getTranslatedText(chunk.enemy.type, language, t) : t('no_enemy_found')} (HP: {chunk.enemy.hp})</p>
                     </div>
                 )}
                 {chunk.NPCs.length > 0 && (

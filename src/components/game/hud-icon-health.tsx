@@ -2,14 +2,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import AreaFill from '@/components/ui/area-fill';
 import { cn } from '@/lib/utils';
 
-interface HudIconHungerProps {
+interface HudIconHealthProps {
   percent: number; // 0..1
   size?: number;
   className?: string;
 }
 
-// Drumstick / meat silhouette (approx) in 0..100 coords
-const DRUM_PATH = 'M72 18 C84 22, 88 36, 76 48 C68 56, 56 62, 44 64 C36 65, 28 63, 22 58 C16 53, 18 40, 26 34 C34 28, 46 22, 58 18 C64 16, 70 16, 72 18 Z';
+// Heart silhouette in 0..100 coordinate space (copied from hud-icon-progress)
+const HEART_PATH = 'M50 85 C20 60, 6 42, 20 26 A18 18 0 0 1 50 27 A18 18 0 0 1 80 26 C94 42, 80 60, 50 85 Z';
 
 function hexToRgb(hex: string) {
   const m = hex.replace('#', '');
@@ -25,20 +25,20 @@ function mixHex(a: string, b: string, t: number) {
   return rgbToHex(Math.round(A[0] + (B[0] - A[0]) * t), Math.round(A[1] + (B[1] - A[1]) * t), Math.round(A[2] + (B[2] - A[2]) * t));
 }
 
-export function HudIconHunger({ percent, size = 48, className }: HudIconHungerProps) {
-  const id = useRef(`hunger-${Math.random().toString(36).slice(2, 9)}`).current;
-  const gradId = `dynGradHunger-${id}`;
-  const outlineGradId = `metalOutlineGradHunger-${id}`;
-  const filterId = `liquidFilterHunger-${id}`;
+export function HudIconHealth({ percent, size = 40, className }: HudIconHealthProps) {
+  const id = useRef(`hp-${Math.random().toString(36).slice(2, 9)}`).current;
+  const gradId = `dynGradHp-${id}`;
+  const outlineGradId = `metalOutlineGradHp-${id}`;
+  const filterId = `liquidFilterHp-${id}`;
   const turbRef = useRef<SVGFETurbulenceElement | null>(null);
   const dispRef = useRef<SVGFEDisplacementMapElement | null>(null);
 
   const ramp = [
-    { p: 100, s: ['#ffdca8', '#ffb36a', '#d9732b'] },
-    { p: 70, s: ['#ffd39f', '#ff9a4a', '#c96f25'] },
-    { p: 40, s: ['#ffc38a', '#ff7a2a', '#b35718'] },
-    { p: 15, s: ['#ff9a52', '#e65100', '#7a2f00'] },
-    { p: 0, s: ['#5c2a14', '#341306', '#1a0b03'] },
+    { p: 100, s: ['#ff4d4d', '#ff1a1a', '#b20000'] },
+    { p: 75, s: ['#ff6b6b', '#ff3333', '#c11616'] },
+    { p: 50, s: ['#fff176', '#ffd54d', '#ffb74d'] },
+    { p: 30, s: ['#ffb84d', '#ff8c00', '#cc6600'] },
+    { p: 0, s: ['#7a0000', '#4a0000', '#2a0000'] },
   ];
 
   const [stops, setStops] = useState<string[]>(ramp[0].s);
@@ -65,9 +65,9 @@ export function HudIconHunger({ percent, size = 48, className }: HudIconHungerPr
     const turbEl = turbRef.current;
     if (!dispEl || !turbEl) return;
     if (waveAnimRef.current) cancelAnimationFrame(waveAnimRef.current.id);
-    const maxScale = 16 + mag * 40;
-    const baseFreq = 0.01 + mag * 0.02;
-    const duration = 900 + mag * 800;
+    const maxScale = 20 + mag * 60;
+    const baseFreq = 0.015 + mag * 0.03;
+    const duration = 900 + mag * 900;
     const start = performance.now();
     const anim = { id: 0 };
     const dispNonNull = dispEl as SVGFEDisplacementMapElement;
@@ -76,9 +76,9 @@ export function HudIconHunger({ percent, size = 48, className }: HudIconHungerPr
       const t = Math.min(1, (now - start) / duration);
       const ease = 1 - Math.pow(1 - t, 3);
       const scaleVal = maxScale * (1 - ease);
-      const freq = baseFreq * (1 + 0.5 * Math.sin(t * Math.PI * 2));
+      const freq = baseFreq * (1 + 0.6 * Math.sin(t * Math.PI * 2));
       try { dispNonNull.setAttribute('scale', scaleVal.toFixed(2)); turbNonNull.setAttribute('baseFrequency', freq.toFixed(4)); } catch {}
-      if (t < 1) anim.id = requestAnimationFrame(step); else { try { dispNonNull.setAttribute('scale', '0'); turbNonNull.setAttribute('baseFrequency', '0.01'); } catch {} waveAnimRef.current = null; }
+      if (t < 1) anim.id = requestAnimationFrame(step); else { try { dispNonNull.setAttribute('scale', '0'); turbNonNull.setAttribute('baseFrequency', '0.015'); } catch {} waveAnimRef.current = null; }
     }
     anim.id = requestAnimationFrame(step);
     waveAnimRef.current = anim;
@@ -99,14 +99,15 @@ export function HudIconHunger({ percent, size = 48, className }: HudIconHungerPr
           </linearGradient>
 
           <linearGradient id={outlineGradId} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#4b2a06" />
-            <stop offset="30%" stopColor="#c07a2f" />
-            <stop offset="60%" stopColor="#ffd39f" />
-            <stop offset="100%" stopColor="#592e0a" />
+            <stop offset="0%" stopColor="#59330b" />
+            <stop offset="20%" stopColor="#b06b2f" />
+            <stop offset="45%" stopColor="#ffd39f" />
+            <stop offset="70%" stopColor="#c07a2f" />
+            <stop offset="100%" stopColor="#4b2a06" />
           </linearGradient>
 
           <filter id={filterId} x="-30%" y="-30%" width="160%" height="160%" colorInterpolationFilters="sRGB">
-            <feTurbulence ref={(el) => { turbRef.current = el; }} type="fractalNoise" baseFrequency="0.01" numOctaves={2} seed={13} result="noise" />
+            <feTurbulence ref={(el) => { turbRef.current = el; }} type="fractalNoise" baseFrequency="0.015" numOctaves={2} seed={2} result="noise" />
             <feDisplacementMap ref={(el) => { dispRef.current = el; }} in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
           </filter>
         </defs>
@@ -114,15 +115,15 @@ export function HudIconHunger({ percent, size = 48, className }: HudIconHungerPr
         <g>
           <foreignObject x={0} y={0} width={100} height={100} style={{ overflow: 'visible' }}>
             <div style={{ width: '100%', height: '100%', pointerEvents: 'none' }}>
-              <AreaFill pathD={DRUM_PATH} percent={percent} size={100} fill={`url(#${gradId})`} fillGroupFilter={`url(#${filterId})`} />
+              <AreaFill pathD={HEART_PATH} percent={percent} size={100} fill={`url(#${gradId})`} fillGroupFilter={`url(#${filterId})`} />
             </div>
           </foreignObject>
         </g>
 
-        <path d={DRUM_PATH} fill="none" stroke={`url(#${outlineGradId})`} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+        <path d={HEART_PATH} fill="none" stroke={`url(#${outlineGradId})`} strokeWidth={2.2} strokeLinejoin="round" strokeLinecap="round" />
       </svg>
     </div>
   );
 }
 
-export default HudIconHunger;
+export default HudIconHealth;

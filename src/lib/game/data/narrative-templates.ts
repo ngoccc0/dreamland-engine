@@ -44,6 +44,11 @@ export function selectByRange(map: { [key: string]: string[] }, value: number | 
 // These hold different ways to say the same thing.
 
 const keyword_variations_vi: PlaceholderMap = {
+    // CREATURE BEHAVIORS 
+    creatureEating: ["{{creature}} gặm nhấm thảm thực vật", "{{creature}} đang kiếm ăn", "{{creature}} nhai nuốt lá cây"],
+    creatureHungry: ["{{creature}} có vẻ đang đói", "{{creature}} tìm kiếm thức ăn quanh đây", "{{creature}} ngó nghiêng tìm thức ăn"],
+    
+    // DANGER & THREATS
     danger_feeling_high: ["nguy hiểm rình rập", "bất an sâu sắc", "rờn rợn đến sống lưng"],
     danger_source: ["một hiểm họa khôn lường", "những ánh mắt không mời", "một thế lực thù địch"],
     danger_feeling_moderate: ["căng thẳng", "cảnh giác cao độ", "bất ổn"],
@@ -90,6 +95,11 @@ const keyword_variations_vi: PlaceholderMap = {
 };
 
 const keyword_variations_en: PlaceholderMap = {
+    // CREATURE BEHAVIORS
+    creatureEating: ["{{creature}} nibbles at the vegetation", "{{creature}} is foraging", "{{creature}} chews on leaves"],
+    creatureHungry: ["{{creature}} seems hungry", "{{creature}} searches for food", "{{creature}} looks around for sustenance"],
+    
+    // DANGER & THREATS
     danger_feeling_high: ["imminent danger", "deep unease", "a chill down your spine"],
     danger_source: ["an unseen threat", "unwelcome eyes", "a hostile force"],
     danger_feeling_moderate: ["tension", "high alert", "instability"],

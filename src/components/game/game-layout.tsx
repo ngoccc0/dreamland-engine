@@ -22,6 +22,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { HudIconProgress } from "@/components/game/hud-icon-progress";
+import HudIconHealth from "@/components/game/hud-icon-health";
 import HudIconStamina from "@/components/game/hud-icon-stamina";
 import HudIconMana from "@/components/game/hud-icon-mana";
 import HudIconHunger from "@/components/game/hud-icon-hunger";
@@ -289,6 +290,27 @@ export default function GameLayout(props: GameLayoutProps) {
     
     const worldNameText = getTranslatedText(finalWorldSetup.worldName, language, t);
 
+    // Stat display helpers for HUD numeric labels
+    const hpVal = Number(playerStats.hp ?? 0);
+    const hpMax = Number(playerStats.maxHp ?? 100);
+    const hpPct = hpMax > 0 ? hpVal / hpMax : 0;
+
+    const manaVal = Number(playerStats.mana ?? 0);
+    const manaMax = Number(playerStats.maxMana ?? 50);
+    const manaPct = manaMax > 0 ? manaVal / manaMax : 0;
+
+    const stamVal = Number(playerStats.stamina ?? 0);
+    const stamMax = Number(playerStats.maxStamina ?? 100);
+    const stamPct = stamMax > 0 ? stamVal / stamMax : 0;
+
+    const hungerVal = Number(playerStats.hunger ?? 0);
+    const hungerMax = Number(playerStats.maxHunger ?? 100);
+    // `playerStats.hunger` is a fullness-like value (higher means more full),
+    // so the HUD percent should directly reflect hungerVal / hungerMax.
+    const hungerPct = hungerMax > 0 ? Math.max(0, Math.min(1, hungerVal / hungerMax)) : 0;
+
+    const statColorClass = (pct: number) => pct <= 0.3 ? 'text-destructive' : pct <= 0.6 ? 'text-amber-500' : 'text-foreground';
+
     // Consolidated main actions trigger: single button that opens a dropdown with the full action set.
     const mainActions = (
         <DropdownMenu>
@@ -443,7 +465,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                     <p>AI is thinking...</p>
                                 </div>
                             )}
-                        </div>
+có                         </div>
                     </main>
 
                     {/* Desktop horizontal action bar removed - main actions are now inline in the header for desktop non-legacy layout */}
@@ -469,10 +491,57 @@ export default function GameLayout(props: GameLayoutProps) {
 
                                 {/* HUD */}
                                 <div className="grid grid-cols-4 gap-x-4 gap-y-2 text-sm justify-items-center">
-                                    <HudIconProgress Icon={Heart} value={playerStats.hp} maxValue={playerStats.maxHp ?? 100} fillColor="text-destructive" statName={t('hudHealth') || 'Health'} />
-                                    <HudIconMana percent={(playerStats.mana ?? 0) / (playerStats.maxMana ?? 50)} size={40} />
-                                    <HudIconStamina percent={(playerStats.stamina ?? 0) / (playerStats.maxStamina ?? 100)} size={40} className="" />
-                                    <HudIconHunger percent={(playerStats.hunger ?? 0) / (playerStats.maxHunger ?? 100)} size={40} />
+                                    {/* Health (use new HudIconHealth) */}
+                                    <div className="flex flex-col items-center">
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div>
+                                                    <HudIconHealth percent={Math.max(0, Math.min(1, hpPct))} size={40} />
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>{t('hudHealth') ?? 'Health'}: {Math.round(playerStats.hp ?? 0)}/{playerStats.maxHp ?? 100}</p></TooltipContent>
+                                        </Tooltip>
+                                        <span className={`text-xs mt-1 ${statColorClass(hpPct)}`}>{Math.round(hpVal)}/{hpMax}</span>
+                                    </div>
+
+                                    {/* Mana */}
+                                    <div className="flex flex-col items-center">
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div>
+                                                    <HudIconMana percent={Math.max(0, Math.min(1, manaPct))} size={40} />
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>{t('hudMana') ?? 'Mana'}: {Math.round(playerStats.mana ?? 0)}/{playerStats.maxMana ?? 50}</p></TooltipContent>
+                                        </Tooltip>
+                                        <span className={`text-xs mt-1 ${statColorClass(manaPct)}`}>{Math.round(manaVal)}/{manaMax}</span>
+                                    </div>
+
+                                    {/* Stamina */}
+                                    <div className="flex flex-col items-center">
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div>
+                                                    <HudIconStamina percent={Math.max(0, Math.min(1, stamPct))} size={40} className="" />
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>{t('hudStamina') ?? 'Stamina'}: {Math.round(playerStats.stamina ?? 0)}/{playerStats.maxStamina ?? 100}</p></TooltipContent>
+                                        </Tooltip>
+                                        <span className={`text-xs mt-1 ${statColorClass(stamPct)}`}>{Math.round(stamVal)}/{stamMax}</span>
+                                    </div>
+
+                                    {/* Hunger */}
+                                    <div className="flex flex-col items-center">
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button variant="ghost" size="icon" aria-label={t('hudHunger') ?? 'Hunger'} onClick={() => { setStatusOpen(true); focusCustomActionInput(); }} className="p-0">
+                                                    <HudIconHunger percent={Math.max(0, Math.min(1, hungerPct))} size={40} />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>{t('hudHunger') ?? 'Hunger'}: {Math.round(playerStats.hunger ?? 0)}/{playerStats.maxHunger ?? 100}</p></TooltipContent>
+                                        </Tooltip>
+                                        <button onClick={() => { setStatusOpen(true); focusCustomActionInput(); }} className={`text-xs mt-1 ${statColorClass(hungerPct)} focus:outline-none`}>{Math.round(hungerVal)}/{hungerMax}</button>
+                                    </div>
                                 </div>
                             </>
                         ) : (
@@ -480,10 +549,57 @@ export default function GameLayout(props: GameLayoutProps) {
                             <>
                                 {/* HUD */}
                                 <div className="grid grid-cols-4 gap-x-4 gap-y-2 text-sm justify-items-center">
-                                    <HudIconProgress Icon={Heart} value={playerStats.hp} maxValue={playerStats.maxHp ?? 100} fillColor="text-destructive" statName={t('hudHealth') || 'Health'} />
-                                    <HudIconMana percent={(playerStats.mana ?? 0) / (playerStats.maxMana ?? 50)} size={40} />
-                                    <HudIconStamina percent={(playerStats.stamina ?? 0) / (playerStats.maxStamina ?? 100)} size={40} className="" />
-                                    <HudIconHunger percent={(playerStats.hunger ?? 0) / (playerStats.maxHunger ?? 100)} size={40} />
+                                    {/* Health (mobile) */}
+                                    <div className="flex flex-col items-center">
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div>
+                                                    <HudIconHealth percent={Math.max(0, Math.min(1, hpPct))} size={40} />
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>{t('hudHealth') ?? 'Health'}: {Math.round(playerStats.hp ?? 0)}/{playerStats.maxHp ?? 100}</p></TooltipContent>
+                                        </Tooltip>
+                                        <span className={`text-xs mt-1 ${statColorClass(hpPct)}`}>{Math.round(hpVal)}/{hpMax}</span>
+                                    </div>
+
+                                    {/* Mana (mobile) */}
+                                    <div className="flex flex-col items-center">
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div>
+                                                    <HudIconMana percent={Math.max(0, Math.min(1, manaPct))} size={40} />
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>{t('hudMana') ?? 'Mana'}: {Math.round(playerStats.mana ?? 0)}/{playerStats.maxMana ?? 50}</p></TooltipContent>
+                                        </Tooltip>
+                                        <span className={`text-xs mt-1 ${statColorClass(manaPct)}`}>{Math.round(manaVal)}/{manaMax}</span>
+                                    </div>
+
+                                    {/* Stamina (mobile) */}
+                                    <div className="flex flex-col items-center">
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div>
+                                                    <HudIconStamina percent={Math.max(0, Math.min(1, stamPct))} size={40} className="" />
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>{t('hudStamina') ?? 'Stamina'}: {Math.round(playerStats.stamina ?? 0)}/{playerStats.maxStamina ?? 100}</p></TooltipContent>
+                                        </Tooltip>
+                                        <span className={`text-xs mt-1 ${statColorClass(stamPct)}`}>{Math.round(stamVal)}/{stamMax}</span>
+                                    </div>
+
+                                    {/* Hunger (mobile) */}
+                                    <div className="flex flex-col items-center">
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div>
+                                                    <HudIconHunger percent={Math.max(0, Math.min(1, hungerPct))} size={40} />
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>{t('hudHunger') ?? 'Hunger'}: {Math.round(playerStats.hunger ?? 0)}/{playerStats.maxHunger ?? 100}</p></TooltipContent>
+                                        </Tooltip>
+                                        <span className={`text-xs mt-1 ${statColorClass(hungerPct)}`}>{Math.round(hungerVal)}/{hungerMax}</span>
+                                    </div>
                                 </div>
 
                                 {/* Minimap */}
@@ -674,7 +790,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                                 <Checkbox checked={selectedPickupIds.includes(action.id)} onCheckedChange={() => togglePickupSelection(action.id)} />
                                                 <div className="flex flex-col text-sm">
                                                     <span className="font-medium flex items-center gap-1">
-                                                        <IconRenderer icon={resolveItemDef(getTranslatedText(item.name, 'en'), customItemDefinitions)?.emoji || item.emoji} size={16} alt={itemName} />
+                                                        <IconRenderer icon={resolveItemDef(getTranslatedText(item.name, 'en'), customItemDefinitions)?.emoji || item.emoji} size={typeof (resolveItemDef(getTranslatedText(item.name, 'en'), customItemDefinitions)?.emoji || item.emoji) === 'object' ? 40 : 25} alt={itemName} />
                                                         {itemName}
                                                     </span>
                                                     {item && <span className="text-xs text-muted-foreground">{t('quantityShort') || 'Qty'}: {item.quantity}</span>}

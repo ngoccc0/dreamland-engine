@@ -8,8 +8,8 @@ interface HudIconManaProps {
   className?: string;
 }
 
-// Simple water-drop silhouette in 0..100 coords
-const DROP_PATH = 'M50 8 C40 28, 32 44, 50 66 C68 44, 60 28, 50 8 Z';
+// Teardrop path provided by user in 0..1024 coords
+const DROP_PATH = 'M512 64 C680 220 832 420 800 656 C768 900 256 900 224 656 C192 420 344 220 512 64 Z';
 
 function hexToRgb(hex: string) {
   const m = hex.replace('#', '');
@@ -84,25 +84,48 @@ export function HudIconMana({ percent, size = 48, className }: HudIconManaProps)
     waveAnimRef.current = anim;
   }
 
-  const displayWidth = size * 1.2;
-  const displayHeight = size * 0.9;
+  // Use exact requested size for consistent HUD icon sizing
+  const displayWidth = size;
+  const displayHeight = size;
+
+  // Use the user's provided gradients and filters (colors taken from the SVG they supplied)
+  const innerGradStops = ['#57d8d6', '#1fa6b2', '#08184a'];
+  const metalGradStops = ['#7b4a1a', '#d3a04a', '#ffd88a', '#8b5a22'];
 
   return (
     <div className={cn('inline-block', className)} style={{ width: displayWidth, height: displayHeight }}>
-      <svg viewBox={`0 0 100 100`} width={displayWidth} height={displayHeight} preserveAspectRatio="xMidYMid meet">
+      <svg viewBox={`0 0 1024 1024`} width={displayWidth} height={displayHeight} preserveAspectRatio="xMidYMid meet">
         <defs>
           <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={stops[0]} />
-            <stop offset="50%" stopColor={stops[1]} />
-            <stop offset="100%" stopColor={stops[2]} />
+            <stop offset="0%" stopColor={innerGradStops[0]} />
+            <stop offset="50%" stopColor={innerGradStops[1]} />
+            <stop offset="100%" stopColor={innerGradStops[2]} />
           </linearGradient>
 
           <linearGradient id={outlineGradId} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#0b3b4f" />
-            <stop offset="40%" stopColor="#2aa0d1" />
-            <stop offset="60%" stopColor="#9fe8ff" />
-            <stop offset="100%" stopColor="#033047" />
+            <stop offset="0%" stopColor={metalGradStops[0]} />
+            <stop offset="30%" stopColor={metalGradStops[1]} />
+            <stop offset="60%" stopColor={metalGradStops[2]} />
+            <stop offset="100%" stopColor={metalGradStops[3]} />
           </linearGradient>
+
+          <radialGradient id={`goldShine-${id}`} cx="0.35" cy="0.2" r="0.9">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.85" />
+            <stop offset="35%" stopColor="#fff8e6" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="#000000" stopOpacity="0" />
+          </radialGradient>
+
+          <filter id={`softBlur-${id}`} x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation={6} />
+          </filter>
+
+          <filter id={`innerShadow-${id}`} x="-50%" y="-50%" width="200%" height="200%">
+            <feOffset dx="0" dy="10" result="off" />
+            <feGaussianBlur in="off" stdDeviation={18} result="blur" />
+            <feComposite in="blur" in2="SourceGraphic" operator="out" result="shadow" />
+            <feColorMatrix in="shadow" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.45 0" />
+            <feBlend in="SourceGraphic" in2="shadow" mode="normal" />
+          </filter>
 
           <filter id={filterId} x="-30%" y="-30%" width="160%" height="160%" colorInterpolationFilters="sRGB">
             <feTurbulence ref={(el) => { turbRef.current = el; }} type="fractalNoise" baseFrequency="0.012" numOctaves={2} seed={7} result="noise" />
@@ -110,15 +133,21 @@ export function HudIconMana({ percent, size = 48, className }: HudIconManaProps)
           </filter>
         </defs>
 
+        {/* Area-aware fill rendered by AreaFill (size=1024 -> matches path coordinates) */}
         <g>
-          <foreignObject x={0} y={0} width={100} height={100} style={{ overflow: 'visible' }}>
+          <foreignObject x={0} y={0} width={1024} height={1024} style={{ overflow: 'visible' }}>
             <div style={{ width: '100%', height: '100%', pointerEvents: 'none' }}>
-              <AreaFill pathD={DROP_PATH} percent={percent} size={100} fill={`url(#${gradId})`} fillGroupFilter={`url(#${filterId})`} />
+              <AreaFill pathD={DROP_PATH} percent={percent} size={1024} fill={`url(#${gradId})`} fillGroupFilter={`url(#${filterId})`} />
             </div>
           </foreignObject>
         </g>
 
-        <path d={DROP_PATH} fill="none" stroke={`url(#${outlineGradId})`} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+        {/* Metallic border */}
+        <path d={DROP_PATH} fill="none" stroke={`url(#${outlineGradId})`} strokeWidth={56} strokeLinejoin="round" strokeLinecap="round" />
+
+        {/* Optional metallic highlight */}
+        <path d="M512 86 C666 244 796 424 770 642 C746 852 278 852 254 642 C230 432 358 252 512 86 Z"
+          fill="none" stroke={`url(#goldShine-${id})`} strokeWidth={22} strokeLinejoin="round" opacity={0.65} filter={`url(#softBlur-${id})`} />
       </svg>
     </div>
   );

@@ -110,6 +110,15 @@ export class EffectEngine {
             case EffectType.MODIFY_TERRAIN:
                 this.processTerrainModification(effect, target);
                 break;
+            case EffectType.TEMPERATURE:
+                this.processTemperatureEffect(effect, target);
+                break;
+            case EffectType.HYPOTHERMIA:
+                this.processHypothermiaEffect(effect, target);
+                break;
+            case EffectType.HEATSTROKE:
+                this.processHeatstrokeEffect(effect, target);
+                break;
             case EffectType.TRIGGER_ABILITY:
                 this.processTriggerAbility(effect, target);
                 break;
@@ -173,6 +182,30 @@ export class EffectEngine {
         // Modify terrain attributes
     }
 
+    private processTemperatureEffect(effect: Effect, target: Character): void {
+        if (target.modifyBodyTemperature) {
+            target.modifyBodyTemperature(effect.value);
+        }
+    }
+
+    private processHypothermiaEffect(effect: Effect, target: Character): void {
+        // Hypothermia: Apply damage over time and movement debuff
+        target.takeDamage(effect.value);
+        // Could also apply movement speed reduction here
+        if (target.stats) {
+            target.stats.dexterity = Math.max(1, target.stats.dexterity - 2); // Reduce dexterity
+        }
+    }
+
+    private processHeatstrokeEffect(effect: Effect, target: Character): void {
+        // Heatstroke: Apply damage over time and stamina drain
+        target.takeDamage(effect.value);
+        // Could also apply stamina reduction here
+        if (target.stats) {
+            target.stats.vitality = Math.max(1, target.stats.vitality - 2); // Reduce vitality
+        }
+    }
+
     private processTriggerAbility(effect: Effect, target: Character): void {
         // Trigger special abilities
     }
@@ -198,5 +231,61 @@ export class EffectEngine {
             return this.activeEffects.get(targetId) || [];
         }
         return Array.from(this.activeEffects.values()).flat();
+    }
+
+    /**
+     * Checks a character's body temperature and applies long-term temperature effects if necessary.
+     * @param character - The character to check.
+     */
+    checkTemperatureStatusEffects(character: Character): void {
+        if (!character.bodyTemperature) return;
+
+        const bodyTemp = character.bodyTemperature;
+        const hypothermiaId = `hypothermia_${character.id}`;
+        const heatstrokeId = `heatstroke_${character.id}`;
+
+        // Check for hypothermia (body temperature too low)
+        if (bodyTemp < 35) {
+            // Check if hypothermia effect is already active
+            if (!this.activeEffects.has(hypothermiaId)) {
+                const hypothermiaEffect: Effect = {
+                    id: hypothermiaId,
+                    name: { key: 'effect.hypothermia.name' },
+                    description: { key: 'effect.hypothermia.description' },
+                    type: EffectType.HYPOTHERMIA,
+                    target: EffectTarget.SELF,
+                    value: 2, // Damage per tick
+                    modifier: { type: 'flat', value: 1 },
+                    duration: 30, // Lasts 30 seconds, can be reapplied
+                    tickRate: 5000 // Apply every 5 seconds
+                };
+                this.applyEffect(hypothermiaEffect, character);
+            }
+        } else {
+            // Remove hypothermia if body temperature is normal
+            this.removeEffect(hypothermiaId);
+        }
+
+        // Check for heatstroke (body temperature too high)
+        if (bodyTemp > 40) {
+            // Check if heatstroke effect is already active
+            if (!this.activeEffects.has(heatstrokeId)) {
+                const heatstrokeEffect: Effect = {
+                    id: heatstrokeId,
+                    name: { key: 'effect.heatstroke.name' },
+                    description: { key: 'effect.heatstroke.description' },
+                    type: EffectType.HEATSTROKE,
+                    target: EffectTarget.SELF,
+                    value: 3, // Damage per tick
+                    modifier: { type: 'flat', value: 1 },
+                    duration: 30, // Lasts 30 seconds, can be reapplied
+                    tickRate: 5000 // Apply every 5 seconds
+                };
+                this.applyEffect(heatstrokeEffect, character);
+            }
+        } else {
+            // Remove heatstroke if body temperature is normal
+            this.removeEffect(heatstrokeId);
+        }
     }
 }

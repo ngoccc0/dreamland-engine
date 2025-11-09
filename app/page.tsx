@@ -171,7 +171,7 @@ export default function Home() {
     const newGameState: GameState = {
       worldSetup: worldConceptForState,
       playerStats: {
-        hp: 100, mana: 50, stamina: 100, bodyTemperature: 37, items: initialPlayerInventory, equipment: { weapon: null, armor: null, accessory: null },
+        hp: 100, mana: 50, stamina: 100, hunger: 100, maxHunger: 100, bodyTemperature: 37, items: initialPlayerInventory, equipment: { weapon: null, armor: null, accessory: null },
   // playerStats.quests expects a string[] of quest ids — translate the concept's translatable quests
   quests: (selectedConcept.initialQuests || []).map(q => getTranslatedText(q as any, language, t)),
   questsCompleted: 0, skills: selectedConcept.startingSkill ? [selectedConcept.startingSkill] : [], pets: [], persona: 'none',
@@ -226,14 +226,18 @@ export default function Home() {
   // Render loading screen
   if (loadState === 'loading' || authLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-dvh bg-gradient-to-br from-[#181824] via-[#23234a] to-[#23234a] text-foreground">
-        <img src="/assets/logo.svg" alt="Dreamland Engine" className="h-[480px] w-[480px] mt-4 mb-6" />
-        <h1 className="text-5xl font-bold tracking-tight text-primary drop-shadow-lg mb-6" style={{ fontFamily: language ? `var(--font-${language})` : undefined }}>
-          Dreamland Engine
-        </h1>
-        <div className="flex items-center gap-2 text-muted-foreground mb-2">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <p>{t('loadingAdventure')}</p>
+      <div className="flex flex-col items-center justify-end min-h-dvh bg-gradient-to-br from-[#181824] via-[#23234a] to-[#23234a] text-foreground pb-4">
+        <div className="flex flex-col items-center md:relative md:w-[480px] md:h-[480px] md:flex-none">
+          <img src="/asset/images/logo.png" alt="Dreamland Engine" className="max-w-full h-auto object-contain md:absolute md:inset-0 md:w-full md:h-full" style={{ maxWidth: '480px', maxHeight: '480px' }} />
+          <div className="md:absolute md:inset-0 md:flex md:flex-col md:items-center md:justify-end md:z-10 md:pb-4">
+            <h1 className="text-5xl font-bold tracking-tight text-primary drop-shadow-lg text-shadow-black mb-6" style={{ fontFamily: language ? `var(--font-${language})` : undefined }}>
+              Dreamland Engine
+            </h1>
+            <div className="flex items-center gap-2 text-muted-foreground mb-2">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <p className="text-shadow-black">{t('loadingAdventure')}</p>
+            </div>
+          </div>
         </div>
       </div>
     );

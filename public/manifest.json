@@ -38,9 +38,9 @@
       "type": "image/png"
     },
     {
-        "src": "/assets/logo.svg",
+        "src": "/asset/images/logo.png",
         "sizes": "any",
-        "type": "image/svg+xml"
+        "type": "image/png"
     }
   ]
 }

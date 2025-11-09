@@ -137,7 +137,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                                     )}
                                 >
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        <IconRenderer icon={pickIcon(definition, item)} size={32} alt={getTranslatedText(item.name, language)} />
+                                        <IconRenderer icon={pickIcon(definition, item)} size={typeof pickIcon(definition, item) === 'object' ? 45 : 30} alt={getTranslatedText(item.name, language)} />
                                         <div className="flex flex-col items-start">
                                             <span className="text-foreground">{getTranslatedText(item.name, language)}</span>
                                             <div className="flex items-center gap-2">
@@ -153,7 +153,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
                             <DropdownMenuContent className="w-64">
                 <DropdownMenuLabel className="font-normal">
                   <p className="font-bold flex items-center gap-2">
-                    <IconRenderer icon={pickIcon(definition, item)} size={20} alt={getTranslatedText(item.name, language)} />
+                    <IconRenderer icon={pickIcon(definition, item)} size={typeof pickIcon(definition, item) === 'object' ? 45 : 30} alt={getTranslatedText(item.name, language)} />
                     {getTranslatedText(item.name, language)}
                   </p>
                   {!definition ? (

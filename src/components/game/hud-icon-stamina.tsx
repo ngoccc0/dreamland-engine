@@ -8,8 +8,8 @@ interface HudIconStaminaProps {
   className?: string;
 }
 
-// Bolt silhouette path (same as the HTML sample)
-const BOLT_PATH = 'M60 6 L36 46 L56 46 L28 94 L68 52 L48 52 L72 6 Z';
+// Bolt silhouette path (1024 coordinate space) taken from the provided SVG
+const BOLT_PATH = `M584.00,135.00Q702.00,135.00,710.50,140.50Q719.00,146.00,722.00,153.50Q725.00,161.00,722.50,171.50Q720.00,182.00,659.00,284.50Q598.00,387.00,652.00,387.50Q706.00,388.00,714.00,394.00Q722.00,400.00,724.50,405.50Q727.00,411.00,727.00,419.00Q727.00,427.00,724.50,433.50Q722.00,440.00,559.50,661.00Q397.00,882.00,392.00,885.00Q387.00,888.00,381.50,888.00Q376.00,888.00,370.00,884.50Q364.00,881.00,362.00,876.50Q360.00,872.00,360.00,866.50Q360.00,861.00,399.50,711.00Q439.00,561.00,387.50,560.50Q336.00,560.00,327.50,554.50Q319.00,549.00,315.50,537.50Q312.00,526.00,373.00,344.00Q434.00,162.00,441.00,152.00Q448.00,142.00,456.50,139.00Q465.00,136.00,465.50,135.50Q466.00,135.00,584.00,135.00Z`;
 
 function hexToRgb(hex: string) {
   const m = hex.replace('#', '');
@@ -109,13 +109,16 @@ export function HudIconStamina({ percent, size = 48, className }: HudIconStamina
     waveAnimRef.current = anim;
   }
 
-  // Display ratio tweaks: make the bolt icon ~20% wider and ~10% shorter visually
-  const displayWidth = size * 1.2;
-  const displayHeight = size * 0.9;
+  // Display ratio tweaks: use the provided 1024 viewBox path; keep visual
+  // scaling consistent with other icons by mapping `size` → display px.
+  // Use exact requested size for consistent HUD icon sizing
+  const displayWidth = size;
+  const displayHeight = size;
 
   return (
     <div className={cn('inline-block', className)} style={{ width: displayWidth, height: displayHeight }}>
-      <svg viewBox={`0 0 100 100`} width={displayWidth} height={displayHeight} preserveAspectRatio="xMidYMid meet">
+      {/* Use the 1024x1024 coordinate system to match the provided path */}
+      <svg viewBox={`0 0 1024 1024`} width={displayWidth} height={displayHeight} preserveAspectRatio="xMidYMid meet">
         <defs>
           <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={stops[0]} />
@@ -123,12 +126,12 @@ export function HudIconStamina({ percent, size = 48, className }: HudIconStamina
             <stop offset="100%" stopColor={stops[2]} />
           </linearGradient>
 
+          {/* Metallic outline gradient (from the provided sample) */}
           <linearGradient id={outlineGradId} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#59330b" />
-            <stop offset="22%" stopColor="#b06b2f" />
-            <stop offset="48%" stopColor="#ffd39f" />
-            <stop offset="72%" stopColor="#c07a2f" />
-            <stop offset="100%" stopColor="#4b2a06" />
+            <stop offset="0%" stopColor="#7b4a1a" />
+            <stop offset="30%" stopColor="#d3a04a" />
+            <stop offset="60%" stopColor="#ffd88a" />
+            <stop offset="100%" stopColor="#8b5a22" />
           </linearGradient>
 
           <filter id={filterId} x="-30%" y="-30%" width="160%" height="160%" colorInterpolationFilters="sRGB">
@@ -139,16 +142,17 @@ export function HudIconStamina({ percent, size = 48, className }: HudIconStamina
 
         {/* Use AreaFill to compute area-aware fill; pass gradient url and filter on the filled group */}
         <g>
-          <foreignObject x={0} y={0} width={100} height={100} style={{ overflow: 'visible' }}>
+          <foreignObject x={0} y={0} width={1024} height={1024} style={{ overflow: 'visible', filter: 'drop-shadow(0px 6px 8px rgba(0,0,0,0.18))' }}>
             {/* AreaFill will render its own SVG; we want fill to reference our gradient and apply filter */}
             <div style={{ width: '100%', height: '100%', pointerEvents: 'none' }}>
-              <AreaFill pathD={BOLT_PATH} percent={percent} size={100} fill={`url(#${gradId})`} fillGroupFilter={`url(#${filterId})`} />
+              {/* Pass size=1024 to match the path coordinate space */}
+              <AreaFill pathD={BOLT_PATH} percent={percent} size={1024} innerScale={0.965} fill={`url(#${gradId})`} fillGroupFilter={`url(#${filterId})`} />
             </div>
           </foreignObject>
         </g>
 
-        {/* Outline on top */}
-        <path d={BOLT_PATH} fill="none" stroke={`url(#${outlineGradId})`} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+        {/* Metallic outline on top (thicker stroke appropriate for 1024 coords) */}
+        <path d={BOLT_PATH} fill="none" stroke={`url(#${outlineGradId})`} strokeWidth={28} strokeLinejoin="round" strokeLinecap="round" />
       </svg>
     </div>
   );

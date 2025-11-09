@@ -36,7 +36,7 @@ export class FirebaseGameStateRepository implements IGameStateRepository {
                 return docSnap.data() as GameState;
             }
             return null;
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error loading game state from Firebase:", error);
             throw error;
         }
@@ -53,7 +53,7 @@ export class FirebaseGameStateRepository implements IGameStateRepository {
         try {
             const docRef = doc(db, this.basePath, slotId);
             await setDoc(docRef, state);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error saving game state to Firebase:", error);
             throw error;
         }
@@ -69,7 +69,7 @@ export class FirebaseGameStateRepository implements IGameStateRepository {
         try {
             const docRef = doc(db, this.basePath, slotId);
             await deleteDoc(docRef);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error deleting game state from Firebase:", error);
             throw error;
         }
@@ -101,7 +101,7 @@ export class FirebaseGameStateRepository implements IGameStateRepository {
                 }
             });
             return slots;
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error listing save summaries from Firebase:", error);
             throw error;
         }

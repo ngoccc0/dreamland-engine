@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       const { signInWithPopup } = await import('firebase/auth');
       await signInWithPopup(fc.auth as any, fc.googleProvider as any);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error during sign-in:', error);
     }
   };
@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       const { signOut } = await import('firebase/auth');
       await signOut(fc.auth as any);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error during sign-out:', error);
     }
   };

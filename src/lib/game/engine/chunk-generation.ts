@@ -1,3 +1,4 @@
+import type { TranslationKey } from "@/lib/i18n"
 /**
  * World chunk generation engine responsible for creating diverse, procedurally-generated game environments.
  * This module orchestrates the complete pipeline from terrain templates to populated chunks with items,

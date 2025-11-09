@@ -161,7 +161,7 @@ export class CreatureEngine {
             if (eatResult && eatResult.message) {
                 messages.push(eatResult.message);
             }
-        } catch (err) {
+        } catch (err: any) {
             // swallow errors in optional behaviour
             console.warn('CreatureEngine: eating attempt failed', err);
         }

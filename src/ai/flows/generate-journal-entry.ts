@@ -69,7 +69,7 @@ const generateJournalEntryFlow = ai.defineFlow(
                 ]);
                 
                 if (output && output.journalEntry) return { journalEntry: output.journalEntry };
-            } catch (error) {
+            } catch (error: any) {
                 lastError = error;
                 console.warn(`[generateJournalEntry] Model '${model}' failed. Trying next...`);
                 continue;

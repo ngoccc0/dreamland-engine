@@ -64,7 +64,7 @@ const provideQuestHintFlow = ai.defineFlow(
                 if (result?.output) return result.output as ProvideQuestHintOutput;
                 // If no structured output exists, try to coerce / validate.
                 throw new Error('AI returned no structured output for quest hint');
-            } catch (error) {
+            } catch (error: any) {
                 console.error('AI failed to generate a hint (Gemini):', error);
                 throw error;
             }

@@ -1,3 +1,4 @@
+import type { TranslationKey } from "@/lib/i18n"
 
 
 'use client';
@@ -303,7 +304,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         }
         setPlayerStats(() => finalPlayerStats);
         advanceGameTime(finalPlayerStats);
-    } catch (error) {
+    } catch (error: any) {
         logger.error("[AI] Narrative generation failed", error);
         toast({ title: t('offlineModeActive'), description: t('offlineToastDesc'), variant: "destructive" });
     } finally {
@@ -1122,7 +1123,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         }
         setPlayerStats(() => nextPlayerStats);
         advanceGameTime(nextPlayerStats);
-    } catch (error) {
+    } catch (error: any) {
         logger.error("AI Fusion failed:", e);
         toast({ title: t('error'), description: t('fusionError'), variant: "destructive" });
         setPlayerStats(() => nextPlayerStats);
@@ -1138,7 +1139,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     try {
         const result = await provideQuestHint({ questText, language });
         setPlayerStats(prev => ({ ...prev, questHints: { ...prev.questHints, [questText]: result.hint } }));
-    } catch (error) {
+    } catch (error: any) {
         logger.error("Failed to get quest hint:", error);
         toast({ title: t('error'), description: t('suggestionError'), variant: "destructive" });
     }
@@ -1459,7 +1460,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                         // replace the optimistic placeholder with the improved brief sensory text
                         addNarrativeEntry(String(updatedPlaceholder).replace(/\{[^}]+\}/g, '').trim(), 'narrative', placeholderId);
                     }
-            } catch (e) {
+            } catch (e: any) {
                 // non-fatal: if computing brief sensory fails, continue to orchestrator/fallback
                  
                 console.warn('[narrative] brief sensory computation failed', e);
@@ -1537,7 +1538,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                             }
                         }
                     }
-                } catch (e) {
+                } catch (e: any) {
                     // If anything fails, fall back to legacy offline generator
                      
                     console.warn('[narrative] precomputed load failed, falling back', String(e));

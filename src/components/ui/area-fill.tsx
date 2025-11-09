@@ -54,7 +54,7 @@ export function AreaFill({ pathD, percent, size = 48, fill = '#ff5a76', fillGrou
     let path: Path2D;
     try {
       path = new Path2D(pathD);
-    } catch (e) {
+    } catch (e: any) {
       // If path parsing fails, bail out
       console.warn('AreaFill: invalid pathD', e);
       setMap(null);

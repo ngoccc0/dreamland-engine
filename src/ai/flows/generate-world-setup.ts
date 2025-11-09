@@ -205,7 +205,7 @@ const generateWorldSetupFlow = (ai as Genkit).defineFlow(
             logger.info('[Task A] SUCCESS with configured Gemini.');
             logger.debug('[Task A] Parsed AI output:', result.output);
             return result;
-        } catch (error) {
+        } catch (error: any) {
             const errorMessage = `Gemini failed for item catalog generation. Reason: ${error.message || error}`;
             logger.error('[Task A] ' + errorMessage);
             throw new Error(errorMessage);
@@ -226,7 +226,7 @@ const generateWorldSetupFlow = (ai as Genkit).defineFlow(
             ]);
             logger.info('[Task B] SUCCESS with configured Gemini.');
             return result;
-        } catch (error) {
+        } catch (error: any) {
             logger.error('[Task B] Gemini failed for world name generation: ' + (error.message || error));
             throw error;
         }
@@ -246,7 +246,7 @@ const generateWorldSetupFlow = (ai as Genkit).defineFlow(
             ]);
             logger.info('[Task C] SUCCESS with configured Gemini.');
             return result;
-        } catch (error) {
+        } catch (error: any) {
             logger.error('[Task C] Gemini failed for narrative concepts generation: ' + (error.message || error));
             throw error;
         }
@@ -266,7 +266,7 @@ const generateWorldSetupFlow = (ai as Genkit).defineFlow(
             ]);
             logger.info('[Task D] SUCCESS with configured Gemini.');
             return result;
-        } catch (error) {
+        } catch (error: any) {
             logger.warn('[Task D] Gemini failed to generate structures. Proceeding without custom structures: ' + (error.message || error));
             return { output: { customStructures: [] } };
         }

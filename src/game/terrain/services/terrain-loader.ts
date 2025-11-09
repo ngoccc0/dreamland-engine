@@ -25,7 +25,7 @@ export class TerrainLoader {
                 const definition = this.validateAndNormalize(terrainData);
                 manager.registerTerrain(definition);
             }
-        } catch (error) {
+        } catch (error: any) {
             const message = error instanceof Error ? error.message : String(error);
             throw new Error(`Failed to load terrain definitions: ${message}`);
         }

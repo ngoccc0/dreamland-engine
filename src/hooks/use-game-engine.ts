@@ -264,7 +264,7 @@ export function useGameEngine(props: GameEngineProps) {
             try {
                 const plantMessages = plantEngineRef.current.updatePlants(currentTurn, visibleChunks, gameState.currentSeason, gameState.worldProfile);
                 for (const m of plantMessages) addNarrativeEntry(m.text, m.type);
-            } catch (err) {
+            } catch (err: any) {
                 console.warn('PlantEngine update failed', err);
             }
 

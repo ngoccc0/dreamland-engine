@@ -210,7 +210,7 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
             });
             console.log(`[generateNarrative] SUCCESS with ${model}.`);
             break; 
-        } catch (error) {
+        } catch (error: any) {
             lastError = error;
             console.warn(`[generateNarrative] Model '${model}' failed. Trying next... Error: ${error.message}`);
         }
@@ -371,7 +371,7 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
                           const existingSystemMessage = finalOutput.systemMessage ? finalOutput.systemMessage + " " : "";
                           finalOutput.systemMessage = existingSystemMessage + `New quest: ${newQuestResult.newQuest}`;
                       }
-                  } catch (e) {
+                  } catch (e: any) {
                       console.error("Failed to generate a new quest after completion:", e);
                   }
               }
@@ -393,7 +393,7 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
                   if (newItem && !allCurrentItemNames.includes(newIndeedItemName)) {
                       finalOutput.newlyGeneratedItem = newItem;
                   }
-              } catch (e) {
+              } catch (e: any) {
                   console.error("Failed to generate new item after quest completion:", e);
               }
           }

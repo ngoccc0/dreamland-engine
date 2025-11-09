@@ -136,7 +136,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps): JSX.Element {
         try {
             const result = await suggestKeywords({ userInput, language });
             setSuggestedKeywords(result.keywords);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to suggest keywords:", error);
             toast({ title: t('error'), description: t('suggestionError'), variant: "destructive" });
         } finally {
@@ -177,7 +177,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps): JSX.Element {
             let data;
             try {
                 data = await response.json();
-            } catch (error) {
+            } catch (error: any) {
                 if (!response.ok) {
                     throw new Error(`Server error (${response.status}): ${response.statusText}`);
                 }
@@ -192,7 +192,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps): JSX.Element {
             }
             
             setGeneratedData(data);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to generate world:", error);
             toast({ title: t('worldGenError'), description: String(error), variant: "destructive" });
             setStep(0);

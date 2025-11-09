@@ -35,7 +35,7 @@ function formatMessage(level: LogLevel, message: string, data?: unknown): string
             // The 'null, 2' argument pretty-prints the JSON.
             const jsonData = JSON.stringify(data, null, 2);
             formattedMessage += `\nData: ${jsonData}`;
-        } catch (error) {
+        } catch (error: any) {
             // Handle circular references or other stringify errors (we don't need the error object here)
             formattedMessage += `\nData: [Could not serialize data]`;
         }

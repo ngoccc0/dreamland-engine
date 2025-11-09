@@ -76,7 +76,7 @@ const generateNewQuestFlow = ai.defineFlow(
                     output: { schema: GenerateNewQuestOutputSchema },
                 });
                 if (llmResponse?.output) return llmResponse.output;
-            } catch (error) {
+            } catch (error: any) {
                 lastError = error;
                 console.warn(`[generateNewQuest] Model '${model}' failed. Trying next...`);
             }

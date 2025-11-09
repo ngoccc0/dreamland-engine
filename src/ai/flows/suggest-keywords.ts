@@ -65,7 +65,7 @@ const suggestKeywordsFlow = ai.defineFlow(
       const { output } = await keywordSuggestionPrompt(input);
       if (output) return output;
       throw new Error('AI returned no output for keyword suggestion');
-    } catch (e) {
+    } catch (e: any) {
       console.error('AI failed to generate keyword suggestions (Gemini):', e);
       throw e;
     }

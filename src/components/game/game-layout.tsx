@@ -188,7 +188,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         handleAction(action.id);
                         return;
                     }
-                } catch (e) {
+                } catch (e: any) {
                     logger.debug('[GameLayout] hotkey handler error', e);
                 }
             }
@@ -351,7 +351,7 @@ export default function GameLayout(props: GameLayoutProps) {
         selectedPickupIds.forEach((actionId) => {
             try {
                 handleAction(actionId);
-            } catch (error) {
+            } catch (error: any) {
                 logger.error('Pickup action failed for id', { actionId, error: e });
             }
         });

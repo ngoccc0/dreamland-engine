@@ -85,7 +85,7 @@ const generateNewItemFlow = ai.defineFlow(
                     output: { schema: AI_GeneratedItemSchema },
                 });
                 if (llmResponse?.output) break;
-            } catch (error) {
+            } catch (error: any) {
                 lastError = error;
                 console.warn(`[generateNewItem] Model '${model}' failed. Trying next...`);
             }
@@ -111,7 +111,7 @@ const generateNewItemFlow = ai.defineFlow(
             try {
                 await setDoc(doc(db, "world-catalog", "items", "generated", finalItem.name), finalItem);
                 console.log(`[generateNewItemFlow] Successfully saved new item '${finalItem.name}' to Firestore.`);
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Failed to save new item to Firestore:", error);
                 // We don't throw here, as the game can continue without this save.
             }

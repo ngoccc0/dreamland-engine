@@ -20,7 +20,7 @@ export class IndexedDbGameStateRepository implements IGameStateRepository {
             // Dexie returns undefined if not found, which we convert to null
             const data = await db.gameState.get(slotId);
             return data || null;
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error loading game state from IndexedDB:', error);
             throw error;
         }
@@ -36,7 +36,7 @@ export class IndexedDbGameStateRepository implements IGameStateRepository {
         try {
             // put() will add a new document or update an existing one based on the primary key
             await db.gameState.put({ ...state, id: slotId });
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error saving game state to IndexedDB:', error);
             throw error;
         }
@@ -50,7 +50,7 @@ export class IndexedDbGameStateRepository implements IGameStateRepository {
     async delete(slotId: string): Promise<void> {
         try {
             await db.gameState.delete(slotId);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error deleting game state from IndexedDB:', error);
             throw error;
         }
@@ -78,7 +78,7 @@ export class IndexedDbGameStateRepository implements IGameStateRepository {
                 }
             });
             return summaries;
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error listing save summaries from IndexedDB:', error);
             throw error;
         }

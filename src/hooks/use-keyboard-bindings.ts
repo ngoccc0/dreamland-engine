@@ -158,7 +158,7 @@ export function useKeyboardBindings({ handlers, popupOpen = false, focusCustomAc
           default:
             break;
         }
-      } catch (error) {
+      } catch (error: any) {
         // swallow errors
         // console.debug('[useKeyboardBindings] error', err);
       }

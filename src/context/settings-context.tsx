@@ -103,7 +103,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
   setSettingsState(_prev => ({...defaultSettings, ...parsed}));
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to load game settings from localStorage", error);
     }
   }, []);
@@ -114,7 +114,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       try {
     const { mods: _mods, ...settingsToSave } = updatedSettings;
         localStorage.setItem('gameSettings', JSON.stringify(settingsToSave));
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to save game settings to localStorage", error);
       }
       return updatedSettings;
@@ -130,7 +130,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         }
         localStorage.setItem('gameMods', modCode);
         setSettings({ mods: parsedMods });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Failed to apply mods:", error);
         alert(`Error applying mods: ${error instanceof Error ? error.message : String(error)}`);
     }

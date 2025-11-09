@@ -32,7 +32,7 @@ try {
     } else {
         console.warn('No Gemini API key found (GEMINI_API_KEY_PRIMARY / GEMINI_API_KEY_SECONDARY). Genkit will be initialized without a Gemini plugin.');
     }
-} catch (error) {
+} catch (error: any) {
     console.error('Error initializing Gemini plugin:', error);
 }
 
@@ -43,7 +43,7 @@ try {
         plugins: usablePlugins,
         model: 'googleai/gemini-2.0-flash',
     });
-} catch (error) {
+} catch (error: any) {
     console.error('Error initializing Genkit:', error);
     throw new Error(`Failed to initialize AI system: ${error.message || 'Unknown error'}`);
 }

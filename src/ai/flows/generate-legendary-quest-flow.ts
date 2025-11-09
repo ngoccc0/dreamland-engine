@@ -76,7 +76,7 @@ const generateLegendaryQuestFlow = ai.defineFlow(
                     }
                 ]);
                 if (output) return output;
-            } catch (error) {
+            } catch (error: any) {
                 lastError = error;
                 console.warn(`[generateLegendaryQuest] Model '${model}' failed. Trying next...`);
             }

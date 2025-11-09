@@ -113,7 +113,7 @@ export function useGameInitialization(deps: GameInitializationDeps) {
       try {
         loadedState = await gameStateRepository.load(`slot_${gameSlot}`);
         logger.debug('[GameInit] Loaded state from repository', loadedState);
-      } catch (error) {
+      } catch (error: any) {
         logger.error('[GameInit] Failed to load game state', error);
       }
 

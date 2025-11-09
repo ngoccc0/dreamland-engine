@@ -73,7 +73,7 @@ export function StatusPopup({ open, onOpenChange, stats, itemDefinitions, onRequ
     try {
         await onRequestHint(questText);
         setHintFetchStatus(prev => ({ ...prev, [questText]: { isLoading: false } }));
-    } catch (error) {
+    } catch (error: any) {
         setHintFetchStatus(prev => ({ ...prev, [questText]: { isLoading: false, error: t('suggestionError') } }));
     }
   };

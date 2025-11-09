@@ -84,12 +84,12 @@ export function useGameSaving(deps: GameSavingDeps) {
                 if (typeof deps.setPlayerStats === 'function') {
                   try {
                     deps.setPlayerStats((prev: any) => ({ ...prev, items: normalizedItems }));
-                  } catch (e) {
+                  } catch (e: any) {
                     logger.debug('[GameSaving] Failed to update in-memory playerStats after normalization', e);
                   }
                 }
               }
-            } catch (e) {
+            } catch (e: any) {
               logger.warn('[GameSaving] Failed to normalize player items before save', e);
             }
 

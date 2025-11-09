@@ -77,7 +77,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
     onOpenChange(false);
     try {
       callback();
-    } catch (e) {
+    } catch (e: any) {
       // swallow to avoid breaking UI; errors should still be visible in console
       // but don't leave the popup open or block further interactions.
        

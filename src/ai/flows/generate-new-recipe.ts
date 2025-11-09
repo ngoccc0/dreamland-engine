@@ -89,7 +89,7 @@ const generateNewRecipeFlow = ai.defineFlow(
                     output: { schema: AI_RecipeSchema },
                 });
                 if (llmResponse?.output) break;
-            } catch (error) {
+            } catch (error: any) {
                 lastError = error;
                 console.warn(`[generateNewRecipe] Model '${model}' failed. Trying next...`);
             }
@@ -122,7 +122,7 @@ const generateNewRecipeFlow = ai.defineFlow(
             try {
                 await setDoc(doc(db, "world-catalog", "recipes", "generated", finalRecipe.result.name), finalRecipe);
                 console.log(`[generateNewRecipeFlow] Successfully saved new recipe '${finalRecipe.result.name}' to Firestore.`);
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Failed to save new recipe to Firestore:", error);
                 // We don't throw here, as the game can continue without this save.
             }

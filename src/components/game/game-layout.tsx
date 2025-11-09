@@ -21,7 +21,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { HudIconProgress } from "@/components/game/hud-icon-progress";
+
 import HudIconHealth from "@/components/game/hud-icon-health";
 import HudIconStamina from "@/components/game/hud-icon-stamina";
 import HudIconMana from "@/components/game/hud-icon-mana";
@@ -33,7 +33,8 @@ import { useGameEngine } from "@/hooks/use-game-engine";
 import type { Structure, Action, NarrativeEntry } from "@/lib/game/types";
 import { cn, getTranslatedText } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
-import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Heart, Zap, Footprints, Loader2, Menu, LogOut, Beef } from "./icons";
+
+import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Loader2, Menu, LogOut } from "./icons";
 import { IconRenderer } from "@/components/ui/icon-renderer";
 import { resolveItemDef } from '@/lib/game/item-utils';
 import { logger } from "@/lib/logger";
@@ -350,7 +351,7 @@ export default function GameLayout(props: GameLayoutProps) {
         selectedPickupIds.forEach((actionId) => {
             try {
                 handleAction(actionId);
-            } catch (e) {
+            } catch (error) {
                 logger.error('Pickup action failed for id', { actionId, error: e });
             }
         });

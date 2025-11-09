@@ -141,13 +141,13 @@ export const calculateCraftingOutcome = (
         try {
             const nameEn = getTranslatedText((pi as any).name as TranslatableString, 'en');
             if (nameEn && allItemDefinitions[nameEn]) return nameEn;
-        } catch (e) {
+        } catch {
             // ignore
         }
         try {
             const nameVi = getTranslatedText((pi as any).name as TranslatableString, 'vi');
             if (nameVi && allItemDefinitions[nameVi]) return nameVi;
-        } catch (e) {
+        } catch {
             // ignore
         }
         return undefined;

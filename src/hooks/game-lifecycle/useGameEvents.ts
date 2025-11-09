@@ -7,7 +7,8 @@ import { randomEvents } from '@/lib/game/events';
 import { getTemplates } from '@/lib/game/templates';
 import { clamp, getTranslatedText } from '@/lib/utils';
 import { resolveItemDef } from '@/lib/game/item-utils';
-import { rollDice, getSuccessLevel, type SuccessLevel } from '@/lib/game/dice';
+
+import { rollDice, getSuccessLevel } from '@/lib/game/dice';
 import type { GameState, PlayerStatus, Season, WorldProfile, ItemDefinition, GeneratedItem, Language, Terrain } from "@/lib/game/types";
 import { generateChunksInRadius } from '@/lib/game/engine/generation';
 import { logger } from '@/lib/logger';

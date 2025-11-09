@@ -15,7 +15,8 @@ import { Hammer } from "./icons";
 import { cn, getTranslatedText } from "@/lib/utils";
 import { resolveItemDef } from '@/lib/game/item-utils';
 import { Switch } from "@/components/ui/switch";
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 
 interface CraftingPopupProps {
   open: boolean;

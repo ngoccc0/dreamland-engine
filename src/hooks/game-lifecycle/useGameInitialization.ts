@@ -286,7 +286,7 @@ export function useGameInitialization(deps: GameInitializationDeps) {
           inProgressSet.delete(gameSlot);
           logger.debug('[GameInit] Cleared in-progress marker during cleanup', { gameSlot });
         }
-      } catch (e) {
+      } catch {
         // ignore
       }
       // include a short stack snippet to help identify what caused the unmount (useful while debugging)

@@ -43,7 +43,7 @@ try {
         plugins: usablePlugins,
         model: 'googleai/gemini-2.0-flash',
     });
-} catch (error: any) {
+} catch (error) {
     console.error('Error initializing Genkit:', error);
     throw new Error(`Failed to initialize AI system: ${error.message || 'Unknown error'}`);
 }

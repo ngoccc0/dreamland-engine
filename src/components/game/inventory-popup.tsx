@@ -96,7 +96,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
         if (typeof document !== 'undefined' && document?.documentElement) {
           document.documentElement.style.pointerEvents = '';
         }
-      } catch (e) {
+      } catch {
         // ignore; defensive best-effort only
       }
     }

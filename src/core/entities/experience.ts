@@ -1,4 +1,4 @@
-import { TranslatableString } from '../types/i18n';
+
 
 /**
  * Defines the experience requirements and rewards for a specific character level.

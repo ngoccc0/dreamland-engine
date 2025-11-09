@@ -9,7 +9,7 @@ interface World {
     getRegion(regionId: number): any;
 }
 import { GridPosition } from '../values/grid-position';
-import { GridCell, GridCellAttributes } from '../entities/world';
+
 import { TerrainType } from '../entities/terrain';
 import { WorldGenerator } from '../generators/world-generator';
 import { CreatureEngine } from '../engines/creature-engine';

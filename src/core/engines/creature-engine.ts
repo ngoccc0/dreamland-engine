@@ -143,7 +143,7 @@ export class CreatureEngine {
                     messages.push({ text: attackText, type: 'narrative' });
                 }
             }
-        } catch (err) {
+        } catch {
             // ignore attack errors
         }
 
@@ -242,7 +242,7 @@ export class CreatureEngine {
             const creatureName = (creature as any).name?.en || creature.type || 'creature';
             const text = this.t('creatureEating', { creature: creatureName });
             return { eaten: true, message: { text, type: 'narrative' } };
-        } catch (err) {
+        } catch {
             return null;
         }
     }

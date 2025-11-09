@@ -4,7 +4,7 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { translations, Language, TranslationKey } from '@/lib/i18n';
 import type { TranslatableString } from '@/lib/game/types';
-import { logger } from '@/lib/logger';
+
 
 // A type for our t function to handle replacements
 type TFunction = (key: TranslationKey | TranslatableString, replacements?: { [key: string]: string | number }) => string;
@@ -59,10 +59,10 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
         // warm a default bundle for the language; non-blocking
         try {
           loader.loadPrecomputedBundle('default', lang).catch(() => {});
-        } catch (_e) {
+        } catch {
           // ignore
         }
-      } catch (_e) {
+      } catch {
         // ignore any cache errors
       }
     })();

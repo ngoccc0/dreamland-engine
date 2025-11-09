@@ -210,7 +210,7 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
             });
             console.log(`[generateNarrative] SUCCESS with ${model}.`);
             break; 
-        } catch (error: any) {
+        } catch (error) {
             lastError = error;
             console.warn(`[generateNarrative] Model '${model}' failed. Trying next... Error: ${error.message}`);
         }

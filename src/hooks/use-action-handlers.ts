@@ -8,11 +8,12 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
 import { useSettings } from '@/context/settings-context';
-import { generateNarrative, type GenerateNarrativeInput } from '@/ai/flows/generate-narrative-flow';
+
+import { generateNarrative } from '@/ai/flows/generate-narrative-flow';
 import { fuseItems } from '@/ai/flows/fuse-items-flow';
 import { provideQuestHint } from '@/ai/flows/provide-quest-hint';
 import { rollDice, getSuccessLevel, successLevelToTranslationKey } from '@/lib/game/dice';
-import { itemDefinitions } from '@/lib/game/items';
+
 import { resolveItemDef as resolveItemDefHelper } from '@/lib/game/item-utils';
 import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchAction } from '@/lib/game/engine/offline';
 import { getEffectiveChunk } from '@/lib/game/engine/generation';
@@ -21,7 +22,7 @@ import { useAudio } from '@/lib/audio/useAudio';
 import { getTemplates } from '@/lib/game/templates';
 import { clamp, getTranslatedText, resolveItemId, ensurePlayerItemId } from '@/lib/utils';
 import { getKeywordVariations } from '@/lib/game/data/narrative-templates';
-import { buildNarrative } from '@/lib/narrative/assembler';
+
 import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem, NarrativeEntry, GeneratedItem, TranslatableString, ItemDefinition, Chunk, Enemy } from '@/lib/game/types';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-config';
@@ -147,7 +148,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                     lastPickupMonologueAt.current = now;
                 }
             }
-        } catch (e) {
+        } catch {
             // fallback: nothing
         }
     };
@@ -173,7 +174,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                 const moods = analyze_chunk_mood(currentChunk);
                 audio.playBackgroundForMoods(moods);
             }
-        } catch (e) {
+        } catch {
             // non-fatal: don't block game logic if audio fails
         }
     }, [world, playerPosition.x, playerPosition.y, weatherZones, gameTime, audio, sStart, sDayDuration]);
@@ -798,7 +799,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
               if (!pickupBufferRef.current.timer) {
                   pickupBufferRef.current.timer = setTimeout(() => flushPickupBuffer(), 250) as any;
               }
-          } catch (e) {
+          } catch {
               // If buffering fails, fall back to adding a safe single-line narrative
               addNarrativeEntry(t('pickedUpItemNarrative', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name as TranslationKey) }), 'narrative');
           }
@@ -1121,7 +1122,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         }
         setPlayerStats(() => nextPlayerStats);
         advanceGameTime(nextPlayerStats);
-    } catch(e) {
+    } catch (error) {
         logger.error("AI Fusion failed:", e);
         toast({ title: t('error'), description: t('fusionError'), variant: "destructive" });
         setPlayerStats(() => nextPlayerStats);
@@ -1439,7 +1440,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                                 if (c.lightLevel <= 40) return t('light_level_dim') || 'dim';
                                 return t('light_level_normal') || 'bright';
                             }
-                        } catch (e) {
+                        } catch {
                             // fallback
                         }
                         return '';
@@ -1481,7 +1482,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                         return;
                     }
                 }
-            } catch (e) {
+            } catch {
                 // non-fatal
             }
 
@@ -1496,10 +1497,10 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                             addNarrativeEntry(String(conditional).replace(/\{[^}]+\}/g, '').trim(), 'narrative', placeholderId);
                             return;
                         }
-                    } catch (e) {
+                    } catch {
                         // non-fatal: if selector import or execution fails, continue to loader
                     }
-                } catch (e) {
+                } catch {
                     // ignore and fallthrough to precomputed loader
                 }
                 try {
@@ -1523,7 +1524,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                                 addNarrativeEntry(finalText, 'narrative', placeholderId);
                                 return;
                             }
-                        } catch (e) {
+                        } catch {
                             // fall back to deterministic index-based pick
                             const seed = `${x},${y}`;
                             const idx = Math.abs(seed.split('').reduce((s, c) => s + c.charCodeAt(0), 0)) % bundle.templates.length;

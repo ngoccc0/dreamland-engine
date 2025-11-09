@@ -28,7 +28,7 @@ export function usePlayerProgression(deps: PlayerProgressionDeps) {
   // small helper to pick a monologue line: prefer biome-specific pool, fallback to generic tired pool
   try {
     /* noop to keep lint happy; actual selection below inside effect */
-  } catch (e) {}
+  } catch {}
 
   // EFFECT: Check for skill unlocks based on player's actions.
   useEffect(() => {
@@ -108,7 +108,7 @@ export function usePlayerProgression(deps: PlayerProgressionDeps) {
             if ((db as any)[candidate] && Array.isArray((db as any)[candidate]) && (db as any)[candidate].length > 0) biomeKey = candidate;
           }
         }
-      } catch (e) {
+      } catch {
         // fallback to monologue_tired
         biomeKey = 'monologue_tired';
       }
@@ -119,7 +119,7 @@ export function usePlayerProgression(deps: PlayerProgressionDeps) {
       const choice = pool[Math.floor(Math.random() * pool.length)];
       addNarrativeEntry(choice, 'monologue');
       lastMonologueAt.current = now;
-    } catch (e) {
+    } catch {
       // ignore
     }
   }, [isLoaded, playerStats.stamina, playerStats.hunger, world, playerPosition, addNarrativeEntry, t]);

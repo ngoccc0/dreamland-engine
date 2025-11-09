@@ -85,7 +85,7 @@ import type {
     Season,
     SoilType
 } from "../types";
-import { type TranslationKey } from "../../i18n";
+
 import type { Enemy } from "../types/enemy";
 import { translations } from "../../i18n";
 import { getTemplates } from "../templates";

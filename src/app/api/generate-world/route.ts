@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     const result = await generateWorldSetup({ userInput, language });
     
     return NextResponse.json(result);
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error in /api/generate-world:', error);
     return NextResponse.json({ error: error.message || 'An unknown error occurred' }, { status: 500 });
   }

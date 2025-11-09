@@ -3,8 +3,8 @@ import path from 'path';
 import { readFileSync } from 'fs';
 import createRng from '@/lib/narrative/rng';
 import Lexicon from '@/lib/narrative/lexicon';
-import { selectPrimaryTemplate } from '@/lib/narrative/selector';
-import { fillTemplate } from '@/lib/narrative/assembler';
+
+
 import { generateNarrative, loadPersonasSample } from '@/lib/narrative/orchestrator';
 
 const templatesPath = path.resolve(process.cwd(), 'src/lib/narrative/data/templates.sample.json');

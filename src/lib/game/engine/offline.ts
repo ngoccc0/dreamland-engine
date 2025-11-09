@@ -6,7 +6,8 @@ import { getTemplates } from '../templates';
 import type { TranslationKey } from "../../i18n";
 import { logger } from "@/lib/logger";
 import type { ItemDefinition } from "../types";
-import { isDay, isNight } from "../time/time-utils"; // Import new time utilities
+
+import { isDay } from "../time/time-utils";// Import new time utilities
 // clamp imported elsewhere when needed; not required here
 import { biomeNarrativeTemplates, getKeywordVariations, selectRandom } from "../data/narrative-templates";
 
@@ -390,7 +391,7 @@ export const generateOfflineNarrative = (
 
             const picks = language === 'vi' ? patternsVi : patternsEn;
             return picks[Math.floor(Math.random() * picks.length)];
-        } catch (e) {
+        } catch {
             // fallback to a simple sensory phrase
             if (currentChunk.temperature && currentChunk.temperature >= 80) return t('temp_hot') || 'it is hot';
             if (currentChunk.lightLevel && currentChunk.lightLevel <= 10) return t('light_level_dark') || 'it is dark';

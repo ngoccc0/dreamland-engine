@@ -116,7 +116,7 @@ export const AudioProvider: React.FC<{children: React.ReactNode}> = ({children})
           const idx = available.indexOf(chosen);
           const next = available[(idx + 1) % available.length] ?? available[0];
           playMusic(next);
-        }, 5000); } catch(e){}
+        }, 5000); } catch{}
       };
     } else {
       // for 'off' and 'occasional', keep music looping when played directly
@@ -174,7 +174,7 @@ export const AudioProvider: React.FC<{children: React.ReactNode}> = ({children})
           const idx = Math.floor(Math.random() * BACKGROUND_MUSIC.length);
           playMusic(BACKGROUND_MUSIC[idx]);
         }, ms);
-      } catch (e) {}
+      } catch {}
     }
 
     return () => {
@@ -228,7 +228,7 @@ export const AudioProvider: React.FC<{children: React.ReactNode}> = ({children})
       // keep them briefly in memory
       const t = setTimeout(() => { preload.forEach(p => { try { p.src = ''; } catch {} }); }, 5000);
       return () => { clearTimeout(t); preload.forEach(p => { try { p.src = ''; } catch {} }); };
-    } catch (e) { /* ignore */ }
+    } catch { /* ignore */ }
   }, []);
 
   // Attempt to autoplay menu music on first client mount unless user disabled it.
@@ -255,10 +255,10 @@ export const AudioProvider: React.FC<{children: React.ReactNode}> = ({children})
           try { localStorage.setItem('dl_auto_menu', '0'); } catch {}
           try { temp.src = ''; } catch {}
         });
-      } catch (e) {
+      } catch {
         // ignore
       }
-    } catch (e) {
+    } catch {
       // ignore
     }
   }, [playMenuMusic]);
@@ -280,7 +280,7 @@ export const AudioProvider: React.FC<{children: React.ReactNode}> = ({children})
         setAutoplayBlocked(true);
         try { temp.src = ''; } catch {}
       });
-    } catch (e) {
+    } catch {
       setAutoplayBlocked(true);
     }
   }, [musicVolume, muted, playMenuMusic]);

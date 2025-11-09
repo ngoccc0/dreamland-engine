@@ -177,7 +177,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps): JSX.Element {
             let data;
             try {
                 data = await response.json();
-            } catch (parseError) {
+            } catch (error) {
                 if (!response.ok) {
                     throw new Error(`Server error (${response.status}): ${response.statusText}`);
                 }

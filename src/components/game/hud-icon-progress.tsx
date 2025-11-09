@@ -99,7 +99,7 @@ export function HudIconProgress({ value, maxValue, statName, className }: HudIco
         }
         for (let i=1;i<table.length;i++) if (table[i].area < table[i-1].area) table[i].area = table[i-1].area;
         if (!cancelled) areaLookupRef.current = table;
-      } catch (e) { areaLookupRef.current = null; }
+      } catch { areaLookupRef.current = null; }
     })();
     return () => { cancelled = true; };
   }, []);

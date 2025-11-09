@@ -33,7 +33,7 @@ function hasLightSource(playerStats: PlayerStatus): boolean {
         if (nameEn.includes('torch') || nameEn.includes('lantern') || nameEn.includes('lamp') || descEn.includes('light') || nameEn.includes('candle')) {
           lightKeys.add(k);
         }
-      } catch (_e) {
+      } catch {
         // ignore problematic item definitions
       }
     }
@@ -43,7 +43,7 @@ function hasLightSource(playerStats: PlayerStatus): boolean {
       try {
         const display = String(getTranslatedText(i?.name || i?.displayName || i?.label || '', 'en') || '').toLowerCase();
         if (display.includes('torch') || display.includes('lantern') || display.includes('lamp') || display.includes('candle') || display.includes('firefly')) return true;
-      } catch (_e) {
+      } catch {
         // ignore
       }
       // As a final fallback, compare translated display against itemDefinitions names
@@ -51,13 +51,13 @@ function hasLightSource(playerStats: PlayerStatus): boolean {
         const defName = (itemDefinitions as any)[k]?.name?.en;
         try {
           if (defName && String(defName).toLowerCase() === String(getTranslatedText(i?.name || '', 'en')).toLowerCase()) return true;
-        } catch (_e) {
+        } catch {
           // ignore
         }
       }
       return false;
     });
-  } catch (_e) {
+  } catch {
     return false;
   }
 }
@@ -107,7 +107,7 @@ export function selectMovementNarrative({ chunk, playerStats, directionText, lan
     // fallback to default
     const def = pool.find((p: any) => p.id === 'default');
     if (def) return def.template.replace('{direction}', String(directionText)).replace('{brief_sensory}', String(briefSensory || '')).replace('{biome}', String(chunk.terrain || ''));
-  } catch (e) {
+  } catch {
     // ignore errors and fallback to caller behavior
   }
   return undefined;

@@ -20,7 +20,8 @@ import { Slider } from "../ui/slider";
 import { useAudio } from "@/lib/audio/useAudio";
 import { BACKGROUND_MUSIC, MENU_MUSIC } from "@/lib/audio/assets";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Settings, BrainCircuit, Dice6, Bot, Feather, Languages, Download, LogIn, LogOut, UserCircle2, Home, Palette, Type, BookOpen } from "./icons";
+
+import { Settings, BrainCircuit, Dice6, Bot, Feather, Languages, Download, LogIn, LogOut, UserCircle2, Palette, Type, BookOpen } from "./icons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 

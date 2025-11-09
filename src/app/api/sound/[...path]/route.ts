@@ -27,7 +27,7 @@ export async function GET(_req: Request, { params }: { params: { path?: string[]
         'Cache-Control': 'public, max-age=31536000, immutable'
       }
     });
-  } catch (e) {
+  } catch {
     return new NextResponse('Not found', { status: 404 });
   }
 }

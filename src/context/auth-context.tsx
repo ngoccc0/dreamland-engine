@@ -3,7 +3,7 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 // Note: firebase is dynamically imported at runtime to avoid inflating the client bundle
 // when Firebase is not configured or when auth features are not used.
-import { Loader2 } from 'lucide-react';
+
 
 interface AuthContextType {
   user: any | null;
@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setUser(u);
           setLoading(false);
         });
-      } catch (e) {
+      } catch {
         // If anything fails, treat as not configured
         setLoading(false);
       }

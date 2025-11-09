@@ -20,7 +20,7 @@ export function maybeDebug(label?: string) {
        
       debugger;
     }
-  } catch (_e) {
+  } catch {
     // swallow
   }
 }

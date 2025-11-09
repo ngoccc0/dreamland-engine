@@ -94,7 +94,7 @@ export function useGameSaving(deps: GameSavingDeps) {
             }
 
             await gameStateRepository.save(`slot_${gameSlot}`, gameState);
-        } catch (error) {
+        } catch {
             toast({ title: "Save Error", description: "Could not save your progress.", variant: "destructive"});
         } finally {
             setIsSaving(false);

@@ -20,8 +20,8 @@ import {
 import {ItemCategorySchema} from '@/lib/game/definitions';
 import { skillDefinitions } from '@/lib/game/skills';
 import { getEmojiForItem, getTranslatedText } from '@/lib/utils';
-import { db } from '@/lib/firebase-config';
-import { collection, getDocs } from 'firebase/firestore';
+// 'db' and Firestore helpers were imported previously but are unused in this flow.
+// Remove them to satisfy lint rules — keep the static item definitions used below.
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import { logger } from '@/lib/logger';
 
@@ -204,7 +204,7 @@ const generateWorldSetupFlow = (ai as Genkit).defineFlow(
             logger.info('[Task A] SUCCESS with configured Gemini.');
             logger.debug('[Task A] Parsed AI output:', result.output);
             return result;
-        } catch (error: any) {
+        } catch (error) {
             const errorMessage = `Gemini failed for item catalog generation. Reason: ${error.message || error}`;
             logger.error('[Task A] ' + errorMessage);
             throw new Error(errorMessage);
@@ -225,7 +225,7 @@ const generateWorldSetupFlow = (ai as Genkit).defineFlow(
             ]);
             logger.info('[Task B] SUCCESS with configured Gemini.');
             return result;
-        } catch (error: any) {
+        } catch (error) {
             logger.error('[Task B] Gemini failed for world name generation: ' + (error.message || error));
             throw error;
         }
@@ -245,7 +245,7 @@ const generateWorldSetupFlow = (ai as Genkit).defineFlow(
             ]);
             logger.info('[Task C] SUCCESS with configured Gemini.');
             return result;
-        } catch (error: any) {
+        } catch (error) {
             logger.error('[Task C] Gemini failed for narrative concepts generation: ' + (error.message || error));
             throw error;
         }
@@ -265,7 +265,7 @@ const generateWorldSetupFlow = (ai as Genkit).defineFlow(
             ]);
             logger.info('[Task D] SUCCESS with configured Gemini.');
             return result;
-        } catch (error: any) {
+        } catch (error) {
             logger.warn('[Task D] Gemini failed to generate structures. Proceeding without custom structures: ' + (error.message || error));
             return { output: { customStructures: [] } };
         }

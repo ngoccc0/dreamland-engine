@@ -93,7 +93,7 @@ export function HudIconStamina({ percent, size = 48, className }: HudIconStamina
       try {
         dispNonNull.setAttribute('scale', scaleVal.toFixed(2));
         turbNonNull.setAttribute('baseFrequency', freq.toFixed(4));
-      } catch (e) {
+      } catch {
         /* ignore */
       }
       if (t < 1) anim.id = requestAnimationFrame(step);
@@ -101,7 +101,7 @@ export function HudIconStamina({ percent, size = 48, className }: HudIconStamina
         try {
           dispNonNull.setAttribute('scale', '0');
           turbNonNull.setAttribute('baseFrequency', '0.015');
-        } catch (e) {}
+        } catch {}
         waveAnimRef.current = null;
       }
     }

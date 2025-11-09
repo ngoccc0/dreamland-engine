@@ -208,7 +208,7 @@ export function useGameEngine(props: GameEngineProps) {
                 if (playerCurrentCell) {
                     weatherEngineRef.current.applyWeatherEffects(playerCurrentCell, gameState.playerStats);
                 }
-            } catch (error) {
+            } catch {
                 console.warn('World getCellAt method not available or failed, skipping weather effects');
             }
         }
@@ -234,7 +234,7 @@ export function useGameEngine(props: GameEngineProps) {
                     const chunkKey = `${chunk.x},${chunk.y}`;
                     visibleChunks.set(chunkKey, chunk);
                 }
-            } catch (error) {
+            } catch {
                 // Fallback to just current chunk if world methods are not available
                 console.warn('World getChunksInArea method not available, attempting per-cell getCellAt fallback for visibleChunks');
                 // Try to fill visibleChunks by querying getCellAt for each coordinate in viewRadius
@@ -249,7 +249,7 @@ export function useGameEngine(props: GameEngineProps) {
                                     const key = `${cell.x},${cell.y}`;
                                     visibleChunks.set(key, cell);
                                 }
-                            } catch (innerErr) {
+                            } catch {
                                 // ignore missing cells
                             }
                         }

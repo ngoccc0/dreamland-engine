@@ -1,5 +1,6 @@
 import type { TranslationKey } from "@/lib/i18n";
 
+import type { TranslationKey } from '../../i18n'
 export const swamp_vi = {
     descriptionTemplates: {
         short: ["Bạn đang lội qua một đầm lầy [adjective]."],

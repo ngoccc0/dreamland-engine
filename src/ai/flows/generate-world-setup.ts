@@ -1,3 +1,4 @@
+import type { Firestore } from 'firebase/firestore'
 /**
  * An AI agent for generating game world concepts by distributing tasks across multiple AI models.
  * This file defines a sophisticated, parallelized AI workflow for world creation.

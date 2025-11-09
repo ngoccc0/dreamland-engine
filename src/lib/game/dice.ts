@@ -1,3 +1,4 @@
+import type { TranslationKey } from '../../i18n'
 /**
  * This file contains all logic related to dice rolling and outcome determination.
  * It provides functions to simulate dice rolls (d20, d12, 2d6) and to categorize

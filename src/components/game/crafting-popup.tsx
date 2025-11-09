@@ -1,3 +1,4 @@
+import type { TranslationKey } from '../../i18n'
 
 
 "use client";

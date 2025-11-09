@@ -3,6 +3,7 @@
 import { structureDefinitions } from "../structures";
 import type { TranslationKey } from "@/lib/i18n";
 
+import type { TranslationKey } from '../../i18n'
 export const volcanic_vi = {
     descriptionTemplates: {
         short: ["Mặt đất [adjective] và nứt nẻ dưới chân bạn."],

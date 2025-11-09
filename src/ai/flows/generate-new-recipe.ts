@@ -20,6 +20,7 @@ import { z } from 'genkit';
 import { GeneratedItemSchema, RecipeSchema, RecipeResultSchema } from '@/ai/schemas';
 import { getEmojiForItem } from '@/lib/utils';
 import { setDoc, doc } from 'firebase/firestore';
+import type { Firestore } from 'firebase/firestore'
 import { db } from '@/lib/firebase-config';
 
 // --- INPUT SCHEMA ---

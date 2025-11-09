@@ -5,6 +5,9 @@ import * as LabelPrimitive from "@radix-ui/react-label"
 import { Slot } from "@radix-ui/react-slot"
 
 import { Controller, FormProvider, useFormContext,  } from "react-hook-form"
+import type { FieldValues } from 'react-hook-form'
+import type { FieldPath } from 'react-hook-form'
+import type { ControllerProps } from 'react-hook-form'
 
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"

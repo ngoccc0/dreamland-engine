@@ -3,6 +3,7 @@ import { structureDefinitions } from "../structures";
 import { naturePlusMountainEnemies } from "./modded/nature_plus";
 import type { TranslationKey } from "@/lib/i18n";
 
+import type { TranslationKey } from '../../i18n'
 export const mountain_vi = {
     descriptionTemplates: {
         short: ["Bạn đang leo lên một sườn núi [adjective]."],

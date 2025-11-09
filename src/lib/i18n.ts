@@ -1,3 +1,4 @@
+import type { TranslationKey } from '../../i18n'
 
 /**
  * Internationalization (i18n) setup for the application.

@@ -7,6 +7,7 @@ import type { TranslationKey } from "./i18n";
 import type { TranslatableString } from "@/core/types/i18n";
 import { isTranslationObject, isInlineTranslation } from "@/core/types/i18n";
 
+import type { TranslationKey } from '../../i18n'
 /**
  * A utility function to merge Tailwind CSS classes conditionally.
  * It intelligently combines class strings, handling conflicts and removing duplicates.

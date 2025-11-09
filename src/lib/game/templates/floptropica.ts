@@ -2,6 +2,7 @@
 
 import type { TranslationKey } from "@/lib/i18n";
 
+import type { TranslationKey } from '../../i18n'
 export const floptropica_vi = {
     descriptionTemplates: {
         short: [

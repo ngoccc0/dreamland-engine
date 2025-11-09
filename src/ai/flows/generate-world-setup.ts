@@ -6,7 +6,10 @@ import type { Firestore } from 'firebase/firestore'
  * of different AI models, increase speed, and improve reliability with a fallback mechanism.
  */
 import Handlebars from 'handlebars';
-import {ai} from '@/ai/genkit';
+// IMPORTANT: do NOT import `ai` at module top-level. The Genkit SDK performs
+// global/UMD-style initialization which can run during Next.js build-time and
+// abort the build. We'll dynamically import it inside the handler below so it
+// only initializes at request/runtime.
 import type { Genkit } from 'genkit';
 import {z} from 'zod';
 import type {Terrain, Skill} from '@/lib/game/types';
@@ -108,8 +111,209 @@ export type GenerateWorldSetupOutput = z.infer<typeof GenerateWorldSetupOutputSc
  * @returns {Promise<GenerateWorldSetupOutput>} A promise resolving to the final structured output for the frontend.
  */
 export async function generateWorldSetup(input: GenerateWorldSetupInput): Promise<GenerateWorldSetupOutput> {
-  logger.info('Starting generateWorldSetup flow');
-  return generateWorldSetupFlow(input);
+    logger.info('Starting generateWorldSetup flow (deferred Genkit import)');
+
+    // Dynamically import the AI client at runtime to avoid running its
+    // initialization during Next.js build-time (page-data collection).
+    const { ai } = await import('@/ai/genkit');
+    const aiClient = ai as unknown as Genkit;
+
+    // The original implementation used ai.defineFlow(...) at module-eval time.
+    // We inline the flow body here and call the underlying aiClient.generate
+    // methods directly so nothing from Genkit runs until this function is
+    // invoked.
+
+    logger.info('--- STARTING WORLD GENERATION ---', { userInput: input.userInput, language: input.language });
+
+    // --- Step 1: Define four independent AI tasks to run in parallel ---
+    const itemNamesList = Object.keys(staticItemDefinitions);
+
+    const itemCatalogTask = (async () => {
+        const template = Handlebars.compile(itemCatalogPromptTemplate);
+        const promptInput = { ...input, existingItemNames: itemNamesList, validCategories: ItemCategorySchema.options };
+        const renderedPrompt = template(promptInput);
+
+        try {
+            logger.debug(`[Task A] Generating item catalog with configured Gemini prompt`, { prompt: renderedPrompt });
+            const result = await aiClient.generate<typeof ItemCatalogCreativeOutputSchema>([
+                {
+                    text: renderedPrompt,
+                    custom: {}
+                }
+            ]);
+            logger.info('[Task A] SUCCESS with configured Gemini.');
+            logger.debug('[Task A] Parsed AI output:', result.output);
+            return result;
+        } catch (error: any) {
+            const errorMessage = `Gemini failed for item catalog generation. Reason: ${error.message || error}`;
+            logger.error('[Task A] ' + errorMessage);
+            throw new Error(errorMessage);
+        }
+    })();
+
+    const worldNamesTask = (async () => {
+        const template = Handlebars.compile(worldNamesPromptTemplate);
+        const renderedPrompt = template(input);
+        try {
+            logger.debug('[Task B] Generating world names with configured Gemini prompt', { prompt: renderedPrompt });
+            const result = await aiClient.generate<typeof WorldNamesOutputSchema>([
+                {
+                    text: renderedPrompt,
+                    custom: {}
+                }
+            ]);
+            logger.info('[Task B] SUCCESS with configured Gemini.');
+            return result;
+        } catch (error: any) {
+            logger.error('[Task B] Gemini failed for world name generation: ' + (error.message || error));
+            throw error;
+        }
+    })();
+
+    const narrativeConceptsTask = (async () => {
+        const template = Handlebars.compile(narrativeConceptsPromptTemplate);
+        const renderedPrompt = template(input);
+        try {
+            logger.debug('[Task C] Generating narrative concepts with configured Gemini prompt', { prompt: renderedPrompt });
+            const result = await aiClient.generate<typeof NarrativeConceptsOutputSchema>([
+                {
+                    text: renderedPrompt,
+                    custom: {}
+                }
+            ]);
+            logger.info('[Task C] SUCCESS with configured Gemini.');
+            return result;
+        } catch (error: any) {
+            logger.error('[Task C] Gemini failed for narrative concepts generation: ' + (error.message || error));
+            throw error;
+        }
+    })();
+
+    const structureCatalogTask = (async () => {
+        const template = Handlebars.compile(structureCatalogPromptTemplate);
+        const renderedPrompt = template(input);
+        try {
+            logger.debug('[Task D] Generating structure catalog with configured Gemini prompt', { prompt: renderedPrompt });
+            const result = await aiClient.generate<typeof StructureCatalogCreativeOutputSchema>([
+                {
+                    text: renderedPrompt,
+                    custom: {}
+                }
+            ]);
+            logger.info('[Task D] SUCCESS with configured Gemini.');
+            return result;
+        } catch (error: any) {
+            logger.warn('[Task D] Gemini failed to generate structures. Proceeding without custom structures: ' + (error.message || error));
+            return { output: { customStructures: [] } };
+        }
+    })();
+
+    const [itemCatalogResult, worldNamesResult, narrativeConceptsResult, structureCatalogResult] = await Promise.all([
+        itemCatalogTask,
+        worldNamesTask,
+        narrativeConceptsTask,
+        structureCatalogTask,
+    ]);
+
+    logger.info('--- AI TASKS COMPLETE. PROCESSING AND COMBINING RESULTS... ---');
+
+    const creativeItems = itemCatalogResult.output?.customItemCatalog;
+    if (!creativeItems || creativeItems.length === 0) {
+        logger.error("Failed to generate a valid item catalog from the AI.");
+        throw new Error("Failed to generate a valid item catalog from the AI.");
+    }
+
+    const allTerrainsList: Terrain[] = ["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic", "tundra", "beach", "mesa", "mushroom_forest", "ocean"];
+    const customItemCatalog = creativeItems.map((item: typeof AIGeneratedItemCreativeSchema._type) => {
+        const validBiomes = item.spawnBiomes.filter((b: string) => allTerrainsList.includes(b as Terrain)) as Terrain[];
+        if (validBiomes.length === 0) {
+            validBiomes.push('forest');
+        }
+
+        const itemName = typeof item.name === 'string' ? item.name : getTranslatedText(item.name, 'en');
+
+        return {
+            ...item,
+            id: itemName.toLowerCase().replace(/\s+/g, '_'),
+            tier: getRandomInRange({ min: 1, max: 3 }),
+            effects: [],
+            baseQuantity: { min: 1, max: getRandomInRange({ min: 1, max: 5 }) },
+            spawnBiomes: validBiomes,
+            spawnEnabled: true,
+            growthConditions: undefined,
+            subCategory: undefined,
+            emoji: getEmojiForItem(itemName, item.category),
+        };
+    });
+
+    const worldNames = worldNamesResult.output?.worldNames;
+    if (!worldNames || worldNames.length !== 3) {
+        logger.error("Failed to generate valid world names from the AI.");
+        throw new Error("Failed to generate valid world names from the AI.");
+    }
+
+    const narrativeConcepts = narrativeConceptsResult.output?.narrativeConcepts;
+    if (!narrativeConcepts || narrativeConcepts.length !== 3) {
+        logger.error("Failed to generate valid narrative concepts from the AI.");
+        throw new Error("Failed to generate valid narrative concepts from the AI.");
+    }
+
+    const creativeStructures = structureCatalogResult.output?.customStructures || [];
+    const customStructures = creativeStructures.map((struct: typeof AIGeneratedStructureCreativeSchema._type) => ({
+        ...struct,
+        providesShelter: Math.random() > 0.6,
+        buildable: false,
+        buildCost: [],
+        restEffect: undefined,
+        heatValue: 0,
+    }));
+
+    const tier1Skills = skillDefinitions.filter(s => s.tier === 1);
+    const tier2Skills = skillDefinitions.filter(s => s.tier === 2);
+    const availableBiomes: Terrain[] = ['forest', 'grassland', 'desert', 'swamp', 'mountain', 'beach'];
+
+    const finalConcepts = worldNames.map((name: typeof TranslatableStringSchema._type, index: number) => {
+        const concept = narrativeConcepts[index];
+
+        const lowTierItems = customItemCatalog.filter((item: typeof GeneratedItemSchema._type) => item.tier <= 2);
+        const shuffledItems = [...lowTierItems].sort(() => 0.5 - Math.random());
+        const numItemsToTake = getRandomInRange({ min: 2, max: 3 });
+        const startingItems = shuffledItems.slice(0, numItemsToTake);
+
+        const playerInventory = startingItems.map(item => ({
+            name: item.name,
+            quantity: getRandomInRange(item.baseQuantity)
+        }));
+
+        let selectedSkill: Skill;
+        if (Math.random() < 0.7 || tier2Skills.length === 0) {
+            selectedSkill = tier1Skills[Math.floor(Math.random() * tier1Skills.length)];
+        } else {
+            selectedSkill = tier2Skills[Math.floor(Math.random() * tier2Skills.length)];
+        }
+
+        const selectedBiome = availableBiomes[Math.floor(Math.random() * availableBiomes.length)];
+
+        return {
+            worldName: name,
+            initialNarrative: concept.initialNarrative,
+            startingBiome: selectedBiome,
+            playerInventory: playerInventory,
+            initialQuests: concept.initialQuests,
+            startingSkill: selectedSkill,
+            customStructures: customStructures,
+        };
+    });
+
+    const finalOutput: GenerateWorldSetupOutput = {
+        customItemCatalog,
+        customStructures: customStructures,
+        concepts: finalConcepts,
+    };
+
+    logger.info('--- FINAL WORLD SETUP DATA ---', finalOutput);
+
+    return finalOutput;
 }
 
 
@@ -169,224 +373,4 @@ Based on the user's idea, generate **a small catalog of 2 to 4 unique, thematica
 3.  DO NOT include fields like 'buildable', 'providesShelter', 'buildCost', etc. These will be handled by the game logic.`;
 
 
-/**
- * The core Genkit flow that orchestrates parallel AI tasks for world generation.
- * It combines the results from item, name, narrative, and structure generation into a coherent output.
- */
-const generateWorldSetupFlow = (ai as Genkit).defineFlow(
-  {
-    name: 'generateWorldSetupFlow',
-    inputSchema: GenerateWorldSetupInputSchema,
-    outputSchema: GenerateWorldSetupOutputSchema,
-  },
-  async (input: GenerateWorldSetupInput): Promise<GenerateWorldSetupOutput> => {
 
-    logger.info('--- STARTING WORLD GENERATION ---', { userInput: input.userInput, language: input.language });
-    
-    // --- Step 1: Define four independent AI tasks to run in parallel ---
-    
-    // Get existing item names ONLY from the static, code-based definitions.
-    const itemNamesList = Object.keys(staticItemDefinitions);
-
-    // Task A: Generate the item catalog.
-    const itemCatalogTask = (async () => {
-        const template = Handlebars.compile(itemCatalogPromptTemplate);
-        const promptInput = { ...input, existingItemNames: itemNamesList, validCategories: ItemCategorySchema.options };
-        const renderedPrompt = template(promptInput);
-
-        try {
-            logger.debug(`[Task A] Generating item catalog with configured Gemini prompt`, { prompt: renderedPrompt });
-            const result = await (ai as Genkit).generate<typeof ItemCatalogCreativeOutputSchema>([
-                {
-                    text: renderedPrompt,
-                    custom: {}
-                }
-            ]);
-            logger.info('[Task A] SUCCESS with configured Gemini.');
-            logger.debug('[Task A] Parsed AI output:', result.output);
-            return result;
-        } catch (error: any) {
-            const errorMessage = `Gemini failed for item catalog generation. Reason: ${error.message || error}`;
-            logger.error('[Task A] ' + errorMessage);
-            throw new Error(errorMessage);
-        }
-    })();
-    
-    // Task B: Generate world names.
-    const worldNamesTask = (async () => {
-        const template = Handlebars.compile(worldNamesPromptTemplate);
-        const renderedPrompt = template(input);
-        try {
-            logger.debug('[Task B] Generating world names with configured Gemini prompt', { prompt: renderedPrompt });
-            const result = await (ai as Genkit).generate<typeof WorldNamesOutputSchema>([
-                {
-                    text: renderedPrompt,
-                    custom: {}
-                }
-            ]);
-            logger.info('[Task B] SUCCESS with configured Gemini.');
-            return result;
-        } catch (error: any) {
-            logger.error('[Task B] Gemini failed for world name generation: ' + (error.message || error));
-            throw error;
-        }
-    })();
-
-    // Task C: Generate narrative concepts.
-    const narrativeConceptsTask = (async () => {
-        const template = Handlebars.compile(narrativeConceptsPromptTemplate);
-        const renderedPrompt = template(input);
-        try {
-            logger.debug('[Task C] Generating narrative concepts with configured Gemini prompt', { prompt: renderedPrompt });
-            const result = await (ai as Genkit).generate<typeof NarrativeConceptsOutputSchema>([
-                {
-                    text: renderedPrompt,
-                    custom: {}
-                }
-            ]);
-            logger.info('[Task C] SUCCESS with configured Gemini.');
-            return result;
-        } catch (error: any) {
-            logger.error('[Task C] Gemini failed for narrative concepts generation: ' + (error.message || error));
-            throw error;
-        }
-    })();
-    
-    // Task D: Generate custom structures.
-    const structureCatalogTask = (async () => {
-        const template = Handlebars.compile(structureCatalogPromptTemplate);
-        const renderedPrompt = template(input);
-        try {
-            logger.debug('[Task D] Generating structure catalog with configured Gemini prompt', { prompt: renderedPrompt });
-            const result = await (ai as Genkit).generate<typeof StructureCatalogCreativeOutputSchema>([
-                {
-                    text: renderedPrompt,
-                    custom: {}
-                }
-            ]);
-            logger.info('[Task D] SUCCESS with configured Gemini.');
-            return result;
-        } catch (error: any) {
-            logger.warn('[Task D] Gemini failed to generate structures. Proceeding without custom structures: ' + (error.message || error));
-            return { output: { customStructures: [] } };
-        }
-    })();
-
-
-    // --- Step 2: Run all tasks in parallel and wait for them to complete ---
-    const [itemCatalogResult, worldNamesResult, narrativeConceptsResult, structureCatalogResult] = await Promise.all([
-        itemCatalogTask,
-        worldNamesTask,
-        narrativeConceptsTask,
-        structureCatalogTask,
-    ]);
-
-    logger.info('--- AI TASKS COMPLETE. PROCESSING AND COMBINING RESULTS... ---');
-    
-    // --- Step 3: Process the AI results and combine them ---
-    const creativeItems = itemCatalogResult.output?.customItemCatalog;
-    if (!creativeItems || creativeItems.length === 0) {
-        logger.error("Failed to generate a valid item catalog from the AI.");
-        throw new Error("Failed to generate a valid item catalog from the AI.");
-    }
-
-    // Programmatically add logical fields to the creative items generated by the AI.
-    const allTerrainsList: Terrain[] = ["forest", "grassland", "desert", "swamp", "mountain", "cave", "jungle", "volcanic", "tundra", "beach", "mesa", "mushroom_forest", "ocean"];
-    const customItemCatalog = creativeItems.map((item: typeof AIGeneratedItemCreativeSchema._type) => {
-        const validBiomes = item.spawnBiomes.filter((b: string) => allTerrainsList.includes(b as Terrain)) as Terrain[];
-        if (validBiomes.length === 0) {
-            validBiomes.push('forest'); // Add a fallback biome if the AI provides an invalid one
-        }
-
-        const itemName = typeof item.name === 'string' ? item.name : getTranslatedText(item.name, 'en');
-
-        return {
-            ...item,
-            id: itemName.toLowerCase().replace(/\s+/g, '_'),
-            tier: getRandomInRange({ min: 1, max: 3 }),
-            effects: [], // Start with no effects for AI-generated items
-            baseQuantity: { min: 1, max: getRandomInRange({ min: 1, max: 5 }) },
-            spawnBiomes: validBiomes,
-            spawnEnabled: true,
-            growthConditions: undefined,
-            subCategory: undefined,
-            emoji: getEmojiForItem(itemName, item.category),
-        };
-    });
-    
-    const worldNames = worldNamesResult.output?.worldNames;
-    if (!worldNames || worldNames.length !== 3) {
-        logger.error("Failed to generate valid world names from the AI.");
-        throw new Error("Failed to generate valid world names from the AI.");
-    }
-
-    const narrativeConcepts = narrativeConceptsResult.output?.narrativeConcepts;
-    if (!narrativeConcepts || narrativeConcepts.length !== 3) {
-        logger.error("Failed to generate valid narrative concepts from the AI.");
-        throw new Error("Failed to generate valid narrative concepts from the AI.");
-    }
-    
-    const creativeStructures = structureCatalogResult.output?.customStructures || [];
-    const customStructures = creativeStructures.map((struct: typeof AIGeneratedStructureCreativeSchema._type) => ({
-        ...struct,
-        providesShelter: Math.random() > 0.6, // 40% chance of providing shelter
-        buildable: false, // AI-generated structures aren't buildable by default
-        buildCost: [],
-        restEffect: undefined,
-        heatValue: 0,
-    }));
-
-    // --- Step 4: Combine the results and programmatically create inventory & skills ---
-    const tier1Skills = skillDefinitions.filter(s => s.tier === 1);
-    const tier2Skills = skillDefinitions.filter(s => s.tier === 2);
-    const availableBiomes: Terrain[] = ['forest', 'grassland', 'desert', 'swamp', 'mountain', 'beach']; // Basic biomes for starting
-    
-    const finalConcepts = worldNames.map((name: typeof TranslatableStringSchema._type, index: number) => {
-        const concept = narrativeConcepts[index];
-        
-        // Programmatically select starting inventory
-        const lowTierItems = customItemCatalog.filter((item: typeof GeneratedItemSchema._type) => item.tier <= 2);
-        const shuffledItems = [...lowTierItems].sort(() => 0.5 - Math.random());
-        const numItemsToTake = getRandomInRange({ min: 2, max: 3 });
-        const startingItems = shuffledItems.slice(0, numItemsToTake);
-        
-        const playerInventory = startingItems.map(item => ({
-            name: item.name,
-            quantity: getRandomInRange(item.baseQuantity)
-        }));
-
-        // Programmatically select starting skill based on tier
-        let selectedSkill: Skill;
-        if (Math.random() < 0.7 || tier2Skills.length === 0) {
-            // 70% chance for Tier 1, or if no Tier 2 skills exist
-            selectedSkill = tier1Skills[Math.floor(Math.random() * tier1Skills.length)];
-        } else {
-            // 30% chance for Tier 2
-            selectedSkill = tier2Skills[Math.floor(Math.random() * tier2Skills.length)];
-        }
-        
-        // Programmatically select a starting biome
-        const selectedBiome = availableBiomes[Math.floor(Math.random() * availableBiomes.length)];
-
-        return {
-            worldName: name,
-            initialNarrative: concept.initialNarrative,
-            startingBiome: selectedBiome,
-            playerInventory: playerInventory,
-            initialQuests: concept.initialQuests,
-            startingSkill: selectedSkill,
-            customStructures: customStructures,
-        };
-    });
-
-    const finalOutput: GenerateWorldSetupOutput = {
-        customItemCatalog,
-        customStructures: customStructures,
-        concepts: finalConcepts,
-    };
-    
-    logger.info('--- FINAL WORLD SETUP DATA ---', finalOutput);
-
-    return finalOutput;
-  }
-);

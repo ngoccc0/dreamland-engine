@@ -1,4 +1,3 @@
-import type { TranslationKey } from '../../i18n'
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";

@@ -65,7 +65,7 @@ function processFile(file) {
       const chosen = chooseName(block)
       // if param missing or is underscore-only, replace
       const fullMatch = m[0]
-      const newSig = `catch (${chosen}) {`
+  const newSig = `catch (${chosen}: any) {`
       // compute absolute positions for replacement
       const sigStart = m.index
       const sigEnd = catchRegex.lastIndex // position after '{'

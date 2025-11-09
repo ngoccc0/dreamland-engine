@@ -88,7 +88,6 @@ import type {
 
 import type { Enemy } from "../types/enemy";
 import { translations } from "../../i18n";
-import type { TranslationKey } from '../../i18n'
 import { getTemplates } from "../templates";
 import { logger } from "@/lib/logger";
 import { getTranslatedText, resolveItemId } from "../../utils";

@@ -1,4 +1,3 @@
-import type { TranslationKey } from '../../i18n'
 /**
  * Represents an icon that can be either an emoji string or an external image.
  * This allows for flexible visual representation of game entities.

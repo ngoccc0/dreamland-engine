@@ -1,14 +1,33 @@
 /**
- * Public type definitions for the Terrain system
+ * Core definitions for terrain system (merged from terrain-v2)
  */
 
-/**
- * Base interface for terrain attributes
- */
+/** Base terrain types available in the game */
+export type TerrainType = 
+    | 'forest' 
+    | 'grassland' 
+    | 'desert' 
+    | 'swamp' 
+    | 'mountain' 
+    | 'cave' 
+    | 'jungle' 
+    | 'volcanic';
+
+/** Type of modification a feature can apply */
+export type ModifierType = 'add' | 'subtract' | 'multiply' | 'set';
+
+/** Structure for attribute modification */
+export interface AttributeModifier {
+    type: ModifierType;
+    value: number;
+    priority?: number;
+}
+
+/** Base attributes all terrains must have */
 export interface TerrainAttributes {
-    /** Density of vegetation in the area (0-100) */
+    /** Density of vegetation (0-100) */
     vegetationDensity: number;
-    /** Elevation level in meters */
+    /** Elevation in meters */
     elevation: number;
     /** Temperature in celsius */
     temperature: number;
@@ -16,11 +35,9 @@ export interface TerrainAttributes {
     moisture: number;
 }
 
-/**
- * Extended attributes for grid-based terrain
- */
+/** Extended attributes for detailed terrain information */
 export interface GridTerrainAttributes extends TerrainAttributes {
-    /** Level of danger in the area (0-100) */
+    /** Level of danger (0-100) */
     dangerLevel: number;
     /** Magical energy concentration (0-100) */
     magicAffinity: number;
@@ -32,71 +49,55 @@ export interface GridTerrainAttributes extends TerrainAttributes {
     windLevel: number;
     /** Ambient light level (0-100) */
     lightLevel: number;
-    /** How easy it is to explore this area (0-100) */
+    /** Ease of exploration (0-100) */
     explorability: number;
-    /** Type of soil in the area */
+    /** Type of soil */
     soilType: string;
-    /** Cost of traveling through this cell */
+    /** Cost of traveling */
     travelCost: number;
 }
 
-/**
- * Feature that can be attached to a terrain
- */
-/**
- * Type of modification a feature can apply to attributes
- */
-export type ModifierType = 'add' | 'subtract' | 'multiply' | 'set';
-
-/**
- * Structure of a single attribute modification
- */
-export interface AttributeModifier {
-    /** The type of modification to apply */
-    type: ModifierType;
-    /** The value to use in the modification */
-    value: number;
-    /** Optional priority (higher numbers apply later) */
-    priority?: number;
+/** Default extended attributes by terrain type */
+export interface TerrainTypeDefaults {
+    /** The terrain type these defaults apply to */
+    type: TerrainType;
+    /** Default values for extended attributes */
+    extendedAttributes: Partial<GridTerrainAttributes>;
 }
 
-/**
- * Represents a single terrain feature
- */
+/** Feature that can modify terrain attributes */
 export interface TerrainFeature {
-    /** Unique identifier for this feature */
+    /** Unique identifier */
     id: string;
-    /** Display name of the feature */
+    /** Display name */
     name: string;
     /** Optional description */
     description?: string;
-    /** Attribute modifiers with their types */
+    /** Modifiers to apply */
     attributeModifiers: {
         [K in keyof Partial<GridTerrainAttributes>]: AttributeModifier;
     };
-    /** Order in which this feature should be applied (higher numbers apply later) */
+    /** Priority in application order */
     priority?: number;
 }
 
-/**
- * Complete definition of a terrain type
- */
+/** Complete definition of a terrain */
 export interface TerrainDefinition {
-    /** Unique identifier for this terrain type */
+    /** Unique identifier */
     id: string;
-    /** Display name of the terrain */
+    /** Display name */
     name: string;
+    /** The type of terrain */
+    type: TerrainType;
     /** Base attributes */
     baseAttributes: TerrainAttributes;
-    /** Available features */
+    /** Features that modify this terrain */
     features: TerrainFeature[];
-    /** Metadata for game mechanics */
+    /** Additional metadata */
     metadata: {
-        /** Can players build here? */
         buildable: boolean;
-        /** Can players move through this terrain? */
         passable: boolean;
-        /** Resource types that can be found here */
         resources: string[];
     };
 }
+

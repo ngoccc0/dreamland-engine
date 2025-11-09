@@ -69,6 +69,7 @@ export class TerrainLoader {
         return {
             id: data.id,
             name: data.name,
+            type: data.type ?? 'forest',
             baseAttributes: {
                 vegetationDensity: data.baseAttributes.vegetationDensity ?? 0,
                 elevation: data.baseAttributes.elevation ?? 0,

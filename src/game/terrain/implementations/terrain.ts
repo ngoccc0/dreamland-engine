@@ -4,8 +4,8 @@ import {
     TerrainAttributes,
     GridTerrainAttributes,
     AttributeModifier
-} from '../../terrain-v2/types';
-import { terrainDefaults } from '../../terrain-v2/defaults';
+} from '../api/types';
+import { terrainDefaults } from '../api/defaults';
 import { logger } from '../../../lib/logger';
 
 /** Interface defining core terrain functionality */
@@ -71,10 +71,10 @@ export class Terrain implements ITerrain {
      * Calculate final attributes including all feature modifiers
      */
     public getModifiedAttributes(): GridTerrainAttributes {
-        logger.debug('Starting attribute modification', { terrainId: this.id });
+    logger.debug('Starting attribute modification', { terrainId: this.id });
 
-        // Get defaults for this terrain type
-        const typeDefaults = terrainDefaults[this.definition.type]?.extendedAttributes || {};
+    // Get defaults for this terrain type
+    const typeDefaults = terrainDefaults[this.definition.type]?.extendedAttributes || {};
 
         // Merge base attributes with type defaults and general defaults
         const result: GridTerrainAttributes = {
@@ -143,10 +143,18 @@ export class Terrain implements ITerrain {
                         // Handle value clamping for percentage-based attributes
                         if (attributeKey !== 'elevation' && attributeKey !== 'temperature') {
                             if (newValue > 100) {
-                                logger.warn(`Attribute value clamped: ${String(attributeKey)} from ${newValue} to 100`);
+                                logger.warn(`Attribute value clamped: ${String(attributeKey)} from ${newValue} to 100`, {
+                                    attribute: String(attributeKey),
+                                    oldValue: newValue,
+                                    newValue: 100
+                                });
                                 newValue = 100;
                             } else if (newValue < 0) {
-                                logger.warn(`Attribute value clamped: ${String(attributeKey)} from ${newValue} to 0`);
+                                logger.warn(`Attribute value clamped: ${String(attributeKey)} from ${newValue} to 0`, {
+                                    attribute: String(attributeKey),
+                                    oldValue: newValue,
+                                    newValue: 0
+                                });
                                 newValue = 0;
                             }
                         }

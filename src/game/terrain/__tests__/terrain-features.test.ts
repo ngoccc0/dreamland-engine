@@ -1,5 +1,5 @@
 import { Terrain } from '../implementations/terrain';
-import { TerrainDefinition, TerrainFeature, AttributeModifier } from '../../terrain-v2/types';
+import { TerrainDefinition, TerrainFeature, AttributeModifier } from '../api/types';
 import { logger } from '../../../lib/logger';
 
 describe('Terrain', () => {

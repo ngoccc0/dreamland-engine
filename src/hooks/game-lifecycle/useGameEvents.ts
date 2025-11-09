@@ -8,7 +8,7 @@ import { getTemplates } from '@/lib/game/templates';
 import { clamp, getTranslatedText } from '@/lib/utils';
 import { resolveItemDef } from '@/lib/game/item-utils';
 
-import { rollDice, getSuccessLevel } from '@/lib/game/dice';
+import { rollDice, getSuccessLevel, type SuccessLevel } from '@/lib/game/dice';
 import type { GameState, PlayerStatus, Season, WorldProfile, ItemDefinition, GeneratedItem, Language, Terrain } from "@/lib/game/types";
 import { generateChunksInRadius } from '@/lib/game/engine/generation';
 import { logger } from '@/lib/logger';
@@ -106,16 +106,16 @@ export function useGameEvents(deps: GameEventsDeps) {
 
       if (effects.items) {
         const newItems = [...newPlayerStats.items];
-        effects.items.forEach(itemToAdd => {
+        effects.items.forEach((itemToAdd: { name: string; quantity: number }) => {
             const existingItem = newItems.find(i => getTranslatedText(i.name, language, t) === itemToAdd.name);
             if (existingItem) {
                 existingItem.quantity += itemToAdd.quantity;
-        } else {
-        const def = resolveItemDef(itemToAdd.name, customItemDefinitions);
-        if (def) {
-          newItems.push({ ...itemToAdd, tier: def.tier, emoji: def.emoji });
-        }
-      }
+            } else {
+                const def = resolveItemDef(itemToAdd.name, customItemDefinitions);
+                if (def) {
+                    newItems.push({ ...itemToAdd, tier: def.tier, emoji: def.emoji });
+                }
+            }
         });
         newPlayerStats.items = newItems;
       }

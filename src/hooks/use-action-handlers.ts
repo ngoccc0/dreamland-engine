@@ -1,6 +1,3 @@
-import type { TranslationKey } from "@/lib/i18n"
-
-
 'use client';
 // NOTE: react-hooks/exhaustive-deps is being audited. Removed the file-level disable
 // so ESLint can report missing/unnecessary deps per-hook. We'll fix each hook's deps in small commits.
@@ -11,6 +8,7 @@ import { useLanguage } from '@/context/language-context';
 import { useSettings } from '@/context/settings-context';
 
 import { generateNarrative } from '@/ai/flows/generate-narrative-flow';
+import type { GenerateNarrativeInput } from '@/ai/flows/generate-narrative-flow';
 import { fuseItems } from '@/ai/flows/fuse-items-flow';
 import { provideQuestHint } from '@/ai/flows/provide-quest-hint';
 import { rollDice, getSuccessLevel, successLevelToTranslationKey } from '@/lib/game/dice';
@@ -1124,7 +1122,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         setPlayerStats(() => nextPlayerStats);
         advanceGameTime(nextPlayerStats);
     } catch (error: any) {
-        logger.error("AI Fusion failed:", e);
+        logger.error("AI Fusion failed:", error);
         toast({ title: t('error'), description: t('fusionError'), variant: "destructive" });
         setPlayerStats(() => nextPlayerStats);
         advanceGameTime(nextPlayerStats);

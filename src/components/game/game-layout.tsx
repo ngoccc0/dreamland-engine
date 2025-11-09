@@ -348,11 +348,11 @@ export default function GameLayout(props: GameLayoutProps) {
         }
 
         // Execute each selected pick-up action using the existing action handler
-        selectedPickupIds.forEach((actionId) => {
+            selectedPickupIds.forEach((actionId) => {
             try {
                 handleAction(actionId);
             } catch (error: any) {
-                logger.error('Pickup action failed for id', { actionId, error: e });
+                logger.error('Pickup action failed for id', { actionId, error });
             }
         });
 

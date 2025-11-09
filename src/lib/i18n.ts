@@ -1,5 +1,4 @@
-import type { TranslationKey } from "@/lib/i18n"
-
+// TranslationKey is declared below in this module.
 /**
  * Internationalization (i18n) setup for the application.
  * This file aggregates all translation strings from modular locale files

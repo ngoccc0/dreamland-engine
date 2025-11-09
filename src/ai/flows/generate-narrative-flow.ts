@@ -262,13 +262,13 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
           finalOutput.updatedChunk = { enemy: newEnemyState };
 
           if (result.lootDrops && result.lootDrops.length > 0) {
-            const currentItems = finalOutput.updatedChunk?.items || input.currentChunk.items || [];
-            const newItemsMap = new Map<string, z.infer<typeof ChunkItemSchema>>(); 
+                        const currentItems = (finalOutput.updatedChunk?.items as z.infer<typeof ChunkItemSchema>[] | undefined) || (input.currentChunk.items as z.infer<typeof ChunkItemSchema>[] | undefined) || [];
+                        const newItemsMap = new Map<string, z.infer<typeof ChunkItemSchema>>(); 
             // Sử dụng getTranslatedText để lấy tên item, nhận cả key dịch và inline translation
-            currentItems.forEach(item => {
-                const itemName = getTranslatedText(item.name, Language.en) || getTranslatedText(item.name, Language.vi) || '';
-                newItemsMap.set(itemName, { ...item });
-            });
+                        currentItems.forEach((item: z.infer<typeof ChunkItemSchema>) => {
+                                const itemName = getTranslatedText(item.name, Language.en) || getTranslatedText(item.name, Language.vi) || '';
+                                newItemsMap.set(itemName, { ...item });
+                        });
             result.lootDrops?.forEach((droppedItem) => {
                 const itemName = getTranslatedText(droppedItem.name, Language.en) || getTranslatedText(droppedItem.name, Language.vi) || '';
                 const existingItem = newItemsMap.get(itemName);
@@ -288,15 +288,15 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
       } else if (toolCall.tool === 'useItem') {
           const result = toolOutput as z.infer<typeof UseItemOutputSchema>;
           if (result.wasUsed) {
-            finalOutput.updatedPlayerStatus = result.updatedPlayerStatus;
+            finalOutput.updatedPlayerStatus = result.updatedPlayerStatus as GenerateNarrativeOutput['updatedPlayerStatus'];
           }
       } else if (toolCall.tool === 'tameEnemy') {
           const result = toolOutput as z.infer<typeof TameEnemyOutputSchema>;
-          finalOutput.updatedPlayerStatus = result.updatedPlayerStatus;
+          finalOutput.updatedPlayerStatus = result.updatedPlayerStatus as GenerateNarrativeOutput['updatedPlayerStatus'];
           finalOutput.updatedChunk = { enemy: result.updatedEnemy }; 
       } else if (toolCall.tool === 'useSkill') {
           const result = toolOutput as z.infer<typeof UseSkillOutputSchema>;
-          finalOutput.updatedPlayerStatus = result.updatedPlayerStatus;
+          finalOutput.updatedPlayerStatus = result.updatedPlayerStatus as GenerateNarrativeOutput['updatedPlayerStatus'];
           finalOutput.updatedChunk = { enemy: result.updatedEnemy };
       } else if (toolCall.tool === 'startQuest' && toolCalls.length === 1) {
           const result = toolOutput as z.infer<typeof StartQuestOutputSchema>;

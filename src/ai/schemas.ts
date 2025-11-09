@@ -9,7 +9,7 @@
 
 import {z} from 'genkit';
 
-import { ItemDefinitionSchema, ItemCategorySchema, ItemEffectSchema, PlayerAttributesSchema, SpawnConditionsSchema, RecipeSchema, RecipeResultSchema, RecipeIngredientSchema, StructureDefinitionSchema, TranslatableStringSchema } from '@/lib/game/definitions';
+import { ItemDefinitionSchema, ItemCategorySchema, ItemEffectSchema, PlayerAttributesSchema, SpawnConditionsSchema, RecipeSchema, RecipeResultSchema, RecipeIngredientSchema, StructureDefinitionSchema, CreatureDefinitionSchema, TranslatableStringSchema } from '@/lib/game/definitions';
 
 import { LanguageEnum as Language } from '@/lib/i18n'; // Correct import and alias to Language
 import type { TranslatableString } from '@/lib/game/types';

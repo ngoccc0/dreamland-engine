@@ -58,7 +58,7 @@ export default function ClientInit() {
       try {
         const msg = ev?.error?.message || ev?.message || '';
         if (msg && (msg.includes('Loading chunk') || msg.includes('ChunkLoadError') || msg.includes('failed to load'))) {
-          // eslint-disable-next-line no-console
+           
           console.warn('[ClientInit] Detected chunk load error, reloading page to recover', msg);
           // Force reload: bypass cache
           window.location.reload();
@@ -73,7 +73,7 @@ export default function ClientInit() {
         const reason = ev?.reason;
         const msg = typeof reason === 'string' ? reason : reason?.message || '';
         if (msg && (msg.includes('Loading chunk') || msg.includes('ChunkLoadError') || msg.includes('failed to load'))) {
-          // eslint-disable-next-line no-console
+           
           console.warn('[ClientInit] Detected chunk load rejection, reloading page to recover', msg);
           window.location.reload();
         }

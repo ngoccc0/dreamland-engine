@@ -60,9 +60,9 @@ function evalOp(lhs: any, op: string, rhs: any) {
     case '<=': return lhs <= rhs;
     case '>': return lhs > rhs;
     case '>=': return lhs >= rhs;
-    case '==': return lhs == rhs; // eslint-disable-line eqeqeq
+    case '==': return lhs == rhs;  
     case '===': return lhs === rhs;
-    case '!=': return lhs != rhs; // eslint-disable-line eqeqeq
+    case '!=': return lhs != rhs;  
     case '!==': return lhs !== rhs;
     default: return false;
   }

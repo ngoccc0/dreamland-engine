@@ -59,7 +59,7 @@ export default function GameLayout(props: GameLayoutProps) {
     const [showNarrativeDesktop, setShowNarrativeDesktop] = useState(true);
     // Dev-only: track mount/unmount counts to help diagnose unexpected remounts
     if (process.env.NODE_ENV !== 'production') {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         const g = globalThis as any;
         if (!g.__gameLayoutMountCount) g.__gameLayoutMountCount = 0;
     }
@@ -99,7 +99,7 @@ export default function GameLayout(props: GameLayoutProps) {
     // increment mount counter for GameLayout and expose to window for quick checks
     useEffect(() => {
         if (process.env.NODE_ENV === 'production') return;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         const g = globalThis as any;
         g.__gameLayoutMountCount = (g.__gameLayoutMountCount || 0) + 1;
         // also expose on window for console inspection
@@ -447,7 +447,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                 const map = new Map(narrativeLog.map((e: NarrativeEntry) => [e.id, e]));
                                 const deduped = Array.from(map.values());
                                 if (deduped.length !== narrativeLog.length) {
-                                    // eslint-disable-next-line no-console
+                                     
                                     console.warn('[GameLayout] narrativeLog contained duplicate ids; rendering deduped list.');
                                 }
                                 return deduped.map((entry: NarrativeEntry) => (

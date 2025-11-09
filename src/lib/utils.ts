@@ -162,7 +162,7 @@ export function resolveItemId(
     itemOrName: TranslatableString | string | undefined | null,
     itemDefs?: Record<string, any>,
     t?: (k: string, opts?: any) => string,
-    language: Language = 'en'
+    _language: Language = 'en'
 ): string | undefined {
     if (!itemOrName) return undefined;
 
@@ -179,7 +179,7 @@ export function resolveItemId(
                     const defNameEn = getTranslatedText(def.name, 'en', t as any);
                     const defNameVi = getTranslatedText(def.name, 'vi', t as any);
                     if (defNameEn === itemOrName || defNameVi === itemOrName) return def.id ?? key;
-                } catch (e) {
+                } catch {
                     // ignore malformed defs
                 }
             }
@@ -195,7 +195,7 @@ export function resolveItemId(
             try {
                 const defNameEn = getTranslatedText(def.name, 'en', t as any);
                 if (defNameEn === inputNameEn) return def.id ?? key;
-            } catch (e) {
+            } catch {
                 // ignore and continue
             }
         }
@@ -218,14 +218,14 @@ export function ensurePlayerItemId<T extends { name?: any; id?: string }>(
     item: T,
     itemDefs?: Record<string, any>,
     t?: (k: string, opts?: any) => string,
-    language: Language = 'en'
+    _language: Language = 'en'
 ): T {
     if (!item) return item;
     if (item.id) return item;
     try {
-        const resolved = resolveItemId(item.name, itemDefs, t, language) ?? getTranslatedText(item.name as any, 'en', t as any);
+        const resolved = resolveItemId(item.name, itemDefs, t, _language) ?? getTranslatedText(item.name as any, 'en', t as any);
         if (resolved) item.id = resolved as any;
-    } catch (e) {
+    } catch {
         // ignore errors and leave item as-is
     }
     return item;

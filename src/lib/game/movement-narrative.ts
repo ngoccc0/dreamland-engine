@@ -10,10 +10,13 @@ type SelectArgs = {
   language?: string;
   briefSensory?: string;
 };
-
-function hasLightSource(playerStats: PlayerStatus) {
+/**
+ * Heuristic: does the player have any light-source in their inventory?
+ * Conservative, best-effort check using itemDefinitions and translated names.
+ */
+function hasLightSource(playerStats: PlayerStatus): boolean {
   try {
-    const items = (playerStats.items || []) as any[];
+    const items = (playerStats as any)?.inventory || (playerStats as any)?.items || [];
     if (!Array.isArray(items)) return false;
 
     // Build a set of known light-source keys from the master itemDefinitions.
@@ -23,35 +26,38 @@ function hasLightSource(playerStats: PlayerStatus) {
         const def: any = (itemDefinitions as any)[k];
         const nameEn = (def && def.name && (def.name.en || def.name)) ? String(def.name.en || def.name).toLowerCase() : '';
         const descEn = (def && def.description && (def.description.en || def.description)) ? String(def.description.en || def.description).toLowerCase() : '';
-        if (k.toLowerCase().includes('torch') || k.toLowerCase().includes('lantern') || k.toLowerCase().includes('lamp') || k.toLowerCase().includes('candle') || k.toLowerCase().includes('firefly') ) {
+        if (k.toLowerCase().includes('torch') || k.toLowerCase().includes('lantern') || k.toLowerCase().includes('lamp') || k.toLowerCase().includes('candle') || k.toLowerCase().includes('firefly')) {
           lightKeys.add(k);
         }
+        // Some items are identified by their name/description instead of key
         if (nameEn.includes('torch') || nameEn.includes('lantern') || nameEn.includes('lamp') || descEn.includes('light') || nameEn.includes('candle')) {
           lightKeys.add(k);
         }
-      } catch (e) {
-        // ignore
+      } catch (_e) {
+        // ignore problematic item definitions
       }
     }
 
     // Check player's inventory for any item that matches a known light key or has a translated name indicating light
-    return items.some(i => {
-      // Prefer canonical id if present
-      if (i && i.id && lightKeys.has(i.id)) return true;
+    return items.some((i: any) => {
       try {
-        const display = getTranslatedText(i.name, 'en').toLowerCase();
-        if (display.includes('torch') || display.includes('lantern') || display.includes('lamp') || display.includes('candle') || display.includes('lantern')) return true;
-      } catch (e) {
+        const display = String(getTranslatedText(i?.name || i?.displayName || i?.label || '', 'en') || '').toLowerCase();
+        if (display.includes('torch') || display.includes('lantern') || display.includes('lamp') || display.includes('candle') || display.includes('firefly')) return true;
+      } catch (_e) {
         // ignore
       }
       // As a final fallback, compare translated display against itemDefinitions names
       for (const k of lightKeys) {
         const defName = (itemDefinitions as any)[k]?.name?.en;
-        if (defName && String(defName).toLowerCase() === String(getTranslatedText(i.name, 'en')).toLowerCase()) return true;
+        try {
+          if (defName && String(defName).toLowerCase() === String(getTranslatedText(i?.name || '', 'en')).toLowerCase()) return true;
+        } catch (_e) {
+          // ignore
+        }
       }
       return false;
     });
-  } catch (e) {
+  } catch (_e) {
     return false;
   }
 }

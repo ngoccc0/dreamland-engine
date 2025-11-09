@@ -42,7 +42,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     (async () => {
       try {
         // lazy-require to avoid adding IndexedDB code to server bundles
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+         
         const cache = require('@/lib/narrative/cache').default as { keys: () => Promise<string[]>; del: (k: string) => Promise<boolean> };
         const loader = require('@/lib/narrative/loader') as any;
         const keys = await cache.keys();

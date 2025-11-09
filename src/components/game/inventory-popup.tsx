@@ -80,7 +80,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
     } catch (e) {
       // swallow to avoid breaking UI; errors should still be visible in console
       // but don't leave the popup open or block further interactions.
-      // eslint-disable-next-line no-console
+       
       console.error('Inventory action callback failed', e);
     } finally {
       // Safety: some third-party floating/dismiss layers temporarily set

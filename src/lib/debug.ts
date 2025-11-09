@@ -9,7 +9,7 @@ export function maybeDebug(label?: string) {
     if (typeof window !== 'undefined') {
       const w = window as any;
       if (w.__DEBUG_BREAK) {
-        // eslint-disable-next-line no-debugger
+         
         debugger;
       }
       return;
@@ -17,10 +17,10 @@ export function maybeDebug(label?: string) {
 
     // Server-side fallback via env
     if (process && process.env && process.env.DEBUG_BREAK === '1') {
-      // eslint-disable-next-line no-debugger
+       
       debugger;
     }
-  } catch (e) {
+  } catch (_e) {
     // swallow
   }
 }

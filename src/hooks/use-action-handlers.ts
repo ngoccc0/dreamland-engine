@@ -1460,7 +1460,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                     }
             } catch (e) {
                 // non-fatal: if computing brief sensory fails, continue to orchestrator/fallback
-                // eslint-disable-next-line no-console
+                 
                 console.warn('[narrative] brief sensory computation failed', e);
             }
 
@@ -1538,7 +1538,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                     }
                 } catch (e) {
                     // If anything fails, fall back to legacy offline generator
-                    // eslint-disable-next-line no-console
+                     
                     console.warn('[narrative] precomputed load failed, falling back', String(e));
                 }
                 // fallback: use offline generator but reduce verbosity if this is a repeated movement

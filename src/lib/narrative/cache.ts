@@ -33,7 +33,7 @@ async function getRaw(key: string): Promise<any | null> {
       // update meta lastAccess
       try {
         tx.objectStore(STORE_META).put({ lastAccess: Date.now() }, key as IDBValidKey);
-      } catch (_e) {
+      } catch {
         // ignore
       }
       resolve(val || null);
@@ -49,13 +49,13 @@ async function putRaw(key: string, value: any): Promise<boolean> {
     try {
       tx.objectStore(STORE_BUNDLES).put(value, key as IDBValidKey);
       tx.objectStore(STORE_META).put({ lastAccess: Date.now() }, key as IDBValidKey);
-    } catch (_e) {
+    } catch {
       // ignore
     }
     tx.oncomplete = async () => {
       try {
         await enforceLimit(db);
-      } catch (_e) {
+      } catch {
         // ignore
       }
       resolve(true);
@@ -93,11 +93,11 @@ async function enforceLimit(db: IDBDatabase) {
       try {
         tx.objectStore(STORE_BUNDLES).delete(k as IDBValidKey);
         tx.objectStore(STORE_META).delete(k as IDBValidKey);
-      } catch (_e) {
+      } catch {
         // ignore
       }
     }
-  } catch (_e) {
+  } catch {
     // ignore
   }
 }
@@ -106,14 +106,14 @@ export default {
   async get(key: string) {
     try {
       return await getRaw(key);
-    } catch (_e) {
+    } catch {
       return null;
     }
   },
   async set(key: string, value: any) {
     try {
       return await putRaw(key, value);
-    } catch (_e) {
+    } catch {
       return false;
     }
   },
@@ -122,7 +122,7 @@ export default {
       const db = await openDb();
       const items = await iterateMeta(db);
       return items.map((i) => i.key);
-    } catch (_e) {
+    } catch {
       return [];
     }
   },
@@ -133,7 +133,7 @@ export default {
       tx.objectStore(STORE_BUNDLES).delete(key as IDBValidKey);
       tx.objectStore(STORE_META).delete(key as IDBValidKey);
       return true;
-    } catch (_e) {
+    } catch {
       return false;
     }
   },

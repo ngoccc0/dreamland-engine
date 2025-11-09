@@ -32,22 +32,22 @@ export async function loadPrecomputedBundle(biome: string, locale = 'en'): Promi
   // Prefer IndexedDB cache (faster & larger). Fall back to localStorage on failure.
   try {
     // lazy-import cache to keep bundles small when not used
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const cache = require('./cache').default as { get: (k: string) => Promise<any>; set: (k: string, v: any) => Promise<boolean>; del: (k: string) => Promise<boolean> };
     const saved = await cache.get(key);
     if (saved) return saved as PrecomputedBundle;
-  } catch (e) {
+  } catch {
     // IndexedDB may be unavailable or the module may fail to load; fall back to localStorage.
     try {
       const raw = localStorage.getItem(key);
       if (raw) {
         try {
           return JSON.parse(raw);
-        } catch (ex) {
+        } catch {
           localStorage.removeItem(key);
         }
       }
-    } catch (ex) {
+      } catch {
       // ignore
     }
   }
@@ -62,14 +62,14 @@ export async function loadPrecomputedBundle(biome: string, locale = 'en'): Promi
       cache.set(key, json).catch(() => {
         try {
           localStorage.setItem(key, JSON.stringify(json));
-        } catch (_e) {
+        } catch {
           // ignore
         }
       });
-    } catch (e) {
+    } catch {
       try {
         localStorage.setItem(key, JSON.stringify(json));
-      } catch (_e) {
+      } catch {
         // ignore
       }
     }
@@ -92,7 +92,7 @@ export function clearPrecomputedCache(biome?: string, locale?: string) {
       const k = localStorage.key(i);
       if (k && k.startsWith(CACHE_PREFIX)) localStorage.removeItem(k);
     }
-  } catch (e) {
+  } catch {
     // ignore
   }
 }

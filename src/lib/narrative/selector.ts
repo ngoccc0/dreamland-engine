@@ -1,4 +1,4 @@
-import compileCondition, { EvalResult } from './condition';
+import compileCondition from './condition';
 import type { RNG } from './rng';
 import type { SlotSchema } from './schemas';
 

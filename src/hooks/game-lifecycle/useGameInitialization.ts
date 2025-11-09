@@ -83,7 +83,7 @@ export function useGameInitialization(deps: GameInitializationDeps) {
 
     // module-scoped map to avoid duplicate work across mounts
     // Use a property on globalThis to keep the symbol across HMR and module reloads in dev
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const globalAny = globalThis as any;
     if (!globalAny.__gameInitInProgress) globalAny.__gameInitInProgress = new Set<number>();
     const inProgressSet: Set<number> = globalAny.__gameInitInProgress;

@@ -1,10 +1,3 @@
-
-
-export * from './base';
-export * from './item';
-export * from './recipe';
-export * from './structure';
-export * from './biome';
-export * from './weather';
-export * from './event';
-export * from './creature';
+// Re-export definitions from the core types definitions so legacy imports
+// under `src/lib/game/definitions/*` resolve correctly.
+export * from '@/core/types/definitions';

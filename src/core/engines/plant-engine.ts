@@ -1,17 +1,26 @@
-import type { Chunk, WorldProfile, Season } from '@/lib/game/types';
+import type { Chunk, WorldProfile, Season } from '@/core/types/game';
+import type { CreatureDefinition } from '@/core/types/definitions/creature';
 import defaultGameConfig from '@/lib/config/game-config';
 
 /**
- * Simple PlantEngine that simulates vegetation density on chunks.
- * It operates on Chunk.vegetationDensity (0-100) and adjusts it based on
- * moisture, temperature, season, and neighboring chunks.
+ * Tracks the state of each plant instance in a chunk
+ */
+interface PlantInstance {
+    definition: CreatureDefinition;
+    hp: number;
+    maturity: number; // 0-100%, affects contribution to vegetation density
+    age: number;     // in ticks
+}
+
+/**
+ * Enhanced PlantEngine that simulates individual plant instances and their effects on vegetation.
+ * Plant instances can grow, reproduce, and contribute to the chunk's vegetation density.
  */
 export class PlantEngine {
     private config = defaultGameConfig;
 
     constructor(private t: (key: string, params?: any) => string, config?: Partial<typeof defaultGameConfig>) {
         if (config) {
-            // shallow merge of provided config into defaults for the keys we care about
             this.config = {
                 ...this.config,
                 ...config,
@@ -23,7 +32,7 @@ export class PlantEngine {
 
     /**
      * Update plants for the provided chunks for a single tick.
-     * Returns narrative messages describing notable events (bloom/wither/spread).
+     * Now handles individual plant instances and their contributions to vegetation density.
      */
     updatePlants(
         currentTick: number,
@@ -32,81 +41,222 @@ export class PlantEngine {
         worldProfile?: WorldProfile
     ): Array<{ text: string; type: 'narrative' | 'system' }> {
         const messages: Array<{ text: string; type: 'narrative' | 'system' }> = [];
-
-        // RNG helper
         const rand = () => Math.random();
 
         for (const [key, chunk] of chunks) {
-            // Ensure chunk has vegetationDensity
-            if (typeof chunk.vegetationDensity !== 'number') continue;
+            if (!chunk.plants) chunk.plants = [];
+            const plants = chunk.plants as PlantInstance[];
+            const oldVegDensity = chunk.vegetationDensity ?? 0;
 
-            const oldDensity = chunk.vegetationDensity;
+            // Process each plant instance
+            const plantsToRemove: number[] = [];
+            plants.forEach((plant, index) => {
+                // Skip if no plant properties defined
+                if (!plant.definition.plantProperties) return;
 
-            // Base growth depends on biome and worldProfile.resourceDensity
-            const resourceFactor = worldProfile?.resourceDensity ?? 1;
-            const baseGrowth = 0.2 * resourceFactor * this.config.plant.baseGrowthMultiplier;
+                // Environmental checks
+                const envCheck = this.checkEnvironmentForPlant(chunk, plant.definition, season);
+                const stressLevel = 1 - envCheck.suitability;
 
-            // Environmental modifiers
-            const moistureMod = (chunk.moisture ?? 50) / 100; // 0..1
-            const temp = chunk.temperature ?? 20;
-            const tempOptimal = 20;
-            const tempDiff = Math.abs(temp - tempOptimal);
-            const tempMod = Math.max(0, 1 - tempDiff / 40); // declines as temperature deviates
-
-            // Season modifier from config
-            const seasonMod = this.config.plant.seasonMultiplier[season] ?? 1;
-
-            // Human presence reduces growth (configurable)
-            const humanPenalty = 1 - Math.min(0.9, (chunk.humanPresence ?? 0) / 100) * (1 - this.config.plant.humanPenaltyFactor);
-
-            // Compute growth potential
-            const growthPotential = baseGrowth * moistureMod * tempMod * seasonMod * humanPenalty;
-
-            // Apply growth (bounded by maxGrowthPerTick)
-            const growthAmount = Math.round(Math.min(this.config.plant.maxGrowthPerTick, growthPotential * this.config.plant.maxGrowthPerTick * (rand() + 0.5)));
-
-            // Apply drought/stress if moisture is very low or extreme temps
-            let declineAmount = 0;
-            if ((chunk.moisture ?? 50) < this.config.plant.droughtMoistureThreshold || temp > 35 || temp < -5) {
-                declineAmount = Math.round((1 - moistureMod) * (this.config.plant.maxGrowthPerTick - 1) * (rand() + 0.2));
-            }
-
-            // Spread to neighbors: if dense and random roll passes, nudge neighbors
-            if (oldDensity >= 60 && rand() < this.config.plant.spreadChance) {
-                const [sx, sy] = key.split(',').map(s => parseInt(s, 10));
-                const neighbors = [
-                    `${sx - 1},${sy}`, `${sx + 1},${sy}`, `${sx},${sy - 1}`, `${sx},${sy + 1}`
-                ];
-                for (const nkey of neighbors) {
-                    const nchunk = chunks.get(nkey);
-                    if (nchunk && typeof nchunk.vegetationDensity === 'number') {
-                        nchunk.vegetationDensity = Math.min(100, nchunk.vegetationDensity + 1);
+                // Effective moisture: chunk.moisture plus any recent watering applied via waterTimer
+                const baseMoisture = chunk.moisture ?? 50;
+                const waterBonus = (chunk as any).waterTimer && (chunk as any).waterTimer > 0 ? ((chunk as any).waterRetention ?? 1) * 20 : 0;
+                // Apply environmental stress
+                if (stressLevel > 0.7) { // Severe stress
+                    plant.hp -= Math.ceil(stressLevel * 5);
+                    if (plant.hp <= 0) {
+                        plantsToRemove.push(index);
+                        return;
                     }
                 }
-            }
 
-            // Update density
-            let next = Math.max(0, Math.min(100, oldDensity + growthAmount - declineAmount));
+                // Growth and maturity
+                if (plant.maturity < 100 && envCheck.canGrow) {
+                    plant.maturity += Math.max(0, (1 - stressLevel) * this.config.plant.baseGrowthMultiplier);
+                    plant.maturity = Math.min(100, plant.maturity);
+                    // Growth modifiers from chunk (nutrition, fertilizer) and recent watering
+                    const nutrition = (chunk as any).nutrition ?? 0;
+                    const fertilizer = (chunk as any).fertilizerLevel ?? 0;
+                    const growthBonus = 1 + (nutrition / 100) + (fertilizer / 50);
+                    const waterFactor = (chunk as any).waterTimer && (chunk as any).waterTimer > 0 ? 1.2 : 1.0;
+                    const gain = Math.max(0, (1 - stressLevel) * this.config.plant.baseGrowthMultiplier * growthBonus * waterFactor * this.config.plant.maturityRate);
+                    plant.maturity += gain;
+                    plant.maturity = Math.min(100, plant.maturity);
 
-            // Small random variation
-            if (rand() < 0.03) {
-                next = Math.max(0, Math.min(100, next + (rand() < 0.5 ? -1 : 1)));
-            }
+                    // Consume a tick of waterTimer if present (water evaporates over time)
+                    if ((chunk as any).waterTimer && (chunk as any).waterTimer > 0) {
+                        (chunk as any).waterTimer = Math.max(0, (chunk as any).waterTimer - 1);
+                    }
+                }
 
-            chunk.vegetationDensity = next;
+                // Reproduction attempt
+                if (plant.maturity >= 80 && // Only mature plants reproduce
+                    plant.definition.plantProperties.reproduction) {
+                    const repro = plant.definition.plantProperties.reproduction;
+                    if (rand() < repro.chance && envCheck.canReproduce) {
+                        const offspringCount = Math.floor(rand() * repro.maxOffspring) + 1;
+                        this.spreadPlants(chunk, chunks, key, plant.definition, offspringCount, repro.range);
+                        // Safe-access plant name (may be translation key or object)
+                        const plantName = typeof plant.definition.name === 'string' ? plant.definition.name : (plant.definition.name as any).en || String(plant.definition.id);
+                        messages.push({
+                            text: this.t('plantReproduced', {
+                                name: plantName,
+                                x: chunk.x,
+                                y: chunk.y
+                            }),
+                            type: 'narrative'
+                        });
+                    }
+                }
 
-            // Narrative triggers (configurable thresholds could be added later)
-            if (oldDensity < 30 && next >= 30) {
-                messages.push({ text: this.t('vegetationGrowing', { x: chunk.x, y: chunk.y }), type: 'narrative' });
+                plant.age++;
+            });
+
+            // Remove dead plants
+            plantsToRemove.reverse().forEach(index => {
+                const plant = plants[index];
+                plants.splice(index, 1);
+                // Safe-access plant name (may be translation key or object)
+                const plantName = typeof plant.definition.name === 'string' ? plant.definition.name : (plant.definition.name as any).en || String(plant.definition.id);
+                messages.push({
+                    text: this.t('plantDied', {
+                        name: plantName,
+                        x: chunk.x,
+                        y: chunk.y
+                    }),
+                    type: 'narrative'
+                });
+            });
+
+            // Calculate new vegetation density from surviving plants
+            const newDensity = this.calculateVegetationDensity(plants);
+            if (Math.abs(newDensity - oldVegDensity) > 10) {
+                messages.push({
+                    text: newDensity > oldVegDensity
+                        ? this.t('vegetationIncreased', { x: chunk.x, y: chunk.y })
+                        : this.t('vegetationDecreased', { x: chunk.x, y: chunk.y }),
+                    type: 'narrative'
+                });
             }
-            if (oldDensity < 70 && next >= 70) {
-                messages.push({ text: this.t('vegetationBloom', { x: chunk.x, y: chunk.y }), type: 'narrative' });
-            }
-            if (oldDensity >= 30 && next < 10) {
-                messages.push({ text: this.t('vegetationWithered', { x: chunk.x, y: chunk.y }), type: 'narrative' });
-            }
+            chunk.vegetationDensity = newDensity;
         }
 
         return messages;
+    }
+
+    /**
+     * Add a new plant instance to a chunk
+     */
+    addPlant(chunk: Chunk, plantDef: CreatureDefinition): void {
+        if (!chunk.plants) chunk.plants = [];
+        chunk.plants.push({
+            definition: plantDef,
+            hp: plantDef.hp,
+            maturity: 0,
+            age: 0
+        });
+    }
+
+    /**
+     * Calculate total vegetation density from all plant instances
+     */
+    private calculateVegetationDensity(plants: PlantInstance[]): number {
+        let total = 0;
+        for (const plant of plants) {
+            if (plant.definition.plantProperties) {
+                // Scale contribution by maturity
+                total += (plant.definition.plantProperties.vegetationContribution * (plant.maturity / 100));
+            }
+        }
+        return Math.min(100, total);
+    }
+
+    /**
+     * Check environmental conditions for a plant
+     */
+    private checkEnvironmentForPlant(chunk: Chunk, plantDef: CreatureDefinition, season: Season) {
+        const props = plantDef.plantProperties;
+        if (!props) return { suitability: 0, canGrow: false, canReproduce: false };
+
+    // Effective moisture: chunk.moisture plus any recent watering applied via waterTimer
+    const baseMoisture = chunk.moisture ?? 50;
+    const waterBonus = (chunk as any).waterTimer && (chunk as any).waterTimer > 0 ? ((chunk as any).waterRetention ?? 1) * 20 : 0;
+    const moisture = Math.min(100, baseMoisture + waterBonus);
+    const temp = chunk.temperature ?? 20;
+    const vegDensity = chunk.vegetationDensity ?? 0;
+
+        // Basic environmental suitability
+        let suitability = 1;
+        
+        if (props.reproduction?.requirements) {
+            const req = props.reproduction.requirements;
+            if (moisture < req.minMoisture) suitability *= (moisture / req.minMoisture);
+            if (temp < req.minTemperature) suitability *= (temp / req.minTemperature);
+            if (temp > req.maxTemperature) suitability *= (req.maxTemperature / temp);
+        }
+
+        // Apply resilience if defined
+        if (props.resilience) {
+            if (moisture < 30) suitability *= (1 + props.resilience.droughtResistance);
+            if (temp < 5) suitability *= (1 + props.resilience.coldResistance);
+            if (temp > 35) suitability *= (1 + props.resilience.heatResistance);
+        }
+
+        // Season effects
+        const seasonMod = this.config.plant.seasonMultiplier[season] ?? 1;
+        suitability *= seasonMod;
+
+    // Determine if conditions support growth and reproduction
+    // Apply soil nutrition / fertilizer as modifiers to suitability for growth
+    const nutrition = (chunk as any).nutrition ?? 0;
+    const fertilizer = (chunk as any).fertilizerLevel ?? 0;
+    const growthBoost = 1 + (nutrition / 200) + (fertilizer / 100);
+    const canGrow = (suitability * growthBoost) > 0.3;
+        const canReproduce = props.reproduction?.requirements ? (
+            moisture >= props.reproduction.requirements.minMoisture &&
+            temp >= props.reproduction.requirements.minTemperature &&
+            temp <= props.reproduction.requirements.maxTemperature &&
+            vegDensity >= props.reproduction.requirements.minVegetationDensity
+        ) : false;
+
+        return { suitability, canGrow, canReproduce };
+    }
+
+    /**
+     * Attempt to spread plants to neighboring chunks
+     */
+    private spreadPlants(
+        sourceChunk: Chunk,
+        chunks: Map<string, Chunk>,
+        sourceKey: string,
+        plantDef: CreatureDefinition,
+        count: number,
+        range: number
+    ): void {
+        const [sx, sy] = sourceKey.split(',').map(s => parseInt(s, 10));
+        const potentialSpots: string[] = [];
+
+        // Generate all potential spots within range
+        for (let dx = -range; dx <= range; dx++) {
+            for (let dy = -range; dy <= range; dy++) {
+                if (dx === 0 && dy === 0) continue; // Skip source chunk
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist <= range) {
+                    potentialSpots.push(`${sx + dx},${sy + dy}`);
+                }
+            }
+        }
+
+        // Randomly select spots for offspring
+        for (let i = 0; i < count && potentialSpots.length > 0; i++) {
+            const idx = Math.floor(Math.random() * potentialSpots.length);
+            const targetKey = potentialSpots[idx];
+            potentialSpots.splice(idx, 1);
+
+            const targetChunk = chunks.get(targetKey);
+            if (targetChunk) {
+                this.addPlant(targetChunk, plantDef);
+            }
+        }
     }
 }

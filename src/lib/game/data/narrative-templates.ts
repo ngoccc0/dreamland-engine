@@ -1,6 +1,6 @@
 
 
-import type { BiomeTemplateData, Language, NarrativeLength } from '@/lib/game/types';
+import type { BiomeTemplateData, Language, NarrativeLength } from '@/core/types/game';
 import { validateBiomeTemplatesRecord } from '../schemas/narrativeSchema';
 
 // This file holds structured narrative templates and keyword variations.

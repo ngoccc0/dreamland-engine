@@ -16,8 +16,8 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 import { EnemySchema, PlayerItemSchema, ChunkItemSchema, ItemDefinitionSchema, PetSchema } from '@/ai/schemas';
-import { allTerrains } from '@/lib/game/types';
-import type { PlayerItem, Pet, ChunkItem, Skill, Structure, Terrain } from '@/lib/game/types';
+import { allTerrains } from '@/core/types/game';
+import type { PlayerItem, Pet, ChunkItem, Skill, Structure, Terrain } from '@/core/types/game';
 import type { TranslatableString } from '@/core/types/i18n';
 import { PlayerStatusSchema } from '@/ai/schemas';
 type PlayerStatus = import('zod').infer<typeof PlayerStatusSchema>;

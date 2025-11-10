@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from "react";
-import type { GameState, NarrativeEntry, Chunk, Season, WorldProfile, Region, ItemDefinition, WeatherZone, Recipe, PlayerBehaviorProfile, Structure, GeneratedItem } from "@/lib/game/types";
+import type { GameState, NarrativeEntry, Chunk, Season, WorldProfile, Region, ItemDefinition, WeatherZone, Recipe, PlayerBehaviorProfile, Structure, GeneratedItem } from "@/core/types/game";
 // Temporary type definitions for missing types
 type WorldType = any;
 type PlayerStatus = any;

@@ -231,11 +231,9 @@ export const AudioProvider: React.FC<{children: React.ReactNode}> = ({children})
     } catch { /* ignore */ }
   }, []);
 
-  // Attempt to autoplay menu music on first client mount unless user disabled it.
+  // Attempt to autoplay menu music on first client mount.
   useEffect(() => {
     try {
-      const disabled = localStorage.getItem('dl_auto_menu');
-      if (disabled === '0') return;
       // Respect user mute: if muted, don't attempt autoplay
       if (muted) return;
       // try to play menu music; browsers may block autoplay until a user gesture.

@@ -1,7 +1,7 @@
 
 // src/infrastructure/persistence/indexed-db.config.ts
 import Dexie, { type Table } from 'dexie';
-import type { GameState } from '@/lib/game/types';
+import type { GameState } from '@/core/types/game';
 
 // Dexie requires an indexable primary key. We'll add `id` to the GameState
 // for this purpose when saving, but the core GameState type remains unchanged.

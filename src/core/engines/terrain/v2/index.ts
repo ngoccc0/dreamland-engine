@@ -1,5 +1,7 @@
-// Compatibility re-export for terrain module (merged from terrain-v2).
-// Re-export the canonical terrain API/implementation from `src/game/terrain`.
-export * from '@/game/terrain/implementations/terrain';
-export * from '@/game/terrain/api/types';
-export * from '@/game/terrain/api/defaults';
+// Terrain v2 compatibility shim.
+// During migration some modules referenced top-level `game/terrain` sources that
+// are not present in all workspaces. Provide a lightweight shim so the repo
+// typechecks while the migration is in progress.
+// Intentionally export nothing here; replace with real re-exports when the
+// terrain API is consolidated.
+export {};

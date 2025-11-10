@@ -1,6 +1,6 @@
 // Keep types loose here to avoid circular type resolution issues during
 // type-checking in the pre-push hook. Consumers should prefer the canonical
-// `StatusEffect` from `@/lib/game/types` where available.
+// `StatusEffect` from `@/core/types/game` where available.
 
 import type { PlayerStatusDefinition } from './types';
 

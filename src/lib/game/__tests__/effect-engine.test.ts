@@ -1,5 +1,5 @@
 import { applyTickEffects } from '@/lib/game/effect-engine';
-import type { PlayerStatusDefinition } from '@/lib/game/types';
+import type { PlayerStatusDefinition } from '@/core/types/game';
 
 // Minimal i18n stub used by tests
 const t = (k: string, p?: any) => {

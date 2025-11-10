@@ -7,7 +7,7 @@ import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import { ensurePlayerItemId } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
-import type { GameState } from "@/lib/game/types";
+import type { GameState } from "@/core/types/game";
 import { logger } from '@/lib/logger';
 
 type GameSavingDeps = {

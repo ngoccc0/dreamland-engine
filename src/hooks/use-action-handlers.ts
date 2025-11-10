@@ -10,19 +10,20 @@ import { useSettings } from '@/context/settings-context';
 import { generateNarrative } from '@/ai/flows/generate-narrative-flow';
 import type { GenerateNarrativeInput } from '@/ai/flows/generate-narrative-flow';
 import { fuseItems } from '@/ai/flows/fuse-items-flow';
+import { tillSoil, waterTile, fertilizeTile, plantSeed } from '@/core/usecases/farming-usecase';
 import { provideQuestHint } from '@/ai/flows/provide-quest-hint';
 import { rollDice, getSuccessLevel, successLevelToTranslationKey } from '@/lib/game/dice';
 
 import { resolveItemDef as resolveItemDefHelper } from '@/lib/game/item-utils';
-import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchAction } from '@/lib/game/engine/offline';
-import { getEffectiveChunk } from '@/lib/game/engine/generation';
-import { analyze_chunk_mood } from '@/lib/game/engine/offline';
+import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchAction, analyze_chunk_mood } from '@/core/engines/game/offline';
+import { getEffectiveChunk } from '@/core/engines/game/weather-generation';
 import { useAudio } from '@/lib/audio/useAudio';
 import { getTemplates } from '@/lib/game/templates';
 import { clamp, getTranslatedText, resolveItemId, ensurePlayerItemId } from '@/lib/utils';
 import { getKeywordVariations } from '@/lib/game/data/narrative-templates';
 
-import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem, NarrativeEntry, GeneratedItem, TranslatableString, ItemDefinition, Chunk, Enemy } from '@/lib/game/types';
+import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem, NarrativeEntry, GeneratedItem, TranslatableString, ItemDefinition, Chunk, Enemy } from '@/core/types/game';
+import type { LootDrop } from '@/core/types/definitions/base';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-config';
 import { logger } from '@/lib/logger';
@@ -533,6 +534,43 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         });
         narrativeResult.wasUsed = effectDescriptions.length > 0;
         narrativeResult.effectDescription = effectDescriptions.join(', ');
+    }
+    // Farming / world-item usage (apply to current chunk)
+    const farmingSeeds = ['wildflower_seeds', 'wild_cotton_seed', 'bamboo_seed', 'tree_sapling'];
+    const farmingTools = ['hoe', 'watering_can', 'fertilizer_compost'];
+    if (farmingTools.includes(itemName) || farmingSeeds.includes(itemName)) {
+        // Operate on the current chunk regardless of the provided target string
+        let updatedChunk = currentChunk;
+
+        if (itemName === 'hoe') {
+            updatedChunk = tillSoil(currentChunk);
+            narrativeResult.tilled = true;
+            itemWasConsumed = false; // hoe is reusable
+        } else if (itemName === 'watering_can') {
+            // default duration 6 ticks; keep watering can reusable
+            updatedChunk = waterTile(currentChunk, 6);
+            narrativeResult.watered = true;
+            itemWasConsumed = false;
+        } else if (itemName === 'fertilizer_compost') {
+            updatedChunk = fertilizeTile(currentChunk, 20);
+            narrativeResult.fertilized = true;
+            itemWasConsumed = true; // compost is consumed
+        } else if (farmingSeeds.includes(itemName)) {
+            const res = plantSeed(currentChunk, itemName);
+            updatedChunk = res.chunk;
+            if (res.planted) {
+                narrativeResult.planted = true;
+                itemWasConsumed = true;
+            } else {
+                narrativeResult.planted = false;
+                itemWasConsumed = false;
+            }
+        }
+
+        finalWorldUpdate = { [key]: updatedChunk };
+        // Let the generic narrative generator create a message; mark used
+        narrativeResult.wasUsed = true;
+        // End early for farming actions (skip taming branch)
     } else { // Taming logic
         if (!currentChunk.enemy || getTranslatedText(currentChunk.enemy.type, 'en') !== target) {
             addNarrativeEntry(t('noTargetForITEM', { target: t(target as TranslationKey) }), 'system');
@@ -747,7 +785,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
               language,
               t,
               customItemDefinitions,
-              (range) => clamp(Math.floor(Math.random() * (range.max - range.min + 1)) + range.min, 1, Infinity),
+              (range: { min: number; max: number }) => clamp(Math.floor(Math.random() * (range.max - range.min + 1)) + range.min, 1, Infinity),
               // pass optional spawnMultiplier from worldProfile (fallback to 1)
               (worldProfile && worldProfile.spawnMultiplier) || 1
           );
@@ -850,7 +888,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
           if (chunk.enemy) {
               const enemy = chunk.enemy;
               analysis += `\n\nEnemy:\n  Type: ${t(enemy.type as any)}\n  HP: ${enemy.hp}\n  Damage: ${enemy.damage}\n  Behavior: ${enemy.behavior}\n  Size: ${enemy.size}\n  Diet: ${enemy.diet.join(', ')}\n  Satiation: ${enemy.satiation}/${enemy.maxSatiation}`;
-              if (enemy.senseEffect) {
+              if (enemy.senseEffect && Array.isArray(enemy.senseEffect.keywords) && enemy.senseEffect.keywords.length > 0) {
                   analysis += `\n  Sense Effect: ${enemy.senseEffect.keywords.join(', ')}`;
               }
               if (enemy.harvestable) {
@@ -1112,8 +1150,8 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
             
             if(!resolveItemDef(resultItemId)) {
                 const newItem = result.resultItem;
-                setCustomItemCatalog(prev => [...prev, newItem]);
-                setCustomItemDefinitions(prev => ({ ...prev, [resultItemId]: { ...newItem }}));
+                setCustomItemCatalog(prev => [...prev, newItem] as GeneratedItem[]);
+                setCustomItemDefinitions(prev => ({ ...prev, [resultItemId]: { ...newItem } } as Record<string, ItemDefinition>));
                 if(db) {
                     await setDoc(doc(db, "world-catalog", "items", "generated", resultItemId), newItem);
                 }
@@ -1274,14 +1312,16 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const newWorld = { ...world };
     
     const lootItems: ChunkItem[] = [];
-    enemy.harvestable.loot.forEach((loot: any) => {
+    enemy.harvestable.loot.forEach((loot: LootDrop) => {
         if (Math.random() < loot.chance) {
         const itemDef = resolveItemDef(loot.name);
             if(itemDef) {
                 lootItems.push({
-                    ...itemDef,
+                    name: itemDef.name,
                     description: t(itemDef.description as TranslationKey),
-                    quantity: clamp(Math.floor(Math.random() * (itemDef.baseQuantity.max - itemDef.baseQuantity.min + 1)) + itemDef.baseQuantity.min, 1, Infinity)
+                    tier: itemDef.tier,
+                    emoji: itemDef.emoji,
+                    quantity: clamp(Math.floor(Math.random() * (loot.quantity.max - loot.quantity.min + 1)) + loot.quantity.min, 1, Infinity)
                 });
             }
         }

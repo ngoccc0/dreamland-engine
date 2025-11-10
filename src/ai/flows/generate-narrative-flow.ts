@@ -36,7 +36,7 @@ import { generateNewQuest } from './generate-new-quest';
 import { generateLegendaryQuest } from './generate-legendary-quest-flow';
 import { generateNewItem } from './generate-new-item';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
-import type { AiModel } from '@/lib/game/types';
+import type { AiModel } from '@/core/types/game';
 
 
 // == STEP 1: DEFINE THE INPUT SCHEMA ==

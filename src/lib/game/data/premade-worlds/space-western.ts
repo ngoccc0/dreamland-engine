@@ -6,7 +6,7 @@
  * to prevent them from appearing in other, less futuristic game worlds.
  */
 import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
-import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
+import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/core/types/game';
 
 const items: GeneratedItem[] = [
     { id: 'laser_revolver', name: { en: 'Laser Revolver', vi: 'Súng lục Laser' }, description: { en: 'A reliable six-shot laser pistol. Standard issue for any gunslinger on the outer rim.', vi: 'Một khẩu súng lục laser sáu phát đáng tin cậy. Trang bị tiêu chuẩn cho bất kỳ tay súng nào ở vành đai ngoài.' }, emoji: '🔫', category: 'Weapon', tier: 3, effects: [], baseQuantity: { min: 1, max: 1 }, equipmentSlot: 'weapon', attributes: { physicalAttack: 8, critChance: 5 }, spawnEnabled: false },

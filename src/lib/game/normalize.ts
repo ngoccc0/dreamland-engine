@@ -1,4 +1,4 @@
-import type { PlayerStatus, Chunk, TranslatableString, Language } from '@/lib/game/types';
+import type { PlayerStatus, Chunk, TranslatableString, Language } from '@/core/types/game';
 import { getTranslatedText } from '@/lib/utils';
 
 /**

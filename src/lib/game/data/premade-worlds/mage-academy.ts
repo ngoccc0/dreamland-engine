@@ -6,7 +6,7 @@
  * `spawnEnabled: false` to prevent them from appearing in other, less magical game worlds.
  */
 import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
-import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
+import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/core/types/game';
 
 const mageAcademyItems: GeneratedItem[] = [
     { id: 'student_wand', name: { en: "Student's Wand", vi: 'Đũa Phép Của Học Viên' }, description: { en: 'A standard-issue wand for apprentices at the academy. Simple, but reliable.', vi: 'Một cây đũa phép tiêu chuẩn cho các pháp sư tập sự tại học viện. Đơn giản nhưng đáng tin cậy.' }, emoji: '🪄', category: 'Weapon', tier: 2, effects: [], baseQuantity: { min: 1, max: 1 }, equipmentSlot: 'weapon', attributes: { physicalAttack: 0, magicalAttack: 5, physicalDefense: 0, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 }, spawnEnabled: false },

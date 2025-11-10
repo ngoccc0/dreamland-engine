@@ -1,4 +1,4 @@
-import type { Enemy, Chunk, PlayerStatusDefinition } from '@/lib/game/types';
+import type { Enemy, Chunk, PlayerStatusDefinition } from '@/core/types/game';
 import defaultGameConfig from '@/lib/config/game-config';
 import { GridPosition } from '../values/grid-position';
 

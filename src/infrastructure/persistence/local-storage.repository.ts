@@ -1,5 +1,5 @@
 import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
-import type { GameState } from '@/lib/game/types';
+import type { GameState } from '@/core/types/game';
 
 /**
  * @class LocalStorageGameStateRepository

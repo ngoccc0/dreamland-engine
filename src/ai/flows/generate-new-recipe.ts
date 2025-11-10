@@ -18,7 +18,7 @@ import { generateCompat as aiGenerate } from '@/ai/client';
 import { z } from 'genkit';
 
 import { GeneratedItemSchema, RecipeSchema, RecipeResultSchema } from '@/ai/schemas';
-import type { Recipe } from '@/lib/game/types';
+import type { Recipe } from '@/core/types/game';
 import { getEmojiForItem } from '@/lib/utils';
 import { setDoc, doc } from 'firebase/firestore';
 import type { Firestore } from 'firebase/firestore'

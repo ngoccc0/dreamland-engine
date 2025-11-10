@@ -6,7 +6,7 @@
  * to prevent them from appearing in other, less spooky game worlds.
  */
 import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
-import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
+import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/core/types/game';
 
 const items: GeneratedItem[] = [
     { id: 'rusty_lantern', name: { en: 'Rusty Lantern', vi: 'Đèn lồng Gỉ sét' }, description: { en: 'An old oil lantern. Provides a flickering, unreliable light.', vi: 'Một chiếc đèn lồng dầu cũ kỹ. Cung cấp ánh sáng leo lét, không đáng tin cậy.' }, emoji: '🏮', category: 'Tool', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, spawnEnabled: false },

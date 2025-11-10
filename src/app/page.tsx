@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 import GameLayout from '@/components/game/game-layout';
 import { WorldSetup } from '@/components/game/world-setup';
 import { SettingsPopup } from '@/components/game/settings-popup';
-import type { GameState, ItemDefinition } from '@/lib/game/types';
+import type { GameState, ItemDefinition } from '@/core/types/game';
 import type { GenerateWorldSetupOutput } from "@/ai/flows/generate-world-setup";
 import { Button } from '@/components/ui/button';
 import { Card, CardTitle, CardDescription } from '@/components/ui/card';
@@ -124,7 +124,7 @@ export default function Home() {
     if (activeSlot === null) return;
     const conceptIndex = Math.floor(Math.random() * worldSetupData.concepts.length);
     // Use the correct type for WorldConcept
-    const selectedConcept = worldSetupData.concepts[conceptIndex] as import("@/lib/game/types").WorldConcept;
+    const selectedConcept = worldSetupData.concepts[conceptIndex] as import("@/core/types/game").WorldConcept;
     const allCustomItems = worldSetupData.customItemCatalog || [];
 
     // Properly type item in reduce
@@ -142,12 +142,12 @@ export default function Home() {
       effects: item.effects || [],
       baseQuantity: (item as any).baseQuantity || { min: 1, max: 1 },
       spawnEnabled: (item as any).spawnEnabled ?? true,
-    } as import("@/lib/game/types").ItemDefinition;
+    } as import("@/core/types/game").ItemDefinition;
         return acc;
     }, {} as Record<string, ItemDefinition>);
 
     // selectedConcept.playerInventory is PlayerItem[]
-    const initialPlayerInventory = (selectedConcept.playerInventory ?? []).map((item: import("@/lib/game/types").PlayerItem) => {
+    const initialPlayerInventory = (selectedConcept.playerInventory ?? []).map((item: import("@/core/types/game").PlayerItem) => {
         const itemName = getTranslatedText(item.name, 'en');
         const def = allCustomItems.find((d) => getTranslatedText(d.name, 'en') === itemName);
         return {

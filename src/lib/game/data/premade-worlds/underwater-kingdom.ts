@@ -6,7 +6,7 @@
  * to prevent them from appearing in other, drier game worlds.
  */
 import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
-import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
+import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/core/types/game';
 
 const items: GeneratedItem[] = [
     { id: 'bioluminescent_pearl', name: { en: 'Bioluminescent Pearl', vi: 'Ngọc trai Phát quang' }, description: { en: 'A pearl that emits a soft, calming blue light.', vi: 'Một viên ngọc trai phát ra ánh sáng xanh lam dịu nhẹ, êm dịu.' }, emoji: '💡', category: 'Material', tier: 2, effects: [], baseQuantity: { min: 1, max: 3 }, spawnEnabled: false },

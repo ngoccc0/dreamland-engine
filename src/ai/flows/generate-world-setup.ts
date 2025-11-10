@@ -12,7 +12,7 @@ import Handlebars from 'handlebars';
 // only initializes at request/runtime.
 import type { Genkit } from 'genkit';
 import {z} from 'zod';
-import type {Terrain, Skill} from '@/lib/game/types';
+import type {Terrain, Skill} from '@/core/types/game';
 import {
     GeneratedItemSchema,
     SkillSchema,

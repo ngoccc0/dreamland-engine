@@ -9,7 +9,7 @@ import type { IGameStateRepository } from '@/lib/game/ports/game-state.repositor
 import { FirebaseGameStateRepository } from '@/infrastructure/persistence/firebase.repository';
 import { LocalStorageGameStateRepository } from '@/infrastructure/persistence/local-storage.repository';
 import { IndexedDbGameStateRepository } from '@/infrastructure/persistence/indexed-db.repository';
-import type { GameState, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, PlayerBehaviorProfile, Structure, Recipe, GeneratedItem, ItemDefinition } from "@/lib/game/types";
+import type { GameState, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, PlayerBehaviorProfile, Structure, Recipe, GeneratedItem, ItemDefinition } from "@/core/types/game";
 import { useGameInitialization } from './game-lifecycle/useGameInitialization';
 import { useGameSaving } from './game-lifecycle/useGameSaving';
 import { usePlayerProgression } from './game-lifecycle/usePlayerProgression';

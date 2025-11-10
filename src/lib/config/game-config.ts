@@ -4,29 +4,33 @@
  */
 export interface GameConfig {
     plant: {
-        /** Base growth multiplier applied to computed growthPotential. */
+        /** Base growth multiplier for plant maturity. */
         baseGrowthMultiplier: number;
-        /** Chance (0..1) for plants to attempt spreading from dense tiles each tick. */
-        spreadChance: number;
-        /** Maximum growth amount applied per tick (absolute units). */
-        maxGrowthPerTick: number;
-        /** Moisture threshold below which plant decline may occur. */
-        droughtMoistureThreshold: number;
-        /** Seasonal multipliers */
+        /** Base maturity gain per tick when conditions are optimal. */
+        baseMaturityGain: number;
+        /** Maximum maturity a plant can have (%). */
+        maxMaturity: number;
+        /** Threshold for severe stress damage (0..1). */
+        severeStressThreshold: number;
+        /** Damage per tick when under severe stress. */
+        stressDamagePerTick: number;
+        /** How quickly plants mature in optimal conditions. */
+        maturityRate: number;
+        /** Seasonal multipliers for growth and reproduction. */
         seasonMultiplier: {
             spring: number;
             summer: number;
             autumn: number;
             winter: number;
         };
-        /** How strongly human presence reduces growth (0..1 where 1 = no penalty). */
+        /** How strongly human presence affects plant growth and reproduction. */
         humanPenaltyFactor: number;
-        /** Amount of satiation gained per 1 unit of vegetation consumed. */
-        plantNutrition?: number;
-        /** Chance (0..1) that a hungry plant-eating creature will eat when given the opportunity. */
+        /** Chance (0-1) a creature will attempt to eat when hungry */
         eatChance?: number;
-        /** How many vegetationDensity units are consumed per eating action. */
+        /** How many vegetation units a creature consumes in one eat action */
         consumptionPerEat?: number;
+        /** Nutrition (satiation) provided per vegetation unit */
+        plantNutrition?: number;
     };
     creature: {
         /** How many ticks between automatic movement checks (lower = more frequent). */
@@ -41,9 +45,11 @@ export interface GameConfig {
 export const defaultGameConfig: GameConfig = {
     plant: {
         baseGrowthMultiplier: 1.0,
-        spreadChance: 0.02,
-        maxGrowthPerTick: 5,
-        droughtMoistureThreshold: 20,
+        baseMaturityGain: 2.0,
+        maxMaturity: 100,
+        severeStressThreshold: 0.7,
+        stressDamagePerTick: 5,
+        maturityRate: 1.0,
         seasonMultiplier: {
             spring: 1.3,
             summer: 1.1,
@@ -51,9 +57,12 @@ export const defaultGameConfig: GameConfig = {
             winter: 0.6,
         },
         humanPenaltyFactor: 0.5,
-        plantNutrition: 0.5,
+        /** Chance (0-1) a creature will attempt to eat when hungry */
         eatChance: 0.6,
-        consumptionPerEat: 5
+        /** How many vegetation units a creature consumes in one eat action */
+        consumptionPerEat: 5,
+        /** Nutrition (satiation) provided per vegetation unit */
+        plantNutrition: 0.5
     },
     creature: {
         moveTickInterval: 5,

@@ -18,7 +18,7 @@ import { z } from 'zod';
 import { FuseItemsInputSchema, FuseItemsOutputSchema, GeneratedItemSchema, PlayerItemSchema } from '@/ai/schemas';
 import { clamp, getEmojiForItem, getTranslatedText } from '@/lib/utils';
 import { logger } from '@/lib/logger';
-import type { GeneratedItem } from '@/lib/game/types';
+import type { GeneratedItem } from '@/core/types/game';
 import { resolveItemDef } from '@/lib/game/item-utils';
 
 // --- The Exported Function ---

@@ -9,7 +9,7 @@ import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
-import type { GameState, PlayerStatusDefinition, WorldDefinition, GeneratedItem, Recipe, ItemDefinition } from '@/lib/game/types';
+import type { GameState, PlayerStatusDefinition, WorldDefinition, GeneratedItem, Recipe, ItemDefinition } from '@/core/types/game';
 import { logger } from '@/lib/logger';
 import { getTranslatedText, ensurePlayerItemId } from '@/lib/utils';
 import { normalizePlayerStatus } from '@/lib/game/normalize';

@@ -13,7 +13,7 @@ import { GridPosition } from '../values/grid-position';
 import { TerrainType } from '../entities/terrain';
 import { WorldGenerator } from '../generators/world-generator';
 import { CreatureEngine } from '../engines/creature-engine';
-import type { Enemy, Chunk } from '@/lib/game/types';
+import type { Enemy, Chunk } from '@/core/types/game';
 
 export interface IWorldUseCase {
     generateWorld(config: WorldGenerationConfig): Promise<World>;

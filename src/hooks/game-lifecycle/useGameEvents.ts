@@ -9,7 +9,7 @@ import { clamp, getTranslatedText } from '@/lib/utils';
 import { resolveItemDef } from '@/lib/game/item-utils';
 
 import { rollDice, getSuccessLevel, type SuccessLevel } from '@/lib/game/dice';
-import type { GameState, PlayerStatus, Season, WorldProfile, ItemDefinition, GeneratedItem, Language, Terrain } from "@/lib/game/types";
+import type { GameState, PlayerStatus, Season, WorldProfile, ItemDefinition, GeneratedItem, Language, Terrain } from "@/core/types/game";
 import { generateChunksInRadius } from '@/lib/game/engine/generation';
 import { logger } from '@/lib/logger';
 

@@ -4,7 +4,7 @@
 import { useRef, useEffect } from 'react';
 import { useLanguage } from '@/context/language-context';
 import { applyTickEffects } from '@/lib/game/effect-engine';
-import type { PlayerStatusDefinition } from '@/lib/game/types';
+import type { PlayerStatusDefinition } from '@/core/types/game';
 import { CreatureEngine } from '@/core/engines/creature-engine';
 import { PlantEngine } from '@/core/engines/plant-engine';
 import { EffectEngine } from '@/core/engines/effect-engine';
@@ -13,8 +13,9 @@ import { WeatherType, WeatherIntensity, WeatherCondition } from '@/core/types/we
 import { GridPosition } from '@/core/values/grid-position';
 import { useGameState } from "./use-game-state";
 import { useActionHandlers } from "./use-action-handlers";
-import { useGameEffects } from "./useGameEffects";
+import { useGameEffects } from "./use-game-effects";
 import { useSettings } from "@/context/settings-context"; // Import useSettings
+import { useAudioContext } from '@/lib/audio/AudioProvider';
 
 interface GameEngineProps {
     gameSlot: number;
@@ -40,6 +41,7 @@ export function useGameEngine(props: GameEngineProps) {
     const narrativeLogRef = useRef(gameState.narrativeLog || [] as any[]);
     const { t } = useLanguage();
     const { settings } = useSettings(); // Use settings context
+    const { playAmbienceForBiome, stopMusic } = useAudioContext();
 
     // Initialize creature engine
     const creatureEngineRef = useRef(new CreatureEngine(t));
@@ -301,6 +303,39 @@ export function useGameEngine(props: GameEngineProps) {
             }, 50);
         }
     }, [gameState.narrativeLog]);
+
+    // This effect stops menu music and starts ambience when the game loads.
+    useEffect(() => {
+        if (gameState.isLoaded && gameState.world && typeof gameState.world.getCellAt === 'function') {
+            // Stop any menu music
+            stopMusic();
+            // Start ambience for current biome
+            try {
+                const playerPosition = new GridPosition(gameState.playerPosition.x, gameState.playerPosition.y);
+                const playerCurrentCell = gameState.world.getCellAt(playerPosition);
+                if (playerCurrentCell && playerCurrentCell.terrain) {
+                    playAmbienceForBiome(playerCurrentCell.terrain);
+                }
+            } catch {
+                console.warn('Failed to get current biome for ambience music');
+            }
+        }
+    }, [gameState.isLoaded, gameState.world, gameState.playerPosition.x, gameState.playerPosition.y, stopMusic, playAmbienceForBiome]);
+
+    // This effect triggers ambience music when the player enters a new biome.
+    useEffect(() => {
+        if (gameState.world && typeof gameState.world.getCellAt === 'function') {
+            try {
+                const playerPosition = new GridPosition(gameState.playerPosition.x, gameState.playerPosition.y);
+                const playerCurrentCell = gameState.world.getCellAt(playerPosition);
+                if (playerCurrentCell && playerCurrentCell.terrain) {
+                    playAmbienceForBiome(playerCurrentCell.terrain);
+                }
+            } catch {
+                console.warn('Failed to get current biome for ambience music');
+            }
+        }
+    }, [gameState.playerPosition.x, gameState.playerPosition.y, gameState.world, playAmbienceForBiome]);
     
 
     const actionHandlers = useActionHandlers({

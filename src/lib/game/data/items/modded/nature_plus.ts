@@ -1,5 +1,5 @@
 
-import type { ItemDefinition } from '@/lib/game/types';
+import type { ItemDefinition } from '@/core/types/game';
 
 export const naturePlusItems: Record<string, ItemDefinition> = {
     'crystal_water': {
@@ -486,6 +486,48 @@ export const naturePlusItems: Record<string, ItemDefinition> = {
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,
     },
+    'cotton_boll': {
+        name: { en: 'Cotton Boll', vi: 'Quả Bông' },
+        description: { en: 'A fluffy cotton boll harvested from cotton plants.', vi: 'Một quả bông xốp được thu hoạch từ cây bông.' },
+        tier: 1,
+        category: 'Material',
+        emoji: '🌸',
+        effects: [],
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: true,
+        spawnBiomes: ['grassland', 'forest'],
+    },
+    'flax_seed': {
+        name: { en: 'Flax Seed', vi: 'Hạt Lanh' },
+        description: { en: 'Nutritious seeds from flax plants, can be eaten or planted.', vi: 'Hạt dinh dưỡng từ cây lanh, có thể ăn hoặc trồng.' },
+        tier: 1,
+        category: 'Material',
+        emoji: '🌱',
+        effects: [],
+        baseQuantity: { min: 1, max: 3 },
+        spawnEnabled: true,
+        spawnBiomes: ['grassland', 'forest'],
+    },
+    'cactus_flower': {
+        name: { en: 'Cactus Flower', vi: 'Hoa Xương Rồng' },
+        description: { en: 'A beautiful flower that blooms on cacti, with medicinal properties.', vi: 'Một bông hoa đẹp nở trên xương rồng, có tính chất chữa bệnh.' },
+        tier: 2,
+        category: 'Material',
+        emoji: '🌵',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: true,
+        spawnBiomes: ['desert'],
+    },
+    'cactus_fruit': {
+        name: { en: 'Cactus Fruit', vi: 'Quả Xương Rồng' },
+        description: { en: 'A juicy fruit from desert cacti, provides hydration and nutrition.', vi: 'Một quả mọng từ xương rồng sa mạc, cung cấp nước và dinh dưỡng.' },
+        tier: 2,
+        category: 'Consumable',
+        emoji: '🌵',
+        effects: [{ type: 'RESTORE_STAMINA', amount: 15 }],
+        baseQuantity: { min: 1, max: 2 },
+        spawnEnabled: true,
+        spawnBiomes: ['desert'],
+    },
 };
-
-    

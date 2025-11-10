@@ -2,13 +2,13 @@
 // Prefer `import type { X } from '@/core/types'` in core modules to avoid
 // reaching into `src/lib` implementation files directly.
 
-// Re-export higher-level game types implemented in `src/lib/game/types`.
+// Re-export higher-level game types implemented in `src/core/types/game`.
 export type {
-  Enemy,
-  Chunk,
-  PlayerStatusDefinition,
-  WorldDefinition,
-} from '@/lib/game/types';
+	Enemy,
+	Chunk,
+	PlayerStatusDefinition,
+	WorldDefinition,
+} from './game';
 
 // Re-export Zod-backed definition types for moddable content.
 export type { CreatureDefinition } from './creature';

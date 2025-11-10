@@ -1,5 +1,5 @@
 import { itemDefinitions } from '@/lib/game/items';
-import type { ItemDefinition } from '@/lib/game/types';
+import type { ItemDefinition } from '@/core/types/game';
 
 /**
  * Resolve an item definition by a key or display name.

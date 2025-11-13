@@ -128,6 +128,7 @@ interface SpawnCandidate {
  * @property {Structure[]} structures - An array of structures present in the chunk.
  * @property {Enemy | null} enemy - The primary enemy entity spawned in the chunk, if any.
  * @property {Action[]} actions - An array of interactive actions available to the player in the chunk.
+ * @property {any[]} plants - An array of plant instances spawned in the chunk.
  */
 interface ChunkGenerationResult {
     description: string;
@@ -136,6 +137,7 @@ interface ChunkGenerationResult {
     structures: Structure[];
     enemy: Enemy | null;
     actions: Action[];
+    plants: any[];
 }
 
 /**
@@ -323,6 +325,7 @@ export function generateChunkContent(
             structures: [],
             enemy: null,
             actions: [],
+            plants: [],
         };
     }
     
@@ -337,39 +340,42 @@ export function generateChunkContent(
     // This ensures that even with high spawn multipliers, the game remains balanced.
     const effectiveMultiplier = softcap(worldProfile?.spawnMultiplier ?? 1);
 
-    // Prepare static spawn candidates from the terrain template, ensuring a 'conditions' object and 'chance' are present.
-    // This step gathers all items defined directly within the terrain's template.
-    const staticSpawnCandidates: SpawnCandidate[] = (terrainTemplate.items || []).filter(Boolean).map((item: any) => ({
+    // --- Separate spawn candidate pools for items, plants, and animals ---
+
+    // Prepare item spawn candidates (only items, not creatures)
+    const itemSpawnCandidates: SpawnCandidate[] = [];
+
+    // Static item candidates from terrain template
+    const staticItemCandidates: SpawnCandidate[] = (terrainTemplate.items || []).filter(Boolean).map((item: any) => ({
         ...item,
         conditions: {
-            ...(item.conditions || {}), // Ensure conditions object exists, preserving any existing conditions.
-            chance: (item.conditions?.chance ?? 1) // Keep the raw chance; the world multiplier is applied later in selectEntities.
+            ...(item.conditions || {}),
+            chance: (item.conditions?.chance ?? 1)
         }
     }));
 
-    // Prepare custom spawn candidates from the custom item catalog.
-    // Items must be spawn-enabled and match the current chunk's terrain biome.
-    const customSpawnCandidates: SpawnCandidate[] = customItemCatalog
+    // Custom item candidates from customItemCatalog
+    const customItemCandidates: SpawnCandidate[] = customItemCatalog
         .filter(item => item && item.spawnEnabled !== false && item.spawnBiomes && item.spawnBiomes.includes(chunkData.terrain as Terrain))
         .map(item => {
-            // ItemDefinition stores natural spawn info in `naturalSpawn` entries.
-            // Try to find a matching biome entry and use its chance/conditions when available.
             const natural = (item as any).naturalSpawn as Array<{ biome?: string; chance?: number; conditions?: any }> | undefined;
             const matched = natural ? natural.find(s => s && s.biome === chunkData.terrain) : undefined;
-            const baseChance = matched?.chance ?? 0.5; // Default chance if no specific biome entry is found.
+            const baseChance = matched?.chance ?? 0.5;
             const extraConditions = matched?.conditions ?? undefined;
             return {
-                name: getTranslatedText(item.name, 'en', t), // Resolve item name to English for internal use.
+                name: getTranslatedText(item.name, 'en', t),
                 conditions: {
-                    ...(extraConditions || {}), // Include any specific conditions for this biome.
-                    chance: baseChance // Keep the raw chance; world multiplier applied later in selectEntities.
+                    ...(extraConditions || {}),
+                    chance: baseChance
                 }
             };
         });
 
-    // Prepare creature-level spawn candidates from creatureTemplates if they declare naturalSpawn entries.
-    const creatureSpawnCandidates: SpawnCandidate[] = Object.values(creatureTemplates)
-        .filter((c: any) => c && c.naturalSpawn && Array.isArray(c.naturalSpawn))
+    itemSpawnCandidates.push(...staticItemCandidates, ...customItemCandidates);
+
+    // Prepare plant spawn candidates (creatures with plantProperties)
+    const plantSpawnCandidates: SpawnCandidate[] = Object.values(creatureTemplates)
+        .filter((c: any) => c && c.plantProperties && c.naturalSpawn && Array.isArray(c.naturalSpawn))
         .map((c: any) => ({
             def: c,
             natural: c.naturalSpawn
@@ -377,21 +383,31 @@ export function generateChunkContent(
         .flatMap((entry: any) => {
             const cDef = entry.def as any;
             const arr = entry.natural as Array<any>;
-            // For each natural entry try to match current biome
             return arr
-                // Only consider natural spawn entries that explicitly target the current biome.
-                // Entries without a `biome` field are considered generic and are ignored here to avoid
-                // surprising spawns during template-driven generation.
                 .filter(s => !!s.biome && s.biome === chunkData.terrain)
                 .map(s => ({ name: cDef.id || (cDef.name && cDef.name.en) || String(cDef.id), conditions: { ...(s.conditions || {}), chance: (s.chance ?? 0.5) }, data: cDef }));
         });
-    logger.debug('[generateChunkContent] customSpawnCandidates', { customSpawnCandidatesLength: customSpawnCandidates.length, customSpawnCandidates });
 
-    // Combine static and custom item spawn candidates for item selection.
-    // Creature-level candidates are intentionally kept separate so they are not
-    // treated as items during item resolution (they are handled by the enemy/creature pipeline).
-    const allSpawnCandidates = [...staticSpawnCandidates, ...customSpawnCandidates];
-    logger.debug('[generateChunkContent] allSpawnCandidates', { allSpawnCandidatesLength: allSpawnCandidates.length, allSpawnCandidates });
+    // Prepare animal spawn candidates (creatures without plantProperties)
+    const animalSpawnCandidates: SpawnCandidate[] = Object.values(creatureTemplates)
+        .filter((c: any) => c && !c.plantProperties && c.naturalSpawn && Array.isArray(c.naturalSpawn))
+        .map((c: any) => ({
+            def: c,
+            natural: c.naturalSpawn
+        }))
+        .flatMap((entry: any) => {
+            const cDef = entry.def as any;
+            const arr = entry.natural as Array<any>;
+            return arr
+                .filter(s => !!s.biome && s.biome === chunkData.terrain)
+                .map(s => ({ name: cDef.id || (cDef.name && cDef.name.en) || String(cDef.id), conditions: { ...(s.conditions || {}), chance: (s.chance ?? 0.5) }, data: cDef }));
+        });
+
+    logger.debug('[generateChunkContent] spawn candidates', {
+        itemSpawnCandidatesLength: itemSpawnCandidates.length,
+        plantSpawnCandidatesLength: plantSpawnCandidates.length,
+        animalSpawnCandidatesLength: animalSpawnCandidates.length
+    });
 
     // Determine the maximum number of unique item types to select for this chunk.
     // Reduced base so chunks do not automatically fill up with many items.
@@ -466,7 +482,7 @@ export function generateChunkContent(
             return undefined; // Return undefined if no match is found.
         };
 
-        const candidateList = allSpawnCandidates.filter(Boolean); // Filter out any null/undefined candidates.
+        const candidateList = itemSpawnCandidates.filter(Boolean); // Filter out any null/undefined candidates.
 
         // Stage 2: Two-stage sampling.
         // Determine `M`, the number of candidates to sample, based on the total number of candidates.
@@ -681,8 +697,8 @@ export function generateChunkContent(
     // Also include creatures list from templates (legacy) and creature-level natural spawn candidates.
     let allEnemyCandidates = [...(terrainTemplate.enemies || []), ...(terrainTemplate.creatures || [])].filter(Boolean);
     // Append creature-level candidates (those include `data` with creature definition)
-    if (creatureSpawnCandidates.length > 0) {
-        allEnemyCandidates = [...allEnemyCandidates, ...creatureSpawnCandidates];
+    if (animalSpawnCandidates.length > 0) {
+        allEnemyCandidates = [...allEnemyCandidates, ...animalSpawnCandidates];
     }
 
     // Enemy spawn gating: keep enemies relatively rare per-chunk. Use a smaller base chance
@@ -804,14 +820,78 @@ export function generateChunkContent(
     });
     logger.debug('[generateChunkContent] FINAL spawnedItems', { spawnedItemsLength: spawnedItems.length, spawnedItems });
 
+    // --- Plant Spawning Pipeline ---
+    const plantBaseFindChance = 0.3; // Higher chance for plants to spawn
+    const maxPlantsPerChunk = 4; // Allow up to 4 different plant types per chunk
+    const plantFindMultiplier = 1.0 + (chunkResourceScore * 1.0); // Scale with resource richness
+    const plantFindChance = Math.max(0.01, Math.min(0.95, plantBaseFindChance * (worldDensityScale ?? 1) * plantFindMultiplier * effectiveMultiplier));
+
+    let spawnedPlants: any[] = [];
+    if (Math.random() < plantFindChance && plantSpawnCandidates.length > 0) {
+        // Simple selection for plants - take up to maxPlantsPerChunk
+        const numPlantsToSelect = Math.min(maxPlantsPerChunk, Math.floor(Math.random() * maxPlantsPerChunk) + 1);
+        const shuffledPlants = [...plantSpawnCandidates].sort(() => Math.random() - 0.5);
+        spawnedPlants = shuffledPlants.slice(0, numPlantsToSelect).map(plantRef => {
+            const plantDef = plantRef.data;
+            if (plantDef) {
+                return {
+                    definition: plantDef,
+                    hp: plantDef.hp,
+                    maturity: 0,
+                    age: 0
+                };
+            }
+            return null;
+        }).filter(Boolean);
+    }
+
+    // --- Animal Spawning Pipeline ---
+    const animalBaseFindChance = 0.08; // Lower chance for animals
+    const maxAnimalsPerChunk = 1; // Usually only 1 animal type per chunk
+    const animalFindMultiplier = 0.5 + (clamp01(chunkData.dangerLevel ?? 50) * 0.8); // Scale with danger level
+    const animalFindChance = Math.max(0.005, Math.min(0.5, animalBaseFindChance * (worldDensityScale ?? 1) * animalFindMultiplier * effectiveMultiplier));
+
+    let spawnedAnimals: any[] = [];
+    if (Math.random() < animalFindChance && animalSpawnCandidates.length > 0) {
+        // Select one animal type
+        const selectedAnimal = animalSpawnCandidates[Math.floor(Math.random() * animalSpawnCandidates.length)];
+        if (selectedAnimal) {
+            spawnedAnimals = [selectedAnimal];
+        }
+    }
+
+    // Process spawned animals into enemy format
+    let finalSpawnedEnemy = spawnedEnemy;
+    if (spawnedAnimals.length > 0 && !finalSpawnedEnemy) {
+        const animalData = spawnedAnimals[0].data;
+        if (animalData) {
+            finalSpawnedEnemy = {
+                type: animalData.name || animalData.id,
+                hp: animalData.hp ?? 100,
+                damage: animalData.damage ?? 10,
+                behavior: animalData.behavior ?? 'aggressive',
+                size: animalData.size ?? 'medium',
+                emoji: animalData.emoji ?? '🐾',
+                satiation: 0,
+                maxSatiation: animalData.maxSatiation ?? 100,
+                diet: animalData.diet ?? ['meat'],
+                senseEffect: animalData.senseEffect ? {
+                    range: animalData.senseRadius ?? 3,
+                    type: 'detection'
+                } : undefined
+            };
+        }
+    }
+
     // Return the complete generated content for the chunk.
     return {
         description: finalDescription,
         NPCs: spawnedNPCs,
         items: spawnedItems,
         structures: spawnedStructures,
-        enemy: spawnedEnemy,
+        enemy: finalSpawnedEnemy,
         actions: actions,
+        plants: spawnedPlants,
     };
 }
 

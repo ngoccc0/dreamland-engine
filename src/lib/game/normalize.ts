@@ -7,6 +7,7 @@ import { getTranslatedText } from '@/lib/utils';
 const DEFAULT_PLAYER_STATUS: PlayerStatus = {
   hp: 100,
   stamina: 100,
+  maxStamina: 100,
   mana: 0,
   items: [],
   quests: [],

@@ -3,6 +3,7 @@ import type { CreatureDefinition } from '@/core/types/definitions/creature';
 import { animals } from './animals';
 import { plants } from './plants';
 import { minerals } from './minerals';
+import { moddedPlants } from './modded_plants';
 
 /**
  * Combined canonical creature catalog built from per-category modules.
@@ -11,7 +12,8 @@ import { minerals } from './minerals';
 export const creatureTemplates: Record<string, CreatureDefinition> = {
   ...animals,
   ...plants,
-  ...minerals
+  ...minerals,
+  ...moddedPlants
 };
 
 export { animals, plants, minerals };

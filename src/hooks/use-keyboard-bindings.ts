@@ -8,6 +8,7 @@ type Dir = 'north' | 'south' | 'west' | 'east';
 export interface KeyboardHandlers {
   move: (dir: Dir) => void;
   attack: () => void;
+  wait?: () => void;
   openInventory?: () => void;
   openStatus?: () => void;
   openMap?: () => void;
@@ -60,13 +61,15 @@ export function useKeyboardBindings({ handlers, popupOpen = false, focusCustomAc
   add((keyBindings as any).hot3, 'hot3');
   add((keyBindings as any).hot4, 'hot4');
   add((keyBindings as any).hot5, 'hot5');
+  add((keyBindings as any).wait, 'wait');
 
     // Always include common defaults if not provided
     if (!map.has('ArrowUp')) map.set('ArrowUp', 'moveUp');
     if (!map.has('ArrowDown')) map.set('moveDown', 'moveDown');
     if (!map.has('ArrowLeft')) map.set('moveLeft', 'moveLeft');
     if (!map.has('ArrowRight')) map.set('moveRight', 'moveRight');
-    if (!map.has(' ')) map.set(' ', 'attack');
+  if (!map.has(' ')) map.set(' ', 'attack');
+  if (!map.has('Shift')) map.set('Shift', 'wait');
 
     return map;
   }, [keyBindings]);
@@ -153,6 +156,10 @@ export function useKeyboardBindings({ handlers, popupOpen = false, focusCustomAc
             break;
           case 'customAction':
             handlers.customAction?.();
+            focusCustomActionInput?.();
+            break;
+          case 'wait':
+            handlers.wait?.();
             focusCustomActionInput?.();
             break;
           default:

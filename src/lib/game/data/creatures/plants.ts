@@ -45,7 +45,7 @@ export const plants: Record<string, CreatureDefinition> = {
     naturalSpawn: [
       {
         biome: 'forest',
-        chance: 0.7,
+        chance: 0.9,
         conditions: { vegetationDensity: { min: 3 } }
       }
     ]
@@ -91,7 +91,7 @@ export const plants: Record<string, CreatureDefinition> = {
     ,
     // Allow tall grass to naturally appear in multiple grassy biomes by default.
     naturalSpawn: [
-      { chance: 0.4, conditions: { vegetationDensity: { min: 0 } } }
+      { chance: 0.8, conditions: { vegetationDensity: { min: 0 } } }
     ]
   },
   wild_cotton: {
@@ -131,7 +131,14 @@ export const plants: Record<string, CreatureDefinition> = {
       loot: [
         { name: 'cotton_boll', chance: 0.8, quantity: { min: 1, max: 2 } }
       ]
-    }
+    },
+    naturalSpawn: [
+      {
+        biome: 'grassland',
+        chance: 0.5,
+        conditions: { vegetationDensity: { min: 5 } }
+      }
+    ]
   },
   thorny_vine: {
     id: 'thorny_vine',
@@ -171,7 +178,14 @@ export const plants: Record<string, CreatureDefinition> = {
         { name: 'thorny_vine', chance: 0.7, quantity: { min: 1, max: 2 } },
         { name: 'plant_fiber', chance: 0.5, quantity: { min: 1, max: 1 } }
       ]
-    }
+    },
+    naturalSpawn: [
+      {
+        biome: 'forest',
+        chance: 0.4,
+        conditions: { vegetationDensity: { min: 10 } }
+      }
+    ]
   },
   bamboo: {
     id: 'bamboo',
@@ -210,7 +224,14 @@ export const plants: Record<string, CreatureDefinition> = {
       loot: [
         { name: 'bamboo_shoot', chance: 0.6, quantity: { min: 1, max: 2 } }
       ]
-    }
+    },
+    naturalSpawn: [
+      {
+        biome: 'forest',
+        chance: 0.3,
+        conditions: { vegetationDensity: { min: 20 } }
+      }
+    ]
   },
   flax_plant: {
     id: 'flax_plant',
@@ -250,7 +271,14 @@ export const plants: Record<string, CreatureDefinition> = {
         { name: 'plant_fiber', chance: 0.9, quantity: { min: 1, max: 3 } },
         { name: 'flax_seed', chance: 0.6, quantity: { min: 1, max: 2 } }
       ]
-    }
+    },
+    naturalSpawn: [
+      {
+        biome: 'grassland',
+        chance: 0.4,
+        conditions: { vegetationDensity: { min: 8 } }
+      }
+    ]
   },
   cactus: {
     id: 'cactus',
@@ -290,7 +318,14 @@ export const plants: Record<string, CreatureDefinition> = {
         { name: 'cactus_flower', chance: 0.4, quantity: { min: 1, max: 1 } },
         { name: 'cactus_fruit', chance: 0.6, quantity: { min: 1, max: 2 } }
       ]
-    }
+    },
+    naturalSpawn: [
+      {
+        biome: 'desert',
+        chance: 0.6,
+        conditions: { vegetationDensity: { min: 2 } }
+      }
+    ]
   }
 };
 

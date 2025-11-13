@@ -184,12 +184,16 @@ export function StatusPopup({ open, onOpenChange, stats, itemDefinitions, onRequ
                     <>
                         <Separator className="my-2" />
                         <div className="space-y-1">
-              {nextUnlockableSkills.map(skill => (
-                <div key={String(skill.name)}>
-                  <p className="text-xs text-accent-foreground font-semibold">{t(skill.name)}</p>
-                  <p className="text-xs text-muted-foreground">({t('unlockCondition')}: {skill.unlockCondition!.count} {t(skill.unlockCondition!.type)})</p>
-                </div>
-              ))}
+              {nextUnlockableSkills.map(skill => {
+                // skill.name may be a TranslatableString object; use the English translation as a stable key
+                const stableKey = getTranslatedText(skill.name, 'en') || `${skill.tier}-${skill.manaCost}`;
+                return (
+                  <div key={stableKey}>
+                    <p className="text-xs text-accent-foreground font-semibold">{t(skill.name)}</p>
+                    <p className="text-xs text-muted-foreground">({t('unlockCondition')}: {skill.unlockCondition!.count} {t(skill.unlockCondition!.type)})</p>
+                  </div>
+                );
+              })}
                         </div>
                     </>
                 )}

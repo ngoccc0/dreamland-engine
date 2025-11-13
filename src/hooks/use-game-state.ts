@@ -59,6 +59,20 @@ export function useGameState({ gameSlot: _gameSlot }: GameStateProps) {
     const [regions, setRegions] = useState<{ [id: number]: Region }>({});
     const [regionCounter, setRegionCounter] = useState<number>(0);
     const [playerPosition, setPlayerPosition] = useState({ x: 0, y: 0 });
+    // visualPlayerPosition is used by the UI to animate the player's visual position
+    // (for example, showing the avatar jumping between tiles) without immediately
+    // recentering the map. When `isAnimatingMove` is true the UI should prefer
+    // `visualPlayerPosition` for rendering the viewport; when false, use `playerPosition`.
+    const [visualPlayerPosition, setVisualPlayerPosition] = useState({ x: 0, y: 0 });
+    const [isAnimatingMove, setIsAnimatingMove] = useState(false);
+    // visualMoveFrom / visualMoveTo: used by the UI to animate a flight from one
+    // tile to another. These are set when a move begins and cleared after the
+    // landing + settle sequence completes.
+    const [visualMoveFrom, setVisualMoveFrom] = useState<{ x: number; y: number } | null>(null);
+    const [visualMoveTo, setVisualMoveTo] = useState<{ x: number; y: number } | null>(null);
+    // visualJustLanded toggles briefly after landing so the UI can play a small
+    // bounce effect at the target tile before settling.
+    const [visualJustLanded, setVisualJustLanded] = useState(false);
     // Fix PlayerBehaviorProfile shape to match required fields
     const [playerBehaviorProfile, setPlayerBehaviorProfile] = useState<PlayerBehaviorProfile>({
         name: '',
@@ -82,6 +96,10 @@ export function useGameState({ gameSlot: _gameSlot }: GameStateProps) {
         maxStamina: 100,
         hunger: 100,
         maxHunger: 100,
+        hungerTickCounter: 0,
+        hpRegenTickCounter: 0,
+        staminaRegenTickCounter: 0,
+        manaRegenTickCounter: 0,
         bodyTemperature: 37,
         items: [],
         equipment: { 
@@ -138,7 +156,17 @@ export function useGameState({ gameSlot: _gameSlot }: GameStateProps) {
         setRegions,
         regionCounter,
         setRegionCounter,
-        playerPosition,
+    playerPosition,
+    visualPlayerPosition,
+    setVisualPlayerPosition,
+    isAnimatingMove,
+    setIsAnimatingMove,
+    visualMoveFrom,
+    setVisualMoveFrom,
+    visualMoveTo,
+    setVisualMoveTo,
+    visualJustLanded,
+    setVisualJustLanded,
         setPlayerPosition,
         playerBehaviorProfile,
         setPlayerBehaviorProfile,

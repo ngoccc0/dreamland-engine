@@ -156,6 +156,7 @@ describe('check_conditions', () => {
     };
     const basePlayerState: PlayerStatus = {
         hp: 75, mana: 50, stamina: 80, bodyTemperature: 37, items: [], equipment: { weapon: null, armor: null, accessory: null },
+        maxStamina: 100,
         quests: [], questsCompleted: 0, skills: [], persona: 'explorer', attributes: {physicalAttack: 0, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0}, unlockProgress: { kills: 0, damageSpells: 0, moves: 0 },
         language: 'en', journal: {}, dailyActionLog: [], questHints: {}, trackedEnemy: undefined
     };
@@ -272,6 +273,7 @@ describe('fill_template', () => {
     const mockPlayerPosition = { x: 0, y: 0 };
     const basePlayerState: PlayerStatus = {
         hp: 75, mana: 50, stamina: 80, bodyTemperature: 37, items: [], equipment: { weapon: null, armor: null, accessory: null },
+        maxStamina: 100,
         quests: [], questsCompleted: 0, skills: [], persona: 'explorer', attributes: {physicalAttack: 0, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0}, unlockProgress: { kills: 0, damageSpells: 0, moves: 0 },
         language: 'vi', journal: {}, dailyActionLog: [], questHints: {}, trackedEnemy: undefined
     };

@@ -16,7 +16,7 @@ export default function AudioControls() {
       <div className="flex items-center justify-between mb-2">
         <div className="font-semibold">Audio</div>
         <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={() => audio.setMuted(!audio.muted)}>
+          <Button variant="ghost" size="sm" noSfx onClick={() => audio.setMuted(!audio.muted)}>
             {audio.muted ? 'Unmute' : 'Mute'}
           </Button>
         </div>
@@ -33,9 +33,9 @@ export default function AudioControls() {
           </select>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" onClick={() => audio.playMusic(selectedTrack)}>{'Phát'}</Button>
-          <Button size="sm" onClick={() => audio.pauseMusic()}>Tạm dừng</Button>
-          <Button size="sm" onClick={() => audio.stopMusic()}>Dừng</Button>
+          <Button size="sm" noSfx onClick={() => audio.playMusic(selectedTrack)}>{'Phát'}</Button>
+          <Button size="sm" noSfx onClick={() => audio.pauseMusic()}>Tạm dừng</Button>
+          <Button size="sm" noSfx onClick={() => audio.stopMusic()}>Dừng</Button>
         </div>
         <div className="mt-2">
           <Slider value={[audio.musicVolume]} onValueChange={(v) => audio.setMusicVolume(v[0] ?? 0.5)} step={0.01} min={0} max={1} />
@@ -48,8 +48,8 @@ export default function AudioControls() {
           <Slider value={[audio.sfxVolume]} onValueChange={(v) => audio.setSfxVolume(v[0] ?? 0.9)} step={0.01} min={0} max={1} />
         </div>
         <div className="flex gap-2 mt-3">
-          <Button size="sm" onClick={() => audio.playSfx('Menu_Select_00.mp3')}>Play select</Button>
-          <Button size="sm" onClick={() => audio.playSfx('Pickup_Gold_00.mp3')}>Play pickup</Button>
+          <Button size="sm" noSfx onClick={() => audio.playSfx('Menu_Select_00.mp3')}>Play select</Button>
+          <Button size="sm" noSfx onClick={() => audio.playSfx('Pickup_Gold_00.mp3')}>Play pickup</Button>
         </div>
         <div className="mt-3">
           <div className="text-xs text-neutral-300 mb-1">Tần suất nhạc nền</div>

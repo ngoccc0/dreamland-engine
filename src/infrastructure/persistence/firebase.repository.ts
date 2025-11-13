@@ -1,6 +1,6 @@
 import { collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, limit } from "firebase/firestore";
 import type { Firestore } from 'firebase/firestore'
-import { db } from "@/lib/firebase-config";
+import { getDb } from "@/lib/firebase-config";
 import type { IGameStateRepository } from "@/lib/game/ports/game-state.repository";
 import type { GameState } from "@/core/types/game";
 
@@ -16,9 +16,8 @@ export class FirebaseGameStateRepository implements IGameStateRepository {
     private readonly basePath: string;
 
     constructor(userId: string) {
-        if (!db) {
-            throw new Error("Firestore is not initialized. Cannot use FirebaseGameStateRepository.");
-        }
+        // Do not access Firestore at construction time. Methods will lazily
+        // obtain the DB instance to avoid forcing firebase module load on import.
         this.basePath = `users/${userId}/games`;
     }
 
@@ -28,6 +27,7 @@ export class FirebaseGameStateRepository implements IGameStateRepository {
      * @returns {Promise<GameState | null>} A promise that resolves to the GameState object or null if not found.
      */
     async load(slotId: string): Promise<GameState | null> {
+        const db = await getDb();
         if (!db) return null;
         try {
             const docRef = doc(db, this.basePath, slotId);
@@ -49,6 +49,7 @@ export class FirebaseGameStateRepository implements IGameStateRepository {
      * @returns {Promise<void>} A promise that resolves when the save is complete.
      */
     async save(slotId: string, state: GameState): Promise<void> {
+        const db = await getDb();
         if (!db) return;
         try {
             const docRef = doc(db, this.basePath, slotId);
@@ -65,6 +66,7 @@ export class FirebaseGameStateRepository implements IGameStateRepository {
      * @returns {Promise<void>} A promise that resolves when the deletion is complete.
      */
     async delete(slotId: string): Promise<void> {
+        const db = await getDb();
         if (!db) return;
         try {
             const docRef = doc(db, this.basePath, slotId);
@@ -81,6 +83,7 @@ export class FirebaseGameStateRepository implements IGameStateRepository {
      * @returns {Promise<Array<Pick<GameState, 'worldSetup' | 'day' | 'gameTime' | 'playerStats'> | null>>} A promise that resolves to an array of up to 3 save slot summaries.
      */
     async listSaveSummaries(): Promise<Array<Pick<GameState, 'worldSetup' | 'day' | 'gameTime' | 'playerStats'> | null>> {
+        const db = await getDb();
         if (!db) return [null, null, null];
         try {
             const slots: Array<Pick<GameState, 'worldSetup' | 'day' | 'gameTime' | 'playerStats'> | null> = [null, null, null];

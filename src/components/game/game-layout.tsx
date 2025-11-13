@@ -71,6 +71,11 @@ export default function GameLayout(props: GameLayoutProps) {
         buildableStructures,
         playerStats,
         playerPosition,
+    visualPlayerPosition,
+        isAnimatingMove,
+        visualMoveFrom,
+        visualMoveTo,
+        visualJustLanded,
         narrativeLog,
         isLoading,
         isGameOver,
@@ -93,9 +98,30 @@ export default function GameLayout(props: GameLayoutProps) {
         handleRequestQuestHint,
         handleEquipItem,
         handleUnequipItem,
+        handleWaitTick,
+        handleDropItem,
     handleReturnToMenu,
         narrativeContainerRef,
     } = useGameEngine(props);
+
+    // Keep a short grace window after visual move animations finish where the
+    // minimap and grid generation continue to use the visual position so the
+    // UI doesn't snap back if the authoritative playerPosition updates slightly
+    // after the animation ends.
+    const prevAnimatingRefForLayout = useRef<boolean>(Boolean(isAnimatingMove));
+    const holdCenterUntilRef = useRef<number>(0);
+
+    useEffect(() => {
+        try {
+            if (prevAnimatingRefForLayout.current && !isAnimatingMove) {
+                // animation just finished — hold the visual center for a short time
+                holdCenterUntilRef.current = Date.now() + 350; // ms
+            }
+            prevAnimatingRefForLayout.current = Boolean(isAnimatingMove);
+        } catch {
+            // ignore
+        }
+    }, [isAnimatingMove]);
 
     // increment mount counter for GameLayout and expose to window for quick checks
     useEffect(() => {
@@ -166,6 +192,7 @@ export default function GameLayout(props: GameLayoutProps) {
         handlers: {
             move: (dir: 'north' | 'south' | 'west' | 'east') => handleMove(dir),
             attack: () => handleAttack(),
+            wait: () => handleWaitTick(),
             openInventory: () => setInventoryOpen(true),
             openStatus: () => setStatusOpen(true),
             openMap: () => setIsFullMapOpen(true),
@@ -241,24 +268,45 @@ export default function GameLayout(props: GameLayoutProps) {
         const displayRadius = 2; // 5x5 grid for display
         const size = displayRadius * 2 + 1;
         const grid = Array.from({ length: size }, () => Array(size).fill(null));
+    // When a visual move animation is active, prefer the visual position for
+    // calculating which chunks to render so the map does not recenter until
+    // the avatar lands. Also keep a short grace window after animation where
+    // we continue to use the visual position even if isAnimatingMove has ended
+    // but the authoritative playerPosition hasn't fully propagated.
+    const now = Date.now();
+    // Prefer the intended visual destination while an animation is active: visualMoveTo
+    // is the most accurate center to use for grid generation during a flight.
+    const useVisualCenter = (isAnimatingMove && (visualMoveTo || visualPlayerPosition)) || ((visualPlayerPosition || visualMoveTo) && holdCenterUntilRef.current > now);
+    const playerForGrid = useVisualCenter ? (visualMoveTo || visualPlayerPosition || playerPosition) : playerPosition;
+    // Log which center we used so we can correlate UI updates with state changes
+    // debug logging intentionally removed to centralize move tracing into
+    // a single start/end sequence log. Keep costly logging out of the
+    // hot path to reduce console noise and timing perturbations.
 
         for (let gy = 0; gy < size; gy++) {
             for (let gx = 0; gx < size; gx++) {
-                const wx = playerPosition.x - displayRadius + gx;
-                const wy = playerPosition.y + displayRadius - gy;
+                const wx = playerForGrid.x - displayRadius + gx;
+                const wy = playerForGrid.y + displayRadius - gy;
                 const chunkKey = `${wx},${wy}`;
                 
                 // Check if this chunk is within the 3x3 visibility radius
                 const chunk = world[chunkKey];
                 if (chunk) {
+                    // When a visual move animation is active we used playerForGrid to
+                    // determine the grid center; use the same visual position when
+                    // computing visibility so tiles explored during animations are
+                    // attributed to the visual avatar and not the authoritative
+                    // playerPosition (which may lag until the animation completes).
+                    const refPos = playerForGrid || playerPosition;
                     const distanceFromPlayer = Math.max(
-                        Math.abs(wx - playerPosition.x),
-                        Math.abs(wy - playerPosition.y)
+                        Math.abs(wx - refPos.x),
+                        Math.abs(wy - refPos.y)
                     );
-                    
-                    // Mark chunks within visibility radius as explored
+
+                    // Only set explored/lastVisited if we detect the tile within
+                    // visibility radius. Do NOT unset explored if it was previously true.
                     if (distanceFromPlayer <= visibilityRadius) {
-                        chunk.explored = true;
+                        if (!chunk.explored) chunk.explored = true;
                         chunk.lastVisited = turn;
                     }
                 }
@@ -267,10 +315,34 @@ export default function GameLayout(props: GameLayoutProps) {
             }
         }
         return grid;
-    }, [world, playerPosition.x, playerPosition.y, finalWorldSetup, isLoaded, turn]);
+    }, [world, playerPosition.x, playerPosition.y, finalWorldSetup, isLoaded, turn, visualPlayerPosition, visualMoveTo, isAnimatingMove]);
     
     const restingPlace = currentChunk?.structures?.find((s: Structure) => s.restEffect);
-    
+    // Pickup / other action grouping must be declared before any function that closes over them
+    const pickUpActions = (currentChunk?.actions || []).filter((a: Action) => a.textKey === 'pickUpAction_item');
+    const otherActions = (currentChunk?.actions || []).filter((a: Action) => a.textKey !== 'pickUpAction_item');
+
+    // Determine context-sensitive main action
+    const getContextSensitiveAction = () => {
+        if (currentChunk?.enemy) {
+            return { type: 'attack', label: t('attack') || 'Attack', handler: handleAttack };
+        }
+        if (pickUpActions.length > 0) {
+            return { type: 'pickup', label: t('pickUpItems') || 'Pick Up', handler: () => { setPickupDialogOpen(true); setSelectedPickupIds([]); } };
+        }
+        if (restingPlace) {
+            return { type: 'rest', label: t('rest') || 'Rest', handler: handleRest };
+        }
+        if (otherActions.length > 0) {
+            const action = otherActions[0];
+            const actionText = getTranslatedText({ key: action.textKey, params: action.params }, language, t);
+            return { type: 'interact', label: actionText, handler: () => handleActionClick(action.id) };
+        }
+        return { type: 'explore', label: t('explore') || 'Explore', handler: () => {} };
+    };
+
+    const contextAction = getContextSensitiveAction();
+
     if (!isLoaded || !finalWorldSetup || !currentChunk) {
         return (
             <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
@@ -304,8 +376,22 @@ export default function GameLayout(props: GameLayoutProps) {
     const stamMax = Number(playerStats.maxStamina ?? 100);
     const stamPct = stamMax > 0 ? stamVal / stamMax : 0;
 
-    const hungerVal = Number(playerStats.hunger ?? 0);
+    // Normalize hunger values: some code paths store hunger as 0..1 (fraction) while
+    // others use a 0..100 scale. Accept both by detecting fractional values and
+    // scaling them to the 0..100 domain expected by the HUD.
+    const rawHunger = typeof playerStats.hunger === 'number' ? playerStats.hunger : undefined;
     const hungerMax = Number(playerStats.maxHunger ?? 100);
+    let hungerVal = 0;
+    if (typeof rawHunger === 'number') {
+        // If the value looks like a fractional representation (<= 1.0), scale it to 0..100
+        if (rawHunger > 0 && rawHunger <= 1) {
+            hungerVal = rawHunger * hungerMax;
+        } else {
+            hungerVal = rawHunger;
+        }
+    } else {
+        hungerVal = hungerMax; // default to full if undefined
+    }
     // `playerStats.hunger` is a fullness-like value (higher means more full),
     // so the HUD percent should directly reflect hungerVal / hungerMax.
     const hungerPct = hungerMax > 0 ? Math.max(0, Math.min(1, hungerVal / hungerMax)) : 0;
@@ -332,9 +418,7 @@ export default function GameLayout(props: GameLayoutProps) {
         </DropdownMenu>
     );
 
-    // Pickup action grouping: collect pick-up actions to present in a single dialog
-    const pickUpActions = (currentChunk?.actions || []).filter((a: Action) => a.textKey === 'pickUpAction_item');
-    const otherActions = (currentChunk?.actions || []).filter((a: Action) => a.textKey !== 'pickUpAction_item');
+    
 
     // Helpers for the pickup dialog selection
     const togglePickupSelection = (id: number) => {
@@ -368,9 +452,9 @@ export default function GameLayout(props: GameLayoutProps) {
             <div className="flex flex-col md:flex-row md:h-dvh bg-background text-foreground font-body" style={{ ['--aside-w' as any]: 'min(462px,36vw)' }}>
                 {/* Left Panel: Narrative */}
                 <div className={`${isDesktop && !showNarrativeDesktop ? 'md:hidden' : ''} w-full md:flex-1 flex flex-col md:overflow-hidden md:pb-16`}>
-                    <header className="p-4 border-b flex-shrink-0 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <header className="px-3 py-2 md:p-4 border-b flex-shrink-0 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                         <div className="flex items-center gap-3 w-full md:max-w-3xl">
-                            <h1 className="text-2xl font-bold font-headline">{worldNameText}</h1>
+                            <h1 className="text-xl md:text-2xl font-bold font-headline">{worldNameText}</h1>
                             {/* On desktop (non-legacy layout), show main actions next to the world title as inline icon buttons */}
                             {isDesktop && !settings?.useLegacyLayout && (
                                 <div className="ml-6 hidden md:flex md:items-center md:flex-1 gap-2">
@@ -452,7 +536,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                     console.warn('[GameLayout] narrativeLog contained duplicate ids; rendering deduped list.');
                                 }
                                 return deduped.map((entry: NarrativeEntry) => (
-                                    <p key={entry.id} id={entry.id} className={cn("animate-in fade-in duration-500 whitespace-pre-line",
+                                    <p key={entry.id} id={entry.id} className={cn("animate-in fade-in duration-500 whitespace-pre-line text-base md:text-lg",
                                         (String(entry.type) === 'action' || String(entry.type) === 'monologue') ? 'italic text-muted-foreground' : '',
                                         entry.type === 'system' ? 'font-semibold text-accent' : ''
                                     )}>
@@ -481,23 +565,25 @@ có                         </div>
                             // Desktop (non-legacy): show map above HUD in the right panel
                             <>
                                 {/* Minimap */}
-                                <div className="flex flex-col items-center gap-2">
+                                <div className="flex flex-col items-center gap-2 w-full md:max-w-xs mx-auto">
                                     <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); focusCustomActionInput(); }}>{t('minimap')}</h3>
                                     <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
                                     </div>
-                                    <Minimap grid={generateMapGrid()} playerPosition={playerPosition} turn={turn} biomeDefinitions={biomeDefinitions} />
+                                    <div className="w-full max-w-full md:max-w-xs">
+                                        <Minimap grid={generateMapGrid()} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} />
+                                    </div>
                                 </div>
 
                                 {/* HUD */}
                                 <div className="grid grid-cols-4 gap-x-4 gap-y-2 text-sm justify-items-center">
                                     {/* Health (use new HudIconHealth) */}
-                                    <div className="flex flex-col items-center">
+                                    <div className="flex flex-col items-center p-2">
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <div>
-                                                    <HudIconHealth percent={Math.max(0, Math.min(1, hpPct))} size={40} />
+                                                    <HudIconHealth percent={Math.max(0, Math.min(1, hpPct))} size={isDesktop ? 40 : 48} />
                                                 </div>
                                             </TooltipTrigger>
                                             <TooltipContent><p>{t('hudHealth') ?? 'Health'}: {Math.round(playerStats.hp ?? 0)}/{playerStats.maxHp ?? 100}</p></TooltipContent>
@@ -506,11 +592,11 @@ có                         </div>
                                     </div>
 
                                     {/* Mana */}
-                                    <div className="flex flex-col items-center">
+                                    <div className="flex flex-col items-center p-2">
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <div>
-                                                    <HudIconMana percent={Math.max(0, Math.min(1, manaPct))} size={40} />
+                                                    <HudIconMana percent={Math.max(0, Math.min(1, manaPct))} size={isDesktop ? 40 : 48} />
                                                 </div>
                                             </TooltipTrigger>
                                             <TooltipContent><p>{t('hudMana') ?? 'Mana'}: {Math.round(playerStats.mana ?? 0)}/{playerStats.maxMana ?? 50}</p></TooltipContent>
@@ -519,11 +605,11 @@ có                         </div>
                                     </div>
 
                                     {/* Stamina */}
-                                    <div className="flex flex-col items-center">
+                                    <div className="flex flex-col items-center p-2">
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <div>
-                                                    <HudIconStamina percent={Math.max(0, Math.min(1, stamPct))} size={40} className="" />
+                                                    <HudIconStamina percent={Math.max(0, Math.min(1, stamPct))} size={isDesktop ? 40 : 48} className="" />
                                                 </div>
                                             </TooltipTrigger>
                                             <TooltipContent><p>{t('hudStamina') ?? 'Stamina'}: {Math.round(playerStats.stamina ?? 0)}/{playerStats.maxStamina ?? 100}</p></TooltipContent>
@@ -532,11 +618,11 @@ có                         </div>
                                     </div>
 
                                     {/* Hunger */}
-                                    <div className="flex flex-col items-center">
+                                    <div className="flex flex-col items-center p-2">
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <Button variant="ghost" size="icon" aria-label={t('hudHunger') ?? 'Hunger'} onClick={() => { setStatusOpen(true); focusCustomActionInput(); }} className="p-0">
-                                                    <HudIconHunger percent={Math.max(0, Math.min(1, hungerPct))} size={40} />
+                                                    <HudIconHunger percent={Math.max(0, Math.min(1, hungerPct))} size={isDesktop ? 40 : 48} />
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent><p>{t('hudHunger') ?? 'Hunger'}: {Math.round(playerStats.hunger ?? 0)}/{playerStats.maxHunger ?? 100}</p></TooltipContent>
@@ -551,11 +637,11 @@ có                         </div>
                                 {/* HUD */}
                                 <div className="grid grid-cols-4 gap-x-4 gap-y-2 text-sm justify-items-center">
                                     {/* Health (mobile) */}
-                                    <div className="flex flex-col items-center">
+                                    <div className="flex flex-col items-center p-2">
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <div>
-                                                    <HudIconHealth percent={Math.max(0, Math.min(1, hpPct))} size={40} />
+                                                    <HudIconHealth percent={Math.max(0, Math.min(1, hpPct))} size={isDesktop ? 40 : 48} />
                                                 </div>
                                             </TooltipTrigger>
                                             <TooltipContent><p>{t('hudHealth') ?? 'Health'}: {Math.round(playerStats.hp ?? 0)}/{playerStats.maxHp ?? 100}</p></TooltipContent>
@@ -564,11 +650,11 @@ có                         </div>
                                     </div>
 
                                     {/* Mana (mobile) */}
-                                    <div className="flex flex-col items-center">
+                                    <div className="flex flex-col items-center p-2">
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <div>
-                                                    <HudIconMana percent={Math.max(0, Math.min(1, manaPct))} size={40} />
+                                                    <HudIconMana percent={Math.max(0, Math.min(1, manaPct))} size={isDesktop ? 40 : 48} />
                                                 </div>
                                             </TooltipTrigger>
                                             <TooltipContent><p>{t('hudMana') ?? 'Mana'}: {Math.round(playerStats.mana ?? 0)}/{playerStats.maxMana ?? 50}</p></TooltipContent>
@@ -577,11 +663,11 @@ có                         </div>
                                     </div>
 
                                     {/* Stamina (mobile) */}
-                                    <div className="flex flex-col items-center">
+                                    <div className="flex flex-col items-center p-2">
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <div>
-                                                    <HudIconStamina percent={Math.max(0, Math.min(1, stamPct))} size={40} className="" />
+                                                    <HudIconStamina percent={Math.max(0, Math.min(1, stamPct))} size={isDesktop ? 40 : 48} className="" />
                                                 </div>
                                             </TooltipTrigger>
                                             <TooltipContent><p>{t('hudStamina') ?? 'Stamina'}: {Math.round(playerStats.stamina ?? 0)}/{playerStats.maxStamina ?? 100}</p></TooltipContent>
@@ -590,11 +676,11 @@ có                         </div>
                                     </div>
 
                                     {/* Hunger (mobile) */}
-                                    <div className="flex flex-col items-center">
+                                    <div className="flex flex-col items-center p-2">
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <div>
-                                                    <HudIconHunger percent={Math.max(0, Math.min(1, hungerPct))} size={40} />
+                                                    <HudIconHunger percent={Math.max(0, Math.min(1, hungerPct))} size={isDesktop ? 40 : 48} />
                                                 </div>
                                             </TooltipTrigger>
                                             <TooltipContent><p>{t('hudHunger') ?? 'Hunger'}: {Math.round(playerStats.hunger ?? 0)}/{playerStats.maxHunger ?? 100}</p></TooltipContent>
@@ -604,13 +690,13 @@ có                         </div>
                                 </div>
 
                                 {/* Minimap */}
-                                <div className="flex flex-col items-center gap-2">
+                                <div className="flex flex-col items-center gap-2 w-full max-w-xs mx-auto">
                                     <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); focusCustomActionInput(); }}>{t('minimap')}</h3>
                                     <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
                                     </div>
-                                    <Minimap grid={generateMapGrid()} playerPosition={playerPosition} turn={turn} biomeDefinitions={biomeDefinitions} />
+                                    <Minimap grid={generateMapGrid()} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} />
                                 </div>
                             </>
                         )}
@@ -621,21 +707,21 @@ có                         </div>
                         {/* Controls (mobile only). On desktop we show the bottom fixed action bar instead. */}
                         <div className="flex items-center justify-between gap-4">
                             {!isDesktop && (
-                                <Controls onMove={(dir) => { handleMove(dir); focusCustomActionInput(); }} onAttack={() => { handleAttack(); focusCustomActionInput(); }} />
+                                <Controls onMove={(dir) => { handleMove(dir); focusCustomActionInput(); }} onAttack={() => { handleAttack(); focusCustomActionInput(); }} onRest={() => { handleWaitTick(); focusCustomActionInput(); }} />
                             )}
                         </div>
 
-                        {/* Horizontal bottom action bar: skills (left), available actions (center), main actions (right) */}
-                        <div className="w-full bg-transparent p-3 flex items-center gap-3 overflow-x-auto md:hidden">
+                        {/* Streamlined Mobile Action Bar */}
+                        <div className="w-full bg-transparent p-4 flex items-center gap-3 md:hidden">
                             {/* Skills (left) */}
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 overflow-x-auto">
                                 {playerStats.skills?.map((skill: import('@/lib/game/types').Skill) => {
                                     const skillName = getTranslatedText(skill.name, language, t);
                                     return (
                                         <Tooltip key={skillName}>
                                             <TooltipTrigger asChild>
-                                                <Button variant="secondary" className="text-xs" onClick={() => { handleUseSkill(skillName); focusCustomActionInput(); }} disabled={isLoading || playerStats.mana < skill.manaCost}>
-                                                    <WandSparkles className="h-4 w-4 mr-2" />
+                                                <Button variant="secondary" className="text-xs px-2 py-1" onClick={() => { handleUseSkill(skillName); focusCustomActionInput(); }} disabled={isLoading || playerStats.mana < skill.manaCost}>
+                                                    <WandSparkles className="h-4 w-4 mr-1" />
                                                     <span className="hidden sm:inline">{skillName}</span>
                                                 </Button>
                                             </TooltipTrigger>
@@ -645,33 +731,23 @@ có                         </div>
                                 })}
                             </div>
 
-                            {/* Available actions (center) */}
-                            <div className="flex-1 flex items-center justify-center gap-2">
-                                {pickUpActions.length > 0 && (
-                                    <Button variant="accent" onClick={() => { setPickupDialogOpen(true); setSelectedPickupIds([]); }}>{t('pickUpItems') || 'Pick up items'}</Button>
-                                )}
-                                {otherActions.map((action: Action) => {
-                                    const actionText = getTranslatedText({ key: action.textKey, params: action.params }, language, t);
-                                    return (
-                                        <Tooltip key={action.id}>
-                                            <TooltipTrigger asChild>
-                                                <Button variant="secondary" className="text-sm" onClick={() => handleActionClick(action.id)} disabled={isLoading}>{actionText}</Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent><p>{actionText}</p></TooltipContent>
-                                        </Tooltip>
-                                    );
-                                })}
+                            {/* Context-Sensitive Main Action (center) */}
+                            <div className="flex-1 flex justify-center">
+                                <Button
+                                    variant={contextAction.type === 'attack' ? 'destructive' : 'default'}
+                                    className="px-6 py-3 text-base font-semibold"
+                                    onClick={() => { contextAction.handler(); focusCustomActionInput(); }}
+                                    disabled={isLoading}
+                                >
+                                    {contextAction.label}
+                                </Button>
                             </div>
 
-                            {/* Main actions & menu (right) */}
-                            <div className="ml-auto flex items-center gap-2">
-                                <Button aria-label={t('statusShort') || 'Status'} variant="outline" size="icon" onClick={() => { setStatusOpen(true); focusCustomActionInput(); }}><Shield /></Button>
-                                <Button aria-label={t('inventoryShort') || 'Inventory'} variant="outline" size="icon" onClick={() => { setInventoryOpen(true); focusCustomActionInput(); }}><Backpack /></Button>
-                                <Button aria-label={t('craftingShort') || 'Crafting'} variant="outline" size="icon" onClick={() => { setCraftingOpen(true); focusCustomActionInput(); }}><Hammer /></Button>
-                                <Button aria-label={t('buildingShort') || 'Build'} variant="outline" size="icon" onClick={() => { setBuildingOpen(true); focusCustomActionInput(); }}><Home /></Button>
-                                <Button aria-label={t('fusionShort') || 'Fuse'} variant="outline" size="icon" onClick={() => { setFusionOpen(true); focusCustomActionInput(); }}><FlaskConical /></Button>
-                                <Button variant="outline" onClick={() => setAvailableActionsOpen(true)}>{t('actions') || 'Actions'}</Button>
-                                {/* Custom action removed from the map/HUD column to keep it map+HUD only */}
+                            {/* Menu Button (right) */}
+                            <div className="flex items-center">
+                                <Button variant="outline" size="icon" onClick={() => setAvailableActionsOpen(true)} aria-label="Menu">
+                                    <Menu className="h-5 w-5" />
+                                </Button>
                             </div>
                         </div>
 
@@ -732,23 +808,49 @@ có                         </div>
                         {/* Custom action input removed from the map/HUD column so the aside only contains map and HUD */}
                     </div>
                 </aside>
-                {/* Dialog: Available Actions (desktop) */}
+                {/* Dialog: Menu (Mobile) */}
                 <Dialog open={isAvailableActionsOpen} onOpenChange={setAvailableActionsOpen}>
                     <DialogContent className="sm:max-w-md">
                         <DialogHeader>
-                            <DialogTitle>{t('availableActions') || 'Available Actions'}</DialogTitle>
-                            <DialogDescription>{t('availableActionsDesc') || 'Choose an available action.'}</DialogDescription>
+                            <DialogTitle>{t('menu') || 'Menu'}</DialogTitle>
+                            <DialogDescription>{t('menuDesc') || 'Access game features and settings.'}</DialogDescription>
                         </DialogHeader>
-                        <div className="mt-4 grid grid-cols-1 gap-2">
-                            {currentChunk?.actions.length ? (
-                                currentChunk!.actions.map((action: Action) => (
-                                    <Button key={action.id} variant="secondary" className="w-full justify-center" onClick={() => { handleActionClick(action.id); setAvailableActionsOpen(false); }}>
-                                        {getTranslatedText({ key: action.textKey, params: action.params }, language, t)}
-                                    </Button>
-                                ))
-                            ) : (
-                                <p className="text-sm text-muted-foreground">{t('noAvailableActions') || 'No actions available.'}</p>
-                            )}
+                        <div className="mt-4 grid grid-cols-2 gap-2">
+                            <Button variant="outline" className="flex flex-col items-center gap-1 h-16" onClick={() => { setStatusOpen(true); setAvailableActionsOpen(false); focusCustomActionInput(); }}>
+                                <Shield className="h-6 w-6" />
+                                <span className="text-xs">{t('statusShort') || 'Status'}</span>
+                            </Button>
+                            <Button variant="outline" className="flex flex-col items-center gap-1 h-16" onClick={() => { setInventoryOpen(true); setAvailableActionsOpen(false); focusCustomActionInput(); }}>
+                                <Backpack className="h-6 w-6" />
+                                <span className="text-xs">{t('inventoryShort') || 'Inventory'}</span>
+                            </Button>
+                            <Button variant="outline" className="flex flex-col items-center gap-1 h-16" onClick={() => { setCraftingOpen(true); setAvailableActionsOpen(false); focusCustomActionInput(); }}>
+                                <Hammer className="h-6 w-6" />
+                                <span className="text-xs">{t('craftingShort') || 'Craft'}</span>
+                            </Button>
+                            <Button variant="outline" className="flex flex-col items-center gap-1 h-16" onClick={() => { setBuildingOpen(true); setAvailableActionsOpen(false); focusCustomActionInput(); }}>
+                                <Home className="h-6 w-6" />
+                                <span className="text-xs">{t('buildingShort') || 'Build'}</span>
+                            </Button>
+                            <Button variant="outline" className="flex flex-col items-center gap-1 h-16" onClick={() => { setFusionOpen(true); setAvailableActionsOpen(false); focusCustomActionInput(); }}>
+                                <FlaskConical className="h-6 w-6" />
+                                <span className="text-xs">{t('fusionShort') || 'Fuse'}</span>
+                            </Button>
+                            <Button variant="outline" className="flex flex-col items-center gap-1 h-16" onClick={() => { setIsFullMapOpen(true); setAvailableActionsOpen(false); focusCustomActionInput(); }}>
+                                <Cpu className="h-6 w-6" />
+                                <span className="text-xs">{t('map') || 'Map'}</span>
+                            </Button>
+                        </div>
+                        <Separator className="my-4" />
+                        <div className="grid grid-cols-1 gap-2">
+                            <Button variant="ghost" className="justify-start" onClick={() => { setTutorialOpen(true); setAvailableActionsOpen(false); focusCustomActionInput(); }}>
+                                <LifeBuoy className="mr-2 h-4 w-4" />
+                                <span>{t('tutorialTitle') || 'Tutorial'}</span>
+                            </Button>
+                            <Button variant="ghost" className="justify-start" onClick={() => { setSettingsOpen(true); setAvailableActionsOpen(false); focusCustomActionInput(); }}>
+                                <Settings className="mr-2 h-4 w-4" />
+                                <span>{t('gameSettings') || 'Settings'}</span>
+                            </Button>
                         </div>
                     </DialogContent>
                 </Dialog>
@@ -810,7 +912,7 @@ có                         </div>
                         </div>
                     </DialogContent>
                 </Dialog>
-                <InventoryPopup open={isInventoryOpen} onOpenChange={setInventoryOpen} items={playerStats.items} itemDefinitions={customItemDefinitions} enemy={currentChunk?.enemy || null} onUseItem={handleItemUsed} onEquipItem={handleEquipItem} />
+                <InventoryPopup open={isInventoryOpen} onOpenChange={setInventoryOpen} items={playerStats.items} itemDefinitions={customItemDefinitions} enemy={currentChunk?.enemy || null} onUseItem={handleItemUsed} onEquipItem={handleEquipItem} onDropItem={handleDropItem} />
                 <CraftingPopup open={isCraftingOpen} onOpenChange={setCraftingOpen} playerItems={playerStats.items} recipes={recipes} onCraft={handleCraft} itemDefinitions={customItemDefinitions} />
                 <BuildingPopup open={isBuildingOpen} onOpenChange={setBuildingOpen} playerItems={playerStats.items} buildableStructures={buildableStructures} onBuild={handleBuild} />
                 <FusionPopup open={isFusionOpen} onOpenChange={setFusionOpen} playerItems={playerStats.items} itemDefinitions={customItemDefinitions} onFuse={handleFuseItems} isLoading={isLoading} />

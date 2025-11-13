@@ -395,7 +395,7 @@ export function generateChunkContent(
 
     // Determine the maximum number of unique item types to select for this chunk.
     // Reduced base so chunks do not automatically fill up with many items.
-    const baseMaxItems = 2; // Default (reduced) number of unique item types per chunk (lowered)
+    const baseMaxItems = 1; // Default (reduced) number of unique item types per chunk (lowered)
     
     // Clamp a value between 0 and 1, typically used for normalizing chunk data values.
     // This ensures that environmental metrics are within a predictable range for calculations.
@@ -417,8 +417,8 @@ export function generateChunkContent(
 
     // Map the combined chunk and world resource score to a multiplier for item count.
     // This ensures that resource-rich chunks in resource-rich worlds spawn more items, and vice-versa.
-    // The formula `0.5 + (chunkResourceScore * 1.0 * worldDensityScale)` results in a range roughly between 0.5 and 1.5.
-    const chunkCountMultiplier = 0.5 + (chunkResourceScore * 1.0 * worldDensityScale); // Range [0.5, 1.5]
+    // The formula `0.2 + (chunkResourceScore * 0.5 * worldDensityScale)` results in a range roughly between 0.2 and 0.7.
+    const chunkCountMultiplier = 0.2 + (chunkResourceScore * 0.5 * worldDensityScale); // Range [0.2, 0.7]
 
     // Calculate the final maximum number of unique items that can spawn in this chunk.
     // This applies the base number of items, the effective world spawn multiplier, and the chunk-specific count multiplier.

@@ -177,9 +177,10 @@ export function useGameInitialization(deps: GameInitializationDeps) {
         if (Array.isArray(normalizedStats.items) && normalizedStats.items.length > 0) {
           normalizedStats.items = normalizedStats.items.map((it: any) => ensurePlayerItemId(it, finalDefs, t, language));
         }
-        setPlayerStats(() => normalizedStats);
-        setFinalWorldSetup(() => stateToInitialize.worldSetup);
-        setPlayerPosition(stateToInitialize.playerPosition || { x: 0, y: 0 });
+  setPlayerStats(() => normalizedStats);
+  setFinalWorldSetup(() => stateToInitialize.worldSetup);
+  try { logger.debug('[GameInit] initializing playerPosition', { pos: stateToInitialize.playerPosition || { x: 0, y: 0 }, at: Date.now() }); } catch {}
+  setPlayerPosition(stateToInitialize.playerPosition || { x: 0, y: 0 });
         setPlayerBehaviorProfile(stateToInitialize.playerBehaviorProfile || { moves: 0, attacks: 0, crafts: 0, customActions: 0 });
 
         let worldSnapshot: Record<string, any> = stateToInitialize.world || {};

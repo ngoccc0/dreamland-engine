@@ -16,6 +16,7 @@ import { useActionHandlers } from "./use-action-handlers";
 import { useGameEffects } from "./use-game-effects";
 import { useSettings } from "@/context/settings-context"; // Import useSettings
 import { useAudioContext } from '@/lib/audio/AudioProvider';
+import { defaultGameConfig } from '@/lib/config/game-config';
 
 interface GameEngineProps {
     gameSlot: number;
@@ -180,6 +181,12 @@ export function useGameEngine(props: GameEngineProps) {
     const advanceGameTime = (stats?: any) => {
         const currentTurn = gameState.turn || 0;
 
+        // Apply any pending creature updates from the previous turn
+        const pendingMessages = creatureEngineRef.current.applyPendingUpdates();
+        for (const message of pendingMessages) {
+            addNarrativeEntry(message.text, message.type);
+        }
+
         gameState.setGameTime(prev => {
                 const next = prev + (settings as any).timePerTurn; // Use timePerTurn from settings
                 if (next >= (settings as any).dayDuration) { // Use dayDuration from settings
@@ -194,7 +201,7 @@ export function useGameEngine(props: GameEngineProps) {
         // If caller provided a candidate stats object, apply per-tick effects
         if (stats) {
             const newStats = { ...stats } as PlayerStatusDefinition;
-            const { newStats: updated, messages } = applyTickEffects(newStats, currentTurn, t);
+            const { newStats: updated, messages } = applyTickEffects(newStats, currentTurn, t, defaultGameConfig);
             for (const m of messages) addNarrativeEntry(m.text, m.type);
             gameState.setPlayerStats(() => updated);
         }

@@ -5,6 +5,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
@@ -16,7 +17,7 @@ import { cn, getTranslatedText } from "@/lib/utils";
 import { resolveItemDef } from '@/lib/game/item-utils';
 import { Switch } from "@/components/ui/switch";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 interface CraftingPopupProps {
   open: boolean;
@@ -32,31 +33,55 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
   const [showOnlyCraftable, setShowOnlyCraftable] = useState(false);
   const [showOnlyWithAnyIngredient, setShowOnlyWithAnyIngredient] = useState(false);
   const [sortByCraftability, setSortByCraftability] = useState(false);
+  const [sortByAlphabet, setSortByAlphabet] = useState(false);
+  const [sortByItemType, setSortByItemType] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // Process recipes with craftability scores
-  const processedRecipes = Object.values(recipes).map(recipe => {
-    const outcome = calculateCraftingOutcome(playerItems, recipe, itemDefinitions);
-    const craftabilityScore = outcome.resolvedIngredients.filter(ing => ing.hasEnough).length / recipe.ingredients.length;
-    return { recipe, outcome, craftabilityScore };
-  });
+  // Process recipes with craftability scores and item categories
+  const processedRecipes = useMemo(() => {
+    return Object.values(recipes).map(recipe => {
+      const outcome = calculateCraftingOutcome(playerItems, recipe, itemDefinitions);
+      const craftabilityScore = outcome.resolvedIngredients.filter(ing => ing.hasEnough).length / recipe.ingredients.length;
+
+      // Get item category from itemDefinitions
+      const itemDef = itemDefinitions[recipe.result.name] || resolveItemDef(recipe.result.name, itemDefinitions);
+      const itemCategory = itemDef?.category || 'Misc';
+
+      // Get translated item name for sorting/searching
+      const translatedName = getTranslatedText(recipe.result.name, language, t).toLowerCase();
+
+      return { recipe, outcome, craftabilityScore, itemCategory, translatedName };
+    });
+  }, [recipes, playerItems, itemDefinitions, language, t]);
 
   // Filter and sort recipes
-  const filteredRecipes = processedRecipes
-    .filter(({ craftabilityScore, outcome }) => {
-      if (showOnlyCraftable && craftabilityScore < 1) {
-        return false;
-      }
-      if (showOnlyWithAnyIngredient && outcome.resolvedIngredients.every(ing => ing.playerQuantity === 0)) {
-        return false;
-      }
-      return true;
-    })
-    .sort((a, b) => {
-      if (sortByCraftability) {
-        return b.craftabilityScore - a.craftabilityScore;
-      }
-      return 0;
-    });
+  const filteredRecipes = useMemo(() => {
+    return processedRecipes
+      .filter(({ craftabilityScore, outcome, translatedName }) => {
+        if (showOnlyCraftable && craftabilityScore < 1) {
+          return false;
+        }
+        if (showOnlyWithAnyIngredient && outcome.resolvedIngredients.every(ing => ing.playerQuantity === 0)) {
+          return false;
+        }
+        if (searchTerm && !translatedName.includes(searchTerm.toLowerCase())) {
+          return false;
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortByCraftability) {
+          return b.craftabilityScore - a.craftabilityScore;
+        }
+        if (sortByAlphabet) {
+          return a.translatedName.localeCompare(b.translatedName);
+        }
+        if (sortByItemType) {
+          return a.itemCategory.localeCompare(b.itemCategory);
+        }
+        return 0;
+      });
+  }, [processedRecipes, showOnlyCraftable, showOnlyWithAnyIngredient, searchTerm, sortByCraftability, sortByAlphabet, sortByItemType]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -67,35 +92,79 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
           </DialogTitle>
           <DialogDescription>{t('craftingDesc')}</DialogDescription>
         </DialogHeader>
-        <div className="flex gap-4 mb-4">
-          <div className="flex items-center gap-2">
-            <Switch
-              checked={showOnlyCraftable}
-              onCheckedChange={setShowOnlyCraftable}
-              id="craftable-filter"
-            />
-            <label htmlFor="craftable-filter" className="text-sm">
-              {t('showOnlyCraftable')}
-            </label>
+        <div className="space-y-4 mb-4">
+          <div className="flex gap-4">
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={showOnlyCraftable}
+                onCheckedChange={setShowOnlyCraftable}
+                id="craftable-filter"
+              />
+              <label htmlFor="craftable-filter" className="text-sm">
+                {t('showOnlyCraftable')}
+              </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={showOnlyWithAnyIngredient}
+                onCheckedChange={setShowOnlyWithAnyIngredient}
+                id="any-ingredient-filter"
+              />
+              <label htmlFor="any-ingredient-filter" className="text-sm">
+                {t('showOnlyWithAnyIngredient')}
+              </label>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Switch
-              checked={showOnlyWithAnyIngredient}
-              onCheckedChange={setShowOnlyWithAnyIngredient}
-              id="any-ingredient-filter"
+          <div className="flex gap-4">
+            <Input
+              placeholder={t('searchRecipes') || 'Search recipes...'}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1"
             />
-            <label htmlFor="any-ingredient-filter" className="text-sm">
-              {t('showOnlyWithAnyIngredient')}
-            </label>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSortByAlphabet(!sortByAlphabet);
+                if (!sortByAlphabet) {
+                  setSortByCraftability(false);
+                  setSortByItemType(false);
+                }
+              }}
+              className={cn("text-sm", sortByAlphabet && "bg-accent")}
+            >
+              {t('sortByAlphabet') || 'A-Z'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSortByItemType(!sortByItemType);
+                if (!sortByItemType) {
+                  setSortByCraftability(false);
+                  setSortByAlphabet(false);
+                }
+              }}
+              className={cn("text-sm", sortByItemType && "bg-accent")}
+            >
+              {t('sortByItemType') || 'By Type'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSortByCraftability(!sortByCraftability);
+                if (!sortByCraftability) {
+                  setSortByAlphabet(false);
+                  setSortByItemType(false);
+                }
+              }}
+              className={cn("text-sm", sortByCraftability && "bg-accent")}
+            >
+              {t('sortByCraftability')}
+            </Button>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setSortByCraftability(!sortByCraftability)}
-            className={cn("text-sm", sortByCraftability && "bg-accent")}
-          >
-            {t('sortByCraftability')}
-          </Button>
         </div>
         <Separator />
         <ScrollArea className="max-h-[65vh] pr-4">

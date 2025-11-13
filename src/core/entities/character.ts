@@ -48,6 +48,10 @@ export class Character {
     health: number;
     /** Maximum health points the character can have. */
     maxHealth: number;
+    /** Current stamina points. */
+    stamina: number;
+    /** Maximum stamina points the character can have. */
+    maxStamina: number;
     /** Current mana points. */
     mana: number;
     /** Maximum mana points the character can have. */
@@ -85,6 +89,8 @@ export class Character {
         this.level = 1;
         this.health = 100;
         this.maxHealth = 100;
+        this.stamina = 100;
+        this.maxStamina = 100;
         this.mana = 100;
         this.maxMana = 100;
         this.bodyTemperature = 37; // Normal human body temperature in Celsius

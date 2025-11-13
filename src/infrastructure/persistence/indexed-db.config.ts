@@ -23,4 +23,15 @@ class GameDB extends Dexie {
   }
 }
 
-export const db = new GameDB();
+let _dbInstance: GameDB | null = null;
+
+/**
+ * Lazily create and return the Dexie DB instance so module evaluation won't
+ * synchronously run IndexedDB work on import.
+ */
+export function getIndexedDb(): GameDB {
+  if (!_dbInstance) {
+    _dbInstance = new GameDB();
+  }
+  return _dbInstance;
+}

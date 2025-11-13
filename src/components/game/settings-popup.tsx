@@ -298,6 +298,13 @@ export function SettingsPopup({ open, onOpenChange, isInGame, currentBiome }: Se
                     </Label>
                     <Switch id="controls-scroll-switch" checked={settings.controlsPreventScroll ?? true} onCheckedChange={(v) => setSettings({ controlsPreventScroll: !!v })} />
                 </div>
+                <div className="flex items-center justify-between space-x-4 mt-3">
+                    <Label htmlFor="auto-pickup-switch" className="flex flex-col space-y-1">
+                        <span className="font-semibold">{t('autoPickup') || 'Auto Pick Up'}</span>
+                        <span className="font-normal leading-snug text-muted-foreground">{t('autoPickupDesc') || 'Automatically pick up items when you move onto a tile that contains items.'}</span>
+                    </Label>
+                    <Switch id="auto-pickup-switch" checked={!!settings.autoPickup} onCheckedChange={(v) => setSettings({ autoPickup: !!v })} />
+                </div>
                 <div>
                     <Label className="font-semibold mt-4">{t('keyBindings') || 'Key bindings'}</Label>
                     <p className="text-sm text-muted-foreground mb-2">{t('keyBindingsDesc') || 'Customize keyboard shortcuts for movement and common actions.'}</p>

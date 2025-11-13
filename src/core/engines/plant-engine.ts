@@ -18,6 +18,7 @@ interface PlantInstance {
  */
 export class PlantEngine {
     private config = defaultGameConfig;
+    // Resource constants are now configurable via defaultGameConfig.plant
 
     constructor(private t: (key: string, params?: any) => string, config?: Partial<typeof defaultGameConfig>) {
         if (config) {
@@ -28,6 +29,20 @@ export class PlantEngine {
                 creature: { ...this.config.creature, ...(config as any).creature }
             } as any;
         }
+    }
+
+    /**
+     * Return a vegetation narrative message for a chunk, if a significant change has occurred
+     * since the last snapshot. This is intended to be called by an explicit "listen around"
+     * action rather than emitted every engine tick to avoid spamming the narrative stream.
+     */
+    public getVegetationNarrativeForChunk(chunk: Chunk): string | null {
+        const prev = (chunk as any).prevVegetationDensity ?? 0;
+        const cur = chunk.vegetationDensity ?? 0;
+        if (Math.abs(cur - prev) <= 10) return null;
+        return cur > prev
+            ? this.t('vegetationIncreased', { x: chunk.x, y: chunk.y })
+            : this.t('vegetationDecreased', { x: chunk.x, y: chunk.y });
     }
 
     /**
@@ -72,21 +87,51 @@ export class PlantEngine {
 
                 // Growth and maturity
                 if (plant.maturity < 100 && envCheck.canGrow) {
-                    plant.maturity += Math.max(0, (1 - stressLevel) * this.config.plant.baseGrowthMultiplier);
-                    plant.maturity = Math.min(100, plant.maturity);
+                    // Base potential gain before resource constraints
+                    const baseGain = Math.max(0, (1 - stressLevel) * this.config.plant.baseGrowthMultiplier * this.config.plant.maturityRate);
+
                     // Growth modifiers from chunk (nutrition, fertilizer) and recent watering
                     const nutrition = (chunk as any).nutrition ?? 0;
                     const fertilizer = (chunk as any).fertilizerLevel ?? 0;
-                    const growthBonus = 1 + (nutrition / 100) + (fertilizer / 50);
+                    const growthBonus = 1 + (nutrition * 0.01) + (fertilizer * 0.02);
                     const waterFactor = (chunk as any).waterTimer && (chunk as any).waterTimer > 0 ? 1.2 : 1.0;
-                    const gain = Math.max(0, (1 - stressLevel) * this.config.plant.baseGrowthMultiplier * growthBonus * waterFactor * this.config.plant.maturityRate);
-                    plant.maturity += gain;
+
+                    const potentialGain = Math.max(0, baseGain * growthBonus * waterFactor);
+
+                    // Determine resource needs for potential gain
+                    const nutritionNeeded = potentialGain * this.config.plant.nutritionPerMaturity;
+                    const fertilizerNeeded = potentialGain * this.config.plant.fertilizerPerMaturity;
+                    const waterNeeded = potentialGain * this.config.plant.waterPerMaturity;
+
+                    // Scale down gain if resources insufficient
+                    let nutritionFactor = 1;
+                    if (nutritionNeeded > 0 && (chunk as any).nutrition < nutritionNeeded) {
+                        nutritionFactor = (chunk as any).nutrition / nutritionNeeded;
+                    }
+                    let fertilizerFactor = 1;
+                    if (fertilizerNeeded > 0 && (chunk as any).fertilizerLevel < fertilizerNeeded) {
+                        fertilizerFactor = (chunk as any).fertilizerLevel / fertilizerNeeded;
+                    }
+                    let waterFactorResource = 1;
+                    if (waterNeeded > 0 && ((chunk as any).waterTimer ?? 0) < waterNeeded) {
+                        waterFactorResource = ((chunk as any).waterTimer ?? 0) / waterNeeded;
+                    }
+
+                    const finalGain = potentialGain * Math.min(nutritionFactor, fertilizerFactor, waterFactorResource);
+
+                    // Apply maturity gain
+                    plant.maturity += finalGain;
                     plant.maturity = Math.min(100, plant.maturity);
 
-                    // Consume a tick of waterTimer if present (water evaporates over time)
-                    if ((chunk as any).waterTimer && (chunk as any).waterTimer > 0) {
-                        (chunk as any).waterTimer = Math.max(0, (chunk as any).waterTimer - 1);
-                    }
+                    // Consume resources according to what was actually used
+                    const nutritionConsumed = Math.min((chunk as any).nutrition ?? 0, finalGain * this.config.plant.nutritionPerMaturity);
+                    (chunk as any).nutrition = Math.max(0, ((chunk as any).nutrition ?? 0) - nutritionConsumed);
+
+                    const fertilizerConsumed = Math.min((chunk as any).fertilizerLevel ?? 0, finalGain * this.config.plant.fertilizerPerMaturity);
+                    (chunk as any).fertilizerLevel = Math.max(0, ((chunk as any).fertilizerLevel ?? 0) - fertilizerConsumed);
+
+                    const waterConsumed = Math.min(((chunk as any).waterTimer ?? 0), finalGain * this.config.plant.waterPerMaturity);
+                    (chunk as any).waterTimer = Math.max(0, ((chunk as any).waterTimer ?? 0) - waterConsumed);
                 }
 
                 // Reproduction attempt
@@ -128,16 +173,25 @@ export class PlantEngine {
                 });
             });
 
+            // Consume chunk-level resources / passive decay after processing plants
+            if ((chunk as any).waterTimer && (chunk as any).waterTimer > 0) {
+                // decrement one tick of water available for the chunk per engine tick
+                (chunk as any).waterTimer = Math.max(0, (chunk as any).waterTimer - 1);
+            }
+
+            if ((chunk as any).fertilizerLevel && (chunk as any).fertilizerLevel > 0) {
+                (chunk as any).fertilizerLevel = Math.max(0, (chunk as any).fertilizerLevel - this.config.plant.fertilizerDecayPerTick);
+            }
+
             // Calculate new vegetation density from surviving plants
             const newDensity = this.calculateVegetationDensity(plants);
-            if (Math.abs(newDensity - oldVegDensity) > 10) {
-                messages.push({
-                    text: newDensity > oldVegDensity
-                        ? this.t('vegetationIncreased', { x: chunk.x, y: chunk.y })
-                        : this.t('vegetationDecreased', { x: chunk.x, y: chunk.y }),
-                    type: 'narrative'
-                });
-            }
+            // Previously we emitted vegetationNarrative every time density changed significantly.
+            // That produced frequent messages like "vegetationDecreased" every tick.
+            // To avoid spam, do not emit narrative here. Instead record the previous density so
+            // an explicit 'listen around' action can query and produce a single message.
+            // Store the previous density snapshot on the chunk for later inspection.
+            (chunk as any).prevVegetationDensity = oldVegDensity;
+            (chunk as any).vegetationChangedSignificantly = Math.abs(newDensity - oldVegDensity) > 10;
             chunk.vegetationDensity = newDensity;
         }
 
@@ -165,7 +219,7 @@ export class PlantEngine {
         for (const plant of plants) {
             if (plant.definition.plantProperties) {
                 // Scale contribution by maturity
-                total += (plant.definition.plantProperties.vegetationContribution * (plant.maturity / 100));
+                total += (plant.definition.plantProperties.vegetationContribution * (plant.maturity * 0.01));
             }
         }
         return Math.min(100, total);
@@ -210,7 +264,7 @@ export class PlantEngine {
     // Apply soil nutrition / fertilizer as modifiers to suitability for growth
     const nutrition = (chunk as any).nutrition ?? 0;
     const fertilizer = (chunk as any).fertilizerLevel ?? 0;
-    const growthBoost = 1 + (nutrition / 200) + (fertilizer / 100);
+    const growthBoost = 1 + (nutrition * 0.005) + (fertilizer * 0.01);
     const canGrow = (suitability * growthBoost) > 0.3;
         const canReproduce = props.reproduction?.requirements ? (
             moisture >= props.reproduction.requirements.minMoisture &&

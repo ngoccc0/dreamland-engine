@@ -117,8 +117,18 @@ export interface PlayerStatusDefinition {
     hp: number;
     /** The current stamina points of the player, used for actions and movement. */
     stamina: number;
+    /** The maximum stamina points the player can have. */
+    maxStamina: number;
     /** The current hunger level of the player. */
     hunger?: number;
+    /** Counter for tracking hunger decay intervals. */
+    hungerTickCounter?: number;
+    /** Counter for tracking HP regeneration intervals. */
+    hpRegenTickCounter?: number;
+    /** Counter for tracking stamina regeneration intervals. */
+    staminaRegenTickCounter?: number;
+    /** Counter for tracking mana regeneration intervals. */
+    manaRegenTickCounter?: number;
     /** The current mana points of the player, used for magical abilities. */
     mana?: number;
     /** A list of items currently in the player's inventory. */
@@ -546,6 +556,8 @@ export interface GameSettings {
   fontSize: FontSize;
   /** The active UI theme. */
   theme: Theme;
+    /** When true, the player will automatically pick up items when entering a tile containing items. */
+    autoPickup?: boolean;
     /** Optional: A bundle of active mods. */
     mods: ModBundle | null;
     /** When true, the UI uses the legacy (mobile-oriented) layout: bottom action bar is shown even on desktop. */

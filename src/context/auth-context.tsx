@@ -24,7 +24,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     let unsub: (() => void) | undefined;
     const init = async () => {
       try {
-        const fc = await import('@/lib/firebase-config');
+        const fcModule = await import('@/lib/firebase-config');
+        const fc = await (fcModule.getFirebaseExports ? fcModule.getFirebaseExports() : (fcModule as any));
         if (!fc || !fc.auth) {
           setIsFirebaseConfigured(false);
           setLoading(false);
@@ -49,7 +50,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async () => {
     try {
-      const fc = await import('@/lib/firebase-config');
+      const fcModule = await import('@/lib/firebase-config');
+      const fc = await (fcModule.getFirebaseExports ? fcModule.getFirebaseExports() : (fcModule as any));
       if (!fc || !fc.auth || !fc.googleProvider) {
         console.error('Firebase is not configured. Cannot log in.');
         return;
@@ -63,7 +65,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      const fc = await import('@/lib/firebase-config');
+      const fcModule = await import('@/lib/firebase-config');
+      const fc = await (fcModule.getFirebaseExports ? fcModule.getFirebaseExports() : (fcModule as any));
       if (!fc || !fc.auth) {
         console.error('Firebase is not configured. Cannot log out.');
         return;

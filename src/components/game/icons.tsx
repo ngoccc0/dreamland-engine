@@ -4,7 +4,7 @@ export function renderItemEmoji(emoji: string, size: number = 20) {
   if (/^[^./\\]{1,3}$/.test(emoji)) {
     return <span>{emoji}</span>;
   }
-  return <img src={emoji.startsWith('/') ? emoji : `/assets/${emoji}`} alt="icon" style={{ width: size, height: size, display: 'inline-block', verticalAlign: 'middle' }} />;
+  return <img src={emoji.startsWith('/') ? emoji : `/asset/${emoji}`} alt="icon" style={{ width: size, height: size, display: 'inline-block', verticalAlign: 'middle' }} />;
 }
 // Re-export Lucide icons for a single point of management
 export {

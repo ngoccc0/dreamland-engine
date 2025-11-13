@@ -20,7 +20,7 @@ import { GeneratedItemSchema, GenerateNewItemInputSchema } from '@/ai/schemas';
 import { getEmojiForItem } from '@/lib/utils';
 import { setDoc, doc } from 'firebase/firestore';
 import type { Firestore } from 'firebase/firestore'
-import { db } from '@/lib/firebase-config';
+import { getDb } from '@/lib/firebase-config';
 
 // --- INPUT/OUTPUT SCHEMAS ---
 
@@ -106,15 +106,16 @@ const generateNewItemFlow = ai.defineFlow(
             emoji,
         };
 
-        // Save the new item to Firestore for persistence across games
-        if (db) {
-            try {
+        // Save the new item to Firestore for persistence across games (lazy DB)
+        try {
+            const db = await getDb();
+            if (db) {
                 await setDoc(doc(db, "world-catalog", "items", "generated", finalItem.name), finalItem);
                 console.log(`[generateNewItemFlow] Successfully saved new item '${finalItem.name}' to Firestore.`);
-            } catch (error: any) {
-                console.error("Failed to save new item to Firestore:", error);
-                // We don't throw here, as the game can continue without this save.
             }
+        } catch (error: any) {
+            console.error("Failed to save new item to Firestore:", error);
+            // non-fatal
         }
 
         return finalItem;

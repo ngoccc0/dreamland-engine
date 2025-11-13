@@ -10,6 +10,8 @@ import { useSettings } from '@/context/settings-context';
 import { generateNarrative } from '@/ai/flows/generate-narrative-flow';
 import type { GenerateNarrativeInput } from '@/ai/flows/generate-narrative-flow';
 import { fuseItems } from '@/ai/flows/fuse-items-flow';
+import { createHandleOnlineNarrative } from '@/hooks/use-action-handlers.online';
+import { createHandleOfflineAttack } from '@/hooks/use-action-handlers.offlineAttack';
 import { tillSoil, waterTile, fertilizeTile, plantSeed } from '@/core/usecases/farming-usecase';
 import { provideQuestHint } from '@/ai/flows/provide-quest-hint';
 import { rollDice, getSuccessLevel, successLevelToTranslationKey } from '@/lib/game/dice';
@@ -25,7 +27,7 @@ import { getKeywordVariations } from '@/lib/game/data/narrative-templates';
 import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem, NarrativeEntry, GeneratedItem, TranslatableString, ItemDefinition, Chunk, Enemy } from '@/core/types/game';
 import type { LootDrop } from '@/core/types/definitions/base';
 import { doc, setDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase-config';
+import { getDb } from '@/lib/firebase-config';
 import { logger } from '@/lib/logger';
 
 type ActionHandlerDeps = {
@@ -98,6 +100,8 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     // events into a single summary narrative instead of spamming detailed lines per item.
     const pickupBufferRef = useRef<{ items: Array<any>; timer?: ReturnType<typeof setTimeout> }>({ items: [] });
     const lastPickupMonologueAt = useRef(0);
+    const onlineNarrativeRef = useRef<any>(null);
+    const offlineAttackRef = useRef<any>(null);
 
     const flushPickupBuffer = () => {
         const buf = pickupBufferRef.current;
@@ -179,232 +183,75 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         }
     }, [world, playerPosition.x, playerPosition.y, weatherZones, gameTime, audio, sStart, sDayDuration]);
 
-  const handleOnlineNarrative = useCallback(async (action: string, worldCtx: World, playerPosCtx: { x: number, y: number }, playerStatsCtx: PlayerStatus) => {
-    setIsLoading(true);
-    
-    const entryId = `${Date.now()}-ai-response`;
-    logger.info(`[AI] Starting narrative generation for action: "${action}"`, { entryId });
-    
-    const baseChunk = worldCtx[`${playerPosCtx.x},${playerPosCtx.y}`];
-    if (!baseChunk || !finalWorldSetup) { setIsLoading(false); return; }
-
-    const { roll, range } = rollDice(settings.diceType);
-    const successLevel = getSuccessLevel(roll, settings.diceType);
-    addNarrativeEntry(t('diceRollMessage', { diceType: settings.diceType, roll, level: t(successLevelToTranslationKey[successLevel]) }), 'system', `${Date.now()}-dice`);
-
-    const currentChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime, sStart, sDayDuration);
-
-    const surroundingChunks: Chunk[] = [];
-    if (settings.narrativeLength === 'long') {
-        for (let dy = 1; dy >= -1; dy--) {
-            for (let dx = -1; dx <= 1; dx++) {
-                if (dx === 0 && dy === 0) continue;
-                const key = `${playerPosCtx.x + dx},${playerPosCtx.y + dy}`;
-                const adjacentChunk = worldCtx[key];
-                if (adjacentChunk && adjacentChunk.explored) {
-                    surroundingChunks.push(getEffectiveChunk(adjacentChunk, weatherZones, gameTime, sStart, sDayDuration));
-                }
-            }
-        }
+  const handleOnlineNarrative = useCallback((action: string, worldCtx: World, playerPosCtx: { x: number, y: number }, playerStatsCtx: PlayerStatus) => {
+    // Lazily construct the extracted handler so we minimize churn in this file.
+    if (!onlineNarrativeRef.current) {
+      onlineNarrativeRef.current = createHandleOnlineNarrative({
+        setIsLoading,
+        logger,
+        finalWorldSetup,
+        settings,
+        addNarrativeEntry,
+        t,
+        narrativeLogRef,
+        weatherZones,
+        gameTime,
+        sStart,
+        sDayDuration,
+        customItemDefinitions,
+        setCustomItemCatalog,
+        setCustomItemDefinitions,
+    getDb: getDb,
+    setWorld,
+        setDoc,
+        doc,
+        resolveItemId,
+        resolveItemDef,
+        setPlayerStats,
+        advanceGameTime,
+        toast,
+        language,
+        rollDice,
+        getSuccessLevel,
+        successLevelToTranslationKey,
+        getEffectiveChunk,
+        getTranslatedText,
+      });
     }
-    
-    try {
-        const recentNarrative = narrativeLogRef.current?.slice(-5).map(e => e.text) || [];
-        
-        logger.debug('[AI] Input for generateNarrative', { entryId, action, playerPosCtx });
-        // Normalize player status and chunk data for AI flows so Zod schemas expecting
-        // concrete numeric fields and plain string enemy.type are satisfied.
-        const normalizedPlayerStatus = {
-            ...playerStatsCtx,
-            unlockProgress: {
-                kills: playerStatsCtx.unlockProgress?.kills ?? 0,
-                damageSpells: playerStatsCtx.unlockProgress?.damageSpells ?? 0,
-                moves: playerStatsCtx.unlockProgress?.moves ?? 0,
-            },
-            playerLevel: typeof playerStatsCtx.playerLevel === 'number'
-                ? { level: playerStatsCtx.playerLevel as number, experience: 0 }
-                : (playerStatsCtx.playerLevel ?? { level: 1, experience: 0 }),
-            questsCompleted: playerStatsCtx.questsCompleted ?? 0,
-        };
-
-    const normalizeChunkForAI = (c: Chunk): Chunk => {
-            // Force the enemy.type translation to a plain string for AI inputs.
-            // Use the declared enemy.type (TranslatableString) directly when translating.
-            const enemy = c.enemy
-                ? ({ ...c.enemy, type: getTranslatedText(c.enemy.type ?? { en: '' }, language) } as any)
-                : null;
-            return { ...c, enemy } as any as Chunk;
-        };
-
-    const normalizedCurrentChunk = normalizeChunkForAI(currentChunk as Chunk);
-    const normalizedSurrounding = surroundingChunks.length > 0 ? surroundingChunks.map(normalizeChunkForAI) : undefined;
-
-        const input: GenerateNarrativeInput = {
-            worldName: t(finalWorldSetup.worldName as TranslationKey),
-            playerAction: action,
-            playerStatus: normalizedPlayerStatus,
-            // normalizedCurrentChunk has been massaged for AI; cast to any to satisfy the Zod-derived input shape
-            currentChunk: normalizedCurrentChunk as any,
-            surroundingChunks: normalizedSurrounding as any,
-            recentNarrative,
-            language,
-            customItemDefinitions,
-            diceRoll: roll,
-            diceType: settings.diceType,
-            diceRange: range,
-            successLevel,
-            aiModel: settings.aiModel,
-            narrativeLength: settings.narrativeLength,
-        };
-        const result = await generateNarrative(input);
-        
-        logger.info('[AI] Narrative generated successfully', { entryId, result });
-
-        addNarrativeEntry(result.narrative, 'narrative', entryId);
-        if(result.systemMessage) addNarrativeEntry(result.systemMessage, 'system', `${Date.now()}-system`);
-
-        let finalPlayerStats: PlayerStatus = { ...playerStatsCtx, ...(result.updatedPlayerStatus || {})};
-        // Ensure unlockProgress numeric fields are present to satisfy stricter typings
-        finalPlayerStats.unlockProgress = {
-            kills: finalPlayerStats.unlockProgress?.kills ?? 0,
-            damageSpells: finalPlayerStats.unlockProgress?.damageSpells ?? 0,
-            moves: finalPlayerStats.unlockProgress?.moves ?? 0,
-        };
-        
-            if (worldCtx[`${playerPosCtx.x},${playerPosCtx.y}`]?.enemy && result.updatedChunk?.enemy === null) {
-                finalPlayerStats.unlockProgress = { ...finalPlayerStats.unlockProgress, kills: (finalPlayerStats.unlockProgress?.kills ?? 0) + 1 };
-            }
-
-        setWorld(prev => {
-            const newWorld = { ...prev };
-            const key = `${currentChunk.x},${currentChunk.y}`;
-            if (result.updatedChunk) {
-                const chunkToUpdate = newWorld[key];
-                const updatedEnemy: Enemy | null = result.updatedChunk?.enemy !== undefined ? result.updatedChunk.enemy : chunkToUpdate.enemy;
-                // result.updatedChunk may be partial — treat it as Partial<Chunk> when merging
-                const partial: Partial<Chunk> | undefined = result.updatedChunk as Partial<Chunk> | undefined;
-                newWorld[key] = { ...chunkToUpdate, ...(partial || {}), enemy: updatedEnemy } as Chunk;
-            }
-            return newWorld;
-        });
-        
-        if (result.newlyGeneratedItem) {
-            const newItem = result.newlyGeneratedItem;
-            // Resolve a canonical id for the generated item (prefer id/key from defs)
-            const newItemId = resolveItemId(newItem.name, customItemDefinitions, t, language) ?? getTranslatedText(newItem.name, 'en');
-            if (!resolveItemDef(newItemId)) {
-                logger.info('[AI] A new item was generated for the world', { newItem, newItemId });
-                setCustomItemCatalog(prev => [...prev, newItem]);
-                setCustomItemDefinitions(prev => ({ ...prev, [newItemId]: { ...newItem } }));
-                if (db) {
-                    await setDoc(doc(db, "world-catalog", "items", "generated", newItemId), newItem);
-                }
-            }
-        }
-        setPlayerStats(() => finalPlayerStats);
-        advanceGameTime(finalPlayerStats);
-    } catch (error: any) {
-        logger.error("[AI] Narrative generation failed", error);
-        toast({ title: t('offlineModeActive'), description: t('offlineToastDesc'), variant: "destructive" });
-    } finally {
-        setIsLoading(false);
-    }
-    }, [settings.diceType, settings.aiModel, settings.narrativeLength, finalWorldSetup, weatherZones, gameTime, customItemDefinitions, narrativeLogRef, language, setIsLoading, addNarrativeEntry, setWorld, setCustomItemCatalog, setCustomItemDefinitions, setPlayerStats, advanceGameTime, toast, t]);
+    // Delegate to extracted implementation
+    return onlineNarrativeRef.current(action, worldCtx, playerPosCtx, playerStatsCtx);
+    }, [setIsLoading, logger, finalWorldSetup, settings, addNarrativeEntry, t, narrativeLogRef, weatherZones, gameTime, sStart, sDayDuration, customItemDefinitions, setCustomItemCatalog, setCustomItemDefinitions, setDoc, resolveItemId, resolveItemDef, setPlayerStats, advanceGameTime, toast, language, rollDice, getSuccessLevel, successLevelToTranslationKey, getEffectiveChunk, getTranslatedText, getDb]);
 
   const handleOfflineAttack = useCallback(() => {
-    const key = `${playerPosition.x},${playerPosition.y}`;
-    const baseChunk = world[key];
-    if (!baseChunk || !baseChunk.enemy) { addNarrativeEntry(t('noTarget'), 'system'); return; }
-    
-    logger.debug('[Offline] Starting attack sequence', { playerPosition, enemy: baseChunk.enemy });
-    const currentChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime, sStart, sDayDuration);
-
-    const { roll } = rollDice(settings.diceType);
-    const successLevel = getSuccessLevel(roll, settings.diceType);
-    addNarrativeEntry(t('diceRollMessage', { diceType: settings.diceType, roll, level: t(successLevelToTranslationKey[successLevel]) }), 'system');
-
-    let playerDamage = 0;
-    const damageMultiplier = successLevel === 'CriticalFailure' ? 0 : successLevel === 'Failure' ? 0 : successLevel === 'GreatSuccess' ? 1.5 : successLevel === 'CriticalSuccess' ? 2.0 : 1.0;
-    
-    if (damageMultiplier > 0) {
-    let playerDamageModifier = 1.0;
-    if ((currentChunk.lightLevel ?? 0) < -3) { playerDamageModifier *= 0.8; }
-    if ((currentChunk.moisture ?? 0) > 8) { playerDamageModifier *= 0.9; }
-        
-    let playerBaseDamage = (playerStats.attributes?.physicalAttack ?? 0) + (playerStats.persona === 'warrior' ? 2 : 0);
-        playerDamage = Math.round(playerBaseDamage * damageMultiplier * playerDamageModifier);
+    if (!offlineAttackRef.current) {
+      offlineAttackRef.current = createHandleOfflineAttack({
+        playerPosition,
+        world,
+        addNarrativeEntry,
+        t,
+        logger,
+        getEffectiveChunk,
+        weatherZones,
+        gameTime,
+        sStart,
+        sDayDuration,
+        rollDice,
+        getSuccessLevel,
+        settings,
+        successLevelToTranslationKey,
+        setPlayerStats,
+        advanceGameTime,
+        setWorld,
+        getTemplates,
+        language,
+        resolveItemDef,
+        playerStats,
+        generateOfflineActionNarrative,
+        getTranslatedText,
+      });
     }
-
-    const finalEnemyHp = Math.max(0, currentChunk.enemy!.hp - playerDamage);
-    const enemyDefeated = finalEnemyHp <= 0;
-    let lootDrops: ChunkItem[] = [];
-
-    let enemyDamage = 0;
-    let fled = false;
-
-    if (enemyDefeated) {
-        const templates = getTemplates(language);
-        const enemyTemplate = templates[currentChunk.terrain]?.enemies.find((e: any) => getTranslatedText(e.data.type as TranslatableString, 'en') === getTranslatedText(currentChunk.enemy!.type as TranslatableString, 'en'));
-        if (enemyTemplate?.data?.loot) {
-            type LootEntry = { name: string; chance: number };
-            for (const lootItem of (enemyTemplate.data.loot as LootEntry[])) {
-                if (Math.random() < lootItem.chance) {
-                    const definition = resolveItemDef(lootItem.name);
-                    if (definition) {
-                        lootDrops.push({
-                            name: { en: lootItem.name, vi: t(lootItem.name as TranslationKey) },
-                            description: definition.description,
-                            tier: definition.tier,
-                            quantity: clamp(Math.floor(Math.random() * (definition.baseQuantity.max - definition.baseQuantity.min + 1)) + definition.baseQuantity.min, 1, Infinity),
-                            emoji: definition.emoji,
-                        } as ChunkItem);
-                    }
-                }
-            }
-        }
-    } else {
-        fled = currentChunk.enemy!.behavior === 'passive' || (successLevel === 'CriticalSuccess' && currentChunk.enemy!.size === 'small');
-        if (!fled) enemyDamage = Math.round(currentChunk.enemy!.damage);
-    }
-
-    let nextPlayerStats = {...playerStats};
-    nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - enemyDamage);
-    if (enemyDefeated) {
-        nextPlayerStats.unlockProgress = { ...nextPlayerStats.unlockProgress, kills: (nextPlayerStats.unlockProgress?.kills ?? 0) + 1 };
-    }
-
-    const narrativeResult = { successLevel, playerDamage, enemyDamage, enemyDefeated, fled, enemyType: currentChunk.enemy!.type };
-    const narrative = generateOfflineActionNarrative('attack', narrativeResult, currentChunk, t, language);
-    addNarrativeEntry(narrative, 'narrative');
-
-    if (enemyDefeated && lootDrops.length > 0) {
-        addNarrativeEntry(t('enemyDropped', { items: lootDrops.map(i => `${i.quantity} ${getTranslatedText(i.name, language)}`).join(', ') }), 'system');
-    }
-
-    setWorld(prev => {
-        const newWorld = { ...prev };
-        const chunkToUpdate = { ...newWorld[key]! };
-        chunkToUpdate.enemy = (enemyDefeated || fled) ? null : { ...chunkToUpdate.enemy!, hp: finalEnemyHp };
-        if (lootDrops.length > 0) {
-            const newItemsMap = new Map<string, PlayerItem>((chunkToUpdate.items || []).map((item: PlayerItem) => [getTranslatedText(item.name, 'en'), { ...item } as PlayerItem]));
-            lootDrops.forEach((droppedItem: ChunkItem) => {
-                const dropName = getTranslatedText(droppedItem.name, 'en');
-                const existingItem = newItemsMap.get(dropName);
-                if (existingItem) {
-                    existingItem.quantity += droppedItem.quantity;
-                } else {
-                    newItemsMap.set(dropName, droppedItem);
-                }
-            });
-            chunkToUpdate.items = Array.from(newItemsMap.values());
-        }
-        newWorld[key] = chunkToUpdate;
-        return newWorld;
-    });
-
-    setPlayerStats(() => nextPlayerStats);
-    advanceGameTime(nextPlayerStats);
-    }, [playerPosition, world, addNarrativeEntry, settings.diceType, t, playerStats, customItemDefinitions, advanceGameTime, setWorld, weatherZones, gameTime, setPlayerStats, language]);
+    return offlineAttackRef.current();
+  }, [playerPosition, world, addNarrativeEntry, t, logger, getEffectiveChunk, weatherZones, gameTime, sStart, sDayDuration, rollDice, getSuccessLevel, settings, successLevelToTranslationKey, setPlayerStats, advanceGameTime, setWorld, getTemplates, language, resolveItemDef, playerStats, generateOfflineActionNarrative, getTranslatedText]);
 
   const handleOfflineItemUse = useCallback((itemName: string, target: string) => {
     const itemDef = resolveItemDef(itemName);
@@ -1148,12 +995,17 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
                 nextPlayerStats.items.push(ensurePlayerItemId(itemToAdd, customItemDefinitions, t, language));
             }
             
-            if(!resolveItemDef(resultItemId)) {
+                if(!resolveItemDef(resultItemId)) {
                 const newItem = result.resultItem;
                 setCustomItemCatalog(prev => [...prev, newItem] as GeneratedItem[]);
                 setCustomItemDefinitions(prev => ({ ...prev, [resultItemId]: { ...newItem } } as Record<string, ItemDefinition>));
-                if(db) {
-                    await setDoc(doc(db, "world-catalog", "items", "generated", resultItemId), newItem);
+                try {
+                    const _db = await getDb();
+                    if (_db) {
+                        await setDoc(doc(_db, "world-catalog", "items", "generated", resultItemId), newItem);
+                    }
+                } catch {
+                    // non-fatal
                 }
             }
         }
@@ -1276,6 +1128,44 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
   const handleReturnToMenu = () => {
     window.location.href = '/';
   };
+
+    const handleWaitTick = useCallback(() => {
+        try {
+            // Minimal wait: advance game time without changing player stats
+            advanceGameTime(playerStats);
+        } catch {
+            // non-fatal
+        }
+    }, [advanceGameTime, playerStats]);
+
+    const handleDropItem = useCallback((itemName: string, quantity: number = 1) => {
+        try {
+            const key = `${playerPosition.x},${playerPosition.y}`;
+            setPlayerStats(prev => {
+                const next = JSON.parse(JSON.stringify(prev));
+                next.items = next.items || [];
+                const idx = next.items.findIndex((i: any) => getTranslatedText(i.name, 'en') === itemName);
+                if (idx === -1) return prev;
+                next.items[idx].quantity = (next.items[idx].quantity || 0) - quantity;
+                if (next.items[idx].quantity <= 0) next.items = next.items.filter((i: any) => getTranslatedText(i.name, 'en') !== itemName);
+                return next;
+            });
+            // Place dropped item into current chunk's items
+            setWorld(prev => {
+                const nw = { ...prev };
+                const chunk = nw[key];
+                if (!chunk) return prev;
+                const dropItem = { name: { en: itemName, vi: t(itemName as TranslationKey) }, quantity, emoji: '📦' } as any;
+                chunk.items = [...(chunk.items || []), dropItem];
+                nw[key] = chunk;
+                return nw;
+            });
+            addNarrativeEntry(t('droppedItem', { itemName: t(itemName as TranslationKey) }), 'system');
+            advanceGameTime(playerStats);
+        } catch {
+            // ignore
+        }
+    }, [playerPosition, setPlayerStats, setWorld, addNarrativeEntry, t, advanceGameTime, playerStats]);
 
   const handleHarvest = useCallback((actionId: number) => {
     if (isLoading || isGameOver || !isLoaded) return;
@@ -1612,6 +1502,8 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     handleEquipItem,
     handleUnequipItem,
     handleReturnToMenu,
+    handleWaitTick,
+    handleDropItem,
     handleHarvest,
   };
 }

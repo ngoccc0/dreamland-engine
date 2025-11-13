@@ -176,6 +176,7 @@ export default function Home() {
       worldSetup: worldConceptForState,
       playerStats: {
         hp: 100, mana: 50, stamina: 100, bodyTemperature: 37, items: initialPlayerInventory, equipment: { weapon: null, armor: null, accessory: null },
+  maxStamina: 100,
   // Player stats expect string[] for quests; translate any TranslatableString entries to plain strings.
   quests: (selectedConcept.initialQuests || []).map((q: any) => getTranslatedText(q, language)),
   questsCompleted: 0,
@@ -267,7 +268,7 @@ export default function Home() {
     return (
       <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
         <div className="flex flex-col items-center text-center p-4 animate-in fade-in duration-1000">
-          <img src="/assets/Logo.svg" alt="Dreamland Engine" className="h-[384px] w-[384px] -mb-[30px]" />
+          <img src="/asset/images/logo.png" alt="Dreamland Engine" className="h-[384px] w-[384px] -mb-[30px]" />
           <div className="flex items-center justify-center">
             <h1 className="text-5xl font-bold font-headline tracking-tighter -mt-36">
               Dreamland Engine

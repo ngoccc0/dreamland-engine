@@ -104,6 +104,92 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
     };
   }, [playerPosition.x, playerPosition.y]);
 
+    // Memoized MapCell component to reduce heavy re-renders when rendering the
+    // full grid. The comparator checks a small set of chunk-affecting fields.
+    const MapCell = React.useMemo(() => {
+        const Inner = ({ chunkKey, chunk, isPlayerHere, showDetails, currentCellSize, currentBiomeIconSize, mainIcon, language, t }: any) => {
+            if (!chunk) {
+                return <div key={chunkKey} data-map-cell className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />;
+            }
+
+            const turnDifference = turn - chunk.lastVisited;
+            const isFoggy = turnDifference > 50 && chunk.lastVisited !== 0;
+
+            if (!chunk.explored || (isFoggy && !isPlayerHere)) {
+                return (
+                    <div key={chunkKey} data-map-cell className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50 flex items-center justify-center")}>
+                        {chunk.explored && <span className={cn(currentBiomeIconSize, "opacity-30")} title={t('fogOfWarDesc') as string}>🌫️</span>}
+                    </div>
+                );
+            }
+
+            return (
+                <Popover key={chunkKey}>
+                    <PopoverTrigger asChild>
+                        <div
+                            data-map-cell
+                            className={cn(
+                                currentCellSize,
+                                "relative transition-all duration-300 flex items-center justify-center p-1 cursor-pointer hover:ring-2 hover:ring-white border-r border-b border-dashed border-border/50",
+                                biomeColors[chunk.terrain as keyof typeof biomeColors],
+                                isPlayerHere && "ring-2 ring-white shadow-lg z-10"
+                            )}
+                            aria-label={`Map cell at ${chunk.x}, ${chunk.y}. Biome: ${chunk.terrain}`}
+                        >
+                            <div className={cn(currentBiomeIconSize, 'opacity-80')}>
+                                {mainIcon}
+                            </div>
+
+                            {showDetails && (
+                                <>
+                                    {isPlayerHere && (
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <PlayerIcon />
+                                        </div>
+                                    )}
+                                    {chunk.NPCs.length > 0 && (
+                                        <div className="absolute top-px right-px">
+                                            <NpcIcon />
+                                        </div>
+                                    )}
+                                    {chunk.enemy && (
+                                        <div className="absolute bottom-px left-px">
+                                            <EnemyIcon emoji={chunk.enemy.emoji} />
+                                        </div>
+                                    )}
+                                    {chunk.items.length > 0 && (
+                                        <div className="absolute bottom-px right-px">
+                                            <ItemIcon emoji={chunk.items[0].emoji} />
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80">
+                        <MapCellDetails chunk={chunk} />
+                    </PopoverContent>
+                </Popover>
+            );
+        };
+
+        return React.memo(Inner, (a: any, b: any) => {
+            if (a.isPlayerHere !== b.isPlayerHere) return false;
+            if (a.showDetails !== b.showDetails) return false;
+            if (a.currentCellSize !== b.currentCellSize) return false;
+            if (a.currentBiomeIconSize !== b.currentBiomeIconSize) return false;
+            const ca = a.chunk || {};
+            const cb = b.chunk || {};
+            if (ca.explored !== cb.explored) return false;
+            if ((ca.lastVisited || 0) !== (cb.lastVisited || 0)) return false;
+            if ((ca.structures?.length || 0) !== (cb.structures?.length || 0)) return false;
+            if ((ca.NPCs?.length || 0) !== (cb.NPCs?.length || 0)) return false;
+            if ((ca.items?.length || 0) !== (cb.items?.length || 0)) return false;
+            if ((ca.enemy?.hp || 0) !== (cb.enemy?.hp || 0)) return false;
+            return true;
+        });
+    }, [turn]);
+
     // Find nearest scrollable ancestor (viewport for panning)
     const findScrollParent = (el: HTMLElement | null): HTMLElement | null => {
         let p = el?.parentElement ?? null;
@@ -191,7 +277,7 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-4xl lg:max-w-6xl !p-0">
+      <SheetContent side="right" className="w-full md:max-w-4xl lg:max-w-6xl !p-0">
         <div className="flex flex-col h-full">
             <SheetHeader className="p-4 border-b">
                 <SheetTitle className="font-headline">{t('minimap')}</SheetTitle>
@@ -319,55 +405,21 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
                                                                                 {renderItemEmoji(chunk.structures[0].emoji, 28)}
                                                                             </span>
                                                                         : (biomeIcons[chunk.terrain as keyof typeof biomeIcons] || null);
-                                
-                                return (
-                                    <Popover key={chunkKey}>
-                                        <PopoverTrigger asChild>
-                                            <div
-                                                data-map-cell
-                                                className={cn(
-                                                    currentCellSize,
-                                                    "relative transition-all duration-300 flex items-center justify-center p-1 cursor-pointer hover:ring-2 hover:ring-white border-r border-b border-dashed border-border/50",
-                                                    biomeColors[chunk.terrain as keyof typeof biomeColors],
-                                                    isPlayerHere && "ring-2 ring-white shadow-lg z-10"
-                                                )}
-                                                aria-label={`Map cell at ${chunk.x}, ${chunk.y}. Biome: ${chunk.terrain}`}
-                                            >
-                                                <div className={cn(currentBiomeIconSize, 'opacity-80')}>
-                                                    {mainIcon}
-                                                </div>
-                                                
-                                                {showDetails && (
-                                                    <>
-                                                        {isPlayerHere && (
-                                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                                <PlayerIcon />
-                                                            </div>
-                                                        )}
-                                                        {chunk.NPCs.length > 0 && (
-                                                            <div className="absolute top-px right-px">
-                                                                <NpcIcon />
-                                                            </div>
-                                                        )}
-                                                        {chunk.enemy && (
-                                                            <div className="absolute bottom-px left-px">
-                                                                <EnemyIcon emoji={chunk.enemy.emoji} />
-                                                            </div>
-                                                        )}
-                                                        {chunk.items.length > 0 && (
-                                                            <div className="absolute bottom-px right-px">
-                                                                <ItemIcon emoji={chunk.items[0].emoji} />
-                                                            </div>
-                                                        )}
-                                                    </>
-                                                )}
-                                            </div>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-80">
-                                            <MapCellDetails chunk={chunk} />
-                                        </PopoverContent>
-                                    </Popover>
-                                );
+
+                                                                return (
+                                                                    <MapCell
+                                                                        key={chunkKey}
+                                                                        chunkKey={chunkKey}
+                                                                        chunk={chunk}
+                                                                        isPlayerHere={isPlayerHere}
+                                                                        showDetails={showDetails}
+                                                                        currentCellSize={currentCellSize}
+                                                                        currentBiomeIconSize={currentBiomeIconSize}
+                                                                        mainIcon={mainIcon}
+                                                                        language={language}
+                                                                        t={t}
+                                                                    />
+                                                                );
                             })
                         )}
                     </div>

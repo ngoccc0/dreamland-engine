@@ -151,7 +151,7 @@ const keyword_variations_en: PlaceholderMap = {
 export const biomeNarrativeTemplates: Record<string, BiomeTemplateData> = {
   "Jungle": {
     terrain: "Jungle",
-    emoji: { type: 'image', url: '/assets/images/jungle.png' },
+  emoji: { type: 'image', url: '/asset/images/jungle.png' },
     descriptionTemplates: [
       {
         id: "jungle_opening_gloomy",
@@ -257,7 +257,7 @@ export const biomeNarrativeTemplates: Record<string, BiomeTemplateData> = {
   },
   "grassland": {
     terrain: "grassland",
-    emoji: { type: 'image', url: '/assets/images/grass_field.png' },
+  emoji: { type: 'image', url: '/asset/images/grass_field.png' },
     descriptionTemplates: [
       {
         id: "grassland_opening_vast",

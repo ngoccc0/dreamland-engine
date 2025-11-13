@@ -1,6 +1,6 @@
 import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
 import type { GameState } from '@/core/types/game';
-import { db } from './indexed-db.config';
+import { getIndexedDb } from './indexed-db.config';
 
 /**
  * @class IndexedDbGameStateRepository
@@ -18,6 +18,7 @@ export class IndexedDbGameStateRepository implements IGameStateRepository {
     async load(slotId: string): Promise<GameState | null> {
         try {
             // Dexie returns undefined if not found, which we convert to null
+            const db = getIndexedDb();
             const data = await db.gameState.get(slotId);
             return data || null;
         } catch (error: any) {
@@ -35,7 +36,17 @@ export class IndexedDbGameStateRepository implements IGameStateRepository {
     async save(slotId: string, state: GameState): Promise<void> {
         try {
             // put() will add a new document or update an existing one based on the primary key
-            await db.gameState.put({ ...state, id: slotId });
+            // To avoid IndexedDB transaction failures caused by non-serializable values
+            // (functions, circular refs, etc.), first create a JSON-safe clone of the state.
+            let safeState: any;
+            try {
+                safeState = JSON.parse(JSON.stringify(state));
+            } catch (serErr) {
+                console.error('Failed to serialize state before saving to IndexedDB; aborting save.', serErr);
+                throw serErr;
+            }
+            const _db = getIndexedDb();
+            await _db.gameState.put({ ...safeState, id: slotId });
         } catch (error: any) {
             console.error('Error saving game state to IndexedDB:', error);
             throw error;
@@ -49,7 +60,8 @@ export class IndexedDbGameStateRepository implements IGameStateRepository {
      */
     async delete(slotId: string): Promise<void> {
         try {
-            await db.gameState.delete(slotId);
+            const _db = getIndexedDb();
+            await _db.gameState.delete(slotId);
         } catch (error: any) {
             console.error('Error deleting game state from IndexedDB:', error);
             throw error;
@@ -63,7 +75,8 @@ export class IndexedDbGameStateRepository implements IGameStateRepository {
      */
     async listSaveSummaries(): Promise<Array<Pick<GameState, 'worldSetup' | 'day' | 'gameTime' | 'playerStats'> | null>> {
         try {
-            const allStates = await db.gameState.toArray();
+            const _db = getIndexedDb();
+            const allStates = await _db.gameState.toArray();
             const summaries: Array<Pick<GameState, 'worldSetup' | 'day' | 'gameTime' | 'playerStats'> | null> = [null, null, null];
 
             allStates.forEach(data => {

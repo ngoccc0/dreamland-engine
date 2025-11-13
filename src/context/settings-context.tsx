@@ -23,9 +23,10 @@ const defaultSettings = {
   mods: null,
   controlsPreventScroll: true,
   useLegacyLayout: false,
+  autoPickup: false,
   startTime: 360, // 6 AM
   dayDuration: 1440, // 24 hours
-  timePerTurn: 5, // 5 minutes per turn
+  timePerTurn: 10, // 10 minutes per turn
   keyBindings: {
     moveUp: ['w', 'ArrowUp'],
     moveDown: ['s', 'ArrowDown'],
@@ -83,6 +84,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   if (typeof parsed.controlsPreventScroll !== 'boolean') parsed.controlsPreventScroll = defaultSettings.controlsPreventScroll;
   // Ensure useLegacyLayout is a boolean (backwards compatibility)
   if (typeof parsed.useLegacyLayout !== 'boolean') parsed.useLegacyLayout = defaultSettings.useLegacyLayout;
+        // Ensure autoPickup is a boolean (backwards compatibility)
+        if (typeof parsed.autoPickup !== 'boolean') parsed.autoPickup = defaultSettings.autoPickup;
 
         // Validate keyBindings shape if present
         if (parsed.keyBindings && typeof parsed.keyBindings === 'object') {

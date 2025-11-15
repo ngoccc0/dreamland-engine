@@ -222,11 +222,18 @@ export function useGameInitialization(deps: GameInitializationDeps) {
           const region = regionsSnapshot[Number(regionId)];
           if (region) {
             const initialWeather = generateWeatherForZone(region.terrain, stateToInitialize!.currentSeason);
+            // Schedule the next weather change in game "turns". duration_range is expressed in turns,
+            // so pick a random value between min and max (inclusive) and add it to the current gameTime.
+            // Previous code mistakenly multiplied only the minimum by 10 which mixed units and produced
+            // unexpectedly short/long schedules.
+            const minDur = initialWeather.duration_range[0];
+            const maxDur = initialWeather.duration_range[1];
+            const randDur = Math.floor(Math.random() * (maxDur - minDur + 1));
             weatherZonesSnapshot[regionId] = {
               id: regionId,
               terrain: region.terrain,
               currentWeather: initialWeather,
-              nextChangeTime: (stateToInitialize!.gameTime || 360) + Math.floor(Math.random() * (initialWeather.duration_range[1] - initialWeather.duration_range[0] + 1)) + initialWeather.duration_range[0] * 10
+              nextChangeTime: (stateToInitialize!.gameTime || 360) + (minDur + randDur)
             };
             logger.debug('[GameInit] Generated weather for region', {
               regionId,

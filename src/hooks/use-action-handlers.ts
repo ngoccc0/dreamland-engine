@@ -12,6 +12,7 @@ import type { GenerateNarrativeInput } from '@/ai/flows/generate-narrative-flow'
 import { fuseItems } from '@/ai/flows/fuse-items-flow';
 import { createHandleOnlineNarrative } from '@/hooks/use-action-handlers.online';
 import { createHandleOfflineAttack } from '@/hooks/use-action-handlers.offlineAttack';
+import { createHandleOfflineItemUse } from '@/hooks/use-action-handlers.itemUse';
 import { tillSoil, waterTile, fertilizeTile, plantSeed } from '@/core/usecases/farming-usecase';
 import { provideQuestHint } from '@/ai/flows/provide-quest-hint';
 import { rollDice, getSuccessLevel, successLevelToTranslationKey } from '@/lib/game/dice';
@@ -102,6 +103,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const lastPickupMonologueAt = useRef(0);
     const onlineNarrativeRef = useRef<any>(null);
     const offlineAttackRef = useRef<any>(null);
+    const offlineItemUseRef = useRef<any>(null);
 
     const flushPickupBuffer = () => {
         const buf = pickupBufferRef.current;
@@ -183,283 +185,91 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         }
     }, [world, playerPosition.x, playerPosition.y, weatherZones, gameTime, audio, sStart, sDayDuration]);
 
-  const handleOnlineNarrative = useCallback((action: string, worldCtx: World, playerPosCtx: { x: number, y: number }, playerStatsCtx: PlayerStatus) => {
-    // Lazily construct the extracted handler so we minimize churn in this file.
-    if (!onlineNarrativeRef.current) {
-      onlineNarrativeRef.current = createHandleOnlineNarrative({
-        setIsLoading,
-        logger,
-        finalWorldSetup,
-        settings,
-        addNarrativeEntry,
-        t,
-        narrativeLogRef,
-        weatherZones,
-        gameTime,
-        sStart,
-        sDayDuration,
-        customItemDefinitions,
-        setCustomItemCatalog,
-        setCustomItemDefinitions,
-    getDb: getDb,
-    setWorld,
-        setDoc,
-        doc,
-        resolveItemId,
-        resolveItemDef,
-        setPlayerStats,
-        advanceGameTime,
-        toast,
-        language,
-        rollDice,
-        getSuccessLevel,
-        successLevelToTranslationKey,
-        getEffectiveChunk,
-        getTranslatedText,
-      });
-    }
-    // Delegate to extracted implementation
-    return onlineNarrativeRef.current(action, worldCtx, playerPosCtx, playerStatsCtx);
+    const handleOnlineNarrative = useCallback((action: string, worldCtx: World, playerPosCtx: { x: number, y: number }, playerStatsCtx: PlayerStatus) => {
+        // Create a fresh handler each call to avoid stale closures capturing old state.
+        const handler = createHandleOnlineNarrative({
+                setIsLoading,
+                logger,
+                finalWorldSetup,
+                settings,
+                addNarrativeEntry,
+                t,
+                narrativeLogRef,
+                weatherZones,
+                gameTime,
+                sStart,
+                sDayDuration,
+                customItemDefinitions,
+                setCustomItemCatalog,
+                setCustomItemDefinitions,
+                getDb: getDb,
+                setWorld,
+                setDoc,
+                doc,
+                resolveItemId,
+                resolveItemDef,
+                setPlayerStats,
+                advanceGameTime,
+                toast,
+                language,
+                rollDice,
+                getSuccessLevel,
+                successLevelToTranslationKey,
+                getEffectiveChunk,
+                getTranslatedText,
+        });
+        return handler(action, worldCtx, playerPosCtx, playerStatsCtx);
     }, [setIsLoading, logger, finalWorldSetup, settings, addNarrativeEntry, t, narrativeLogRef, weatherZones, gameTime, sStart, sDayDuration, customItemDefinitions, setCustomItemCatalog, setCustomItemDefinitions, setDoc, resolveItemId, resolveItemDef, setPlayerStats, advanceGameTime, toast, language, rollDice, getSuccessLevel, successLevelToTranslationKey, getEffectiveChunk, getTranslatedText, getDb]);
 
-  const handleOfflineAttack = useCallback(() => {
-    if (!offlineAttackRef.current) {
-      offlineAttackRef.current = createHandleOfflineAttack({
-        playerPosition,
-        world,
-        addNarrativeEntry,
-        t,
-        logger,
-        getEffectiveChunk,
-        weatherZones,
-        gameTime,
-        sStart,
-        sDayDuration,
-        rollDice,
-        getSuccessLevel,
-        settings,
-        successLevelToTranslationKey,
-        setPlayerStats,
-        advanceGameTime,
-        setWorld,
-        getTemplates,
-        language,
-        resolveItemDef,
-        playerStats,
-        generateOfflineActionNarrative,
-        getTranslatedText,
-      });
-    }
-    return offlineAttackRef.current();
-  }, [playerPosition, world, addNarrativeEntry, t, logger, getEffectiveChunk, weatherZones, gameTime, sStart, sDayDuration, rollDice, getSuccessLevel, settings, successLevelToTranslationKey, setPlayerStats, advanceGameTime, setWorld, getTemplates, language, resolveItemDef, playerStats, generateOfflineActionNarrative, getTranslatedText]);
+    const handleOfflineAttack = useCallback(() => {
+        // Create a fresh handler each call to ensure it closes over current state
+        const handler = createHandleOfflineAttack({
+            playerPosition,
+            world,
+            addNarrativeEntry,
+            t,
+            logger,
+            getEffectiveChunk,
+            weatherZones,
+            gameTime,
+            sStart,
+            sDayDuration,
+            rollDice,
+            getSuccessLevel,
+            settings,
+            successLevelToTranslationKey,
+            setPlayerStats,
+            advanceGameTime,
+            setWorld,
+            getTemplates,
+            language,
+            resolveItemDef,
+            playerStats,
+            generateOfflineActionNarrative,
+            getTranslatedText,
+        });
+        return handler();
+    }, [playerPosition, world, addNarrativeEntry, t, logger, getEffectiveChunk, weatherZones, gameTime, sStart, sDayDuration, rollDice, getSuccessLevel, settings, successLevelToTranslationKey, setPlayerStats, advanceGameTime, setWorld, getTemplates, language, resolveItemDef, playerStats, generateOfflineActionNarrative, getTranslatedText]);
 
   const handleOfflineItemUse = useCallback((itemName: string, target: string) => {
-    const itemDef = resolveItemDef(itemName);
-    if (!itemDef) return;
-
-    let newPlayerStats: PlayerStatus = JSON.parse(JSON.stringify(playerStats));
-    newPlayerStats.items = newPlayerStats.items || [];
-    newPlayerStats.pets = newPlayerStats.pets || [];
-    newPlayerStats.skills = newPlayerStats.skills || [];
-    const itemIndex = newPlayerStats.items.findIndex(i => getTranslatedText(i.name, 'en') === itemName);
-
-    if (itemIndex === -1) {
-        addNarrativeEntry(t('itemNotFound'), 'system');
-        return;
+    if (!offlineItemUseRef.current) {
+      offlineItemUseRef.current = createHandleOfflineItemUse({
+        resolveItemDef,
+        addNarrativeEntry,
+        t,
+        getTranslatedText,
+        playerStats,
+        setPlayerStats,
+        playerPosition,
+        world,
+        setWorld,
+        advanceGameTime,
+        toast,
+        audio,
+      });
     }
-    
-    const key = `${playerPosition.x},${playerPosition.y}`;
-    const currentChunk = world[key];
-    if (!currentChunk) return;
-
-    let narrativeResult: any = { itemName, target };
-    let itemWasConsumed = false;
-    let finalWorldUpdate: Partial<World> | null = null;
-
-    if (target === 'player') {
-        if (!itemDef.effects.length) {
-            addNarrativeEntry(t('itemNoEffect', { item: t(itemName as TranslationKey) }), 'system');
-            return;
-        }
-        itemWasConsumed = true;
-        let effectDescriptions: string[] = [];
-        itemDef.effects.forEach((effect: ItemEffect) => {
-            const amt = effect.amount ?? 0;
-            if (effect.type === 'HEAL') {
-                const old = newPlayerStats.hp;
-                newPlayerStats.hp = Math.min(100, newPlayerStats.hp + amt);
-                if (newPlayerStats.hp > old) effectDescriptions.push(t('itemHealEffect', { amount: newPlayerStats.hp - old }));
-            }
-            if (effect.type === 'RESTORE_STAMINA') {
-                const old = newPlayerStats.stamina;
-                newPlayerStats.stamina = Math.min(100, newPlayerStats.stamina + amt);
-                if (newPlayerStats.stamina > old) effectDescriptions.push(t('itemStaminaEffect', { amount: (newPlayerStats.stamina - old).toFixed(0) }));
-            }
-            if (effect.type === 'RESTORE_HUNGER') {
-                if (newPlayerStats.hunger === undefined) newPlayerStats.hunger = 100;
-                const old = newPlayerStats.hunger;
-                newPlayerStats.hunger = Math.min(100, newPlayerStats.hunger + amt);
-                if (newPlayerStats.hunger > old) effectDescriptions.push(t('itemHungerEffect', { amount: (newPlayerStats.hunger - old).toFixed(0) }));
-            }
-            if (effect.type === 'APPLY_EFFECT') {
-                // Apply a status effect instance to the player (makes the item grant a timed effect)
-                if (effect.effectType) {
-                        type LocalStatusEffect = {
-                            id: string;
-                            type: string;
-                            duration: number;
-                            magnitude?: number;
-                            description: TranslatableString;
-                            appliedTurn: number;
-                            source?: string;
-                        };
-                        const newEffect: LocalStatusEffect = {
-                            id: `item-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
-                            type: String(effect.effectType),
-                            duration: Number(effect.effectDuration ?? 0),
-                            magnitude: typeof effect.effectMagnitude === 'number' ? effect.effectMagnitude : undefined,
-                            // lightweight description: use the effect type as fallback text
-                            description: { en: String(effect.effectType), vi: String(effect.effectType) },
-                            appliedTurn: (turn ?? 0),
-                            source: itemName,
-                        };
-                        newPlayerStats.statusEffects = newPlayerStats.statusEffects || [];
-                        newPlayerStats.statusEffects.push(newEffect as any);
-                        effectDescriptions.push(`${t('appliedEffect') || 'Applied effect'}: ${String(effect.effectType)}`);
-                    }
-            }
-            if (effect.type === 'GAMBLE_EFFECT') {
-                // Gamble effect: 50/50 chance between positive and negative outcomes
-                const gambleType = effect.gambleType || 'balanced';
-                const isPositive = Math.random() < 0.5;
-
-                if (isPositive) {
-                    if (gambleType === 'mana') {
-                        const healAmount = 30; // Large mana restoration
-                        const old = newPlayerStats.mana ?? 0;
-                        newPlayerStats.mana = Math.min(100, (newPlayerStats.mana ?? 0) + healAmount);
-                        if (newPlayerStats.mana > old) effectDescriptions.push(t('itemManaEffect', { amount: newPlayerStats.mana - old }));
-                    } else if (gambleType === 'health') {
-                        const healAmount = 30; // Large health restoration
-                        const old = newPlayerStats.hp;
-                        newPlayerStats.hp = Math.min(100, newPlayerStats.hp + healAmount);
-                        if (newPlayerStats.hp > old) effectDescriptions.push(t('itemHealEffect', { amount: newPlayerStats.hp - old }));
-                    } else { // balanced
-                        const healAmount = 20; // Medium restoration for both
-                        const oldHp = newPlayerStats.hp;
-                        const oldMana = newPlayerStats.mana ?? 0;
-                        newPlayerStats.hp = Math.min(100, newPlayerStats.hp + healAmount);
-                        newPlayerStats.mana = Math.min(100, (newPlayerStats.mana ?? 0) + healAmount);
-                        if (newPlayerStats.hp > oldHp) effectDescriptions.push(t('itemHealEffect', { amount: newPlayerStats.hp - oldHp }));
-                        if (newPlayerStats.mana > oldMana) effectDescriptions.push(t('itemManaEffect', { amount: newPlayerStats.mana - oldMana }));
-                    }
-                } else {
-                    // Apply poison effect (negative outcome)
-                    type LocalStatusEffect = {
-                        id: string;
-                        type: string;
-                        duration: number;
-                        magnitude?: number;
-                        description: TranslatableString;
-                        appliedTurn: number;
-                        source?: string;
-                    };
-                    const poisonEffect: LocalStatusEffect = {
-                        id: `item-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
-                        type: 'poison',
-                        duration: 5,
-                        magnitude: 2,
-                        description: { en: 'Poisoned', vi: 'Bị độc' },
-                        appliedTurn: (turn ?? 0),
-                        source: itemName,
-                    };
-                    newPlayerStats.statusEffects = newPlayerStats.statusEffects || [];
-                    newPlayerStats.statusEffects.push(poisonEffect as any);
-                    effectDescriptions.push(t('appliedEffect') || 'Applied effect: Poison');
-                }
-            }
-        });
-        narrativeResult.wasUsed = effectDescriptions.length > 0;
-        narrativeResult.effectDescription = effectDescriptions.join(', ');
-    }
-    // Farming / world-item usage (apply to current chunk)
-    const farmingSeeds = ['wildflower_seeds', 'wild_cotton_seed', 'bamboo_seed', 'tree_sapling'];
-    const farmingTools = ['hoe', 'watering_can', 'fertilizer_compost'];
-    if (farmingTools.includes(itemName) || farmingSeeds.includes(itemName)) {
-        // Operate on the current chunk regardless of the provided target string
-        let updatedChunk = currentChunk;
-
-        if (itemName === 'hoe') {
-            updatedChunk = tillSoil(currentChunk);
-            narrativeResult.tilled = true;
-            itemWasConsumed = false; // hoe is reusable
-        } else if (itemName === 'watering_can') {
-            // default duration 6 ticks; keep watering can reusable
-            updatedChunk = waterTile(currentChunk, 6);
-            narrativeResult.watered = true;
-            itemWasConsumed = false;
-        } else if (itemName === 'fertilizer_compost') {
-            updatedChunk = fertilizeTile(currentChunk, 20);
-            narrativeResult.fertilized = true;
-            itemWasConsumed = true; // compost is consumed
-        } else if (farmingSeeds.includes(itemName)) {
-            const res = plantSeed(currentChunk, itemName);
-            updatedChunk = res.chunk;
-            if (res.planted) {
-                narrativeResult.planted = true;
-                itemWasConsumed = true;
-            } else {
-                narrativeResult.planted = false;
-                itemWasConsumed = false;
-            }
-        }
-
-        finalWorldUpdate = { [key]: updatedChunk };
-        // Let the generic narrative generator create a message; mark used
-        narrativeResult.wasUsed = true;
-        // End early for farming actions (skip taming branch)
-    } else { // Taming logic
-        if (!currentChunk.enemy || getTranslatedText(currentChunk.enemy.type, 'en') !== target) {
-            addNarrativeEntry(t('noTargetForITEM', { target: t(target as TranslationKey) }), 'system');
-            return;
-        }
-        if (!currentChunk.enemy.diet.includes(itemName)) {
-            addNarrativeEntry(t('targetNotInterested', { target: t(target as TranslationKey), item: t(itemName as TranslationKey) }), 'system');
-            return;
-        }
-
-        itemWasConsumed = true;
-        narrativeResult.itemConsumed = true;
-        const newEnemyState = { ...currentChunk.enemy, satiation: Math.min(currentChunk.enemy.satiation + 1, currentChunk.enemy.maxSatiation) };
-        const tamingChance = 0.1 + (newEnemyState.satiation / newEnemyState.maxSatiation) * 0.4 - (newEnemyState.hp / 100) * 0.2;
-
-        if (Math.random() < tamingChance) {
-            newPlayerStats.pets = [...(newPlayerStats.pets || []), { type: currentChunk.enemy.type, level: 1 }];
-            finalWorldUpdate = { [key]: { ...currentChunk, enemy: null } };
-            narrativeResult.wasTamed = true;
-            narrativeResult.newPet = newPlayerStats.pets.at(-1);
-        } else {
-            finalWorldUpdate = { [key]: { ...currentChunk, enemy: newEnemyState } };
-            narrativeResult.wasTamed = false;
-        }
-    }
-    
-    if (itemWasConsumed) {
-        newPlayerStats.items[itemIndex].quantity -= 1;
-    }
-    
-    const narrative = generateOfflineActionNarrative('useItem', narrativeResult, currentChunk, t, language);
-    addNarrativeEntry(narrative, 'narrative');
-
-    // Apply state changes at the end
-    if (finalWorldUpdate) {
-        setWorld(prev => ({ ...prev, ...finalWorldUpdate! }));
-    }
-    
-    newPlayerStats.items = newPlayerStats.items.filter(i => i.quantity > 0);
-    setPlayerStats(() => newPlayerStats);
-    advanceGameTime(newPlayerStats);
-    }, [playerStats, customItemDefinitions, playerPosition, world, addNarrativeEntry, t, advanceGameTime, setWorld, setPlayerStats, language]);
+    return offlineItemUseRef.current(itemName, target);
+  }, [resolveItemDef, addNarrativeEntry, t, getTranslatedText, playerStats, setPlayerStats, playerPosition, world, setWorld, advanceGameTime, toast, audio]);
 
   const handleOfflineSkillUse = useCallback((skillName: string) => {
 

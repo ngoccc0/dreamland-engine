@@ -184,7 +184,17 @@ export function useGameEngine(props: GameEngineProps) {
         // Apply any pending creature updates from the previous turn
         const pendingMessages = creatureEngineRef.current.applyPendingUpdates();
         for (const message of pendingMessages) {
-            addNarrativeEntry(message.text, message.type);
+            // If the creature produced damage to the player, apply it to React state here
+            if (message.meta && typeof message.meta.playerDamage === 'number') {
+                const damage = message.meta.playerDamage as number;
+                // Use gameState.setPlayerStats (returned from useGameState) to update React state
+                if (typeof gameState.setPlayerStats === 'function') {
+                    gameState.setPlayerStats((prev: any) => ({ ...(prev || {}), hp: Math.max(0, (prev?.hp || 0) - damage) }));
+                }
+            }
+
+            // Add narrative/system entries as before
+            addNarrativeEntry(message.text, message.type as any);
         }
 
         gameState.setGameTime(prev => {
@@ -267,6 +277,20 @@ export function useGameEngine(props: GameEngineProps) {
                     console.warn('World getCellAt not available; visibleChunks will contain only currentChunk');
                 }
             }
+        }
+
+        // Register creatures found in visibleChunks so CreatureEngine can simulate them.
+        try {
+            for (const [chunkKey, chunk] of visibleChunks) {
+                if (chunk && chunk.enemy) {
+                    const creatureId = `creature_${chunk.x}_${chunk.y}`;
+                    if (!creatureEngineRef.current.getCreature(creatureId)) {
+                        creatureEngineRef.current.registerCreature(creatureId, chunk.enemy, new GridPosition(chunk.x, chunk.y), chunk);
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn('Failed to register visible creatures for simulation', err);
         }
 
             // Update plants in visible area

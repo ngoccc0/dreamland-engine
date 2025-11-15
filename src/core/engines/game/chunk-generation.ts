@@ -411,7 +411,7 @@ export function generateChunkContent(
 
     // Determine the maximum number of unique item types to select for this chunk.
     // Reduced base so chunks do not automatically fill up with many items.
-    const baseMaxItems = 1; // Default (reduced) number of unique item types per chunk (lowered)
+    const baseMaxItems = 2; // Default (reduced) number of unique item types per chunk (lowered)
     
     // Clamp a value between 0 and 1, typically used for normalizing chunk data values.
     // This ensures that environmental metrics are within a predictable range for calculations.
@@ -821,8 +821,8 @@ export function generateChunkContent(
     logger.debug('[generateChunkContent] FINAL spawnedItems', { spawnedItemsLength: spawnedItems.length, spawnedItems });
 
     // --- Plant Spawning Pipeline ---
-    const plantBaseFindChance = 0.3; // Higher chance for plants to spawn
-    const maxPlantsPerChunk = 4; // Allow up to 4 different plant types per chunk
+    const plantBaseFindChance = 0.85; // Very high chance for plants to spawn (significantly increased)
+    const maxPlantsPerChunk = 8; // Allow up to 8 different plant types per chunk (significantly increased)
     const plantFindMultiplier = 1.0 + (chunkResourceScore * 1.0); // Scale with resource richness
     const plantFindChance = Math.max(0.01, Math.min(0.95, plantBaseFindChance * (worldDensityScale ?? 1) * plantFindMultiplier * effectiveMultiplier));
 

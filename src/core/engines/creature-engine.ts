@@ -26,6 +26,8 @@ interface CreatureState extends Enemy {
 export class CreatureEngine {
     private creatures: Map<string, CreatureState> = new Map();
     private pendingCreatureUpdates: Map<string, CreatureState> = new Map();
+    // pendingMessages stores narrative/system messages produced by async updates
+    private pendingMessages: Map<string, Array<{ text: string; type: 'narrative' | 'system'; meta?: any }>> = new Map();
 
     private config = defaultGameConfig;
 
@@ -111,8 +113,12 @@ export class CreatureEngine {
             // Schedule the update
             setTimeout(() => {
                 try {
-                    const updatedCreature = this.updateCreature(creature, currentTick, playerPosition, playerStats, chunks);
-                    this.pendingCreatureUpdates.set(creatureId, updatedCreature);
+                    const result = this.updateCreature(creature, currentTick, playerPosition, playerStats, chunks);
+                    // result now contains updatedCreature and messages
+                    if (result && result.updatedCreature) this.pendingCreatureUpdates.set(creatureId, result.updatedCreature);
+                    if (result && Array.isArray(result.messages) && result.messages.length > 0) {
+                        this.pendingMessages.set(creatureId, result.messages);
+                    }
                 } catch (error) {
                     console.warn(`CreatureEngine: Failed to update creature ${creatureId}`, error);
                 }
@@ -133,9 +139,9 @@ export class CreatureEngine {
         playerPosition: GridPosition,
         playerStats: PlayerStatusDefinition,
         chunks: Map<string, Chunk>
-    ): CreatureState {
+    ): { updatedCreature: CreatureState; messages: Array<{ text: string; type: 'narrative' | 'system'; meta?: any }> } {
         const updatedCreature = { ...creature };
-        const messages: Array<{ text: string; type: 'narrative' | 'system' }> = [];
+        const messages: Array<{ text: string; type: 'narrative' | 'system'; meta?: any }> = [];
 
         // Update hunger/satiation
         const wasHungry = updatedCreature.satiation < updatedCreature.maxSatiation * 0.3;
@@ -160,18 +166,17 @@ export class CreatureEngine {
             const inSearchSquare = this.isWithinSquareRange(updatedCreature.position, playerPosition, searchRange);
             const isAdjacent = this.isWithinSquareRange(updatedCreature.position, playerPosition, 1);
 
-            if (updatedCreature.currentBehavior === 'hunting' && inSearchSquare) {
-                // If creature is a carnivore (or aggressive predator) and is adjacent, attack the player
-                if ((updatedCreature.trophic === 'carnivore' || updatedCreature.behavior === 'aggressive') && isAdjacent) {
-                    // Apply damage to player
-                    const damage = updatedCreature.damage || 0;
-                    playerStats.hp = Math.max(0, (playerStats.hp || 0) - damage);
+                    if (updatedCreature.currentBehavior === 'hunting' && inSearchSquare) {
+                        // If creature is a carnivore (or aggressive predator) and is adjacent, attack the player
+                        if ((updatedCreature.trophic === 'carnivore' || updatedCreature.behavior === 'aggressive') && isAdjacent) {
+                            // Calculate damage (do not mutate playerStats here - return as meta so caller can update React state)
+                            const damage = updatedCreature.damage || 0;
 
-                    const creatureName = (updatedCreature as any).name?.en || updatedCreature.type || 'creature';
-                    const attackText = `${creatureName} ${this.t('creatureHunting', { creature: creatureName })} and attacks you (-${damage} HP).`;
-                    messages.push({ text: attackText, type: 'narrative' });
-                }
-            }
+                            const creatureName = (updatedCreature as any).name?.en || updatedCreature.type || 'creature';
+                            const attackText = `${creatureName} ${this.t('creatureHunting', { creature: creatureName })} and attacks you (-${damage} HP).`;
+                            messages.push({ text: attackText, type: 'narrative', meta: { playerDamage: damage } });
+                        }
+                    }
         } catch {
             // ignore attack errors
         }
@@ -195,9 +200,8 @@ export class CreatureEngine {
             console.warn('CreatureEngine: eating attempt failed', err);
         }
 
-        // For now, we'll handle messages differently since updates are asynchronous
-        // Messages will be collected when applying pending updates
-        return updatedCreature;
+        // Return updated creature plus any messages produced during update
+        return { updatedCreature, messages };
     }
 
     /**
@@ -508,20 +512,22 @@ export class CreatureEngine {
      * This should be called at the beginning of each game turn to synchronize state.
      * @returns Array of narrative messages generated during the updates
      */
-    applyPendingUpdates(): Array<{ text: string; type: 'narrative' | 'system' }> {
-        const messages: Array<{ text: string; type: 'narrative' | 'system' }> = [];
+    applyPendingUpdates(): Array<{ text: string; type: 'narrative' | 'system'; meta?: any }> {
+        const messages: Array<{ text: string; type: 'narrative' | 'system'; meta?: any }> = [];
 
         for (const [creatureId, updatedCreature] of this.pendingCreatureUpdates) {
             // Apply the updated state to the main creatures map
             this.creatures.set(creatureId, updatedCreature);
-
-            // For now, we don't have a way to collect messages from asynchronous updates
-            // Messages would need to be handled differently in the asynchronous context
-            // This is a limitation of the current design that could be addressed in future iterations
+            // Collect any messages for this creature
+            const msgs = this.pendingMessages.get(creatureId);
+            if (msgs && msgs.length) {
+                for (const m of msgs) messages.push(m);
+            }
         }
 
-        // Clear pending updates after applying
+        // Clear pending updates and messages after applying
         this.pendingCreatureUpdates.clear();
+        this.pendingMessages.clear();
 
         return messages;
     }

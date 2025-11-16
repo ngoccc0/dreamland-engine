@@ -30,9 +30,11 @@ interface PlayerOverlayProps {
     // callbacks when phases occur
     onLanding?: () => void;
     onFinished?: () => void;
+    // If false, render inline instead of into a document.body portal
+    usePortal?: boolean;
 }
 
-export default function PlayerOverlay({ overlayData, overlayFlying = false, visualJustLanded = false, className, ariaHidden, autoPlay = false, liftDuration = 150, bounceDuration = 50, onLanding, onFinished }: PlayerOverlayProps) {
+export default function PlayerOverlay({ overlayData, overlayFlying = false, visualJustLanded = false, className, ariaHidden, autoPlay = false, liftDuration = 150, bounceDuration = 50, onLanding, onFinished, usePortal = true }: PlayerOverlayProps) {
     const [internalFlying, setInternalFlying] = useState(false);
     const [internalJustLanded, setInternalJustLanded] = useState(false);
     const mountedRef = useRef(true);
@@ -103,6 +105,7 @@ export default function PlayerOverlay({ overlayData, overlayFlying = false, visu
     );
 
     // Render into a portal so the overlay is isolated from map transforms/layout
+    if (!usePortal) return content;
     try {
         return ReactDOM.createPortal(content, document.body);
     } catch {

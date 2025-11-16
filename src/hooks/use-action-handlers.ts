@@ -709,30 +709,36 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     }, [isLoading, isGameOver, isLoaded, world, playerPosition, toast, t, addNarrativeEntry, playerStats, customItemDefinitions, advanceGameTime, setWorld, setPlayerStats, resolveItemDef, clamp, ensurePlayerItemId, getTranslatedText]);
 
   const handleMove = useCallback((direction: "north" | "south" | "east" | "west") => {
-      if (!moveRef.current) {
-        const actionHelpers = createActionHelpers({ pickupBufferRef, lastPickupMonologueAt, resolveItemDef, t, language, addNarrativeEntry, audio, toast, customItemDefinitions });
-        const { tryAddItemToInventory, flushPickupBuffer } = actionHelpers;
-        // Spread full deps to ensure visual/animation setters (visualPlayerPosition, setIsAnimatingMove, etc.) are available
-        moveRef.current = createHandleMove({
-          ...(deps as any),
-          // local overrides / helpers
-          // Provide both the numeric timestamp ref for throttle math and the
-          // metadata ref used by continuation narrative logic.
-          lastMoveAtRef: lastMoveAtRef,
-          lastMoveRef: lastMoveRef,
-          pickupBufferRef,
-          tryAddItemToInventory,
-          flushPickupBuffer,
-          getKeywordVariations,
-          getEffectiveChunk,
-          generateOfflineNarrative,
-          narrativeLogRef,
-          getTranslatedText,
-          getTemplates,
-        });
-      }
-      return moveRef.current(direction);
-  }, [isLoading, isGameOver, playerPosition, world, addNarrativeEntry, t, settings, setPlayerBehaviorProfile, setPlayerPosition, playerStats, advanceGameTime, lastMoveRef, pickupBufferRef, getKeywordVariations, getEffectiveChunk, generateOfflineNarrative, narrativeLogRef, getTranslatedText, getTemplates, language]);
+      // Create a fresh handler per invocation so it captures the latest state
+      const actionHelpers = createActionHelpers({ pickupBufferRef, lastPickupMonologueAt, resolveItemDef, t, language, addNarrativeEntry, audio, toast, customItemDefinitions });
+      const { tryAddItemToInventory, flushPickupBuffer } = actionHelpers;
+      const handler = createHandleMove({
+        ...(deps as any),
+        // local runtime dependencies
+        settings,
+        audio,
+        toast,
+        resolveItemDef,
+        // local overrides / helpers
+        // Provide both the numeric timestamp ref for throttle math and the
+        // metadata ref used by continuation narrative logic.
+        lastMoveAtRef: lastMoveAtRef,
+        lastMoveRef: lastMoveRef,
+        pickupBufferRef,
+        tryAddItemToInventory,
+        flushPickupBuffer,
+        getKeywordVariations,
+        getEffectiveChunk,
+        generateOfflineNarrative,
+        narrativeLogRef,
+        getTranslatedText,
+        getTemplates,
+        t,
+        language,
+      });
+      try { (handler as any).__language = language; (handler as any).__hasT = typeof t === 'function'; } catch {}
+      return (handler as any)(direction);
+  }, [isLoading, isGameOver, playerPosition, world, addNarrativeEntry, t, settings, setPlayerBehaviorProfile, setPlayerPosition, playerStats, advanceGameTime, lastMoveRef, pickupBufferRef, getKeywordVariations, getEffectiveChunk, generateOfflineNarrative, narrativeLogRef, getTranslatedText, getTemplates, language, audio, toast, resolveItemDef, customItemDefinitions]);
 
   return {
     handleMove,

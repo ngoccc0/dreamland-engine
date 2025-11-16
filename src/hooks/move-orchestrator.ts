@@ -195,7 +195,19 @@ export function createHandleMove(ctx: any) {
           try { moveTrace?.events.push({ name: 'authoritative_apply', at: Date.now(), origin, pos: { x, y } }); } catch {}
           try { console.time('[move-orchestrator] authoritative_apply'); } catch {}
           try { console.info('[move-orchestrator] authoritative_apply', { origin, x, y, now: Date.now() }); } catch {}
-          try { if (ctx.setPlayerPosition) ctx.setPlayerPosition({ x, y }); } catch {}
+          try {
+            if (ctx.setPlayerPosition) ctx.setPlayerPosition({ x, y });
+          } catch {}
+          try {
+            // Ensure visual state is cleared so UI stops animating even if
+            // overlay/animation events are missed. This mirrors what
+            // animListener does when the animation finishes.
+            try { ctx.setVisualPlayerPosition?.({ x, y }); } catch {}
+            try { ctx.setVisualJustLanded?.(false); } catch {}
+            try { ctx.setIsAnimatingMove?.(false); } catch {}
+            try { ctx.setVisualMoveFrom?.(null); } catch {}
+            try { ctx.setVisualMoveTo?.(null); } catch {}
+          } catch {}
           try { console.timeEnd('[move-orchestrator] authoritative_apply'); } catch {}
         };
 
@@ -221,7 +233,14 @@ export function createHandleMove(ctx: any) {
               if (applied) {
                 finalizeAndLog();
               } else {
+                // Mark that we've seen the pan; immediately apply authoritative
+                // position to avoid long safety timeouts when animation events
+                // are not emitted (e.g. overlay didn't dispatch). This will
+                // also clear visual animation state so subsequent moves are
+                // not blocked by `isAnimatingMove` remaining true.
                 seenPan = true;
+                try { applyAuthoritative('pan'); } catch {}
+                try { finalizeAndLog(); } catch {}
               }
             }
           } catch {}
@@ -463,7 +482,7 @@ export function createHandleMove(ctx: any) {
       });
       
     } catch (err) {
-      // swallow to avoid breaking UI
+      try { console.error('[move-orchestrator] unhandled error', err, (err as any)?.stack); } catch {}
     }
   };
 }

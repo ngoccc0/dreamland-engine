@@ -583,6 +583,7 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
             <PlayerOverlay
                 overlayData={overlayData}
                 autoPlay={true}
+                usePortal={false}
                 onLanding={() => {
                     try {
                         const d = lastOverlayDetailRef.current;

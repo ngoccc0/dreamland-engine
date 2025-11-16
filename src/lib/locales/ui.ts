@@ -205,6 +205,13 @@ export const uiTranslations = {
     fontSizeLarge: 'Large',
     manaCost: "Mana Cost",
     manaCostShort: "{cost} MP",
+    keyBindings: "Key Bindings",
+    keyBindingsDesc: "Customize your keyboard controls for the game.",
+    menu: "Menu",
+    menuDesc: "Access the game menu to save, load, or change settings.",
+    map: "Map",
+    dropItem: "Drop Item",
+    key_q: "Q",
 
     // Tutorial Popup
     tutorialTitle: "How to Play",
@@ -278,6 +285,13 @@ export const uiTranslations = {
     survival: "Survival",
     naturalism: "Naturalism",
     pickedUpItemNarrative: "You picked up {quantity} {itemName}.",
+    quest: {
+        floptropica_quest1: "Find the source of the mysterious pop music.",
+        floptropica_quest2: "Serve your first cvnt."
+    },
+    item: {
+        jiafei_pan_name: "Jiafei's Pan"
+    },
     // Sensory descriptor keys (used by narrator). Format: sensory.<kind>.<id>
     'sensory.smell.sweet': 'sweet',
     'sensory.smell.smoky': 'smoky',

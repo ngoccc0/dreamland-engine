@@ -17,7 +17,7 @@ import { cn, getTranslatedText } from "@/lib/utils";
 import { resolveItemDef } from '@/lib/game/item-utils';
 import { Switch } from "@/components/ui/switch";
 
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 
 interface CraftingPopupProps {
   open: boolean;
@@ -28,7 +28,9 @@ interface CraftingPopupProps {
   onCraft: (recipe: Recipe, outcome: CraftingOutcome) => void;
 }
 
-export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions, recipes, onCraft }: CraftingPopupProps) {
+function CraftingPopupImpl({ open, onOpenChange, playerItems, itemDefinitions, recipes, onCraft }: CraftingPopupProps) {
+  // Short-circuit render when popup is closed to avoid expensive work while hidden
+  if (!open) return null;
   const { t, language } = useLanguage();
   const [showOnlyCraftable, setShowOnlyCraftable] = useState(false);
   const [showOnlyWithAnyIngredient, setShowOnlyWithAnyIngredient] = useState(false);
@@ -283,3 +285,5 @@ export function CraftingPopup({ open, onOpenChange, playerItems, itemDefinitions
     </Dialog>
   );
 }
+
+export const CraftingPopup = React.memo(CraftingPopupImpl);

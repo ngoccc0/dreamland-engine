@@ -182,7 +182,10 @@ export function useGameEngine(props: GameEngineProps) {
         const currentTurn = gameState.turn || 0;
 
         // Apply any pending creature updates from the previous turn
-        const pendingMessages = creatureEngineRef.current.applyPendingUpdates();
+        const pending = creatureEngineRef.current.applyPendingUpdates();
+        const pendingMessages = pending.messages || [];
+        const pendingUpdates = pending.updates || [];
+
         for (const message of pendingMessages) {
             // If the creature produced damage to the player, apply it to React state here
             if (message.meta && typeof message.meta.playerDamage === 'number') {
@@ -195,6 +198,51 @@ export function useGameEngine(props: GameEngineProps) {
 
             // Add narrative/system entries as before
             addNarrativeEntry(message.text, message.type as any);
+        }
+
+        // Sync creature position updates into the world/chunk map so UI and handlers see movement
+        if (pendingUpdates.length > 0) {
+            try {
+                gameState.setWorld((prev: any) => {
+                    const nw = { ...(prev || {}) };
+                    for (const u of pendingUpdates) {
+                        const prevKey = u.prevPosition ? `${u.prevPosition.x},${u.prevPosition.y}` : undefined;
+                        const newKey = `${u.newPosition.x},${u.newPosition.y}`;
+
+                        // Remove enemy from previous chunk if moved across tiles, but only when it matches the same creature id
+                        if (prevKey && prevKey !== newKey && nw[prevKey] && nw[prevKey].enemy) {
+                            try {
+                                const existingId = (nw[prevKey].enemy as any)?.id;
+                                if (!existingId || existingId === u.creatureId) {
+                                    delete nw[prevKey].enemy;
+                                }
+                            } catch {}
+                        }
+
+                        // Prepare enemy data for world (strip runtime-only fields)
+                        const raw = { ...(u.creature as any) };
+                        delete raw.position;
+                        delete raw.currentChunk;
+                        delete raw.lastMoveTick;
+                        delete raw.targetPosition;
+                        delete raw.currentBehavior;
+                        delete raw._prevPosition;
+
+                        // Persist stable id so world chunk keeps identity
+                        try { raw.id = u.creatureId; } catch {}
+
+                        // Ensure destination chunk exists in world
+                        if (!nw[newKey]) {
+                            nw[newKey] = { x: u.newPosition.x, y: u.newPosition.y, items: [], actions: [], structures: [] };
+                        }
+
+                        nw[newKey] = { ...(nw[newKey] || {}), enemy: raw };
+                    }
+                    return nw;
+                });
+            } catch (err) {
+                console.warn('Failed to sync creature updates into world', err);
+            }
         }
 
         gameState.setGameTime(prev => {

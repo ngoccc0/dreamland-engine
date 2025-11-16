@@ -70,6 +70,13 @@ export const narrativeTranslations = {
         jungle_feeling_dark_phrase: "is watching you",
         no_enemy_found: "no enemy",
         no_item_found: "no items",
+        narrative_blackwood_mansion_intro: "A flash of lightning illuminates the majestic silhouette of Blackwood Manor. You find yourself trapped inside, the heavy oak door slamming shut behind you. A cold whisper echoes down the grand hallway. This house is alive, and it doesn't want you to leave.",
+        narrative_open_field_intro: "Wind gently sweeps through the tall grass, creating waves of green across the landscape. You feel a sense of freedom standing in the open space.",
+        narrative_grassland_opening_vast: "You step into a vast grassland stretching to infinity, where the blue sky opens wide above your head. The air is warm and the atmosphere is dry, carrying the fresh scent of grass.",
+        narrative_grassland_opening_windy: "Wind gently sweeps through the tall grass, creating waves of green across the landscape. You feel a sense of freedom standing in the open space.",
+        feeling_windy: ["freedom", "abundant energy", "vibrancy"],
+        feeling_closing: ["peace and freedom", "profound tranquility", "harmony with nature"],
+
     },
     vi: {
         itemUsePlayerSuccessNarrative: "Trong không gian tĩnh mịch, bạn nhẹ nhàng sử dụng {item}. {effect}. {sensory_feedback}",
@@ -140,5 +147,11 @@ export const narrativeTranslations = {
         jungle_feeling_dark_phrase: "đang theo dõi bạn",
         no_enemy_found: "không có kẻ thù nào",
         no_item_found: "không có vật phẩm nào",
+        narrative_blackwood_mansion_intro: "Một tia chớp lóe lên soi sáng hình bóng hùng vĩ của Biệt thự Blackwood. Bạn thấy mình bị mắc kẹt bên trong, cánh cửa gỗ sồi nặng nề đóng sầm lại sau lưng bạn. Một lời thì thầm lạnh lẽo vang vọng xuống hành lang lớn. Ngôi nhà này còn sống, và nó không muốn bạn rời đi.",
+        narrative_open_field_intro: "Gió nhẹ nhàng lướt qua những ngọn cỏ cao vút, tạo nên những làn sóng xanh rì rào khắp không gian. Bạn cảm nhận được năng lượng dồi dào khi đứng giữa không gian rộng mở.",
+        narrative_grassland_opening_vast: "Bạn bước vào một cánh đồng cỏ rộng lớn trải dài vô tận, nơi bầu trời xanh ngắt mở rộng trên đầu. Không khí trong hơi ấm nhẹ và trong không khí khô ráo mang theo mùi cỏ tươi mát.",
+        narrative_grassland_opening_windy: "Gió liều trai lướt qua những ngọn cỏ đung đưa cao, tạo nên những làn sóng xanh rì rào khắp không gian. Bạn cảm nhận được năng lượng dồi dào khi đứng giữa cánh đồng xanh mướt.",
+        feeling_windy: ["sự tự do", "năng lượng dồi dào", "sự sống động"],
+        feeling_closing: ["bình yên và tự do", "yên tĩnh sâu sắc", "hòa hợp với thiên nhiên"],
     }
 };

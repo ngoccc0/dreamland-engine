@@ -21,6 +21,10 @@ import { useState, useRef } from 'react';
 
 export const MapCellDetails = ({ chunk, itemDefinitions }: { chunk: Chunk; itemDefinitions?: Record<string, any> }) => {
     const { t, language } = useLanguage();
+    useEffect(() => {
+        try { console.info('[minimap] mounted'); } catch {}
+        return () => { try { console.info('[minimap] unmounted'); } catch {} };
+    }, []);
     const pickIcon = (definition: any, item: any) => {
         // Prefer image objects when available
         if (definition?.emoji && typeof definition.emoji === 'object' && definition.emoji.type === 'image') return definition.emoji;
@@ -167,6 +171,7 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
         const onMoveStart = (ev: Event) => {
             try {
                 const detail = (ev as CustomEvent).detail as any;
+                try { console.debug('[minimap] moveStart received', detail); } catch {}
                 if (!detail) return;
                 const target = detail.to as { x: number; y: number } | undefined;
                 if (!target) return;
@@ -203,6 +208,7 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                         panInProgressRef.current = false;
                         try {
                             const ev2 = new CustomEvent('minimapPanComplete', { detail: { center: target, id: detail.id } });
+                            try { console.info('[minimap] dispatch minimapPanComplete', { center: target, id: detail.id }); } catch {}
                             window.dispatchEvent(ev2 as any);
                         } catch {
                             // ignore
@@ -266,6 +272,7 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                             panInProgressRef.current = false;
                             try {
                                 const ev = new CustomEvent('minimapPanComplete', { detail: { center: targetCenter } });
+                                try { console.info('[minimap] dispatch minimapPanComplete', { center: targetCenter }); } catch {}
                                 window.dispatchEvent(ev as any);
                             } catch {
                                 // ignore

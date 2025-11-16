@@ -1,12 +1,14 @@
 // Extracted offline action handler. Uses a context object to avoid closing over hook state.
-export function createHandleOfflineAction(context: any) {
+import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
+
+export function createHandleOfflineAction(context: Partial<ActionHandlerDeps> & Record<string, any>) {
   return (action: any) => {
     const {
       playerStats, addNarrativeEntry, t, getTranslatedText, world, playerPosition,
       handleSearchAction, language, customItemDefinitions, clamp, toast, resolveItemDef,
       ensurePlayerItemId, setWorld, setPlayerStats, advanceGameTime, turn, weatherZones,
       gameTime, getTemplates, pickupBufferRef
-    } = context;
+    } = context as any;
 
     let newPlayerStats: any = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), t(action.textKey as any, action.params)] };
     newPlayerStats.items = newPlayerStats.items || [];

@@ -1,7 +1,9 @@
 // Extracted offline skill-use handler. Accepts a context object with needed deps.
-export function createHandleOfflineSkillUse(context: any) {
-  return (skillName: string) => {
-    const { playerStats, addNarrativeEntry, t, rollDice, settings, getSuccessLevel, getTranslatedText, world, playerPosition, setWorld, setPlayerStats, advanceGameTime } = context;
+import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
+
+export function createHandleOfflineSkillUse(context: Partial<ActionHandlerDeps> & Record<string, any>) {
+    return (skillName: string) => {
+        const { playerStats, addNarrativeEntry, t, rollDice, settings, getSuccessLevel, getTranslatedText, world, playerPosition, setWorld, setPlayerStats, advanceGameTime } = context as any;
 
     let newPlayerStats: any = JSON.parse(JSON.stringify(playerStats));
     newPlayerStats.skills = newPlayerStats.skills || [];

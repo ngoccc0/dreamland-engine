@@ -1,7 +1,9 @@
 // Extracted offline attack handler.
-export function createHandleOfflineAttack(context: any) {
+import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
+
+export function createHandleOfflineAttack(context: Partial<ActionHandlerDeps> & Record<string, any>) {
   return () => {
-    const { playerPosition, world, addNarrativeEntry, t, logger, getEffectiveChunk, weatherZones, gameTime, sStart, sDayDuration, rollDice, getSuccessLevel, setPlayerStats, advanceGameTime, setWorld, getTemplates, language, resolveItemDef } = context;
+    const { playerPosition, world, addNarrativeEntry, t, logger, getEffectiveChunk, weatherZones, gameTime, sStart, sDayDuration, rollDice, getSuccessLevel, setPlayerStats, advanceGameTime, setWorld, getTemplates, language, resolveItemDef } = context as any;
     const key = `${playerPosition.x},${playerPosition.y}`;
     const baseChunk = world[key];
     if (!baseChunk || !baseChunk.enemy) { addNarrativeEntry(t('noTarget'), 'system'); return; }
@@ -48,8 +50,11 @@ export function createHandleOfflineAttack(context: any) {
     }
 
     let nextPlayerStats = { ...(context.playerStats || {}) };
+    nextPlayerStats.hp = Number(nextPlayerStats.hp ?? 0);
+    nextPlayerStats.stamina = Number(nextPlayerStats.stamina ?? 0);
+    nextPlayerStats.unlockProgress = { ...(nextPlayerStats.unlockProgress || {}), kills: (nextPlayerStats.unlockProgress?.kills ?? 0), damageSpells: (nextPlayerStats.unlockProgress?.damageSpells ?? 0), moves: (nextPlayerStats.unlockProgress?.moves ?? 0) };
     nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - enemyDamage);
-    if (enemyDefeated) nextPlayerStats.unlockProgress = { ...(nextPlayerStats.unlockProgress || {}), kills: (nextPlayerStats.unlockProgress?.kills ?? 0) + 1 };
+    if (enemyDefeated) nextPlayerStats.unlockProgress = { ...(nextPlayerStats.unlockProgress || {}), kills: (nextPlayerStats.unlockProgress?.kills ?? 0) + 1, damageSpells: (nextPlayerStats.unlockProgress?.damageSpells ?? 0) };
 
     const narrative = (context.generateOfflineActionNarrative ? context.generateOfflineActionNarrative('attack', { successLevel, playerDamage, enemyDamage, enemyDefeated, fled, enemyType: currentChunk.enemy!.type }, currentChunk, t, language) : '');
     addNarrativeEntry(narrative, 'narrative');
@@ -75,7 +80,7 @@ export function createHandleOfflineAttack(context: any) {
       return newWorld;
     });
 
-    context.setPlayerStats && context.setPlayerStats(() => nextPlayerStats);
-    context.advanceGameTime && context.advanceGameTime(nextPlayerStats);
+    context.setPlayerStats && context.setPlayerStats(() => nextPlayerStats as any);
+    context.advanceGameTime && context.advanceGameTime(nextPlayerStats as any);
   };
 }

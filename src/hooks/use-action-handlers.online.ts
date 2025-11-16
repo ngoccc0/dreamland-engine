@@ -3,8 +3,9 @@
 // refactor low-risk; we can tighten types later.
 import type { GenerateNarrativeInput } from '@/ai/flows/generate-narrative-flow';
 import { generateNarrative } from '@/ai/flows/generate-narrative-flow';
+import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
 
-export function createHandleOnlineNarrative(context: any) {
+export function createHandleOnlineNarrative(context: Partial<ActionHandlerDeps> & Record<string, any>) {
   return async (action: string, worldCtx: any, playerPosCtx: { x: number, y: number }, playerStatsCtx: any) => {
     const {
       setIsLoading, logger, finalWorldSetup, settings, addNarrativeEntry, t,
@@ -12,7 +13,7 @@ export function createHandleOnlineNarrative(context: any) {
       customItemDefinitions, setCustomItemCatalog, setCustomItemDefinitions,
       getDb, setDoc, doc, resolveItemId, resolveItemDef, setPlayerStats, setWorld, advanceGameTime,
       toast, language
-    } = context;
+    } = context as any;
 
     setIsLoading(true);
     const entryId = `${Date.now()}-ai-response`;

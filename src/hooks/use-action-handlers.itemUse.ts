@@ -1,7 +1,9 @@
 // Extracted item use handler (offline). Uses a context object for dependencies.
-export function createHandleOfflineItemUse(context: any) {
+import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
+
+export function createHandleOfflineItemUse(context: Partial<ActionHandlerDeps> & Record<string, any>) {
   return (itemName: string, target: string) => {
-    const { resolveItemDef, addNarrativeEntry, t, getTranslatedText, playerStats, setPlayerStats, playerPosition, world, setWorld, advanceGameTime, toast, audio } = context;
+    const { resolveItemDef, addNarrativeEntry, t, getTranslatedText, playerStats, setPlayerStats, playerPosition, world, setWorld, advanceGameTime, toast, audio } = context as any;
     if (!itemName) return;
     const itemDef = resolveItemDef ? resolveItemDef(itemName) : undefined;
     if (!itemDef) return;

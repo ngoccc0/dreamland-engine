@@ -1,10 +1,35 @@
+import React from 'react';
+
 // Helper: render emoji or image file (dùng lại cho mọi thành phần)
-export function renderItemEmoji(emoji: string, size: number = 20) {
-  if (!emoji) return null;
-  if (/^[^./\\]{1,3}$/.test(emoji)) {
-    return <span>{emoji}</span>;
+export function renderItemEmoji(emoji: any, size: number = 20) {
+  if (emoji === null || emoji === undefined) return null;
+
+  // If it's a React element, return as-is
+  if (React.isValidElement(emoji)) return emoji;
+
+  // If it's an object that describes an image, try common fields
+  if (typeof emoji === 'object') {
+    const src = (emoji.src || emoji.url || emoji.file || emoji.path || emoji.image) as string | undefined;
+    if (src) {
+      const href = typeof src === 'string' && src.startsWith('/') ? src : `/asset/${String(src)}`;
+      return <img src={href} alt="icon" style={{ width: size, height: size, display: 'inline-block', verticalAlign: 'middle' }} />;
+    }
+    // fallback to nested string like { emoji: '🪙' }
+    if (typeof (emoji as any).emoji === 'string') return renderItemEmoji((emoji as any).emoji, size);
+    return null;
   }
-  return <img src={emoji.startsWith('/') ? emoji : `/asset/${emoji}`} alt="icon" style={{ width: size, height: size, display: 'inline-block', verticalAlign: 'middle' }} />;
+
+  // If it's a string short token, render inline; otherwise treat as asset path
+  if (typeof emoji === 'string') {
+    if (/^[^./\\]{1,3}$/.test(emoji)) {
+      return <span>{emoji}</span>;
+    }
+    const href = emoji.startsWith('/') ? emoji : `/asset/${emoji}`;
+    return <img src={href} alt="icon" style={{ width: size, height: size, display: 'inline-block', verticalAlign: 'middle' }} />;
+  }
+
+  // Fallback: stringify
+  return <span>{String(emoji)}</span>;
 }
 // Re-export Lucide icons for a single point of management
 export {

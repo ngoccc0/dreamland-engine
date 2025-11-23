@@ -128,17 +128,25 @@ export function useGameEvents(deps: GameEventsDeps) {
             const key = `${playerPosition.x},${playerPosition.y}`;
             const chunkToUpdate = newWorld[key];
             if (chunkToUpdate && !chunkToUpdate.enemy) {
-                const templates = getTemplates(language);
-                const enemyTemplate = templates[baseChunk.terrain as Terrain]?.enemies.find((e: any) => e.data.type === effects.spawnEnemy!.type)?.data;
-                if (enemyTemplate) {
-                    chunkToUpdate.enemy = {
-                        ...enemyTemplate,
-                        hp: effects.spawnEnemy!.hp,
-                        damage: effects.spawnEnemy!.damage,
-                        satiation: 0,
-                    };
-                }
+            const templates = getTemplates(language);
+            // Defensive: terrain template or its enemies array may be missing
+            const terrainTemplate = templates[baseChunk.terrain as Terrain];
+            const enemiesArr = terrainTemplate && Array.isArray(terrainTemplate.enemies) ? terrainTemplate.enemies : undefined;
+            const enemyTemplate = enemiesArr ? enemiesArr.find((e: any) => e?.data?.type === effects.spawnEnemy!.type)?.data : undefined;
+            if (enemyTemplate) {
+              chunkToUpdate.enemy = {
+                ...enemyTemplate,
+                hp: effects.spawnEnemy!.hp,
+                damage: effects.spawnEnemy!.damage,
+                satiation: 0,
+              };
+            } else {
+              // If template missing, log once for diagnostics but avoid crashing.
+              try {
+                logger.warn(`[useGameEvents] Missing enemy template for terrain ${baseChunk.terrain} effects: ${JSON.stringify(effects.spawnEnemy)}`);
+              } catch {}
             }
+          }
             return newWorld;
         });
     }

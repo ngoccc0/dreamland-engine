@@ -51,7 +51,7 @@ export default function PlayerOverlay({ overlayData, overlayFlying = false, visu
         const total = Math.max(overlayData.flyDurationMs || 500, 0);
         const lift = Math.max(liftDuration || 150, 0);
         const bounce = Math.max(bounceDuration || 50, 0);
-        const fly = Math.max(total - lift - bounce, 0);
+        const fly = Math.max(total - lift - bounce, 80);
 
         setInternalFlying(false);
         setInternalJustLanded(false);
@@ -80,6 +80,11 @@ export default function PlayerOverlay({ overlayData, overlayFlying = false, visu
 
     if (!overlayData) return null;
 
+    const total = Math.max(overlayData.flyDurationMs || 500, 0);
+    const lift = Math.max(liftDuration || 150, 0);
+    const bounce = Math.max(bounceDuration || 50, 0);
+    const flyMs = Math.max(total - lift - bounce, 80);
+
     const flyFlag = autoPlay ? internalFlying : overlayFlying;
     const landedFlag = autoPlay ? internalJustLanded : visualJustLanded;
 
@@ -92,12 +97,15 @@ export default function PlayerOverlay({ overlayData, overlayFlying = false, visu
                     top: overlayData.top,
                     width: overlayData.width,
                     height: overlayData.height,
-                    ['--fly-duration' as any]: `${overlayData.flyDurationMs}ms`,
-                    transform: flyFlag ? `translate(${overlayData.dx}%, ${overlayData.dy}%)` : `translate(0, -18px)`,
-                    transitionDuration: `${overlayData.flyDurationMs}ms`
+                    ['--fly-duration' as any]: `${flyMs}ms`,
+                    // Hint browser for GPU acceleration and smoother animation
+                    willChange: 'transform',
+                    transform: flyFlag ? `translate3d(${overlayData.dx}%, ${overlayData.dy}%, 0)` : `translate3d(0, -18px, 0)`,
+                    transitionDuration: `${flyMs}ms`,
+                    transitionTimingFunction: 'cubic-bezier(.22,.9,.33,1)'
                 }}
             >
-                <div className="player-arc">
+                <div className="player-arc" style={{ willChange: 'transform' }}>
                     <PlayerIcon />
                 </div>
             </div>

@@ -9,6 +9,9 @@ body {
 
 @layer base {
   :root {
+    /* Minimap sizing vars (SSR-safe defaults) */
+    --minimap-tile-size: 48px; /* base tile size in px */
+    --minimap-zoom: 1; /* zoom multiplier */
     --background: 40 60% 89%;
     --foreground: 23 20% 24%;
     --card: 40 60% 85%;
@@ -73,6 +76,48 @@ body {
 }
 
 @layer utilities {
+  /* Minimap viewbox & maplayer utilities */
+  .minimap-viewport {
+    position: relative;
+    overflow: hidden;
+    display: block;
+    /* width/height should be controlled by container / layout; keep default max-size for safety */
+  }
+  .minimap-maplayer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    will-change: transform;
+    transform: translate3d(0,0,0);
+    -webkit-transform: translate3d(0,0,0);
+    backface-visibility: hidden;
+    transform-origin: 0 0;
+  }
+  .minimap-cell {
+    position: absolute;
+    width: var(--minimap-tile-size);
+    height: var(--minimap-tile-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-sizing: border-box;
+  }
+  /* Ensure emoji and image icons inside a minimap cell scale with the cell size */
+  .minimap-cell img, .minimap-cell svg {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+  .minimap-cell > span[role="img"], .minimap-cell > span[aria-hidden] {
+    font-size: calc(var(--minimap-tile-size) * 0.8);
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -148,11 +193,13 @@ body {
      shift from a small offset back to its final position so the recenter
      feels more like a camera pan. Uses CSS variable --pan-x/--pan-y. */
   @keyframes map-pan-in {
-    from { transform: translate(var(--pan-x, 0px), var(--pan-y, 0px)); }
-    to { transform: translate(0, 0); }
+    from { transform: translate3d(var(--pan-x, 0px), var(--pan-y, 0px), 0); }
+    to { transform: translate3d(0, 0, 0); }
   }
   .map-pan-anim {
-    /* Use same easing as flight arc for perceptual match and smoother camera motion */
-    animation: map-pan-in var(--map-pan-duration, 700ms) cubic-bezier(.22,.9,.33,1) both;
+    /* Use the same easing as flight arc for perceptual match and smoother camera motion */
+    /* Use GPU-accelerated transform (translate3d) and hint the browser to optimize */
+    will-change: transform;
+    animation: map-pan-in var(--map-pan-duration, 820ms) cubic-bezier(.22,.9,.33,1) both;
   }
 }

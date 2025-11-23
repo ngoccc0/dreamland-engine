@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Minimap } from "@/components/game/minimap";
+import Minimap from "@/components/game/minimap";
 import { StatusPopup } from "@/components/game/status-popup";
 import { InventoryPopup } from "@/components/game/inventory-popup";
 import { FullMapPopup } from "@/components/game/full-map-popup";
@@ -102,6 +102,7 @@ export default function GameLayout(props: GameLayoutProps) {
         handleDropItem,
     handleReturnToMenu,
         narrativeContainerRef,
+        setWorld,
     } = useGameEngine(props);
 
     // Keep a short grace window after visual move animations finish where the
@@ -283,36 +284,48 @@ export default function GameLayout(props: GameLayoutProps) {
     // a single start/end sequence log. Keep costly logging out of the
     // hot path to reduce console noise and timing perturbations.
 
+        const newlyVisitedKeys: string[] = [];
         for (let gy = 0; gy < size; gy++) {
             for (let gx = 0; gx < size; gx++) {
                 const wx = playerForGrid.x - displayRadius + gx;
                 const wy = playerForGrid.y + displayRadius - gy;
                 const chunkKey = `${wx},${wy}`;
-                
+
                 // Check if this chunk is within the 3x3 visibility radius
                 const chunk = world[chunkKey];
                 if (chunk) {
-                    // When a visual move animation is active we used playerForGrid to
-                    // determine the grid center; use the same visual position when
-                    // computing visibility so tiles explored during animations are
-                    // attributed to the visual avatar and not the authoritative
-                    // playerPosition (which may lag until the animation completes).
                     const refPos = playerForGrid || playerPosition;
                     const distanceFromPlayer = Math.max(
                         Math.abs(wx - refPos.x),
                         Math.abs(wy - refPos.y)
                     );
 
-                    // Only set explored/lastVisited if we detect the tile within
-                    // visibility radius. Do NOT unset explored if it was previously true.
+                    // Only mark explored/lastVisited when within visibility radius.
+                    // Collect keys and batch-update state below to avoid mutating
+                    // the existing `world` object directly (which can cause
+                    // React state inconsistencies).
                     if (distanceFromPlayer <= visibilityRadius) {
-                        if (!chunk.explored) chunk.explored = true;
-                        chunk.lastVisited = turn;
+                        if (!chunk.explored || chunk.lastVisited !== turn) {
+                            newlyVisitedKeys.push(chunkKey);
+                        }
                     }
                 }
 
                 grid[gy][gx] = chunk;
             }
+        }
+
+        // Persist discovered chunks to state in a single batched update
+        if (newlyVisitedKeys.length > 0 && typeof setWorld === 'function') {
+            setWorld((prev: any) => {
+                const nw = { ...prev };
+                for (const k of newlyVisitedKeys) {
+                    const base = nw[k];
+                    if (!base) continue;
+                    nw[k] = { ...base, explored: true, lastVisited: turn };
+                }
+                return nw;
+            });
         }
         return grid;
     }, [world, playerPosition.x, playerPosition.y, finalWorldSetup, isLoaded, turn, visualPlayerPosition, visualMoveTo, isAnimatingMove]);
@@ -345,10 +358,10 @@ export default function GameLayout(props: GameLayoutProps) {
 
     if (!isLoaded || !finalWorldSetup || !currentChunk) {
         return (
-            <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
-                <div className="flex flex-col items-center gap-2 mt-4 text-muted-foreground">
+            <div className="flex items-center justify-end min-h-dvh bg-background text-foreground pb-8">
+                <div className="flex flex-col items-center gap-2 mt-4 text-primary drop-shadow-lg">
                     <Loader2 className="h-8 w-8 animate-spin" />
-                    <p className="mt-2">{t('loadingAdventure')}</p>
+                    <p className="mt-2 text-2xl font-bold">{t('loadingAdventure')}</p>
                 </div>
             </div>
         );
@@ -560,18 +573,18 @@ có                         </div>
                 {/* Right Panel: Controls & Actions */}
                 <aside className="w-full md:w-[min(462px,36vw)] md:flex-none bg-card border-l pt-4 pb-0 px-4 md:pt-6 md:pb-0 md:px-6 flex flex-col gap-6 min-h-0">
                     {/* Top Section - HUD & Minimap */}
-                    <div className="flex-shrink-0 flex flex-col gap-6">
+                    <div className="flex flex-col gap-6 flex-1 min-h-0">
                         {isDesktop && !settings?.useLegacyLayout ? (
                             // Desktop (non-legacy): show map above HUD in the right panel
                             <>
                                 {/* Minimap */}
-                                <div className="flex flex-col items-center gap-2 w-full md:max-w-xs mx-auto">
+                                <div className="flex flex-col items-center gap-2 w-full md:max-w-full mx-auto flex-1 min-h-0">
                                     <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); focusCustomActionInput(); }}>{t('minimap')}</h3>
                                     <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
                                     </div>
-                                    <div className="w-full max-w-full md:max-w-xs">
+                                    <div className="w-full h-full">
                                         <Minimap grid={generateMapGrid()} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} />
                                     </div>
                                 </div>
@@ -690,7 +703,7 @@ có                         </div>
                                 </div>
 
                                 {/* Minimap */}
-                                <div className="flex flex-col items-center gap-2 w-full max-w-xs mx-auto">
+                                <div className="flex flex-col items-center gap-2 w-full max-w-full mx-auto flex-1 min-h-0">
                                     <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); focusCustomActionInput(); }}>{t('minimap')}</h3>
                                     <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
@@ -703,7 +716,7 @@ có                         </div>
                     </div>
                     
                     {/* Bottom Section - Actions (desktop shows horizontal bar instead unless legacy layout is enabled) */}
-                    <div className="flex flex-col gap-4 flex-grow">
+                    <div className="flex flex-col gap-4">
                         {/* Controls (mobile only). On desktop we show the bottom fixed action bar instead. */}
                         <div className="flex items-center justify-between gap-4">
                             {!isDesktop && (

@@ -5,6 +5,9 @@ import { PlayerIcon } from './icons';
 import { logger } from '@/lib/logger';
 import type { Chunk, BiomeDefinition } from '@/lib/game/types';
 
+const DEFAULT_LIFT_DURATION = 150;
+const DEFAULT_BOUNCE_DURATION = 50;
+
 interface Props {
     grid: (Chunk | null)[][];
     visualMoveFrom?: { x: number; y: number } | null;
@@ -55,8 +58,8 @@ export default function PlayerFlightOverlay({ grid, visualMoveFrom, visualMoveTo
         }
 
         // Start lift -> fly -> landed sequence with robust cleanup
-        const liftDuration = 150; // ms
-        const bounceDuration = 220; // ms
+        const liftDuration = DEFAULT_LIFT_DURATION; // ms
+        const bounceDuration = DEFAULT_BOUNCE_DURATION; // ms (align with PlayerOverlay defaults)
 
         logger.debug('[player-flight-overlay] starting flight sequence', {
             dx: overlayData.dx,
@@ -78,7 +81,9 @@ export default function PlayerFlightOverlay({ grid, visualMoveFrom, visualMoveTo
         const bounceTimerRef = { id: null as null | ReturnType<typeof setTimeout> };
         const calledRef = { called: false } as { called: boolean };
 
-        // schedule land after fly duration
+        // schedule land after lift + fly duration
+        const total = overlayData.flyDurationMs ?? 500;
+        const flyMs = Math.max(total - liftDuration - bounceDuration, 80);
         landTimerRef.id = setTimeout(() => {
             logger.debug('[player-flight-overlay] fly finished, landed');
             setOverlayState('landed');
@@ -106,7 +111,7 @@ export default function PlayerFlightOverlay({ grid, visualMoveFrom, visualMoveTo
                     try { onFlightComplete && onFlightComplete({ x: visualMoveTo!.x, y: visualMoveTo!.y }); } catch (e) { logger.debug('[player-flight-overlay] onFlightComplete threw', e); }
                 }
             }, bounceDuration) as any;
-        }, overlayData.flyDurationMs) as any;
+        }, liftDuration + flyMs) as any;
 
         // Cleanup: ensure all timers cleared and onFlightComplete called at most once
         return () => {
@@ -122,6 +127,10 @@ export default function PlayerFlightOverlay({ grid, visualMoveFrom, visualMoveTo
 
     const isFlying = overlayState === 'fly';
     const isLift = overlayState === 'lift';
+    const total = overlayData.flyDurationMs ?? 500;
+    const lift = DEFAULT_LIFT_DURATION;
+    const bounce = DEFAULT_BOUNCE_DURATION;
+    const flyMs = Math.max(total - lift - bounce, 80);
 
     return (
         <div style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, pointerEvents: 'none' }} aria-hidden>
@@ -132,9 +141,12 @@ export default function PlayerFlightOverlay({ grid, visualMoveFrom, visualMoveTo
                     top: overlayData.top,
                     width: overlayData.width,
                     height: overlayData.height,
-                    ['--fly-duration' as any]: `${overlayData.flyDurationMs}ms`,
-                    transform: isFlying ? `translate(${overlayData.dx}%, ${overlayData.dy}%)` : `translate(0, -18px)`,
-                    transitionDuration: `${overlayData.flyDurationMs}ms`
+                    ['--fly-duration' as any]: `${flyMs}ms`,
+                    // GPU-accelerated transform and browser hint for smoother animation
+                    willChange: 'transform, left, top',
+                    transform: isFlying ? `translate3d(${overlayData.dx}%, ${overlayData.dy}%, 0)` : `translate3d(0, -18px, 0)`,
+                    transitionDuration: `${flyMs}ms`,
+                    transitionTimingFunction: 'cubic-bezier(.22,.9,.33,1)'
                 }}
             >
                 <div className="player-arc">

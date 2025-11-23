@@ -85,11 +85,20 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
     }
   };
 
-  const cellSizes = ["w-8 h-8", "w-12 h-12", "w-16 h-16", "w-20 h-20", "w-24 h-24"];
-  const biomeIconSizes = ["text-base", "text-xl", "text-2xl", "text-3xl", "text-4xl"];
-  const showDetails = zoom >= 3;
-  const currentCellSize = cellSizes[zoom - 1];
-  const currentBiomeIconSize = biomeIconSizes[zoom - 1];
+    const cellSizes = ["w-8 h-8", "w-12 h-12", "w-16 h-16", "w-20 h-20", "w-24 h-24"];
+    const biomeIconSizes = ["text-base", "text-xl", "text-2xl", "text-3xl", "text-4xl"];
+    const showDetails = zoom >= 3;
+
+    const getTilePx = () => {
+        try {
+            const v = getComputedStyle(document.documentElement).getPropertyValue('--minimap-tile-size');
+            if (v) return Number(v.trim().replace('px', '')) || 48;
+        } catch {}
+        return 48;
+    };
+
+    const cellSizePx = React.useMemo(() => Math.round(getTilePx() * (zoom / 2)), [zoom]);
+    const iconSizePx = Math.max(12, Math.round(cellSizePx * 0.6));
 
   const mapBounds = React.useMemo(() => {
     const minX = playerPosition.x - mapRadius;
@@ -107,9 +116,12 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
     // Memoized MapCell component to reduce heavy re-renders when rendering the
     // full grid. The comparator checks a small set of chunk-affecting fields.
     const MapCell = React.useMemo(() => {
-        const Inner = ({ chunkKey, chunk, isPlayerHere, showDetails, currentCellSize, currentBiomeIconSize, mainIcon, language, t }: any) => {
+        const Inner = ({ chunkKey, chunk, isPlayerHere, showDetails, cellSizePx, iconSizePx, mainIcon, language, t }: any) => {
+            const sizeStyle = { width: `${cellSizePx}px`, height: `${cellSizePx}px` } as React.CSSProperties;
+            const iconStyle = { fontSize: `${iconSizePx}px`, lineHeight: 1 } as React.CSSProperties;
+
             if (!chunk) {
-                return <div key={chunkKey} data-map-cell className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />;
+                return <div key={chunkKey} data-map-cell className={cn("bg-map-empty border-r border-b border-dashed border-border/50")} style={sizeStyle} />;
             }
 
             const turnDifference = turn - chunk.lastVisited;
@@ -117,8 +129,8 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
 
             if (!chunk.explored || (isFoggy && !isPlayerHere)) {
                 return (
-                    <div key={chunkKey} data-map-cell className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50 flex items-center justify-center")}>
-                        {chunk.explored && <span className={cn(currentBiomeIconSize, "opacity-30")} title={t('fogOfWarDesc') as string}>🌫️</span>}
+                    <div key={chunkKey} data-map-cell className={cn("bg-map-empty border-r border-b border-dashed border-border/50 flex items-center justify-center")} style={sizeStyle}>
+                        {chunk.explored && <span style={iconStyle} className={cn("opacity-30")} title={t('fogOfWarDesc') as string}>🌫️</span>}
                     </div>
                 );
             }
@@ -129,14 +141,14 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
                         <div
                             data-map-cell
                             className={cn(
-                                currentCellSize,
                                 "relative transition-all duration-300 flex items-center justify-center p-1 cursor-pointer hover:ring-2 hover:ring-white border-r border-b border-dashed border-border/50",
                                 biomeColors[chunk.terrain as keyof typeof biomeColors],
                                 isPlayerHere && "ring-2 ring-white shadow-lg z-10"
                             )}
                             aria-label={`Map cell at ${chunk.x}, ${chunk.y}. Biome: ${chunk.terrain}`}
+                            style={sizeStyle}
                         >
-                            <div className={cn(currentBiomeIconSize, 'opacity-80')}>
+                            <div style={iconStyle} className={cn('opacity-80')}>
                                 {mainIcon}
                             </div>
 
@@ -176,8 +188,8 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
         return React.memo(Inner, (a: any, b: any) => {
             if (a.isPlayerHere !== b.isPlayerHere) return false;
             if (a.showDetails !== b.showDetails) return false;
-            if (a.currentCellSize !== b.currentCellSize) return false;
-            if (a.currentBiomeIconSize !== b.currentBiomeIconSize) return false;
+            if (a.cellSizePx !== b.cellSizePx) return false;
+            if (a.iconSizePx !== b.iconSizePx) return false;
             const ca = a.chunk || {};
             const cb = b.chunk || {};
             if (ca.explored !== cb.explored) return false;
@@ -188,7 +200,7 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
             if ((ca.enemy?.hp || 0) !== (cb.enemy?.hp || 0)) return false;
             return true;
         });
-    }, [turn]);
+    }, [turn, cellSizePx, iconSizePx]);
 
     // Find nearest scrollable ancestor (viewport for panning)
     const findScrollParent = (el: HTMLElement | null): HTMLElement | null => {
@@ -222,8 +234,8 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
                 const viewport = findScrollParent(grid) ?? (grid.parentElement as HTMLElement | null);
                 if (!viewport) return;
 
-                const firstCell = grid.firstElementChild as HTMLElement | null;
-                const cellSizePx = firstCell ? Math.max(firstCell.offsetWidth, firstCell.offsetHeight) : 48;
+                // Use the CSS-driven cell size for keyboard panning
+                const cellSize = cellSizePx || 48;
 
                 let dx = 0;
                 let dy = 0;
@@ -232,22 +244,22 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
                     case 'ArrowLeft':
                     case 'a':
                     case 'A':
-                        dx = -cellSizePx;
+                        dx = -cellSize;
                         break;
                     case 'ArrowRight':
                     case 'd':
                     case 'D':
-                        dx = cellSizePx;
+                        dx = cellSize;
                         break;
                     case 'ArrowUp':
                     case 'w':
                     case 'W':
-                        dy = -cellSizePx;
+                        dy = -cellSize;
                         break;
                     case 'ArrowDown':
                     case 's':
                     case 'S':
-                        dy = cellSizePx;
+                        dy = cellSize;
                         break;
                     case '+':
                     case '=':
@@ -381,7 +393,7 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
                                 const chunk = world[chunkKey];
 
                                 if (!chunk) {
-                                    return <div key={chunkKey} data-map-cell className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />;
+                                    return <div key={chunkKey} data-map-cell className={cn("bg-map-empty border-r border-b border-dashed border-border/50")} style={{ width: `${cellSizePx}px`, height: `${cellSizePx}px` }} />;
                                 }
 
                                 const isPlayerHere = playerPosition.x === worldX && playerPosition.y === worldY;
@@ -390,19 +402,20 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
 
                                 if (!chunk.explored || (isFoggy && !isPlayerHere)) {
                                     return (
-                                        <div key={chunkKey} data-map-cell className={cn(currentCellSize, "bg-map-empty border-r border-b border-dashed border-border/50 flex items-center justify-center")}>
-                                            {chunk.explored && <span className={cn(currentBiomeIconSize, "opacity-30")} title={t('fogOfWarDesc') as string}>🌫️</span>}
+                                        <div key={chunkKey} data-map-cell className={cn("bg-map-empty border-r border-b border-dashed border-border/50 flex items-center justify-center")} style={{ width: `${cellSizePx}px`, height: `${cellSizePx}px` }}>
+                                            {chunk.explored && <span style={{ fontSize: `${iconSizePx}px` }} className={cn("opacity-30")} title={t('fogOfWarDesc') as string}>🌫️</span>}
                                         </div>
                                     );
                                 }
                                 
                                                                 const mainIcon = (chunk.structures && chunk.structures.length > 0)
                                                                         ? <span
-                                                                                className={cn(currentBiomeIconSize, 'opacity-90 drop-shadow-lg')}
+                                                                                style={{ fontSize: `${iconSizePx}px`, lineHeight: 1 }}
+                                                                                className={cn('opacity-90 drop-shadow-lg')}
                                                                                 role="img"
                                                                                 aria-label={getTranslatedText(chunk.structures[0].name, language, t)}
                                                                             >
-                                                                                {renderItemEmoji(chunk.structures[0].emoji, 28)}
+                                                                                {renderItemEmoji(chunk.structures[0].emoji, iconSizePx)}
                                                                             </span>
                                                                         : (biomeIcons[chunk.terrain as keyof typeof biomeIcons] || null);
 
@@ -413,8 +426,8 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
                                                                         chunk={chunk}
                                                                         isPlayerHere={isPlayerHere}
                                                                         showDetails={showDetails}
-                                                                        currentCellSize={currentCellSize}
-                                                                        currentBiomeIconSize={currentBiomeIconSize}
+                                                                        cellSizePx={cellSizePx}
+                                                                        iconSizePx={iconSizePx}
                                                                         mainIcon={mainIcon}
                                                                         language={language}
                                                                         t={t}

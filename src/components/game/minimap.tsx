@@ -508,9 +508,11 @@ const biomeColors: Record<Terrain | 'empty', string> = {
                 const rect2 = el.getBoundingClientRect();
                 const sW = (rect2.width || availW) / logicalW;
                 const sH = (rect2.height || availH) / logicalH;
-                // prefer a 'cover' style scale so the map visually fills the viewport
-                // (use max instead of min). Clamp to avoid extreme zooms and tiny maps.
-                const chosenScale = Math.max(0.8, Math.min(3, Math.max(sW, sH)));
+                // Prefer a 'contain' style scale so we don't upscale the logical map
+                // beyond its native size (which can make the entire UI look oversized).
+                // We clamp between 0.8 and 1.0 to avoid tiny maps while preventing large upscales.
+                const contain = Math.min(sW, sH);
+                const chosenScale = Math.max(0.8, Math.min(1.0, contain));
                 // keep logical tile px stable; scale handles visual fill
                 const finalScale = chosenScale || 1;
                 setScale(finalScale);

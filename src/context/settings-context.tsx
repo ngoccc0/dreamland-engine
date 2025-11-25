@@ -24,6 +24,7 @@ const defaultSettings = {
   controlsPreventScroll: true,
   useLegacyLayout: false,
   autoPickup: false,
+  minimapViewportSize: 5,
   startTime: 360, // 6 AM
   dayDuration: 1440, // 24 hours
   timePerTurn: 10, // 10 minutes per turn
@@ -58,17 +59,17 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         // --- VALIDATION START ---
         const validThemes: Theme[] = ['light', 'dark'];
         if (!validThemes.includes(parsed.theme)) parsed.theme = defaultSettings.theme;
-        
+
         const validFonts: FontFamily[] = ['literata', 'inter', 'source_code_pro'];
         if (!validFonts.includes(parsed.fontFamily)) parsed.fontFamily = defaultSettings.fontFamily;
-        
+
         const validFontSizes: FontSize[] = ['sm', 'base', 'lg'];
         if (!validFontSizes.includes(parsed.fontSize)) parsed.fontSize = defaultSettings.fontSize;
-        
-  // Ensure time settings are numbers
-  if (typeof parsed.startTime !== 'number') parsed.startTime = (defaultSettings as any).startTime;
-  if (typeof parsed.dayDuration !== 'number') parsed.dayDuration = (defaultSettings as any).dayDuration;
-  if (typeof parsed.timePerTurn !== 'number') parsed.timePerTurn = (defaultSettings as any).timePerTurn;
+
+        // Ensure time settings are numbers
+        if (typeof parsed.startTime !== 'number') parsed.startTime = (defaultSettings as any).startTime;
+        if (typeof parsed.dayDuration !== 'number') parsed.dayDuration = (defaultSettings as any).dayDuration;
+        if (typeof parsed.timePerTurn !== 'number') parsed.timePerTurn = (defaultSettings as any).timePerTurn;
 
         // Also load mods from localStorage
         const savedMods = localStorage.getItem('gameMods');
@@ -80,12 +81,15 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
           }
         }
         // --- VALIDATION END ---
-  // Ensure controlsPreventScroll is a boolean (backwards compatibility)
-  if (typeof parsed.controlsPreventScroll !== 'boolean') parsed.controlsPreventScroll = defaultSettings.controlsPreventScroll;
-  // Ensure useLegacyLayout is a boolean (backwards compatibility)
-  if (typeof parsed.useLegacyLayout !== 'boolean') parsed.useLegacyLayout = defaultSettings.useLegacyLayout;
+        // Ensure controlsPreventScroll is a boolean (backwards compatibility)
+        if (typeof parsed.controlsPreventScroll !== 'boolean') parsed.controlsPreventScroll = defaultSettings.controlsPreventScroll;
+        // Ensure useLegacyLayout is a boolean (backwards compatibility)
+        if (typeof parsed.useLegacyLayout !== 'boolean') parsed.useLegacyLayout = defaultSettings.useLegacyLayout;
         // Ensure autoPickup is a boolean (backwards compatibility)
         if (typeof parsed.autoPickup !== 'boolean') parsed.autoPickup = defaultSettings.autoPickup;
+
+        // Validate minimapViewportSize
+        if (![5, 7, 9].includes(parsed.minimapViewportSize)) parsed.minimapViewportSize = defaultSettings.minimapViewportSize;
 
         // Validate keyBindings shape if present
         if (parsed.keyBindings && typeof parsed.keyBindings === 'object') {
@@ -104,7 +108,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
           };
         }
 
-  setSettingsState(_prev => ({...defaultSettings, ...parsed}));
+        setSettingsState(_prev => ({ ...defaultSettings, ...parsed }));
       }
     } catch (error: any) {
       console.error("Failed to load game settings from localStorage", error);
@@ -115,7 +119,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setSettingsState(prevSettings => {
       const updatedSettings = { ...prevSettings, ...newSettings };
       try {
-    const { mods: _mods, ...settingsToSave } = updatedSettings;
+        const { mods: _mods, ...settingsToSave } = updatedSettings;
         localStorage.setItem('gameSettings', JSON.stringify(settingsToSave));
       } catch (error: any) {
         console.error("Failed to save game settings to localStorage", error);
@@ -126,16 +130,16 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
   const applyMods = useCallback((modCode: string) => {
     try {
-        const parsedMods: ModBundle = JSON.parse(modCode);
-        // Basic validation
-        if (typeof parsedMods !== 'object' || !parsedMods.id) {
-            throw new Error("Invalid mod format: must be an object with an 'id' property.");
-        }
-        localStorage.setItem('gameMods', modCode);
-        setSettings({ mods: parsedMods });
+      const parsedMods: ModBundle = JSON.parse(modCode);
+      // Basic validation
+      if (typeof parsedMods !== 'object' || !parsedMods.id) {
+        throw new Error("Invalid mod format: must be an object with an 'id' property.");
+      }
+      localStorage.setItem('gameMods', modCode);
+      setSettings({ mods: parsedMods });
     } catch (error: any) {
-        console.error("Failed to apply mods:", error);
-        alert(`Error applying mods: ${error instanceof Error ? error.message : String(error)}`);
+      console.error("Failed to apply mods:", error);
+      alert(`Error applying mods: ${error instanceof Error ? error.message : String(error)}`);
     }
   }, [setSettings]);
 

@@ -146,24 +146,24 @@ export interface PlayerStatusDefinition {
      * Some older data and tests include a "moves" counter; it's kept optional for
      * compatibility while downstream data is migrated to the canonical shape.
      */
-    unlockProgress: { 
+    unlockProgress: {
         /** Number of enemies killed by the player. */
-        kills: number; 
+        kills: number;
         /** Number of damage-dealing spells cast by the player. */
-        damageSpells: number; 
+        damageSpells: number;
         /** Optional: Number of moves made by the player (legacy field). */
-        moves?: number 
+        moves?: number
     };
     /**
      * Optional: Player-level convenience fields that appear in some presets/tests.
      * Migrate to a structured `playerLevel` where possible. Keep the legacy numeric
      * field as optional for backwards compatibility; the engine will coerce when needed.
      */
-    playerLevel?: { 
+    playerLevel?: {
         /** The player's current experience level. */
-        level: number; 
+        level: number;
         /** The player's current experience points. */
-        experience: number 
+        experience: number
     } | number;
     /** Optional: The number of quests completed by the player. */
     questsCompleted?: number;
@@ -198,8 +198,8 @@ export type PlayerStatus = PlayerStatusDefinition;
 export type TranslationKey = string;
 
 // Re-export for easier access elsewhere
-export type { 
-    ItemEffect, 
+export type {
+    ItemEffect,
     WeatherDefinition,
     RandomEventDefinition,
     CreatureDefinition,
@@ -226,44 +226,44 @@ export const SoilTypeEnum = z.enum(['rocky', 'sandy', 'fertile', 'clay', 'loamy'
  * Provides a score and lists of missing/available ingredients.
  */
 export interface CraftabilityInfo {
-  /** Percentage of available ingredients (0-1), indicating how close the player is to crafting. */
-  score: number;
-  /** Names of ingredients that the player currently lacks. */
-  missingIngredients: string[];
-  /** Names of ingredients that the player currently possesses. */
-  availableIngredients: string[];
+    /** Percentage of available ingredients (0-1), indicating how close the player is to crafting. */
+    score: number;
+    /** Names of ingredients that the player currently lacks. */
+    missingIngredients: string[];
+    /** Names of ingredients that the player currently possesses. */
+    availableIngredients: string[];
 }
 
 /**
  * Defines the comprehensive outcome of a crafting attempt.
  */
 export interface CraftingOutcome {
-  /** Indicates if the recipe can be crafted with current resources and tools. */
-  canCraft: boolean;
-  /** The probability (0-1) of successful crafting, if applicable. */
-  chance: number;
-  /** Indicates if the player possesses the required tool for crafting. */
-  hasRequiredTool: boolean;
-  /** A list of ingredients that will be consumed upon successful crafting. */
-  ingredientsToConsume: { name: string; quantity: number }[];
-  /**
-   * A detailed breakdown of each ingredient requirement, including what was used,
-   * if it was a substitute, and if enough quantity was available.
-   */
-  resolvedIngredients: {
-    /** The original recipe ingredient requirement. */
-    requirement: RecipeIngredient;
-    /** The item actually used (could be a substitute). */
-    usedItem: { name: TranslatableString, tier: number };
-    /** True if a substitute item was used for this ingredient. */
-    isSubstitute: boolean;
-    /** True if the player has enough of this ingredient (or its substitute). */
-    hasEnough: boolean;
-    /** The quantity of this ingredient (or its substitute) the player currently has. */
-    playerQuantity: number;
-  }[];
-  /** Optional: Detailed craftability information. */
-  craftability?: CraftabilityInfo;
+    /** Indicates if the recipe can be crafted with current resources and tools. */
+    canCraft: boolean;
+    /** The probability (0-1) of successful crafting, if applicable. */
+    chance: number;
+    /** Indicates if the player possesses the required tool for crafting. */
+    hasRequiredTool: boolean;
+    /** A list of ingredients that will be consumed upon successful crafting. */
+    ingredientsToConsume: { name: string; quantity: number }[];
+    /**
+     * A detailed breakdown of each ingredient requirement, including what was used,
+     * if it was a substitute, and if enough quantity was available.
+     */
+    resolvedIngredients: {
+        /** The original recipe ingredient requirement. */
+        requirement: RecipeIngredient;
+        /** The item actually used (could be a substitute). */
+        usedItem: { name: TranslatableString, tier: number };
+        /** True if a substitute item was used for this ingredient. */
+        isSubstitute: boolean;
+        /** True if the player has enough of this ingredient (or its substitute). */
+        hasEnough: boolean;
+        /** The quantity of this ingredient (or its substitute) the player currently has. */
+        playerQuantity: number;
+    }[];
+    /** Optional: Detailed craftability information. */
+    craftability?: CraftabilityInfo;
 }
 
 
@@ -445,14 +445,14 @@ export type WeatherState = WeatherDefinition;
  * Defines a weather zone within the world, tracking its current weather and forecast.
  */
 export interface WeatherZone {
-  /** Unique identifier for the weather zone. */
-  id: string; 
-  /** The terrain type associated with this weather zone. */
-  terrain: Terrain;
-  /** The current weather state in this zone. */
-  currentWeather: WeatherState;
-  /** The game tick at which the weather in this zone is scheduled to change next. */
-  nextChangeTime: number; 
+    /** Unique identifier for the weather zone. */
+    id: string;
+    /** The terrain type associated with this weather zone. */
+    terrain: Terrain;
+    /** The current weather state in this zone. */
+    currentWeather: WeatherState;
+    /** The game tick at which the weather in this zone is scheduled to change next. */
+    nextChangeTime: number;
 }
 
 // --- WORLD & GAME STATE TYPES ---
@@ -469,17 +469,17 @@ export interface WorldProfile {
     /** The base climate type of the world, influencing temperature and moisture patterns. */
     climateBase: 'temperate' | 'arid' | 'tropical';
     /** The overall magic level of the world, affecting magic-related events and resources. */
-    magicLevel: number; 
+    magicLevel: number;
     /** A factor influencing the mutation rate of creatures or items. */
-    mutationFactor: number; 
+    mutationFactor: number;
     /** The intensity of sunlight, affecting light levels and plant growth. */
-    sunIntensity: number; 
+    sunIntensity: number;
     /** A list of allowed weather types for this world. */
     weatherTypesAllowed: ('clear' | 'rain' | 'fog' | 'snow')[];
     /** A bias applied to moisture levels during world generation. */
-    moistureBias: number; 
+    moistureBias: number;
     /** A bias applied to temperature during world generation. */
-    tempBias: number; 
+    tempBias: number;
     /**
      * The overall resource density multiplier for the world.
      *
@@ -530,7 +530,7 @@ export interface SeasonModifiers {
     /** Modifier for wind. */
     windMod: number;
     /** Modifier for the chance of random events occurring. */
-    eventChance: number; 
+    eventChance: number;
 }
 
 /**
@@ -542,20 +542,20 @@ export type GameTheme = 'Normal' | 'Magic' | 'Horror' | 'SciFi';
  * Defines the player's game settings, including gameplay preferences and UI customization.
  */
 export interface GameSettings {
-  /** The current game mode (e.g., 'ai' for AI-driven narrative, 'offline' for local play). */
-  gameMode: GameMode;
-  /** The type of dice used for random rolls in game mechanics. */
-  diceType: DiceType;
-  /** The AI model preference for narrative generation. */
-  aiModel: AiModel;
-  /** The preferred length for generated narrative text. */
-  narrativeLength: NarrativeLength;
-  /** The chosen font family for the game's UI. */
-  fontFamily: FontFamily;
-  /** The chosen font size for the game's UI. */
-  fontSize: FontSize;
-  /** The active UI theme. */
-  theme: Theme;
+    /** The current game mode (e.g., 'ai' for AI-driven narrative, 'offline' for local play). */
+    gameMode: GameMode;
+    /** The type of dice used for random rolls in game mechanics. */
+    diceType: DiceType;
+    /** The AI model preference for narrative generation. */
+    aiModel: AiModel;
+    /** The preferred length for generated narrative text. */
+    narrativeLength: NarrativeLength;
+    /** The chosen font family for the game's UI. */
+    fontFamily: FontFamily;
+    /** The chosen font size for the game's UI. */
+    fontSize: FontSize;
+    /** The active UI theme. */
+    theme: Theme;
     /** When true, the player will automatically pick up items when entering a tile containing items. */
     autoPickup?: boolean;
     /** Optional: A bundle of active mods. */
@@ -568,6 +568,11 @@ export interface GameSettings {
      * this behavior from the Settings UI.
      */
     controlsPreventScroll?: boolean;
+    /**
+     * Minimap viewport size: 5 (5x5 grid), 7 (7x7 grid), or 9 (9x9 grid).
+     * Default is 5. The preload grid is always larger (7x7 or 9x9) to prevent blank tiles during pan.
+     */
+    minimapViewportSize?: 5 | 7 | 9;
 }
 
 /**
@@ -669,19 +674,19 @@ export interface Skill {
 /**
  * Represents a structure in the game world, extending {@link StructureDefinition}.
  */
-export interface Structure extends StructureDefinition {}
+export interface Structure extends StructureDefinition { }
 
 
 /**
  * Represents an action that a player can perform in a chunk.
  */
 export interface Action {
-  /** Unique identifier for the action. */
-  id: number;
-  /** The translation key for the action's display text. */
-  textKey: string;
-  /** Optional: Parameters to be interpolated into the action's text. */
-  params?: Record<string, string | number>;
+    /** Unique identifier for the action. */
+    id: number;
+    /** The translation key for the action's display text. */
+    textKey: string;
+    /** Optional: Parameters to be interpolated into the action's text. */
+    params?: Record<string, string | number>;
 }
 
 /**
@@ -705,7 +710,7 @@ export interface Chunk {
     /** True if the player has explored this chunk. */
     explored: boolean;
     /** Timestamp of the last visit to this chunk. */
-    lastVisited: number; 
+    lastVisited: number;
     /** The enemy present in this chunk, if any. */
     enemy: Enemy | null;
     /** Available actions in this chunk. */
@@ -713,23 +718,23 @@ export interface Chunk {
     /** The ID of the region this chunk belongs to. */
     regionId: number;
     /** The cost to travel through this chunk. */
-    travelCost: number;          
+    travelCost: number;
     /** Density of vegetation in this chunk (0-100). */
-    vegetationDensity: number;   
+    vegetationDensity: number;
     /** Moisture level in this chunk (0-100). */
-    moisture: number;            
+    moisture: number;
     /** Elevation of this chunk. */
-    elevation: number;           
+    elevation: number;
     /** Ambient light level in this chunk (0-100). */
-    lightLevel: number;          
+    lightLevel: number;
     /** Danger level of this chunk (0-100). */
-    dangerLevel: number;         
+    dangerLevel: number;
     /** Magic affinity of this chunk (0-100). */
-    magicAffinity: number;       
+    magicAffinity: number;
     /** Human presence level in this chunk (0-100). */
-    humanPresence: number;       
+    humanPresence: number;
     /** Explorability of this chunk (0-100). */
-    explorability: number;       
+    explorability: number;
     /** Soil type of this chunk. */
     soilType: SoilType;
     /** Optional: per-chunk water timer (in ticks) representing recently watered state. */
@@ -741,7 +746,7 @@ export interface Chunk {
     /** Optional: temporary fertilizer level applied to this chunk (affects growth for N ticks). */
     fertilizerLevel?: number;
     /** Predator presence level in this chunk (0-100). */
-    predatorPresence: number;    
+    predatorPresence: number;
     /** List of plant instances in this chunk. */
     plants?: Array<{
         definition: CreatureDefinition;
@@ -770,7 +775,7 @@ export interface PlayerBehaviorProfile {
     /** Optional: Item name (translatable). The profile object is used in multiple places with only counters; keep these fields optional to avoid forcing full item-like shape everywhere. */
     name?: TranslatableString;
     /** Optional: Item description (translatable). */
-    description?: TranslatableString; 
+    description?: TranslatableString;
     /** Optional: Quantity of the item. */
     quantity?: number;
     /** Optional: Item tier/rarity. */
@@ -871,7 +876,7 @@ export interface GameState {
     /** A record of active weather zones in the world. */
     weatherZones: { [zoneId: string]: WeatherZone };
     /** The total game time elapsed in ticks. */
-    gameTime: number; 
+    gameTime: number;
     /** The current day in the game. */
     day: number;
     /** The current turn within the day. */
@@ -921,9 +926,9 @@ export interface EnemySpawn {
  * Each entry specifies a level range and the experience increase rate for that range.
  */
 export const ExpCurve = [
-  { level: 20, increase: 0.25 }, // Levels 1-20: 25% increase
-  { level: 60, increase: 0.15 }, // Levels 21-60: 15% increase
-  { level: 100, increase: 0.05 }, // Levels 61-100: 5% increase
+    { level: 20, increase: 0.25 }, // Levels 1-20: 25% increase
+    { level: 60, increase: 0.15 }, // Levels 21-60: 15% increase
+    { level: 100, increase: 0.05 }, // Levels 61-100: 5% increase
 ];
 
 /**

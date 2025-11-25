@@ -4,9 +4,14 @@
  * their effects, and their relationships, ensuring type safety and consistency
  * across the game engine and AI flows.
  */
-import {z} from 'genkit';
+import { z } from 'zod';
 import { PlayerAttributesSchema, SpawnConditionsSchema, TranslatableStringSchema } from './base';
-import { allTerrains } from '@/core/types/game';
+// Avoid importing `allTerrains` here to prevent a circular runtime import
+// during module initialization. We inline the canonical terrain list below
+// for schema definitions.
+const TERRAIN_LITERALS = [
+  'forest', 'grassland', 'desert', 'swamp', 'mountain', 'cave', 'jungle', 'volcanic', 'wall', 'floptropica', 'tundra', 'beach', 'mesa', 'mushroom_forest', 'ocean', 'city', 'space_station', 'underwater'
+];
 
 /**
  * Defines all possible categories for an item. This categorization system drives multiple game mechanics:
@@ -20,13 +25,13 @@ import { allTerrains } from '@/core/types/game';
  * during the migration period, but new items should use the standardized categories.
  */
 export const ItemCategorySchema = z.enum([
-    'Weapon', 'Armor', 'Accessory', 'Tool',
-    'Material', 'Energy Source',
-    'Food', 'Consumable', 'Potion',
-    'Data', 'Utility',
-    'Magic', 'Fusion', 'Misc',
-    // Legacy categories to support existing data before it's fully migrated.
-    'Equipment', 'Support'
+  'Weapon', 'Armor', 'Accessory', 'Tool',
+  'Material', 'Energy Source',
+  'Food', 'Consumable', 'Potion',
+  'Data', 'Utility',
+  'Magic', 'Fusion', 'Misc',
+  // Legacy categories to support existing data before it's fully migrated.
+  'Equipment', 'Support'
 ]).describe("The primary category of the item that determines its behavioral classification in game systems.");
 export type ItemCategory = z.infer<typeof ItemCategorySchema>;
 
@@ -48,17 +53,17 @@ export type ItemCategory = z.infer<typeof ItemCategorySchema>;
  */
 // Effect schema is now extensible: allows extra fields for custom effects via modding
 export const ItemEffectSchema = z.object({
-    type: z.enum([
-        'HEAL', 'RESTORE_STAMINA', 'RESTORE_HUNGER', 'RESTORE_MANA', 'DAMAGE', 'APPLY_EFFECT', 'TELEPORT',
-        'TEMPORARY_STRENGTH_BOOST', 'TEMPORARY_SPEED_BOOST', 'TEMPORARY_AGILITY_BOOST',
-        'TEMPORARY_POISON_RESISTANCE', 'REGENERATE_HEALTH', 'CONFUSION', 'WEAKNESS', 'GAMBLE_EFFECT'
-    ]).describe("The type of effect the item has. Built-in types include 'HEAL', 'RESTORE_STAMINA', 'RESTORE_HUNGER', 'RESTORE_MANA', 'DAMAGE', 'APPLY_EFFECT', 'TELEPORT', and various temporary boosts/effects."),
-    amount: z.number().optional().describe("The numerical value of the effect (e.g., amount of health restored). Positive values buff, negative values debuff. Magnitude affects potency."),
-    duration: z.number().optional().describe("Duration of the effect in game turns, if applicable. Undefined means instant effect. Duration effects are tracked by the game's time system."),
+  type: z.enum([
+    'HEAL', 'RESTORE_STAMINA', 'RESTORE_HUNGER', 'RESTORE_MANA', 'DAMAGE', 'APPLY_EFFECT', 'TELEPORT',
+    'TEMPORARY_STRENGTH_BOOST', 'TEMPORARY_SPEED_BOOST', 'TEMPORARY_AGILITY_BOOST',
+    'TEMPORARY_POISON_RESISTANCE', 'REGENERATE_HEALTH', 'CONFUSION', 'WEAKNESS', 'GAMBLE_EFFECT'
+  ]).describe("The type of effect the item has. Built-in types include 'HEAL', 'RESTORE_STAMINA', 'RESTORE_HUNGER', 'RESTORE_MANA', 'DAMAGE', 'APPLY_EFFECT', 'TELEPORT', and various temporary boosts/effects."),
+  amount: z.number().optional().describe("The numerical value of the effect (e.g., amount of health restored). Positive values buff, negative values debuff. Magnitude affects potency."),
+  duration: z.number().optional().describe("Duration of the effect in game turns, if applicable. Undefined means instant effect. Duration effects are tracked by the game's time system."),
   // Fields used by APPLY_EFFECT items. Kept optional so other effect types remain simple.
   effectType: z.string().optional().describe("A string key for the status effect to apply (e.g., 'poison', 'exhaustion')."),
-  effectDuration: z.number().optional().describe("Duration (in turns) for the applied effect. If omitted, `duration` may be used.") ,
-  effectMagnitude: z.number().optional().describe("Numeric magnitude for the applied effect (e.g., damage per turn).") ,
+  effectDuration: z.number().optional().describe("Duration (in turns) for the applied effect. If omitted, `duration` may be used."),
+  effectMagnitude: z.number().optional().describe("Numeric magnitude for the applied effect (e.g., damage per turn)."),
 }).passthrough();
 export type ItemEffect = z.infer<typeof ItemEffectSchema>;
 
@@ -163,16 +168,16 @@ export const ItemDefinitionSchema = z.object({
     keywords: z.array(z.string()).optional().describe("Keywords for sensory descriptions, used by AI for generating richer narratives."),
   }).optional().describe("Descriptions of the item's sensory effects (sight, sound, touch, smell, taste, etc.). These are used to generate immersive descriptions and AI narratives."),
   naturalSpawn: z.array(z.object({
-      biome: z.string().describe("The biome where this item can naturally spawn. Ideally, this should be of type Terrain, but string allows for modded biomes."),
-      chance: z.number().describe("The probability (0-1) of this item spawning in the specified biome."),
-      conditions: SpawnConditionsSchema.optional().describe("Additional conditions that must be met for the item to spawn in this biome."),
+    biome: z.string().describe("The biome where this item can naturally spawn. Ideally, this should be of type Terrain, but string allows for modded biomes."),
+    chance: z.number().describe("The probability (0-1) of this item spawning in the specified biome."),
+    conditions: SpawnConditionsSchema.optional().describe("Additional conditions that must be met for the item to spawn in this biome."),
   })).optional().describe("Defines the conditions under which this item can naturally appear in the world, based on biome and chance."),
   droppedBy: z.array(z.object({
-      creature: z.string().describe("The ID of the creature that can drop this item."),
-      chance: z.number().describe("The probability (0-1) of this item being dropped by the specified creature."),
+    creature: z.string().describe("The ID of the creature that can drop this item."),
+    chance: z.number().describe("The probability (0-1) of this item being dropped by the specified creature."),
   })).optional().describe("Specifies which creatures can drop this item and with what probability, linking items to the enemy ecosystem."),
   function: z.string().optional().describe("A brief description of the item's primary purpose or function in the game. This is a high-level summary for quick understanding."),
-  spawnBiomes: z.array(z.enum(allTerrains)).optional().describe("An array of one or more biomes where this item can naturally be found. This is a simplified way to define general spawn locations."),
+  spawnBiomes: z.array(z.enum(TERRAIN_LITERALS as any)).optional().describe("An array of one or more biomes where this item can naturally be found. This is a simplified way to define general spawn locations."),
   spawnEnabled: z.boolean().optional().default(true).describe("Whether this item can spawn naturally in the world. Defaults to `true`. Set to `false` for crafted-only items, quest items, or items that should not appear randomly."),
 });
 export type ItemDefinition = z.infer<typeof ItemDefinitionSchema>;

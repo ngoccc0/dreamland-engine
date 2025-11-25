@@ -2,7 +2,6 @@
 // `use-action-handlers.ts` hook. The context parameter is `any` to keep the
 // refactor low-risk; we can tighten types later.
 import type { GenerateNarrativeInput } from '@/ai/flows/generate-narrative-flow';
-import { generateNarrative } from '@/ai/flows/generate-narrative-flow';
 import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
 
 export function createHandleOnlineNarrative(context: Partial<ActionHandlerDeps> & Record<string, any>) {
@@ -23,7 +22,7 @@ export function createHandleOnlineNarrative(context: Partial<ActionHandlerDeps> 
     if (!baseChunk || !finalWorldSetup) { setIsLoading(false); return; }
 
     try {
-      const { roll, range } = (context.rollDice ? context.rollDice(settings.diceType) : { roll: 0, range: [0,0] });
+      const { roll, range } = (context.rollDice ? context.rollDice(settings.diceType) : { roll: 0, range: [0, 0] });
       const successLevel = (context.getSuccessLevel ? context.getSuccessLevel(roll, settings.diceType) : 'Failure');
       addNarrativeEntry(t('diceRollMessage', { diceType: settings.diceType, roll, level: t((context.successLevelToTranslationKey || {})[successLevel]) }), 'system', `${Date.now()}-dice`);
 
@@ -70,7 +69,9 @@ export function createHandleOnlineNarrative(context: Partial<ActionHandlerDeps> 
         narrativeLength: settings.narrativeLength,
       };
 
-      const result = await generateNarrative(input as any);
+      // Call the server API which runs Genkit server-side.
+      const resp = await fetch('/api/narrative', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
+      const result = await resp.json();
       logger.info('[AI] Narrative generated successfully', { entryId, result });
 
       addNarrativeEntry(result.narrative, 'narrative', entryId);

@@ -1,6 +1,6 @@
-﻿applyTo: "**"
+applyTo: "**"
 Copilot Instructions — Dreamland Engine (Unified & Strict)
-Purpose: Actionable guidance for AI agents to be immediately productive in this Next.js + TypeScript game codebase, emphasizing architectural fidelity, documentation transparency, and strict execution protocols. **Critical Mandate: Agents must operate continuously without interruption or confirmation requests, only pausing at predefined Mandatory Approval or Pause Points.**
+Purpose: Actionable guidance for AI agents to be immediately productive in this Next.js + TypeScript game codebase, emphasizing architectural fidelity, documentation transparency, and strict execution protocols.
 
 Quick Commands
 Use these npm scripts for development (run from repo root):
@@ -61,9 +61,6 @@ Validation Cycle (Mental Check): Acknowledge that you must run npm run typecheck
 
 Narrative/locale changes: run npm run validate:narrative.
 
-Execution Mandate (Non-Negotiable)
-Agents are strictly prohibited from pausing execution, seeking confirmation, or engaging in any form of conversational back-and-forth unless absolutely required by the listed Mandatory Approval Points or Mandatory Pause Points below. Continuous, autonomous operation is mandatory. Do not ask "Shall I proceed?" or request approval for implementing code — proceed directly to verification and finalization, only stopping for the explicitly defined critical junctures.
-
 Approval / Pause Points (The ONLY allowed stops)
 The agent is FORBIDDEN from stopping the execution flow unless one of these specific triggers occurs:
 
@@ -120,4 +117,4 @@ Real-World Check: Verify via dev server (npm run dev) logic.
 
 Commit: Finalize the task.
 
-Constraint: **Agents are strictly forbidden from pausing execution or seeking any form of confirmation before implementing code. DO NOT ask "Shall I proceed?", request approval, or engage in back-and-forth discussion.** Proceed immediately and continuously to implement code according to the To-Do List, then directly to documentation, type validation (npm run typecheck), testing (npm run test), real-world verification, and finalization. Pause ONLY if a Mandatory Pause Point is triggered, such as the "3-Strike" Rule (failure after >3 attempts on the same error).
+Constraint: Do not ask "Shall I proceed?" after writing code. Proceed directly to verification and finishing, unless you hit a critical error loop (>3 tries).

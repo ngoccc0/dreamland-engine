@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import Minimap from "@/components/game/minimap";
+import { Minimap } from "@/components/game/minimap";
 import { StatusPopup } from "@/components/game/status-popup";
 import { InventoryPopup } from "@/components/game/inventory-popup";
 import { FullMapPopup } from "@/components/game/full-map-popup";
@@ -55,23 +55,23 @@ export default function GameLayout(props: GameLayoutProps) {
         );
     }
     const { t, language } = useLanguage();
-    const { settings } = useSettings();
+    const { settings, setSettings } = useSettings();
     const [isDesktop, setIsDesktop] = useState(false);
     const [showNarrativeDesktop, setShowNarrativeDesktop] = useState(true);
     // Dev-only: track mount/unmount counts to help diagnose unexpected remounts
     if (process.env.NODE_ENV !== 'production') {
-         
+
         const g = globalThis as any;
         if (!g.__gameLayoutMountCount) g.__gameLayoutMountCount = 0;
     }
-    
+
     const {
         world,
         recipes,
         buildableStructures,
         playerStats,
         playerPosition,
-    visualPlayerPosition,
+        visualPlayerPosition,
         isAnimatingMove,
         visualMoveFrom,
         visualMoveTo,
@@ -83,7 +83,7 @@ export default function GameLayout(props: GameLayoutProps) {
         customItemDefinitions,
         currentChunk,
         turn,
-    biomeDefinitions,
+        biomeDefinitions,
         isLoaded,
         handleMove,
         handleAttack,
@@ -100,9 +100,8 @@ export default function GameLayout(props: GameLayoutProps) {
         handleUnequipItem,
         handleWaitTick,
         handleDropItem,
-    handleReturnToMenu,
+        handleReturnToMenu,
         narrativeContainerRef,
-        setWorld,
     } = useGameEngine(props);
 
     // Keep a short grace window after visual move animations finish where the
@@ -127,15 +126,15 @@ export default function GameLayout(props: GameLayoutProps) {
     // increment mount counter for GameLayout and expose to window for quick checks
     useEffect(() => {
         if (process.env.NODE_ENV === 'production') return;
-         
+
         const g = globalThis as any;
         g.__gameLayoutMountCount = (g.__gameLayoutMountCount || 0) + 1;
         // also expose on window for console inspection
-        try { (window as any).__GAME_LAYOUT_MOUNT_COUNT = g.__gameLayoutMountCount; } catch {}
+        try { (window as any).__GAME_LAYOUT_MOUNT_COUNT = g.__gameLayoutMountCount; } catch { }
         logger.debug('[GameLayout] mounted - count', { count: g.__gameLayoutMountCount });
         return () => {
             g.__gameLayoutMountCount = Math.max(0, (g.__gameLayoutMountCount || 1) - 1);
-            try { (window as any).__GAME_LAYOUT_MOUNT_COUNT = g.__gameLayoutMountCount; } catch {}
+            try { (window as any).__GAME_LAYOUT_MOUNT_COUNT = g.__gameLayoutMountCount; } catch { }
             logger.debug('[GameLayout] unmounted - count', { count: g.__gameLayoutMountCount });
         };
     }, []);
@@ -148,7 +147,7 @@ export default function GameLayout(props: GameLayoutProps) {
         return () => window.removeEventListener('resize', onResize);
     }, []);
 
-    
+
 
     const [isStatusOpen, setStatusOpen] = useState(false);
     const [isInventoryOpen, setInventoryOpen] = useState(false);
@@ -165,28 +164,28 @@ export default function GameLayout(props: GameLayoutProps) {
     const [customDialogValue, setCustomDialogValue] = useState("");
     const [isPickupDialogOpen, setPickupDialogOpen] = useState(false);
     const [selectedPickupIds, setSelectedPickupIds] = useState<number[]>([]);
-    
+
     const customActionInputRef = useRef<HTMLInputElement>(null);
 
     const focusCustomActionInput = useCallback(() => {
         setTimeout(() => {
-                        try {
-                            const el = customActionInputRef.current as (HTMLInputElement | null);
-                            if (!el) return;
-                            const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
-                            // Respect user setting for preventing control-panel scrolling
-                            const prevent = settings?.controlsPreventScroll ?? true;
-                            if (isDesktop && prevent) {
-                                // @ts-ignore - some TS DOM libs may not include the options overload
-                                el.focus?.({ preventScroll: true });
-                            } else {
-                                el.focus?.();
-                            }
-                        } catch {
-                            try { customActionInputRef.current?.focus(); } catch {}
-                        }
+            try {
+                const el = customActionInputRef.current as (HTMLInputElement | null);
+                if (!el) return;
+                const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
+                // Respect user setting for preventing control-panel scrolling
+                const prevent = settings?.controlsPreventScroll ?? true;
+                if (isDesktop && prevent) {
+                    // @ts-ignore - some TS DOM libs may not include the options overload
+                    el.focus?.({ preventScroll: true });
+                } else {
+                    el.focus?.();
+                }
+            } catch {
+                try { customActionInputRef.current?.focus(); } catch { }
+            }
         }, 0);
-            }, [settings]);
+    }, [settings]);
 
     // Use centralized keyboard bindings hook for all global key handling
     useKeyboardBindings({
@@ -248,7 +247,7 @@ export default function GameLayout(props: GameLayoutProps) {
         setCustomDialogOpen(false);
         focusCustomActionInput();
     };
-    
+
     useEffect(() => {
         const promptShown = localStorage.getItem('pwaInstallPromptShown');
         if (!promptShown) {
@@ -262,29 +261,29 @@ export default function GameLayout(props: GameLayoutProps) {
             logger.warn(`[GameLayout] Grid generation SKIPPED. isLoaded: ${isLoaded} | finalWorldSetup exists: ${!!finalWorldSetup}`);
             return [];
         }
-        
+
         // Calculate visibility grid size (3x3 around player)
         const visibilityRadius = 1; // 3x3 grid for direct visibility
-        // Calculate total grid size (5x5 for minimap display, but with visibility rules)
-        const displayRadius = 2; // 5x5 grid for display
+        // Always render 7x7 preload grid (displayRadius=3) to prevent blank tiles during pan animation.
+        // The viewport clipping will be handled by Minimap component based on minimapViewportSize setting.
+        const displayRadius = 3; // Always 7x7 grid for preloading
         const size = displayRadius * 2 + 1;
         const grid = Array.from({ length: size }, () => Array(size).fill(null));
-    // When a visual move animation is active, prefer the visual position for
-    // calculating which chunks to render so the map does not recenter until
-    // the avatar lands. Also keep a short grace window after animation where
-    // we continue to use the visual position even if isAnimatingMove has ended
-    // but the authoritative playerPosition hasn't fully propagated.
-    const now = Date.now();
-    // Prefer the intended visual destination while an animation is active: visualMoveTo
-    // is the most accurate center to use for grid generation during a flight.
-    const useVisualCenter = (isAnimatingMove && (visualMoveTo || visualPlayerPosition)) || ((visualPlayerPosition || visualMoveTo) && holdCenterUntilRef.current > now);
-    const playerForGrid = useVisualCenter ? (visualMoveTo || visualPlayerPosition || playerPosition) : playerPosition;
-    // Log which center we used so we can correlate UI updates with state changes
-    // debug logging intentionally removed to centralize move tracing into
-    // a single start/end sequence log. Keep costly logging out of the
-    // hot path to reduce console noise and timing perturbations.
+        // When a visual move animation is active, prefer the visual position for
+        // calculating which chunks to render so the map does not recenter until
+        // the avatar lands. Also keep a short grace window after animation where
+        // we continue to use the visual position even if isAnimatingMove has ended
+        // but the authoritative playerPosition hasn't fully propagated.
+        const now = Date.now();
+        // Prefer the intended visual destination while an animation is active: visualMoveTo
+        // is the most accurate center to use for grid generation during a flight.
+        const useVisualCenter = (isAnimatingMove && (visualMoveTo || visualPlayerPosition)) || ((visualPlayerPosition || visualMoveTo) && holdCenterUntilRef.current > now);
+        const playerForGrid = useVisualCenter ? (visualMoveTo || visualPlayerPosition || playerPosition) : playerPosition;
+        // Log which center we used so we can correlate UI updates with state changes
+        // debug logging intentionally removed to centralize move tracing into
+        // a single start/end sequence log. Keep costly logging out of the
+        // hot path to reduce console noise and timing perturbations.
 
-        const newlyVisitedKeys: string[] = [];
         for (let gy = 0; gy < size; gy++) {
             for (let gx = 0; gx < size; gx++) {
                 const wx = playerForGrid.x - displayRadius + gx;
@@ -294,42 +293,31 @@ export default function GameLayout(props: GameLayoutProps) {
                 // Check if this chunk is within the 3x3 visibility radius
                 const chunk = world[chunkKey];
                 if (chunk) {
+                    // When a visual move animation is active we used playerForGrid to
+                    // determine the grid center; use the same visual position when
+                    // computing visibility so tiles explored during animations are
+                    // attributed to the visual avatar and not the authoritative
+                    // playerPosition (which may lag until the animation completes).
                     const refPos = playerForGrid || playerPosition;
                     const distanceFromPlayer = Math.max(
                         Math.abs(wx - refPos.x),
                         Math.abs(wy - refPos.y)
                     );
 
-                    // Only mark explored/lastVisited when within visibility radius.
-                    // Collect keys and batch-update state below to avoid mutating
-                    // the existing `world` object directly (which can cause
-                    // React state inconsistencies).
+                    // Only set explored/lastVisited if we detect the tile within
+                    // visibility radius. Do NOT unset explored if it was previously true.
                     if (distanceFromPlayer <= visibilityRadius) {
-                        if (!chunk.explored || chunk.lastVisited !== turn) {
-                            newlyVisitedKeys.push(chunkKey);
-                        }
+                        if (!chunk.explored) chunk.explored = true;
+                        chunk.lastVisited = turn;
                     }
                 }
 
                 grid[gy][gx] = chunk;
             }
         }
-
-        // Persist discovered chunks to state in a single batched update
-        if (newlyVisitedKeys.length > 0 && typeof setWorld === 'function') {
-            setWorld((prev: any) => {
-                const nw = { ...prev };
-                for (const k of newlyVisitedKeys) {
-                    const base = nw[k];
-                    if (!base) continue;
-                    nw[k] = { ...base, explored: true, lastVisited: turn };
-                }
-                return nw;
-            });
-        }
         return grid;
     }, [world, playerPosition.x, playerPosition.y, finalWorldSetup, isLoaded, turn, visualPlayerPosition, visualMoveTo, isAnimatingMove]);
-    
+
     const restingPlace = currentChunk?.structures?.find((s: Structure) => s.restEffect);
     // Pickup / other action grouping must be declared before any function that closes over them
     const pickUpActions = (currentChunk?.actions || []).filter((a: Action) => a.textKey === 'pickUpAction_item');
@@ -351,29 +339,29 @@ export default function GameLayout(props: GameLayoutProps) {
             const actionText = getTranslatedText({ key: action.textKey, params: action.params }, language, t);
             return { type: 'interact', label: actionText, handler: () => handleActionClick(action.id) };
         }
-        return { type: 'explore', label: t('explore') || 'Explore', handler: () => {} };
+        return { type: 'explore', label: t('explore') || 'Explore', handler: () => { } };
     };
 
     const contextAction = getContextSensitiveAction();
 
     if (!isLoaded || !finalWorldSetup || !currentChunk) {
         return (
-            <div className="flex items-center justify-end min-h-dvh bg-background text-foreground pb-8">
-                <div className="flex flex-col items-center gap-2 mt-4 text-primary drop-shadow-lg">
+            <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
+                <div className="flex flex-col items-center gap-2 mt-4 text-muted-foreground">
                     <Loader2 className="h-8 w-8 animate-spin" />
-                    <p className="mt-2 text-2xl font-bold">{t('loadingAdventure')}</p>
+                    <p className="mt-2">{t('loadingAdventure')}</p>
                 </div>
             </div>
         );
     }
-    
+
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
-          e.preventDefault();
-          onCustomActionSubmit();
+            e.preventDefault();
+            onCustomActionSubmit();
         }
     };
-    
+
     const worldNameText = getTranslatedText(finalWorldSetup.worldName, language, t);
 
     // Stat display helpers for HUD numeric labels
@@ -431,7 +419,7 @@ export default function GameLayout(props: GameLayoutProps) {
         </DropdownMenu>
     );
 
-    
+
 
     // Helpers for the pickup dialog selection
     const togglePickupSelection = (id: number) => {
@@ -445,7 +433,7 @@ export default function GameLayout(props: GameLayoutProps) {
         }
 
         // Execute each selected pick-up action using the existing action handler
-            selectedPickupIds.forEach((actionId) => {
+        selectedPickupIds.forEach((actionId) => {
             try {
                 handleAction(actionId);
             } catch (error: any) {
@@ -512,27 +500,27 @@ export default function GameLayout(props: GameLayoutProps) {
                                 {showNarrativeDesktop ? 'Hide' : 'Show'}
                             </Button>
                             <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" aria-label={t('openMenu') || 'Open menu'}>
-                                    <Menu />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => { setTutorialOpen(true); focusCustomActionInput(); }}>
-                                    <LifeBuoy className="mr-2 h-4 w-4" />
-                                    <span>{t('tutorialTitle')}</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => { setSettingsOpen(true); focusCustomActionInput(); }}>
-                                    <Settings className="mr-2 h-4 w-4" />
-                                    <span>{t('gameSettings')}</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={handleReturnToMenu}>
-                                    <LogOut className="mr-2 h-4 w-4" />
-                                    <span>{t('returnToMenu')}</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" aria-label={t('openMenu') || 'Open menu'}>
+                                        <Menu />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => { setTutorialOpen(true); focusCustomActionInput(); }}>
+                                        <LifeBuoy className="mr-2 h-4 w-4" />
+                                        <span>{t('tutorialTitle')}</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => { setSettingsOpen(true); focusCustomActionInput(); }}>
+                                        <Settings className="mr-2 h-4 w-4" />
+                                        <span>{t('gameSettings')}</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={handleReturnToMenu}>
+                                        <LogOut className="mr-2 h-4 w-4" />
+                                        <span>{t('returnToMenu')}</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                     </header>
 
@@ -545,7 +533,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                 const map = new Map(narrativeLog.map((e: NarrativeEntry) => [e.id, e]));
                                 const deduped = Array.from(map.values());
                                 if (deduped.length !== narrativeLog.length) {
-                                     
+
                                     console.warn('[GameLayout] narrativeLog contained duplicate ids; rendering deduped list.');
                                 }
                                 return deduped.map((entry: NarrativeEntry) => (
@@ -563,7 +551,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                     <p>AI is thinking...</p>
                                 </div>
                             )}
-có                         </div>
+                            có                         </div>
                     </main>
 
                     {/* Desktop horizontal action bar removed - main actions are now inline in the header for desktop non-legacy layout */}
@@ -573,18 +561,18 @@ có                         </div>
                 {/* Right Panel: Controls & Actions */}
                 <aside className="w-full md:w-[min(462px,36vw)] md:flex-none bg-card border-l pt-4 pb-0 px-4 md:pt-6 md:pb-0 md:px-6 flex flex-col gap-6 min-h-0">
                     {/* Top Section - HUD & Minimap */}
-                    <div className="flex flex-col gap-6 flex-1 min-h-0">
+                    <div className="flex-shrink-0 flex flex-col gap-6">
                         {isDesktop && !settings?.useLegacyLayout ? (
                             // Desktop (non-legacy): show map above HUD in the right panel
                             <>
                                 {/* Minimap */}
-                                <div className="flex flex-col items-center gap-2 w-full md:max-w-full mx-auto flex-1 min-h-0">
+                                <div className="flex flex-col items-center gap-2 w-full md:max-w-xs mx-auto">
                                     <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); focusCustomActionInput(); }}>{t('minimap')}</h3>
                                     <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
                                     </div>
-                                    <div className="w-full h-full">
+                                    <div className="w-full max-w-full md:max-w-xs">
                                         <Minimap grid={generateMapGrid()} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} />
                                     </div>
                                 </div>
@@ -702,9 +690,51 @@ có                         </div>
                                     </div>
                                 </div>
 
-                                {/* Minimap */}
-                                <div className="flex flex-col items-center gap-2 w-full max-w-full mx-auto flex-1 min-h-0">
-                                    <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); focusCustomActionInput(); }}>{t('minimap')}</h3>
+                                {/* Minimap with zoom controls */}
+                                <div className="flex flex-col items-center gap-2 w-full max-w-xs mx-auto">
+                                    <div className="flex items-center justify-between w-full px-2">
+                                        <h3 className="text-lg font-headline font-semibold text-center flex-1 text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); focusCustomActionInput(); }}>{t('minimap')}</h3>
+                                        {/* Minimap zoom controls */}
+                                        <div className="flex items-center gap-1">
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <button
+                                                        onClick={() => {
+                                                            const current = settings.minimapViewportSize ?? 5;
+                                                            const sizes: (5 | 7 | 9)[] = [5, 7, 9];
+                                                            const idx = sizes.indexOf(current as 5 | 7 | 9);
+                                                            const next = sizes[(idx - 1 + sizes.length) % sizes.length];
+                                                            setSettings({ minimapViewportSize: next });
+                                                        }}
+                                                        className="p-1 hover:bg-accent/20 rounded text-xs transition-colors"
+                                                        title="Zoom out minimap"
+                                                    >
+                                                        −
+                                                    </button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>Zoom out</TooltipContent>
+                                            </Tooltip>
+                                            <span className="text-xs text-muted-foreground w-10 text-center">{settings.minimapViewportSize ?? 5}×{settings.minimapViewportSize ?? 5}</span>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <button
+                                                        onClick={() => {
+                                                            const current = settings.minimapViewportSize ?? 5;
+                                                            const sizes: (5 | 7 | 9)[] = [5, 7, 9];
+                                                            const idx = sizes.indexOf(current as 5 | 7 | 9);
+                                                            const next = sizes[(idx + 1) % sizes.length];
+                                                            setSettings({ minimapViewportSize: next });
+                                                        }}
+                                                        className="p-1 hover:bg-accent/20 rounded text-xs transition-colors"
+                                                        title="Zoom in minimap"
+                                                    >
+                                                        +
+                                                    </button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>Zoom in</TooltipContent>
+                                            </Tooltip>
+                                        </div>
+                                    </div>
                                     <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
@@ -714,9 +744,9 @@ có                         </div>
                             </>
                         )}
                     </div>
-                    
+
                     {/* Bottom Section - Actions (desktop shows horizontal bar instead unless legacy layout is enabled) */}
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-4 flex-grow">
                         {/* Controls (mobile only). On desktop we show the bottom fixed action bar instead. */}
                         <div className="flex items-center justify-between gap-4">
                             {!isDesktop && (
@@ -784,8 +814,8 @@ có                         </div>
                             onOpenBuilding={() => { setBuildingOpen(true); focusCustomActionInput(); }}
                             onOpenFusion={() => { setFusionOpen(true); focusCustomActionInput(); }}
                         />
-                        
-                        
+
+
                         {/* Contextual and Custom Actions */}
                         {restingPlace && (
                             <><div className="space-y-2">
@@ -793,7 +823,7 @@ có                         </div>
                                 <Tooltip><TooltipTrigger asChild><Button variant="secondary" className="w-full justify-center" onClick={() => { handleRest(); focusCustomActionInput(); }} disabled={isLoading}><BedDouble className="mr-2 h-4 w-4" />{t('rest')}</Button></TooltipTrigger><TooltipContent><p>{t('restTooltip', { shelterName: getTranslatedText(restingPlace.name, language, t), hp: restingPlace.restEffect!.hp, stamina: restingPlace.restEffect!.stamina })}</p></TooltipContent></Tooltip>
                             </div><Separator /></>
                         )}
-                        
+
                         {/* Available actions (mobile only): hide on desktop since desktop has the fixed bottom bar */}
                         {!isDesktop && (
                             <div className="space-y-2">
@@ -817,7 +847,7 @@ có                         </div>
                                 </div>
                             </div>
                         )}
-                        
+
                         {/* Custom action input removed from the map/HUD column so the aside only contains map and HUD */}
                     </div>
                 </aside>
@@ -884,8 +914,8 @@ có                         </div>
                         </div>
                     </DialogContent>
                 </Dialog>
-                
-                
+
+
                 <StatusPopup open={isStatusOpen} onOpenChange={setStatusOpen} stats={playerStats} onRequestHint={handleRequestQuestHint} onUnequipItem={handleUnequipItem} />
                 {/* Dialog: Pickup items selection */}
                 <Dialog open={isPickupDialogOpen} onOpenChange={setPickupDialogOpen}>
@@ -933,14 +963,14 @@ có                         </div>
                 <TutorialPopup open={isTutorialOpen} onOpenChange={setTutorialOpen} />
                 <SettingsPopup open={isSettingsOpen} onOpenChange={setSettingsOpen} isInGame={true} currentBiome={currentChunk?.terrain ?? null} />
                 <PwaInstallPopup open={showInstallPopup} onOpenChange={setShowInstallPopup} />
-                
+
                 <AlertDialog open={isGameOver}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
-                        <AlertDialogTitle>{t('gameOverTitle')}</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            {t('gameOverDesc')}
-                        </AlertDialogDescription>
+                            <AlertDialogTitle>{t('gameOverTitle')}</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                {t('gameOverDesc')}
+                            </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                             <AlertDialogAction onClick={() => {

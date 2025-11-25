@@ -9,9 +9,6 @@ body {
 
 @layer base {
   :root {
-    /* Minimap sizing vars (SSR-safe defaults) */
-    --minimap-tile-size: 48px; /* base tile size in px */
-    --minimap-zoom: 1; /* zoom multiplier */
     --background: 40 60% 89%;
     --foreground: 23 20% 24%;
     --card: 40 60% 85%;
@@ -38,6 +35,7 @@ body {
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
+
   .dark {
     --background: 23 20% 10%;
     --foreground: 40 60% 89%;
@@ -70,73 +68,46 @@ body {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
 }
 
 @layer utilities {
-  /* Minimap viewbox & maplayer utilities */
-  .minimap-viewport {
-    position: relative;
-    overflow: hidden;
-    display: block;
-    /* width/height should be controlled by container / layout; keep default max-size for safety */
-  }
-  .minimap-maplayer {
-    position: absolute;
-    left: 0;
-    top: 0;
-    will-change: transform;
-    transform: translate3d(0,0,0);
-    -webkit-transform: translate3d(0,0,0);
-    backface-visibility: hidden;
-    transform-origin: 0 0;
-  }
-  .minimap-cell {
-    position: absolute;
-    width: var(--minimap-tile-size);
-    height: var(--minimap-tile-size);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    box-sizing: border-box;
-  }
-  /* Ensure emoji and image icons inside a minimap cell scale with the cell size */
-  .minimap-cell img, .minimap-cell svg {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    display: block;
-  }
-  .minimap-cell > span[role="img"], .minimap-cell > span[aria-hidden] {
-    font-size: calc(var(--minimap-tile-size) * 0.8);
-    line-height: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
   .hide-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
+
   /* Simple jump animation used for player avatar when moving */
   @keyframes jump {
-    0% { transform: translateY(0); }
-    30% { transform: translateY(-12px); }
-    100% { transform: translateY(0); }
+    0% {
+      transform: translateY(0);
+    }
+
+    30% {
+      transform: translateY(-12px);
+    }
+
+    100% {
+      transform: translateY(0);
+    }
   }
+
   .animate-jump {
     animation-name: jump;
     animation-duration: 600ms;
-    animation-timing-function: cubic-bezier(.22,.9,.33,1);
+    animation-timing-function: cubic-bezier(.22, .9, .33, 1);
     animation-fill-mode: both;
   }
+
   /* Player overlay flight/bounce styling */
   .player-overlay {
     position: absolute;
@@ -145,37 +116,58 @@ body {
     align-items: center;
     justify-content: center;
     transition-property: transform, opacity;
-    transition-timing-function: cubic-bezier(.22,.9,.33,1);
+    transition-timing-function: cubic-bezier(.22, .9, .33, 1);
     /* duration will be set inline via style="--fly-duration: 500ms" */
     transition-duration: var(--fly-duration, 500ms);
     pointer-events: none;
     z-index: 40;
   }
+
   .player-overlay.bounce {
     /* Very short bounce after landing to avoid pre-flight popping; keep subtle */
-    animation: player-bounce 50ms cubic-bezier(.22,.9,.34,1) 1;
+    animation: player-bounce 50ms cubic-bezier(.22, .9, .34, 1) 1;
   }
+
   @keyframes player-bounce {
-    0% { transform: translateY(0); }
-    40% { transform: translateY(-4px); }
-    100% { transform: translateY(0); }
+    0% {
+      transform: translateY(0);
+    }
+
+    40% {
+      transform: translateY(-4px);
+    }
+
+    100% {
+      transform: translateY(0);
+    }
   }
+
   /* Flight arc for moving between tiles */
   @keyframes flight-arc {
-    0% { transform: translateY(0); }
-    45% { transform: translateY(-20px); }
-    100% { transform: translateY(0); }
+    0% {
+      transform: translateY(0);
+    }
+
+    45% {
+      transform: translateY(-20px);
+    }
+
+    100% {
+      transform: translateY(0);
+    }
   }
+
   .player-flying .player-arc {
     animation-name: flight-arc;
     animation-duration: var(--fly-duration, 500ms);
-    animation-timing-function: cubic-bezier(.22,.9,.33,1);
+    animation-timing-function: cubic-bezier(.22, .9, .33, 1);
     animation-fill-mode: both;
   }
+
   /* Initial lift phase (vertical only) */
   .player-lift {
     transform: translateY(var(--lift-y, -18px));
-    transition: transform var(--lift-duration, 150ms) cubic-bezier(.22,.9,.33,1);
+    transition: transform var(--lift-duration, 150ms) cubic-bezier(.22, .9, .33, 1);
   }
 
   /* Fade-in for newly explored tiles during animation */
@@ -184,22 +176,29 @@ body {
     opacity: 0;
     transform: scale(0.98);
   }
+
   .fade-explored.show {
     opacity: 1;
     filter: none;
     transform: scale(1);
   }
+
   /* Pan animation: when recenter completes after landing make the map
      shift from a small offset back to its final position so the recenter
      feels more like a camera pan. Uses CSS variable --pan-x/--pan-y. */
   @keyframes map-pan-in {
-    from { transform: translate3d(var(--pan-x, 0px), var(--pan-y, 0px), 0); }
-    to { transform: translate3d(0, 0, 0); }
+    from {
+      transform: translate(var(--pan-x, 0px), var(--pan-y, 0px));
+    }
+
+    to {
+      transform: translate(0, 0);
+    }
   }
+
   .map-pan-anim {
-    /* Use the same easing as flight arc for perceptual match and smoother camera motion */
-    /* Use GPU-accelerated transform (translate3d) and hint the browser to optimize */
+    /* Use rAF loop to update CSS vars, smooth 60fps panning */
+    transform: translate(var(--pan-x, 0px), var(--pan-y, 0px));
     will-change: transform;
-    animation: map-pan-in var(--map-pan-duration, 820ms) cubic-bezier(.22,.9,.33,1) both;
   }
 }

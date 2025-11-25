@@ -1,4 +1,3 @@
-
 module.exports = {
     moduleDirectories: ['node_modules', 'src'],
     moduleNameMapper: {
@@ -9,13 +8,15 @@ module.exports = {
     // Previously this was 'node' which causes Jest to try parsing JSX
     // without a DOM-like environment and leads to syntax errors.
     testEnvironment: 'jsdom',
-    globals: {
-        'ts-jest': {
+    verbose: false,
+    transform: {
+        '^.+\\.(ts|tsx)$': ['ts-jest', {
             // Use a Jest-specific tsconfig so TSX is transformed to
             // the appropriate JSX runtime and module system for tests.
             tsconfig: '<rootDir>/tsconfig.jest.json'
-        }
+        }]
     },
+    reporters: ['summary'],
     testMatch: ["**/?(*.)+(spec|test).[jt]s?(x)"],
     moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/src/$1', // Map '@/' to 'src/'

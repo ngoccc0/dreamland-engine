@@ -1,5 +1,5 @@
 
-import {z} from 'genkit';
+import { z } from 'zod';
 
 /**
  * Defines a multilingual string object.
@@ -23,15 +23,15 @@ export type MultilingualText = z.infer<typeof MultilingualTextSchema>;
  * This provides flexibility for static UI text versus dynamic game data with variables.
  */
 export const TranslatableStringSchema = z.union([
-    z.string().describe("A direct translation key (e.g., 'item_name_healing_herb')."),
-    z.object({
-        key: z.string().describe("The translation key."),
-        params: z.record(z.union([z.string(), z.number()])).optional().describe("Parameters to be interpolated into the translated string."),
-    }).describe("A translation object with a key and optional parameters for dynamic text."),
-    z.object({
-        en: z.string().describe("The English translation."),
-        vi: z.string().describe("The Vietnamese translation."),
-    }).describe("A direct multilingual object for text that doesn't require a translation key lookup."),
+  z.string().describe("A direct translation key (e.g., 'item_name_healing_herb')."),
+  z.object({
+    key: z.string().describe("The translation key."),
+    params: z.record(z.union([z.string(), z.number()])).optional().describe("Parameters to be interpolated into the translated string."),
+  }).describe("A translation object with a key and optional parameters for dynamic text."),
+  z.object({
+    en: z.string().describe("The English translation."),
+    vi: z.string().describe("The Vietnamese translation."),
+  }).describe("A direct multilingual object for text that doesn't require a translation key lookup."),
 ]);
 export type TranslatableString = z.infer<typeof TranslatableStringSchema>;
 
@@ -40,8 +40,8 @@ export type TranslatableString = z.infer<typeof TranslatableStringSchema>;
  * This is used to specify acceptable bounds for various environmental factors.
  */
 const ConditionRangeSchema = z.object({
-    min: z.number().optional().describe("The minimum value for the condition (inclusive)."),
-    max: z.number().optional().describe("The maximum value for the condition (inclusive).")
+  min: z.number().optional().describe("The minimum value for the condition (inclusive)."),
+  max: z.number().optional().describe("The maximum value for the condition (inclusive).")
 }).describe("A numerical range with optional minimum and maximum bounds.");
 
 /**

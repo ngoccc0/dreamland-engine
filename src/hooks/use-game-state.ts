@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { GameState, NarrativeEntry, Chunk, Season, WorldProfile, Region, ItemDefinition, WeatherZone, Recipe, PlayerBehaviorProfile, Structure, GeneratedItem } from "@/core/types/game";
 // Temporary type definitions for missing types
 type WorldType = any;
@@ -15,6 +15,14 @@ import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import { biomeDefinitions as staticBiomeDefinitions } from '@/lib/game/biomes';
+import WorldImpl from '@/core/entities/world-impl';
+import { TerrainFactory } from '@/core/factories/terrain-factory';
+import { WorldGenerator } from '@/core/generators/world-generator';
+// Avoid importing `allTerrains` here to prevent potential circular
+// initialization order issues during module evaluation in Next.js.
+const TERRAIN_LITERALS = [
+    'forest', 'grassland', 'desert', 'swamp', 'mountain', 'cave', 'jungle', 'volcanic', 'wall', 'floptropica', 'tundra', 'beach', 'mesa', 'mushroom_forest', 'ocean', 'city', 'space_station', 'underwater'
+];
 // Accept gameSlot but mark as intentionally unused to satisfy lint rule
 export function useGameState({ gameSlot: _gameSlot }: GameStateProps) {
     const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>([]);
@@ -47,12 +55,40 @@ export function useGameState({ gameSlot: _gameSlot }: GameStateProps) {
     const [turn, setTurn] = useState(1);
     const [weatherZones, setWeatherZones] = useState<{ [zoneId: string]: WeatherZone }>({});
     const [world, setWorld] = useState<WorldType>(() => {
-        // Initialize world using WorldUseCase
-    // Placeholder world initialization — return minimal default to avoid heavy setup here
-        // TODO: Implement world creation logic or use a factory if needed
-        // Placeholder: return an empty object or suitable default
-        return {} as WorldType;
+        // Initialize world with an empty concrete WorldImpl instance so consumers
+        // can call the expected methods (getChunk, getChunksInArea, etc.)
+        return new WorldImpl() as unknown as WorldType;
     });
+
+    // Generate a default world on first mount asynchronously. Keep light defaults
+    // so dev environment and tests aren't blocked by heavy generation.
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
+            try {
+                const terrainFactory = new TerrainFactory();
+                const terrainDist: Record<string, number> = {};
+                // assign uniform weights to known terrains
+                for (const t of TERRAIN_LITERALS) terrainDist[t] = 1;
+                const gen = new WorldGenerator({
+                    width: 25,
+                    height: 25,
+                    minRegionSize: 4,
+                    maxRegionSize: 16,
+                    terrainDistribution: terrainDist as any,
+                    baseAttributes: {}
+                }, terrainFactory as any);
+                const w = await gen.generateWorld();
+                if (!mounted) return;
+                setWorld(w as unknown as WorldType);
+                setIsLoaded(true);
+            } catch (e) {
+                // swallow errors to avoid breaking app startup; keep world empty
+                try { console.error('World generation failed', e); } catch { }
+            }
+        })();
+        return () => { mounted = false; };
+    }, []);
     const [recipes, setRecipes] = useState<Record<string, Recipe>>(staticRecipes);
     const [buildableStructures, setBuildableStructures] = useState<Record<string, Structure>>(staticBuildableStructures);
     const [biomeDefinitions, setBiomeDefinitions] = useState<any>(staticBiomeDefinitions);
@@ -102,10 +138,10 @@ export function useGameState({ gameSlot: _gameSlot }: GameStateProps) {
         manaRegenTickCounter: 0,
         bodyTemperature: 37,
         items: [],
-        equipment: { 
-            weapon: null, 
-            armor: null, 
-            accessory: null 
+        equipment: {
+            weapon: null,
+            armor: null,
+            accessory: null
         },
         quests: [],
         questsCompleted: 0,
@@ -156,17 +192,17 @@ export function useGameState({ gameSlot: _gameSlot }: GameStateProps) {
         setRegions,
         regionCounter,
         setRegionCounter,
-    playerPosition,
-    visualPlayerPosition,
-    setVisualPlayerPosition,
-    isAnimatingMove,
-    setIsAnimatingMove,
-    visualMoveFrom,
-    setVisualMoveFrom,
-    visualMoveTo,
-    setVisualMoveTo,
-    visualJustLanded,
-    setVisualJustLanded,
+        playerPosition,
+        visualPlayerPosition,
+        setVisualPlayerPosition,
+        isAnimatingMove,
+        setIsAnimatingMove,
+        visualMoveFrom,
+        setVisualMoveFrom,
+        visualMoveTo,
+        setVisualMoveTo,
+        visualJustLanded,
+        setVisualJustLanded,
         setPlayerPosition,
         playerBehaviorProfile,
         setPlayerBehaviorProfile,

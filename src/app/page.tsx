@@ -266,17 +266,20 @@ export default function Home() {
   // Render loading screen
   if (loadState === 'loading' || authLoading) {
     return (
-      <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
-        <div className="flex flex-col items-center text-center p-4 animate-in fade-in duration-1000">
-          <img src="/asset/images/logo.png" alt="Dreamland Engine" className="h-[384px] w-[384px] -mb-[30px]" />
-          <div className="flex items-center justify-center">
-            <h1 className="text-5xl font-bold font-headline tracking-tighter -mt-36">
-              Dreamland Engine
-            </h1>
-          </div>
-          <div className="flex items-center gap-2 mt-4 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            <p>{t('loadingAdventure')}</p>
+      <div className="relative flex flex-col items-center justify-center min-h-dvh bg-background text-foreground bg-[url('/asset/images/logo.png')] bg-contain bg-no-repeat bg-center">
+        {/* Box containing title and loading text - positioned at the bottom */}
+        <div className="absolute inset-x-0 bottom-8 flex flex-col items-center gap-2 p-4 animate-in fade-in duration-1000">
+          {/* Main "Dreamland Engine" title */}
+          <h1 className="text-5xl font-bold font-headline tracking-tighter text-primary text-shadow-custom">
+            Dreamland Engine
+          </h1>
+
+          {/* Loading spinner and text - positioned horizontally together */}
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="mt-2 text-muted-foreground drop-shadow-lg drop-shadow-lg">
+              {t('loadingAdventure')}
+            </p>
           </div>
         </div>
       </div>

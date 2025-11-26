@@ -1,4 +1,15 @@
 import type { CreatureDefinition } from '@/core/types/definitions/creature';
+import type { PlantPartDefinition } from '@/core/types/definitions/plant-properties';
+import { createRng } from '@/lib/narrative/rng'; // Import createRng for initial part quantity
+
+// Helper to initialize currentQty for plant parts based on maxQty and an RNG seed
+const initializePlantParts = (parts: PlantPartDefinition[], seed: string | number): PlantPartDefinition[] => {
+  const rng = createRng(seed);
+  return parts.map(part => ({
+    ...part,
+    currentQty: Math.floor(part.maxQty * (0.8 + rng.float() * 0.2)), // Init between 80-100% of max
+  }));
+};
 
 export const plants: Record<string, CreatureDefinition> = {
   common_tree: {
@@ -15,6 +26,51 @@ export const plants: Record<string, CreatureDefinition> = {
     maxSatiation: 0,
     plantProperties: {
       vegetationContribution: 20,
+      parts: initializePlantParts([
+        {
+          name: 'leaves',
+          maxQty: 5,
+          growProb: 0.05,
+          dropProb: 0.01,
+          loot: [{ name: 'plant_fiber', chance: 0.9, quantity: { min: 1, max: 2 } }],
+          droppedLoot: [{ name: 'fallen_leaf', chance: 1, quantity: { min: 1, max: 1 } }],
+        },
+        {
+          name: 'flowers',
+          maxQty: 3,
+          growProb: 0.03,
+          dropProb: 0.005,
+          loot: [{ name: 'white_flower', chance: 0.7, quantity: { min: 1, max: 1 } }],
+          droppedLoot: [{ name: 'petal', chance: 1, quantity: { min: 1, max: 1 } }],
+          triggerFrom: 'leaves',
+        },
+        {
+          name: 'fruits',
+          maxQty: 3,
+          growProb: 0.02,
+          dropProb: 0.01,
+          loot: [{ name: 'strange_fruit', chance: 0.8, quantity: { min: 1, max: 1 } }],
+          droppedLoot: [{ name: 'tree_seed', chance: 0.2, quantity: { min: 1, max: 1 } }],
+          triggerFrom: 'flowers',
+        },
+        {
+          name: 'trunk',
+          maxQty: 1,
+          growProb: 0.005,
+          dropProb: 0,
+          loot: [{ name: 'sturdy_branch', chance: 0.6, quantity: { min: 1, max: 1 } }, { name: 'wood_core', chance: 0.9, quantity: { min: 1, max: 1 } }],
+          structural: true,
+        },
+        {
+          name: 'roots',
+          maxQty: 1,
+          growProb: 0.008,
+          dropProb: 0,
+          loot: [{ name: 'root', chance: 0.5, quantity: { min: 1, max: 1 } }],
+          structural: true,
+          hidden: true,
+        },
+      ], 'common_tree_seed'), // Pass a unique seed for deterministic part initialization
       reproduction: {
         chance: 0.01,
         range: 2,
@@ -32,15 +88,6 @@ export const plants: Record<string, CreatureDefinition> = {
         heatResistance: 0.5
       }
     },
-    harvestable: {
-      difficulty: 3,
-      requiredTool: 'axe',
-      loot: [
-        { name: 'large_leaf', chance: 0.8, quantity: { min: 1, max: 3 } },
-        { name: 'wood_core', chance: 0.9, quantity: { min: 1, max: 2 } }
-      ]
-    }
-    ,
     // Natural spawn rules migrated from terrain templates (e.g., forest).
     naturalSpawn: [
       {

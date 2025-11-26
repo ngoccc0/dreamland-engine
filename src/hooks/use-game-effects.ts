@@ -1,6 +1,6 @@
 
 
- 'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
@@ -16,6 +16,23 @@ import { usePlayerProgression } from './game-lifecycle/usePlayerProgression';
 import { useGameEvents } from './game-lifecycle/useGameEvents';
 import { useWorldRendering } from './game-lifecycle/useWorldRendering';
 import { useLanguage } from '@/context/language-context';
+import type { GameConfig } from '@/lib/config/game-config'; // Import GameConfig
+import { adaptivePlantTick } from '@/core/usecases/adaptivePlantTick'; // Import the new usecase
+import { getTranslatedText } from '@/lib/i18n'; // Re-import getTranslatedText for consistency within this file if needed
+import { createRng } from '@/lib/narrative/rng'; // For consistent RNG seed generation
+import type { CreatureDefinition } from '@/core/types/creature'; // Import CreatureDefinition for type guarding
+import { clamp } from '@/lib/utils'; // Import clamp utility
+
+// Define a basic Action type as it's used in chunk.actions
+interface GameAction {
+  id: number;
+  params?: {
+    targetId?: string;
+    partName?: string;
+    // Add other common action parameters here
+  };
+  // Add other properties that an action might have
+}
 
 /**
  * Orchestrator hook for managing all game side-effects.
@@ -73,6 +90,7 @@ type GameEffectsDeps = {
   buildableStructures: Record<string, Structure>;
   setBuildableStructures: (structures: Record<string, Structure>) => void;
   gameSlot: number;
+  config: GameConfig; // New: Add game config to dependencies
   advanceGameTime: (stats?: PlayerStatus) => void;
 };
 
@@ -104,7 +122,7 @@ export function useGameEffects(deps: GameEffectsDeps) {
   // --- DELEGATE TO SPECIALIZED HOOKS ---
 
   useGameInitialization({ ...deps, gameStateRepository });
-  
+
   useGameSaving({ ...deps, gameStateRepository });
 
   usePlayerProgression({
@@ -146,6 +164,83 @@ export function useGameEffects(deps: GameEffectsDeps) {
     gameTime: deps.gameTime,
     setCurrentChunk: deps.setCurrentChunk,
   });
-}
 
-    
+  // --- NEW: Adaptive Plant Tick Logic ---
+  useEffect(() => {
+    if (!deps.isLoaded || deps.isGameOver || !deps.world || deps.gameTime % 5 !== 0) {
+      return; // Run every 5 game ticks for performance
+    }
+
+    let newWorld = { ...deps.world };
+    const narrativeUpdates: GameEffectsDeps['narrativeLogRef']['current'] = [];
+    let worldChanged = false;
+
+    // Iterate over all chunks to find plants
+    for (const key in newWorld) {
+      if (Object.prototype.hasOwnProperty.call(newWorld, key)) {
+        const chunk = newWorld[key];
+        let newChunk = { ...chunk };
+
+        if (newChunk.enemy && newChunk.enemy.plantProperties && newChunk.enemy.plantProperties.parts) {
+          const plant = newChunk.enemy as CreatureDefinition; // Type guard
+          const rngSeed = `${chunk.x},${chunk.y},${deps.gameTime}`; // Unique seed per chunk per tick
+
+          const { newPlant, envUpdates, droppedItems, narrativeEvents, plantRemoved } = adaptivePlantTick({
+            plant: plant,
+            chunk: newChunk,
+            config: deps.config,
+            rngSeed: rngSeed,
+            gameTime: deps.gameTime,
+          });
+
+          if (plantRemoved) {
+            newChunk.enemy = null; // Remove the plant if it wilted
+            newChunk.actions = newChunk.actions.filter((action: GameAction) => action.params?.targetId !== plant.id); // Also remove related actions, typed as GameAction
+          } else {
+            newChunk.enemy = newPlant; // Update the plant in the chunk
+          }
+
+          // Apply environmental updates to the chunk
+          if (envUpdates.lightLevelDelta) {
+            newChunk.lightLevel = clamp(newChunk.lightLevel + envUpdates.lightLevelDelta, 0, 100);
+          }
+          if (envUpdates.nutritionDelta) {
+            newChunk.nutrition = (newChunk.nutrition || 0) + envUpdates.nutritionDelta;
+          }
+          if (envUpdates.vegetationDensityDelta) {
+            newChunk.vegetationDensity = clamp(newChunk.vegetationDensity + envUpdates.vegetationDensityDelta, 0, 100);
+          }
+          // Note: attractCreaturesDelta will be used in future creature AI/spawn logic
+
+          // Add dropped items to chunk.items
+          if (droppedItems.length > 0) {
+            newChunk.items = [...(newChunk.items || []), ...droppedItems.map(item => ({
+              id: item.name, // Using name as ID for simple item
+              name: { en: item.name, vi: item.name }, // Placeholder translation, actual itemDef resolve needed
+              description: { en: item.name, vi: item.name },
+              emoji: '🍃', // Placeholder emoji
+              quantity: item.quantity,
+              spawnedBy: item.sourcePlantId,
+            }))];
+          }
+
+          // Add narrative events to log
+          narrativeEvents.forEach(event => {
+            // getTranslatedText does not handle 'params' directly. Assuming 'event.key' can be interpolated by narrative system later.
+            deps.addNarrativeEntry(getTranslatedText(event.key, 'en'), 'system'); // Simplified call
+          });
+
+          // Only update if chunk actually changed
+          if (JSON.stringify(chunk) !== JSON.stringify(newChunk)) { // Simple deep comparison
+            newWorld[key] = newChunk;
+            worldChanged = true;
+          }
+        }
+      }
+    }
+
+    if (worldChanged) {
+      deps.setWorld(newWorld);
+    }
+  }, [deps.isLoaded, deps.isGameOver, deps.world, deps.playerPosition.x, deps.playerPosition.y, deps.gameTime, deps.setWorld, deps.addNarrativeEntry, deps.config]);
+}

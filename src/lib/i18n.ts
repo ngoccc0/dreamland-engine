@@ -20,6 +20,7 @@ import { weatherTranslations } from './locales/weather';
 import { eventTranslations } from './locales/events';
 import { skillTranslations } from './locales/skills';
 import { narrativeTranslations } from './locales/narrative';
+import type { TranslatableString } from '@/core/types/definitions/base'; // Import TranslatableString
 
 /**
  * Helper function to recursively merge nested objects.
@@ -105,8 +106,8 @@ export const translations = {
  * Defines the supported languages for the application.
  */
 export const LanguageEnum = {
-    en: 'en',
-    vi: 'vi'
+  en: 'en',
+  vi: 'vi'
 } as const;
 
 export type Language = typeof LanguageEnum[keyof typeof LanguageEnum];
@@ -116,4 +117,50 @@ export type Language = typeof LanguageEnum[keyof typeof LanguageEnum];
  * A type alias for a string, representing a key in the translation files.
  * This simplifies type definitions and makes it clear when a string is intended for translation.
  */
-export type TranslationKey = string;
+export type TranslationKey = string; // This type is still useful for simple string keys
+
+/**
+ * Retrieves a translated string based on the current language.
+ * If the input is a TranslationKey (string), it looks up the translation in the
+ * global `translations` object. If the input is a TranslatableString (object with 'en'/'vi' properties),
+ * it returns the string for the specified language.
+ *
+ * @param {TranslatableString | string | undefined | null} text - The text to translate. Can be a translation key (string) or an object with 'en' and 'vi' properties.
+ * @param {Language} lang - The target language ('en' or 'vi'). Defaults to 'en' if not provided or invalid.
+ * @returns {string} The translated string or the original key if not found.
+ */
+export function getTranslatedText(
+  text: TranslatableString | string | undefined | null,
+  lang: Language = 'en'
+): string {
+  if (text === undefined || text === null) {
+    return '';
+  }
+
+  // If text is an object with 'en' and 'vi' properties
+  if (typeof text === 'object' && text !== null && 'en' in text && 'vi' in text) {
+    return (text as { en: string; vi: string })[lang] || (text as { en: string; vi: string })['en'];
+  }
+
+  // If text is a string (translation key)
+  if (typeof text === 'string') {
+    // Attempt to find the translation in the global translations object
+    let currentTranslations = (translations as any)[lang];
+    let translated = text.split('.').reduce((o, i) => (o ? o[i] : undefined), currentTranslations);
+
+    if (translated === undefined || translated === null || typeof translated !== 'string') {
+      // Fallback to English if translation not found for the requested language
+      currentTranslations = (translations as any)['en'];
+      translated = text.split('.').reduce((o, i) => (o ? o[i] : undefined), currentTranslations);
+    }
+
+    if (translated === undefined || translated === null || typeof translated !== 'string') {
+      // If still not found, return the original key as a fallback
+      return text;
+    }
+    return translated;
+  }
+
+  // Fallback for any other unexpected type
+  return String(text);
+}

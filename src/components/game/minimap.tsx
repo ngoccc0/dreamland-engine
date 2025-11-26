@@ -141,8 +141,14 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
     const prevHpMap = useRef<Record<string, number>>({}); // stores last seen hp to detect changes
     const hideTimers = useRef<Record<string, ReturnType<typeof setTimeout> | undefined>>({});
 
-    // Use clamp() so cell sizes scale up on mobile and scale down on smaller viewports and the full map can fit without panning
-    const responsiveCellSize = "w-[clamp(48px,12vw,64px)] h-[clamp(48px,12vw,64px)]";
+    // Get viewport size early so cell sizing can depend on it
+    const viewportSize = (settings?.minimapViewportSize as 5 | 7 | 9) || 5;
+    
+    // Fixed container size (w-80 h-80 = 320px × 320px)
+    // Cell size = containerSize / viewportSize (visible cells fill container)
+    // For 5×5: cellSize = 320/5 = 64px, for 7×7: cellSize = 320/7 ≈ 45.7px, for 9×9: cellSize = 320/9 ≈ 35.6px
+    const cellSizePx = 320 / viewportSize;
+    const responsiveCellSize = `w-[calc(20rem/${viewportSize})] h-[calc(20rem/${viewportSize})]`;
 
     useEffect(() => {
         if (grid?.length > 0) {
@@ -274,9 +280,9 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                 const dy = target.y - prev.y;
                 if (dx === 0 && dy === 0) return;
 
-                const perTilePx = 6;
-                const panX = dx * perTilePx;
-                const panY = -dy * perTilePx;
+                // Pan distance in pixels: each tile = containerSize / viewportSize
+                const panX = dx * cellSizePx;
+                const panY = -dy * cellSizePx;
 
                 // Cancel previous animation if any
                 const pan = panAnimRef.current;
@@ -355,7 +361,6 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
 
     // Calculate viewport clipping: determine which tiles should be visible based on minimapViewportSize
     // Grid is always 7×7, but we only show center N×N based on user setting
-    const viewportSize = (settings?.minimapViewportSize as 5 | 7 | 9) || 5;
     const viewportRadius = Math.floor(viewportSize / 2);
     const gridSize = grid.length; // Always 7
     const gridCenter = Math.floor(gridSize / 2); // Center index: 3 for 7×7
@@ -368,6 +373,14 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
         );
         return distFromCenter <= viewportRadius;
     };
+
+    // Calculate viewport centering offset
+    // Container is fixed 320px (w-80), cellSize = 320 / viewportSize
+    // Grid is always 7×7, visible area is centered within it
+    // When viewport < grid (e.g., 5×5 in 7×7), center visible area in container
+    // Offset to account for grid offset: -(gridCenter - viewportRadius) * cellSize
+    const gridOffsetFromCenterPx = (gridCenter - viewportRadius) * cellSizePx;
+    const totalViewportOffsetPx = -gridOffsetFromCenterPx;
 
     // compute overlay flight geometry (grid-relative percentages)
     const overlayData = (() => {
@@ -400,13 +413,15 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
             <div
                 data-minimap-container
                 className={cn(
-                    "relative grid aspect-square w-full max-w-xs border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-hidden",
+                    "relative grid w-80 h-80 border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-hidden",
                     "map-pan-anim"
                 )}
                 style={{
-                    gridTemplateColumns: `repeat(${grid?.length || 7}, minmax(0, 1fr))`,
-                    ['--pan-x' as any]: '0px',
-                    ['--pan-y' as any]: '0px',
+                    gridTemplateColumns: `repeat(${grid?.length || 7}, 1fr)`,
+                    gridTemplateRows: `repeat(${grid?.length || 7}, 1fr)`,
+                    gap: '0px',
+                    ['--pan-x' as any]: `${totalViewportOffsetPx}px`,
+                    ['--pan-y' as any]: `${totalViewportOffsetPx}px`,
                 }}
             >
                 {grid.map((row, rowIndex) =>

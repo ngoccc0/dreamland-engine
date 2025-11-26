@@ -4,28 +4,6 @@
  */
 export interface GameConfig {
     plant: {
-        /** Base growth multiplier for plant maturity. */
-        baseGrowthMultiplier: number;
-        /** Base maturity gain per tick when conditions are optimal. */
-        baseMaturityGain: number;
-        /** Maximum maturity a plant can have (%). */
-        maxMaturity: number;
-        /** Threshold for severe stress damage (0..1). */
-        severeStressThreshold: number;
-        /** Damage per tick when under severe stress. */
-        stressDamagePerTick: number;
-        /** How quickly plants mature in optimal conditions. */
-        maturityRate: number;
-    /** Water (waterTimer ticks) consumed per 1% maturity gained. */
-    waterPerMaturity: number;
-    /** Passive water loss per tick (equivalent to evaporation, in waterTimer units). */
-    waterDecayPerTick: number;
-    /** Nutrition consumed per 1% maturity gained (chunk-level units). */
-    nutritionPerMaturity: number;
-    /** Fertilizer consumed per 1% maturity gained (chunk-level units). */
-    fertilizerPerMaturity: number;
-    /** Passive fertilizer decay per tick (chunk-level units). */
-    fertilizerDecayPerTick: number;
         /** Seasonal multipliers for growth and reproduction. */
         seasonMultiplier: {
             spring: number;
@@ -41,6 +19,12 @@ export interface GameConfig {
         consumptionPerEat?: number;
         /** Nutrition (satiation) provided per vegetation unit */
         plantNutrition?: number;
+        /** How strongly magic affinity boosts growth probability or unique events (0-1). */
+        magicAffinityGrowthFactor: number;
+        /** How strongly wind affects the drop probability of plant parts (0-1). */
+        windDropFactor: number;
+        /** Base environmental factor applied to plant part growth/drop probabilities. */
+        baseEnvironmentalFactor: number;
     };
     creature: {
         /** How many ticks between automatic movement checks (lower = more frequent). */
@@ -82,19 +66,6 @@ export interface GameConfig {
 
 export const defaultGameConfig: GameConfig = {
     plant: {
-        baseGrowthMultiplier: 1.0,
-        baseMaturityGain: 2.0,
-        maxMaturity: 100,
-        severeStressThreshold: 0.7,
-        stressDamagePerTick: 5,
-        maturityRate: 1.0,
-        // Resource consumption/decay knobs
-    nutritionPerMaturity: 0.15,
-    fertilizerPerMaturity: 0.04,
-    fertilizerDecayPerTick: 0.05,
-    // Water consumption/decay
-    waterPerMaturity: 0.5,
-    waterDecayPerTick: 1,
         seasonMultiplier: {
             spring: 1.3,
             summer: 1.1,
@@ -107,7 +78,10 @@ export const defaultGameConfig: GameConfig = {
         /** How many vegetation units a creature consumes in one eat action */
         consumptionPerEat: 5,
         /** Nutrition (satiation) provided per vegetation unit */
-        plantNutrition: 0.5
+        plantNutrition: 0.5,
+        magicAffinityGrowthFactor: 0.1, // Example value
+        windDropFactor: 0.05, // Example value
+        baseEnvironmentalFactor: 1.0, // Example value
     },
     creature: {
         moveTickInterval: 5,

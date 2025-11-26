@@ -279,9 +279,10 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                 const dy = target.y - prev.y;
                 if (dx === 0 && dy === 0) return;
 
-                // Pan distance in pixels: each tile = containerSize / viewportSize
-                const panX = dx * cellSizePx;
-                const panY = -dy * cellSizePx;
+                // Pan distance in pixels: each tile = containerSize / gridSize (grid is internal 7x7)
+                const gridCellSizePx = 320 / (grid?.length || 7);
+                const panX = dx * gridCellSizePx;
+                const panY = -dy * gridCellSizePx;
 
                 // Cancel previous animation if any
                 const pan = panAnimRef.current;
@@ -293,8 +294,8 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                 // Pan duration matches avatar flight duration exactly for sync
                 const panDuration = typeof detail.visualTotalMs === 'number' ? Number(detail.visualTotalMs) : 600;
 
-                // Start new rAF animation (deferred slightly for smooth transitions)
-                setTimeout(() => {
+                // Start new rAF animation immediately (no artificial delay)
+                try {
                     pan.fromX = panX;
                     pan.fromY = panY;
                     pan.toX = 0;
@@ -303,7 +304,7 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                     pan.startTime = Date.now();
                     pan.active = true;
                     pan.rafId = requestAnimationFrame(() => { });
-                }, 20);
+                } catch {}
             } catch { }
         };
         window.addEventListener('moveStart', onMoveStart as EventListener);

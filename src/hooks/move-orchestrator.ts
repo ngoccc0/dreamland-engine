@@ -83,15 +83,19 @@ export function createHandleMove(ctx: any) {
           if (ctx.setVisualPlayerPosition && ctx.setIsAnimatingMove) {
             try { console.debug('[move-orchestrator] starting visual animation', { from, to: { x, y } }); } catch {}
 
-            try { console.time('[move-orchestrator] visual_setters'); } catch {}
+            // Batch visual setters into a microtask so React can batch updates
             try { moveTrace.events.push({ name: 'visual_init', at: Date.now(), from, to }); } catch {}
-            try { ctx.setVisualPlayerPosition(from); } catch {}
-            try { ctx.setVisualMoveFrom?.(from); } catch {}
-            try { ctx.setVisualMoveTo?.(to); } catch {}
-            moveTrace.events.push({ name: 'animating_start', at: Date.now(), to });
-            try { ctx.setIsAnimatingMove(true); } catch {}
-            try { console.timeEnd('[move-orchestrator] visual_setters'); } catch {}
+            try { moveTrace.events.push({ name: 'animating_start', at: Date.now(), to }); } catch {}
+            try {
+              Promise.resolve().then(() => {
+                try { ctx.setVisualPlayerPosition(from); } catch {}
+                try { ctx.setVisualMoveFrom?.(from); } catch {}
+                try { ctx.setVisualMoveTo?.(to); } catch {}
+                try { ctx.setIsAnimatingMove(true); } catch {}
+              });
+            } catch {}
 
+          // Pick up to 3 stepping sounds (allowing duplicates) and schedule playback
           const steppingCandidates = [
             'steping_sounds/rustle01.flac','steping_sounds/rustle02.flac','steping_sounds/rustle03.flac',
             'steping_sounds/rustle04.flac','steping_sounds/rustle05.flac','steping_sounds/rustle06.flac',
@@ -101,13 +105,12 @@ export function createHandleMove(ctx: any) {
             'steping_sounds/rustle16.flac','steping_sounds/rustle17.flac','steping_sounds/rustle18.flac',
             'steping_sounds/rustle19.flac','steping_sounds/rustle20.flac'
           ];
-          const picks: string[] = [];
-          while (picks.length < 3) {
-            const candidate = steppingCandidates[Math.floor(Math.random() * steppingCandidates.length)];
-            if (!picks.includes(candidate)) picks.push(candidate);
-          }
+          const picks: string[] = Array.from({ length: 3 }).map(() => steppingCandidates[Math.floor(Math.random() * steppingCandidates.length)]);
           const stagger = 140;
-          picks.forEach((sfx, i) => setTimeout(() => { try { ctx.audio.playSfx(sfx); } catch {} }, i * stagger));
+          // Defer audio playback to idle time to avoid blocking main thread
+          runSoon(() => {
+            picks.forEach((sfx, i) => setTimeout(() => { try { ctx.audio.playSfx(sfx); } catch {} }, i * stagger));
+          });
 
           const landingDelay = 350;
           const bounceDuration = 50;

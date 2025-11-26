@@ -264,9 +264,10 @@ export default function GameLayout(props: GameLayoutProps) {
 
         // Calculate visibility grid size (3x3 around player)
         const visibilityRadius = 1; // 3x3 grid for direct visibility
-        // Always render 7x7 preload grid (displayRadius=3) to prevent blank tiles during pan animation.
-        // The viewport clipping will be handled by Minimap component based on minimapViewportSize setting.
-        const displayRadius = 3; // Always 7x7 grid for preloading
+        // Grid size scales with minimap viewport setting
+        // 5×5 viewport → displayRadius=2 (5×5 grid), 7×7 viewport → displayRadius=3, 9×9 viewport → displayRadius=4
+        const minimapViewportSize = (settings?.minimapViewportSize as 5 | 7 | 9) || 5;
+        const displayRadius = Math.floor(minimapViewportSize / 2);
         const size = displayRadius * 2 + 1;
         const grid = Array.from({ length: size }, () => Array(size).fill(null));
         // When a visual move animation is active, prefer the visual position for

@@ -143,12 +143,11 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
 
     // Get viewport size early so cell sizing can depend on it
     const viewportSize = (settings?.minimapViewportSize as 5 | 7 | 9) || 5;
-    
+
     // Fixed container size (w-80 h-80 = 320px × 320px)
     // Cell size = containerSize / viewportSize (visible cells fill container)
     // For 5×5: cellSize = 320/5 = 64px, for 7×7: cellSize = 320/7 ≈ 45.7px, for 9×9: cellSize = 320/9 ≈ 35.6px
     const cellSizePx = 320 / viewportSize;
-    const responsiveCellSize = `w-[calc(20rem/${viewportSize})] h-[calc(20rem/${viewportSize})]`;
 
     useEffect(() => {
         if (grid?.length > 0) {
@@ -352,7 +351,7 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
             <div className="flex flex-col items-center gap-2">
                 <div className="grid border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-visible" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))' }}>
                     {Array.from({ length: 49 }).map((_, i) => (
-                        <div key={i} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />
+                        <div key={i} className={cn("bg-map-empty border-r border-b border-dashed border-border/50")} style={{ width: cellSizePx, height: cellSizePx }} />
                     ))}
                 </div>
             </div>
@@ -374,13 +373,9 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
         return distFromCenter <= viewportRadius;
     };
 
-    // Calculate viewport centering offset
-    // Container is fixed 320px (w-80), cellSize = 320 / viewportSize
-    // Grid is always 7×7, visible area is centered within it
-    // When viewport < grid (e.g., 5×5 in 7×7), center visible area in container
-    // Offset to account for grid offset: -(gridCenter - viewportRadius) * cellSize
-    const gridOffsetFromCenterPx = (gridCenter - viewportRadius) * cellSizePx;
-    const totalViewportOffsetPx = -gridOffsetFromCenterPx;
+    // Note: Grid centering is now handled by CSS Grid place-content-center
+    // Pan animation will update --pan-x/--pan-y during movement
+    // No static viewport offset needed - grid auto-centers in container
 
     // compute overlay flight geometry (grid-relative percentages)
     const overlayData = (() => {
@@ -413,15 +408,15 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
             <div
                 data-minimap-container
                 className={cn(
-                    "relative grid w-80 h-80 border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-hidden",
+                    "relative grid w-80 h-80 place-content-center border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-hidden",
                     "map-pan-anim"
                 )}
                 style={{
                     gridTemplateColumns: `repeat(${grid?.length || 7}, 1fr)`,
                     gridTemplateRows: `repeat(${grid?.length || 7}, 1fr)`,
                     gap: '0px',
-                    ['--pan-x' as any]: `${totalViewportOffsetPx}px`,
-                    ['--pan-y' as any]: `${totalViewportOffsetPx}px`,
+                    ['--pan-x' as any]: '0px',
+                    ['--pan-y' as any]: '0px',
                 }}
             >
                 {grid.map((row, rowIndex) =>
@@ -431,7 +426,7 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                         const hiddenClasses = !isVisible ? "opacity-0 pointer-events-none" : "";
 
                         if (!cell) {
-                            return <div key={key} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50", hiddenClasses)} />;
+                            return <div key={key} className={cn("bg-map-empty border-r border-b border-dashed border-border/50", hiddenClasses)} style={{ width: cellSizePx, height: cellSizePx }} />;
                         }
 
                         // When a move animation is active the UI should prefer the visual position
@@ -465,10 +460,9 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                                 <Popover key={key}>
                                     <PopoverTrigger asChild>
                                         <div className={cn(
-                                            responsiveCellSize,
                                             "bg-map-empty/50 border-r border-b border-dashed border-border/50 flex items-center justify-center",
                                             hiddenClasses
-                                        )}>
+                                        )} style={{ width: cellSizePx, height: cellSizePx }}>
                                             <span className="text-2xl opacity-20" title={t('unexploredArea') as string}>🌫️</span>
                                         </div>
                                     </PopoverTrigger>
@@ -494,10 +488,9 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                                 <Popover key={key}>
                                     <PopoverTrigger asChild>
                                         <div className={cn(
-                                            responsiveCellSize,
                                             "bg-map-empty border-r border-b border-dashed border-border/50 flex items-center justify-center",
                                             hiddenClasses
-                                        )}>
+                                        )} style={{ width: cellSizePx, height: cellSizePx }}>
                                             <span className="text-2xl opacity-30" title={t('fogOfWarDesc') as string}>🌫️</span>
                                         </div>
                                     </PopoverTrigger>
@@ -537,12 +530,12 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                                 <PopoverTrigger asChild>
                                     <div
                                         className={cn(
-                                            responsiveCellSize,
                                             "relative transition-all duration-300 flex items-center justify-center p-1 cursor-pointer hover:ring-2 hover:ring-white border-r border-b border-dashed border-border/50",
                                             biomeColors[cell.terrain],
                                             isPlayerHere && "ring-2 ring-white shadow-lg z-10",
                                             hiddenClasses
                                         )}
+                                        style={{ width: cellSizePx, height: cellSizePx }}
                                         aria-label={`Map cell at ${cell.x}, ${cell.y}. Biome: ${cell.terrain}`}
                                     >
                                         {mainIcon}

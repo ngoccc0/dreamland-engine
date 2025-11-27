@@ -112,7 +112,7 @@ export default function GameLayout(props: GameLayoutProps) {
     const prevAnimatingRefForLayout = useRef<boolean>(Boolean(isAnimatingMove));
     const holdCenterUntilRef = useRef<number>(0);
     const animationStartTimeRef = useRef<number>(0);
-    
+
     // Refs to read animation state WITHOUT triggering re-computation
     const isAnimatingMoveRef = useRef(isAnimatingMove);
     const visualMoveToRef = useRef(visualMoveTo);
@@ -337,11 +337,11 @@ export default function GameLayout(props: GameLayoutProps) {
 
     // Memoize the generated grid so Minimap doesn't rerender on every parent render
     const memoizedGrid = useMemo(() => generateMapGrid(), [generateMapGrid]);
-    
+
     // Keep previous grid ref to prevent rerender during animation
     const previousGridRef = useRef(memoizedGrid);
     const gridToPass = isAnimatingMoveRef.current ? previousGridRef.current : memoizedGrid;
-    
+
     useEffect(() => {
         // Update ref only when animation is NOT active
         if (!isAnimatingMoveRef.current) {

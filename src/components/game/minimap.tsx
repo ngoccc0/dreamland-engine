@@ -73,7 +73,7 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
     });
 
     const prevAnimatingRef = useRef<boolean>(Boolean(isAnimatingMove));
-    const prevCenterRef = useRef<{ x: number; y: number } | null>(null);
+    const prevCenterRef = useRef<{ x: number; y: number } | null>(playerPosition);
     // Prevent double-triggering pan when we initiate it at animation start
     const panInProgressRef = useRef<boolean>(false);
 
@@ -82,72 +82,17 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
     const prevExploredRef = useRef<Record<string, boolean>>({});
     const [externalFlyDuration, setExternalFlyDuration] = useState<number | null>(null);
 
-    /**
-     * Core rAF loop for pan animation with easing.
-     * Called every frame when pan.active is true. Updates CSS variables directly (no React state).
-     */
-    const updatePan = useCallback(() => {
-        const easeInOutCubic = (t: number): number => {
-            return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-        };
-
-        const pan = panAnimRef.current;
-        if (!pan.active || pan.startTime === null) {
-            return;
-        }
-
-        const elapsed = Date.now() - pan.startTime;
-        const progress = Math.min(1, elapsed / pan.duration);
-        const easedProgress = easeInOutCubic(progress);
-
-        // Interpolation with easing for smooth pan
-        const x = pan.fromX + (pan.toX - pan.fromX) * easedProgress;
-        const y = pan.fromY + (pan.toY - pan.fromY) * easedProgress;
-
-        // Update CSS variables directly (no React state) for maximum smoothness
-        const container = document.querySelector('[data-minimap-container]') as HTMLElement;
-        if (container) {
-            container.style.setProperty('--pan-x', `${x}px`);
-            container.style.setProperty('--pan-y', `${y}px`);
-        }
-
-        if (progress < 1) {
-            // Animation not complete — schedule next frame
-            pan.rafId = requestAnimationFrame(updatePan);
-        } else {
-            // Animation complete — stop looping and dispatch event
-            pan.active = false;
-            pan.startTime = null;
-            pan.rafId = null;
-            panInProgressRef.current = false;
-
-            // Dispatch completion event with move details
-            try {
-                const detail = lastOverlayDetailRef.current;
-                if (detail?.to) {
-                    const ev = new CustomEvent('minimapPanComplete', { detail: { center: detail.to, id: detail.id } });
-                    try { console.info('[minimap] dispatch minimapPanComplete (rAF)', { center: detail.to, id: detail.id }); } catch { }
-                    window.dispatchEvent(ev as any);
-                }
-            } catch { }
-        }
-    }, []);
-
-    // Main rAF effect: when pan.active becomes true, kick off the loop
+    // Main rAF effect: cleanup any pending RAF/timeouts
     useEffect(() => {
-        if (panAnimRef.current.active && !panAnimRef.current.rafId) {
-            // Start the rAF loop by scheduling the first frame
-            panAnimRef.current.rafId = requestAnimationFrame(updatePan);
-        }
-
+        // Pan animation disabled - grid is frozen during moves, no pan needed
         return () => {
-            // Cleanup: cancel any pending rAF
+            // Cleanup: cancel any pending rAF or timeout
             if (panAnimRef.current.rafId) {
-                cancelAnimationFrame(panAnimRef.current.rafId);
+                cancelAnimationFrame(panAnimRef.current.rafId as any);
                 panAnimRef.current.rafId = null;
             }
         };
-    }, [updatePan]);
+    }, []);
 
     // Listen for moveStart events so we can begin panning immediately
     useEffect(() => {
@@ -164,52 +109,42 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                 // remember detail for overlay callbacks
                 lastOverlayDetailRef.current = detail;
 
-                // trigger pan immediately with rAF
-                const currentCenter = (() => {
-                    if (isAnimatingMove) {
-                        if (visualMoveTo) return visualMoveTo;
-                        if (visualPlayerPosition) return visualPlayerPosition;
-                    }
-                    return playerPosition;
-                })();
-                const prev = prevCenterRef.current || currentCenter;
-                const dx = target.x - prev.x;
-                const dy = target.y - prev.y;
-                if (dx === 0 && dy === 0) return;
+                // NO PAN ANIMATION NEEDED: Grid is already frozen to visualMoveTo in game-layout.tsx
+                // so the viewport doesn't need to move. Just dispatch completion event when overlay finishes.
+                // This prevents viewport jumping.
 
-                // Pan distance in pixels: each tile = containerSize / gridSize
-                const gridCellSizePx = 320 / (grid?.length || 7);
-                const panX = dx * gridCellSizePx;
-                const panY = -dy * gridCellSizePx;
-
-                // Cancel previous animation if any
+                // Instead of pan animation, just wait for the animation duration and dispatch completion
+                const animDuration = typeof detail.visualTotalMs === 'number' ? Number(detail.visualTotalMs) : 600;
+                
+                // Cancel previous timeout if any
                 const pan = panAnimRef.current;
                 if (pan.rafId) {
                     cancelAnimationFrame(pan.rafId);
                     pan.rafId = null;
                 }
 
-                panInProgressRef.current = true;
-                // Pan duration matches avatar flight duration exactly for sync
-                const panDuration = typeof detail.visualTotalMs === 'number' ? Number(detail.visualTotalMs) : 600;
+                // Schedule completion after animation duration
+                const timeoutId = setTimeout(() => {
+                    panInProgressRef.current = false;
+                    try {
+                        const detail = lastOverlayDetailRef.current;
+                        if (detail?.to) {
+                            prevCenterRef.current = { x: detail.to.x, y: detail.to.y };
+                            const ev = new CustomEvent('minimapPanComplete', { detail: { center: detail.to, id: detail.id } });
+                            try { console.info('[minimap] dispatch minimapPanComplete (after animation)', { center: detail.to, id: detail.id }); } catch { }
+                            window.dispatchEvent(ev as any);
+                        }
+                    } catch { }
+                }, animDuration);
 
-                // Start new rAF animation immediately
-                try {
-                    pan.fromX = panX;
-                    pan.fromY = panY;
-                    pan.toX = 0;
-                    pan.toY = 0;
-                    pan.duration = panDuration;
-                    pan.startTime = Date.now();
-                    pan.active = true;
-                    // Schedule the first frame of the rAF loop
-                    pan.rafId = requestAnimationFrame(updatePan);
-                } catch { }
+                // Store timeout ID for cleanup
+                pan.rafId = timeoutId as any;
+                panInProgressRef.current = true;
             } catch { }
         };
         window.addEventListener('moveStart', onMoveStart as EventListener);
         return () => window.removeEventListener('moveStart', onMoveStart as EventListener);
-    }, [isAnimatingMove, visualMoveTo, visualPlayerPosition, playerPosition, updatePan]);
+    }, []);
 
     // Watch for newly explored tiles and trigger a fade-in
     useEffect(() => {
@@ -314,51 +249,51 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                         ['--pan-y' as any]: '0px',
                     }}
                 >
-                {grid.map((row, rowIndex) =>
-                    row.map((cell, colIndex) => {
-                        const key = `${rowIndex}-${colIndex}`;
-                        const isVisible = isViewportVisible(rowIndex, colIndex);
-                        const refPos = (() => {
-                            if (isAnimatingMove) {
-                                if (visualMoveTo) return visualMoveTo;
-                                if (visualPlayerPosition) return visualPlayerPosition;
-                            }
-                            return playerPosition;
-                        })();
-                        const playerToShow = refPos;
-                        const isPlayerHere = playerToShow.x === cell?.x && playerToShow.y === cell?.y;
-                        const turnDifference = cell ? turn - cell.lastVisited : 0;
-                        const distanceFromPlayer = cell ? Math.max(
-                            Math.abs(cell.x - refPos.x),
-                            Math.abs(cell.y - refPos.y)
-                        ) : 999;
-                        const isInVisibleRange = distanceFromPlayer <= 1;
-                        const isFoggy = turnDifference > 25 && cell && cell.lastVisited !== 0;
+                    {grid.map((row, rowIndex) =>
+                        row.map((cell, colIndex) => {
+                            const key = `${rowIndex}-${colIndex}`;
+                            const isVisible = isViewportVisible(rowIndex, colIndex);
+                            const refPos = (() => {
+                                if (isAnimatingMove) {
+                                    if (visualMoveTo) return visualMoveTo;
+                                    if (visualPlayerPosition) return visualPlayerPosition;
+                                }
+                                return playerPosition;
+                            })();
+                            const playerToShow = refPos;
+                            const isPlayerHere = playerToShow.x === cell?.x && playerToShow.y === cell?.y;
+                            const turnDifference = cell ? turn - cell.lastVisited : 0;
+                            const distanceFromPlayer = cell ? Math.max(
+                                Math.abs(cell.x - refPos.x),
+                                Math.abs(cell.y - refPos.y)
+                            ) : 999;
+                            const isInVisibleRange = distanceFromPlayer <= 1;
+                            const isFoggy = turnDifference > 25 && cell && cell.lastVisited !== 0;
 
-                        return (
-                            <MinimapCell
-                                key={key}
-                                cell={cell}
-                                rowIndex={rowIndex}
-                                colIndex={colIndex}
-                                cellSizePx={cellSizePx}
-                                isVisible={isVisible}
-                                isPlayerHere={isPlayerHere}
-                                isInVisibleRange={isInVisibleRange}
-                                isFoggy={isFoggy}
-                                turn={turn}
-                                biomeDefinitions={biomeDefinitions}
-                                fadingExplored={fadingExplored}
-                                hpBarVisible={hpBarVisible}
-                                hpBaseMap={hpBaseMap}
-                                language={language}
-                                t={t}
-                                customItemDefinitions={undefined}
-                                isAnimatingMove={isAnimatingMove}
-                            />
-                        );
-                    })
-                )}
+                            return (
+                                <MinimapCell
+                                    key={key}
+                                    cell={cell}
+                                    rowIndex={rowIndex}
+                                    colIndex={colIndex}
+                                    cellSizePx={cellSizePx}
+                                    isVisible={isVisible}
+                                    isPlayerHere={isPlayerHere}
+                                    isInVisibleRange={isInVisibleRange}
+                                    isFoggy={isFoggy}
+                                    turn={turn}
+                                    biomeDefinitions={biomeDefinitions}
+                                    fadingExplored={fadingExplored}
+                                    hpBarVisible={hpBarVisible}
+                                    hpBaseMap={hpBaseMap}
+                                    language={language}
+                                    t={t}
+                                    customItemDefinitions={undefined}
+                                    isAnimatingMove={isAnimatingMove}
+                                />
+                            );
+                        })
+                    )}
                 </div>
                 {/* PlayerOverlay positioned absolutely above grid with high z-index */}
                 {overlayData ? (

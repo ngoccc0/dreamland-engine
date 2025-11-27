@@ -117,12 +117,14 @@ export default function GameLayout(props: GameLayoutProps) {
     const isAnimatingMoveRef = useRef(isAnimatingMove);
     const visualMoveToRef = useRef(visualMoveTo);
     const visualPlayerPositionRef = useRef(visualPlayerPosition);
+    const turnRef = useRef(turn);
 
     useEffect(() => {
         isAnimatingMoveRef.current = isAnimatingMove;
         visualMoveToRef.current = visualMoveTo;
         visualPlayerPositionRef.current = visualPlayerPosition;
-    }, [isAnimatingMove, visualMoveTo, visualPlayerPosition]);
+        turnRef.current = turn;
+    }, [isAnimatingMove, visualMoveTo, visualPlayerPosition, turn]);
 
     useEffect(() => {
         try {
@@ -325,7 +327,7 @@ export default function GameLayout(props: GameLayoutProps) {
                     // visibility radius. Do NOT unset explored if it was previously true.
                     if (distanceFromPlayer <= visibilityRadius) {
                         if (!chunk.explored) chunk.explored = true;
-                        chunk.lastVisited = turn;
+                        chunk.lastVisited = turnRef.current;
                     }
                 }
 
@@ -333,7 +335,7 @@ export default function GameLayout(props: GameLayoutProps) {
             }
         }
         return grid;
-    }, [world, playerPosition.x, playerPosition.y, finalWorldSetup, isLoaded, turn, settings?.minimapViewportSize]);
+    }, [world, playerPosition.x, playerPosition.y, finalWorldSetup, isLoaded, settings?.minimapViewportSize]);
 
     // Memoize the generated grid so Minimap doesn't rerender on every parent render
     const memoizedGrid = useMemo(() => generateMapGrid(), [generateMapGrid]);

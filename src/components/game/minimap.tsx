@@ -324,17 +324,22 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
 }
 
 // Memoize with custom comparison: only rerender if grid, player position, or animation state changes
-// Ignore biomeDefinitions object changes since it's stable
+// During animation, ignore turn changes - keep frozen grid
 export const MinimapMemoized = memo(Minimap, (prevProps, nextProps) => {
     // Return true if props are equal (don't rerender), false if different (rerender)
-    return (
-        prevProps.grid === nextProps.grid &&
-        prevProps.playerPosition === nextProps.playerPosition &&
-        prevProps.visualPlayerPosition === nextProps.visualPlayerPosition &&
-        prevProps.isAnimatingMove === nextProps.isAnimatingMove &&
-        prevProps.visualMoveFrom === nextProps.visualMoveFrom &&
-        prevProps.visualMoveTo === nextProps.visualMoveTo &&
-        prevProps.visualJustLanded === nextProps.visualJustLanded &&
-        prevProps.turn === nextProps.turn
-    );
+    const gridSame = prevProps.grid === nextProps.grid;
+    const playerPosSame = prevProps.playerPosition === nextProps.playerPosition;
+    const visualPlayerPosSame = prevProps.visualPlayerPosition === nextProps.visualPlayerPosition;
+    const animatingSame = prevProps.isAnimatingMove === nextProps.isAnimatingMove;
+    const visualMoveFromSame = prevProps.visualMoveFrom === nextProps.visualMoveFrom;
+    const visualMoveToSame = prevProps.visualMoveTo === nextProps.visualMoveTo;
+    const visualJustLandedSame = prevProps.visualJustLanded === nextProps.visualJustLanded;
+    // CRITICAL: During animation, IGNORE turn changes to prevent rerender
+    // Grid is frozen to visualMoveTo, so turn doesn't matter until animation completes
+    const turnSame = nextProps.isAnimatingMove ? true : (prevProps.turn === nextProps.turn);
+    
+    const allSame = gridSame && playerPosSame && visualPlayerPosSame && animatingSame && 
+                    visualMoveFromSame && visualMoveToSame && visualJustLandedSame && turnSame;
+    
+    return allSame;
 });

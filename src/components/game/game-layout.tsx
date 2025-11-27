@@ -1,16 +1,17 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Minimap } from "@/components/game/minimap";
+import React, { useState, useEffect, useCallback, useRef, Suspense, lazy, useMemo } from "react";
+import { MinimapMemoized as Minimap } from "@/components/game/minimap";
 import { StatusPopup } from "@/components/game/status-popup";
-import { InventoryPopup } from "@/components/game/inventory-popup";
-import { FullMapPopup } from "@/components/game/full-map-popup";
-import { CraftingPopup } from "@/components/game/crafting-popup";
-import { BuildingPopup } from "@/components/game/building-popup";
-import { TutorialPopup } from "@/components/game/tutorial-popup";
-import { FusionPopup } from "@/components/game/fusion-popup";
-import { PwaInstallPopup } from "@/components/game/pwa-install-popup";
-import { SettingsPopup } from "@/components/game/settings-popup";
+// Lazy load heavy popup components (only load when opened)
+const InventoryPopup = lazy(() => import("@/components/game/inventory-popup").then(m => ({ default: m.InventoryPopup })));
+const FullMapPopup = lazy(() => import("@/components/game/full-map-popup").then(m => ({ default: m.FullMapPopup })));
+const CraftingPopup = lazy(() => import("@/components/game/crafting-popup").then(m => ({ default: m.CraftingPopup })));
+const BuildingPopup = lazy(() => import("@/components/game/building-popup").then(m => ({ default: m.BuildingPopup })));
+const TutorialPopup = lazy(() => import("@/components/game/tutorial-popup").then(m => ({ default: m.TutorialPopup })));
+const FusionPopup = lazy(() => import("@/components/game/fusion-popup").then(m => ({ default: m.FusionPopup })));
+const PwaInstallPopup = lazy(() => import("@/components/game/pwa-install-popup").then(m => ({ default: m.PwaInstallPopup })));
+const SettingsPopup = lazy(() => import("@/components/game/settings-popup").then(m => ({ default: m.SettingsPopup })));
 import { Controls } from "@/components/game/controls";
 import BottomActionBar from "@/components/game/bottom-action-bar";
 import { Button } from "@/components/ui/button";
@@ -110,9 +111,25 @@ export default function GameLayout(props: GameLayoutProps) {
     // after the animation ends.
     const prevAnimatingRefForLayout = useRef<boolean>(Boolean(isAnimatingMove));
     const holdCenterUntilRef = useRef<number>(0);
+    const animationStartTimeRef = useRef<number>(0);
+    
+    // Refs to read animation state WITHOUT triggering re-computation
+    const isAnimatingMoveRef = useRef(isAnimatingMove);
+    const visualMoveToRef = useRef(visualMoveTo);
+    const visualPlayerPositionRef = useRef(visualPlayerPosition);
+
+    useEffect(() => {
+        isAnimatingMoveRef.current = isAnimatingMove;
+        visualMoveToRef.current = visualMoveTo;
+        visualPlayerPositionRef.current = visualPlayerPosition;
+    }, [isAnimatingMove, visualMoveTo, visualPlayerPosition]);
 
     useEffect(() => {
         try {
+            if (!prevAnimatingRefForLayout.current && isAnimatingMove) {
+                // animation just started — delay grid switch for ~50ms to let RAF pan start
+                animationStartTimeRef.current = Date.now() + 50;
+            }
             if (prevAnimatingRefForLayout.current && !isAnimatingMove) {
                 // animation just finished — hold the visual center for a short time
                 holdCenterUntilRef.current = Date.now() + 350; // ms
@@ -276,10 +293,9 @@ export default function GameLayout(props: GameLayoutProps) {
         // we continue to use the visual position even if isAnimatingMove has ended
         // but the authoritative playerPosition hasn't fully propagated.
         const now = Date.now();
-        // Prefer the intended visual destination while an animation is active: visualMoveTo
-        // is the most accurate center to use for grid generation during a flight.
-        const useVisualCenter = (isAnimatingMove && (visualMoveTo || visualPlayerPosition)) || ((visualPlayerPosition || visualMoveTo) && holdCenterUntilRef.current > now);
-        const playerForGrid = useVisualCenter ? (visualMoveTo || visualPlayerPosition || playerPosition) : playerPosition;
+        // Read animation state from Refs (NOT dependencies) to avoid unnecessary recomputation
+        const shouldUseVisualCenter = (isAnimatingMoveRef.current && now > animationStartTimeRef.current && (visualMoveToRef.current || visualPlayerPositionRef.current)) || ((visualPlayerPositionRef.current || visualMoveToRef.current) && holdCenterUntilRef.current > now);
+        const playerForGrid = shouldUseVisualCenter ? (visualMoveToRef.current || visualPlayerPositionRef.current || playerPosition) : playerPosition;
         // Log which center we used so we can correlate UI updates with state changes
         // debug logging intentionally removed to centralize move tracing into
         // a single start/end sequence log. Keep costly logging out of the
@@ -317,7 +333,21 @@ export default function GameLayout(props: GameLayoutProps) {
             }
         }
         return grid;
-    }, [world, playerPosition.x, playerPosition.y, finalWorldSetup, isLoaded, turn, visualPlayerPosition, visualMoveTo, isAnimatingMove]);
+    }, [world, playerPosition.x, playerPosition.y, finalWorldSetup, isLoaded, turn, settings?.minimapViewportSize]);
+
+    // Memoize the generated grid so Minimap doesn't rerender on every parent render
+    const memoizedGrid = useMemo(() => generateMapGrid(), [generateMapGrid]);
+    
+    // Keep previous grid ref to prevent rerender during animation
+    const previousGridRef = useRef(memoizedGrid);
+    const gridToPass = isAnimatingMoveRef.current ? previousGridRef.current : memoizedGrid;
+    
+    useEffect(() => {
+        // Update ref only when animation is NOT active
+        if (!isAnimatingMoveRef.current) {
+            previousGridRef.current = memoizedGrid;
+        }
+    }, [memoizedGrid]);
 
     const restingPlace = currentChunk?.structures?.find((s: Structure) => s.restEffect);
     // Pickup / other action grouping must be declared before any function that closes over them
@@ -574,7 +604,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
                                     </div>
                                     <div className="w-full max-w-full md:max-w-xs">
-                                        <Minimap grid={generateMapGrid()} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} />
+                                        <Minimap grid={gridToPass} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} />
                                     </div>
                                 </div>
 
@@ -740,7 +770,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
                                     </div>
-                                    <Minimap grid={generateMapGrid()} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} />
+                                    <Minimap grid={gridToPass} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} />
                                 </div>
                             </>
                         )}
@@ -956,14 +986,46 @@ export default function GameLayout(props: GameLayoutProps) {
                         </div>
                     </DialogContent>
                 </Dialog>
-                <InventoryPopup open={isInventoryOpen} onOpenChange={setInventoryOpen} items={playerStats.items} itemDefinitions={customItemDefinitions} enemy={currentChunk?.enemy || null} onUseItem={handleItemUsed} onEquipItem={handleEquipItem} onDropItem={handleDropItem} />
-                <CraftingPopup open={isCraftingOpen} onOpenChange={setCraftingOpen} playerItems={playerStats.items} recipes={recipes} onCraft={handleCraft} itemDefinitions={customItemDefinitions} />
-                <BuildingPopup open={isBuildingOpen} onOpenChange={setBuildingOpen} playerItems={playerStats.items} buildableStructures={buildableStructures} onBuild={handleBuild} />
-                <FusionPopup open={isFusionOpen} onOpenChange={setFusionOpen} playerItems={playerStats.items} itemDefinitions={customItemDefinitions} onFuse={handleFuseItems} isLoading={isLoading} />
-                <FullMapPopup open={isFullMapOpen} onOpenChange={setIsFullMapOpen} world={world} playerPosition={playerPosition} turn={turn} />
-                <TutorialPopup open={isTutorialOpen} onOpenChange={setTutorialOpen} />
-                <SettingsPopup open={isSettingsOpen} onOpenChange={setSettingsOpen} isInGame={true} currentBiome={currentChunk?.terrain ?? null} />
-                <PwaInstallPopup open={showInstallPopup} onOpenChange={setShowInstallPopup} />
+                {isInventoryOpen && (
+                    <Suspense fallback={<div />}>
+                        <InventoryPopup open={isInventoryOpen} onOpenChange={setInventoryOpen} items={playerStats.items} itemDefinitions={customItemDefinitions} enemy={currentChunk?.enemy || null} onUseItem={handleItemUsed} onEquipItem={handleEquipItem} onDropItem={handleDropItem} />
+                    </Suspense>
+                )}
+                {isCraftingOpen && (
+                    <Suspense fallback={<div />}>
+                        <CraftingPopup open={isCraftingOpen} onOpenChange={setCraftingOpen} playerItems={playerStats.items} recipes={recipes} onCraft={handleCraft} itemDefinitions={customItemDefinitions} />
+                    </Suspense>
+                )}
+                {isBuildingOpen && (
+                    <Suspense fallback={<div />}>
+                        <BuildingPopup open={isBuildingOpen} onOpenChange={setBuildingOpen} playerItems={playerStats.items} buildableStructures={buildableStructures} onBuild={handleBuild} />
+                    </Suspense>
+                )}
+                {isFusionOpen && (
+                    <Suspense fallback={<div />}>
+                        <FusionPopup open={isFusionOpen} onOpenChange={setFusionOpen} playerItems={playerStats.items} itemDefinitions={customItemDefinitions} onFuse={handleFuseItems} isLoading={isLoading} />
+                    </Suspense>
+                )}
+                {isFullMapOpen && (
+                    <Suspense fallback={<div />}>
+                        <FullMapPopup open={isFullMapOpen} onOpenChange={setIsFullMapOpen} world={world} playerPosition={playerPosition} turn={turn} />
+                    </Suspense>
+                )}
+                {isTutorialOpen && (
+                    <Suspense fallback={<div />}>
+                        <TutorialPopup open={isTutorialOpen} onOpenChange={setTutorialOpen} />
+                    </Suspense>
+                )}
+                {isSettingsOpen && (
+                    <Suspense fallback={<div />}>
+                        <SettingsPopup open={isSettingsOpen} onOpenChange={setSettingsOpen} isInGame={true} currentBiome={currentChunk?.terrain ?? null} />
+                    </Suspense>
+                )}
+                {showInstallPopup && (
+                    <Suspense fallback={<div />}>
+                        <PwaInstallPopup open={showInstallPopup} onOpenChange={setShowInstallPopup} />
+                    </Suspense>
+                )}
 
                 <AlertDialog open={isGameOver}>
                     <AlertDialogContent>

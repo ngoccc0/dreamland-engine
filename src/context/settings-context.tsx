@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback, useMemo } from 'react';
 import type { GameSettings, FontFamily, FontSize, Theme, ModBundle } from '@/lib/game/types';
 
 interface SettingsContextType {
@@ -168,8 +168,11 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [settings.theme, settings.fontFamily, settings.fontSize]);
 
+  // Memoize context value to prevent consumer re-renders when only other state changes
+  const contextValue = useMemo(() => ({ settings, setSettings, applyMods, clearMods }), [settings, setSettings, applyMods, clearMods]);
+
   return (
-    <SettingsContext.Provider value={{ settings, setSettings, applyMods, clearMods }}>
+    <SettingsContext.Provider value={contextValue}>
       {children}
     </SettingsContext.Provider>
   );

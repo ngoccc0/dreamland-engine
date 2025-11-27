@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect, useMemo } from 'react';
 import { translations, Language, TranslationKey } from '@/lib/i18n';
 import type { TranslatableString } from '@/lib/game/types';
 
@@ -42,7 +42,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     (async () => {
       try {
         // lazy-require to avoid adding IndexedDB code to server bundles
-         
+
         const cache = require('@/lib/narrative/cache').default as { keys: () => Promise<string[]>; del: (k: string) => Promise<boolean> };
         const loader = require('@/lib/narrative/loader') as any;
         const keys = await cache.keys();
@@ -58,7 +58,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
         }
         // warm a default bundle for the language; non-blocking
         try {
-          loader.loadPrecomputedBundle('default', lang).catch(() => {});
+          loader.loadPrecomputedBundle('default', lang).catch(() => { });
         } catch {
           // ignore
         }
@@ -67,7 +67,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
       }
     })();
   };
-  
+
   const t: TFunction = (key, replacements) => {
     // If key is an object-shaped TranslatableString, return the matching language variant.
     if (typeof key !== 'string') {
@@ -110,8 +110,11 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     return translation;
   };
 
+  // Memoize context value to prevent consumer re-renders when only other state changes
+  const contextValue = useMemo(() => ({ language, setLanguage, t }), [language]);
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={contextValue}>
       {children}
     </LanguageContext.Provider>
   );

@@ -1,3 +1,9 @@
+/**
+ * OVERVIEW: Minimap component renders a grid-based map visualization with pan animations.
+ * Handles movement visualization, overlay flight animations, and interactive tile popovers.
+ * Uses rAF for smooth GPU-accelerated pan animations synchronized with player movement.
+ * TSDOC: Receives grid data, player position, biome definitions; emits moveStart/landing events.
+ */
 
 "use client";
 
@@ -5,133 +11,22 @@ import { cn } from "@/lib/utils";
 import { PlayerIcon, NpcIcon, Home, MapPin } from "./icons";
 import { useLanguage } from "@/context/language-context";
 import { useSettings } from "@/context/settings-context";
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback, memo } from "react";
 import PlayerOverlay from './player-overlay';
 import type { Chunk, Terrain, BiomeDefinition } from "@/lib/game/types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Separator } from "../ui/separator";
-import { SwordIcon } from "./icons";
-import { Backpack } from "lucide-react";
-import { getTranslatedText } from "@/lib/utils";
 import { logger } from "@/lib/logger";
-import { resolveItemDef } from '@/lib/game/item-utils';
-import { IconRenderer } from "@/components/ui/icon-renderer";
-import ProgressBar from '@/components/ui/ProgressBar';
 import { useState, useRef } from 'react';
+import { MinimapCell } from "./minimap-cell";
+import { MapCellDetails } from "./minimap-details";
+import { biomeColors, type MinimapProps } from "./minimap-types";
+import { cn as classNameUtils } from "@/lib/utils";
 
-
-export const MapCellDetails = ({ chunk, itemDefinitions }: { chunk: Chunk; itemDefinitions?: Record<string, any> }) => {
-    const { t, language } = useLanguage();
-    useEffect(() => {
-        try { console.info('[minimap] mounted'); } catch { }
-        return () => { try { console.info('[minimap] unmounted'); } catch { } };
-    }, []);
-    const pickIcon = (definition: any, item: any) => {
-        // Prefer image objects when available
-        if (definition?.emoji && typeof definition.emoji === 'object' && definition.emoji.type === 'image') return definition.emoji;
-        if (definition && (definition as any).image) return (definition as any).image;
-        if (item?.emoji && typeof item.emoji === 'object' && item.emoji.type === 'image') return item.emoji;
-        return definition?.emoji ?? item?.emoji ?? '❓';
-    };
-    return (
-        <div className="p-1 space-y-2">
-            <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <h4 className="font-bold capitalize">{chunk.terrain === 'wall' ? t('wall') : t(chunk.terrain as any)} ({chunk.x}, {chunk.y})</h4>
-            </div>
-            <p className="text-xs text-muted-foreground italic line-clamp-3">{chunk.description}</p>
-
-            {(chunk.structures && chunk.structures.length > 0 || chunk.items.length > 0 || chunk.enemy || chunk.NPCs.length > 0) && <Separator />}
-
-            <div className="space-y-2 mt-2">
-                {chunk.structures && chunk.structures.length > 0 && (
-                    <div>
-                        <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><Home />{t('structures')}:</h5>
-                        <ul className="space-y-1 text-xs pl-5">
-                            {chunk.structures.map((s, idx) => {
-                                const structData = (s as any).data || s;
-                                // Use index as key here to avoid relying on language-specific strings for React keys
-                                return <li key={idx} className="flex items-center gap-1"><IconRenderer icon={structData.emoji} size={16} /> {getTranslatedText(structData.name, language, t)}</li>
-                            })}
-                        </ul>
-                    </div>
-                )}
-                {chunk.items.length > 0 && (
-                    <div>
-                        <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><Backpack />{t('inventory')}:</h5>
-                        <ul className="space-y-1 text-xs pl-5">
-                            {chunk.items.map((item, idx) => {
-                                const definition = itemDefinitions ? resolveItemDef(getTranslatedText(item.name, 'en'), itemDefinitions) : null;
-                                const emoji = pickIcon(definition, item);
-                                return <li key={idx} className="flex items-center gap-1"><IconRenderer icon={emoji} size={16} /> {getTranslatedText(item.name, language, t)} (x{item.quantity})</li>;
-                            })}
-                        </ul>
-                    </div>
-                )}
-                {chunk.enemy && (
-                    <div>
-                        <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><SwordIcon />{t('enemy')}:</h5>
-                        <p className="text-xs pl-5 flex items-center gap-1"><IconRenderer icon={chunk.enemy.emoji} size={16} /> {chunk.enemy.type ? getTranslatedText(chunk.enemy.type, language, t) : t('no_enemy_found')} (HP: {chunk.enemy.hp})</p>
-                    </div>
-                )}
-                {chunk.NPCs.length > 0 && (
-                    <div>
-                        <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><NpcIcon />{t('npcs')}:</h5>
-                        <ul className="space-y-1 text-xs pl-5">
-                            {chunk.NPCs.map((npc, idx) => <li key={idx}>{getTranslatedText(npc.name, language, t)}</li>)}
-                        </ul>
-                    </div>
-                )}
-            </div>
-
-        </div>
-    );
-};
-
-
-interface MinimapProps {
-    grid: (Chunk | null)[][];
-    // authoritative player position (game state)
-    playerPosition: { x: number; y: number };
-    // visual position used while animating move (optional)
-    visualPlayerPosition?: { x: number; y: number } | null;
-    // whether a visual move animation is active
-    isAnimatingMove?: boolean;
-    // visual flight endpoints for overlay animation
-    visualMoveFrom?: { x: number; y: number } | null;
-    visualMoveTo?: { x: number; y: number } | null;
-    // toggles briefly after landing so UI can play a small bounce
-    visualJustLanded?: boolean;
-    turn: number;
-    biomeDefinitions: Record<string, BiomeDefinition>;
+interface GameLayoutMinimapProps extends MinimapProps {
+    // Extends MinimapProps with additional props if needed
 }
 
-const biomeColors: Record<Terrain | 'empty', string> = {
-    forest: "bg-map-forest",
-    grassland: "bg-map-grassland",
-    desert: "bg-map-desert",
-    swamp: "bg-map-swamp",
-    mountain: "bg-map-mountain",
-    cave: "bg-map-cave",
-    jungle: "bg-map-jungle",
-    volcanic: "bg-map-volcanic",
-    floptropica: "bg-map-floptropica",
-    wall: "bg-map-wall",
-    tundra: "bg-map-tundra",
-    beach: "bg-map-beach",
-    mesa: "bg-map-mesa",
-    mushroom_forest: "bg-map-mushroom_forest",
-    ocean: "bg-map-ocean",
-    city: "bg-map-city",
-    space_station: "bg-map-space_station",
-    underwater: "bg-map-underwater",
-    empty: "bg-map-empty",
-};
-
-
-
-
-export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatingMove, visualMoveFrom, visualMoveTo, visualJustLanded, turn, biomeDefinitions }: MinimapProps) {
+export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatingMove, visualMoveFrom, visualMoveTo, visualJustLanded, turn, biomeDefinitions }: GameLayoutMinimapProps) {
     const { t, language } = useLanguage();
     const { settings } = useSettings();
 
@@ -139,23 +34,21 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
     const [hpBarVisible, setHpBarVisible] = useState<Record<string, boolean>>({});
     const hpBaseMap = useRef<Record<string, number>>({}); // stores observed max HP for percent calculations
     const prevHpMap = useRef<Record<string, number>>({}); // stores last seen hp to detect changes
-    const hideTimers = useRef<Record<string, ReturnType<typeof setTimeout> | undefined>>({});
 
     // Get viewport size early so cell sizing can depend on it
     const viewportSize = (settings?.minimapViewportSize as 5 | 7 | 9) || 5;
 
     // Fixed container size (w-80 h-80 = 320px × 320px)
     // Cell size = containerSize / viewportSize (visible cells fill container)
-    // For 5×5: cellSize = 320/5 = 64px, for 7×7: cellSize = 320/7 ≈ 45.7px, for 9×9: cellSize = 320/9 ≈ 35.6px
     const cellSizePx = 320 / viewportSize;
 
     useEffect(() => {
         if (grid?.length > 0) {
+            // Grid loaded
         }
     }, [grid, playerPosition, turn]);
 
     // Track the most recent moveStart detail so overlay callbacks can dispatch
-    // landing/finished events that include the move id and target center.
     const lastOverlayDetailRef = useRef<any>(null);
 
     // rAF pan animation state (NOT React state to avoid re-render)
@@ -189,69 +82,74 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
     const prevExploredRef = useRef<Record<string, boolean>>({});
     const [externalFlyDuration, setExternalFlyDuration] = useState<number | null>(null);
 
-    // PlayerOverlay now owns the lift->fly->land->bounce timing. Minimap only
-    // computes geometry and supplies overlayData; PlayerOverlay will emit
-    // landing/finished events that the orchestrator listens to.
-
-    // rAF loop for smooth pan animation with easing
-    useEffect(() => {
+    /**
+     * Core rAF loop for pan animation with easing.
+     * Called every frame when pan.active is true. Updates CSS variables directly (no React state).
+     */
+    const updatePan = useCallback(() => {
         const easeInOutCubic = (t: number): number => {
             return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
         };
 
-        const updatePan = () => {
-            const pan = panAnimRef.current;
-            if (!pan.active || pan.startTime === null) return;
+        const pan = panAnimRef.current;
+        if (!pan.active || pan.startTime === null) {
+            return;
+        }
 
-            const elapsed = Date.now() - pan.startTime;
-            const progress = Math.min(1, elapsed / pan.duration);
-            const easedProgress = easeInOutCubic(progress);
+        const elapsed = Date.now() - pan.startTime;
+        const progress = Math.min(1, elapsed / pan.duration);
+        const easedProgress = easeInOutCubic(progress);
 
-            // Interpolation with easing for smooth pan
-            const x = pan.fromX + (pan.toX - pan.fromX) * easedProgress;
-            const y = pan.fromY + (pan.toY - pan.fromY) * easedProgress;
+        // Interpolation with easing for smooth pan
+        const x = pan.fromX + (pan.toX - pan.fromX) * easedProgress;
+        const y = pan.fromY + (pan.toY - pan.fromY) * easedProgress;
 
-            // Update CSS variables directly (no React state)
-            const container = document.querySelector('[data-minimap-container]') as HTMLElement;
-            if (container) {
-                container.style.setProperty('--pan-x', `${x}px`);
-                container.style.setProperty('--pan-y', `${y}px`);
-            }
+        // Update CSS variables directly (no React state) for maximum smoothness
+        const container = document.querySelector('[data-minimap-container]') as HTMLElement;
+        if (container) {
+            container.style.setProperty('--pan-x', `${x}px`);
+            container.style.setProperty('--pan-y', `${y}px`);
+        }
 
-            if (progress < 1) {
-                pan.rafId = requestAnimationFrame(updatePan);
-            } else {
-                // Animation complete
-                pan.active = false;
-                pan.startTime = null;
-                pan.rafId = null;
-                panInProgressRef.current = false;
+        if (progress < 1) {
+            // Animation not complete — schedule next frame
+            pan.rafId = requestAnimationFrame(updatePan);
+        } else {
+            // Animation complete — stop looping and dispatch event
+            pan.active = false;
+            pan.startTime = null;
+            pan.rafId = null;
+            panInProgressRef.current = false;
 
-                // Dispatch completion event
-                try {
-                    const detail = lastOverlayDetailRef.current;
-                    if (detail?.to) {
-                        const ev = new CustomEvent('minimapPanComplete', { detail: { center: detail.to, id: detail.id } });
-                        try { console.info('[minimap] dispatch minimapPanComplete (rAF)', { center: detail.to, id: detail.id }); } catch { }
-                        window.dispatchEvent(ev as any);
-                    }
-                } catch { }
-            }
-        };
+            // Dispatch completion event with move details
+            try {
+                const detail = lastOverlayDetailRef.current;
+                if (detail?.to) {
+                    const ev = new CustomEvent('minimapPanComplete', { detail: { center: detail.to, id: detail.id } });
+                    try { console.info('[minimap] dispatch minimapPanComplete (rAF)', { center: detail.to, id: detail.id }); } catch { }
+                    window.dispatchEvent(ev as any);
+                }
+            } catch { }
+        }
+    }, []);
 
-        if (panAnimRef.current.active) {
+    // Main rAF effect: when pan.active becomes true, kick off the loop
+    useEffect(() => {
+        if (panAnimRef.current.active && !panAnimRef.current.rafId) {
+            // Start the rAF loop by scheduling the first frame
             panAnimRef.current.rafId = requestAnimationFrame(updatePan);
         }
 
         return () => {
+            // Cleanup: cancel any pending rAF
             if (panAnimRef.current.rafId) {
                 cancelAnimationFrame(panAnimRef.current.rafId);
+                panAnimRef.current.rafId = null;
             }
         };
-    }, []);
+    }, [updatePan]);
 
-    // Listen for moveStart events so we can begin panning immediately in sync
-    // with the avatar animation. moveStart.detail should contain { id, from, to, visualTotalMs }.
+    // Listen for moveStart events so we can begin panning immediately
     useEffect(() => {
         const onMoveStart = (ev: Event) => {
             try {
@@ -263,7 +161,7 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
 
                 // adopt external fly duration for overlay + pan
                 if (typeof detail.visualTotalMs === 'number') setExternalFlyDuration(detail.visualTotalMs);
-                // remember detail for overlay callbacks (landing/finished)
+                // remember detail for overlay callbacks
                 lastOverlayDetailRef.current = detail;
 
                 // trigger pan immediately with rAF
@@ -279,7 +177,7 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                 const dy = target.y - prev.y;
                 if (dx === 0 && dy === 0) return;
 
-                // Pan distance in pixels: each tile = containerSize / gridSize (grid is internal 7x7)
+                // Pan distance in pixels: each tile = containerSize / gridSize
                 const gridCellSizePx = 320 / (grid?.length || 7);
                 const panX = dx * gridCellSizePx;
                 const panY = -dy * gridCellSizePx;
@@ -288,13 +186,14 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                 const pan = panAnimRef.current;
                 if (pan.rafId) {
                     cancelAnimationFrame(pan.rafId);
+                    pan.rafId = null;
                 }
 
                 panInProgressRef.current = true;
                 // Pan duration matches avatar flight duration exactly for sync
                 const panDuration = typeof detail.visualTotalMs === 'number' ? Number(detail.visualTotalMs) : 600;
 
-                // Start new rAF animation immediately (no artificial delay)
+                // Start new rAF animation immediately
                 try {
                     pan.fromX = panX;
                     pan.fromY = panY;
@@ -303,15 +202,16 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                     pan.duration = panDuration;
                     pan.startTime = Date.now();
                     pan.active = true;
-                    pan.rafId = requestAnimationFrame(() => { });
-                } catch {}
+                    // Schedule the first frame of the rAF loop
+                    pan.rafId = requestAnimationFrame(updatePan);
+                } catch { }
             } catch { }
         };
         window.addEventListener('moveStart', onMoveStart as EventListener);
         return () => window.removeEventListener('moveStart', onMoveStart as EventListener);
-    }, [isAnimatingMove, visualMoveTo, visualPlayerPosition, playerPosition]);
+    }, [isAnimatingMove, visualMoveTo, visualPlayerPosition, playerPosition, updatePan]);
 
-    // Watch for newly explored tiles and trigger a fade-in when they transition
+    // Watch for newly explored tiles and trigger a fade-in
     useEffect(() => {
         try {
             const newFlags: Record<string, boolean> = {};
@@ -322,7 +222,6 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                     const key = `${cell.x},${cell.y}`;
                     const prev = prevExploredRef.current[key] || false;
                     if (!prev && cell.explored) {
-                        // newly explored — always fade in (not only during move animations)
                         newFlags[key] = true;
                     }
                     prevExploredRef.current[key] = !!cell.explored;
@@ -330,7 +229,6 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
             }
             if (Object.keys(newFlags).length > 0) {
                 setFadingExplored(prev => ({ ...prev, ...newFlags }));
-                // clear flags after 500ms
                 const id = setTimeout(() => {
                     setFadingExplored(prev => {
                         const copy = { ...prev };
@@ -359,11 +257,10 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
         )
     }
 
-    // Calculate viewport clipping: determine which tiles should be visible based on minimapViewportSize
-    // Grid is always 7×7, but we only show center N×N based on user setting
+    // Calculate viewport clipping
     const viewportRadius = Math.floor(viewportSize / 2);
-    const gridSize = grid.length; // Always 7
-    const gridCenter = Math.floor(gridSize / 2); // Center index: 3 for 7×7
+    const gridSize = grid.length;
+    const gridCenter = Math.floor(gridSize / 2);
 
     // Function to check if tile is visible in viewport
     const isViewportVisible = (rowIdx: number, colIdx: number): boolean => {
@@ -374,14 +271,9 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
         return distFromCenter <= viewportRadius;
     };
 
-    // Note: Grid centering is now handled by CSS Grid place-content-center
-    // Pan animation will update --pan-x/--pan-y during movement
-    // No static viewport offset needed - grid auto-centers in container
-
-    // compute overlay flight geometry (grid-relative percentages)
+    // compute overlay flight geometry
     const overlayData = (() => {
         if (!visualMoveFrom || !visualMoveTo || !isAnimatingMove) return null;
-        // find source/target indices in the shown grid
         let fromRow = -1, fromCol = -1, toRow = -1, toCol = -1;
         for (let r = 0; r < grid.length; r++) {
             for (let c = 0; c < grid[r].length; c++) {
@@ -406,35 +298,26 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
 
     return (
         <div className="flex flex-col items-center gap-2">
-            <div
-                data-minimap-container
-                className={cn(
-                    "relative grid w-80 h-80 place-content-center border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-hidden",
-                    "map-pan-anim"
-                )}
-                style={{
-                    gridTemplateColumns: `repeat(${grid?.length || 7}, 1fr)`,
-                    gridTemplateRows: `repeat(${grid?.length || 7}, 1fr)`,
-                    gap: '0px',
-                    ['--pan-x' as any]: '0px',
-                    ['--pan-y' as any]: '0px',
-                }}
-            >
+            <div className="relative w-80 h-80">
+                {/* Grid container (relative to contain overlay) */}
+                <div
+                    data-minimap-container
+                    className={cn(
+                        "absolute inset-0 grid border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-hidden",
+                        "map-pan-anim"
+                    )}
+                    style={{
+                        gridTemplateColumns: `repeat(${grid?.length || 7}, 1fr)`,
+                        gridTemplateRows: `repeat(${grid?.length || 7}, 1fr)`,
+                        gap: '0px',
+                        ['--pan-x' as any]: '0px',
+                        ['--pan-y' as any]: '0px',
+                    }}
+                >
                 {grid.map((row, rowIndex) =>
                     row.map((cell, colIndex) => {
                         const key = `${rowIndex}-${colIndex}`;
                         const isVisible = isViewportVisible(rowIndex, colIndex);
-                        const hiddenClasses = !isVisible ? "opacity-0 pointer-events-none" : "";
-
-                        if (!cell) {
-                            return <div key={key} className={cn("bg-map-empty border-r border-b border-dashed border-border/50", hiddenClasses)} style={{ width: cellSizePx, height: cellSizePx }} />;
-                        }
-
-                        // When a move animation is active the UI should prefer the visual position
-                        // so the player icon and cell highlight follow the animated avatar until landing.
-                        // Use a single `refPos` so all visibility/distance calculations stay consistent
-                        // with whatever center the UI is displaying (visual vs authoritative).
-                        // Keep refPos consistent with the current center logic above.
                         const refPos = (() => {
                             if (isAnimatingMove) {
                                 if (visualMoveTo) return visualMoveTo;
@@ -443,193 +326,41 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                             return playerPosition;
                         })();
                         const playerToShow = refPos;
-                        const isPlayerHere = playerToShow.x === cell.x && playerToShow.y === cell.y;
-                        const turnDifference = turn - cell.lastVisited;
-                        // Calculate if the tile is within the 3x3 visibility radius using the same refPos
-                        const distanceFromPlayer = Math.max(
+                        const isPlayerHere = playerToShow.x === cell?.x && playerToShow.y === cell?.y;
+                        const turnDifference = cell ? turn - cell.lastVisited : 0;
+                        const distanceFromPlayer = cell ? Math.max(
                             Math.abs(cell.x - refPos.x),
                             Math.abs(cell.y - refPos.y)
-                        );
-                        const isInVisibleRange = distanceFromPlayer <= 1; // 1 tile radius for 3x3 area
-
-                        // Shorter fog of war timing (25 turns)
-                        const isFoggy = turnDifference > 25 && cell.lastVisited !== 0;
-
-                        // Unexplored tiles should still be rendered but with a fog effect
-                        if (!cell.explored) {
-                            return (
-                                <Popover key={key}>
-                                    <PopoverTrigger asChild>
-                                        <div className={cn(
-                                            "bg-map-empty/50 border-r border-b border-dashed border-border/50 flex items-center justify-center",
-                                            hiddenClasses
-                                        )} style={{ width: cellSizePx, height: cellSizePx }}>
-                                            <span className="text-2xl opacity-20" title={t('unexploredArea') as string}>🌫️</span>
-                                        </div>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-80">
-                                        <div className="p-2 text-sm text-muted-foreground">
-                                            {t('unexploredAreaDesc')}
-                                        </div>
-                                    </PopoverContent>
-                                </Popover>
-                            );
-                        }
-
-                        // Tiles in fog of war show more detailed tooltips
-                        if (isFoggy && !isInVisibleRange) {
-                            const tooltipMessages = [
-                                { vi: "Đã lâu bạn không đến đây, mọi thứ dường như đã thay đổi...", en: "It's been a while since you've been here, things might have changed..." },
-                                { vi: "Thời gian trôi qua khiến ký ức về nơi này trở nên mờ nhạt.", en: "Time has made your memories of this place fade." },
-                                { vi: "Sương mù dày đặc khiến bạn không thể nhớ rõ nơi này có gì.", en: "The thick fog makes it hard to remember what's here." }
-                            ];
-                            const randomMessage = tooltipMessages[Math.floor(Math.random() * tooltipMessages.length)];
-
-                            return (
-                                <Popover key={key}>
-                                    <PopoverTrigger asChild>
-                                        <div className={cn(
-                                            "bg-map-empty border-r border-b border-dashed border-border/50 flex items-center justify-center",
-                                            hiddenClasses
-                                        )} style={{ width: cellSizePx, height: cellSizePx }}>
-                                            <span className="text-2xl opacity-30" title={t('fogOfWarDesc') as string}>🌫️</span>
-                                        </div>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-80">
-                                        <div className="p-2 space-y-2">
-                                            <p className="text-sm text-muted-foreground">{language === 'vi' ? randomMessage.vi : randomMessage.en}</p>
-                                            {cell.terrain && (
-                                                <p className="text-xs text-muted-foreground/70">
-                                                    {t('lastKnownTerrain')}: {t(cell.terrain as any)}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </PopoverContent>
-                                </Popover>
-                            );
-                        }
-
-                        const firstStructure = cell.structures && cell.structures.length > 0 ? (cell.structures[0] as any) : null;
-                        const structData = firstStructure?.data || firstStructure;
-                        const lookupBiomeDef = (terrain: string | undefined) => {
-                            if (!terrain) return undefined;
-                            if (!biomeDefinitions) return undefined;
-                            if (biomeDefinitions[terrain]) return biomeDefinitions[terrain];
-                            const keyLower = String(terrain).toLowerCase();
-                            if (biomeDefinitions[keyLower]) return biomeDefinitions[keyLower];
-                            const underscored = keyLower.replace(/\s+/g, '_');
-                            if (biomeDefinitions[underscored]) return biomeDefinitions[underscored];
-                            return undefined;
-                        };
-                        const biomeDef = lookupBiomeDef(cell.terrain as string);
-                        const mainIcon = structData
-                            ? <IconRenderer icon={structData.emoji} size={28} className="text-3xl opacity-90 drop-shadow-lg" alt={getTranslatedText(structData.name, language, t)} />
-                            : (biomeDef?.emoji ? <IconRenderer icon={biomeDef.emoji} size={28} className="text-3xl opacity-90 drop-shadow-lg" alt={getTranslatedText(cell.terrain as any, language, t)} /> : null);
+                        ) : 999;
+                        const isInVisibleRange = distanceFromPlayer <= 1;
+                        const isFoggy = turnDifference > 25 && cell && cell.lastVisited !== 0;
 
                         return (
-                            <Popover key={key}>
-                                <PopoverTrigger asChild>
-                                    <div
-                                        className={cn(
-                                            "relative transition-all duration-300 flex items-center justify-center p-1 cursor-pointer hover:ring-2 hover:ring-white border-r border-b border-dashed border-border/50",
-                                            biomeColors[cell.terrain],
-                                            isPlayerHere && "ring-2 ring-white shadow-lg z-10",
-                                            hiddenClasses
-                                        )}
-                                        style={{ width: cellSizePx, height: cellSizePx }}
-                                        aria-label={`Map cell at ${cell.x}, ${cell.y}. Biome: ${cell.terrain}`}
-                                    >
-                                        {mainIcon}
-
-                                        {isPlayerHere && (() => {
-                                            // If the UI animation is running, hide the in-tile icon for
-                                            // all phases except the landing/bounce phase where we want
-                                            // to show the landed avatar at the destination tile only.
-                                            // While any visual move is animating, do not render the
-                                            // in-tile PlayerIcon at all (prevents duplicates at the
-                                            // source or destination). The overlay owns the visual
-                                            // during the entire sequence (lift -> flight -> land -> bounce).
-                                            if (isAnimatingMove) return null;
-                                            // Normal (not animating) render
-                                            return (
-                                                <div className={cn(
-                                                    "absolute inset-0 flex items-center justify-center fade-explored",
-                                                    fadingExplored[`${cell.x},${cell.y}`] && 'show'
-                                                )}>
-                                                    <PlayerIcon />
-                                                </div>
-                                            );
-                                        })()}
-
-                                        {cell.NPCs.length > 0 && (
-                                            <div className="absolute top-px right-px">
-                                                <NpcIcon />
-                                            </div>
-                                        )}
-
-                                        {cell.enemy && (() => {
-                                            const keyCoord = `${cell.x},${cell.y}`;
-                                            // initialize base/prev hp if missing
-                                            try {
-                                                const curHp = Number(cell.enemy.hp ?? 0);
-                                                if (prevHpMap.current[keyCoord] === undefined) {
-                                                    prevHpMap.current[keyCoord] = curHp;
-                                                    // set observed base (max) hp if not present
-                                                    if (!hpBaseMap.current[keyCoord]) hpBaseMap.current[keyCoord] = Math.max(1, curHp || 100);
-                                                } else {
-                                                    // detect change
-                                                    const last = prevHpMap.current[keyCoord];
-                                                    if (last !== curHp) {
-                                                        // update previous
-                                                        prevHpMap.current[keyCoord] = curHp;
-                                                        // update observed base if hp increased above base
-                                                        if ((curHp || 0) > (hpBaseMap.current[keyCoord] || 0)) hpBaseMap.current[keyCoord] = curHp;
-                                                        // show HP bar for 2s
-                                                        setHpBarVisible(v => ({ ...v, [keyCoord]: true }));
-                                                        if (hideTimers.current[keyCoord]) clearTimeout(hideTimers.current[keyCoord] as any);
-                                                        hideTimers.current[keyCoord] = setTimeout(() => {
-                                                            setHpBarVisible(v => ({ ...v, [keyCoord]: false }));
-                                                            hideTimers.current[keyCoord] = undefined;
-                                                        }, 2000) as any;
-                                                    }
-                                                }
-                                            } catch (e) {
-                                                // ignore
-                                            }
-
-                                            const showHp = Boolean(hpBarVisible[`${cell.x},${cell.y}`]);
-                                            const maxHp = hpBaseMap.current[`${cell.x},${cell.y}`] ?? (Number(cell.enemy.hp) > 0 ? Number(cell.enemy.hp) : 100);
-                                            return (
-                                                <div className="absolute bottom-px left-px flex items-end" style={{ gap: 6 }}>
-                                                    <div style={{ transform: 'translateY(-22px)' }}>
-                                                        {showHp ? <ProgressBar value={Number(cell.enemy.hp ?? 0)} max={maxHp} width={140} height={18} ariaLabel="Enemy health" /> : null}
-                                                    </div>
-                                                    <div>
-                                                        <IconRenderer icon={cell.enemy.emoji} size={20} />
-                                                    </div>
-                                                </div>
-                                            );
-                                        })()}
-
-                                        {cell.items.length > 0 && (
-                                            <div className="absolute bottom-px right-px">
-                                                {/* Prefer item's emoji (which may be an image object) */}
-                                                <IconRenderer icon={cell.items[0].emoji} size={20} />
-                                            </div>
-                                        )}
-                                    </div>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-80">
-                                    <MapCellDetails chunk={cell} />
-                                </PopoverContent>
-                            </Popover>
+                            <MinimapCell
+                                key={key}
+                                cell={cell}
+                                rowIndex={rowIndex}
+                                colIndex={colIndex}
+                                cellSizePx={cellSizePx}
+                                isVisible={isVisible}
+                                isPlayerHere={isPlayerHere}
+                                isInVisibleRange={isInVisibleRange}
+                                isFoggy={isFoggy}
+                                turn={turn}
+                                biomeDefinitions={biomeDefinitions}
+                                fadingExplored={fadingExplored}
+                                hpBarVisible={hpBarVisible}
+                                hpBaseMap={hpBaseMap}
+                                language={language}
+                                t={t}
+                                customItemDefinitions={undefined}
+                                isAnimatingMove={isAnimatingMove}
+                            />
                         );
                     })
                 )}
-                {/* Overlay: flying player (extracted to reusable component) */}
-                {/* PlayerOverlay handles only rendering based on overlayData and props;
-            Minimap still controls the overlay phases (lift/fly/bounce) and passes
-            the current flags so the component remains reusable. */}
+                </div>
+                {/* PlayerOverlay positioned absolutely above grid with high z-index */}
                 {overlayData ? (
                     <PlayerOverlay
                         overlayData={overlayData}
@@ -656,3 +387,19 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
         </div>
     );
 }
+
+// Memoize with custom comparison: only rerender if grid, player position, or animation state changes
+// Ignore biomeDefinitions object changes since it's stable
+export const MinimapMemoized = memo(Minimap, (prevProps, nextProps) => {
+    // Return true if props are equal (don't rerender), false if different (rerender)
+    return (
+        prevProps.grid === nextProps.grid &&
+        prevProps.playerPosition === nextProps.playerPosition &&
+        prevProps.visualPlayerPosition === nextProps.visualPlayerPosition &&
+        prevProps.isAnimatingMove === nextProps.isAnimatingMove &&
+        prevProps.visualMoveFrom === nextProps.visualMoveFrom &&
+        prevProps.visualMoveTo === nextProps.visualMoveTo &&
+        prevProps.visualJustLanded === nextProps.visualJustLanded &&
+        prevProps.turn === nextProps.turn
+    );
+});

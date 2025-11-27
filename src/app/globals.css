@@ -128,6 +128,15 @@ body {
     animation: player-bounce 50ms cubic-bezier(.22, .9, .34, 1) 1;
   }
 
+  /* Disable transition during active flight so animation is smooth */
+  .player-overlay.player-flying {
+    animation-name: flight-arc;
+    animation-duration: var(--fly-duration, 500ms);
+    animation-timing-function: cubic-bezier(.22, .9, .33, 1);
+    animation-fill-mode: both;
+    transition: none;
+  }
+
   @keyframes player-bounce {
     0% {
       transform: translateY(0);
@@ -142,26 +151,23 @@ body {
     }
   }
 
-  /* Flight arc for moving between tiles */
+  /* Flight arc for moving between tiles - combined horizontal + vertical movement */
   @keyframes flight-arc {
     0% {
-      transform: translateY(0);
+      transform: translate(0, 0);
     }
 
     45% {
-      transform: translateY(-20px);
+      transform: translate(var(--fly-dx, 0), calc(-20px + var(--fly-dy, 0) * 0.45));
     }
 
     100% {
-      transform: translateY(0);
+      transform: translate(var(--fly-dx, 0), var(--fly-dy, 0));
     }
   }
 
   .player-flying .player-arc {
-    animation-name: flight-arc;
-    animation-duration: var(--fly-duration, 500ms);
-    animation-timing-function: cubic-bezier(.22, .9, .33, 1);
-    animation-fill-mode: both;
+    /* Arc animation is now on parent; remove from child */
   }
 
   /* Initial lift phase (vertical only) */

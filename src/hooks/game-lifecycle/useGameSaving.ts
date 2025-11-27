@@ -56,21 +56,26 @@ export function useGameSaving(deps: GameSavingDeps) {
     if (!isLoaded || isSaving || isGameOver || !finalWorldSetup) return;
 
     const gameState: GameState = {
-        worldProfile, currentSeason, world, recipes, buildableStructures,
-        regions, regionCounter, playerPosition, playerBehaviorProfile,
-        playerStats, narrativeLog: narrativeLogRef.current!, worldSetup: finalWorldSetup,
-        customItemDefinitions, customItemCatalog, customStructures, weatherZones, gameTime, day,
-        turn,
+      worldProfile, currentSeason, world, recipes, buildableStructures,
+      regions, regionCounter, playerPosition, playerBehaviorProfile,
+      playerStats, narrativeLog: narrativeLogRef.current!, worldSetup: finalWorldSetup,
+      customItemDefinitions, customItemCatalog, customStructures, weatherZones, gameTime, day,
+      turn,
     };
 
     const save = async () => {
-        setIsSaving(true);
-        try {
-            // Normalize player item ids against the full registry (core + custom) before saving
-            try {
-              const mergedDefs = { ...staticItemDefinitions, ...(customItemDefinitions || {}) };
-              if (gameState.playerStats && Array.isArray(gameState.playerStats.items)) {
-                const normalizedItems = gameState.playerStats.items.map((it: any) => {
+      setIsSaving(true);
+      try {
+        // Normalize player item ids against the full registry (core + custom) before saving
+        // Use requestIdleCallback to defer normalization (non-blocking)
+        let normalizedItems = gameState.playerStats?.items || [];
+        if (typeof requestIdleCallback !== 'undefined' && gameState.playerStats?.items) {
+          // Defer normalization to idle time to avoid blocking game loop
+          await new Promise<void>((resolve) => {
+            requestIdleCallback(() => {
+              try {
+                const mergedDefs = { ...staticItemDefinitions, ...(customItemDefinitions || {}) };
+                normalizedItems = gameState.playerStats.items.map((it: any) => {
                   const before = (it && it.id) ? String(it.id) : undefined;
                   const normalized = ensurePlayerItemId(it, mergedDefs, t, language);
                   const after = (normalized && (normalized as any).id) ? (normalized as any).id : undefined;
@@ -79,7 +84,6 @@ export function useGameSaving(deps: GameSavingDeps) {
                   }
                   return normalized;
                 });
-                // Update the state object and (optionally) in-memory playerStats if caller provided setter
                 gameState.playerStats = { ...gameState.playerStats, items: normalizedItems } as any;
                 if (typeof deps.setPlayerStats === 'function') {
                   try {
@@ -88,21 +92,50 @@ export function useGameSaving(deps: GameSavingDeps) {
                     logger.debug('[GameSaving] Failed to update in-memory playerStats after normalization', e);
                   }
                 }
+              } catch (e: any) {
+                logger.warn('[GameSaving] Failed to normalize player items before save', e);
               }
-            } catch (e: any) {
-              logger.warn('[GameSaving] Failed to normalize player items before save', e);
+              resolve();
+            });
+          });
+        } else {
+          // Fallback: sync normalization if requestIdleCallback not available
+          try {
+            const mergedDefs = { ...staticItemDefinitions, ...(customItemDefinitions || {}) };
+            if (gameState.playerStats && Array.isArray(gameState.playerStats.items)) {
+              normalizedItems = gameState.playerStats.items.map((it: any) => {
+                const before = (it && it.id) ? String(it.id) : undefined;
+                const normalized = ensurePlayerItemId(it, mergedDefs, t, language);
+                const after = (normalized && (normalized as any).id) ? (normalized as any).id : undefined;
+                if (process.env.NODE_ENV !== 'production' && before !== after) {
+                  logger.debug('[GameSaving] Normalized player item id', { before, after, item: normalized });
+                }
+                return normalized;
+              });
+              gameState.playerStats = { ...gameState.playerStats, items: normalizedItems } as any;
+              if (typeof deps.setPlayerStats === 'function') {
+                try {
+                  deps.setPlayerStats((prev: any) => ({ ...prev, items: normalizedItems }));
+                } catch (e: any) {
+                  logger.debug('[GameSaving] Failed to update in-memory playerStats after normalization', e);
+                }
+              }
             }
-
-            await gameStateRepository.save(`slot_${gameSlot}`, gameState);
-        } catch {
-            toast({ title: "Save Error", description: "Could not save your progress.", variant: "destructive"});
-        } finally {
-            setIsSaving(false);
+          } catch (e: any) {
+            logger.warn('[GameSaving] Failed to normalize player items before save', e);
+          }
         }
+
+        await gameStateRepository.save(`slot_${gameSlot}`, gameState);
+      } catch {
+        toast({ title: "Save Error", description: "Could not save your progress.", variant: "destructive" });
+      } finally {
+        setIsSaving(false);
+      }
     };
-    
+
     // Debounce saving to avoid rapid writes
-    const timerId = setTimeout(save, 1500); 
+    const timerId = setTimeout(save, 1500);
     return () => clearTimeout(timerId);
 
   }, [

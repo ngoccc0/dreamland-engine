@@ -7,17 +7,17 @@ export function createHandleMove(ctx: any) {
   return (direction: "north" | "south" | "east" | "west") => {
     try {
       // Debug: log entry and early-return reasons
-      try { console.debug('[move-orchestrator] handleMove entry', { isLoading: ctx.isLoading, isGameOver: ctx.isGameOver, isAnimatingMove: ctx.isAnimatingMove, playerPosition: ctx.playerPosition, direction }); } catch {}
-      if (ctx.isLoading || ctx.isGameOver) { try { console.debug('[move-orchestrator] abort (loading/over)'); } catch {} ; return; }
+      try { console.debug('[move-orchestrator] handleMove entry', { isLoading: ctx.isLoading, isGameOver: ctx.isGameOver, isAnimatingMove: ctx.isAnimatingMove, playerPosition: ctx.playerPosition, direction }); } catch { }
+      if (ctx.isLoading || ctx.isGameOver) { try { console.debug('[move-orchestrator] abort (loading/over)'); } catch { }; return; }
 
-      if (ctx.isAnimatingMove) { try { console.debug('[move-orchestrator] abort (already animating)'); } catch {} ; return; }
+      if (ctx.isAnimatingMove) { try { console.debug('[move-orchestrator] abort (already animating)'); } catch { }; return; }
 
       let { x, y } = ctx.playerPosition;
       const nowClick = Date.now();
       const lastMove = ctx.lastMoveAtRef?.current || 0;
-      try { console.debug('[move-orchestrator] timing', { nowClick, lastMove, delta: nowClick - lastMove }); } catch {}
+      try { console.debug('[move-orchestrator] timing', { nowClick, lastMove, delta: nowClick - lastMove }); } catch { }
       if (nowClick - lastMove < 120) {
-        try { console.debug('[move-orchestrator] ignored due to throttle', { delta: nowClick - lastMove }); } catch {}
+        try { console.debug('[move-orchestrator] ignored due to throttle', { delta: nowClick - lastMove }); } catch { }
         return;
       }
       ctx.lastMoveAtRef.current = nowClick;
@@ -28,19 +28,19 @@ export function createHandleMove(ctx: any) {
 
       const nextChunkKey = `${x},${y}`;
       const nextChunk = ctx.world[nextChunkKey];
-      try { console.debug('[move-orchestrator] target', { x, y, nextChunkKey, nextChunkTerrain: nextChunk?.terrain, targetChunkExists: !!nextChunk }); } catch {}
-      try { console.info('[move-orchestrator] post-target - continuing execution'); } catch {}
-      try { console.info('[move-orchestrator] entering move-trace-setup'); } catch {}
+      try { console.debug('[move-orchestrator] target', { x, y, nextChunkKey, nextChunkTerrain: nextChunk?.terrain, targetChunkExists: !!nextChunk }); } catch { }
+      try { console.info('[move-orchestrator] post-target - continuing execution'); } catch { }
+      try { console.info('[move-orchestrator] entering move-trace-setup'); } catch { }
       const targetChunkSnapshot = nextChunk ? { ...nextChunk } : undefined;
       const prevChunkSnapshot = ctx.world[`${ctx.playerPosition.x},${ctx.playerPosition.y}`] ? { ...ctx.world[`${ctx.playerPosition.x},${ctx.playerPosition.y}`] } : undefined;
 
       if (nextChunk?.terrain === 'wall') {
-        try { console.debug('[move-orchestrator] blocked by wall'); } catch {}
+        try { console.debug('[move-orchestrator] blocked by wall'); } catch { }
         ctx.addNarrativeEntry(ctx.t('wallBlock'), 'system');
         return;
       }
       if (nextChunk?.terrain === 'ocean' && !(ctx.playerStats.items || []).some((item: any) => ctx.getTranslatedText(item.name, 'en') === 'inflatable_raft')) {
-        try { console.debug('[move-orchestrator] blocked by ocean (no raft)'); } catch {}
+        try { console.debug('[move-orchestrator] blocked by ocean (no raft)'); } catch { }
         ctx.addNarrativeEntry(ctx.t('oceanTravelBlocked'), 'system');
         return;
       }
@@ -48,12 +48,12 @@ export function createHandleMove(ctx: any) {
       const runSoon = (fn: () => void) => {
         try {
           if (typeof (window as any).requestIdleCallback === 'function') {
-            (window as any).requestIdleCallback(() => { try { fn(); } catch {} }, { timeout: 50 });
+            (window as any).requestIdleCallback(() => { try { fn(); } catch { } }, { timeout: 50 });
           } else {
-            setTimeout(() => { try { fn(); } catch {} }, 0);
+            setTimeout(() => { try { fn(); } catch { } }, 0);
           }
         } catch {
-          try { setTimeout(() => { try { fn(); } catch {} }, 0); } catch {}
+          try { setTimeout(() => { try { fn(); } catch { } }, 0); } catch { }
         }
       };
 
@@ -66,62 +66,62 @@ export function createHandleMove(ctx: any) {
       const movingKey = ctx.settings.narrativeLength === 'long' ? 'movingLong' : 'movingShort';
       const placeholderText = ctx.t(movingKey as any, { direction: directionText, brief_sensory: '' });
       setTimeout(() => {
-        try { ctx.addNarrativeEntry(actionText, 'action'); } catch {}
-        try { ctx.addNarrativeEntry(placeholderText, 'narrative', placeholderId); } catch {}
+        try { ctx.addNarrativeEntry(actionText, 'action'); } catch { }
+        try { ctx.addNarrativeEntry(placeholderText, 'narrative', placeholderId); } catch { }
       }, 0);
 
       let moveTrace: any = null;
       let landingListener: EventListener | null = null;
-        try {
-          const from = { x: ctx.playerPosition.x, y: ctx.playerPosition.y };
-          try { console.debug('[move-orchestrator] preparing move trace', { from, to: { x, y } }); } catch {}
-          const to = { x, y };
-          const moveId = `${Date.now()}-${Math.random().toString(36).slice(2,6)}`;
-          moveTrace = { id: moveId, startAt: Date.now(), from, to, events: [] };
-          try { ctx.logger?.debug && ctx.logger.debug('[move] sequence start', { id: moveTrace.id, from, to, startAt: moveTrace.startAt }); } catch {}
+      try {
+        const from = { x: ctx.playerPosition.x, y: ctx.playerPosition.y };
+        try { console.debug('[move-orchestrator] preparing move trace', { from, to: { x, y } }); } catch { }
+        const to = { x, y };
+        const moveId = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+        moveTrace = { id: moveId, startAt: Date.now(), from, to, events: [] };
+        try { ctx.logger?.debug && ctx.logger.debug('[move] sequence start', { id: moveTrace.id, from, to, startAt: moveTrace.startAt }); } catch { }
 
-          if (ctx.setVisualPlayerPosition && ctx.setIsAnimatingMove) {
-            try { console.debug('[move-orchestrator] starting visual animation', { from, to: { x, y } }); } catch {}
+        if (ctx.setVisualPlayerPosition && ctx.setIsAnimatingMove) {
+          try { console.debug('[move-orchestrator] starting visual animation', { from, to: { x, y } }); } catch { }
 
-            // Batch visual setters into a microtask so React can batch updates
-            try { moveTrace.events.push({ name: 'visual_init', at: Date.now(), from, to }); } catch {}
-            try { moveTrace.events.push({ name: 'animating_start', at: Date.now(), to }); } catch {}
-            try {
-              Promise.resolve().then(() => {
-                try { ctx.setVisualPlayerPosition(from); } catch {}
-                try { ctx.setVisualMoveFrom?.(from); } catch {}
-                try { ctx.setVisualMoveTo?.(to); } catch {}
-                try { ctx.setIsAnimatingMove(true); } catch {}
-              });
-            } catch {}
+          // Batch visual setters into a microtask so React can batch updates
+          try { moveTrace.events.push({ name: 'visual_init', at: Date.now(), from, to }); } catch { }
+          try { moveTrace.events.push({ name: 'animating_start', at: Date.now(), to }); } catch { }
+          try {
+            Promise.resolve().then(() => {
+              try { ctx.setVisualPlayerPosition(from); } catch { }
+              try { ctx.setVisualMoveFrom?.(from); } catch { }
+              try { ctx.setVisualMoveTo?.(to); } catch { }
+              try { ctx.setIsAnimatingMove(true); } catch { }
+            });
+          } catch { }
 
           // Pick up to 3 stepping sounds (allowing duplicates) and schedule playback
           const steppingCandidates = [
-            'steping_sounds/rustle01.flac','steping_sounds/rustle02.flac','steping_sounds/rustle03.flac',
-            'steping_sounds/rustle04.flac','steping_sounds/rustle05.flac','steping_sounds/rustle06.flac',
-            'steping_sounds/rustle07.flac','steping_sounds/rustle08.flac','steping_sounds/rustle09.flac',
-            'steping_sounds/rustle10.flac','steping_sounds/rustle11.flac','steping_sounds/rustle12.flac',
-            'steping_sounds/rustle13.flac','steping_sounds/rustle14.flac','steping_sounds/rustle15.flac',
-            'steping_sounds/rustle16.flac','steping_sounds/rustle17.flac','steping_sounds/rustle18.flac',
-            'steping_sounds/rustle19.flac','steping_sounds/rustle20.flac'
+            'steping_sounds/rustle01.flac', 'steping_sounds/rustle02.flac', 'steping_sounds/rustle03.flac',
+            'steping_sounds/rustle04.flac', 'steping_sounds/rustle05.flac', 'steping_sounds/rustle06.flac',
+            'steping_sounds/rustle07.flac', 'steping_sounds/rustle08.flac', 'steping_sounds/rustle09.flac',
+            'steping_sounds/rustle10.flac', 'steping_sounds/rustle11.flac', 'steping_sounds/rustle12.flac',
+            'steping_sounds/rustle13.flac', 'steping_sounds/rustle14.flac', 'steping_sounds/rustle15.flac',
+            'steping_sounds/rustle16.flac', 'steping_sounds/rustle17.flac', 'steping_sounds/rustle18.flac',
+            'steping_sounds/rustle19.flac', 'steping_sounds/rustle20.flac'
           ];
           const picks: string[] = Array.from({ length: 3 }).map(() => steppingCandidates[Math.floor(Math.random() * steppingCandidates.length)]);
           const stagger = 140;
           // Defer audio playback to idle time to avoid blocking main thread
           runSoon(() => {
-            picks.forEach((sfx, i) => setTimeout(() => { try { ctx.audio.playSfx(sfx); } catch {} }, i * stagger));
+            picks.forEach((sfx, i) => setTimeout(() => { try { ctx.audio.playSfx(sfx); } catch { } }, i * stagger));
           });
 
           const landingDelay = 350;
           const bounceDuration = 50;
 
-            try {
+          try {
             const visualTotalMs = 350 + 50 + 20;
-            try { console.debug('[move-orchestrator] dispatching moveStart', { id: moveId, from, to, visualTotalMs }); } catch {}
+            try { console.debug('[move-orchestrator] dispatching moveStart', { id: moveId, from, to, visualTotalMs }); } catch { }
             const ev = new CustomEvent('moveStart', { detail: { id: moveId, from, to, visualTotalMs } });
             // Dispatch on next microtask to avoid dispatch-before-listener race
-            try { Promise.resolve().then(() => { try { console.info('[move-orchestrator] moveStart dispatch (microtask)', { id: moveId, from, to, visualTotalMs }); window.dispatchEvent(ev as any); } catch {} }); } catch { try { window.dispatchEvent(ev as any); } catch {} }
-          } catch (e) { try { console.error('[move-orchestrator] moveStart dispatch error', e); } catch {} }
+            try { Promise.resolve().then(() => { try { console.info('[move-orchestrator] moveStart dispatch (microtask)', { id: moveId, from, to, visualTotalMs }); window.dispatchEvent(ev as any); } catch { } }); } catch { try { window.dispatchEvent(ev as any); } catch { } }
+          } catch (e) { try { console.error('[move-orchestrator] moveStart dispatch error', e); } catch { } }
 
           landingListener = (ev: Event) => {
             try {
@@ -135,27 +135,27 @@ export function createHandleMove(ctx: any) {
               } else {
                 if (!c || c.x !== x || c.y !== y) return;
               }
-              try { moveTrace?.events.push({ name: 'visual_landing', at: Date.now(), to: c }); } catch {}
-              try { ctx.setVisualPlayerPosition({ x, y }); } catch {}
-              try { ctx.setVisualJustLanded?.(true); } catch {}
-            } catch {}
+              try { moveTrace?.events.push({ name: 'visual_landing', at: Date.now(), to: c }); } catch { }
+              try { ctx.setVisualPlayerPosition({ x, y }); } catch { }
+              try { ctx.setVisualJustLanded?.(true); } catch { }
+            } catch { }
           };
 
           window.addEventListener('playerOverlayLanding', landingListener as EventListener);
-          try { console.debug('[move-orchestrator] landing listener attached'); } catch {}
+          try { console.debug('[move-orchestrator] landing listener attached'); } catch { }
 
           ctx.__lastMoveAnimationMs = 350 + 50 + 20;
         } else {
-          try { console.debug('[move-orchestrator] visual setters missing; running without visual animation - still dispatching moveStart'); } catch {}
+          try { console.debug('[move-orchestrator] visual setters missing; running without visual animation - still dispatching moveStart'); } catch { }
           // Ensure a reasonable fallback animation duration so schedulePostMove delays appropriately
           ctx.__lastMoveAnimationMs = ctx.__lastMoveAnimationMs ?? 420;
           try {
             const ev = new CustomEvent('moveStart', { detail: { id: moveId, from, to, visualTotalMs: ctx.__lastMoveAnimationMs } });
-            try { Promise.resolve().then(() => { try { console.info('[move-orchestrator] moveStart dispatch (fallback microtask)', { id: moveId, from, to, visualTotalMs: ctx.__lastMoveAnimationMs }); window.dispatchEvent(ev as any); } catch {} }); } catch { try { window.dispatchEvent(ev as any); } catch {} }
-          } catch (e) { try { console.error('[move-orchestrator] moveStart dispatch error (fallback)', e); } catch {} }
+            try { Promise.resolve().then(() => { try { console.info('[move-orchestrator] moveStart dispatch (fallback microtask)', { id: moveId, from, to, visualTotalMs: ctx.__lastMoveAnimationMs }); window.dispatchEvent(ev as any); } catch { } }); } catch { try { window.dispatchEvent(ev as any); } catch { } }
+          } catch (e) { try { console.error('[move-orchestrator] moveStart dispatch error (fallback)', e); } catch { } }
         }
       } catch (e: any) {
-        try { console.error('[move-orchestrator] move-trace-setup ERROR', e, e?.stack); } catch {}
+        try { console.error('[move-orchestrator] move-trace-setup ERROR', e, e?.stack); } catch { }
       }
 
       const staminaCost = nextChunk?.travelCost ?? 1;
@@ -169,8 +169,8 @@ export function createHandleMove(ctx: any) {
       newPlayerStats.dailyActionLog = [...(ctx.playerStats.dailyActionLog || []), actionText];
 
       runSoon(() => {
-        try { ctx.setPlayerStats(() => newPlayerStats); } catch {}
-        try { ctx.advanceGameTime(newPlayerStats, { x, y }); } catch {}
+        try { ctx.setPlayerStats(() => newPlayerStats); } catch { }
+        try { ctx.advanceGameTime(newPlayerStats, { x, y }); } catch { }
       });
 
       const schedulePostMove = (fn: () => void, delayMs = 0) => {
@@ -178,13 +178,13 @@ export function createHandleMove(ctx: any) {
           if (!delayMs) delayMs = ctx.__lastMoveAnimationMs ?? 700;
           setTimeout(() => {
             if (typeof (window as any).requestIdleCallback === 'function') {
-              (window as any).requestIdleCallback(() => { try { fn(); } catch {} }, { timeout: 600 });
+              (window as any).requestIdleCallback(() => { try { fn(); } catch { } }, { timeout: 600 });
             } else {
-              setTimeout(() => { try { fn(); } catch {} }, 30);
+              setTimeout(() => { try { fn(); } catch { } }, 30);
             }
           }, delayMs);
         } catch {
-          setTimeout(() => { try { fn(); } catch {} }, delayMs || 30);
+          setTimeout(() => { try { fn(); } catch { } }, delayMs || 30);
         }
       };
 
@@ -195,33 +195,33 @@ export function createHandleMove(ctx: any) {
         const applyAuthoritative = (origin: string = 'pan') => {
           if (applied) return;
           applied = true;
-          try { moveTrace?.events.push({ name: 'authoritative_apply', at: Date.now(), origin, pos: { x, y } }); } catch {}
-          try { console.time('[move-orchestrator] authoritative_apply'); } catch {}
-          try { console.info('[move-orchestrator] authoritative_apply', { origin, x, y, now: Date.now() }); } catch {}
+          try { moveTrace?.events.push({ name: 'authoritative_apply', at: Date.now(), origin, pos: { x, y } }); } catch { }
+          try { console.time('[move-orchestrator] authoritative_apply'); } catch { }
+          try { console.info('[move-orchestrator] authoritative_apply', { origin, x, y, now: Date.now() }); } catch { }
           try {
             if (ctx.setPlayerPosition) ctx.setPlayerPosition({ x, y });
-          } catch {}
+          } catch { }
           try {
             // Ensure visual state is cleared so UI stops animating even if
             // overlay/animation events are missed. This mirrors what
             // animListener does when the animation finishes.
-            try { ctx.setVisualPlayerPosition?.({ x, y }); } catch {}
-            try { ctx.setVisualJustLanded?.(false); } catch {}
-            try { ctx.setIsAnimatingMove?.(false); } catch {}
-            try { ctx.setVisualMoveFrom?.(null); } catch {}
-            try { ctx.setVisualMoveTo?.(null); } catch {}
-          } catch {}
-          try { console.timeEnd('[move-orchestrator] authoritative_apply'); } catch {}
+            try { ctx.setVisualPlayerPosition?.({ x, y }); } catch { }
+            try { ctx.setVisualJustLanded?.(false); } catch { }
+            try { ctx.setIsAnimatingMove?.(false); } catch { }
+            try { ctx.setVisualMoveFrom?.(null); } catch { }
+            try { ctx.setVisualMoveTo?.(null); } catch { }
+          } catch { }
+          try { console.timeEnd('[move-orchestrator] authoritative_apply'); } catch { }
         };
 
         let seenPan = false;
         let seenAnim = false;
 
         const finalizeAndLog = () => {
-          try { window.removeEventListener('minimapPanComplete', panListener as EventListener); } catch {}
-          try { window.removeEventListener('moveAnimationsFinished', animListener as EventListener); } catch {}
-          try { if (landingListener) window.removeEventListener('playerOverlayLanding', landingListener as EventListener); } catch {}
-          try { ctx.logger.debug('[move] sequence end', { id: moveTrace?.id, startAt: moveTrace?.startAt, endAt: Date.now(), events: moveTrace?.events }); } catch {}
+          try { window.removeEventListener('minimapPanComplete', panListener as EventListener); } catch { }
+          try { window.removeEventListener('moveAnimationsFinished', animListener as EventListener); } catch { }
+          try { if (landingListener) window.removeEventListener('playerOverlayLanding', landingListener as EventListener); } catch { }
+          try { ctx.logger.debug('[move] sequence end', { id: moveTrace?.id, startAt: moveTrace?.startAt, endAt: Date.now(), events: moveTrace?.events }); } catch { }
         };
 
         const panListener = (ev: Event) => {
@@ -229,10 +229,10 @@ export function createHandleMove(ctx: any) {
             const detail = (ev as CustomEvent)?.detail as any;
             if (!detail || !detail.center) return;
             const c = detail.center as { x: number; y: number };
-            try { console.info('[move-orchestrator] panListener received', { center: c, expected: { x, y } }); } catch {}
+            try { console.info('[move-orchestrator] panListener received', { center: c, expected: { x, y } }); } catch { }
             if (c.x === x && c.y === y) {
-              try { moveTrace?.events.push({ name: 'minimap_pan_complete', at: Date.now(), center: c }); } catch {}
-              try { console.info('[move-orchestrator] panListener matched target', { center: c, applied, id: moveTrace?.id }); } catch {}
+              try { moveTrace?.events.push({ name: 'minimap_pan_complete', at: Date.now(), center: c }); } catch { }
+              try { console.info('[move-orchestrator] panListener matched target', { center: c, applied, id: moveTrace?.id }); } catch { }
               if (applied) {
                 finalizeAndLog();
               } else {
@@ -242,15 +242,15 @@ export function createHandleMove(ctx: any) {
                 // also clear visual animation state so subsequent moves are
                 // not blocked by `isAnimatingMove` remaining true.
                 seenPan = true;
-                try { applyAuthoritative('pan'); } catch {}
-                try { finalizeAndLog(); } catch {}
+                try { applyAuthoritative('pan'); } catch { }
+                try { finalizeAndLog(); } catch { }
               }
             }
-          } catch {}
+          } catch { }
         };
 
         const removeLandingListener = () => {
-          try { window.removeEventListener('playerOverlayLanding', landingListener as EventListener); } catch {}
+          try { window.removeEventListener('playerOverlayLanding', landingListener as EventListener); } catch { }
         };
 
         const animListener = (ev: Event) => {
@@ -259,23 +259,23 @@ export function createHandleMove(ctx: any) {
             if (!detail) return;
             const c = detail.center as { x: number; y: number } | undefined;
             const id = detail.id as string | undefined;
-            try { console.info('[move-orchestrator] animListener received', { center: c, id, expected: { x, y }, moveId: moveTrace?.id }); } catch {}
+            try { console.info('[move-orchestrator] animListener received', { center: c, id, expected: { x, y }, moveId: moveTrace?.id }); } catch { }
             if ((c && c.x === x && c.y === y) || id === moveTrace?.id) {
               seenAnim = true;
-              try { moveTrace?.events.push({ name: 'move_animations_finished', at: Date.now(), center: c, id }); } catch {}
-              try { ctx.setVisualJustLanded?.(false); } catch {}
-              try { ctx.setIsAnimatingMove(false); } catch {}
-              try { ctx.setVisualMoveFrom?.(null); } catch {}
-              try { ctx.setVisualMoveTo?.(null); } catch {}
-              try { applyAuthoritative('moveAnimationsFinished'); } catch {}
+              try { moveTrace?.events.push({ name: 'move_animations_finished', at: Date.now(), center: c, id }); } catch { }
+              try { ctx.setVisualJustLanded?.(false); } catch { }
+              try { ctx.setIsAnimatingMove(false); } catch { }
+              try { ctx.setVisualMoveFrom?.(null); } catch { }
+              try { ctx.setVisualMoveTo?.(null); } catch { }
+              try { applyAuthoritative('moveAnimationsFinished'); } catch { }
               if (seenPan) finalizeAndLog();
             }
-          } catch {}
+          } catch { }
         };
 
         window.addEventListener('minimapPanComplete', panListener as EventListener);
         window.addEventListener('moveAnimationsFinished', animListener as EventListener);
-        try { moveTrace?.events.push({ name: 'pan_or_anim_timeout_disabled', at: Date.now(), timeoutMs: postMoveDefaultDelay + 600, seenPan, seenAnim }); } catch {}
+        try { moveTrace?.events.push({ name: 'pan_or_anim_timeout_disabled', at: Date.now(), timeoutMs: postMoveDefaultDelay + 600, seenPan, seenAnim }); } catch { }
         // Safety fallback inside listener scope: if neither pan nor animation events
         // result in authoritative apply, enforce a safety timeout to avoid the
         // move getting stuck waiting for external events.
@@ -284,18 +284,18 @@ export function createHandleMove(ctx: any) {
           setTimeout(() => {
             try {
               if (!applied) {
-                try { applyAuthoritative('safety_timeout'); } catch {}
+                try { applyAuthoritative('safety_timeout'); } catch { }
               }
-              try { finalizeAndLog(); } catch {}
-            } catch {}
+              try { finalizeAndLog(); } catch { }
+            } catch { }
           }, safetyMsLocal);
-        } catch {}
+        } catch { }
       } catch {
-        try { if (ctx.setPlayerPosition) ctx.setPlayerPosition({ x, y }); } catch {}
+        try { if (ctx.setPlayerPosition) ctx.setPlayerPosition({ x, y }); } catch { }
       }
 
       schedulePostMove(() => {
-        try { moveTrace?.events.push({ name: 'schedule_post_move', at: Date.now(), target: { x, y } }); } catch {}
+        try { moveTrace?.events.push({ name: 'schedule_post_move', at: Date.now(), target: { x, y } }); } catch { }
         const finalChunk = targetChunkSnapshot || ctx.world[`${x},${y}`];
         if (!finalChunk) return;
         let briefSensory = '';
@@ -340,7 +340,7 @@ export function createHandleMove(ctx: any) {
                   if (c.lightLevel <= 40) return ctx.t('light_level_dim') || 'dim';
                   return ctx.t('light_level_normal') || 'bright';
                 }
-              } catch {}
+              } catch { }
               return '';
             };
             const adj = pickAdj();
@@ -390,7 +390,7 @@ export function createHandleMove(ctx: any) {
                 try {
                   const summary = (currentItems as any[]).map((i: any) => `${i.quantity} ${ctx.getTranslatedText(i.name, ctx.language)}`).slice(0, 4).join(', ');
                   ctx.toast({ title: ctx.t('itemPickedUpTitle'), description: summary });
-                } catch { try { ctx.toast({ title: ctx.t('itemPickedUpTitle') }); } catch {} }
+                } catch { try { ctx.toast({ title: ctx.t('itemPickedUpTitle') }); } catch { } }
 
                 ctx.setWorld((prev: any) => {
                   const nw = { ...prev };
@@ -426,7 +426,7 @@ export function createHandleMove(ctx: any) {
               return;
             }
           }
-        } catch {}
+        } catch { }
 
         (async () => {
           try {
@@ -437,8 +437,8 @@ export function createHandleMove(ctx: any) {
                 ctx.addNarrativeEntry(String(conditional).replace(/\{[^}]+\}/g, '').trim(), 'narrative', placeholderId);
                 return;
               }
-            } catch {}
-          } catch {}
+            } catch { }
+          } catch { }
           try {
             const loaderMod = await import('@/lib/narrative/loader');
             const orchestrator = await import('@/lib/narrative/runtime-orchestrator');
@@ -483,9 +483,9 @@ export function createHandleMove(ctx: any) {
           ctx.addNarrativeEntry(narrative, 'narrative', placeholderId);
         })();
       });
-      
+
     } catch (err) {
-      try { console.error('[move-orchestrator] unhandled error', err, (err as any)?.stack); } catch {}
+      try { console.error('[move-orchestrator] unhandled error', err, (err as any)?.stack); } catch { }
     }
   };
 }

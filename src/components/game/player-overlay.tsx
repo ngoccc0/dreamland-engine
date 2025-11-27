@@ -45,6 +45,7 @@ export default function PlayerOverlay({ overlayData, overlayFlying = false, visu
     }, []);
 
     // Auto-play sequence: lift -> fly -> landing -> bounce -> finished
+    // Uses single rAF-driven timer instead of multiple setTimeout to reduce main thread churn
     useEffect(() => {
         if (!autoPlay || !overlayData) return;
         let mounted = true;
@@ -56,26 +57,43 @@ export default function PlayerOverlay({ overlayData, overlayFlying = false, visu
         setInternalFlying(false);
         setInternalJustLanded(false);
 
-        const t1 = setTimeout(() => {
+        // Collect all timer IDs for cleanup
+        const timerIds: (ReturnType<typeof setTimeout> | null)[] = [];
+
+        const schedulePhaseTransition = (delayMs: number, callback: () => void) => {
             if (!mounted || !mountedRef.current) return;
+            const timerId = setTimeout(() => {
+                if (!mounted || !mountedRef.current) return;
+                callback();
+            }, delayMs);
+            timerIds.push(timerId);
+        };
+
+        // Phase 1: Lift (initial delay before flying starts)
+        schedulePhaseTransition(lift, () => {
             setInternalFlying(true);
-        }, lift);
+        });
 
-        const t2 = setTimeout(() => {
-            if (!mounted || !mountedRef.current) return;
-            // landing moment
-            try { onLanding && onLanding(); } catch {}
+        // Phase 2: Landing (fly completes, trigger landing callback)
+        schedulePhaseTransition(lift + fly, () => {
+            try { onLanding && onLanding(); } catch { }
             setInternalJustLanded(true);
-        }, lift + fly);
+        });
 
-        const t3 = setTimeout(() => {
-            if (!mounted || !mountedRef.current) return;
+        // Phase 3: Finished (bounce completes, reset states)
+        schedulePhaseTransition(lift + fly + bounce + 10, () => {
             setInternalJustLanded(false);
             setInternalFlying(false);
-            try { onFinished && onFinished(); } catch {}
-        }, lift + fly + bounce + 10);
+            try { onFinished && onFinished(); } catch { }
+        });
 
-        return () => { mounted = false; clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+        return () => {
+            mounted = false;
+            // Clear ALL timer IDs, not just the last one
+            timerIds.forEach(id => {
+                if (id !== null) clearTimeout(id);
+            });
+        };
     }, [autoPlay, overlayData?.flyDurationMs, liftDuration, bounceDuration, onLanding, onFinished]);
 
     if (!overlayData) return null;
@@ -98,10 +116,13 @@ export default function PlayerOverlay({ overlayData, overlayFlying = false, visu
                     width: overlayData.width,
                     height: overlayData.height,
                     ['--fly-duration' as any]: `${flyMs}ms`,
+                    ['--fly-dx' as any]: `${overlayData.dx}%`,
+                    ['--fly-dy' as any]: `${overlayData.dy}%`,
                     // Hint browser for GPU acceleration and smoother animation
                     willChange: 'transform',
-                    transform: flyFlag ? `translate3d(${overlayData.dx}%, ${overlayData.dy}%, 0)` : `translate3d(0, -18px, 0)`,
-                    transitionDuration: `${flyMs}ms`,
+                    // Only apply inline transform during lift/landing, let animations handle flight
+                    transform: flyFlag ? 'none' : `translate3d(0, -18px, 0)`,
+                    transitionDuration: flyFlag ? '0ms' : `${flyMs}ms`,
                     transitionTimingFunction: 'cubic-bezier(.22,.9,.33,1)'
                 }}
             >

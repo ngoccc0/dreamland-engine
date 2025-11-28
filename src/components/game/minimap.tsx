@@ -115,7 +115,7 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
 
                 // Instead of pan animation, just wait for the animation duration and dispatch completion
                 const animDuration = typeof detail.visualTotalMs === 'number' ? Number(detail.visualTotalMs) : 600;
-                
+
                 // Cancel previous timeout if any
                 const pan = panAnimRef.current;
                 if (pan.rafId) {
@@ -337,9 +337,9 @@ export const MinimapMemoized = memo(Minimap, (prevProps, nextProps) => {
     // CRITICAL: During animation, IGNORE turn changes to prevent rerender
     // Grid is frozen to visualMoveTo, so turn doesn't matter until animation completes
     const turnSame = nextProps.isAnimatingMove ? true : (prevProps.turn === nextProps.turn);
-    
-    const allSame = gridSame && playerPosSame && visualPlayerPosSame && animatingSame && 
-                    visualMoveFromSame && visualMoveToSame && visualJustLandedSame && turnSame;
-    
+
+    const allSame = gridSame && playerPosSame && visualPlayerPosSame && animatingSame &&
+        visualMoveFromSame && visualMoveToSame && visualJustLandedSame && turnSame;
+
     return allSame;
 });

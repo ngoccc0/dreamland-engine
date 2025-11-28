@@ -154,14 +154,18 @@ body {
   /* Flight arc for moving between tiles - combined horizontal + vertical movement */
   @keyframes flight-arc {
     0% {
-      transform: translate(0, 0);
+      /* Start from lifted position (-18px) */
+      transform: translate(0, -18px);
     }
 
-    45% {
-      transform: translate(var(--fly-dx, 0), calc(-20px + var(--fly-dy, 0) * 0.45));
+    50% {
+      /* Peak of arc - highest point at middle of flight (convex arc) */
+      /* Move horizontally to destination, but peak upward to -20px */
+      transform: translate(var(--fly-dx, 0), -20px);
     }
 
     100% {
+      /* Land at destination tile */
       transform: translate(var(--fly-dx, 0), var(--fly-dy, 0));
     }
   }

@@ -153,6 +153,7 @@ body {
 
   /* Flight arc for moving between tiles - UNIFIED lift + horizontal arc in single smooth motion */
   /* Lift duration is ~150ms of the total animation, rest is horizontal flight */
+  /* Arc height adapts to movement direction: adds 20px arc regardless of vertical movement */
   @keyframes flight-arc {
     0% {
       /* Start at ground level (0) */
@@ -160,18 +161,20 @@ body {
     }
 
     15% {
-      /* ~0-63ms into animation: lift up to peak height (-20px) */
+      /* ~0-63ms into animation: lift up to peak height (-20px above start) */
       transform: translate(0, -20px);
     }
 
     50% {
-      /* ~210ms: at horizontal midpoint, still near peak height */
-      transform: translate(calc(var(--fly-dx, 0) * 0.5), -18px);
+      /* ~210ms: at midpoint of both horizontal and vertical travel */
+      /* Peak of arc: interpolate both dx and dy, add 20px upward boost */
+      transform: translate(calc(var(--fly-dx, 0) * 0.5), calc(var(--fly-dy, 0) * 0.5 - 20px));
     }
 
     85% {
       /* ~357ms: near destination, starting descent */
-      transform: translate(var(--fly-dx, 0), -10px);
+      /* 85% of the way there horizontally and vertically */
+      transform: translate(calc(var(--fly-dx, 0) * 0.85), calc(var(--fly-dy, 0) * 0.85 - 8px));
     }
 
     100% {

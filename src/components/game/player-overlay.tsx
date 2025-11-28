@@ -44,17 +44,17 @@ export default function PlayerOverlay({ overlayData, overlayFlying = false, visu
         return () => { mountedRef.current = false; };
     }, []);
 
-    // Auto-play sequence: lift -> fly -> landing -> bounce -> finished
+    // Auto-play sequence: unified flight animation with built-in lift
     // Uses single rAF-driven timer instead of multiple setTimeout to reduce main thread churn
     useEffect(() => {
         if (!autoPlay || !overlayData) return;
         let mounted = true;
         const total = Math.max(overlayData.flyDurationMs || 500, 0);
-        const lift = Math.max(liftDuration || 150, 0);
         const bounce = Math.max(bounceDuration || 50, 0);
-        const fly = Math.max(total - lift - bounce, 80);
+        const fly = Math.max(total - bounce, 80);
 
-        setInternalFlying(false);
+        // Start flying IMMEDIATELY (don't delay)
+        setInternalFlying(true);
         setInternalJustLanded(false);
 
         // Collect all timer IDs for cleanup
@@ -69,19 +69,14 @@ export default function PlayerOverlay({ overlayData, overlayFlying = false, visu
             timerIds.push(timerId);
         };
 
-        // Phase 1: Lift (initial delay before flying starts)
-        schedulePhaseTransition(lift, () => {
-            setInternalFlying(true);
-        });
-
-        // Phase 2: Landing (fly completes, trigger landing callback)
-        schedulePhaseTransition(lift + fly, () => {
+        // Phase 1: Landing (fly completes, trigger landing callback)
+        schedulePhaseTransition(fly, () => {
             try { onLanding && onLanding(); } catch { }
             setInternalJustLanded(true);
         });
 
-        // Phase 3: Finished (bounce completes, reset states)
-        schedulePhaseTransition(lift + fly + bounce + 10, () => {
+        // Phase 2: Finished (bounce completes, reset states)
+        schedulePhaseTransition(fly + bounce + 10, () => {
             setInternalJustLanded(false);
             setInternalFlying(false);
             try { onFinished && onFinished(); } catch { }
@@ -98,10 +93,10 @@ export default function PlayerOverlay({ overlayData, overlayFlying = false, visu
 
     if (!overlayData) return null;
 
+    // Unified animation: no separate lift phase, just flight arc with built-in lift
     const total = Math.max(overlayData.flyDurationMs || 500, 0);
-    const lift = Math.max(liftDuration || 150, 0);
     const bounce = Math.max(bounceDuration || 50, 0);
-    const flyMs = Math.max(total - lift - bounce, 80);
+    const flyMs = Math.max(total - bounce, 80);
 
     const flyFlag = autoPlay ? internalFlying : overlayFlying;
     const landedFlag = autoPlay ? internalJustLanded : visualJustLanded;
@@ -120,9 +115,9 @@ export default function PlayerOverlay({ overlayData, overlayFlying = false, visu
                     ['--fly-dy' as any]: `${overlayData.dy}%`,
                     // Hint browser for GPU acceleration and smoother animation
                     willChange: 'transform',
-                    // Only apply inline transform during lift/landing, let animations handle flight
-                    transform: flyFlag ? 'none' : `translate3d(0, -18px, 0)`,
-                    transitionDuration: flyFlag ? '0ms' : `${flyMs}ms`,
+                    // Animation handles all transform (lift + arc + landing)
+                    transform: 'none',
+                    transitionDuration: '0ms',
                     transitionTimingFunction: 'cubic-bezier(.22,.9,.33,1)'
                 }}
             >

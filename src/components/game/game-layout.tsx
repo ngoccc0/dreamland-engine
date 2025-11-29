@@ -35,7 +35,7 @@ import type { Structure, Action, NarrativeEntry } from "@/lib/game/types";
 import { cn, getTranslatedText } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
 
-import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Loader2, Menu, LogOut } from "./icons";
+import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Loader2, Menu, LogOut, Search } from "./icons";
 import { IconRenderer } from "@/components/ui/icon-renderer";
 import { resolveItemDef } from '@/lib/game/item-utils';
 import { logger } from "@/lib/logger";
@@ -58,6 +58,8 @@ export default function GameLayout(props: GameLayoutProps) {
     }
     const { t, language } = useLanguage();
     const { settings, setSettings } = useSettings();
+    const [minimapSizeToast, setMinimapSizeToast] = useState<number | null>(null);
+    const toastTimeoutRef = useRef<number | null>(null);
     const [isDesktop, setIsDesktop] = useState(false);
     const [showNarrativeDesktop, setShowNarrativeDesktop] = useState(true);
     // Dev-only: track mount/unmount counts to help diagnose unexpected remounts
@@ -181,7 +183,14 @@ export default function GameLayout(props: GameLayoutProps) {
         return () => window.removeEventListener('resize', onResize);
     }, []);
 
-
+    // Cleanup minimap size toast timeout on unmount to prevent memory leaks
+    useEffect(() => {
+        return () => {
+            if (toastTimeoutRef.current) {
+                clearTimeout(toastTimeoutRef.current as number);
+            }
+        };
+    }, []);
 
     const [isStatusOpen, setStatusOpen] = useState(false);
     const [isInventoryOpen, setInventoryOpen] = useState(false);
@@ -744,45 +753,45 @@ export default function GameLayout(props: GameLayoutProps) {
                                 <div className="flex flex-col items-center gap-2 w-full max-w-xs mx-auto">
                                     <div className="flex items-center justify-between w-full px-2">
                                         <h3 className="text-lg font-headline font-semibold text-center flex-1 text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); focusCustomActionInput(); }}>{t('minimap')}</h3>
-                                        {/* Minimap zoom controls */}
+                                        {/* Minimap zoom controls - single emoji button that cycles sizes and shows size toast for 1s */}
                                         <div className="flex items-center gap-1">
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <button
-                                                        onClick={() => {
-                                                            const current = settings.minimapViewportSize ?? 5;
-                                                            const sizes: (5 | 7 | 9)[] = [5, 7, 9];
-                                                            const idx = sizes.indexOf(current as 5 | 7 | 9);
-                                                            const next = sizes[(idx - 1 + sizes.length) % sizes.length];
-                                                            setSettings({ minimapViewportSize: next });
-                                                        }}
-                                                        className="p-1 hover:bg-accent/20 rounded text-xs transition-colors"
-                                                        title="Zoom out minimap"
-                                                    >
-                                                        −
-                                                    </button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>Zoom out</TooltipContent>
-                                            </Tooltip>
-                                            <span className="text-xs text-muted-foreground w-10 text-center">{settings.minimapViewportSize ?? 5}×{settings.minimapViewportSize ?? 5}</span>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <button
-                                                        onClick={() => {
-                                                            const current = settings.minimapViewportSize ?? 5;
-                                                            const sizes: (5 | 7 | 9)[] = [5, 7, 9];
-                                                            const idx = sizes.indexOf(current as 5 | 7 | 9);
-                                                            const next = sizes[(idx + 1) % sizes.length];
-                                                            setSettings({ minimapViewportSize: next });
-                                                        }}
-                                                        className="p-1 hover:bg-accent/20 rounded text-xs transition-colors"
-                                                        title="Zoom in minimap"
-                                                    >
-                                                        +
-                                                    </button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>Zoom in</TooltipContent>
-                                            </Tooltip>
+                                            <div className="relative">
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <button
+                                                            onClick={() => {
+                                                                const current = settings.minimapViewportSize ?? 5;
+                                                                const sizes: (5 | 7 | 9)[] = [5, 7, 9];
+                                                                const idx = sizes.indexOf(current as 5 | 7 | 9);
+                                                                const next = sizes[(idx + 1) % sizes.length];
+                                                                setSettings({ minimapViewportSize: next });
+                                                                // show toast with the new size for 1s
+                                                                setMinimapSizeToast(next);
+                                                                if (toastTimeoutRef.current) {
+                                                                    clearTimeout(toastTimeoutRef.current as number);
+                                                                }
+                                                                toastTimeoutRef.current = window.setTimeout(() => {
+                                                                    setMinimapSizeToast(null);
+                                                                    toastTimeoutRef.current = null;
+                                                                }, 1000);
+                                                            }}
+                                                            className="p-1 hover:bg-accent/20 rounded text-xs transition-colors"
+                                                            title="Change minimap size"
+                                                            aria-label="Cycle minimap size"
+                                                        >
+                                                            <Search className="h-4 w-4" />
+                                                        </button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>Change minimap size</TooltipContent>
+                                                </Tooltip>
+
+                                                {/* Temporary size toast shown for 1s when user changes size */}
+                                                {minimapSizeToast !== null && (
+                                                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow">
+                                                        {minimapSizeToast}×{minimapSizeToast}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">

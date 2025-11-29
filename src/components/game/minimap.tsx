@@ -234,7 +234,9 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
     return (
         <div className="flex flex-col items-center gap-2">
             <div className="relative w-80 h-80">
-                {/* Grid container (relative to contain overlay) */}
+                {/* Grid container - use CSS Grid for stable centering, not transform */}
+                {/* CRITICAL: This prevents visual jump when viewport size (5x5 -> 7x7 -> 9x9) changes */}
+                {/* Transform is reserved only for pan animations (GPU-accelerated, smooth) */}
                 <div
                     data-minimap-container
                     className={cn(
@@ -242,6 +244,7 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                         "map-pan-anim"
                     )}
                     style={{
+                        display: 'grid',
                         gridTemplateColumns: `repeat(${grid?.length || 7}, 1fr)`,
                         gridTemplateRows: `repeat(${grid?.length || 7}, 1fr)`,
                         gap: '0px',

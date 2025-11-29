@@ -334,8 +334,8 @@ export class PlantEngine {
                 const plantIndex = chunk.plants.indexOf(plantInstance);
                 if (plantIndex >= 0) {
                     chunk.plants.splice(plantIndex, 1);
-                    const plantName = typeof plantInstance.definition.name === 'string' 
-                        ? plantInstance.definition.name 
+                    const plantName = typeof plantInstance.definition.name === 'string'
+                        ? plantInstance.definition.name
                         : (plantInstance.definition.name as any).en || String(plantInstance.definition.id);
                     messages.push({
                         text: `${plantName} has completely withered away.`,

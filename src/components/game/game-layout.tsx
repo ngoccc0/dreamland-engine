@@ -106,6 +106,8 @@ export default function GameLayout(props: GameLayoutProps) {
         handleDropItem,
         handleReturnToMenu,
         narrativeContainerRef,
+        simulateCatchupTicks,
+        generateCatchupNarrative,
     } = useGameEngine(props);
 
     // Keep a short grace window after visual move animations finish where the
@@ -156,10 +158,10 @@ export default function GameLayout(props: GameLayoutProps) {
                 // animation just finished — hold the visual center for a short time
                 holdCenterUntilRef.current = Date.now() + 350; // ms
                 if (process.env.NODE_ENV !== 'production') {
-                    console.debug('[GameLayout] Animation END - hold visual center for 350ms', { 
-                        isAnimatingMove, 
-                        playerPosition, 
-                        visualPlayerPosition 
+                    console.debug('[GameLayout] Animation END - hold visual center for 350ms', {
+                        isAnimatingMove,
+                        playerPosition,
+                        visualPlayerPosition
                     });
                 }
             }
@@ -201,6 +203,76 @@ export default function GameLayout(props: GameLayoutProps) {
             }
         };
     }, []);
+
+    /**
+     * LOGIC DEEP DIVE: App visibility change listener for idle progression catch-up.
+     * When app is backgrounded: record timestamp (lastActiveAt) in sessionStorage.
+     * When app resumes and pauseGameIdleProgression is false:
+     *   - Compute elapsed time since background.
+     *   - Calculate target catch-up ticks, cap at maxCatchupTicks.
+     *   - Simulate N ticks (engines update without per-tick renders).
+     *   - Generate catch-up narrative (interval message + monologue + impacts).
+     *   - Player sees timeline jump with immersive messaging.
+     *
+     * If pauseGameIdleProgression is true, catch-up is skipped (game frozen in time).
+     */
+    useEffect(() => {
+        const handleVisibilityChange = async () => {
+            try {
+                if (document.hidden) {
+                    // App backgrounded: record timestamp
+                    sessionStorage.setItem('lastActiveAt', Date.now().toString());
+                    logger.debug('[GameLayout] App backgrounded - recording lastActiveAt');
+                } else {
+                    // App resumed: compute and apply catch-up if enabled
+                    if (!settings?.pauseGameIdleProgression) {
+                        const lastActiveStr = sessionStorage.getItem('lastActiveAt');
+                        if (lastActiveStr) {
+                            const lastActiveAt = parseInt(lastActiveStr, 10);
+                            const elapsedMs = Date.now() - lastActiveAt;
+                            const tickRealDurationMs = settings?.tickRealDurationMs ?? (5 * 60_000); // 5 min default
+                            const maxCatchupTicks = settings?.maxCatchupTicks ?? 96; // ~8 hours
+
+                            const targetTicks = Math.floor(elapsedMs / tickRealDurationMs);
+                            const appliedTicks = Math.min(targetTicks, maxCatchupTicks);
+
+                            if (appliedTicks > 0) {
+                                logger.debug('[GameLayout] Applying catch-up', {
+                                    elapsedMs,
+                                    targetTicks,
+                                    appliedTicks,
+                                    maxCatchupTicks,
+                                });
+
+                                // Simulate catch-up ticks (engines update, no per-tick renders)
+                                const summary = simulateCatchupTicks && typeof simulateCatchupTicks === 'function'
+                                    ? await simulateCatchupTicks(appliedTicks)
+                                    : { ticksApplied: 0, changes: [] };
+
+                                // Generate immersive narrative for player
+                                if (generateCatchupNarrative && typeof generateCatchupNarrative === 'function') {
+                                    generateCatchupNarrative(appliedTicks, summary);
+                                }
+
+                                logger.debug('[GameLayout] Catch-up completed', summary);
+                            }
+
+                            // Clear stored timestamp
+                            sessionStorage.removeItem('lastActiveAt');
+                        }
+                    } else {
+                        logger.debug('[GameLayout] Catch-up disabled (pauseGameIdleProgression=true)');
+                        sessionStorage.removeItem('lastActiveAt');
+                    }
+                }
+            } catch (err) {
+                logger.error('[GameLayout] Visibility change handler error', err);
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, [settings?.pauseGameIdleProgression, settings?.tickRealDurationMs, settings?.maxCatchupTicks, simulateCatchupTicks, generateCatchupNarrative]);
 
     const [isStatusOpen, setStatusOpen] = useState(false);
     const [isInventoryOpen, setInventoryOpen] = useState(false);
@@ -642,7 +714,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
                                     </div>
                                     <div className="w-full max-w-full md:max-w-xs">
-                                        <Minimap grid={gridToPass} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} />
+                                        <Minimap grid={gridToPass} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} playerStats={playerStats} currentChunk={currentChunk} />
                                     </div>
                                 </div>
 
@@ -808,7 +880,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
                                     </div>
-                                    <Minimap grid={gridToPass} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} />
+                                    <Minimap grid={gridToPass} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} playerStats={playerStats} currentChunk={currentChunk} />
                                 </div>
                             </>
                         )}

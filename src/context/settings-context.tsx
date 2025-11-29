@@ -28,6 +28,12 @@ const defaultSettings = {
   startTime: 360, // 6 AM
   dayDuration: 1440, // 24 hours
   timePerTurn: 10, // 10 minutes per turn
+  // Idle progression settings (new)
+  pauseGameIdleProgression: false, // Whether to disable auto-progression when player is idle
+  idleWarningThresholdMs: 4 * 60_000, // 4 minutes (warning 1 minute before 5min idle threshold)
+  tickRealDurationMs: 5 * 60_000, // 5 minutes in real-time per game tick
+  maxCatchupTicks: 96, // Cap catch-up to ~8 hours (at 5min/tick)
+  tickGameDurationMinutes: 15, // Each tick = 15 in-game minutes
   keyBindings: {
     moveUp: ['w', 'ArrowUp'],
     moveDown: ['s', 'ArrowDown'],
@@ -90,6 +96,13 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
         // Validate minimapViewportSize
         if (![5, 7, 9].includes(parsed.minimapViewportSize)) parsed.minimapViewportSize = defaultSettings.minimapViewportSize;
+
+        // Validate idle/time progression settings (new)
+        if (typeof parsed.pauseGameIdleProgression !== 'boolean') parsed.pauseGameIdleProgression = defaultSettings.pauseGameIdleProgression;
+        if (typeof parsed.idleWarningThresholdMs !== 'number') parsed.idleWarningThresholdMs = (defaultSettings as any).idleWarningThresholdMs;
+        if (typeof parsed.tickRealDurationMs !== 'number') parsed.tickRealDurationMs = (defaultSettings as any).tickRealDurationMs;
+        if (typeof parsed.maxCatchupTicks !== 'number') parsed.maxCatchupTicks = (defaultSettings as any).maxCatchupTicks;
+        if (typeof parsed.tickGameDurationMinutes !== 'number') parsed.tickGameDurationMinutes = (defaultSettings as any).tickGameDurationMinutes;
 
         // Validate keyBindings shape if present
         if (parsed.keyBindings && typeof parsed.keyBindings === 'object') {

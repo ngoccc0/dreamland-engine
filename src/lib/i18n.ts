@@ -20,6 +20,7 @@ import { weatherTranslations } from './locales/weather';
 import { eventTranslations } from './locales/events';
 import { skillTranslations } from './locales/skills';
 import { narrativeTranslations } from './locales/narrative';
+import { catchUpMessages } from './locales/catch-up-messages';
 import type { TranslatableString } from '@/core/types/definitions/base'; // Import TranslatableString
 
 /**
@@ -71,6 +72,7 @@ const modules = [
   eventTranslations,
   skillTranslations,
   narrativeTranslations,
+  catchUpMessages,
 ];
 
 let translations_en = {};

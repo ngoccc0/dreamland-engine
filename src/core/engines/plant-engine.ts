@@ -1,8 +1,6 @@
 import type { Chunk, WorldProfile, Season } from '@/core/types/game';
 import type { CreatureDefinition } from '@/core/types/definitions/creature';
 import defaultGameConfig from '@/lib/config/game-config';
-import { scheduleNextEvent, calculateEnvironmentalMultiplier } from '@/core/usecases/adaptivePlantTick';
-import { createRng } from '@/lib/narrative/rng';
 
 /**
  * Tracks the state of each plant instance in a chunk
@@ -201,151 +199,16 @@ export class PlantEngine {
     }
 
     /**
-     * Add a new plant instance to a chunk and initialize scheduling.
+     * Add a new plant instance to a chunk
      */
     addPlant(chunk: Chunk, plantDef: CreatureDefinition): void {
         if (!chunk.plants) chunk.plants = [];
-        const instance = {
+        chunk.plants.push({
             definition: plantDef,
             hp: plantDef.hp,
             maturity: 0,
             age: 0
-        };
-        // Initialize scheduling for plant parts if they exist
-        if (plantDef.plantProperties?.parts) {
-            const envResult = calculateEnvironmentalMultiplier(chunk as any, this.config, 0, plantDef);
-            const envMult = envResult.multiplier;
-            for (const part of plantDef.plantProperties.parts) {
-                const p = part as any; // runtime access
-                if (p.currentQty === undefined) p.currentQty = 0;
-                if ((p.currentQty || 0) < (p.maxQty || 0)) {
-                    const rngSeed = `${chunk.x},${chunk.y},${plantDef.id},${p.name},spawn`;
-                    p.nextTick = scheduleNextEvent(p, envMult, 0, rngSeed);
-                    p.lastEnvMultiplier = envMult;
-                    p.decayCounter = p.decayCounter || 0; // Initialize decay counter
-                    p.staminaCost = p.staminaCost ?? 5; // Default 5 stamina per harvest
-                }
-            }
-        }
-        chunk.plants.push(instance);
-    }
-
-    /**
-     * Process scheduled plant part events (growth/drop) for a chunk up to gameTime.
-     * Respects processing caps to avoid spikes. Returns generated narrative events.
-     */
-    processDuePlantParts(
-        chunk: Chunk,
-        gameTime: number,
-        maxEventsPerChunk: number = 100
-    ): Array<{ text: string; type: 'narrative' | 'system' }> {
-        const messages: Array<{ text: string; type: 'narrative' | 'system' }> = [];
-        if (!chunk.plants || chunk.plants.length === 0) return messages;
-
-        let eventsProcessed = 0;
-
-        for (const plantInstance of chunk.plants) {
-            if (!plantInstance.definition.plantProperties?.parts) continue;
-            const parts = plantInstance.definition.plantProperties.parts as any[];
-            const envResult = calculateEnvironmentalMultiplier(chunk as any, this.config, gameTime, plantInstance.definition);
-            const envMult = envResult.multiplier;
-            const envState = envResult.state;
-
-            for (const part of parts) {
-                if (typeof part.currentQty !== 'number') part.currentQty = 0;
-                if (typeof part.decayCounter !== 'number') part.decayCounter = 0;
-                part.staminaCost = part.staminaCost ?? 5;
-
-                // Initialize nextTick if missing
-                if ((part.nextTick === undefined || part.nextTick === null) && (part.currentQty || 0) < (part.maxQty || 0)) {
-                    part.nextTick = scheduleNextEvent(part, envMult, gameTime, `${chunk.x},${chunk.y},${plantInstance.definition.id},${part.name}`);
-                    part.lastEnvMultiplier = envMult;
-                }
-
-                // Handle UNSUITABLE state: increment decay counter
-                if (envState === 'UNSUITABLE') {
-                    part.decayCounter = (part.decayCounter || 0) + 1;
-                    // After 10 ticks in unsuitable conditions, start losing parts
-                    if (part.decayCounter >= 10 && part.currentQty > 0) {
-                        part.currentQty = Math.max(0, part.currentQty - 1);
-                        messages.push({ text: `${plantInstance.definition.name} is wilting from unsuitable conditions`, type: 'narrative' });
-                    }
-                } else {
-                    // Reset decay counter in suitable conditions
-                    part.decayCounter = 0;
-                }
-
-                // Reschedule if env changed significantly (>20%)
-                if (part.lastEnvMultiplier !== undefined && part.lastEnvMultiplier > 0) {
-                    const relChange = Math.abs(envMult - part.lastEnvMultiplier) / part.lastEnvMultiplier;
-                    if (relChange > 0.2) {
-                        part.nextTick = scheduleNextEvent(part, envMult, gameTime, `${chunk.x},${chunk.y},${plantInstance.definition.id},${part.name},reschedule`);
-                        part.lastEnvMultiplier = envMult;
-                    }
-                }
-
-                // Process due events (loop while due and cap not reached)
-                while (part.nextTick !== null && part.nextTick !== undefined && part.nextTick <= gameTime && eventsProcessed < maxEventsPerChunk) {
-                    const rngSeed = `${chunk.x},${chunk.y},${plantInstance.definition.id},${part.name},${part.nextTick}`;
-                    const rng = createRng(rngSeed);
-
-                    let eventApplied = false;
-
-                    // Growth attempt
-                    const growProb = (part.growProb || 0) * envMult;
-                    if ((part.currentQty || 0) < (part.maxQty || 0) && rng.float() < growProb) {
-                        part.currentQty = Math.min(part.maxQty || Infinity, (part.currentQty || 0) + 1);
-                        messages.push({
-                            text: `${part.name} grew on plant at (${chunk.x}, ${chunk.y})`,
-                            type: 'system'
-                        });
-                        eventApplied = true;
-                    }
-
-                    // Drop attempt
-                    const dropProb = (part.dropProb || 0) * envMult;
-                    const windFactor = ((chunk as any).windLevel || 0) / 100;
-                    const finalDropProb = dropProb + (part.name === 'leaves' ? windFactor * 0.005 : 0);
-                    if ((part.currentQty || 0) > 0 && rng.float() < finalDropProb) {
-                        part.currentQty = Math.max(0, (part.currentQty || 0) - 1);
-                        messages.push({
-                            text: `${part.name} dropped from plant at (${chunk.x}, ${chunk.y})`,
-                            type: 'system'
-                        });
-                        eventApplied = true;
-                    }
-
-                    eventsProcessed++;
-
-                    // Schedule next event
-                    if ((part.currentQty || 0) < (part.maxQty || 0)) {
-                        part.nextTick = scheduleNextEvent(part, envMult, gameTime, `${chunk.x},${chunk.y},${plantInstance.definition.id},${part.name},${eventsProcessed}`);
-                    } else {
-                        part.nextTick = null;
-                    }
-
-                    if (!eventApplied) break; // no actual change, stop loop
-                }
-            }
-
-            // Remove plant if all harvestable parts are gone (currentQty = 0)
-            const allPartsEmpty = parts.every(p => (p.currentQty || 0) === 0);
-            if (allPartsEmpty) {
-                const plantIndex = chunk.plants.indexOf(plantInstance);
-                if (plantIndex >= 0) {
-                    chunk.plants.splice(plantIndex, 1);
-                    const plantName = typeof plantInstance.definition.name === 'string'
-                        ? plantInstance.definition.name
-                        : (plantInstance.definition.name as any).en || String(plantInstance.definition.id);
-                    messages.push({
-                        text: `${plantName} has completely withered away.`,
-                        type: 'narrative'
-                    });
-                }
-            }
-        }
-
-        return messages;
+        });
     }
 
     /**
@@ -369,16 +232,16 @@ export class PlantEngine {
         const props = plantDef.plantProperties;
         if (!props) return { suitability: 0, canGrow: false, canReproduce: false };
 
-        // Effective moisture: chunk.moisture plus any recent watering applied via waterTimer
-        const baseMoisture = chunk.moisture ?? 50;
-        const waterBonus = (chunk as any).waterTimer && (chunk as any).waterTimer > 0 ? ((chunk as any).waterRetention ?? 1) * 20 : 0;
-        const moisture = Math.min(100, baseMoisture + waterBonus);
-        const temp = chunk.temperature ?? 20;
-        const vegDensity = chunk.vegetationDensity ?? 0;
+    // Effective moisture: chunk.moisture plus any recent watering applied via waterTimer
+    const baseMoisture = chunk.moisture ?? 50;
+    const waterBonus = (chunk as any).waterTimer && (chunk as any).waterTimer > 0 ? ((chunk as any).waterRetention ?? 1) * 20 : 0;
+    const moisture = Math.min(100, baseMoisture + waterBonus);
+    const temp = chunk.temperature ?? 20;
+    const vegDensity = chunk.vegetationDensity ?? 0;
 
         // Basic environmental suitability
         let suitability = 1;
-
+        
         if (props.reproduction?.requirements) {
             const req = props.reproduction.requirements;
             if (moisture < req.minMoisture) suitability *= (moisture / req.minMoisture);
@@ -397,12 +260,12 @@ export class PlantEngine {
         const seasonMod = this.config.plant.seasonMultiplier[season] ?? 1;
         suitability *= seasonMod;
 
-        // Determine if conditions support growth and reproduction
-        // Apply soil nutrition / fertilizer as modifiers to suitability for growth
-        const nutrition = (chunk as any).nutrition ?? 0;
-        const fertilizer = (chunk as any).fertilizerLevel ?? 0;
-        const growthBoost = 1 + (nutrition * 0.005) + (fertilizer * 0.01);
-        const canGrow = (suitability * growthBoost) > 0.3;
+    // Determine if conditions support growth and reproduction
+    // Apply soil nutrition / fertilizer as modifiers to suitability for growth
+    const nutrition = (chunk as any).nutrition ?? 0;
+    const fertilizer = (chunk as any).fertilizerLevel ?? 0;
+    const growthBoost = 1 + (nutrition * 0.005) + (fertilizer * 0.01);
+    const canGrow = (suitability * growthBoost) > 0.3;
         const canReproduce = props.reproduction?.requirements ? (
             moisture >= props.reproduction.requirements.minMoisture &&
             temp >= props.reproduction.requirements.minTemperature &&

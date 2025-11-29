@@ -39,23 +39,6 @@ export default function PlayerOverlay({ overlayData, overlayFlying = false, visu
     const [internalJustLanded, setInternalJustLanded] = useState(false);
     const mountedRef = useRef(true);
 
-    // TSDOC: Defensive render guard to ensure component initializes properly
-    // Logs avatar render state to help diagnose initialization issues on game start
-    useEffect(() => {
-        if (process.env.NODE_ENV !== 'production') {
-            const renderState = {
-                timestamp: Date.now(),
-                overlayDataExists: !!overlayData,
-                autoPlay,
-                mounted: mountedRef.current,
-            };
-            try {
-                console.debug('[PlayerOverlay] Render initialization', renderState);
-            } catch { }
-        }
-        return () => { };
-    }, []);
-
     useEffect(() => {
         mountedRef.current = true;
         return () => { mountedRef.current = false; };

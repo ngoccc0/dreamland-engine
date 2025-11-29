@@ -17,7 +17,6 @@ import { useGameEffects } from "./use-game-effects";
 import { useSettings } from "@/context/settings-context"; // Import useSettings
 import { useAudioContext } from '@/lib/audio/AudioProvider';
 import { defaultGameConfig } from '@/lib/config/game-config';
-import { logger } from '@/lib/logger';
 
 interface GameEngineProps {
     gameSlot: number;
@@ -160,7 +159,7 @@ export function useGameEngine(props: GameEngineProps) {
     const addNarrativeEntry = (text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string) => {
         // Preserve explicit entryId when provided (placeholders use predictable ids).
         // If no id provided, generate a stable unique id.
-        const id = entryId ?? `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+        const id = entryId ?? `${Date.now()}_${Math.random().toString(36).slice(2,9)}`;
         const entry = { id, text, type } as any;
         gameState.setNarrativeLog(prev => {
             const arr = (prev || []);
@@ -177,162 +176,6 @@ export function useGameEngine(props: GameEngineProps) {
             narrativeLogRef.current = deduped;
             return deduped;
         });
-    };
-
-    /**
-     * LOGIC DEEP DIVE: Simulates N game ticks without per-tick rendering.
-     * Used for catch-up when player returns after idle time.
-     * - Batches multiple ticks to avoid long freezes (processes 20 ticks at a time, yields to browser).
-     * - Collects summary of changes for narrative (e.g., plant growth, creature spawns).
-     * - Does NOT update React state per-tick; only final state is committed.
-     * - Returns structured summary for narrative generation.
-     *
-     * DATA TRACE EXAMPLE:
-     * Input: elapsedTicks=4 (e.g., 20 real-world minutes have passed at 5min/tick)
-     * - Batch 1: ticks 0-19 (4 ticks) → plant engine grows plants, creatures evolve
-     * - Engine updates accumulate in refs without UI updates
-     * - Returns: { ticksApplied: 4, plantHarvests: 2, creaturesSpawned: 1, weatherChanges: [], ... }
-     * Output: Player sees catch-up summary + monologue in narrative log
-     */
-    const simulateCatchupTicks = async (count: number): Promise<any> => {
-        try {
-            const summary: any = {
-                ticksApplied: 0,
-                plantHarvests: 0,
-                creaturesSpawned: 0,
-                weatherChanges: [],
-                structuresDecayed: 0,
-                changes: [],
-                startTime: Date.now(),
-            };
-
-            if (count <= 0) return summary;
-
-            const batchSize = 20; // Process 20 ticks at a time to avoid UI freezes
-            logger.debug('[simulateCatchupTicks] Starting', { count, batchSize });
-
-            for (let batch = 0; batch < Math.ceil(count / batchSize); batch++) {
-                const ticksInBatch = Math.min(batchSize, count - batch * batchSize);
-
-                for (let i = 0; i < ticksInBatch; i++) {
-                    try {
-                        // Simulate tick through engine refs (not through React state updates)
-                        // This allows engines to process multiple ticks without rendering each one.
-                        // In a real scenario, you'd call engine update methods here:
-                        // creatureEngineRef.current.simulate(1);
-                        // plantEngineRef.current.simulate(1);
-                        // weatherEngineRef.current.simulate(1);
-
-                        // For now, we count ticks as a placeholder
-                        summary.ticksApplied++;
-                    } catch (err) {
-                        logger.warn('[simulateCatchupTicks] Error in tick', { batch, i, err });
-                    }
-                }
-
-                // Yield to browser every batch to avoid freezing UI
-                await new Promise(resolve => setTimeout(resolve, 0));
-            }
-
-            summary.endTime = Date.now();
-            summary.processingTimeMs = summary.endTime - summary.startTime;
-            logger.debug('[simulateCatchupTicks] Completed', summary);
-
-            return summary;
-        } catch (err) {
-            logger.error('[simulateCatchupTicks] Fatal error', err);
-            return { ticksApplied: 0, changes: [], error: String(err) };
-        }
-    };
-
-    /**
-     * LOGIC DEEP DIVE: Generates a catch-up narrative combining:
-     * 1. Interval message (chosen from pool based on elapsed time: 15min, 1hour, etc.)
-     * 2. Monologue (chosen by random tone: surprised, wistful, wonder, anxious, content, energized)
-     * 3. Impact summary (collected from simulateCatchupTicks result)
-     *
-     * All templates use [TIME] placeholder, replaced at runtime with human-readable label.
-     * Messages are injected as narrative entries with staggered timing for effect.
-     *
-     * DATA TRACE EXAMPLE:
-     * Input: elapsedTicks=4, summary={ ticksApplied: 4, plantHarvests: 2, ... }
-     * 1. getTimeIntervalFromTicks(4, 15) → { interval: '1hour', label: '1 hour' }
-     * 2. Pick random from catchupInterval['1hour']: "[TIME] have drifted by..."
-     * 3. Fill: "[TIME]" → "1 hour" → "1 hour have drifted by..."
-     * 4. Pick random tone (e.g., 'surprised'): "Wow, it felt like just a few minutes..."
-     * 5. Fill: "[TIME]" → "1 hour" → "Wow, it felt like just a few minutes, but 1 hour have passed!"
-     * 6. Inject into narrative log (main message + monologue + impacts at staggered times)
-     * Output: Three narrative entries appear in log with ~1s delays between them
-     */
-    const generateCatchupNarrative = (elapsedTicks: number, summary: any) => {
-        try {
-            // Dynamic imports to avoid circular deps + allow tree-shake if not used
-            const { getTimeIntervalFromTicks, pickRandom, fillTimeTemplate } = require(
-                '@/lib/locales/catch-up-messages'
-            ) as typeof import('@/lib/locales/catch-up-messages');
-            const { catchUpMessages } = require('@/lib/locales/catch-up-messages');
-
-            // Use i18n: determine language from t function context
-            // For simplicity, we'll try to infer from navigator or default to 'en'
-            let lang: 'en' | 'vi' = 'en';
-            try {
-                // Try to infer from navigator or use global language setting
-                // In a real app, you'd use the language from context/settings
-                const navLang = (typeof navigator !== 'undefined' ? navigator.language : 'en').toLowerCase();
-                if (navLang.startsWith('vi')) lang = 'vi';
-                else if (navLang.startsWith('en')) lang = 'en';
-            } catch {
-                // Fallback to 'en'
-                lang = 'en';
-            }
-
-            const timeInfo = getTimeIntervalFromTicks(
-                elapsedTicks,
-                settings?.tickGameDurationMinutes ?? 15
-            );
-
-            const messagesForLang = (catchUpMessages as any)[lang] || (catchUpMessages as any).en;
-            if (!messagesForLang) {
-                logger.warn('[generateCatchupNarrative] No messages found for language', { lang });
-                return;
-            }
-
-            // 1. Main catch-up message
-            const intervalMessages = messagesForLang.catchupInterval?.[timeInfo.interval];
-            if (intervalMessages && intervalMessages.length > 0) {
-                const mainMessage = pickRandom(intervalMessages);
-                const filledMainMessage = fillTimeTemplate(mainMessage as string, timeInfo.label);
-                addNarrativeEntry(filledMainMessage, 'narrative', `catchup-main-${Date.now()}`);
-            }
-
-            // 2. Emotional monologue (pick random tone)
-            const monoTonesArr = Object.keys(messagesForLang.monologues || {});
-            if (monoTonesArr.length > 0) {
-                const selectedTone = pickRandom(monoTonesArr);
-                const monologueList = messagesForLang.monologues[selectedTone];
-                if (monologueList && monologueList.length > 0) {
-                    const selectedMonologue = pickRandom(monologueList);
-                    const filledMonologue = fillTimeTemplate(selectedMonologue as string, timeInfo.label);
-
-                    // Add with 1s delay for staggered effect
-                    setTimeout(() => {
-                        addNarrativeEntry(filledMonologue, 'monologue', `catchup-mono-${Date.now()}`);
-                    }, 1000);
-                }
-            }
-
-            // 3. Impact summary (if changes collected)
-            if (summary && summary.changes && summary.changes.length > 0) {
-                const summaryText = summary.changes.join(' ');
-                setTimeout(() => {
-                    addNarrativeEntry(summaryText, 'system', `catchup-impact-${Date.now()}`);
-                }, 2000);
-            }
-
-            logger.debug('[generateCatchupNarrative] Injected entries', { elapsedTicks, timeInfo });
-        } catch (err) {
-            logger.error('[generateCatchupNarrative] Error', err);
-        }
     };
 
     const advanceGameTime = (stats?: any) => {
@@ -373,7 +216,7 @@ export function useGameEngine(props: GameEngineProps) {
                                 if (!existingId || existingId === u.creatureId) {
                                     delete nw[prevKey].enemy;
                                 }
-                            } catch { }
+                            } catch {}
                         }
 
                         // Prepare enemy data for world (strip runtime-only fields)
@@ -386,7 +229,7 @@ export function useGameEngine(props: GameEngineProps) {
                         delete raw._prevPosition;
 
                         // Persist stable id so world chunk keeps identity
-                        try { raw.id = u.creatureId; } catch { }
+                        try { raw.id = u.creatureId; } catch {}
 
                         // Ensure destination chunk exists in world
                         if (!nw[newKey]) {
@@ -403,11 +246,11 @@ export function useGameEngine(props: GameEngineProps) {
         }
 
         gameState.setGameTime(prev => {
-            const next = prev + (settings as any).timePerTurn; // Use timePerTurn from settings
-            if (next >= (settings as any).dayDuration) { // Use dayDuration from settings
-                gameState.setDay(d => d + 1);
-                gameState.setTurn(t => t + 1);
-                return next % (settings as any).dayDuration; // Use dayDuration from settings
+                const next = prev + (settings as any).timePerTurn; // Use timePerTurn from settings
+                if (next >= (settings as any).dayDuration) { // Use dayDuration from settings
+                    gameState.setDay(d => d + 1);
+                    gameState.setTurn(t => t + 1);
+                    return next % (settings as any).dayDuration; // Use dayDuration from settings
             }
             gameState.setTurn(t => t + 1);
             return next;
@@ -498,13 +341,13 @@ export function useGameEngine(props: GameEngineProps) {
             console.warn('Failed to register visible creatures for simulation', err);
         }
 
-        // Update plants in visible area
-        try {
-            const plantMessages = plantEngineRef.current.updatePlants(currentTurn, visibleChunks, gameState.currentSeason, gameState.worldProfile);
-            for (const m of plantMessages) addNarrativeEntry(m.text, m.type);
-        } catch (err: any) {
-            console.warn('PlantEngine update failed', err);
-        }
+            // Update plants in visible area
+            try {
+                const plantMessages = plantEngineRef.current.updatePlants(currentTurn, visibleChunks, gameState.currentSeason, gameState.worldProfile);
+                for (const m of plantMessages) addNarrativeEntry(m.text, m.type);
+            } catch (err: any) {
+                console.warn('PlantEngine update failed', err);
+            }
 
         const creatureMessages = creatureEngineRef.current.updateCreatures(
             currentTurn,
@@ -518,7 +361,7 @@ export function useGameEngine(props: GameEngineProps) {
             addNarrativeEntry(message.text, message.type);
         }
     };
-
+    
     // This effect ensures that whenever the narrativeLog changes, we scroll to the bottom.
     // The dependency array [gameState.narrativeLog] triggers the effect on every new entry.
     useEffect(() => {
@@ -572,7 +415,7 @@ export function useGameEngine(props: GameEngineProps) {
             }
         }
     }, [gameState.playerPosition.x, gameState.playerPosition.y, gameState.world, playAmbienceForBiome]);
-
+    
 
     const actionHandlers = useActionHandlers({
         ...gameState,
@@ -588,14 +431,11 @@ export function useGameEngine(props: GameEngineProps) {
         advanceGameTime,
         gameSlot: props.gameSlot,
     } as any);
-
+    
     return {
         ...gameState,
         ...actionHandlers,
         narrativeContainerRef,
-        biomeDefinitions,
-        // Expose catch-up functions for app resume handler
-        simulateCatchupTicks,
-        generateCatchupNarrative,
+        biomeDefinitions
     };
 }

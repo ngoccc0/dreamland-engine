@@ -19,14 +19,14 @@ import { logger } from "@/lib/logger";
 import { useState, useRef } from 'react';
 import { MinimapCell } from "./minimap-cell";
 import { MapCellDetails } from "./minimap-details";
-import { biomeColors, type MinimapProps, VisibilityLevel } from "./minimap-types";
+import { biomeColors, type MinimapProps } from "./minimap-types";
 import { cn as classNameUtils } from "@/lib/utils";
 
 interface GameLayoutMinimapProps extends MinimapProps {
     // Extends MinimapProps with additional props if needed
 }
 
-export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatingMove, visualMoveFrom, visualMoveTo, visualJustLanded, turn, biomeDefinitions, playerStats, currentChunk }: GameLayoutMinimapProps) {
+export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatingMove, visualMoveFrom, visualMoveTo, visualJustLanded, turn, biomeDefinitions }: GameLayoutMinimapProps) {
     const { t, language } = useLanguage();
     const { settings } = useSettings();
 
@@ -88,12 +88,7 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
         return () => {
             // Cleanup: cancel any pending rAF or timeout
             if (panAnimRef.current.rafId) {
-                // panAnimRef.current.rafId can store either rAF ID or setTimeout ID.
-                // Depending on context, it was used to store setTimeout ID for pan completion.
-                // We should attempt to clear both types of timers.
-                // For a setTimeout ID, clearTimeout is needed.
-                clearTimeout(panAnimRef.current.rafId as any);
-                cancelAnimationFrame(panAnimRef.current.rafId as any); // Also clear if it was an rAF
+                cancelAnimationFrame(panAnimRef.current.rafId as any);
                 panAnimRef.current.rafId = null;
             }
         };
@@ -121,11 +116,10 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                 // Instead of pan animation, just wait for the animation duration and dispatch completion
                 const animDuration = typeof detail.visualTotalMs === 'number' ? Number(detail.visualTotalMs) : 600;
 
-                // Cancel previous timeout/animation if any
+                // Cancel previous timeout if any
                 const pan = panAnimRef.current;
                 if (pan.rafId) {
-                    clearTimeout(pan.rafId as any); // Clear timeout
-                    cancelAnimationFrame(pan.rafId as any); // Clear animation frame
+                    cancelAnimationFrame(pan.rafId);
                     pan.rafId = null;
                 }
 
@@ -203,100 +197,14 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
     const gridSize = grid.length;
     const gridCenter = Math.floor(gridSize / 2);
 
-    // Get player's exploration ability and elevation for adaptive vision
-    const playerExplorationAbility = playerStats.attributes?.exploration ?? 50; // Default to 50 if not set
-    const playerElevation = currentChunk?.elevation ?? 0; // Default to 0 if not set
-
-    const getCellVisibilityLevel = useCallback((
-        cell: Chunk | null,
-        playerX: number,
-        playerY: number,
-        currentPlayersElevation: number,
-        currentPlayersExplorationAbility: number,
-        baseViewportRadius: number,
-        currentTurn: number
-    ): VisibilityLevel => {
-        if (!cell) {
-            return VisibilityLevel.Obscured;
-        }
-
-        const distanceFromPlayer = Math.max(
-            Math.abs(cell.x - playerX),
-            Math.abs(cell.y - playerY)
+    // Function to check if tile is visible in viewport
+    const isViewportVisible = (rowIdx: number, colIdx: number): boolean => {
+        const distFromCenter = Math.max(
+            Math.abs(rowIdx - gridCenter),
+            Math.abs(colIdx - gridCenter)
         );
-
-        // Constants for balancing vision (can be tuned)
-        const EXPLORATION_FACTOR = 0.05; // Each point of exploration adds this much to radius
-        const LIGHT_FACTOR = 0.01;     // Each point of light adds this much to radius
-        const EXPLORABILITY_FACTOR = 0.01; // Each point of explorability adds this much to radius
-        const ELEVATION_BONUS_FACTOR = 0.05; // Player higher: bonus per elevation difference
-        const ELEVATION_PENALTY_FACTOR = 0.08; // Player lower: penalty per elevation difference
-        const FOG_TURNS_THRESHOLD = 75; // How many turns before a visited cell becomes foggy (increased as per user feedback)
-
-        // Calculate dynamic radius based on player attributes and cell properties
-        let dynamicRadius = baseViewportRadius;
-
-        // Apply adaptive bonuses/penalties to dynamicRadius.
-        // These adaptive factors primarily influence the *initial discovery* and *full visibility range*
-        // for UNEXPLORED cells, and also contribute to the overall "awareness" for explored cells.
-        dynamicRadius += currentPlayersExplorationAbility * EXPLORATION_FACTOR;
-        dynamicRadius += (cell.lightLevel || 0) * LIGHT_FACTOR;
-        dynamicRadius += (cell.explorability || 0) * EXPLORABILITY_FACTOR;
-
-        const elevationDifference = currentPlayersElevation - (cell.elevation || 0);
-        if (elevationDifference > 0) { // Player is higher, looking downhill: bonus
-            dynamicRadius += elevationDifference * ELEVATION_BONUS_FACTOR;
-        } else if (elevationDifference < 0) { // Player is lower, looking uphill: penalty
-            dynamicRadius += elevationDifference * ELEVATION_PENALTY_FACTOR;
-        }
-
-        // Determine current fog state based on last visited time, with increased threshold
-        const isFoggyDueToTime = (currentTurn - cell.lastVisited) > FOG_TURNS_THRESHOLD && cell.lastVisited !== 0;
-
-        // --- Visibility Logic ---
-
-        // Prioritize ALREADY EXPLORED cells
-        if (cell.explored) {
-            if (!isFoggyDueToTime) {
-                // Explored and not yet foggy: always fully visible (or at least partially based on proximity)
-                // Even if far, explored cells should maintain some level of clarity.
-                // If within a generous extended range, keep it fully visible.
-                const exploredRetentionRadius = dynamicRadius * 2.5; // Explored cells retain clarity longer
-                if (distanceFromPlayer <= exploredRetentionRadius) {
-                    return VisibilityLevel.FullyVisible; // Explored cells are fully visible unless very foggy and very far
-                }
-                // If it's explored, but beyond the retention radius, and not yet foggy, it can be partially visible
-                return VisibilityLevel.PartiallyVisible;
-            } else {
-                // If explored but now truly foggy (past FOG_TURNS_THRESHOLD)
-                // it means we've forgotten details over time.
-                return VisibilityLevel.PartiallyVisible; // Explored cells always retain at least partial visibility
-            }
-        }
-
-        // For UNEXPLORED cells: apply adaptive discovery logic
-        // This section only runs if cell.explored is FALSE.
-        if (distanceFromPlayer <= dynamicRadius) {
-            // Unexplored, but within dynamic adaptive range for FULL discovery.
-            // Elevation also plays a key role here.
-            if (Math.abs(elevationDifference) <= Math.max(1, dynamicRadius / 3) || (elevationDifference > 0 && distanceFromPlayer <= dynamicRadius + elevationDifference * 0.5)) {
-                return VisibilityLevel.FullyVisible;
-            }
-        }
-
-        const extendedDynamicRadius = dynamicRadius * 2.0; // Extended range for partial reveal of unexplored cells
-        if (distanceFromPlayer <= extendedDynamicRadius) {
-            // Unexplored, but within extended range for PARTIAL discovery.
-            // Light, explorability, or favorable elevation helps in partial reveal.
-            if ((cell.lightLevel || 0) > 40 || (cell.explorability || 0) > 30 || elevationDifference > 0) {
-                return VisibilityLevel.PartiallyVisible;
-            }
-        }
-
-        // Default to Obscured if not explored and not within any adaptive discovery range.
-        return VisibilityLevel.Obscured;
-
-    }, [playerExplorationAbility, playerElevation, viewportRadius, turn]); // dependencies for useCallback
+        return distFromCenter <= viewportRadius;
+    };
 
     // compute overlay flight geometry
     const overlayData = (() => {
@@ -326,9 +234,7 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
     return (
         <div className="flex flex-col items-center gap-2">
             <div className="relative w-80 h-80">
-                {/* Grid container - use CSS Grid for stable centering, not transform */}
-                {/* CRITICAL: This prevents visual jump when viewport size (5x5 -> 7x7 -> 9x9) changes */}
-                {/* Transform is reserved only for pan animations (GPU-accelerated, smooth) */}
+                {/* Grid container (relative to contain overlay) */}
                 <div
                     data-minimap-container
                     className={cn(
@@ -336,7 +242,6 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                         "map-pan-anim"
                     )}
                     style={{
-                        display: 'grid',
                         gridTemplateColumns: `repeat(${grid?.length || 7}, 1fr)`,
                         gridTemplateRows: `repeat(${grid?.length || 7}, 1fr)`,
                         gap: '0px',
@@ -347,17 +252,7 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                     {grid.map((row, rowIndex) =>
                         row.map((cell, colIndex) => {
                             const key = `${rowIndex}-${colIndex}`;
-                            // Calculate visibility level using the new adaptive function
-                            const visibilityLevel = getCellVisibilityLevel(
-                                cell,
-                                playerPosition.x,
-                                playerPosition.y,
-                                playerElevation,
-                                playerExplorationAbility,
-                                viewportRadius,
-                                turn
-                            );
-
+                            const isVisible = isViewportVisible(rowIndex, colIndex);
                             const refPos = (() => {
                                 if (isAnimatingMove) {
                                     if (visualMoveTo) return visualMoveTo;
@@ -367,6 +262,13 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                             })();
                             const playerToShow = refPos;
                             const isPlayerHere = playerToShow.x === cell?.x && playerToShow.y === cell?.y;
+                            const turnDifference = cell ? turn - cell.lastVisited : 0;
+                            const distanceFromPlayer = cell ? Math.max(
+                                Math.abs(cell.x - refPos.x),
+                                Math.abs(cell.y - refPos.y)
+                            ) : 999;
+                            const isInVisibleRange = distanceFromPlayer <= 1;
+                            const isFoggy = turnDifference > 25 && cell && cell.lastVisited !== 0;
 
                             return (
                                 <MinimapCell
@@ -375,8 +277,10 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                                     rowIndex={rowIndex}
                                     colIndex={colIndex}
                                     cellSizePx={cellSizePx}
-                                    visibilityLevel={visibilityLevel} // Pass new visibilityLevel
+                                    isVisible={isVisible}
                                     isPlayerHere={isPlayerHere}
+                                    isInVisibleRange={isInVisibleRange}
+                                    isFoggy={isFoggy}
                                     turn={turn}
                                     biomeDefinitions={biomeDefinitions}
                                     fadingExplored={fadingExplored}

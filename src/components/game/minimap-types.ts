@@ -3,7 +3,7 @@
  * Exports biomeColors mapping, props interfaces, and shared types.
  */
 
-import type { Terrain, PlayerStatusDefinition, Chunk } from "@/lib/game/types";
+import type { Terrain } from "@/lib/game/types";
 
 export const biomeColors: Record<Terrain | 'empty', string> = {
     forest: "bg-map-forest",
@@ -27,15 +27,6 @@ export const biomeColors: Record<Terrain | 'empty', string> = {
     empty: "bg-map-empty",
 };
 
-/**
- * Defines the visibility level of a minimap cell.
- */
-export enum VisibilityLevel {
-    Obscured,          // Completely hidden, like unexplored fog of war
-    PartiallyVisible,  // Revealed but with reduced detail, desaturated, or faint
-    FullyVisible,      // Normal, full detail rendering
-}
-
 export interface MinimapProps {
     grid: (any)[][];
     playerPosition: { x: number; y: number };
@@ -46,8 +37,6 @@ export interface MinimapProps {
     visualJustLanded?: boolean;
     turn: number;
     biomeDefinitions: Record<string, any>;
-    playerStats: PlayerStatusDefinition;
-    currentChunk: Chunk | null; // Added currentChunk for player elevation
 }
 
 export interface PanAnimState {

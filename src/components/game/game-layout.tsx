@@ -35,11 +35,10 @@ import type { Structure, Action, NarrativeEntry } from "@/lib/game/types";
 import { cn, getTranslatedText } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
 
-import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Loader2, Menu, LogOut, Search } from "./icons";
+import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Loader2, Menu, LogOut } from "./icons";
 import { IconRenderer } from "@/components/ui/icon-renderer";
 import { resolveItemDef } from '@/lib/game/item-utils';
 import { logger } from "@/lib/logger";
-import { PlantInspectionModal } from '@/components/game/plant-inspection-modal';
 
 
 interface GameLayoutProps {
@@ -58,8 +57,6 @@ export default function GameLayout(props: GameLayoutProps) {
     }
     const { t, language } = useLanguage();
     const { settings, setSettings } = useSettings();
-    const [minimapSizeToast, setMinimapSizeToast] = useState<number | null>(null);
-    const toastTimeoutRef = useRef<number | null>(null);
     const [isDesktop, setIsDesktop] = useState(false);
     const [showNarrativeDesktop, setShowNarrativeDesktop] = useState(true);
     // Dev-only: track mount/unmount counts to help diagnose unexpected remounts
@@ -106,8 +103,6 @@ export default function GameLayout(props: GameLayoutProps) {
         handleDropItem,
         handleReturnToMenu,
         narrativeContainerRef,
-        simulateCatchupTicks,
-        generateCatchupNarrative,
     } = useGameEngine(props);
 
     // Keep a short grace window after visual move animations finish where the
@@ -131,45 +126,21 @@ export default function GameLayout(props: GameLayoutProps) {
         turnRef.current = turn;
     }, [isAnimatingMove, visualMoveTo, visualPlayerPosition, turn]);
 
-    // Open plant inspection modal when playerStats contains an inspectPlantTarget flag
-    useEffect(() => {
-        const target = (playerStats as any)?.inspectPlantTarget;
-        if (!target) return;
-        const chunkKey = target.chunkKey || `${playerPosition.x},${playerPosition.y}`;
-        const chunk = world[chunkKey];
-        if (!chunk) return;
-        const plant = chunk.enemy;
-        if (!plant) return;
-        setInspectedPlant(plant);
-        setPlantInspectionOpen(true);
-        // we intentionally do not clear playerStats.inspectPlantTarget here
-    }, [playerStats, world, playerPosition]);
-
     useEffect(() => {
         try {
             if (!prevAnimatingRefForLayout.current && isAnimatingMove) {
                 // animation just started — delay grid switch for ~50ms to let RAF pan start
                 animationStartTimeRef.current = Date.now() + 50;
-                if (process.env.NODE_ENV !== 'production') {
-                    console.debug('[GameLayout] Animation START', { isAnimatingMove });
-                }
             }
             if (prevAnimatingRefForLayout.current && !isAnimatingMove) {
                 // animation just finished — hold the visual center for a short time
                 holdCenterUntilRef.current = Date.now() + 350; // ms
-                if (process.env.NODE_ENV !== 'production') {
-                    console.debug('[GameLayout] Animation END - hold visual center for 350ms', {
-                        isAnimatingMove,
-                        playerPosition,
-                        visualPlayerPosition
-                    });
-                }
             }
             prevAnimatingRefForLayout.current = Boolean(isAnimatingMove);
         } catch {
             // ignore
         }
-    }, [isAnimatingMove, playerPosition, visualPlayerPosition]);
+    }, [isAnimatingMove]);
 
     // increment mount counter for GameLayout and expose to window for quick checks
     useEffect(() => {
@@ -195,84 +166,7 @@ export default function GameLayout(props: GameLayoutProps) {
         return () => window.removeEventListener('resize', onResize);
     }, []);
 
-    // Cleanup minimap size toast timeout on unmount to prevent memory leaks
-    useEffect(() => {
-        return () => {
-            if (toastTimeoutRef.current) {
-                clearTimeout(toastTimeoutRef.current as number);
-            }
-        };
-    }, []);
 
-    /**
-     * LOGIC DEEP DIVE: App visibility change listener for idle progression catch-up.
-     * When app is backgrounded: record timestamp (lastActiveAt) in sessionStorage.
-     * When app resumes and pauseGameIdleProgression is false:
-     *   - Compute elapsed time since background.
-     *   - Calculate target catch-up ticks, cap at maxCatchupTicks.
-     *   - Simulate N ticks (engines update without per-tick renders).
-     *   - Generate catch-up narrative (interval message + monologue + impacts).
-     *   - Player sees timeline jump with immersive messaging.
-     *
-     * If pauseGameIdleProgression is true, catch-up is skipped (game frozen in time).
-     */
-    useEffect(() => {
-        const handleVisibilityChange = async () => {
-            try {
-                if (document.hidden) {
-                    // App backgrounded: record timestamp
-                    sessionStorage.setItem('lastActiveAt', Date.now().toString());
-                    logger.debug('[GameLayout] App backgrounded - recording lastActiveAt');
-                } else {
-                    // App resumed: compute and apply catch-up if enabled
-                    if (!settings?.pauseGameIdleProgression) {
-                        const lastActiveStr = sessionStorage.getItem('lastActiveAt');
-                        if (lastActiveStr) {
-                            const lastActiveAt = parseInt(lastActiveStr, 10);
-                            const elapsedMs = Date.now() - lastActiveAt;
-                            const tickRealDurationMs = settings?.tickRealDurationMs ?? (5 * 60_000); // 5 min default
-                            const maxCatchupTicks = settings?.maxCatchupTicks ?? 96; // ~8 hours
-
-                            const targetTicks = Math.floor(elapsedMs / tickRealDurationMs);
-                            const appliedTicks = Math.min(targetTicks, maxCatchupTicks);
-
-                            if (appliedTicks > 0) {
-                                logger.debug('[GameLayout] Applying catch-up', {
-                                    elapsedMs,
-                                    targetTicks,
-                                    appliedTicks,
-                                    maxCatchupTicks,
-                                });
-
-                                // Simulate catch-up ticks (engines update, no per-tick renders)
-                                const summary = simulateCatchupTicks && typeof simulateCatchupTicks === 'function'
-                                    ? await simulateCatchupTicks(appliedTicks)
-                                    : { ticksApplied: 0, changes: [] };
-
-                                // Generate immersive narrative for player
-                                if (generateCatchupNarrative && typeof generateCatchupNarrative === 'function') {
-                                    generateCatchupNarrative(appliedTicks, summary);
-                                }
-
-                                logger.debug('[GameLayout] Catch-up completed', summary);
-                            }
-
-                            // Clear stored timestamp
-                            sessionStorage.removeItem('lastActiveAt');
-                        }
-                    } else {
-                        logger.debug('[GameLayout] Catch-up disabled (pauseGameIdleProgression=true)');
-                        sessionStorage.removeItem('lastActiveAt');
-                    }
-                }
-            } catch (err) {
-                logger.error('[GameLayout] Visibility change handler error', err);
-            }
-        };
-
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-    }, [settings?.pauseGameIdleProgression, settings?.tickRealDurationMs, settings?.maxCatchupTicks, simulateCatchupTicks, generateCatchupNarrative]);
 
     const [isStatusOpen, setStatusOpen] = useState(false);
     const [isInventoryOpen, setInventoryOpen] = useState(false);
@@ -289,8 +183,6 @@ export default function GameLayout(props: GameLayoutProps) {
     const [customDialogValue, setCustomDialogValue] = useState("");
     const [isPickupDialogOpen, setPickupDialogOpen] = useState(false);
     const [selectedPickupIds, setSelectedPickupIds] = useState<number[]>([]);
-    const [isPlantInspectionOpen, setPlantInspectionOpen] = useState(false);
-    const [inspectedPlant, setInspectedPlant] = useState<any | null>(null);
 
     const customActionInputRef = useRef<HTMLInputElement>(null);
 
@@ -714,7 +606,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
                                     </div>
                                     <div className="w-full max-w-full md:max-w-xs">
-                                        <Minimap grid={gridToPass} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} playerStats={playerStats} currentChunk={currentChunk} />
+                                        <Minimap grid={gridToPass} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} />
                                     </div>
                                 </div>
 
@@ -835,52 +727,52 @@ export default function GameLayout(props: GameLayoutProps) {
                                 <div className="flex flex-col items-center gap-2 w-full max-w-xs mx-auto">
                                     <div className="flex items-center justify-between w-full px-2">
                                         <h3 className="text-lg font-headline font-semibold text-center flex-1 text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); focusCustomActionInput(); }}>{t('minimap')}</h3>
-                                        {/* Minimap zoom controls - single emoji button that cycles sizes and shows size toast for 1s */}
+                                        {/* Minimap zoom controls */}
                                         <div className="flex items-center gap-1">
-                                            <div className="relative">
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <button
-                                                            onClick={() => {
-                                                                const current = settings.minimapViewportSize ?? 5;
-                                                                const sizes: (5 | 7 | 9)[] = [5, 7, 9];
-                                                                const idx = sizes.indexOf(current as 5 | 7 | 9);
-                                                                const next = sizes[(idx + 1) % sizes.length];
-                                                                setSettings({ minimapViewportSize: next });
-                                                                // show toast with the new size for 1s
-                                                                setMinimapSizeToast(next);
-                                                                if (toastTimeoutRef.current) {
-                                                                    clearTimeout(toastTimeoutRef.current as number);
-                                                                }
-                                                                toastTimeoutRef.current = window.setTimeout(() => {
-                                                                    setMinimapSizeToast(null);
-                                                                    toastTimeoutRef.current = null;
-                                                                }, 1000);
-                                                            }}
-                                                            className="p-1 hover:bg-accent/20 rounded text-xs transition-colors"
-                                                            title="Change minimap size"
-                                                            aria-label="Cycle minimap size"
-                                                        >
-                                                            <Search className="h-4 w-4" />
-                                                        </button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>Change minimap size</TooltipContent>
-                                                </Tooltip>
-
-                                                {/* Temporary size toast shown for 1s when user changes size */}
-                                                {minimapSizeToast !== null && (
-                                                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow">
-                                                        {minimapSizeToast}×{minimapSizeToast}
-                                                    </div>
-                                                )}
-                                            </div>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <button
+                                                        onClick={() => {
+                                                            const current = settings.minimapViewportSize ?? 5;
+                                                            const sizes: (5 | 7 | 9)[] = [5, 7, 9];
+                                                            const idx = sizes.indexOf(current as 5 | 7 | 9);
+                                                            const next = sizes[(idx - 1 + sizes.length) % sizes.length];
+                                                            setSettings({ minimapViewportSize: next });
+                                                        }}
+                                                        className="p-1 hover:bg-accent/20 rounded text-xs transition-colors"
+                                                        title="Zoom out minimap"
+                                                    >
+                                                        −
+                                                    </button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>Zoom out</TooltipContent>
+                                            </Tooltip>
+                                            <span className="text-xs text-muted-foreground w-10 text-center">{settings.minimapViewportSize ?? 5}×{settings.minimapViewportSize ?? 5}</span>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <button
+                                                        onClick={() => {
+                                                            const current = settings.minimapViewportSize ?? 5;
+                                                            const sizes: (5 | 7 | 9)[] = [5, 7, 9];
+                                                            const idx = sizes.indexOf(current as 5 | 7 | 9);
+                                                            const next = sizes[(idx + 1) % sizes.length];
+                                                            setSettings({ minimapViewportSize: next });
+                                                        }}
+                                                        className="p-1 hover:bg-accent/20 rounded text-xs transition-colors"
+                                                        title="Zoom in minimap"
+                                                    >
+                                                        +
+                                                    </button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>Zoom in</TooltipContent>
+                                            </Tooltip>
                                         </div>
                                     </div>
                                     <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
                                     </div>
-                                    <Minimap grid={gridToPass} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} playerStats={playerStats} currentChunk={currentChunk} />
+                                    <Minimap grid={gridToPass} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} />
                                 </div>
                             </>
                         )}
@@ -1058,18 +950,6 @@ export default function GameLayout(props: GameLayoutProps) {
 
 
                 <StatusPopup open={isStatusOpen} onOpenChange={setStatusOpen} stats={playerStats} onRequestHint={handleRequestQuestHint} onUnequipItem={handleUnequipItem} />
-                <PlantInspectionModal
-                    open={isPlantInspectionOpen}
-                    onOpenChange={(open) => setPlantInspectionOpen(open)}
-                    plant={inspectedPlant ?? undefined}
-                    currentGameTime={turn}
-                    onHarvestPart={(partName: string) => {
-                        const chunk = world[`${playerPosition.x},${playerPosition.y}`];
-                        if (!chunk || !chunk.actions) return;
-                        const act = (chunk.actions || []).find((a: any) => a.textKey === 'harvestAction' && a.params?.partName === partName);
-                        if (act) handleAction(act.id);
-                    }}
-                />
                 {/* Dialog: Pickup items selection */}
                 <Dialog open={isPickupDialogOpen} onOpenChange={setPickupDialogOpen}>
                     <DialogContent className="sm:max-w-md">

@@ -148,16 +148,26 @@ export default function GameLayout(props: GameLayoutProps) {
             if (!prevAnimatingRefForLayout.current && isAnimatingMove) {
                 // animation just started — delay grid switch for ~50ms to let RAF pan start
                 animationStartTimeRef.current = Date.now() + 50;
+                if (process.env.NODE_ENV !== 'production') {
+                    console.debug('[GameLayout] Animation START', { isAnimatingMove });
+                }
             }
             if (prevAnimatingRefForLayout.current && !isAnimatingMove) {
                 // animation just finished — hold the visual center for a short time
                 holdCenterUntilRef.current = Date.now() + 350; // ms
+                if (process.env.NODE_ENV !== 'production') {
+                    console.debug('[GameLayout] Animation END - hold visual center for 350ms', { 
+                        isAnimatingMove, 
+                        playerPosition, 
+                        visualPlayerPosition 
+                    });
+                }
             }
             prevAnimatingRefForLayout.current = Boolean(isAnimatingMove);
         } catch {
             // ignore
         }
-    }, [isAnimatingMove]);
+    }, [isAnimatingMove, playerPosition, visualPlayerPosition]);
 
     // increment mount counter for GameLayout and expose to window for quick checks
     useEffect(() => {

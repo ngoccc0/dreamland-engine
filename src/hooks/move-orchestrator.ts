@@ -264,7 +264,10 @@ export function createHandleMove(ctx: any) {
               seenAnim = true;
               try { moveTrace?.events.push({ name: 'move_animations_finished', at: Date.now(), center: c, id }); } catch { }
               try { ctx.setVisualJustLanded?.(false); } catch { }
-              try { ctx.setIsAnimatingMove(false); } catch { }
+              try { 
+                ctx.setIsAnimatingMove(false);
+                console.debug('[move-orchestrator] setIsAnimatingMove(false) - animation completed');
+              } catch { }
               try { ctx.setVisualMoveFrom?.(null); } catch { }
               try { ctx.setVisualMoveTo?.(null); } catch { }
               try { applyAuthoritative('moveAnimationsFinished'); } catch { }

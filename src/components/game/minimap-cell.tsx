@@ -163,6 +163,13 @@ export const MinimapCell = React.memo<MinimapCellProps>(({
                         </div>
                     )}
 
+                    {/* TSDOC: Debug avatar visibility issues after move animation */}
+                    {isPlayerHere && isAnimatingMove && process.env.NODE_ENV !== 'production' && (
+                        <div style={{ position: 'absolute', top: 0, left: 0, fontSize: '10px', color: 'red', zIndex: 999 }}>
+                            🎯
+                        </div>
+                    )}
+
                     {cell.NPCs.length > 0 && (
                         <div className="absolute top-px right-px">
                             <NpcIcon />

@@ -305,6 +305,20 @@ export function SettingsPopup({ open, onOpenChange, isInGame, currentBiome }: Se
                     </Label>
                     <Switch id="auto-pickup-switch" checked={!!settings.autoPickup} onCheckedChange={(v) => setSettings({ autoPickup: !!v })} />
                 </div>
+                <Separator />
+                <div className="space-y-3">
+                    <Label className="font-semibold flex items-center gap-2">⏱️ {t('idleProgressionSection')}</Label>
+                    <p className="text-sm leading-snug text-muted-foreground">
+                        {t('idleProgressionSectionDesc')}
+                    </p>
+                    <div className="flex items-center justify-between space-x-4 pl-4">
+                        <Label htmlFor="pause-idle-switch" className="flex flex-col space-y-1">
+                            <span className="font-semibold">{t('pauseIdleProgression') || 'Pause Idle Progression'}</span>
+                            <span className="font-normal leading-snug text-muted-foreground">{t('pauseIdleProgressionDesc') || 'When enabled, the world will not progress when you are idle or have the app backgrounded.'}</span>
+                        </Label>
+                        <Switch id="pause-idle-switch" checked={settings.pauseGameIdleProgression ?? false} onCheckedChange={(v) => setSettings({ pauseGameIdleProgression: !!v })} />
+                    </div>
+                </div>
                 <div>
                     <Label className="font-semibold mt-4">{t('keyBindings') || 'Key bindings'}</Label>
                     <p className="text-sm text-muted-foreground mb-2">{t('keyBindingsDesc') || 'Customize keyboard shortcuts for movement and common actions.'}</p>

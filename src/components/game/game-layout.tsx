@@ -31,6 +31,7 @@ import { useLanguage } from "@/context/language-context";
 import { useSettings } from "@/context/settings-context";
 import useKeyboardBindings from "@/hooks/use-keyboard-bindings";
 import { useGameEngine } from "@/hooks/use-game-engine";
+import { useIdleWarning } from "@/hooks/useIdleWarning";
 import type { Structure, Action, NarrativeEntry } from "@/lib/game/types";
 import { cn, getTranslatedText } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
@@ -57,6 +58,13 @@ export default function GameLayout(props: GameLayoutProps) {
     }
     const { t, language } = useLanguage();
     const { settings, setSettings } = useSettings();
+    
+    // Idle warning hook: shows toast notification when idle threshold approaches
+    useIdleWarning({
+        pauseGameIdleProgression: settings?.pauseGameIdleProgression,
+        idleWarningThresholdMs: settings?.idleWarningThresholdMs,
+    });
+    
     const [isDesktop, setIsDesktop] = useState(false);
     const [showNarrativeDesktop, setShowNarrativeDesktop] = useState(true);
     // Dev-only: track mount/unmount counts to help diagnose unexpected remounts
@@ -722,6 +730,14 @@ export default function GameLayout(props: GameLayoutProps) {
                                         <span className={`text-xs mt-1 ${statColorClass(hungerPct)}`}>{Math.round(hungerVal)}/{hungerMax}</span>
                                     </div>
                                 </div>
+
+                                {/* Pause Idle Progression Indicator */}
+                                {settings?.pauseGameIdleProgression && (
+                                    <div className="flex items-center justify-center gap-2 text-sm text-accent px-2 py-1.5 rounded-md bg-accent/10 border border-accent/30 w-full max-w-xs mx-auto">
+                                        <span className="text-lg">⏸</span>
+                                        <span className="font-semibold">{t('pauseIdleProgression')}</span>
+                                    </div>
+                                )}
 
                                 {/* Minimap with zoom controls */}
                                 <div className="flex flex-col items-center gap-2 w-full max-w-xs mx-auto">

@@ -573,6 +573,16 @@ export interface GameSettings {
      * Default is 5. The preload grid is always larger (7x7 or 9x9) to prevent blank tiles during pan.
      */
     minimapViewportSize?: 5 | 7 | 9;
+    /** When true, disables automatic time progression when player is idle/backgrounded. Game time pauses. Default false. */
+    pauseGameIdleProgression?: boolean;
+    /** Warning threshold before idle progression kicks in (milliseconds). Default 4 * 60_000 (4 min, warning 1min before 5min idle). */
+    idleWarningThresholdMs?: number;
+    /** Real-world duration per game tick (milliseconds). Default 5 * 60_000 (5 minutes). */
+    tickRealDurationMs?: number;
+    /** Maximum number of ticks to catch-up after idle resume. Prevents extreme jumps. Default 96 (~8 hours at 5min/tick). */
+    maxCatchupTicks?: number;
+    /** How many in-game minutes each tick represents. Default 15 (each tick = 15 in-game minutes). */
+    tickGameDurationMinutes?: number;
 }
 
 /**

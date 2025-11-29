@@ -30,6 +30,15 @@ export function createHandleOfflineAction(context: Partial<ActionHandlerDeps> & 
         };
         addNarrativeEntry(t('observeSuccess', { enemyName }), 'system');
       }
+    } else if (textKey === 'inspectPlantAction') {
+      // Set flag for UI to open plant inspection modal
+      const enemy = currentChunk.enemy;
+      if (enemy && enemy.plantProperties?.parts) {
+        newPlayerStats.inspectPlantTarget = {
+          chunkKey: `${currentChunk.x},${currentChunk.y}`
+        };
+        addNarrativeEntry(t('inspectingPlant', { plantName: getTranslatedText(enemy.name, 'en') }), 'system');
+      }
     } else if (textKey === 'talkToAction_npc') {
       const npcName = t(action.params!.npcName as any);
       const npc = currentChunk.NPCs.find((n: any) => t(n.name as any) === npcName);

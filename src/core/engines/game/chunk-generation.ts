@@ -328,14 +328,14 @@ export function generateChunkContent(
             plants: [],
         };
     }
-    
+
     // Generate a descriptive text for the chunk based on available templates and adjectives/features.
     // This process selects a random description template and replaces placeholders with randomly chosen adjectives and features from the terrain template.
     const descriptionTemplates = (terrainTemplate.descriptionTemplates?.short || ["A generic area."]).filter(Boolean);
     const finalDescription = descriptionTemplates[Math.floor(Math.random() * descriptionTemplates.length)]
         .replace('[adjective]', (terrainTemplate.adjectives || ['normal'])[Math.floor(Math.random() * (terrainTemplate.adjectives || ['normal']).length)])
         .replace('[feature]', (terrainTemplate.features || ['nothing special'])[Math.floor(Math.random() * (terrainTemplate.features || ['nothing special']).length)]);
-    
+
     // Apply a softcap to the world's spawn multiplier to prevent excessive spawning.
     // This ensures that even with high spawn multipliers, the game remains balanced.
     const effectiveMultiplier = softcap(worldProfile?.spawnMultiplier ?? 1);
@@ -412,7 +412,7 @@ export function generateChunkContent(
     // Determine the maximum number of unique item types to select for this chunk.
     // Reduced base so chunks do not automatically fill up with many items.
     const baseMaxItems = 2; // Default (reduced) number of unique item types per chunk (lowered)
-    
+
     // Clamp a value between 0 and 1, typically used for normalizing chunk data values.
     // This ensures that environmental metrics are within a predictable range for calculations.
     const clamp01 = (v: number) => Math.max(0, Math.min(1, v / 100));
@@ -464,7 +464,7 @@ export function generateChunkContent(
          * @param displayOrKey - The display name or key of the item to resolve.
          * @returns The {@link ItemDefinition} if found, otherwise `undefined`.
          */
-        const resolveDef = (displayOrKey: string) : ItemDefinition | undefined => {
+        const resolveDef = (displayOrKey: string): ItemDefinition | undefined => {
             // Direct key lookup first for efficiency.
             if (allItemDefinitions[displayOrKey]) return allItemDefinitions[displayOrKey];
             // Otherwise, search definitions for a translated/display name match (en/vi).
@@ -515,18 +515,18 @@ export function generateChunkContent(
         // crafting materials appear in appropriate biomes belongs in terrain templates
         // and item definitions. We intentionally avoid ad-hoc keyword heuristics.
 
-    /**
-     * Stage 3: Budget system.
-     * - `chunkBudget` is a soft currency representing how many or how expensive items this chunk can support.
-     *   It is derived from world resource density, so richer worlds allow more or pricier spawns.
-     * - Each item's "rarity" (normalized to [0.05, 1.0]) is mapped to a "cost". Higher rarity items have a higher cost.
-     * - The `cost` formula is intentionally conservative but scaled down slightly (multiplied by `costScale`)
-     *   so very-high-tier items still have a non-zero chance to appear in resource-rich contexts.
-     *   A very small fallback chance is included later to allow players to occasionally discover rare items
-     *   even in modest chunks.
-     */
-    let chunkBudget = 1.0 * (worldProfile?.resourceDensity ?? 1); // Initialize budget based on world density.
-    const costScale = 0.6; // Scale factor to reduce the raw cost of items, making rarer items more accessible.
+        /**
+         * Stage 3: Budget system.
+         * - `chunkBudget` is a soft currency representing how many or how expensive items this chunk can support.
+         *   It is derived from world resource density, so richer worlds allow more or pricier spawns.
+         * - Each item's "rarity" (normalized to [0.05, 1.0]) is mapped to a "cost". Higher rarity items have a higher cost.
+         * - The `cost` formula is intentionally conservative but scaled down slightly (multiplied by `costScale`)
+         *   so very-high-tier items still have a non-zero chance to appear in resource-rich contexts.
+         *   A very small fallback chance is included later to allow players to occasionally discover rare items
+         *   even in modest chunks.
+         */
+        let chunkBudget = 1.0 * (worldProfile?.resourceDensity ?? 1); // Initialize budget based on world density.
+        const costScale = 0.6; // Scale factor to reduce the raw cost of items, making rarer items more accessible.
         const preBudgetSelected: SpawnCandidate[] = []; // Array to hold candidates that pass the budget check.
         // Iterate through the sampled candidates to determine if they fit within the chunk's budget.
         for (const cand of sampledCandidates) {
@@ -559,8 +559,8 @@ export function generateChunkContent(
         // `Math.pow(Math.max(0, N), 0.6)` ensures the exponent is non-negative.
         const scaleFactor = 1 / (0.5 + Math.pow(Math.max(0, N), 0.6));
 
-    // Stage 5: Final roll.
-    // Iterate through the candidates that passed the budget and perform a final random check to determine if they spawn.
+        // Stage 5: Final roll.
+        // Iterate through the candidates that passed the budget and perform a final random check to determine if they spawn.
         for (const cand of preBudgetSelected) {
             const def = resolveDef(typeof cand.name === 'string' ? cand.name : String(cand.name));
             let rarity = (def as any)?.rarity as number | undefined;
@@ -613,9 +613,9 @@ export function generateChunkContent(
                 }
             }
         }
-            // No post-budget heuristics; templates should provide the necessary chance for essentials.
+        // No post-budget heuristics; templates should provide the necessary chance for essentials.
 
-            logger.debug('[generateChunkContent] multi-stage selection', { candidateCount: candidateList.length, sampled: sampledCandidates.length, preBudget: preBudgetSelected.length, final: spawnedItemRefs.length, chunkBudgetLeft: chunkBudget });
+        logger.debug('[generateChunkContent] multi-stage selection', { candidateCount: candidateList.length, sampled: sampledCandidates.length, preBudget: preBudgetSelected.length, final: spawnedItemRefs.length, chunkBudgetLeft: chunkBudget });
     } else {
         // Log if the initial chunkFindChance roll failed, meaning no items will spawn in this chunk.
         logger.debug('[generateChunkContent] chunkFindChance failed, no items this chunk', { chunkFindChance });
@@ -630,7 +630,7 @@ export function generateChunkContent(
      * @param displayOrKey - The display name or key of the item to resolve.
      * @returns The {@link ItemDefinition} if found, otherwise `undefined`.
      */
-    const resolveItemByName = (displayOrKey: string) : ItemDefinition | undefined => {
+    const resolveItemByName = (displayOrKey: string): ItemDefinition | undefined => {
         // Direct key lookup first.
         if (allItemDefinitions[displayOrKey]) return allItemDefinitions[displayOrKey];
 
@@ -679,7 +679,7 @@ export function generateChunkContent(
             logger.warn('[generateChunkContent] Item definition not found for itemRef', { itemRefName: itemRef.name });
         }
     }
-    
+
     // NPC spawn gating: avoid NPCs in nearly every chunk. Use a per-chunk gate
     // so only a fraction of chunks attempt to spawn NPCs. When they do, limit to 1.
     const npcBaseFindChance = 0.01; // ~1% baseline a chunk will try to spawn NPCs
@@ -713,11 +713,11 @@ export function generateChunkContent(
     } else {
         logger.debug('[generateChunkContent] enemyFindChance failed, no enemies this chunk', { enemyFindChance });
     }
-    
+
     let spawnedStructures: Structure[] = [];
     // Select structures to spawn based on terrain template. Limits to 2 structures.
     const spawnedStructureRefs = selectEntities((terrainTemplate.structures || []).filter(Boolean), 2, chunkData, allItemDefinitions, worldProfile);
-    
+
     // Process spawned structures, specifically handling their loot.
     for (const structRef of spawnedStructureRefs) {
         // Check if the structure has loot defined.
@@ -758,7 +758,7 @@ export function generateChunkContent(
         }
         spawnedStructures.push(structRef); // Add the structure itself to the list of spawned structures.
     }
-   
+
     // Determine the final enemy to spawn, if any. `selectEntities` returns references, so we extract the data.
     const enemyData = spawnedEnemies.length > 0 ? spawnedEnemies[0].data : null;
     // Construct the `Enemy` object with default values if not specified in the template.
@@ -777,18 +777,44 @@ export function generateChunkContent(
             type: 'detection'
         } : undefined
     } : null;
-    
+
     // Initialize actions available in this chunk.
     const actions: Action[] = [];
     let actionIdCounter = 1; // Counter to ensure unique action IDs.
 
     // Add 'observe enemy' action if an enemy is spawned.
     if (spawnedEnemy) {
-        actions.push({ 
-            id: actionIdCounter++, 
-            textKey: 'observeAction_enemy', 
+        actions.push({
+            id: actionIdCounter++,
+            textKey: 'observeAction_enemy',
             params: { enemyType: getTranslatedText(spawnedEnemy.type, 'en') } // Use translated enemy type.
         });
+
+        // If enemy is a plant (has plantProperties), add Inspect Plant and per-part harvest actions
+        if (enemyData?.plantProperties?.parts) {
+            // Add Inspect Plant action
+            actions.push({
+                id: actionIdCounter++,
+                textKey: 'inspectPlantAction',
+                params: { plantName: getTranslatedText(enemyData.name, 'en') }
+            });
+
+            // Add per-part harvest actions for harvestable parts
+            for (const part of enemyData.plantProperties.parts) {
+                const p = part as any;
+                const isHarvestable = !p.structural && !p.hidden && (p.currentQty ?? 0) > 0;
+                if (isHarvestable) {
+                    actions.push({
+                        id: actionIdCounter++,
+                        textKey: 'harvestAction',
+                        params: {
+                            targetName: getTranslatedText(enemyData.name, 'en'),
+                            partName: p.name
+                        }
+                    });
+                }
+            }
+        }
     }
     // Add 'talk to NPC' action if NPCs are spawned. Prioritize the first NPC for the action.
     // Choose the first defined NPC (if any) for conversation actions.
@@ -806,7 +832,7 @@ export function generateChunkContent(
     spawnedItems.forEach(item => {
         actions.push({ id: actionIdCounter++, textKey: 'pickUpAction_item', params: { itemName: getTranslatedText(item.name, 'en') } });
     });
-    
+
     // Add general exploration and listening actions, which are always available.
     actions.push({ id: actionIdCounter++, textKey: 'exploreAction' });
     actions.push({ id: actionIdCounter++, textKey: 'listenToSurroundingsAction' });
@@ -1001,9 +1027,9 @@ export const generateChunksInRadius = (
             const chunk_x = center_x + dx;
             const chunk_y = center_y + dy;
             const chunkKey = `${chunk_x},${chunk_y}`;
-              logger.debug(`[generateChunksInRadius] Checking chunk at (${chunk_x}, ${chunk_y}).`);
-              // Short pause to inspect per-chunk processing if needed. This is a debug helper.
-              maybeDebug('generateChunksInRadius:per-chunk');
+            logger.debug(`[generateChunksInRadius] Checking chunk at (${chunk_x}, ${chunk_y}).`);
+            // Short pause to inspect per-chunk processing if needed. This is a debug helper.
+            maybeDebug('generateChunksInRadius:per-chunk');
             // If the chunk does not already exist in the world, call `ensureChunkExists` to generate it.
             if (!newWorld[chunkKey]) {
                 const result = ensureChunkExists(

@@ -51,6 +51,16 @@ export function createHandleHarvest(context: Partial<ActionHandlerDeps> & Record
         return;
       }
 
+      // Check stamina cost (default 5 stamina per part harvest)
+      const staminaCost = currentPart.staminaCost ?? 5;
+      if ((playerStats.stamina || 0) < staminaCost) {
+        toast({ title: t('cantHarvest'), description: t('cantHarvest_noStamina', { stamina: staminaCost }), variant: 'destructive' });
+        return;
+      }
+
+      // Deduct stamina
+      nextPlayerStats.stamina = (playerStats.stamina || 0) - staminaCost;
+
       // Tool check (basic for MVP, can be extended per-part)
       // For now, if enemy.harvestable defines a tool, use it for any part harvest on that enemy.
       const requiredTool = enemy.harvestable?.requiredTool; // Optional chaining for existing harvestable

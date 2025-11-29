@@ -39,6 +39,7 @@ import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermomet
 import { IconRenderer } from "@/components/ui/icon-renderer";
 import { resolveItemDef } from '@/lib/game/item-utils';
 import { logger } from "@/lib/logger";
+import { PlantInspectionModal } from '@/components/game/plant-inspection-modal';
 
 
 interface GameLayoutProps {
@@ -126,6 +127,20 @@ export default function GameLayout(props: GameLayoutProps) {
         turnRef.current = turn;
     }, [isAnimatingMove, visualMoveTo, visualPlayerPosition, turn]);
 
+    // Open plant inspection modal when playerStats contains an inspectPlantTarget flag
+    useEffect(() => {
+        const target = (playerStats as any)?.inspectPlantTarget;
+        if (!target) return;
+        const chunkKey = target.chunkKey || `${playerPosition.x},${playerPosition.y}`;
+        const chunk = world[chunkKey];
+        if (!chunk) return;
+        const plant = chunk.enemy;
+        if (!plant) return;
+        setInspectedPlant(plant);
+        setPlantInspectionOpen(true);
+        // we intentionally do not clear playerStats.inspectPlantTarget here
+    }, [playerStats, world, playerPosition]);
+
     useEffect(() => {
         try {
             if (!prevAnimatingRefForLayout.current && isAnimatingMove) {
@@ -183,6 +198,8 @@ export default function GameLayout(props: GameLayoutProps) {
     const [customDialogValue, setCustomDialogValue] = useState("");
     const [isPickupDialogOpen, setPickupDialogOpen] = useState(false);
     const [selectedPickupIds, setSelectedPickupIds] = useState<number[]>([]);
+    const [isPlantInspectionOpen, setPlantInspectionOpen] = useState(false);
+    const [inspectedPlant, setInspectedPlant] = useState<any | null>(null);
 
     const customActionInputRef = useRef<HTMLInputElement>(null);
 
@@ -950,6 +967,18 @@ export default function GameLayout(props: GameLayoutProps) {
 
 
                 <StatusPopup open={isStatusOpen} onOpenChange={setStatusOpen} stats={playerStats} onRequestHint={handleRequestQuestHint} onUnequipItem={handleUnequipItem} />
+                <PlantInspectionModal
+                    open={isPlantInspectionOpen}
+                    onOpenChange={(open) => setPlantInspectionOpen(open)}
+                    plant={inspectedPlant ?? undefined}
+                    currentGameTime={turn}
+                    onHarvestPart={(partName: string) => {
+                        const chunk = world[`${playerPosition.x},${playerPosition.y}`];
+                        if (!chunk || !chunk.actions) return;
+                        const act = (chunk.actions || []).find((a: any) => a.textKey === 'harvestAction' && a.params?.partName === partName);
+                        if (act) handleAction(act.id);
+                    }}
+                />
                 {/* Dialog: Pickup items selection */}
                 <Dialog open={isPickupDialogOpen} onOpenChange={setPickupDialogOpen}>
                     <DialogContent className="sm:max-w-md">

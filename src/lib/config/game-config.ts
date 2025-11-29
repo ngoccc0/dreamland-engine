@@ -25,6 +25,18 @@ export interface GameConfig {
         windDropFactor: number;
         /** Base environmental factor applied to plant part growth/drop probabilities. */
         baseEnvironmentalFactor: number;
+        /** Base growth multiplier for plant maturity (0-1). */
+        baseGrowthMultiplier: number;
+        /** Rate of maturity increase per growth event (0-1). */
+        maturityRate: number;
+        /** Nutrition consumed per unit of maturity gained. */
+        nutritionPerMaturity: number;
+        /** Fertilizer consumed per unit of maturity gained. */
+        fertilizerPerMaturity: number;
+        /** Water consumed per unit of maturity gained. */
+        waterPerMaturity: number;
+        /** Fertilizer decay per tick. */
+        fertilizerDecayPerTick: number;
     };
     creature: {
         /** How many ticks between automatic movement checks (lower = more frequent). */
@@ -82,6 +94,12 @@ export const defaultGameConfig: GameConfig = {
         magicAffinityGrowthFactor: 0.1, // Example value
         windDropFactor: 0.05, // Example value
         baseEnvironmentalFactor: 1.0, // Example value
+        baseGrowthMultiplier: 0.05,
+        maturityRate: 0.01,
+        nutritionPerMaturity: 0.1,
+        fertilizerPerMaturity: 0.2,
+        waterPerMaturity: 0.15,
+        fertilizerDecayPerTick: 0.01,
     },
     creature: {
         moveTickInterval: 5,

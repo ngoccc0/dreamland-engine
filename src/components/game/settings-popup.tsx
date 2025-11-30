@@ -423,6 +423,7 @@ function KeyBindingsEditor({ settings, setSettings }: { settings: any; setSettin
                 { key: 'openInventory', label: t('inventoryShort') || 'Inventory' },
                 { key: 'openStatus', label: t('statusShort') || 'Status' },
                 { key: 'openMap', label: t('minimap') || 'Map' },
+                { key: 'openCrafting', label: t('craftingShort') || 'Crafting' },
                 { key: 'pickUp', label: t('pickUpItems') || 'Pick up items' },
                 { key: 'hot1', label: 'Hotkey 1' },
                 { key: 'hot2', label: 'Hotkey 2' },

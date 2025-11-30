@@ -105,6 +105,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
             openInventory: ensureList(kb.openInventory) ?? (defaultSettings as any).keyBindings.openInventory,
             openStatus: ensureList(kb.openStatus) ?? (defaultSettings as any).keyBindings.openStatus,
             openMap: ensureList(kb.openMap) ?? (defaultSettings as any).keyBindings.openMap,
+            openCrafting: ensureList(kb.openCrafting) ?? (defaultSettings as any).keyBindings.openCrafting,
             customAction: ensureList(kb.customAction) ?? (defaultSettings as any).keyBindings.customAction,
           };
         }

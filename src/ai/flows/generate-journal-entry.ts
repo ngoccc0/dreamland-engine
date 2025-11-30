@@ -1,5 +1,3 @@
-
-'use server';
 /**
  * An AI agent for writing daily journal entries from the player's perspective.
  *

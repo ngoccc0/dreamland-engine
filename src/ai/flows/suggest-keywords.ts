@@ -1,6 +1,3 @@
-
-'use server';
-
 /**
  * An AI agent for suggesting creative keywords.
  *

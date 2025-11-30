@@ -1,5 +1,3 @@
-'use server';
-
 import { getTranslatedText } from "@/lib/utils";
 // ai/flows/generate-narrative-flow.ts
 /**

@@ -1,6 +1,3 @@
-
-
-'use server';
 /**
  * An AI agent for dynamically generating new crafting recipes during gameplay.
  *

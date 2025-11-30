@@ -1,5 +1,3 @@
-
-'use server';
 /**
  * An AI agent for dynamically generating new quests after one is completed.
  *

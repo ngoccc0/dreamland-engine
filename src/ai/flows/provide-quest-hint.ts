@@ -1,5 +1,3 @@
-
-'use server';
 /**
  * An AI agent for providing helpful hints for active quests.
  *

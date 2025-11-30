@@ -1,5 +1,3 @@
-
-'use server';
 /**
  * An AI agent for dynamically generating the first step of a new legendary quest.
  *

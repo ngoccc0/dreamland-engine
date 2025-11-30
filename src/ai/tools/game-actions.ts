@@ -1,5 +1,4 @@
 // ai/tools/game-actions.ts
-'use server';
 /**
  * Định nghĩa các công cụ (tools) game logic phía server cho Genkit.
  *

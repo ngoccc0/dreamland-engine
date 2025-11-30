@@ -1,4 +1,3 @@
-'use server';
 /**
  * An AI agent for dynamically fusing items based on player experimentation.
  *

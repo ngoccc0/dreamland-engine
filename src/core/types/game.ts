@@ -109,11 +109,11 @@ import type {
  * @property version - World format version for migrations
  */
 export interface WorldDefinition {
-  [key: string]: any;  // Allow dynamic chunk access by "x,y" key
-  chunks?: Record<string, any>;  // Optional explicit chunks map
-  gameTime?: number;  // Ticks elapsed
-  seed?: number;  // Reproducibility
-  version?: 1;  // Format version
+    [key: string]: any;  // Allow dynamic chunk access by "x,y" key
+    chunks?: Record<string, any>;  // Optional explicit chunks map
+    gameTime?: number;  // Ticks elapsed
+    seed?: number;  // Reproducibility
+    version?: 1;  // Format version
 }
 
 /**

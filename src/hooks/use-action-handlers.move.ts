@@ -1,5 +1,6 @@
 // Extracted move handler.
 import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
+import { AudioActionType } from '@/lib/definitions/audio-events';
 
 export function createHandleMove(context: Partial<ActionHandlerDeps> & Record<string, any>) {
   return (direction: "north" | "south" | "east" | "west") => {
@@ -8,7 +9,7 @@ export function createHandleMove(context: Partial<ActionHandlerDeps> & Record<st
       settings, setPlayerBehaviorProfile, setPlayerPosition, playerStats,
       advanceGameTime, lastMoveRef, pickupBufferRef, getKeywordVariations,
       getEffectiveChunk, generateOfflineNarrative, narrativeLogRef, getTranslatedText,
-      getTemplates, language
+      getTemplates, language, audio
     } = context as any;
 
     if (isLoading || isGameOver) return;
@@ -39,6 +40,11 @@ export function createHandleMove(context: Partial<ActionHandlerDeps> & Record<st
     const actionText = t('wentDirection', { direction: directionText });
     addNarrativeEntry(actionText, 'action');
 
+    // Emit audio for movement
+    if (audio?.playSfxForAction) {
+      audio.playSfxForAction(AudioActionType.PLAYER_MOVE, { biome: nextChunk?.terrain });
+    }
+
     // optimistic placeholder: add a low-detail movement narrative immediately
     const placeholderId = `${Date.now()}-move-${x}-${y}`;
     const movingKey = settings.narrativeLength === 'long' ? 'movingLong' : 'movingShort';
@@ -46,7 +52,7 @@ export function createHandleMove(context: Partial<ActionHandlerDeps> & Record<st
     addNarrativeEntry(placeholderText, 'narrative', placeholderId);
 
     setPlayerPosition({ x, y });
-    try { console.info('[optimistic] setPlayerPosition', { x, y, now: Date.now() }); } catch {}
+    try { console.info('[optimistic] setPlayerPosition', { x, y, now: Date.now() }); } catch { }
 
     const staminaCost = worldSnapshot[nextChunkKey]?.travelCost ?? 1;
 
@@ -160,8 +166,8 @@ export function createHandleMove(context: Partial<ActionHandlerDeps> & Record<st
             const mn = await import('@/lib/game/movement-narrative');
             const conditional = mn.selectMovementNarrative({ chunk: finalChunk, playerStats: newPlayerStats || playerStats, directionText, language, briefSensory });
             if (conditional) { addNarrativeEntry(String(conditional).replace(/\{[^}]+\}/g, '').trim(), 'narrative', placeholderId); return; }
-          } catch {}
-        } catch {}
+          } catch { }
+        } catch { }
         try {
           const loaderMod = await import('@/lib/narrative/loader');
           const orchestrator = await import('@/lib/narrative/runtime-orchestrator');

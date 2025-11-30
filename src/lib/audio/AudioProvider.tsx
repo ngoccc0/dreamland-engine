@@ -1,7 +1,9 @@
 "use client";
 
-import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
-import {BACKGROUND_MUSIC, MENU_MUSIC, SFX, MOOD_TRACK_MAP} from './assets';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { BACKGROUND_MUSIC, MENU_MUSIC, SFX, MOOD_TRACK_MAP } from './assets';
+import type { AudioActionType, AudioEventContext } from '@/lib/definitions/audio-events';
+import { emitAudioEvent } from '@/core/usecases/emit-audio-event';
 
 // Prefer static serving from `public/asset/sound` so browsers can fetch files directly.
 // We copy the repository `asset/sound` into `public/asset/sound` during setup.
@@ -25,6 +27,10 @@ type AudioContextType = {
   stopMusic: () => void;
   pauseMusic: () => void;
   playSfx: (name: string) => void;
+  /** Play SFX for a specific game action (e.g., PLAYER_MOVE, ENEMY_HIT). Applies playback mode filtering. */
+  playSfxForAction: (actionType: AudioActionType, context?: AudioEventContext) => void;
+  /** Emit audio event with full event payload (for testing/logging purposes). */
+  emitAudioEventDirect: (actionType: AudioActionType, context?: AudioEventContext) => void;
   musicVolume: number;
   sfxVolume: number;
   setMusicVolume: (v: number) => void;
@@ -41,7 +47,7 @@ function buildPath(...parts: string[]) {
   return parts.map(p => encodeURI(p)).join('/');
 }
 
-export const AudioProvider: React.FC<{children: React.ReactNode}> = ({children}) => {
+export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const musicRef = useRef<HTMLAudioElement | null>(null);
   const [musicVolume, setMusicVolumeState] = useState<number>(() => {
     try { return Number(localStorage.getItem('dl_music_volume') ?? 0.6); } catch { return 0.6; }
@@ -66,14 +72,14 @@ export const AudioProvider: React.FC<{children: React.ReactNode}> = ({children})
   const nextTrackTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
-    try { localStorage.setItem('dl_music_volume', String(musicVolume)); } catch {}
+    try { localStorage.setItem('dl_music_volume', String(musicVolume)); } catch { }
     if (musicRef.current) musicRef.current.volume = muted ? 0 : musicVolume;
   }, [musicVolume, muted]);
 
-  useEffect(() => { try { localStorage.setItem('dl_sfx_volume', String(sfxVolume)); } catch {} }, [sfxVolume]);
-  useEffect(() => { try { localStorage.setItem('dl_muted', muted ? '1' : '0'); } catch {} }, [muted]);
-  useEffect(() => { try { localStorage.setItem('dl_playback_mode', playbackMode); } catch {} }, [playbackMode]);
-  useEffect(() => { try { localStorage.setItem('dl_playback_interval_minutes', String(playbackIntervalMinutes)); } catch {} }, [playbackIntervalMinutes]);
+  useEffect(() => { try { localStorage.setItem('dl_sfx_volume', String(sfxVolume)); } catch { } }, [sfxVolume]);
+  useEffect(() => { try { localStorage.setItem('dl_muted', muted ? '1' : '0'); } catch { } }, [muted]);
+  useEffect(() => { try { localStorage.setItem('dl_playback_mode', playbackMode); } catch { } }, [playbackMode]);
+  useEffect(() => { try { localStorage.setItem('dl_playback_interval_minutes', String(playbackIntervalMinutes)); } catch { } }, [playbackIntervalMinutes]);
 
   const playMusic = useCallback((track?: string) => {
     const list = [...BACKGROUND_MUSIC, ...MENU_MUSIC];
@@ -85,8 +91,8 @@ export const AudioProvider: React.FC<{children: React.ReactNode}> = ({children})
     const full = buildPath(AUDIO_BASE, folder, chosen);
     // stop and cleanup previous audio
     if (musicRef.current) {
-      try { musicRef.current.pause(); } catch {}
-      try { musicRef.current.src = ''; } catch {}
+      try { musicRef.current.pause(); } catch { }
+      try { musicRef.current.src = ''; } catch { }
       musicRef.current = null;
     }
 
@@ -110,13 +116,15 @@ export const AudioProvider: React.FC<{children: React.ReactNode}> = ({children})
       // when the track ends, schedule next after 5s
       audio.loop = false;
       audio.onended = () => {
-        try { nextTrackTimeoutRef.current = window.setTimeout(() => {
-          // pick next background music (rotate through list)
-          const available = BACKGROUND_MUSIC.length ? BACKGROUND_MUSIC : [chosen];
-          const idx = available.indexOf(chosen);
-          const next = available[(idx + 1) % available.length] ?? available[0];
-          playMusic(next);
-        }, 5000); } catch{}
+        try {
+          nextTrackTimeoutRef.current = window.setTimeout(() => {
+            // pick next background music (rotate through list)
+            const available = BACKGROUND_MUSIC.length ? BACKGROUND_MUSIC : [chosen];
+            const idx = available.indexOf(chosen);
+            const next = available[(idx + 1) % available.length] ?? available[0];
+            playMusic(next);
+          }, 5000);
+        } catch { }
       };
     } else {
       // for 'off' and 'occasional', keep music looping when played directly
@@ -125,7 +133,7 @@ export const AudioProvider: React.FC<{children: React.ReactNode}> = ({children})
     }
 
     // Play and ignore rejection here; autoplay detection handled elsewhere.
-    audio.play().catch(()=>{});
+    audio.play().catch(() => { });
     musicRef.current = audio;
     setCurrentTrack(chosen);
   }, [musicVolume, muted]);
@@ -174,7 +182,7 @@ export const AudioProvider: React.FC<{children: React.ReactNode}> = ({children})
           const idx = Math.floor(Math.random() * BACKGROUND_MUSIC.length);
           playMusic(BACKGROUND_MUSIC[idx]);
         }, ms);
-      } catch {}
+      } catch { }
     }
 
     return () => {
@@ -185,7 +193,7 @@ export const AudioProvider: React.FC<{children: React.ReactNode}> = ({children})
 
   const stopMusic = useCallback(() => {
     if (musicRef.current) {
-      try { musicRef.current.pause(); } catch {}
+      try { musicRef.current.pause(); } catch { }
       musicRef.current = null;
       setCurrentTrack(undefined);
     }
@@ -193,7 +201,7 @@ export const AudioProvider: React.FC<{children: React.ReactNode}> = ({children})
 
   const pauseMusic = useCallback(() => {
     if (musicRef.current) {
-      try { musicRef.current.pause(); } catch {}
+      try { musicRef.current.pause(); } catch { }
     }
   }, []);
 
@@ -207,8 +215,43 @@ export const AudioProvider: React.FC<{children: React.ReactNode}> = ({children})
     a.volume = muted ? 0 : sfxVolume;
     a.preload = 'auto';
     // allow overlapping sfx by not reusing element
-    a.play().catch(()=>{});
+    a.play().catch(() => { });
   }, [sfxVolume, muted]);
+
+  /**
+   * Play sound effect for a specific game action.
+   * Automatically resolves SFX file(s) from audio-events registry and applies playback mode filtering.
+   * 
+   * @param actionType - The action type (e.g., PLAYER_MOVE, ENEMY_HIT)
+   * @param context - Optional context for SFX resolution (e.g., biome for footsteps, rarity for pickups)
+   */
+  const playSfxForAction = useCallback((actionType: AudioActionType, context?: AudioEventContext) => {
+    const payload = emitAudioEvent(actionType, context || {}, playbackMode);
+    if (!payload) return; // filtered by playback mode
+
+    // Randomly select one SFX file from the array
+    const sfxFile = payload.sfxFiles[Math.floor(Math.random() * payload.sfxFiles.length)];
+    if (sfxFile) {
+      playSfx(sfxFile);
+    }
+  }, [playbackMode, playSfx]);
+
+  /**
+   * Direct audio event emission (mainly for testing/debugging).
+   * Returns the resolved audio event payload before playback.
+   * 
+   * @param actionType - The action type
+   * @param context - Optional context for SFX resolution
+   */
+  const emitAudioEventDirect = useCallback((actionType: AudioActionType, context?: AudioEventContext) => {
+    const payload = emitAudioEvent(actionType, context || {}, playbackMode);
+    if (payload) {
+      const sfxFile = payload.sfxFiles[Math.floor(Math.random() * payload.sfxFiles.length)];
+      if (sfxFile) {
+        playSfx(sfxFile);
+      }
+    }
+  }, [playbackMode, playSfx]);
 
   const setMusicVolume = useCallback((v: number) => setMusicVolumeState(Math.max(0, Math.min(1, v))), []);
   const setSfxVolume = useCallback((v: number) => setSfxVolumeState(Math.max(0, Math.min(1, v))), []);
@@ -226,8 +269,8 @@ export const AudioProvider: React.FC<{children: React.ReactNode}> = ({children})
         return a;
       });
       // keep them briefly in memory
-      const t = setTimeout(() => { preload.forEach(p => { try { p.src = ''; } catch {} }); }, 5000);
-      return () => { clearTimeout(t); preload.forEach(p => { try { p.src = ''; } catch {} }); };
+      const t = setTimeout(() => { preload.forEach(p => { try { p.src = ''; } catch { } }); }, 5000);
+      return () => { clearTimeout(t); preload.forEach(p => { try { p.src = ''; } catch { } }); };
     } catch { /* ignore */ }
   }, []);
 
@@ -246,12 +289,12 @@ export const AudioProvider: React.FC<{children: React.ReactNode}> = ({children})
         temp.play().then(() => {
           // autoplay allowed: play via provider to keep state consistent
           playMenuMusic();
-          try { temp.src = ''; } catch {}
+          try { temp.src = ''; } catch { }
         }).catch(() => {
           // autoplay blocked: persist opt-out so we don't keep retrying
           setAutoplayBlocked(true);
-          try { localStorage.setItem('dl_auto_menu', '0'); } catch {}
-          try { temp.src = ''; } catch {}
+          try { localStorage.setItem('dl_auto_menu', '0'); } catch { }
+          try { temp.src = ''; } catch { }
         });
       } catch {
         // ignore
@@ -271,12 +314,12 @@ export const AudioProvider: React.FC<{children: React.ReactNode}> = ({children})
       temp.volume = muted ? 0 : musicVolume;
       temp.loop = true;
       temp.play().then(() => {
-        try { localStorage.setItem('dl_auto_menu', '1'); } catch {}
+        try { localStorage.setItem('dl_auto_menu', '1'); } catch { }
         playMenuMusic();
-        try { temp.src = ''; } catch {}
+        try { temp.src = ''; } catch { }
       }).catch(() => {
         setAutoplayBlocked(true);
-        try { temp.src = ''; } catch {}
+        try { temp.src = ''; } catch { }
       });
     } catch {
       setAutoplayBlocked(true);
@@ -297,6 +340,8 @@ export const AudioProvider: React.FC<{children: React.ReactNode}> = ({children})
     stopMusic,
     pauseMusic,
     playSfx,
+    playSfxForAction,
+    emitAudioEventDirect,
     musicVolume,
     sfxVolume,
     setMusicVolume,

@@ -11,8 +11,8 @@
  *
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
 import { EnemySchema, PlayerItemSchema, ChunkItemSchema, ItemDefinitionSchema, PetSchema } from '@/ai/schemas';
 import { allTerrains } from '@/core/types/game';
@@ -140,7 +140,7 @@ export const playerAttackTool = ai.defineTool({
             damageMultiplier = 1.0;
             break;
     }
-    
+
     if (damageMultiplier > 0) {
         let playerDamageModifier = 1.0;
         if (lightLevel !== undefined && lightLevel < -3) {
@@ -157,7 +157,7 @@ export const playerAttackTool = ai.defineTool({
 
         playerDamage = Math.round(playerBaseDamage * damageMultiplier * playerDamageModifier);
     }
-    
+
     const finalEnemyHp = Math.max(0, enemy.hp - playerDamage);
     const enemyDefeated = finalEnemyHp <= 0;
     let lootDrops: ChunkItem[] | undefined = undefined;
@@ -166,12 +166,12 @@ export const playerAttackTool = ai.defineTool({
         combatLogParts.push(`Player dealt ${playerDamage} damage.`);
         if (successLevel === 'CriticalSuccess') combatLogParts.push('Critical Hit!');
     }
-    
+
     if (enemyDefeated) {
         // Fix: Explicitly type templates and access it correctly
         const templates = getTemplates(playerStatus.language || 'en');
         const terrainKey = terrain as Terrain; // Assert terrain type
-        const enemyTemplate = (templates[terrainKey] as { enemies: { data: { type: TranslatableString, loot?: any[] } }[] })?.enemies.find((e: any) => 
+        const enemyTemplate = (templates[terrainKey] as { enemies: { data: { type: TranslatableString, loot?: any[] } }[] })?.enemies.find((e: any) =>
             getTranslatedText(e.data.type ?? '', playerStatus.language || 'en') === getTranslatedText(enemy.type ?? '', playerStatus.language || 'en')
         );
 
@@ -195,11 +195,11 @@ export const playerAttackTool = ai.defineTool({
                 }
             }
             if (drops.length > 0) {
-                    lootDrops = drops;
-                    combatLogParts.push(`Enemy dropped ${drops.map(d => `${d.quantity} ${getTranslatedText(d.name, playerStatus.language || 'en')}`).join(', ')}.`);
+                lootDrops = drops;
+                combatLogParts.push(`Enemy dropped ${drops.map(d => `${d.quantity} ${getTranslatedText(d.name, playerStatus.language || 'en')}`).join(', ')}.`);
             }
         }
-        
+
         return {
             playerDamageDealt: playerDamage,
             enemyDamageDealt: 0,
@@ -211,10 +211,10 @@ export const playerAttackTool = ai.defineTool({
             lootDrops,
         };
     }
-    
+
     let fled = false;
     let enemyDamage = 0;
-    
+
     const shouldFlee = enemy.behavior === 'passive' || (successLevel === 'CriticalSuccess' && enemy.size === 'small');
 
     if (shouldFlee) {
@@ -231,10 +231,10 @@ export const playerAttackTool = ai.defineTool({
         }
         enemyDamage = Math.round(enemy.damage * enemyDamageModifier);
         if (enemyDamage > 0) {
-                combatLogParts.push(`Enemy retaliated for ${enemyDamage} damage.`);
+            combatLogParts.push(`Enemy retaliated for ${enemyDamage} damage.`);
         }
     }
-    
+
     const finalPlayerHp = Math.max(0, playerStatus.hp - enemyDamage);
 
     return {
@@ -287,16 +287,16 @@ export const takeItemTool = ai.defineTool({
 }, async ({ itemToTake, currentChunkItems, playerInventory }) => {
     const updatedChunkItems = currentChunkItems.filter(i => getTranslatedText(i.name, 'en') !== getTranslatedText(itemToTake.name, 'en')); // Use 'en' for filtering consistency if internal
     const updatedPlayerInventory = [...playerInventory];
-    
+
     // Fix: Use getTranslatableStringValue for comparison
     const existingItem = updatedPlayerInventory.find(i => getTranslatedText(i.name, 'en') === getTranslatedText(itemToTake.name, 'en'));
-    
+
     if (existingItem) {
         existingItem.quantity += itemToTake.quantity;
     } else {
-        updatedPlayerInventory.push({ 
+        updatedPlayerInventory.push({
             name: ensureTranslatableString(itemToTake.name), // FIX: Ensure name is TranslatableString
-            quantity: itemToTake.quantity, 
+            quantity: itemToTake.quantity,
             tier: itemToTake.tier,
             emoji: itemToTake.emoji,
         });
@@ -356,11 +356,11 @@ export const useItemTool = ai.defineTool({
 
     // Fix: Use resolveItemDef to access item definitions (prefer custom, fall back to master)
     const itemDef = resolveItemDef(getTranslatedText(newStatus.items[itemIndex].name, playerStatus.language || 'en'), customItemDefinitions);
-    
+
     if (!itemDef) {
         return { updatedPlayerStatus: playerStatus, wasUsed: false, effectDescription: 'Item has no defined effect.' };
     }
-    
+
     const effectDescriptions: string[] = [];
     // Fix: Explicitly type 'effect'
     itemDef.effects.forEach((effect: typeof ItemDefinitionSchema._type['effects'][number]) => {
@@ -394,11 +394,11 @@ export const useItemTool = ai.defineTool({
     if (newStatus.items[itemIndex].quantity <= 0) {
         newStatus.items.splice(itemIndex, 1);
     }
-    
-    return { 
-        updatedPlayerStatus: newStatus, 
-        wasUsed: true, 
-        effectDescription: effectDescriptions.join(' ') 
+
+    return {
+        updatedPlayerStatus: newStatus,
+        wasUsed: true,
+        effectDescription: effectDescriptions.join(' ')
     };
 });
 
@@ -472,28 +472,28 @@ export const tameEnemyTool = ai.defineTool({
             log: `The ${getTranslatedText(enemy.type ?? '', playerStatus.language || 'en')} is not interested in the ${itemName ?? ''}.`
         };
     }
-    
+
     newStatus.items[itemIndex].quantity -= 1;
     if (newStatus.items[itemIndex].quantity <= 0) {
         newStatus.items.splice(itemIndex, 1);
     }
-    
+
     const newEnemyState = { ...enemy };
-        // Fix: Provide default values for satiation and maxSatiation if they are undefined
+    // Fix: Provide default values for satiation and maxSatiation if they are undefined
     newEnemyState.satiation = Math.min((newEnemyState.satiation ?? 0) + 1, (newEnemyState.maxSatiation ?? 1));
 
-    const baseTameChance = 0.1; 
-    const satiationBonus = ((newEnemyState.satiation ?? 0) / (newEnemyState.maxSatiation ?? 1)) * 0.4; 
-    const healthPenalty = (newEnemyState.hp / 100) * 0.2; 
+    const baseTameChance = 0.1;
+    const satiationBonus = ((newEnemyState.satiation ?? 0) / (newEnemyState.maxSatiation ?? 1)) * 0.4;
+    const healthPenalty = (newEnemyState.hp / 100) * 0.2;
     const tamingChance = baseTameChance + satiationBonus - healthPenalty;
 
     if (Math.random() < tamingChance) {
         const newPet: Pet = {
             // FIX: Use ensureTranslatableString to correctly assign enemy.type with type assertion
-            type: ensureTranslatableString(enemy.type as TranslatableString), 
+            type: ensureTranslatableString(enemy.type as TranslatableString),
             level: 1,
         };
-        
+
         if (!newStatus.pets) {
             newStatus.pets = [];
         }
@@ -503,7 +503,7 @@ export const tameEnemyTool = ai.defineTool({
             wasTamed: true,
             itemConsumed: true,
             updatedPlayerStatus: newStatus,
-            updatedEnemy: null, 
+            updatedEnemy: null,
             newPet: newPet,
             log: `The ${getTranslatedText(enemy.type ?? '', playerStatus.language || 'en')} ate the ${itemName ?? ''}. Taming was successful!`
         };
@@ -586,7 +586,7 @@ export const useSkillTool = ai.defineTool({
                 newPlayerStatus.hp = Math.max(0, newPlayerStatus.hp - backfireDamage);
                 log = `Skill backfired! Your healing spell inflicts ${backfireDamage} damage on you instead.`;
             } else if (skillToUse.effect.type === 'DAMAGE') {
-                    const backfireDamage = Math.round(skillToUse.effect.amount * 0.5);
+                const backfireDamage = Math.round(skillToUse.effect.amount * 0.5);
                 newPlayerStatus.hp = Math.max(0, newPlayerStatus.hp - backfireDamage);
                 log = `Skill backfired! The fireball explodes in your hand, dealing ${backfireDamage} damage.`;
             }
@@ -634,7 +634,7 @@ export const useSkillTool = ai.defineTool({
                     newEnemy.hp = Math.max(0, newEnemy.hp - finalDamage);
                     // FIX: Add type assertion for skillToUse.name.
                     log = `Used ${getTranslatableStringValue(skillToUse.name as TranslatableString, playerStatus.language || 'en')}, dealing ${finalDamage} magic damage to the ${getTranslatableStringValue(newEnemy.type, playerStatus.language || 'en')}.`;
-                        if (successLevel === 'GreatSuccess') log += ' The fireball flies faster and more accurately, dealing extra damage.';
+                    if (successLevel === 'GreatSuccess') log += ' The fireball flies faster and more accurately, dealing extra damage.';
                     // FIX: Add type assertion for skillToUse.name.
                     if (successLevel === 'CriticalSuccess') log = `A magical CRITICAL HIT! Your ${getTranslatableStringValue(skillToUse.name as TranslatableString, playerStatus.language || 'en')} explodes violently, dealing a devastating ${finalDamage} damage to the ${getTranslatableStringValue(newEnemy.type, playerStatus.language || 'en')}.`;
 
@@ -700,12 +700,12 @@ export const completeQuestTool = ai.defineTool({
     outputSchema: CompleteQuestOutputSchema
 }, async ({ questText, playerStatus }) => {
     const possibleRewards: PlayerItem[] = [
-        { name: {en: 'Minor Healing Potion', vi: 'Thuốc Máu Yếu'}, quantity: 2, tier: 1, emoji: '🧪' },
-        { name: {en: 'Sharpening Stone', vi: 'Đá Mài'}, quantity: 1, tier: 2, emoji: '🔪' },
-        { name: {en: 'Bone Powder', vi: 'Bột Xương'}, quantity: 3, tier: 2, emoji: '💀' },
-        { name: {en: 'Magic Dust', vi: 'Cát Ma Thuật'}, quantity: 1, tier: 4, emoji: '✨'},
+        { name: { en: 'Minor Healing Potion', vi: 'Thuốc Máu Yếu' }, quantity: 2, tier: 1, emoji: '🧪' },
+        { name: { en: 'Sharpening Stone', vi: 'Đá Mài' }, quantity: 1, tier: 2, emoji: '🔪' },
+        { name: { en: 'Bone Powder', vi: 'Bột Xương' }, quantity: 3, tier: 2, emoji: '💀' },
+        { name: { en: 'Magic Dust', vi: 'Cát Ma Thuật' }, quantity: 1, tier: 4, emoji: '✨' },
     ];
-    
+
     const rewardItems: PlayerItem[] = [];
     const numberOfRewards = getRandomInRange({ min: 1, max: 2 });
 

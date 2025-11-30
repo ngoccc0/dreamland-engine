@@ -1,5 +1,5 @@
-import {useMemo} from 'react';
-import {useAudioContext} from './AudioProvider';
+import { useMemo } from 'react';
+import { useAudioContext } from './AudioProvider';
 
 export function useAudio() {
   const ctx = useAudioContext();
@@ -17,6 +17,8 @@ export function useAudio() {
     stopMusic: ctx.stopMusic,
     pauseMusic: ctx.pauseMusic,
     playSfx: ctx.playSfx,
+    playSfxForAction: ctx.playSfxForAction,
+    emitAudioEventDirect: ctx.emitAudioEventDirect,
     setMusicVolume: ctx.setMusicVolume,
     setSfxVolume: ctx.setSfxVolume,
     musicVolume: ctx.musicVolume,

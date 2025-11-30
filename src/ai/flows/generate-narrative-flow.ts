@@ -13,21 +13,21 @@ import { getTranslatedText } from "@/lib/utils";
  * - `GenerateNarrativeOutput`: Zod schema cho phản hồi AI có cấu trúc.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'zod';
+import { ai } from '@/ai/genkit';
+import { z } from 'zod';
 import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema, GeneratedItemSchema, NpcSchema } from '@/ai/schemas';
 
 import { LanguageEnum as Language } from '@/lib/i18n'; // Import Language enum
 
 // SỬA: Import các schema đã đặt tên và các tool từ game-actions.ts
-import { 
-  playerAttackTool, PlayerAttackOutputSchema, 
-  takeItemTool, TakeItemOutputSchema, 
-  useItemTool, UseItemOutputSchema, 
-  tameEnemyTool, TameEnemyOutputSchema, 
-  useSkillTool, UseSkillOutputSchema, 
-  completeQuestTool, CompleteQuestInputSchema, CompleteQuestOutputSchema, 
-  startQuestTool, StartQuestOutputSchema 
+import {
+    playerAttackTool, PlayerAttackOutputSchema,
+    takeItemTool, TakeItemOutputSchema,
+    useItemTool, UseItemOutputSchema,
+    tameEnemyTool, TameEnemyOutputSchema,
+    useSkillTool, UseSkillOutputSchema,
+    completeQuestTool, CompleteQuestInputSchema, CompleteQuestOutputSchema,
+    startQuestTool, StartQuestOutputSchema
 } from '@/ai/tools/game-actions';
 
 import { generateNewQuest } from './generate-new-quest';
@@ -62,19 +62,19 @@ const SuccessLevelSchema = z.enum(['CriticalFailure', 'Failure', 'Success', 'Gre
  * @property {z.enum} narrativeLength - Độ dài mong muốn cho phản hồi kể chuyện.
  */
 export const GenerateNarrativeInputSchema = z.object({
-  worldName: z.string().describe("The name of the game world."),
-  playerAction: z.string().describe("The action the player just performed. E.g., 'move north', 'attack wolf', 'explore area', 'pick up Healing Herb', 'use Heal', 'give wolf fang to hunter'."),
-  playerStatus: PlayerStatusSchema.describe("The player's current status (HP, items, skills, etc.)."),
-  currentChunk: ChunkSchema.describe("The detailed attributes of the map tile the player is currently on. This includes dynamic weather effects and rich NPC data."),
-  surroundingChunks: z.array(ChunkSchema).optional().describe("A 3x3 grid of chunks around the player for environmental context, especially for long narratives."),
-  recentNarrative: z.array(z.string()).describe("The last few entries from the narrative log to provide conversational context."),
-  language: z.nativeEnum(Language).describe("The language for the generated content (e.g., 'en', 'vi')."),
-  diceRoll: z.number().describe("The result of the dice roll."),
-  diceType: z.string().describe("The type of dice used (e.g., 'd20', '2d6')."),
-  diceRange: z.string().describe("The possible range of the dice roll (e.g., '1-20', '2-12')."),
-  successLevel: SuccessLevelSchema.describe("The categorized outcome of the dice roll."),
-  customItemDefinitions: z.record(ItemDefinitionSchema).optional().describe("A map of AI-generated item definitions for the current game session."),
-  aiModel: z.enum(['balanced', 'creative', 'fast', 'quality']).describe("The AI model preference for generation."),
+    worldName: z.string().describe("The name of the game world."),
+    playerAction: z.string().describe("The action the player just performed. E.g., 'move north', 'attack wolf', 'explore area', 'pick up Healing Herb', 'use Heal', 'give wolf fang to hunter'."),
+    playerStatus: PlayerStatusSchema.describe("The player's current status (HP, items, skills, etc.)."),
+    currentChunk: ChunkSchema.describe("The detailed attributes of the map tile the player is currently on. This includes dynamic weather effects and rich NPC data."),
+    surroundingChunks: z.array(ChunkSchema).optional().describe("A 3x3 grid of chunks around the player for environmental context, especially for long narratives."),
+    recentNarrative: z.array(z.string()).describe("The last few entries from the narrative log to provide conversational context."),
+    language: z.nativeEnum(Language).describe("The language for the generated content (e.g., 'en', 'vi')."),
+    diceRoll: z.number().describe("The result of the dice roll."),
+    diceType: z.string().describe("The type of dice used (e.g., 'd20', '2d6')."),
+    diceRange: z.string().describe("The possible range of the dice roll (e.g., '1-20', '2-12')."),
+    successLevel: SuccessLevelSchema.describe("The categorized outcome of the dice roll."),
+    customItemDefinitions: z.record(ItemDefinitionSchema).optional().describe("A map of AI-generated item definitions for the current game session."),
+    aiModel: z.enum(['balanced', 'creative', 'fast', 'quality']).describe("The AI model preference for generation."),
     // Include 'detailed' to match engine types (some callers request a more
     // verbose 'detailed' response). Kept in the allowed set for backward
     // compatibility with existing saved settings.
@@ -97,25 +97,25 @@ export type GenerateNarrativeInput = z.infer<typeof GenerateNarrativeInputSchema
  * @property {GeneratedItemSchema} [newlyGeneratedItem] - Một vật phẩm mới được tạo ra để thêm lặng lẽ vào danh mục vật phẩm chính của thế giới.
  */
 export type GenerateNarrativeOutput = {
-  narrative: string;
-  updatedChunk?: {
-    description?: string;
-    items?: z.infer<typeof ChunkItemSchema>[];
-    NPCs?: z.infer<typeof NpcSchema>[];
-    enemy?: z.infer<typeof EnemySchema> | null;
-    structures?: any[];
-  };
-  updatedPlayerStatus?: {
-    items?: z.infer<typeof PlayerItemSchema>[];
-    quests?: string[];
-    questsCompleted?: number;
-    hp?: number;
-    mana?: number;
-    stamina?: number;
-    pets?: any[];
-  };
-  systemMessage?: string;
-  newlyGeneratedItem?: z.infer<typeof GeneratedItemSchema>;
+    narrative: string;
+    updatedChunk?: {
+        description?: string;
+        items?: z.infer<typeof ChunkItemSchema>[];
+        NPCs?: z.infer<typeof NpcSchema>[];
+        enemy?: z.infer<typeof EnemySchema> | null;
+        structures?: any[];
+    };
+    updatedPlayerStatus?: {
+        items?: z.infer<typeof PlayerItemSchema>[];
+        quests?: string[];
+        questsCompleted?: number;
+        hp?: number;
+        mana?: number;
+        stamina?: number;
+        pets?: any[];
+    };
+    systemMessage?: string;
+    newlyGeneratedItem?: z.infer<typeof GeneratedItemSchema>;
 };
 
 
@@ -177,7 +177,7 @@ const modelMap: Record<AiModel, string> = {
  */
 export async function generateNarrative(input: GenerateNarrativeInput): Promise<GenerateNarrativeOutput> {
     const preferredModel = modelMap[input.aiModel] || modelMap.balanced;
-    
+
     const modelsToTry = [
         preferredModel,
         'googleai/gemini-2.0-flash',
@@ -186,7 +186,7 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
         'googleai/gemini-1.5-pro',
     ];
     const uniqueModelsToTry = [...new Set(modelsToTry)];
-    
+
     let llmResponse;
     let lastError: any;
 
@@ -207,196 +207,196 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
                 tools: [playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool, completeQuestTool, startQuestTool],
             });
             console.log(`[generateNarrative] SUCCESS with ${model}.`);
-            break; 
+            break;
         } catch (error: any) {
             lastError = error;
             console.warn(`[generateNarrative] Model '${model}' failed. Trying next... Error: ${error.message}`);
         }
     }
-  
+
     if (!llmResponse) {
-      console.error("All AI models failed for narrative generation.", lastError);
-      throw lastError || new Error("All models for narrative generation failed to generate a response.");
+        console.error("All AI models failed for narrative generation.", lastError);
+        throw lastError || new Error("All models for narrative generation failed to generate a response.");
     }
 
-  const finalOutput: GenerateNarrativeOutput = {
-    narrative: llmResponse.output?.narrative || 'An unexpected silence fills the air.',
-    systemMessage: llmResponse.output?.systemMessage,
-  };
+    const finalOutput: GenerateNarrativeOutput = {
+        narrative: llmResponse.output?.narrative || 'An unexpected silence fills the air.',
+        systemMessage: llmResponse.output?.systemMessage,
+    };
 
-  const toolCalls: Array<{ tool: string; input: any; output: any }> = (llmResponse as any).metadata?.toolCalls || [];
+    const toolCalls: Array<{ tool: string; input: any; output: any }> = (llmResponse as any).metadata?.toolCalls || [];
 
-  if (toolCalls && toolCalls.length > 0) {
-      if (toolCalls.length > 1) {
-          const completedQuestCall = toolCalls.find((call) => call.tool === 'completeQuest');
-          const startQuestCall = toolCalls.find((call) => call.tool === 'startQuest');
+    if (toolCalls && toolCalls.length > 0) {
+        if (toolCalls.length > 1) {
+            const completedQuestCall = toolCalls.find((call) => call.tool === 'completeQuest');
+            const startQuestCall = toolCalls.find((call) => call.tool === 'startQuest');
 
-          if (completedQuestCall && startQuestCall) {
-              const completedQuestText = (completedQuestCall.input as z.infer<typeof CompleteQuestInputSchema>).questText;
-              const newQuestText = (startQuestCall.output as z.infer<typeof StartQuestOutputSchema>).questStarted;
+            if (completedQuestCall && startQuestCall) {
+                const completedQuestText = (completedQuestCall.input as z.infer<typeof CompleteQuestInputSchema>).questText;
+                const newQuestText = (startQuestCall.output as z.infer<typeof StartQuestOutputSchema>).questStarted;
 
-              let currentQuests = input.playerStatus.quests || [];
-              currentQuests = currentQuests.filter(q => q !== completedQuestText);
-              if (!currentQuests.includes(newQuestText)) {
-                currentQuests.push(newQuestText);
-              }
-              
-              finalOutput.updatedPlayerStatus = { 
-                  ...finalOutput.updatedPlayerStatus,
-                  quests: currentQuests,
-              };
-          }
-      }
-
-      const toolCall = toolCalls[0];
-      const toolOutput = toolCall.output;
-
-      if (toolCall.tool === 'playerAttack') {
-          const result = toolOutput as z.infer<typeof PlayerAttackOutputSchema>;
-          finalOutput.updatedPlayerStatus = { hp: result.finalPlayerHp };
-          
-          const shouldRemoveEnemy = result.enemyDefeated || result.fled;
-          const newEnemyState = shouldRemoveEnemy ? null : (input.currentChunk.enemy ? { ...input.currentChunk.enemy, hp: result.finalEnemyHp } : null);
-          finalOutput.updatedChunk = { enemy: newEnemyState };
-
-          if (result.lootDrops && result.lootDrops.length > 0) {
-                        const currentItems = (finalOutput.updatedChunk?.items as z.infer<typeof ChunkItemSchema>[] | undefined) || (input.currentChunk.items as z.infer<typeof ChunkItemSchema>[] | undefined) || [];
-                        const newItemsMap = new Map<string, z.infer<typeof ChunkItemSchema>>(); 
-            // Sử dụng getTranslatedText để lấy tên item, nhận cả key dịch và inline translation
-                        currentItems.forEach((item: z.infer<typeof ChunkItemSchema>) => {
-                                const itemName = getTranslatedText(item.name, Language.en) || getTranslatedText(item.name, Language.vi) || '';
-                                newItemsMap.set(itemName, { ...item });
-                        });
-            result.lootDrops?.forEach((droppedItem) => {
-                const itemName = getTranslatedText(droppedItem.name, Language.en) || getTranslatedText(droppedItem.name, Language.vi) || '';
-                const existingItem = newItemsMap.get(itemName);
-                if (existingItem) {
-                    existingItem.quantity += droppedItem.quantity;
-                } else {
-                    newItemsMap.set(itemName, droppedItem as z.infer<typeof ChunkItemSchema>);
+                let currentQuests = input.playerStatus.quests || [];
+                currentQuests = currentQuests.filter(q => q !== completedQuestText);
+                if (!currentQuests.includes(newQuestText)) {
+                    currentQuests.push(newQuestText);
                 }
-            });
-            finalOutput.updatedChunk = { ...finalOutput.updatedChunk, items: Array.from(newItemsMap.values()) };
-          }
 
-      } else if (toolCall.tool === 'takeItem') {
-          const result = toolOutput as z.infer<typeof TakeItemOutputSchema>;
-          finalOutput.updatedPlayerStatus = { items: result.updatedPlayerInventory };
-          finalOutput.updatedChunk = { items: result.updatedChunkItems };
-      } else if (toolCall.tool === 'useItem') {
-          const result = toolOutput as z.infer<typeof UseItemOutputSchema>;
-          if (result.wasUsed) {
+                finalOutput.updatedPlayerStatus = {
+                    ...finalOutput.updatedPlayerStatus,
+                    quests: currentQuests,
+                };
+            }
+        }
+
+        const toolCall = toolCalls[0];
+        const toolOutput = toolCall.output;
+
+        if (toolCall.tool === 'playerAttack') {
+            const result = toolOutput as z.infer<typeof PlayerAttackOutputSchema>;
+            finalOutput.updatedPlayerStatus = { hp: result.finalPlayerHp };
+
+            const shouldRemoveEnemy = result.enemyDefeated || result.fled;
+            const newEnemyState = shouldRemoveEnemy ? null : (input.currentChunk.enemy ? { ...input.currentChunk.enemy, hp: result.finalEnemyHp } : null);
+            finalOutput.updatedChunk = { enemy: newEnemyState };
+
+            if (result.lootDrops && result.lootDrops.length > 0) {
+                const currentItems = (finalOutput.updatedChunk?.items as z.infer<typeof ChunkItemSchema>[] | undefined) || (input.currentChunk.items as z.infer<typeof ChunkItemSchema>[] | undefined) || [];
+                const newItemsMap = new Map<string, z.infer<typeof ChunkItemSchema>>();
+                // Sử dụng getTranslatedText để lấy tên item, nhận cả key dịch và inline translation
+                currentItems.forEach((item: z.infer<typeof ChunkItemSchema>) => {
+                    const itemName = getTranslatedText(item.name, Language.en) || getTranslatedText(item.name, Language.vi) || '';
+                    newItemsMap.set(itemName, { ...item });
+                });
+                result.lootDrops?.forEach((droppedItem) => {
+                    const itemName = getTranslatedText(droppedItem.name, Language.en) || getTranslatedText(droppedItem.name, Language.vi) || '';
+                    const existingItem = newItemsMap.get(itemName);
+                    if (existingItem) {
+                        existingItem.quantity += droppedItem.quantity;
+                    } else {
+                        newItemsMap.set(itemName, droppedItem as z.infer<typeof ChunkItemSchema>);
+                    }
+                });
+                finalOutput.updatedChunk = { ...finalOutput.updatedChunk, items: Array.from(newItemsMap.values()) };
+            }
+
+        } else if (toolCall.tool === 'takeItem') {
+            const result = toolOutput as z.infer<typeof TakeItemOutputSchema>;
+            finalOutput.updatedPlayerStatus = { items: result.updatedPlayerInventory };
+            finalOutput.updatedChunk = { items: result.updatedChunkItems };
+        } else if (toolCall.tool === 'useItem') {
+            const result = toolOutput as z.infer<typeof UseItemOutputSchema>;
+            if (result.wasUsed) {
+                finalOutput.updatedPlayerStatus = result.updatedPlayerStatus as GenerateNarrativeOutput['updatedPlayerStatus'];
+            }
+        } else if (toolCall.tool === 'tameEnemy') {
+            const result = toolOutput as z.infer<typeof TameEnemyOutputSchema>;
             finalOutput.updatedPlayerStatus = result.updatedPlayerStatus as GenerateNarrativeOutput['updatedPlayerStatus'];
-          }
-      } else if (toolCall.tool === 'tameEnemy') {
-          const result = toolOutput as z.infer<typeof TameEnemyOutputSchema>;
-          finalOutput.updatedPlayerStatus = result.updatedPlayerStatus as GenerateNarrativeOutput['updatedPlayerStatus'];
-          finalOutput.updatedChunk = { enemy: result.updatedEnemy }; 
-      } else if (toolCall.tool === 'useSkill') {
-          const result = toolOutput as z.infer<typeof UseSkillOutputSchema>;
-          finalOutput.updatedPlayerStatus = result.updatedPlayerStatus as GenerateNarrativeOutput['updatedPlayerStatus'];
-          finalOutput.updatedChunk = { enemy: result.updatedEnemy };
-      } else if (toolCall.tool === 'startQuest' && toolCalls.length === 1) {
-          const result = toolOutput as z.infer<typeof StartQuestOutputSchema>;
-          const currentQuests = finalOutput.updatedPlayerStatus?.quests || input.playerStatus.quests || [];
-          if (!currentQuests.includes(result.questStarted)) {
-              finalOutput.updatedPlayerStatus = { 
-                  ...finalOutput.updatedPlayerStatus,
-                  quests: [...currentQuests, result.questStarted],
-              };
-          }
-      } else if (toolCall.tool === 'completeQuest') {
-          const result = toolOutput as z.infer<typeof CompleteQuestOutputSchema>;
-          if (result.isCompleted) {
-              let currentQuests = input.playerStatus.quests || [];
-              const currentItems = input.playerStatus.items || [];
-              const newItemsMap = new Map<string, z.infer<typeof PlayerItemSchema>>();
-              
-              currentItems.forEach(item => {
-                const itemName = getTranslatedText(item.name, Language.en) || getTranslatedText(item.name, Language.vi) || '';
-                newItemsMap.set(itemName, { ...item });
-              });
-              
-              result.rewardItems?.forEach((rewardItem) => {
-                  const rewardItemName = getTranslatedText(rewardItem.name, Language.en) || getTranslatedText(rewardItem.name, Language.vi) || '';
-                  const existingItem = newItemsMap.get(rewardItemName);
-                  if (existingItem) {
-                      existingItem.quantity += rewardItem.quantity;
-                  } else {
-                      newItemsMap.set(rewardItemName, rewardItem);
-                  }
-              });
+            finalOutput.updatedChunk = { enemy: result.updatedEnemy };
+        } else if (toolCall.tool === 'useSkill') {
+            const result = toolOutput as z.infer<typeof UseSkillOutputSchema>;
+            finalOutput.updatedPlayerStatus = result.updatedPlayerStatus as GenerateNarrativeOutput['updatedPlayerStatus'];
+            finalOutput.updatedChunk = { enemy: result.updatedEnemy };
+        } else if (toolCall.tool === 'startQuest' && toolCalls.length === 1) {
+            const result = toolOutput as z.infer<typeof StartQuestOutputSchema>;
+            const currentQuests = finalOutput.updatedPlayerStatus?.quests || input.playerStatus.quests || [];
+            if (!currentQuests.includes(result.questStarted)) {
+                finalOutput.updatedPlayerStatus = {
+                    ...finalOutput.updatedPlayerStatus,
+                    quests: [...currentQuests, result.questStarted],
+                };
+            }
+        } else if (toolCall.tool === 'completeQuest') {
+            const result = toolOutput as z.infer<typeof CompleteQuestOutputSchema>;
+            if (result.isCompleted) {
+                let currentQuests = input.playerStatus.quests || [];
+                const currentItems = input.playerStatus.items || [];
+                const newItemsMap = new Map<string, z.infer<typeof PlayerItemSchema>>();
 
-              const completedQuestText = (toolCall.input as z.infer<typeof CompleteQuestInputSchema>).questText;
-              currentQuests = currentQuests.filter(q => q !== completedQuestText);
-              const updatedItemsArray = Array.from(newItemsMap.values());
-              const newQuestsCompletedCount = (input.playerStatus.questsCompleted || 0) + 1;
+                currentItems.forEach(item => {
+                    const itemName = getTranslatedText(item.name, Language.en) || getTranslatedText(item.name, Language.vi) || '';
+                    newItemsMap.set(itemName, { ...item });
+                });
 
-              finalOutput.updatedPlayerStatus = { 
-                  ...finalOutput.updatedPlayerStatus,
-                  quests: currentQuests,
-                  items: updatedItemsArray,
-                  questsCompleted: newQuestsCompletedCount,
-              };
-              
-              if (!toolCalls.some((call) => call.tool === 'startQuest')) { 
-                  try {
-                      let newQuestResult;
-                      const isLegendaryTime = newQuestsCompletedCount > 0 && newQuestsCompletedCount % 3 === 0;
+                result.rewardItems?.forEach((rewardItem) => {
+                    const rewardItemName = getTranslatedText(rewardItem.name, Language.en) || getTranslatedText(rewardItem.name, Language.vi) || '';
+                    const existingItem = newItemsMap.get(rewardItemName);
+                    if (existingItem) {
+                        existingItem.quantity += rewardItem.quantity;
+                    } else {
+                        newItemsMap.set(rewardItemName, rewardItem);
+                    }
+                });
 
-                      if (isLegendaryTime) {
-                          newQuestResult = await generateLegendaryQuest({
-                              worldName: input.worldName,
-                              playerStatus: { ...input.playerStatus, quests: currentQuests, items: updatedItemsArray },
-                              currentChunk: input.currentChunk,
-                              existingQuests: currentQuests,
-                              language: input.language as "en" | "vi", 
-                          });
-                      } else {
-                          newQuestResult = await generateNewQuest({
-                              worldName: input.worldName,
-                              playerStatus: { ...input.playerStatus, quests: currentQuests, items: updatedItemsArray },
-                              currentChunk: input.currentChunk,
-                              existingQuests: currentQuests,
-                              language: input.language as "en" | "vi", 
-                          });
-                      }
+                const completedQuestText = (toolCall.input as z.infer<typeof CompleteQuestInputSchema>).questText;
+                currentQuests = currentQuests.filter(q => q !== completedQuestText);
+                const updatedItemsArray = Array.from(newItemsMap.values());
+                const newQuestsCompletedCount = (input.playerStatus.questsCompleted || 0) + 1;
 
-                      if (newQuestResult.newQuest) {
-                          const updatedQuestsWithNew = [...currentQuests, newQuestResult.newQuest];
-                          finalOutput.updatedPlayerStatus.quests = updatedQuestsWithNew;
-                          
-                          const existingSystemMessage = finalOutput.systemMessage ? finalOutput.systemMessage + " " : "";
-                          finalOutput.systemMessage = existingSystemMessage + `New quest: ${newQuestResult.newQuest}`;
-                      }
-                  } catch (e: any) {
-                      console.error("Failed to generate a new quest after completion:", e);
-                  }
-              }
+                finalOutput.updatedPlayerStatus = {
+                    ...finalOutput.updatedPlayerStatus,
+                    quests: currentQuests,
+                    items: updatedItemsArray,
+                    questsCompleted: newQuestsCompletedCount,
+                };
 
-              try {
-                  const allCurrentItemNames = [
-                      ...Object.keys(staticItemDefinitions),
-                      ...Object.keys(input.customItemDefinitions || {})
-                  ];
-                  
-                  const newItem = await generateNewItem({
-                      existingItemNames: allCurrentItemNames,
-                      worldName: input.worldName,
-                      playerPersona: input.playerStatus.persona,
-                      language: input.language as "en" | "vi", 
-                  });
-                  
-                  const newIndeedItemName = getTranslatedText(newItem.name, Language.en) || getTranslatedText(newItem.name, Language.vi) || '';
-                  if (newItem && !allCurrentItemNames.includes(newIndeedItemName)) {
-                      finalOutput.newlyGeneratedItem = newItem;
-                  }
-              } catch (e: any) {
-                  console.error("Failed to generate new item after quest completion:", e);
-              }
-          }
-      }
-  }
+                if (!toolCalls.some((call) => call.tool === 'startQuest')) {
+                    try {
+                        let newQuestResult;
+                        const isLegendaryTime = newQuestsCompletedCount > 0 && newQuestsCompletedCount % 3 === 0;
 
-  return finalOutput;
+                        if (isLegendaryTime) {
+                            newQuestResult = await generateLegendaryQuest({
+                                worldName: input.worldName,
+                                playerStatus: { ...input.playerStatus, quests: currentQuests, items: updatedItemsArray },
+                                currentChunk: input.currentChunk,
+                                existingQuests: currentQuests,
+                                language: input.language as "en" | "vi",
+                            });
+                        } else {
+                            newQuestResult = await generateNewQuest({
+                                worldName: input.worldName,
+                                playerStatus: { ...input.playerStatus, quests: currentQuests, items: updatedItemsArray },
+                                currentChunk: input.currentChunk,
+                                existingQuests: currentQuests,
+                                language: input.language as "en" | "vi",
+                            });
+                        }
+
+                        if (newQuestResult.newQuest) {
+                            const updatedQuestsWithNew = [...currentQuests, newQuestResult.newQuest];
+                            finalOutput.updatedPlayerStatus.quests = updatedQuestsWithNew;
+
+                            const existingSystemMessage = finalOutput.systemMessage ? finalOutput.systemMessage + " " : "";
+                            finalOutput.systemMessage = existingSystemMessage + `New quest: ${newQuestResult.newQuest}`;
+                        }
+                    } catch (e: any) {
+                        console.error("Failed to generate a new quest after completion:", e);
+                    }
+                }
+
+                try {
+                    const allCurrentItemNames = [
+                        ...Object.keys(staticItemDefinitions),
+                        ...Object.keys(input.customItemDefinitions || {})
+                    ];
+
+                    const newItem = await generateNewItem({
+                        existingItemNames: allCurrentItemNames,
+                        worldName: input.worldName,
+                        playerPersona: input.playerStatus.persona,
+                        language: input.language as "en" | "vi",
+                    });
+
+                    const newIndeedItemName = getTranslatedText(newItem.name, Language.en) || getTranslatedText(newItem.name, Language.vi) || '';
+                    if (newItem && !allCurrentItemNames.includes(newIndeedItemName)) {
+                        finalOutput.newlyGeneratedItem = newItem;
+                    }
+                } catch (e: any) {
+                    console.error("Failed to generate new item after quest completion:", e);
+                }
+            }
+        }
+    }
+
+    return finalOutput;
 }

@@ -151,7 +151,7 @@ export class Combatant {
      */
     addEffect(effect: CombatEffect): void {
         const existingEffects = this._activeEffects.get(effect.type) || [];
-        
+
         if (effect.stackable) {
             this._activeEffects.set(effect.type, [...existingEffects, effect]);
         } else {
@@ -250,5 +250,5 @@ export interface CombatResult {
      */
     loot?: Array<{ name: string; quantity: number; emoji?: string }>;
     /** Optional: Special events triggered by the combat (e.g., quest triggers, achievements). */
-    specialEvents?: any[]; 
+    specialEvents?: any[];
 }

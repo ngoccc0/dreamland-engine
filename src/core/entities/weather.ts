@@ -159,7 +159,7 @@ export class WeatherImpl implements Weather {
          * Example: Rain (60% chance) → Clear (30%), Snow (10%) depending on temperature.
          */
         const transitions: WeatherTransition[] = [];
-        
+
         // Simple probabilistic transitions based on current type
         switch (this.type) {
             case WeatherType.CLEAR:
@@ -196,7 +196,7 @@ export class WeatherImpl implements Weather {
                 // Default: always have some transitions possible
                 transitions.push({ toType: WeatherType.CLEAR, probability: 1.0 });
         }
-        
+
         return transitions;
     }
 
@@ -234,7 +234,7 @@ export class WeatherImpl implements Weather {
         const baseTemperature = this.conditions[0]?.temperature || 20; // Default to 20°C if no condition set
 
         // Apply specific effects based on weather type.
-        switch(this.type) {
+        switch (this.type) {
             case WeatherType.RAIN:
                 effects.push(createWeatherEffect(EffectType.MOISTURE as WeatherEffectType, 10, intensity));
                 effects.push(createWeatherEffect(EffectType.TEMPERATURE as WeatherEffectType, baseTemperature - 5, intensity));
@@ -264,7 +264,7 @@ export class WeatherImpl implements Weather {
      * @returns A number representing the intensity multiplier.
      */
     private getIntensityMultiplier(): number {
-        switch(this.intensity) {
+        switch (this.intensity) {
             case WeatherIntensity.MILD: return 0.5;
             case WeatherIntensity.NORMAL: return 1.0;
             case WeatherIntensity.SEVERE: return 2.0;
@@ -393,7 +393,7 @@ export class WeatherSystem implements Weather {
         const nextTransition = possibleTransitions[Math.floor(Math.random() * possibleTransitions.length)];
         // Determine the type of the next weather.
         const nextType = nextTransition?.toType ?? this._weather.getType();
-        
+
         // Create a new weather instance for the next state.
         const nextWeather = new WeatherImpl({
             type: nextType,

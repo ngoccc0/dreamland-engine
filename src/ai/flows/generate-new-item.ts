@@ -89,12 +89,12 @@ const generateNewItemFlow = ai.defineFlow(
         }
 
         const itemWithoutEmoji = llmResponse?.output;
-        
+
         if (!itemWithoutEmoji) {
             console.error("All AI models failed for new item generation.", lastError);
             throw lastError || new Error("AI failed to generate a new item.");
         }
-        
+
         // Add the emoji using code logic
         const emoji = getEmojiForItem(itemWithoutEmoji.name, itemWithoutEmoji.category);
 

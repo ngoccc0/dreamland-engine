@@ -40,7 +40,7 @@ export async function generateNewRecipe(input: GenerateNewRecipeInput): Promise<
 // The AI only generates the name and quantity for the result, not the emoji.
 const AI_RecipeResultSchema = RecipeResultSchema.omit({ emoji: true });
 const AI_RecipeSchema = RecipeSchema.extend({
-  result: AI_RecipeResultSchema
+    result: AI_RecipeResultSchema
 });
 
 
@@ -106,13 +106,13 @@ const generateNewRecipeFlow = ai.defineFlow(
 
         // Add the emoji using code logic
         const emoji = getEmojiForItem(aiRecipe.result.name, category);
-        
+
         const finalRecipe: Recipe = {
-          ...aiRecipe,
-          result: {
-            ...aiRecipe.result,
-            emoji,
-          }
+            ...aiRecipe,
+            result: {
+                ...aiRecipe.result,
+                emoji,
+            }
         };
 
         // Save the new recipe to Firestore for persistence across games (lazy DB)

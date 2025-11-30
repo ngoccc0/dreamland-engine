@@ -2,13 +2,15 @@
 import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
 import type { CreatureDefinition } from '@/core/types/creature'; // Import CreatureDefinition
 import type { PlantPartDefinition } from '@/core/types/definitions/plant-properties'; // Import PlantPartDefinition
+import { AudioActionType } from '@/lib/definitions/audio-events';
 
 export function createHandleHarvest(context: Partial<ActionHandlerDeps> & Record<string, any>) {
   return (actionId: number) => {
     const {
       isLoading, isGameOver, isLoaded, world, playerPosition, toast, t,
       addNarrativeEntry, playerStats, customItemDefinitions, advanceGameTime,
-      setWorld, setPlayerStats, resolveItemDef, clamp, ensurePlayerItemId, getTranslatedText
+      setWorld, setPlayerStats, resolveItemDef, clamp, ensurePlayerItemId, getTranslatedText,
+      audio
     } = context as any;
 
     if (isLoading || isGameOver || !isLoaded) return;
@@ -79,6 +81,8 @@ export function createHandleHarvest(context: Partial<ActionHandlerDeps> & Record
               emoji: itemDef.emoji,
               quantity: clamp(Math.floor(Math.random() * (loot.quantity.max - loot.quantity.min + 1)) + loot.quantity.min, 1, Infinity)
             });
+            // Emit audio for harvested part item (rarity-aware)
+            audio?.playSfxForAction(AudioActionType.HARVEST_ITEM, { itemRarity: itemDef.tier });
           }
         }
       });
@@ -124,6 +128,8 @@ export function createHandleHarvest(context: Partial<ActionHandlerDeps> & Record
               emoji: itemDef.emoji,
               quantity: clamp(Math.floor(Math.random() * (loot.quantity.max - loot.quantity.min + 1)) + loot.quantity.min, 1, Infinity)
             });
+            // Emit audio for harvested item (rarity-aware)
+            audio?.playSfxForAction(AudioActionType.HARVEST_ITEM, { itemRarity: itemDef.tier });
           }
         }
       });
@@ -151,6 +157,8 @@ export function createHandleHarvest(context: Partial<ActionHandlerDeps> & Record
           nextPlayerStats.items.push(ensurePlayerItemId ? ensurePlayerItemId(lootItem, customItemDefinitions, t, (context.language || 'en')) : lootItem);
         }
       });
+      // Emit audio for harvest completion
+      audio?.playSfxForAction(AudioActionType.HARVEST_COMPLETE, {});
     } else {
       addNarrativeEntry(t('harvestFail_noLoot', { target: t(targetName as any), part: partName ? t(partName as any) : undefined }), 'system');
     }

@@ -37,6 +37,7 @@ import { resolveItemDef as resolveItemDefHelper } from '@/lib/game/item-utils';
 import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchAction, analyze_chunk_mood } from '@/core/engines/game/offline';
 import { getEffectiveChunk } from '@/core/engines/game/weather-generation';
 import { useAudio } from '@/lib/audio/useAudio';
+import { AudioActionType } from '@/lib/definitions/audio-events';
 import { getTemplates } from '@/lib/game/templates';
 import { clamp, getTranslatedText, resolveItemId, ensurePlayerItemId } from '@/lib/utils';
 import { getKeywordVariations } from '@/lib/game/data/narrative-templates';
@@ -141,8 +142,14 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
       // If only one distinct item and qty ===1, render the detailed single-pick template
       if (items.length === 1 && items[0].quantity <= 1) {
         const it = items[0];
+
+        // Emit audio for single item pickup
+        const itemName = getTranslatedText(it.name, 'en');
+        const resolvedDef = resolveItemDef(itemName);
+        const rarity = (resolvedDef as any)?.rarity || 'common';
+        audio.playSfxForAction(AudioActionType.ITEM_PICKUP, { itemRarity: rarity });
+
         // try to recreate the previous single-item detailed narrative path
-        const resolvedDef = resolveItemDef(getTranslatedText(it.name, 'en'));
         const buildSensoryText = (def: ItemDefinition | undefined, itemName?: string) => {
           if (!def || !def.senseEffect || !Array.isArray(def.senseEffect.keywords) || def.senseEffect.keywords.length === 0) return '';
           const raw = def.senseEffect.keywords[Math.floor(Math.random() * def.senseEffect.keywords.length)];
@@ -159,6 +166,9 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         addNarrativeEntry(narrativeText, 'narrative');
         return;
       }
+
+      // Multi-item pickup: emit audio
+      audio.playSfxForAction(AudioActionType.ITEM_PICKUP, { itemRarity: 'common' });
 
       // Multi-summary: group by name and sum quantities
       const grouped: Record<string, number> = {};
@@ -382,11 +392,15 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
     const actionText = `${t('attackAction')} ${t(baseChunk.enemy.type as TranslationKey)}`;
     addNarrativeEntry(actionText, 'action');
+
+    // Emit audio for attack
+    audio.playSfxForAction(AudioActionType.PLAYER_ATTACK, {});
+
     const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText] };
 
     setPlayerStats(() => newPlayerStats);
     handleOfflineAttack();
-  }, [isLoading, isGameOver, isLoaded, setPlayerBehaviorProfile, world, playerPosition, addNarrativeEntry, t, playerStats, handleOfflineAttack, setPlayerStats]);
+  }, [isLoading, isGameOver, isLoaded, setPlayerBehaviorProfile, world, playerPosition, addNarrativeEntry, t, playerStats, handleOfflineAttack, setPlayerStats, audio]);
 
   const handleCustomAction = useCallback((text: string) => {
     if (!text.trim() || isLoading || isGameOver || !isLoaded) return;
@@ -435,16 +449,24 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
       const successKeys: TranslationKey[] = ['craftSuccess1', 'craftSuccess2', 'craftSuccess3'];
       const randomKey = successKeys[Math.floor(Math.random() * successKeys.length)];
       addNarrativeEntry(t(randomKey, { itemName: t(recipe.result.name as TranslationKey) }), 'system');
+
+      // Emit audio for craft success
+      audio.playSfxForAction(AudioActionType.CRAFT_SUCCESS, {});
+
       toast({ title: t('craftSuccessTitle'), description: t('craftSuccess', { itemName: t(recipe.result.name as TranslationKey) }) });
     } else {
       const failKeys: TranslationKey[] = ['craftFail1', 'craftFail2', 'craftFail3'];
       const randomKey = failKeys[Math.floor(Math.random() * failKeys.length)];
       addNarrativeEntry(t(randomKey, { itemName: t(recipe.result.name as TranslationKey) }), 'system');
+
+      // Emit audio for craft fail
+      audio.playSfxForAction(AudioActionType.CRAFT_FAIL, {});
+
       toast({ title: t('craftFailTitle'), description: t('craftFail', { itemName: t(recipe.result.name as TranslationKey) }), variant: 'destructive' });
     }
     setPlayerStats(() => nextPlayerStats);
     advanceGameTime(nextPlayerStats);
-  }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerStats, customItemDefinitions, addNarrativeEntry, toast, t, advanceGameTime, setPlayerStats]);
+  }, [isLoading, isGameOver, setPlayerBehaviorProfile, playerStats, customItemDefinitions, addNarrativeEntry, toast, t, advanceGameTime, setPlayerStats, audio]);
 
   const handleItemUsed = useCallback((itemName: TranslatableString, target: 'player' | TranslatableString) => {
     if (isLoading || isGameOver || !isLoaded) return;

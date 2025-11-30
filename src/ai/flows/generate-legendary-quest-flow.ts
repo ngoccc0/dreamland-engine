@@ -79,7 +79,7 @@ const generateLegendaryQuestFlow = ai.defineFlow(
                 console.warn(`[generateLegendaryQuest] Model '${model}' failed. Trying next...`);
             }
         }
-        
+
         console.error("All AI models failed for legendary quest generation.", lastError);
         throw lastError || new Error("AI failed to generate a legendary quest.");
     }

@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -78,8 +78,45 @@ export function SettingsPopup({ open, onOpenChange, isInGame, currentBiome }: Se
     const handleFontSizeChange = (value: string) => setSettings({ fontSize: value as FontSize });
     const [isDesktop, setIsDesktop] = useState(false);
     const audio = useAudio();
-    const allBackground = useMemo(() => BACKGROUND_MUSIC.concat(MENU_MUSIC), []);
-    const [selectedTrack, setSelectedTrack] = useState<string | undefined>(allBackground[0]);
+
+    // Dynamically load music files from API
+    const [allMusicTracks, setAllMusicTracks] = useState<string[]>([]);
+    const [selectedTrack, setSelectedTrack] = useState<string | undefined>(undefined);
+
+    useEffect(() => {
+        // Load background music and menu music on mount
+        const loadMusicTracks = async () => {
+            try {
+                const [bgRes, menuRes] = await Promise.all([
+                    fetch('/api/audio/list?folder=background_music'),
+                    fetch('/api/audio/list?folder=menu_music'),
+                ]);
+
+                const bgData = await bgRes.json();
+                const menuData = await menuRes.json();
+
+                const allTracks = [
+                    ...(bgData.files || []).map((f: string) => `background_music/${f}`),
+                    ...(menuData.files || []).map((f: string) => `menu_music/${f}`),
+                ];
+
+                setAllMusicTracks(allTracks);
+                if (allTracks.length > 0) {
+                    setSelectedTrack(allTracks[0]);
+                }
+            } catch (error) {
+                console.error('Failed to load music tracks:', error);
+                // Fallback to hardcoded list if API fails
+                const fallback = BACKGROUND_MUSIC.concat(MENU_MUSIC);
+                setAllMusicTracks(fallback);
+                if (fallback.length > 0) {
+                    setSelectedTrack(fallback[0]);
+                }
+            }
+        };
+
+        loadMusicTracks();
+    }, []);
 
     useEffect(() => {
         const onResize = () => setIsDesktop(typeof window !== 'undefined' && window.innerWidth >= 768);
@@ -171,74 +208,82 @@ export function SettingsPopup({ open, onOpenChange, isInGame, currentBiome }: Se
                             </div>
                             <Separator />
                             <div className="space-y-3">
-                                <Label className="font-semibold flex items-center gap-2">🔊 Âm thanh</Label>
-                                <p className="text-sm leading-snug text-muted-foreground">Điều chỉnh nhạc nền và hiệu ứng âm thanh.</p>
+                                <Label className="font-semibold flex items-center gap-2">🔊 {t('audioSettings')}</Label>
+                                <p className="text-sm leading-snug text-muted-foreground">{t('audioSettingsDesc')}</p>
                                 <div className="rounded-lg border p-3 shadow-sm">
                                     <div className="mb-3">
                                         <div className="flex items-center justify-between mb-2">
-                                            <div className="font-medium">Nhạc</div>
+                                            <div className="font-medium">{t('musicVolume')}</div>
                                             <div className="flex gap-2">
                                                 <Button variant="ghost" size="sm" onClick={() => audio.setMuted(!audio.muted)}>
-                                                    {audio.muted ? 'Bật âm' : 'Tắt âm'}
+                                                    {audio.muted ? t('unmute') : 'Tắt âm'}
                                                 </Button>
                                             </div>
                                         </div>
                                         <div className="mb-2">
-                                            <label className="text-xs text-muted-foreground">Chọn bài</label>
-                                            <select className="w-full mt-1 p-1 rounded bg-popover" value={selectedTrack} onChange={(e) => setSelectedTrack(e.target.value)}>
-                                                {allBackground.map(ti => (<option key={ti} value={ti}>{ti}</option>))}
+                                            <label className="text-xs text-muted-foreground">{t('trackSelection')}</label>
+                                            <select className="w-full mt-1 p-1 rounded bg-popover" value={selectedTrack || ''} onChange={(e) => setSelectedTrack(e.target.value)}>
+                                                {allMusicTracks.length === 0 ? (
+                                                    <option value="">Loading...</option>
+                                                ) : (
+                                                    allMusicTracks.map(track => (
+                                                        <option key={track} value={track}>
+                                                            {track.replace(/^(background_music|menu_music)\//, '').replace(/\.(mp3|wav|ogg|m4a)$/i, '')}
+                                                        </option>
+                                                    ))
+                                                )}
                                             </select>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <Button size="sm" onClick={() => audio.playMusic(selectedTrack)}>{'Phát'}</Button>
-                                            <Button size="sm" onClick={() => audio.pauseMusic()}>Tạm dừng</Button>
-                                            <Button size="sm" onClick={() => audio.stopMusic()}>Dừng</Button>
+                                            <Button size="sm" onClick={() => audio.playMusic(selectedTrack)}>{t('playTrack')}</Button>
+                                            <Button size="sm" onClick={() => audio.pauseMusic()}>{t('pauseTrack')}</Button>
+                                            <Button size="sm" onClick={() => audio.stopMusic()}>{t('stopTrack')}</Button>
                                         </div>
                                         <div className="mt-3">
-                                            <div className="text-xs text-muted-foreground mb-1">Âm lượng nhạc</div>
+                                            <div className="text-xs text-muted-foreground mb-1">{t('musicVolume')}</div>
                                             <Slider value={[audio.musicVolume]} onValueChange={(v) => audio.setMusicVolume(v[0] ?? 0.5)} step={0.01} min={0} max={1} />
                                         </div>
                                         {/* Autoplay safety CTA: if browser blocked autoplay, allow the user to retry */}
                                         {audio.autoplayBlocked && (
                                             <div className="mt-3 p-2 border rounded bg-yellow-50">
-                                                <div className="text-sm font-medium">Autoplay bị chặn</div>
-                                                <div className="text-xs text-muted-foreground mb-2">Trình duyệt đã chặn tự động phát nhạc menu. Nhấn "Bật âm" để cho phép phát ngay khi bạn tương tác.</div>
+                                                <div className="text-sm font-medium">{t('autoplayBlocked')}</div>
+                                                <div className="text-xs text-muted-foreground mb-2">{t('autoplayBlockedDesc')}</div>
                                                 <div className="flex gap-2">
-                                                    <Button size="sm" onClick={() => audio.tryEnableAutoplay()}>Bật âm</Button>
-                                                    <Button size="sm" variant="ghost" onClick={() => { try { localStorage.setItem('dl_auto_menu', '0'); audio.setMuted(true); } catch { } }}>Tạm hoãn</Button>
+                                                    <Button size="sm" onClick={() => audio.tryEnableAutoplay()}>{t('enableAutoplay')}</Button>
+                                                    <Button size="sm" variant="ghost" onClick={() => { try { localStorage.setItem('dl_auto_menu', '0'); audio.setMuted(true); } catch { } }}>{t('deferAutoplay')}</Button>
                                                 </div>
                                             </div>
                                         )}
                                     </div>
 
                                     <div className="mt-4">
-                                        <div className="text-xs text-muted-foreground mb-1">Hiệu ứng (SFX)</div>
+                                        <div className="text-xs text-muted-foreground mb-1">{t('sfxVolume')}</div>
                                         <Slider value={[audio.sfxVolume]} onValueChange={(v) => audio.setSfxVolume(v[0] ?? 0.9)} step={0.01} min={0} max={1} />
                                         <div className="flex gap-2 mt-3">
-                                            <Button size="sm" onClick={() => audio.playSfx('Menu_Select_00.mp3')}>Play select</Button>
-                                            <Button size="sm" onClick={() => audio.playSfx('Pickup_Gold_00.mp3')}>Play pickup</Button>
+                                            <Button size="sm" onClick={() => audio.playSfx('Menu_Select_00.mp3')}>{t('testSoundButton')} 1</Button>
+                                            <Button size="sm" onClick={() => audio.playSfx('Pickup_Gold_00.mp3')}>{t('testSoundButton')} 2</Button>
                                         </div>
                                     </div>
 
                                     <div className="mt-4">
-                                        <div className="text-xs text-muted-foreground mb-1">Tần suất nhạc nền</div>
+                                        <div className="text-xs text-muted-foreground mb-1">{t('playbackFrequency')}</div>
                                         <div className="flex items-center gap-4 mb-2">
                                             <label className="flex items-center gap-1">
                                                 <input type="radio" name="playbackMode" checked={audio.playbackMode === 'off'} onChange={() => audio.setPlaybackMode('off')} />
-                                                <span className="ml-1">Không</span>
+                                                <span className="ml-1">{t('frequencyNever')}</span>
                                             </label>
                                             <label className="flex items-center gap-1">
                                                 <input type="radio" name="playbackMode" checked={audio.playbackMode === 'occasional'} onChange={() => audio.setPlaybackMode('occasional')} />
-                                                <span className="ml-1">Thỉnh thoảng</span>
+                                                <span className="ml-1">{t('frequencyOccasional')}</span>
                                             </label>
                                             <label className="flex items-center gap-1">
                                                 <input type="radio" name="playbackMode" checked={audio.playbackMode === 'always'} onChange={() => audio.setPlaybackMode('always')} />
-                                                <span className="ml-1">Luôn luôn</span>
+                                                <span className="ml-1">{t('frequencyAlways')}</span>
                                             </label>
                                         </div>
                                         {audio.playbackMode === 'occasional' && (
                                             <div className="flex items-center gap-2">
-                                                <label className="text-xs text-muted-foreground">Khoảng (phút)</label>
+                                                <label className="text-xs text-muted-foreground">{t('playbackInterval')}</label>
                                                 <input type="number" min={1} value={audio.playbackIntervalMinutes} onChange={(e) => audio.setPlaybackIntervalMinutes(Number(e.target.value) || 1)} className="w-20 p-1 rounded bg-popover" />
                                                 <div className="text-xs text-muted-foreground">Một bài sẽ tự phát sau mỗi khoảng đã chọn.</div>
                                             </div>
@@ -324,18 +369,6 @@ export function SettingsPopup({ open, onOpenChange, isInGame, currentBiome }: Se
                                 <p className="text-sm text-muted-foreground mb-2">{t('keyBindingsDesc') || 'Customize keyboard shortcuts for movement and common actions.'}</p>
                                 <KeyBindingsEditor settings={settings} setSettings={setSettings} />
                             </div>
-                            {isDesktop && (
-                                <>
-                                    <Separator />
-                                    <div className="flex items-center justify-between space-x-4">
-                                        <Label htmlFor="legacy-layout-switch" className="flex flex-col space-y-1">
-                                            <span className="font-semibold">{t('useLegacyLayout') || 'Use legacy layout'}</span>
-                                            <span className="font-normal leading-snug text-muted-foreground">{t('useLegacyLayoutDesc') || 'Show the mobile-style bottom action bar on desktop (legacy).'} </span>
-                                        </Label>
-                                        <Switch id="legacy-layout-switch" checked={!!settings.useLegacyLayout} onCheckedChange={(v) => setSettings({ useLegacyLayout: !!v })} />
-                                    </div>
-                                </>
-                            )}
                         </TabsContent>
 
                         <TabsContent value="mods" className="space-y-6">

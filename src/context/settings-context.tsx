@@ -22,7 +22,6 @@ const defaultSettings = {
   theme: 'dark',
   mods: null,
   controlsPreventScroll: true,
-  useLegacyLayout: false,
   autoPickup: false,
   minimapViewportSize: 5,
   startTime: 360, // 6 AM
@@ -84,8 +83,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         // --- VALIDATION END ---
         // Ensure controlsPreventScroll is a boolean (backwards compatibility)
         if (typeof parsed.controlsPreventScroll !== 'boolean') parsed.controlsPreventScroll = defaultSettings.controlsPreventScroll;
-        // Ensure useLegacyLayout is a boolean (backwards compatibility)
-        if (typeof parsed.useLegacyLayout !== 'boolean') parsed.useLegacyLayout = defaultSettings.useLegacyLayout;
         // Ensure autoPickup is a boolean (backwards compatibility)
         if (typeof parsed.autoPickup !== 'boolean') parsed.autoPickup = defaultSettings.autoPickup;
 

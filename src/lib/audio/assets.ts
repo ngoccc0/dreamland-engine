@@ -5,6 +5,90 @@
  * Expanded to include 100+ SFX files from all categories while maintaining backward compatibility.
  */
 
+// ===== AMBIENCE TRACKS (Dynamic Biome + Time + Weather + Mood) =====
+/**
+ * Ambience tracks organized by category.
+ * Used for dynamic multi-layer soundscape from /public/asset/sound/ambience/ folder.
+ */
+export const AMBIENCE_TRACKS = {
+  cave: [
+    'Ambiance_Cave_Dark_Loop_Stereo.wav',
+    'Ambiance_Cave_Deep_Loop_Stereo.wav',
+    'Atmosphere_Eerie_Donjon_Loop_Stereo.wav',
+    'Atmosphere_Hum_Eerie_Loop_Stereo.wav',
+  ],
+  forest: [
+    'Ambiance_Forest_Birds_Loop_Stereo.wav',
+    'Ambiance_Nature_Meadow_Birds_Flies_Calm_Loop_Stereo.wav',
+    'Ambiance_Wind_Forest_Loop_Stereo.wav',
+  ],
+  nature: [
+    'Ambiance_Nature_River_Moderate_Loop_Stereo.wav',
+    'Ambiance_Nature_Rain_Calm_Leaves_Loop_Stereo.wav',
+  ],
+  water: [
+    'Ambiance_Sea_Loop_Stereo.wav',
+    'Ambiance_River_Moderate_Loop_Stereo.wav',
+    'Ambiance_Stream_Calm_Loop_Stereo.wav',
+    'Ambiance_Waterfall_Calm_Loop_Stereo.wav',
+    'Ambiance_Waterfall_Strong_Loop_Stereo.wav',
+  ],
+  rain: [
+    'Ambiance_Rain_Calm_Loop_Stereo.wav',
+    'Ambiance_Rain_Strong_Loop_Stereo.wav',
+    'Ambiance_Nature_Rain_Calm_Leaves_Loop_Stereo.wav',
+  ],
+  fire: [
+    'Ambiance_Firecamp_Big_Loop_Mono.wav',
+    'Ambiance_Firecamp_Medium_Loop_Mono.wav',
+    'Ambiance_Firecamp_Small_Loop_Mono.wav',
+  ],
+  night: [
+    'Ambiance_Night_Loop_Stereo.wav',
+    'Ambiance_Cicadas_Loop_Stereo.wav',
+  ],
+  wind: [
+    'Ambiance_Wind_Calm_Loop_Stereo.wav',
+    'Ambiance_Wind_Forest_Loop_Stereo.wav',
+  ],
+  dark: [
+    'Atmosphere_Eerie_Donjon_Loop_Stereo.wav',
+    'Atmosphere_Hum_Eerie_Loop_Stereo.wav',
+  ],
+} as const;
+
+/**
+ * Biome → Ambience category mapping.
+ * Maps each terrain type to its primary ambience atmosphere.
+ */
+export const BIOME_AMBIENCE_MAP: Record<string, keyof typeof AMBIENCE_TRACKS> = {
+  // Caves & Underground
+  'cave': 'cave',
+  'mountain': 'cave',
+  'volcanic': 'cave',
+
+  // Forests & Nature
+  'forest': 'forest',
+  'jungle': 'forest',
+  'grassland': 'nature',
+  'swamp': 'nature',
+
+  // Water
+  'ocean': 'water',
+  'beach': 'water',
+
+  // Cold
+  'tundra': 'wind',
+
+  // Desert (wind-swept)
+  'desert': 'wind',
+  'mesa': 'wind',
+
+  // Structures
+  'wall': 'cave',
+  'floptropica': 'nature',
+};
+
 // ===== BACKGROUND MUSIC =====
 export const BACKGROUND_MUSIC = [
   'Ambience_Cave_00.mp3',
@@ -54,50 +138,115 @@ export const LEGACY_SFX = [
 ];
 
 // ===== MOVEMENT / FOOTSTEPS =====
+/**
+ * Generic fallback footsteps (rustle sounds) used when biome is unknown.
+ * Legacy support for backward compatibility.
+ */
 export const FOOTSTEP_GENERIC_SFX = [
-  'rustle01.flac',
-  'rustle02.flac',
-  'rustle03.flac',
-  'rustle04.flac',
-  'rustle05.flac',
-  'rustle06.flac',
-  'rustle07.flac',
-  'rustle08.flac',
-  'rustle09.flac',
-  'rustle10.flac',
-  'rustle11.flac',
-  'rustle12.flac',
-  'rustle13.flac',
-  'rustle14.flac',
-  'rustle15.flac',
-  'rustle16.flac',
-  'rustle17.flac',
-  'rustle18.flac',
-  'rustle19.flac',
-  'rustle20.flac',
+  'steping_sounds/rustle01.flac',
+  'steping_sounds/rustle02.flac',
+  'steping_sounds/rustle03.flac',
+  'steping_sounds/rustle04.flac',
+  'steping_sounds/rustle05.flac',
+  'steping_sounds/rustle06.flac',
+  'steping_sounds/rustle07.flac',
+  'steping_sounds/rustle08.flac',
+  'steping_sounds/rustle09.flac',
+  'steping_sounds/rustle10.flac',
+  'steping_sounds/rustle11.flac',
+  'steping_sounds/rustle12.flac',
+  'steping_sounds/rustle13.flac',
+  'steping_sounds/rustle14.flac',
+  'steping_sounds/rustle15.flac',
+  'steping_sounds/rustle16.flac',
+  'steping_sounds/rustle17.flac',
+  'steping_sounds/rustle18.flac',
+  'steping_sounds/rustle19.flac',
+  'steping_sounds/rustle20.flac',
 ];
 
-export const FOOTSTEP_BIOME_SFX = [
-  // Grass biome footsteps
-  'digital_footstep_grass_1.wav',
-  'digital_footstep_grass_2.wav',
-  'digital_footstep_grass_3.wav',
-  'digital_footstep_grass_4.wav',
-  // Gravel biome footsteps
-  'digital_footstep_gravel_1.wav',
-  'digital_footstep_gravel_2.wav',
-  'digital_footstep_gravel_3.wav',
-  'digital_footstep_gravel_4.wav',
-  // Snow biome footsteps
-  'digital_footstep_snow_1.wav',
-  'digital_footstep_snow_2.wav',
-  'digital_footstep_snow_3.wav',
-  'digital_footstep_snow_4.wav',
-  // Wood biome footsteps
-  'digital_footstep_wood_1.wav',
-  'digital_footstep_wood_2.wav',
-  'digital_footstep_wood_3.wav',
-  'digital_footstep_wood_4.wav',
+/**
+ * Grass terrain footsteps: forest, grassland, jungle, mushroom_forest, swamp.
+ * Realistic grass walking sounds with natural variation.
+ * Contains 11 walk variations for audio diversity.
+ */
+export const FOOTSTEP_BIOME_GRASS_SFX = [
+  'steping_sounds/Footsteps_Grass/Footsteps_Grass_Walk/Footsteps_Walk_Grass_Mono_01.wav',
+  'steping_sounds/Footsteps_Grass/Footsteps_Grass_Walk/Footsteps_Walk_Grass_Mono_02.wav',
+  'steping_sounds/Footsteps_Grass/Footsteps_Grass_Walk/Footsteps_Walk_Grass_Mono_03.wav',
+  'steping_sounds/Footsteps_Grass/Footsteps_Grass_Walk/Footsteps_Walk_Grass_Mono_04.wav',
+  'steping_sounds/Footsteps_Grass/Footsteps_Grass_Walk/Footsteps_Walk_Grass_Mono_05.wav',
+  'steping_sounds/Footsteps_Grass/Footsteps_Grass_Walk/Footsteps_Walk_Grass_Mono_06.wav',
+  'steping_sounds/Footsteps_Grass/Footsteps_Grass_Walk/Footsteps_Walk_Grass_Mono_07.wav',
+  'steping_sounds/Footsteps_Grass/Footsteps_Grass_Walk/Footsteps_Walk_Grass_Mono_08.wav',
+  'steping_sounds/Footsteps_Grass/Footsteps_Grass_Walk/Footsteps_Walk_Grass_Mono_10.wav',
+  'steping_sounds/Footsteps_Grass/Footsteps_Grass_Walk/Footsteps_Walk_Grass_Mono_11.wav',
+];
+
+/**
+ * Snow terrain footsteps: tundra and cold environments.
+ * Contains both hard-packed snow and soft snow walk sounds.
+ * Includes 24 variations for rich audio feedback in frozen biomes.
+ */
+export const FOOTSTEP_BIOME_SNOW_SFX = [
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Hard_Walk_01.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Hard_Walk_02.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Hard_Walk_03.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Hard_Walk_04.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Hard_Walk_05.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Hard_Walk_06.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Hard_Walk_07.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Hard_Walk_08.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Hard_Walk_09.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Hard_Walk_10.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Hard_Walk_11.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Hard_Walk_12.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Walk_01.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Walk_02.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Walk_03.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Walk_04.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Walk_05.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Walk_06.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Walk_07.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Walk_08.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Walk_09.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Walk_10.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Walk_11.wav',
+  'steping_sounds/Footsteps_Snow/Footsteps_Snow_Walk/Footsteps_Snow_Walk_12.wav',
+];
+
+/**
+ * Gravel terrain footsteps: cave, mountain, desert, volcanic, mesa, beach.
+ * Contains 10 rocky/gravel walk variations for harsh terrain environments.
+ */
+export const FOOTSTEP_BIOME_GRAVEL_SFX = [
+  'steping_sounds/Footsteps_Gravel/Footsteps_Gravel_Walk/Footsteps_Gravel_Walk_01.wav',
+  'steping_sounds/Footsteps_Gravel/Footsteps_Gravel_Walk/Footsteps_Gravel_Walk_02.wav',
+  'steping_sounds/Footsteps_Gravel/Footsteps_Gravel_Walk/Footsteps_Gravel_Walk_03.wav',
+  'steping_sounds/Footsteps_Gravel/Footsteps_Gravel_Walk/Footsteps_Gravel_Walk_04.wav',
+  'steping_sounds/Footsteps_Gravel/Footsteps_Gravel_Walk/Footsteps_Gravel_Walk_05.wav',
+  'steping_sounds/Footsteps_Gravel/Footsteps_Gravel_Walk/Footsteps_Gravel_Walk_06.wav',
+  'steping_sounds/Footsteps_Gravel/Footsteps_Gravel_Walk/Footsteps_Gravel_Walk_07.wav',
+  'steping_sounds/Footsteps_Gravel/Footsteps_Gravel_Walk/Footsteps_Gravel_Walk_08.wav',
+  'steping_sounds/Footsteps_Gravel/Footsteps_Gravel_Walk/Footsteps_Gravel_Walk_09.wav',
+  'steping_sounds/Footsteps_Gravel/Footsteps_Gravel_Walk/Footsteps_Gravel_Walk_10.wav',
+];
+
+/**
+ * Wood terrain footsteps: wall, floptropica (wooden structures).
+ * Contains 10 wooden/solid walk sounds for built environment ambiance.
+ */
+export const FOOTSTEP_BIOME_WOOD_SFX = [
+  'steping_sounds/Footsteps_Wood/Footsteps_Wood_Walk/Footsteps_Wood_Walk_01.wav',
+  'steping_sounds/Footsteps_Wood/Footsteps_Wood_Walk/Footsteps_Wood_Walk_02.wav',
+  'steping_sounds/Footsteps_Wood/Footsteps_Wood_Walk/Footsteps_Wood_Walk_03.wav',
+  'steping_sounds/Footsteps_Wood/Footsteps_Wood_Walk/Footsteps_Wood_Walk_04.wav',
+  'steping_sounds/Footsteps_Wood/Footsteps_Wood_Walk/Footsteps_Wood_Walk_05.wav',
+  'steping_sounds/Footsteps_Wood/Footsteps_Wood_Walk/Footsteps_Wood_Walk_06.wav',
+  'steping_sounds/Footsteps_Wood/Footsteps_Wood_Walk/Footsteps_Wood_Walk_07.wav',
+  'steping_sounds/Footsteps_Wood/Footsteps_Wood_Walk/Footsteps_Wood_Walk_08.wav',
+  'steping_sounds/Footsteps_Wood/Footsteps_Wood_Walk/Footsteps_Wood_Walk_09.wav',
+  'steping_sounds/Footsteps_Wood/Footsteps_Wood_Walk/Footsteps_Wood_Walk_10.wav',
 ];
 
 // ===== COMBAT & GORE =====
@@ -266,29 +415,29 @@ export const WEAPON_SFX = [
 ];
 
 // ===== UI =====
+/**
+ * UI sound effects: button clicks, hovers, confirmations, cancellations.
+ * Includes retro UI feedback sounds from /UI/ folder.
+ * All sci-fi sound effects have been removed per user requirements.
+ */
 export const UI_SFX = [
-  'cancel.wav',
-  'click_double_off.wav',
-  'click_double_off_2.wav',
-  'click_double_on.wav',
-  'click_double_on_2.wav',
-  'pop_1.wav',
-  'pop_2.wav',
-  'pop_3.wav',
-  'pop_4.wav',
-  'sci_fi_cancel.wav',
-  'sci_fi_confirm.wav',
-  'sci_fi_deselect.wav',
-  'sci_fi_disallow.wav',
-  'sci_fi_error.wav',
-  'sci_fi_hover.wav',
-  'sci_fi_hover_high.wav',
-  'sci_fi_select.wav',
-  'sci_fi_select_big.wav',
-  'select_1.wav',
-  'select_2.wav',
-  'select_3.wav',
-  'select_4.wav',
+  // Core UI button sounds
+  'UI/button_click.m4a',
+  'UI/cancel.wav',
+  'UI/clicking.wav',
+  'UI/click_double_off_2.wav',
+  'UI/click_double_on.wav',
+  'UI/crafting_fail.wav',
+  'UI/craftting_success.wav',
+  'UI/item_pick_up_1.wav',
+  'UI/item_pick_up_2.wav',
+  'UI/map_close.wav',
+  'UI/map_open.wav',
+  'UI/open_inventory.wav',
+  'UI/pop_1.wav',
+  'UI/pop_2.wav',
+
+  // Synth & additional UI effects
   'synth_cancel.wav',
   'synth_confirmation.wav',
   'synth_error.wav',
@@ -398,7 +547,10 @@ export const MUSICAL_STINGS_SFX = [
 export const SFX = [
   ...LEGACY_SFX,
   ...FOOTSTEP_GENERIC_SFX,
-  ...FOOTSTEP_BIOME_SFX,
+  ...FOOTSTEP_BIOME_GRASS_SFX,
+  ...FOOTSTEP_BIOME_SNOW_SFX,
+  ...FOOTSTEP_BIOME_GRAVEL_SFX,
+  ...FOOTSTEP_BIOME_WOOD_SFX,
   ...COMBAT_SFX,
   ...ENVIRONMENT_SFX,
   ...HUMAN_SFX,

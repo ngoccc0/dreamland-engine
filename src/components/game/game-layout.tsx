@@ -27,6 +27,7 @@ import HudIconHealth from "@/components/game/hud-icon-health";
 import HudIconStamina from "@/components/game/hud-icon-stamina";
 import HudIconMana from "@/components/game/hud-icon-mana";
 import HudIconHunger from "@/components/game/hud-icon-hunger";
+import HudIconTemperature from "@/components/game/hud-icon-temperature";
 import { useLanguage } from "@/context/language-context";
 import { useSettings } from "@/context/settings-context";
 import useKeyboardBindings from "@/hooks/use-keyboard-bindings";
@@ -38,7 +39,7 @@ import type { Structure, Action, NarrativeEntry } from "@/lib/game/types";
 import { cn, getTranslatedText } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
 
-import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, Thermometer, LifeBuoy, FlaskConical, Settings, Loader2, Menu, LogOut } from "./icons";
+import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, LifeBuoy, FlaskConical, Settings, Loader2, Menu, LogOut } from "./icons";
 import { IconRenderer } from "@/components/ui/icon-renderer";
 import { resolveItemDef } from '@/lib/game/item-utils';
 import { logger } from "@/lib/logger";
@@ -95,6 +96,7 @@ export default function GameLayout(props: GameLayoutProps) {
         currentChunk,
         turn,
         biomeDefinitions,
+        weatherZones,
         isLoaded,
         handleMove,
         handleAttack,
@@ -551,8 +553,8 @@ export default function GameLayout(props: GameLayoutProps) {
                     <header className="px-3 py-2 md:p-4 border-b flex-shrink-0 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                         <div className="flex items-center gap-3 w-full md:max-w-3xl">
                             <h1 className="text-xl md:text-2xl font-bold font-headline">{worldNameText}</h1>
-                            {/* On desktop (non-legacy layout), show main actions next to the world title as inline icon buttons */}
-                            {isDesktop && !settings?.useLegacyLayout && (
+                            {/* Desktop: show main actions next to the world title as inline icon buttons */}
+                            {isDesktop && (
                                 <div className="ml-6 hidden md:flex md:items-center md:flex-1 gap-2">
                                     <div className="flex items-center gap-2">
                                         <Tooltip>
@@ -657,195 +659,80 @@ export default function GameLayout(props: GameLayoutProps) {
                 <aside className="w-full md:w-[min(462px,36vw)] md:flex-none bg-card border-l pt-4 pb-0 px-4 md:pt-6 md:pb-0 md:px-6 flex flex-col gap-6 min-h-0">
                     {/* Top Section - HUD & Minimap */}
                     <div className="flex-shrink-0 flex flex-col gap-6">
-                        {isDesktop && !settings?.useLegacyLayout ? (
-                            // Desktop (non-legacy): show map above HUD in the right panel
-                            <>
-                                {/* Minimap */}
-                                <div className="flex flex-col items-center gap-2 w-full md:max-w-xs mx-auto">
-                                    <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { handleMapToggle(); focusCustomActionInput(); }}>{t('minimap')}</h3>
-                                    <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
-                                        <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
-                                        <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
+                        {/* Minimap */}
+                        <div className="flex flex-col items-center gap-2 w-full md:max-w-xs mx-auto">
+                            <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { handleMapToggle(); focusCustomActionInput(); }}>{t('minimap')}</h3>
+                            <div className="flex items-center justify-center gap-x-3 gap-y-1 text-sm text-muted-foreground flex-wrap">
+                                <Tooltip><TooltipTrigger asChild>
+                                    <div className="flex items-center gap-1 cursor-default">
+                                        <HudIconTemperature temp={currentChunk?.temperature || 20} maxTemp={50} weatherType={weatherZones?.[currentChunk?.regionId]?.currentWeather?.id} size={24} />
                                     </div>
-                                    <div className="w-full max-w-full md:max-w-xs">
-                                        <Minimap grid={gridToPass} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} />
+                                </TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild>
+                                    <div className="flex items-center gap-1 cursor-default">
+                                        <HudIconTemperature temp={playerStats.bodyTemperature || 37} maxTemp={40} hideWeatherEmoji={true} size={24} />
                                     </div>
-                                </div>
+                                </TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
+                            </div>
+                            <div className="w-full max-w-full md:max-w-xs">
+                                <Minimap grid={gridToPass} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} />
+                            </div>
+                        </div>
 
-                                {/* HUD */}
-                                <div className="grid grid-cols-4 gap-x-4 gap-y-2 text-sm justify-items-center">
-                                    {/* Health (use new HudIconHealth) */}
-                                    <div className="flex flex-col items-center p-2">
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <div>
-                                                    <HudIconHealth percent={Math.max(0, Math.min(1, hpPct))} size={isDesktop ? 40 : 48} />
-                                                </div>
-                                            </TooltipTrigger>
-                                            <TooltipContent><p>{t('hudHealth') ?? 'Health'}: {Math.round(playerStats.hp ?? 0)}/{playerStats.maxHp ?? 100}</p></TooltipContent>
-                                        </Tooltip>
-                                        <span className={`text-xs mt-1 ${statColorClass(hpPct)}`}>{Math.round(hpVal)}/{hpMax}</span>
-                                    </div>
-
-                                    {/* Mana */}
-                                    <div className="flex flex-col items-center p-2">
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <div>
-                                                    <HudIconMana percent={Math.max(0, Math.min(1, manaPct))} size={isDesktop ? 40 : 48} />
-                                                </div>
-                                            </TooltipTrigger>
-                                            <TooltipContent><p>{t('hudMana') ?? 'Mana'}: {Math.round(playerStats.mana ?? 0)}/{playerStats.maxMana ?? 50}</p></TooltipContent>
-                                        </Tooltip>
-                                        <span className={`text-xs mt-1 ${statColorClass(manaPct)}`}>{Math.round(manaVal)}/{manaMax}</span>
-                                    </div>
-
-                                    {/* Stamina */}
-                                    <div className="flex flex-col items-center p-2">
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <div>
-                                                    <HudIconStamina percent={Math.max(0, Math.min(1, stamPct))} size={isDesktop ? 40 : 48} className="" />
-                                                </div>
-                                            </TooltipTrigger>
-                                            <TooltipContent><p>{t('hudStamina') ?? 'Stamina'}: {Math.round(playerStats.stamina ?? 0)}/{playerStats.maxStamina ?? 100}</p></TooltipContent>
-                                        </Tooltip>
-                                        <span className={`text-xs mt-1 ${statColorClass(stamPct)}`}>{Math.round(stamVal)}/{stamMax}</span>
-                                    </div>
-
-                                    {/* Hunger */}
-                                    <div className="flex flex-col items-center p-2">
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button variant="ghost" size="icon" aria-label={t('hudHunger') ?? 'Hunger'} onClick={() => { handleStatusToggle(); focusCustomActionInput(); }} className="p-0">
-                                                    <HudIconHunger percent={Math.max(0, Math.min(1, hungerPct))} size={isDesktop ? 40 : 48} />
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent><p>{t('hudHunger') ?? 'Hunger'}: {Math.round(playerStats.hunger ?? 0)}/{playerStats.maxHunger ?? 100}</p></TooltipContent>
-                                        </Tooltip>
-                                        <button onClick={() => { handleStatusToggle(); focusCustomActionInput(); }} className={`text-xs mt-1 ${statColorClass(hungerPct)} focus:outline-none`}>{Math.round(hungerVal)}/{hungerMax}</button>
-                                    </div>
-                                </div>
-                            </>
-                        ) : (
-                            // Default (mobile / legacy): HUD then Minimap
-                            <>
-                                {/* HUD */}
-                                <div className="grid grid-cols-4 gap-x-4 gap-y-2 text-sm justify-items-center">
-                                    {/* Health (mobile) */}
-                                    <div className="flex flex-col items-center p-2">
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <div>
-                                                    <HudIconHealth percent={Math.max(0, Math.min(1, hpPct))} size={isDesktop ? 40 : 48} />
-                                                </div>
-                                            </TooltipTrigger>
-                                            <TooltipContent><p>{t('hudHealth') ?? 'Health'}: {Math.round(playerStats.hp ?? 0)}/{playerStats.maxHp ?? 100}</p></TooltipContent>
-                                        </Tooltip>
-                                        <span className={`text-xs mt-1 ${statColorClass(hpPct)}`}>{Math.round(hpVal)}/{hpMax}</span>
-                                    </div>
-
-                                    {/* Mana (mobile) */}
-                                    <div className="flex flex-col items-center p-2">
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <div>
-                                                    <HudIconMana percent={Math.max(0, Math.min(1, manaPct))} size={isDesktop ? 40 : 48} />
-                                                </div>
-                                            </TooltipTrigger>
-                                            <TooltipContent><p>{t('hudMana') ?? 'Mana'}: {Math.round(playerStats.mana ?? 0)}/{playerStats.maxMana ?? 50}</p></TooltipContent>
-                                        </Tooltip>
-                                        <span className={`text-xs mt-1 ${statColorClass(manaPct)}`}>{Math.round(manaVal)}/{manaMax}</span>
-                                    </div>
-
-                                    {/* Stamina (mobile) */}
-                                    <div className="flex flex-col items-center p-2">
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <div>
-                                                    <HudIconStamina percent={Math.max(0, Math.min(1, stamPct))} size={isDesktop ? 40 : 48} className="" />
-                                                </div>
-                                            </TooltipTrigger>
-                                            <TooltipContent><p>{t('hudStamina') ?? 'Stamina'}: {Math.round(playerStats.stamina ?? 0)}/{playerStats.maxStamina ?? 100}</p></TooltipContent>
-                                        </Tooltip>
-                                        <span className={`text-xs mt-1 ${statColorClass(stamPct)}`}>{Math.round(stamVal)}/{stamMax}</span>
-                                    </div>
-
-                                    {/* Hunger (mobile) */}
-                                    <div className="flex flex-col items-center p-2">
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <div>
-                                                    <HudIconHunger percent={Math.max(0, Math.min(1, hungerPct))} size={isDesktop ? 40 : 48} />
-                                                </div>
-                                            </TooltipTrigger>
-                                            <TooltipContent><p>{t('hudHunger') ?? 'Hunger'}: {Math.round(playerStats.hunger ?? 0)}/{playerStats.maxHunger ?? 100}</p></TooltipContent>
-                                        </Tooltip>
-                                        <span className={`text-xs mt-1 ${statColorClass(hungerPct)}`}>{Math.round(hungerVal)}/{hungerMax}</span>
-                                    </div>
-                                </div>
-
-                                {/* Pause Idle Progression Indicator */}
-                                {settings?.pauseGameIdleProgression && (
-                                    <div className="flex items-center justify-center gap-2 text-sm text-accent px-2 py-1.5 rounded-md bg-accent/10 border border-accent/30 w-full max-w-xs mx-auto">
-                                        <span className="text-lg">⏸</span>
-                                        <span className="font-semibold">{t('pauseIdleProgression')}</span>
-                                    </div>
-                                )}
-
-                                {/* Minimap with zoom controls */}
-                                <div className="flex flex-col items-center gap-2 w-full max-w-xs mx-auto">
-                                    <div className="flex items-center justify-between w-full px-2">
-                                        <h3 className="text-lg font-headline font-semibold text-center flex-1 text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { handleMapToggle(); focusCustomActionInput(); }}>{t('minimap')}</h3>
-                                        {/* Minimap zoom controls */}
-                                        <div className="flex items-center gap-1">
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <button
-                                                        onClick={() => {
-                                                            const current = settings.minimapViewportSize ?? 5;
-                                                            const sizes: (5 | 7 | 9)[] = [5, 7, 9];
-                                                            const idx = sizes.indexOf(current as 5 | 7 | 9);
-                                                            const next = sizes[(idx - 1 + sizes.length) % sizes.length];
-                                                            setSettings({ minimapViewportSize: next });
-                                                        }}
-                                                        className="p-1 hover:bg-accent/20 rounded text-xs transition-colors"
-                                                        title="Zoom out minimap"
-                                                    >
-                                                        −
-                                                    </button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>Zoom out</TooltipContent>
-                                            </Tooltip>
-                                            <span className="text-xs text-muted-foreground w-10 text-center">{settings.minimapViewportSize ?? 5}×{settings.minimapViewportSize ?? 5}</span>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <button
-                                                        onClick={() => {
-                                                            const current = settings.minimapViewportSize ?? 5;
-                                                            const sizes: (5 | 7 | 9)[] = [5, 7, 9];
-                                                            const idx = sizes.indexOf(current as 5 | 7 | 9);
-                                                            const next = sizes[(idx + 1) % sizes.length];
-                                                            setSettings({ minimapViewportSize: next });
-                                                        }}
-                                                        className="p-1 hover:bg-accent/20 rounded text-xs transition-colors"
-                                                        title="Zoom in minimap"
-                                                    >
-                                                        +
-                                                    </button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>Zoom in</TooltipContent>
-                                            </Tooltip>
+                        {/* HUD */}
+                        <div className="grid grid-cols-4 gap-x-4 gap-y-2 text-sm justify-items-center">
+                            {/* Health */}
+                            <div className="flex flex-col items-center p-2">
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div>
+                                            <HudIconHealth percent={Math.max(0, Math.min(1, hpPct))} size={isDesktop ? 40 : 48} />
                                         </div>
-                                    </div>
-                                    <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
-                                        <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
-                                        <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
-                                    </div>
-                                    <Minimap grid={gridToPass} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} />
-                                </div>
-                            </>
-                        )}
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>{t('hudHealth') ?? 'Health'}: {Math.round(playerStats.hp ?? 0)}/{playerStats.maxHp ?? 100}</p></TooltipContent>
+                                </Tooltip>
+                                <span className={`text-xs mt-1 ${statColorClass(hpPct)}`}>{Math.round(hpVal)}/{hpMax}</span>
+                            </div>
+
+                            {/* Mana */}
+                            <div className="flex flex-col items-center p-2">
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div>
+                                            <HudIconMana percent={Math.max(0, Math.min(1, manaPct))} size={isDesktop ? 40 : 48} />
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>{t('hudMana') ?? 'Mana'}: {Math.round(playerStats.mana ?? 0)}/{playerStats.maxMana ?? 50}</p></TooltipContent>
+                                </Tooltip>
+                                <span className={`text-xs mt-1 ${statColorClass(manaPct)}`}>{Math.round(manaVal)}/{manaMax}</span>
+                            </div>
+
+                            {/* Stamina */}
+                            <div className="flex flex-col items-center p-2">
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div>
+                                            <HudIconStamina percent={Math.max(0, Math.min(1, stamPct))} size={isDesktop ? 40 : 48} className="" />
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>{t('hudStamina') ?? 'Stamina'}: {Math.round(playerStats.stamina ?? 0)}/{playerStats.maxStamina ?? 100}</p></TooltipContent>
+                                </Tooltip>
+                                <span className={`text-xs mt-1 ${statColorClass(stamPct)}`}>{Math.round(stamVal)}/{stamMax}</span>
+                            </div>
+
+                            {/* Hunger */}
+                            <div className="flex flex-col items-center p-2">
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="ghost" size="icon" aria-label={t('hudHunger') ?? 'Hunger'} onClick={() => { handleStatusToggle(); focusCustomActionInput(); }} className="p-0">
+                                            <HudIconHunger percent={Math.max(0, Math.min(1, hungerPct))} size={isDesktop ? 40 : 48} />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>{t('hudHunger') ?? 'Hunger'}: {Math.round(playerStats.hunger ?? 0)}/{playerStats.maxHunger ?? 100}</p></TooltipContent>
+                                </Tooltip>
+                                <button onClick={() => { handleStatusToggle(); focusCustomActionInput(); }} className={`text-xs mt-1 ${statColorClass(hungerPct)} focus:outline-none`}>{Math.round(hungerVal)}/{hungerMax}</button>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Bottom Section - Actions (desktop shows horizontal bar instead unless legacy layout is enabled) */}

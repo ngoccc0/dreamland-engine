@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from '@/hooks/use-toast';
+import { useButtonAudio } from '@/hooks/useButtonAudio';
+import { useAudio } from '@/lib/audio/useAudio';
+import { AudioActionType } from '@/lib/definitions/audio-events';
 import { Skeleton } from "../ui/skeleton";
 import { Separator } from "../ui/separator";
 import { useLanguage } from "@/context/language-context";
@@ -83,6 +86,14 @@ const SelectionCard = ({
 
 export function WorldSetup({ onWorldCreated }: WorldSetupProps): JSX.Element {
     const { t, language } = useLanguage();
+    const audio = useAudio();
+
+    // Helper to play click sound
+    const playClickSound = () => {
+        try {
+            audio.playSfxForAction?.(AudioActionType.UI_BUTTON_CLICK);
+        } catch { }
+    };
 
     const [step, setStep] = useState(0);
     const [userInput, setUserInput] = useState("");
@@ -277,7 +288,10 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps): JSX.Element {
                                 <button
                                     key={i}
                                     type="button"
-                                    onClick={() => setUserInput(prev => `${prev} ${keyword}`)}
+                                    onClick={() => {
+                                        playClickSound();
+                                        setUserInput(prev => `${prev} ${keyword}`);
+                                    }}
                                     className="px-3 py-1 rounded-full bg-accent/20 text-accent-foreground text-sm hover:bg-accent/40 transition-colors"
                                 >
                                     + {keyword}
@@ -294,7 +308,10 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps): JSX.Element {
                             <button
                                 key={`${prompt.text}-${index}`}
                                 type="button"
-                                onClick={() => handleExampleClick(prompt)}
+                                onClick={() => {
+                                    playClickSound();
+                                    handleExampleClick(prompt);
+                                }}
                                 className="text-left p-2 rounded-md hover:bg-muted transition-colors text-accent text-sm flex items-center gap-2"
                             >
                                 &raquo; {prompt.text} {prompt.keyword && <span title="Pre-made World">⭐</span>}

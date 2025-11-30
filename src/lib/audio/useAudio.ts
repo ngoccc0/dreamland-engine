@@ -6,7 +6,9 @@ export function useAudio() {
   return useMemo(() => ({
     playMusic: ctx.playMusic,
     playMenuMusic: ctx.playMenuMusic,
+    playMenuMusicForTime: ctx.playMenuMusicForTime,
     playAmbienceForBiome: ctx.playAmbienceForBiome,
+    playAmbienceLayers: ctx.playAmbienceLayers,
     playBackgroundForMoods: ctx.playBackgroundForMoods,
     autoplayBlocked: ctx.autoplayBlocked,
     tryEnableAutoplay: ctx.tryEnableAutoplay,

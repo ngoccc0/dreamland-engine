@@ -68,7 +68,6 @@ export enum AudioActionType {
     REST_COMPLETE = 'REST_COMPLETE',
 
     // UI
-    UI_BUTTON_HOVER = 'UI_BUTTON_HOVER',
     UI_BUTTON_CLICK = 'UI_BUTTON_CLICK',
     UI_CONFIRM = 'UI_CONFIRM',
     UI_CANCEL = 'UI_CANCEL',
@@ -227,7 +226,7 @@ export const AUDIO_EVENTS_REGISTRY: Record<
 
     [AudioActionType.CRAFT_FAIL]: () => [
         'synth_error.wav',
-        'sci_fi_disallow.wav',
+        'UI/crafting_fail.wav',
     ],
 
     // FARMING
@@ -296,19 +295,11 @@ export const AUDIO_EVENTS_REGISTRY: Record<
     ],
 
     // UI
-    [AudioActionType.UI_BUTTON_HOVER]: () => 'sci_fi_hover.wav',
+    [AudioActionType.UI_BUTTON_CLICK]: () => 'UI/button_click.m4a',
 
-    [AudioActionType.UI_BUTTON_CLICK]: () => [
-        'sci_fi_select.wav',
-        'synth_confirmation.wav',
-    ],
+    [AudioActionType.UI_CONFIRM]: () => 'UI/craftting_success.wav',
 
-    [AudioActionType.UI_CONFIRM]: () => 'sci_fi_confirm.wav',
-
-    [AudioActionType.UI_CANCEL]: () => [
-        'sci_fi_cancel.wav',
-        'synth_cancel.wav',
-    ],
+    [AudioActionType.UI_CANCEL]: () => 'UI/cancel.wav',
 
     // SKILLS
     [AudioActionType.SKILL_CAST]: () => 'whoosh_1.wav',

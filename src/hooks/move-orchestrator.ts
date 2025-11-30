@@ -200,6 +200,44 @@ export function createHandleMove(ctx: any) {
           try { console.info('[move-orchestrator] authoritative_apply', { origin, x, y, now: Date.now() }); } catch { }
           try {
             if (ctx.setPlayerPosition) ctx.setPlayerPosition({ x, y });
+
+            // Play dynamic multi-layer ambience when moving to a new chunk
+            const nextChunk = ctx.world[`${x},${y}`];
+            if (nextChunk?.terrain && ctx.audio?.playAmbienceLayers) {
+              try {
+                // Build full ambience context from current game state
+                const effectiveChunk = ctx.getEffectiveChunk
+                  ? ctx.getEffectiveChunk(nextChunk, ctx.weatherZones, ctx.gameTime, ctx.sStart, ctx.sDayDuration)
+                  : nextChunk;
+
+                // Get mood analysis from chunk
+                const { analyze_chunk_mood } = require('@/core/engines/game/offline');
+                const moods = analyze_chunk_mood(effectiveChunk);
+
+                // Get time of day
+                const { getTimeOfDay } = require('@/lib/game/time/time-utils');
+                const timeOfDay = getTimeOfDay(ctx.gameTime, ctx.sStart || 360, ctx.sDayDuration || 1440);
+
+                // Get current weather for this region
+                const weather = ctx.weatherZones?.[nextChunk.regionId]?.currentWeather;
+
+                // Play dynamic ambience
+                ctx.audio.playAmbienceLayers({
+                  biome: nextChunk.terrain,
+                  mood: moods,
+                  timeOfDay: timeOfDay,
+                  weather: weather ? {
+                    type: weather.id,
+                    moisture: effectiveChunk.moisture,
+                    windLevel: effectiveChunk.windLevel,
+                    lightLevel: effectiveChunk.lightLevel,
+                  } : undefined,
+                }, 2); // max 2 layers for immersive but not overwhelming
+              } catch (e) {
+                // Silently fail - don't break movement if audio fails
+                try { console.debug('[move-orchestrator] Ambience error:', e); } catch { }
+              }
+            }
           } catch { }
           try {
             // Ensure visual state is cleared so UI stops animating even if

@@ -51,12 +51,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const Comp = asChild ? Slot : "button"
     const audio = useAudio();
 
-    const handleMouseEnter = () => {
-      try {
-        if (!noSfx) audio.playSfxForAction?.(AudioActionType.UI_BUTTON_HOVER);
-      } catch { }
-    };
-
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
       try {
         if (typeof onClick === 'function') onClick(e as any);
@@ -72,7 +66,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         {...props}
-        onMouseEnter={handleMouseEnter}
         // prefer our wrapped click so we can play a UI sfx automatically
         onClick={handleClick as any}
       />

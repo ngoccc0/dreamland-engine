@@ -58,13 +58,13 @@ export default function GameLayout(props: GameLayoutProps) {
     }
     const { t, language } = useLanguage();
     const { settings, setSettings } = useSettings();
-    
+
     // Idle warning hook: shows toast notification when idle threshold approaches
     useIdleWarning({
         pauseGameIdleProgression: settings?.pauseGameIdleProgression,
         idleWarningThresholdMs: settings?.idleWarningThresholdMs,
     });
-    
+
     const [isDesktop, setIsDesktop] = useState(false);
     const [showNarrativeDesktop, setShowNarrativeDesktop] = useState(true);
     // Dev-only: track mount/unmount counts to help diagnose unexpected remounts

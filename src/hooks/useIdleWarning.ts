@@ -17,10 +17,10 @@ import { useLanguage } from '@/context/language-context';
 import { logger } from '@/lib/logger';
 
 interface UseIdleWarningOptions {
-  /** Whether to disable idle progression (pause mode). If true, warning is skipped. */
-  pauseGameIdleProgression?: boolean;
-  /** Time in milliseconds before warning is shown. Default: 4 * 60_000 (4 minutes) */
-  idleWarningThresholdMs?: number;
+    /** Whether to disable idle progression (pause mode). If true, warning is skipped. */
+    pauseGameIdleProgression?: boolean;
+    /** Time in milliseconds before warning is shown. Default: 4 * 60_000 (4 minutes) */
+    idleWarningThresholdMs?: number;
 }
 
 /**
@@ -42,72 +42,72 @@ interface UseIdleWarningOptions {
  * ```
  */
 export function useIdleWarning(options: UseIdleWarningOptions): void {
-  const { toast } = useToast();
-  const { t } = useLanguage();
-  const { pauseGameIdleProgression, idleWarningThresholdMs = 4 * 60_000 } = options;
+    const { toast } = useToast();
+    const { t } = useLanguage();
+    const { pauseGameIdleProgression, idleWarningThresholdMs = 4 * 60_000 } = options;
 
-  useEffect(() => {
-    // Skip if pause is enabled (game time is frozen)
-    if (pauseGameIdleProgression) {
-      logger.debug('[useIdleWarning] Skipped (pauseGameIdleProgression=true)');
-      return;
-    }
-
-    let idleTimer: NodeJS.Timeout | null = null;
-    let toastShown = false;
-
-    /**
-     * Reset idle timer and prepare for next warning.
-     * Sets a timeout for idleWarningThresholdMs to show the warning toast.
-     */
-    const resetIdleTimer = () => {
-      if (idleTimer) clearTimeout(idleTimer);
-      toastShown = false;
-
-      idleTimer = setTimeout(() => {
-        // Only show if app is not hidden (not backgrounded) and not already shown
-        if (!toastShown && !document.hidden) {
-          toastShown = true;
-          toast({
-            title: t('idleWarningTitle'),
-            description: t('idleWarningDesc'),
-            variant: 'default',
-          });
-          logger.debug('[useIdleWarning] Warning toast shown', { idleWarningThresholdMs });
+    useEffect(() => {
+        // Skip if pause is enabled (game time is frozen)
+        if (pauseGameIdleProgression) {
+            logger.debug('[useIdleWarning] Skipped (pauseGameIdleProgression=true)');
+            return;
         }
-      }, idleWarningThresholdMs);
-    };
 
-    /**
-     * Handler for user activity events.
-     * Resets the idle timer when player interacts (only if app is not backgrounded).
-     */
-    const handleUserActivity = () => {
-      if (!document.hidden) {
+        let idleTimer: NodeJS.Timeout | null = null;
+        let toastShown = false;
+
+        /**
+         * Reset idle timer and prepare for next warning.
+         * Sets a timeout for idleWarningThresholdMs to show the warning toast.
+         */
+        const resetIdleTimer = () => {
+            if (idleTimer) clearTimeout(idleTimer);
+            toastShown = false;
+
+            idleTimer = setTimeout(() => {
+                // Only show if app is not hidden (not backgrounded) and not already shown
+                if (!toastShown && !document.hidden) {
+                    toastShown = true;
+                    toast({
+                        title: t('idleWarningTitle'),
+                        description: t('idleWarningDesc'),
+                        variant: 'default',
+                    });
+                    logger.debug('[useIdleWarning] Warning toast shown', { idleWarningThresholdMs });
+                }
+            }, idleWarningThresholdMs);
+        };
+
+        /**
+         * Handler for user activity events.
+         * Resets the idle timer when player interacts (only if app is not backgrounded).
+         */
+        const handleUserActivity = () => {
+            if (!document.hidden) {
+                resetIdleTimer();
+            }
+        };
+
+        // Activity event types to monitor
+        const activityEvents = ['mousedown', 'keydown', 'touchstart'];
+
+        // Register activity listeners
+        activityEvents.forEach((event) => {
+            document.addEventListener(event, handleUserActivity);
+        });
+
+        // Initial timer setup
         resetIdleTimer();
-      }
-    };
 
-    // Activity event types to monitor
-    const activityEvents = ['mousedown', 'keydown', 'touchstart'];
+        logger.debug('[useIdleWarning] Idle warning hook mounted', { idleWarningThresholdMs });
 
-    // Register activity listeners
-    activityEvents.forEach((event) => {
-      document.addEventListener(event, handleUserActivity);
-    });
-
-    // Initial timer setup
-    resetIdleTimer();
-
-    logger.debug('[useIdleWarning] Idle warning hook mounted', { idleWarningThresholdMs });
-
-    // Cleanup on unmount or dependency change
-    return () => {
-      activityEvents.forEach((event) => {
-        document.removeEventListener(event, handleUserActivity);
-      });
-      if (idleTimer) clearTimeout(idleTimer);
-      logger.debug('[useIdleWarning] Idle warning hook unmounted');
-    };
-  }, [pauseGameIdleProgression, idleWarningThresholdMs, t, toast]);
+        // Cleanup on unmount or dependency change
+        return () => {
+            activityEvents.forEach((event) => {
+                document.removeEventListener(event, handleUserActivity);
+            });
+            if (idleTimer) clearTimeout(idleTimer);
+            logger.debug('[useIdleWarning] Idle warning hook unmounted');
+        };
+    }, [pauseGameIdleProgression, idleWarningThresholdMs, t, toast]);
 }

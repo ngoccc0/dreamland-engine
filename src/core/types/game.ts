@@ -99,11 +99,22 @@ import type {
     Emoji
 } from "@/core/types/definitions";
 /**
- * Represents the serializable state of the game world.
+ * OVERVIEW: Represents the serializable state of the game world.
  * This type is used for saving/loading game progress and for modding.
- * @todo Replace with a strongly typed `WorldDefinition` from `../definitions/world-definitions` once available.
+ * Includes terrain chunks, creatures, structures, weather, and vegetation state.
+ * 
+ * @property chunks - 2D grid of terrain chunks, keyed by "x,y" coordinate
+ * @property gameTime - Absolute ticks elapsed since world creation
+ * @property seed - Deterministic world seed for reproducible generation
+ * @property version - World format version for migrations
  */
-export type WorldDefinition = Record<string, any>; // TODO: Replace with real type
+export interface WorldDefinition {
+  [key: string]: any;  // Allow dynamic chunk access by "x,y" key
+  chunks?: Record<string, any>;  // Optional explicit chunks map
+  gameTime?: number;  // Ticks elapsed
+  seed?: number;  // Reproducibility
+  version?: 1;  // Format version
+}
 
 /**
  * Represents the serializable status of the player character.

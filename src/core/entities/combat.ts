@@ -244,8 +244,11 @@ export interface CombatResult {
     rounds: CombatRound[];
     /** Optional: Experience gained by the winner. */
     experience?: number;
-    /** Optional: Loot obtained from the loser. */
-    loot?: any[]; // TODO: Replace with proper Item type
+    /**
+     * Optional: Loot obtained from the loser.
+     * Each loot item includes name, quantity, and optional modifiers.
+     */
+    loot?: Array<{ name: string; quantity: number; emoji?: string }>;
     /** Optional: Special events triggered by the combat (e.g., quest triggers, achievements). */
     specialEvents?: any[]; 
 }

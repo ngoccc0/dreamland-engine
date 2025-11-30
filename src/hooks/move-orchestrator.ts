@@ -112,11 +112,11 @@ export function createHandleMove(ctx: any) {
             picks.forEach((sfx, i) => setTimeout(() => { try { ctx.audio.playSfx(sfx); } catch { } }, i * stagger));
           });
 
-          const landingDelay = 350;
+          const landingDelay = 600;  // Total animation: lift(150) + fly(300) + land(150) = 600ms
           const bounceDuration = 50;
 
           try {
-            const visualTotalMs = 350 + 50 + 20;
+            const visualTotalMs = 600;  // Correct total duration to match actual animation
             try { console.debug('[move-orchestrator] dispatching moveStart', { id: moveId, from, to, visualTotalMs }); } catch { }
             const ev = new CustomEvent('moveStart', { detail: { id: moveId, from, to, visualTotalMs } });
             // Dispatch on next microtask to avoid dispatch-before-listener race
@@ -144,11 +144,11 @@ export function createHandleMove(ctx: any) {
           window.addEventListener('playerOverlayLanding', landingListener as EventListener);
           try { console.debug('[move-orchestrator] landing listener attached'); } catch { }
 
-          ctx.__lastMoveAnimationMs = 350 + 50 + 20;
+          ctx.__lastMoveAnimationMs = 600;  // Consistent with visualTotalMs
         } else {
           try { console.debug('[move-orchestrator] visual setters missing; running without visual animation - still dispatching moveStart'); } catch { }
           // Ensure a reasonable fallback animation duration so schedulePostMove delays appropriately
-          ctx.__lastMoveAnimationMs = ctx.__lastMoveAnimationMs ?? 420;
+          ctx.__lastMoveAnimationMs = ctx.__lastMoveAnimationMs ?? 600;
           try {
             const ev = new CustomEvent('moveStart', { detail: { id: moveId, from, to, visualTotalMs: ctx.__lastMoveAnimationMs } });
             try { Promise.resolve().then(() => { try { console.info('[move-orchestrator] moveStart dispatch (fallback microtask)', { id: moveId, from, to, visualTotalMs: ctx.__lastMoveAnimationMs }); window.dispatchEvent(ev as any); } catch { } }); } catch { try { window.dispatchEvent(ev as any); } catch { } }

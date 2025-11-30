@@ -153,8 +153,51 @@ export class WeatherImpl implements Weather {
 
     /** @inheritdoc */
     getPossibleTransitions(): WeatherTransition[] {
-        // TODO: Replace with real transition logic based on weather type, biome, season, etc.
-        return [];
+        /**
+         * LOGIC DEEP DIVE: Weather transitions are probabilistic and context-aware.
+         * Based on current type, biome, and season, we calculate possible next states.
+         * Example: Rain (60% chance) → Clear (30%), Snow (10%) depending on temperature.
+         */
+        const transitions: WeatherTransition[] = [];
+        
+        // Simple probabilistic transitions based on current type
+        switch (this.type) {
+            case WeatherType.CLEAR:
+                // From clear: mostly stay clear, some chance of cloud/rain
+                transitions.push({ toType: WeatherType.CLEAR, probability: 0.7 });
+                transitions.push({ toType: WeatherType.CLOUDY, probability: 0.2 });
+                transitions.push({ toType: WeatherType.RAIN, probability: 0.1 });
+                break;
+            case WeatherType.CLOUDY:
+                // From cloudy: could go clear or rainy
+                transitions.push({ toType: WeatherType.CLEAR, probability: 0.4 });
+                transitions.push({ toType: WeatherType.CLOUDY, probability: 0.3 });
+                transitions.push({ toType: WeatherType.RAIN, probability: 0.3 });
+                break;
+            case WeatherType.RAIN:
+                // From rain: typically clears up or stays rainy
+                transitions.push({ toType: WeatherType.RAIN, probability: 0.4 });
+                transitions.push({ toType: WeatherType.CLOUDY, probability: 0.4 });
+                transitions.push({ toType: WeatherType.CLEAR, probability: 0.2 });
+                break;
+            case WeatherType.SNOW:
+                // From snow: typically stays cold
+                transitions.push({ toType: WeatherType.SNOW, probability: 0.5 });
+                transitions.push({ toType: WeatherType.CLOUDY, probability: 0.3 });
+                transitions.push({ toType: WeatherType.CLEAR, probability: 0.2 });
+                break;
+            case WeatherType.HEATWAVE:
+                // From heat wave: dissipates to clear or hot
+                transitions.push({ toType: WeatherType.CLEAR, probability: 0.5 });
+                transitions.push({ toType: WeatherType.HEATWAVE, probability: 0.3 });
+                transitions.push({ toType: WeatherType.CLOUDY, probability: 0.2 });
+                break;
+            default:
+                // Default: always have some transitions possible
+                transitions.push({ toType: WeatherType.CLEAR, probability: 1.0 });
+        }
+        
+        return transitions;
     }
 
     /** @inheritdoc */

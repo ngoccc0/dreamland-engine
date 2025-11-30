@@ -37,6 +37,7 @@ const defaultSettings = {
     openInventory: ['e'],
     openStatus: ['p'],
     openMap: ['m'],
+    openCrafting: ['c'],
     customAction: ['/'],
     pickUp: ['Tab'],
     hot1: ['1'],

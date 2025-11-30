@@ -450,8 +450,11 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
       const randomKey = successKeys[Math.floor(Math.random() * successKeys.length)];
       addNarrativeEntry(t(randomKey, { itemName: t(recipe.result.name as TranslationKey) }), 'system');
 
-      // Emit audio for craft success
+      // Emit audio for craft success (play twice in succession with 100ms delay)
       audio.playSfxForAction(AudioActionType.CRAFT_SUCCESS, {});
+      setTimeout(() => {
+        audio.playSfxForAction(AudioActionType.CRAFT_SUCCESS, {});
+      }, 100);
 
       toast({ title: t('craftSuccessTitle'), description: t('craftSuccess', { itemName: t(recipe.result.name as TranslationKey) }) });
     } else {
@@ -459,8 +462,11 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
       const randomKey = failKeys[Math.floor(Math.random() * failKeys.length)];
       addNarrativeEntry(t(randomKey, { itemName: t(recipe.result.name as TranslationKey) }), 'system');
 
-      // Emit audio for craft fail
+      // Emit audio for craft fail (play twice in succession with 100ms delay)
       audio.playSfxForAction(AudioActionType.CRAFT_FAIL, {});
+      setTimeout(() => {
+        audio.playSfxForAction(AudioActionType.CRAFT_FAIL, {});
+      }, 100);
 
       toast({ title: t('craftFailTitle'), description: t('craftFail', { itemName: t(recipe.result.name as TranslationKey) }), variant: 'destructive' });
     }

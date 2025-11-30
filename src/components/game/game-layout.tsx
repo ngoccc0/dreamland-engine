@@ -32,6 +32,8 @@ import { useSettings } from "@/context/settings-context";
 import useKeyboardBindings from "@/hooks/use-keyboard-bindings";
 import { useGameEngine } from "@/hooks/use-game-engine";
 import { useIdleWarning } from "@/hooks/useIdleWarning";
+import { useAudio } from "@/lib/audio/useAudio";
+import { AudioActionType } from "@/lib/definitions/audio-events";
 import type { Structure, Action, NarrativeEntry } from "@/lib/game/types";
 import { cn, getTranslatedText } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
@@ -193,6 +195,20 @@ export default function GameLayout(props: GameLayoutProps) {
     const [selectedPickupIds, setSelectedPickupIds] = useState<number[]>([]);
 
     const customActionInputRef = useRef<HTMLInputElement>(null);
+    const audio = useAudio();
+
+    // Wrapper functions for crafting popup to add audio
+    const handleCraftingOpen = useCallback(() => {
+        audio.playSfxForAction(AudioActionType.UI_CONFIRM);
+        setCraftingOpen(true);
+    }, [audio]);
+
+    const handleCraftingClose = useCallback((open: boolean) => {
+        if (!open) {
+            audio.playSfxForAction(AudioActionType.UI_CANCEL);
+        }
+        setCraftingOpen(open);
+    }, [audio]);
 
     const focusCustomActionInput = useCallback(() => {
         setTimeout(() => {
@@ -223,6 +239,7 @@ export default function GameLayout(props: GameLayoutProps) {
             openInventory: () => setInventoryOpen(true),
             openStatus: () => setStatusOpen(true),
             openMap: () => setIsFullMapOpen(true),
+            openCrafting: () => handleCraftingOpen(),
             customAction: () => setCustomDialogOpen(true),
             pickUp: () => { setPickupDialogOpen(true); setSelectedPickupIds([]); },
             hotkey: (index: number) => {
@@ -452,7 +469,7 @@ export default function GameLayout(props: GameLayoutProps) {
                 <div className="grid grid-cols-1 gap-2 p-2">
                     <Button variant="ghost" className="justify-start" onClick={() => { setStatusOpen(true); focusCustomActionInput(); }}>{t('statusShort') || 'Status'}</Button>
                     <Button variant="ghost" className="justify-start" onClick={() => { setInventoryOpen(true); focusCustomActionInput(); }}>{t('inventoryShort') || 'Inventory'}</Button>
-                    <Button variant="ghost" className="justify-start" onClick={() => { setCraftingOpen(true); focusCustomActionInput(); }}>{t('craftingShort') || 'Craft'}</Button>
+                    <Button variant="ghost" className="justify-start" onClick={() => { handleCraftingOpen(); focusCustomActionInput(); }}>{t('craftingShort') || 'Craft'}</Button>
                     <Button variant="ghost" className="justify-start" onClick={() => { setBuildingOpen(true); focusCustomActionInput(); }}>{t('buildingShort') || 'Build'}</Button>
                     <Button variant="ghost" className="justify-start" onClick={() => { setFusionOpen(true); focusCustomActionInput(); }}>{t('fusionShort') || 'Fuse'}</Button>
                 </div>
@@ -515,7 +532,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                         </Tooltip>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
-                                                <Button aria-label={t('craftingShort') || 'Craft'} variant="outline" size="icon" onClick={() => { setCraftingOpen(true); focusCustomActionInput(); }}><Hammer /></Button>
+                                                <Button aria-label={t('craftingShort') || 'Craft'} variant="outline" size="icon" onClick={() => { handleCraftingOpen(); focusCustomActionInput(); }}><Hammer /></Button>
                                             </TooltipTrigger>
                                             <TooltipContent><p>{t('craftingShort') || 'Craft'}</p></TooltipContent>
                                         </Tooltip>
@@ -859,7 +876,7 @@ export default function GameLayout(props: GameLayoutProps) {
                             onOpenCustomDialog={() => setCustomDialogOpen(true)}
                             onOpenStatus={() => { setStatusOpen(true); focusCustomActionInput(); }}
                             onOpenInventory={() => { setInventoryOpen(true); focusCustomActionInput(); }}
-                            onOpenCrafting={() => { setCraftingOpen(true); focusCustomActionInput(); }}
+                            onOpenCrafting={() => { handleCraftingOpen(); focusCustomActionInput(); }}
                             onOpenBuilding={() => { setBuildingOpen(true); focusCustomActionInput(); }}
                             onOpenFusion={() => { setFusionOpen(true); focusCustomActionInput(); }}
                         />
@@ -916,7 +933,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                 <Backpack className="h-6 w-6" />
                                 <span className="text-xs">{t('inventoryShort') || 'Inventory'}</span>
                             </Button>
-                            <Button variant="outline" className="flex flex-col items-center gap-1 h-16" onClick={() => { setCraftingOpen(true); setAvailableActionsOpen(false); focusCustomActionInput(); }}>
+                            <Button variant="outline" className="flex flex-col items-center gap-1 h-16" onClick={() => { handleCraftingOpen(); setAvailableActionsOpen(false); focusCustomActionInput(); }}>
                                 <Hammer className="h-6 w-6" />
                                 <span className="text-xs">{t('craftingShort') || 'Craft'}</span>
                             </Button>
@@ -1011,7 +1028,7 @@ export default function GameLayout(props: GameLayoutProps) {
                 )}
                 {isCraftingOpen && (
                     <Suspense fallback={<div />}>
-                        <CraftingPopup open={isCraftingOpen} onOpenChange={setCraftingOpen} playerItems={playerStats.items} recipes={recipes} onCraft={handleCraft} itemDefinitions={customItemDefinitions} />
+                        <CraftingPopup open={isCraftingOpen} onOpenChange={handleCraftingClose} playerItems={playerStats.items} recipes={recipes} onCraft={handleCraft} itemDefinitions={customItemDefinitions} />
                     </Suspense>
                 )}
                 {isBuildingOpen && (

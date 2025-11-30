@@ -197,18 +197,55 @@ export default function GameLayout(props: GameLayoutProps) {
     const customActionInputRef = useRef<HTMLInputElement>(null);
     const audio = useAudio();
 
-    // Wrapper functions for crafting popup to add audio
-    const handleCraftingOpen = useCallback(() => {
-        audio.playSfxForAction(AudioActionType.UI_CONFIRM);
-        setCraftingOpen(true);
+    // Toggle handlers for all popups with audio feedback
+    const handleCraftingToggle = useCallback(() => {
+        setCraftingOpen((prev) => {
+            if (prev) {
+                audio.playSfxForAction(AudioActionType.UI_CANCEL);
+            } else {
+                audio.playSfxForAction(AudioActionType.UI_CONFIRM);
+            }
+            return !prev;
+        });
     }, [audio]);
 
-    const handleCraftingClose = useCallback((open: boolean) => {
-        if (!open) {
-            audio.playSfxForAction(AudioActionType.UI_CANCEL);
-        }
-        setCraftingOpen(open);
+    const handleInventoryToggle = useCallback(() => {
+        setInventoryOpen((prev) => {
+            if (prev) {
+                audio.playSfxForAction(AudioActionType.UI_CANCEL);
+            } else {
+                audio.playSfxForAction(AudioActionType.UI_CONFIRM);
+            }
+            return !prev;
+        });
     }, [audio]);
+
+    const handleStatusToggle = useCallback(() => {
+        setStatusOpen((prev) => {
+            if (prev) {
+                audio.playSfxForAction(AudioActionType.UI_CANCEL);
+            } else {
+                audio.playSfxForAction(AudioActionType.UI_CONFIRM);
+            }
+            return !prev;
+        });
+    }, [audio]);
+
+    const handleMapToggle = useCallback(() => {
+        setIsFullMapOpen((prev) => {
+            if (prev) {
+                audio.playSfxForAction(AudioActionType.UI_CANCEL);
+            } else {
+                audio.playSfxForAction(AudioActionType.UI_CONFIRM);
+            }
+            return !prev;
+        });
+    }, [audio]);
+
+    // Legacy close handler for Dialog component onOpenChange
+    const handleCraftingClose = useCallback((open: boolean) => {
+        setCraftingOpen(open);
+    }, []);
 
     const focusCustomActionInput = useCallback(() => {
         setTimeout(() => {
@@ -236,10 +273,10 @@ export default function GameLayout(props: GameLayoutProps) {
             move: (dir: 'north' | 'south' | 'west' | 'east') => handleMove(dir),
             attack: () => handleAttack(),
             wait: () => handleWaitTick(),
-            openInventory: () => setInventoryOpen(true),
-            openStatus: () => setStatusOpen(true),
-            openMap: () => setIsFullMapOpen(true),
-            openCrafting: () => handleCraftingOpen(),
+            openInventory: () => handleInventoryToggle(),
+            openStatus: () => handleStatusToggle(),
+            openMap: () => handleMapToggle(),
+            openCrafting: () => handleCraftingToggle(),
             customAction: () => setCustomDialogOpen(true),
             pickUp: () => { setPickupDialogOpen(true); setSelectedPickupIds([]); },
             hotkey: (index: number) => {
@@ -264,7 +301,7 @@ export default function GameLayout(props: GameLayoutProps) {
                 }
             }
         },
-        popupOpen: isSettingsOpen || isFullMapOpen || isInventoryOpen || isStatusOpen || isCraftingOpen || isBuildingOpen || isFusionOpen || isTutorialOpen,
+        popupOpen: isSettingsOpen || isBuildingOpen || isFusionOpen || isTutorialOpen,
         focusCustomActionInput: focusCustomActionInput,
         enabled: true,
         movementWhileTyping: true,
@@ -467,9 +504,9 @@ export default function GameLayout(props: GameLayoutProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-64">
                 <div className="grid grid-cols-1 gap-2 p-2">
-                    <Button variant="ghost" className="justify-start" onClick={() => { setStatusOpen(true); focusCustomActionInput(); }}>{t('statusShort') || 'Status'}</Button>
-                    <Button variant="ghost" className="justify-start" onClick={() => { setInventoryOpen(true); focusCustomActionInput(); }}>{t('inventoryShort') || 'Inventory'}</Button>
-                    <Button variant="ghost" className="justify-start" onClick={() => { handleCraftingOpen(); focusCustomActionInput(); }}>{t('craftingShort') || 'Craft'}</Button>
+                    <Button variant="ghost" className="justify-start" onClick={() => { handleStatusToggle(); focusCustomActionInput(); }}>{t('statusShort') || 'Status'}</Button>
+                    <Button variant="ghost" className="justify-start" onClick={() => { handleInventoryToggle(); focusCustomActionInput(); }}>{t('inventoryShort') || 'Inventory'}</Button>
+                    <Button variant="ghost" className="justify-start" onClick={() => { handleCraftingToggle(); focusCustomActionInput(); }}>{t('craftingShort') || 'Craft'}</Button>
                     <Button variant="ghost" className="justify-start" onClick={() => { setBuildingOpen(true); focusCustomActionInput(); }}>{t('buildingShort') || 'Build'}</Button>
                     <Button variant="ghost" className="justify-start" onClick={() => { setFusionOpen(true); focusCustomActionInput(); }}>{t('fusionShort') || 'Fuse'}</Button>
                 </div>
@@ -520,19 +557,19 @@ export default function GameLayout(props: GameLayoutProps) {
                                     <div className="flex items-center gap-2">
                                         <Tooltip>
                                             <TooltipTrigger asChild>
-                                                <Button aria-label={t('statusShort') || 'Status'} variant="outline" size="icon" onClick={() => { setStatusOpen(true); focusCustomActionInput(); }}><Shield /></Button>
+                                                <Button aria-label={t('statusShort') || 'Status'} variant="outline" size="icon" onClick={() => { handleStatusToggle(); focusCustomActionInput(); }}><Shield /></Button>
                                             </TooltipTrigger>
                                             <TooltipContent><p>{t('statusShort') || 'Status'}</p></TooltipContent>
                                         </Tooltip>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
-                                                <Button aria-label={t('inventoryShort') || 'Inventory'} variant="outline" size="icon" onClick={() => { setInventoryOpen(true); focusCustomActionInput(); }}><Backpack /></Button>
+                                                <Button aria-label={t('inventoryShort') || 'Inventory'} variant="outline" size="icon" onClick={() => { handleInventoryToggle(); focusCustomActionInput(); }}><Backpack /></Button>
                                             </TooltipTrigger>
                                             <TooltipContent><p>{t('inventoryShort') || 'Inventory'}</p></TooltipContent>
                                         </Tooltip>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
-                                                <Button aria-label={t('craftingShort') || 'Craft'} variant="outline" size="icon" onClick={() => { handleCraftingOpen(); focusCustomActionInput(); }}><Hammer /></Button>
+                                                <Button aria-label={t('craftingShort') || 'Craft'} variant="outline" size="icon" onClick={() => { handleCraftingToggle(); focusCustomActionInput(); }}><Hammer /></Button>
                                             </TooltipTrigger>
                                             <TooltipContent><p>{t('craftingShort') || 'Craft'}</p></TooltipContent>
                                         </Tooltip>
@@ -625,7 +662,7 @@ export default function GameLayout(props: GameLayoutProps) {
                             <>
                                 {/* Minimap */}
                                 <div className="flex flex-col items-center gap-2 w-full md:max-w-xs mx-auto">
-                                    <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); focusCustomActionInput(); }}>{t('minimap')}</h3>
+                                    <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { handleMapToggle(); focusCustomActionInput(); }}>{t('minimap')}</h3>
                                     <div className="flex items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground flex-wrap">
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-orange-500" /><span>{t('environmentTemperature', { temp: currentChunk?.temperature?.toFixed(0) || 'N/A' })}</span></div></TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
                                         <Tooltip><TooltipTrigger asChild><div className="flex items-center gap-1 cursor-default"><Thermometer className="h-4 w-4 text-rose-500" /><span>{t('hudBodyTemp', { temp: playerStats.bodyTemperature.toFixed(1) })}</span></div></TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
@@ -680,13 +717,13 @@ export default function GameLayout(props: GameLayoutProps) {
                                     <div className="flex flex-col items-center p-2">
                                         <Tooltip>
                                             <TooltipTrigger asChild>
-                                                <Button variant="ghost" size="icon" aria-label={t('hudHunger') ?? 'Hunger'} onClick={() => { setStatusOpen(true); focusCustomActionInput(); }} className="p-0">
+                                                <Button variant="ghost" size="icon" aria-label={t('hudHunger') ?? 'Hunger'} onClick={() => { handleStatusToggle(); focusCustomActionInput(); }} className="p-0">
                                                     <HudIconHunger percent={Math.max(0, Math.min(1, hungerPct))} size={isDesktop ? 40 : 48} />
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent><p>{t('hudHunger') ?? 'Hunger'}: {Math.round(playerStats.hunger ?? 0)}/{playerStats.maxHunger ?? 100}</p></TooltipContent>
                                         </Tooltip>
-                                        <button onClick={() => { setStatusOpen(true); focusCustomActionInput(); }} className={`text-xs mt-1 ${statColorClass(hungerPct)} focus:outline-none`}>{Math.round(hungerVal)}/{hungerMax}</button>
+                                        <button onClick={() => { handleStatusToggle(); focusCustomActionInput(); }} className={`text-xs mt-1 ${statColorClass(hungerPct)} focus:outline-none`}>{Math.round(hungerVal)}/{hungerMax}</button>
                                     </div>
                                 </div>
                             </>
@@ -759,7 +796,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                 {/* Minimap with zoom controls */}
                                 <div className="flex flex-col items-center gap-2 w-full max-w-xs mx-auto">
                                     <div className="flex items-center justify-between w-full px-2">
-                                        <h3 className="text-lg font-headline font-semibold text-center flex-1 text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { setIsFullMapOpen(true); focusCustomActionInput(); }}>{t('minimap')}</h3>
+                                        <h3 className="text-lg font-headline font-semibold text-center flex-1 text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { handleMapToggle(); focusCustomActionInput(); }}>{t('minimap')}</h3>
                                         {/* Minimap zoom controls */}
                                         <div className="flex items-center gap-1">
                                             <Tooltip>
@@ -874,9 +911,9 @@ export default function GameLayout(props: GameLayoutProps) {
                             onOpenPickup={() => { setPickupDialogOpen(true); setSelectedPickupIds([]); }}
                             onOpenAvailableActions={() => setAvailableActionsOpen(true)}
                             onOpenCustomDialog={() => setCustomDialogOpen(true)}
-                            onOpenStatus={() => { setStatusOpen(true); focusCustomActionInput(); }}
-                            onOpenInventory={() => { setInventoryOpen(true); focusCustomActionInput(); }}
-                            onOpenCrafting={() => { handleCraftingOpen(); focusCustomActionInput(); }}
+                            onOpenStatus={() => { handleStatusToggle(); focusCustomActionInput(); }}
+                            onOpenInventory={() => { handleInventoryToggle(); focusCustomActionInput(); }}
+                            onOpenCrafting={() => { handleCraftingToggle(); focusCustomActionInput(); }}
                             onOpenBuilding={() => { setBuildingOpen(true); focusCustomActionInput(); }}
                             onOpenFusion={() => { setFusionOpen(true); focusCustomActionInput(); }}
                         />
@@ -925,15 +962,15 @@ export default function GameLayout(props: GameLayoutProps) {
                             <DialogDescription>{t('menuDesc') || 'Access game features and settings.'}</DialogDescription>
                         </DialogHeader>
                         <div className="mt-4 grid grid-cols-2 gap-2">
-                            <Button variant="outline" className="flex flex-col items-center gap-1 h-16" onClick={() => { setStatusOpen(true); setAvailableActionsOpen(false); focusCustomActionInput(); }}>
+                            <Button variant="outline" className="flex flex-col items-center gap-1 h-16" onClick={() => { handleStatusToggle(); setAvailableActionsOpen(false); focusCustomActionInput(); }}>
                                 <Shield className="h-6 w-6" />
                                 <span className="text-xs">{t('statusShort') || 'Status'}</span>
                             </Button>
-                            <Button variant="outline" className="flex flex-col items-center gap-1 h-16" onClick={() => { setInventoryOpen(true); setAvailableActionsOpen(false); focusCustomActionInput(); }}>
+                            <Button variant="outline" className="flex flex-col items-center gap-1 h-16" onClick={() => { handleInventoryToggle(); setAvailableActionsOpen(false); focusCustomActionInput(); }}>
                                 <Backpack className="h-6 w-6" />
                                 <span className="text-xs">{t('inventoryShort') || 'Inventory'}</span>
                             </Button>
-                            <Button variant="outline" className="flex flex-col items-center gap-1 h-16" onClick={() => { handleCraftingOpen(); setAvailableActionsOpen(false); focusCustomActionInput(); }}>
+                            <Button variant="outline" className="flex flex-col items-center gap-1 h-16" onClick={() => { handleCraftingToggle(); setAvailableActionsOpen(false); focusCustomActionInput(); }}>
                                 <Hammer className="h-6 w-6" />
                                 <span className="text-xs">{t('craftingShort') || 'Craft'}</span>
                             </Button>
@@ -945,7 +982,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                 <FlaskConical className="h-6 w-6" />
                                 <span className="text-xs">{t('fusionShort') || 'Fuse'}</span>
                             </Button>
-                            <Button variant="outline" className="flex flex-col items-center gap-1 h-16" onClick={() => { setIsFullMapOpen(true); setAvailableActionsOpen(false); focusCustomActionInput(); }}>
+                            <Button variant="outline" className="flex flex-col items-center gap-1 h-16" onClick={() => { handleMapToggle(); setAvailableActionsOpen(false); focusCustomActionInput(); }}>
                                 <Cpu className="h-6 w-6" />
                                 <span className="text-xs">{t('map') || 'Map'}</span>
                             </Button>

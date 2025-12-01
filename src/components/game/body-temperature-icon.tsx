@@ -11,14 +11,14 @@ import { getTempColor } from './hud-icon-temperature';
 import { cn } from '@/lib/utils';
 
 interface BodyTemperatureIconProps {
-  /** Current body temperature in Celsius */
-  temp: number;
-  /** Maximum temperature for gauge scale (default: 40°C for body temp) */
-  maxTemp?: number;
-  /** Icon size in pixels */
-  size?: number;
-  /** Additional CSS classes */
-  className?: string;
+    /** Current body temperature in Celsius */
+    temp: number;
+    /** Maximum temperature for gauge scale (default: 40°C for body temp) */
+    maxTemp?: number;
+    /** Icon size in pixels */
+    size?: number;
+    /** Additional CSS classes */
+    className?: string;
 }
 
 /**
@@ -30,35 +30,35 @@ interface BodyTemperatureIconProps {
  * <BodyTemperatureIcon temp={38.5} maxTemp={40} size={40} />
  */
 export function BodyTemperatureIcon({
-  temp,
-  maxTemp = 40,
-  size = 32,
-  className,
+    temp,
+    maxTemp = 40,
+    size = 32,
+    className,
 }: BodyTemperatureIconProps) {
-  const tempColor = getTempColor(temp, maxTemp);
+    const tempColor = getTempColor(temp, maxTemp);
 
-  return (
-    <div
-      className={cn(
-        'flex items-center justify-center flex-shrink-0 transition-colors duration-300',
-        className
-      )}
-      style={{
-        width: size,
-        height: size,
-        color: tempColor,
-      }}
-      title={`Body Temperature: ${temp.toFixed(1)}°C`}
-    >
-      <PersonStanding
-        size={size}
-        strokeWidth={1.5}
-        style={{
-          transition: 'color 0.3s ease-out',
-        }}
-      />
-    </div>
-  );
+    return (
+        <div
+            className={cn(
+                'flex items-center justify-center flex-shrink-0 transition-colors duration-300',
+                className
+            )}
+            style={{
+                width: size,
+                height: size,
+                color: tempColor,
+            }}
+            title={`Body Temperature: ${temp.toFixed(1)}°C`}
+        >
+            <PersonStanding
+                size={size}
+                strokeWidth={1.5}
+                style={{
+                    transition: 'color 0.3s ease-out',
+                }}
+            />
+        </div>
+    );
 }
 
 export default BodyTemperatureIcon;

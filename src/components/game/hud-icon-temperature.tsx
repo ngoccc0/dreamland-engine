@@ -8,6 +8,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import BodyTemperatureIcon from './body-temperature-icon';
+import BodyTempColorIcon from './body-temp-color-icon';
+import EnvTempColorIcon from './env-temp-color-icon';
 
 interface HudIconTemperatureProps {
     /** Current temperature in Celsius */
@@ -24,6 +26,12 @@ interface HudIconTemperatureProps {
     className?: string;
     /** Whether this is displaying body temperature (shows person icon) */
     isBodyTemp?: boolean;
+    /** Display body temp as color-changing icon instead of thermometer */
+    isBodyTempColorIcon?: boolean;
+    /** Show temperature number beside icon instead of overlay */
+    showNumberBeside?: boolean;
+    /** Display environment temp as color-changing thermometer icon */
+    isEnvTempColorIcon?: boolean;
 }
 
 /**
@@ -95,6 +103,9 @@ export function HudIconTemperature({
     size = 40,
     className,
     isBodyTemp = false,
+    isBodyTempColorIcon = false,
+    showNumberBeside = false,
+    isEnvTempColorIcon = false,
 }: HudIconTemperatureProps) {
     const id = useRef(`temp-${Math.random().toString(36).slice(2, 9)}`).current;
     const [displayTemp, setDisplayTemp] = useState(Math.round(temp * 10) / 10);
@@ -138,6 +149,112 @@ export function HudIconTemperature({
     const tempColor = getTempColor(displayTemp, maxTemp);
     const weatherEmoji = hideWeatherEmoji ? '' : getWeatherEmoji(weatherType);
 
+    // If environment temp color icon, use separate component
+    if (isEnvTempColorIcon) {
+        return (
+            <div className={cn('flex items-center gap-1', className)}>
+                <EnvTempColorIcon temp={displayTemp} maxTemp={maxTemp} size={size} />
+                {showNumberBeside && (
+                    <span className="text-xs font-bold" style={{ minWidth: '30px' }}>
+                        {displayTemp.toFixed(1)}°
+                    </span>
+                )}
+            </div>
+        );
+    }
+
+    // If body temp color icon, use separate component
+    if (isBodyTempColorIcon) {
+        return (
+            <div className={cn('flex items-center gap-1', className)}>
+                <BodyTempColorIcon temp={displayTemp} size={size} />
+                {showNumberBeside && (
+                    <span className="text-xs font-bold" style={{ minWidth: '30px' }}>
+                        {displayTemp.toFixed(1)}°
+                    </span>
+                )}
+            </div>
+        );
+    }
+
+    // Thermometer icon
+    if (showNumberBeside) {
+        return (
+            <div className={cn('flex items-center gap-1', className)} title={`Temperature: ${displayTemp}°C`}>
+                {/* Thermometer SVG */}
+                <svg
+                    width={size}
+                    height={size}
+                    viewBox="0 0 100 100"
+                    className="drop-shadow-sm flex-shrink-0"
+                    style={{ position: 'relative', zIndex: 1 }}
+                >
+                    {/* Background bulb and tube */}
+                    <defs>
+                        <linearGradient id={`tempGrad-${id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stopColor="#e0e7ff" stopOpacity="0.3" />
+                            <stop offset="100%" stopColor="#c7d2fe" stopOpacity="0.5" />
+                        </linearGradient>
+                    </defs>
+
+                    {/* Outer outline (thermometer shape) */}
+                    <circle cx="50" cy="80" r="12" fill="none" stroke={tempColor} strokeWidth="1.5" style={{ opacity: 0.7, transition: 'stroke 0.3s ease-out' }} />
+                    <rect
+                        x="46"
+                        y="15"
+                        width="8"
+                        height="65"
+                        fill="none"
+                        stroke={tempColor}
+                        strokeWidth="1.5"
+                        rx="4"
+                        style={{ opacity: 0.7, transition: 'stroke 0.3s ease-out' }}
+                    />
+
+                    {/* Filled liquid (animated) */}
+                    <circle
+                        cx="50"
+                        cy="80"
+                        r="10"
+                        fill={tempColor}
+                        opacity="0.9"
+                        style={{ transition: 'fill 0.3s ease-out' }}
+                    />
+                    <rect
+                        x="47"
+                        y={15 + (65 * (1 - fillPercent / 100))}
+                        width="6"
+                        height={65 * (fillPercent / 100)}
+                        fill={tempColor}
+                        opacity="0.85"
+                        rx="3"
+                        style={{ transition: 'all 0.3s ease-out' }}
+                    />
+
+                    {/* Glass highlight for 3D effect */}
+                    <ellipse cx="48" cy="18" rx="2.5" ry="3" fill="white" opacity="0.4" />
+                </svg>
+
+                {/* Temperature number beside */}
+                <span className="text-xs font-bold" style={{ minWidth: '30px' }}>
+                    {displayTemp.toFixed(1)}°
+                </span>
+
+                {/* Weather emoji indicator */}
+                {weatherEmoji && !hideWeatherEmoji && (
+                    <div
+                        className="text-lg leading-none pointer-events-none"
+                        style={{ fontSize: `${size * 0.5}px` }}
+                        title={`Weather: ${weatherType}`}
+                    >
+                        {weatherEmoji}
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // Original overlay thermometer design
     return (
         <div
             className={cn(
@@ -149,10 +266,10 @@ export function HudIconTemperature({
         >
             {/* Person icon for body temperature */}
             {isBodyTemp && (
-                <BodyTemperatureIcon 
-                    temp={displayTemp} 
-                    maxTemp={maxTemp} 
-                    size={Math.round(size * 0.65)} 
+                <BodyTemperatureIcon
+                    temp={displayTemp}
+                    maxTemp={maxTemp}
+                    size={Math.round(size * 0.65)}
                 />
             )}
             {/* Thermometer SVG */}

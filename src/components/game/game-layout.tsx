@@ -27,7 +27,7 @@ import HudIconHealth from "@/components/game/hud-icon-health";
 import HudIconStamina from "@/components/game/hud-icon-stamina";
 import HudIconMana from "@/components/game/hud-icon-mana";
 import HudIconHunger from "@/components/game/hud-icon-hunger";
-import HudIconTemperature from "@/components/game/hud-icon-temperature";
+import HudIconTemperature, { getWeatherEmoji } from "@/components/game/hud-icon-temperature";
 import { useLanguage } from "@/context/language-context";
 import { useSettings } from "@/context/settings-context";
 import useKeyboardBindings from "@/hooks/use-keyboard-bindings";
@@ -39,7 +39,7 @@ import type { Structure, Action, NarrativeEntry } from "@/lib/game/types";
 import { cn, getTranslatedText } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
 
-import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, LifeBuoy, FlaskConical, Settings, Loader2, Menu, LogOut } from "./icons";
+import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, LifeBuoy, FlaskConical, Settings, Loader2, Menu, LogOut, Minus, Plus } from "./icons";
 import { IconRenderer } from "@/components/ui/icon-renderer";
 import { resolveItemDef } from '@/lib/game/item-utils';
 import { logger } from "@/lib/logger";
@@ -70,6 +70,8 @@ export default function GameLayout(props: GameLayoutProps) {
 
     const [isDesktop, setIsDesktop] = useState(false);
     const [showNarrativeDesktop, setShowNarrativeDesktop] = useState(true);
+    const [minimapSizeNotification, setMinimapSizeNotification] = useState<string>('');
+    const minimapSizeNotificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     // Dev-only: track mount/unmount counts to help diagnose unexpected remounts
     if (process.env.NODE_ENV !== 'production') {
 
@@ -153,6 +155,15 @@ export default function GameLayout(props: GameLayoutProps) {
             // ignore
         }
     }, [isAnimatingMove]);
+
+    // Cleanup notification timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (minimapSizeNotificationTimeoutRef.current) {
+                clearTimeout(minimapSizeNotificationTimeoutRef.current);
+            }
+        };
+    }, []);
 
     // increment mount counter for GameLayout and expose to window for quick checks
     useEffect(() => {
@@ -658,36 +669,76 @@ export default function GameLayout(props: GameLayoutProps) {
                 {/* Right Panel: Controls & Actions */}
                 <aside className="w-full md:w-[min(462px,36vw)] md:flex-none bg-card border-l pt-4 pb-0 px-4 md:pt-6 md:pb-0 md:px-6 flex flex-col gap-6 min-h-0">
                     {/* Top Section - HUD & Minimap */}
-                    <div className="flex-shrink-0 flex flex-col gap-6">
+                    <div className="flex-shrink-0 flex flex-col gap-4">
                         {/* Minimap */}
                         <div className="flex flex-col items-center gap-2 w-full md:max-w-xs mx-auto">
                             <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { handleMapToggle(); focusCustomActionInput(); }}>{t('minimap')}</h3>
-                            {/* Temperature Display */}
-                            <div className="flex flex-col gap-3 w-full px-2">
-                                {/* Environment Temperature */}
-                                <div className="flex flex-col items-center gap-1">
-                                    <span className="text-xs text-muted-foreground font-medium">{t('environmentTemp')}</span>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <div className="flex items-center gap-1 cursor-default">
-                                                <HudIconTemperature temp={currentChunk?.temperature || 20} maxTemp={50} weatherType={weatherZones?.[currentChunk?.regionId]?.currentWeather?.id} size={40} />
-                                            </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent>
-                                    </Tooltip>
-                                </div>
-                                {/* Body Temperature */}
-                                <div className="flex flex-col items-center gap-1">
-                                    <span className="text-xs text-muted-foreground font-medium">{t('bodyTemp')}</span>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <div className="flex items-center gap-1 cursor-default">
-                                                <HudIconTemperature temp={playerStats.bodyTemperature || 37} maxTemp={40} hideWeatherEmoji={true} size={40} isBodyTemp={true} />
-                                            </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent>
-                                    </Tooltip>
-                                </div>
+                            {/* Temperature Display & Minimap Size Control - Single Row */}
+                            <div className="flex flex-row items-center justify-center gap-1 w-full px-2">
+                                {/* Weather Emoji - Always Display */}
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div className="text-xl cursor-default" title={weatherZones?.[currentChunk?.regionId]?.currentWeather?.id || 'clear'}>
+                                            {getWeatherEmoji(weatherZones?.[currentChunk?.regionId]?.currentWeather?.id) || '☀️'}
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>{weatherZones?.[currentChunk?.regionId]?.currentWeather?.id || 'No weather data'}</p></TooltipContent>
+                                </Tooltip>
+
+                                {/* Environment Temperature - Color changing thermometer icon */}
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div className="flex items-center cursor-default">
+                                            <HudIconTemperature temp={currentChunk?.temperature || 20} maxTemp={50} hideWeatherEmoji={true} size={32} showNumberBeside={true} isEnvTempColorIcon={true} />
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent>
+                                </Tooltip>
+
+                                {/* Body Temperature - Color changing person icon */}
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div className="flex items-center cursor-default">
+                                            <HudIconTemperature temp={playerStats.bodyTemperature || 37} maxTemp={40} hideWeatherEmoji={true} size={32} isBodyTempColorIcon={true} showNumberBeside={true} />
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent>
+                                </Tooltip>
+
+                                {/* Minimap Size Control Button - Magnifying Glass */}
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <button
+                                            className="text-xl hover:opacity-80 transition-opacity cursor-pointer relative"
+                                            onClick={() => {
+                                                const currentSize = (settings?.minimapViewportSize as 5 | 7 | 9) || 5;
+                                                const sizes: (5 | 7 | 9)[] = [5, 7, 9];
+                                                const currentIndex = sizes.indexOf(currentSize);
+                                                const nextIndex = (currentIndex + 1) % sizes.length;
+                                                const newSize = sizes[nextIndex];
+                                                setSettings({ ...settings, minimapViewportSize: newSize });
+
+                                                // Show notification
+                                                if (minimapSizeNotificationTimeoutRef.current) {
+                                                    clearTimeout(minimapSizeNotificationTimeoutRef.current);
+                                                }
+                                                setMinimapSizeNotification(`${newSize}×${newSize}`);
+                                                minimapSizeNotificationTimeoutRef.current = setTimeout(() => {
+                                                    setMinimapSizeNotification('');
+                                                }, 1000);
+                                            }}
+                                            title="Adjust minimap size"
+                                        >
+                                            🔍
+                                            {minimapSizeNotification && (
+                                                <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-foreground text-background text-xs rounded px-2 py-1 whitespace-nowrap font-bold">
+                                                    {minimapSizeNotification}
+                                                </span>
+                                            )}
+                                        </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>Cycle minimap size</p></TooltipContent>
+                                </Tooltip>
                             </div>
                             <div className="w-full max-w-full md:max-w-xs">
                                 <Minimap grid={gridToPass} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} />

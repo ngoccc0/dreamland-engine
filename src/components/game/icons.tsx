@@ -77,6 +77,7 @@ export {
   BaggageClaim,
   ListTodo,
   Beef,
+  PersonStanding,
 } from 'lucide-react';
 
 

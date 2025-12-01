@@ -662,17 +662,32 @@ export default function GameLayout(props: GameLayoutProps) {
                         {/* Minimap */}
                         <div className="flex flex-col items-center gap-2 w-full md:max-w-xs mx-auto">
                             <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { handleMapToggle(); focusCustomActionInput(); }}>{t('minimap')}</h3>
-                            <div className="flex items-center justify-center gap-x-3 gap-y-1 text-sm text-muted-foreground flex-wrap">
-                                <Tooltip><TooltipTrigger asChild>
-                                    <div className="flex items-center gap-1 cursor-default">
-                                        <HudIconTemperature temp={currentChunk?.temperature || 20} maxTemp={50} weatherType={weatherZones?.[currentChunk?.regionId]?.currentWeather?.id} size={24} />
-                                    </div>
-                                </TooltipTrigger><TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent></Tooltip>
-                                <Tooltip><TooltipTrigger asChild>
-                                    <div className="flex items-center gap-1 cursor-default">
-                                        <HudIconTemperature temp={playerStats.bodyTemperature || 37} maxTemp={40} hideWeatherEmoji={true} size={24} />
-                                    </div>
-                                </TooltipTrigger><TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent></Tooltip>
+                            {/* Temperature Display */}
+                            <div className="flex flex-col gap-3 w-full px-2">
+                                {/* Environment Temperature */}
+                                <div className="flex flex-col items-center gap-1">
+                                    <span className="text-xs text-muted-foreground font-medium">{t('environmentTemp')}</span>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className="flex items-center gap-1 cursor-default">
+                                                <HudIconTemperature temp={currentChunk?.temperature || 20} maxTemp={50} weatherType={weatherZones?.[currentChunk?.regionId]?.currentWeather?.id} size={40} />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>{t('environmentTempTooltip')}</p></TooltipContent>
+                                    </Tooltip>
+                                </div>
+                                {/* Body Temperature */}
+                                <div className="flex flex-col items-center gap-1">
+                                    <span className="text-xs text-muted-foreground font-medium">{t('bodyTemp')}</span>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className="flex items-center gap-1 cursor-default">
+                                                <HudIconTemperature temp={playerStats.bodyTemperature || 37} maxTemp={40} hideWeatherEmoji={true} size={40} isBodyTemp={true} />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent>
+                                    </Tooltip>
+                                </div>
                             </div>
                             <div className="w-full max-w-full md:max-w-xs">
                                 <Minimap grid={gridToPass} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} />

@@ -7,6 +7,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
+import BodyTemperatureIcon from './body-temperature-icon';
 
 interface HudIconTemperatureProps {
     /** Current temperature in Celsius */
@@ -21,6 +22,8 @@ interface HudIconTemperatureProps {
     size?: number;
     /** Additional CSS classes */
     className?: string;
+    /** Whether this is displaying body temperature (shows person icon) */
+    isBodyTemp?: boolean;
 }
 
 /**
@@ -29,7 +32,7 @@ interface HudIconTemperatureProps {
  * @param weatherId Weather ID string (e.g., "light_rain", "clear", "snow")
  * @returns Emoji string for the weather
  */
-function getWeatherEmoji(weatherId?: string): string {
+export function getWeatherEmoji(weatherId?: string): string {
     if (!weatherId) return '';
 
     const idLower = String(weatherId).toLowerCase();
@@ -54,9 +57,9 @@ function getWeatherEmoji(weatherId?: string): string {
  * Get temperature-based color ramp (cold=blue, neutral=yellow, hot=red).
  * @param temp Current temperature
  * @param maxTemp Maximum temperature on scale
- * @returns Color hex string
+ * @returns Color RGB string
  */
-function getTempColor(temp: number, maxTemp: number = 50): string {
+export function getTempColor(temp: number, maxTemp: number = 50): string {
     // Clamp to 0..maxTemp range
     const normalized = Math.max(0, Math.min(1, temp / maxTemp));
 
@@ -91,6 +94,7 @@ export function HudIconTemperature({
     hideWeatherEmoji = false,
     size = 40,
     className,
+    isBodyTemp = false,
 }: HudIconTemperatureProps) {
     const id = useRef(`temp-${Math.random().toString(36).slice(2, 9)}`).current;
     const [displayTemp, setDisplayTemp] = useState(Math.round(temp * 10) / 10);
@@ -137,12 +141,20 @@ export function HudIconTemperature({
     return (
         <div
             className={cn(
-                'relative inline-flex items-center justify-center',
+                'relative inline-flex items-center justify-center gap-1',
                 className
             )}
-            style={{ width: size, height: size }}
+            style={{ width: isBodyTemp ? size + 16 : size, height: size }}
             title={`Temperature: ${displayTemp}°C`}
         >
+            {/* Person icon for body temperature */}
+            {isBodyTemp && (
+                <BodyTemperatureIcon 
+                    temp={displayTemp} 
+                    maxTemp={maxTemp} 
+                    size={Math.round(size * 0.65)} 
+                />
+            )}
             {/* Thermometer SVG */}
             <svg
                 width={size}
@@ -160,16 +172,17 @@ export function HudIconTemperature({
                 </defs>
 
                 {/* Outer outline (thermometer shape) */}
-                <circle cx="50" cy="80" r="12" fill="none" stroke="#1a1a2e" strokeWidth="1.5" />
+                <circle cx="50" cy="80" r="12" fill="none" stroke={tempColor} strokeWidth="1.5" style={{ opacity: 0.7, transition: 'stroke 0.3s ease-out' }} />
                 <rect
                     x="46"
                     y="15"
                     width="8"
                     height="65"
                     fill="none"
-                    stroke="#1a1a2e"
+                    stroke={tempColor}
                     strokeWidth="1.5"
                     rx="4"
+                    style={{ opacity: 0.7, transition: 'stroke 0.3s ease-out' }}
                 />
 
                 {/* Filled liquid (animated) */}

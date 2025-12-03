@@ -312,10 +312,10 @@ export class ExplorationManager {
         const discoveries = this.checkForDiscoveries(cell, explorationSkills);
         // Calculate exploration points gained from this action.
         const explorationPoints = this.calculateExplorationPoints(cell, discoveries);
-        
+
         // Add points to total exploration score.
         this._progress.totalExplorationScore += explorationPoints;
-        
+
         return {
             type: 'success',
             discoveries,
@@ -372,7 +372,7 @@ export class ExplorationManager {
             // Explorability directly scales the chance.
             chance *= (cell.attributes.explorability / 100);
             // Reduce chance if many neighbors are already explored, simulating less "new" to find.
-            chance *= (1 - (this.getNeighborExploredCount(cell.position) * 0.1)); 
+            chance *= (1 - (this.getNeighborExploredCount(cell.position) * 0.1));
             this._discoveryChances.set(key, chance);
         }
         return this._discoveryChances.get(key)!;
@@ -422,7 +422,7 @@ export class ExplorationManager {
      */
     private calculateDifficulty(cell: GridCell): ExplorationDifficulty {
         // Difficulty is a weighted sum of danger, travel cost, and inverse explorability.
-        const difficultyScore = 
+        const difficultyScore =
             (cell.attributes.dangerLevel * 0.4) +
             (cell.attributes.travelCost * 0.3) +
             ((100 - cell.attributes.explorability) * 0.3);
@@ -517,7 +517,7 @@ export class ExplorationManager {
      */
     private updateSkillLevels(discoveries: Discovery[]): Map<string, number> {
         const _skillGains = new Map<string, number>(); // This variable is currently unused.
-        
+
         discoveries.forEach(discovery => {
             switch (discovery.type) {
                 case DiscoveryType.ARTIFACT:
@@ -545,7 +545,7 @@ export class ExplorationManager {
         // Simplified experience gain: if amount >= expNeeded, level up.
         // In a real system, this would involve tracking current XP within a level.
         const expNeeded = Math.floor(100 * Math.pow(1.5, currentLevel - 1));
-        
+
         if (amount >= expNeeded) {
             this._progress.skillLevels.set(skill, currentLevel + 1);
         }

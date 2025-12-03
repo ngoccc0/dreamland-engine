@@ -247,7 +247,7 @@ export class Terrain implements IEntityContainer {
         private readonly _attributes: TerrainAttributes,
         private readonly _name: TranslatableString,
         private readonly _description: TranslatableString
-    ) {}
+    ) { }
 
     /** Gets the specific type of terrain (e.g., 'forest', 'desert'). */
     get type(): TerrainType { return this._type; }
@@ -297,7 +297,7 @@ export class Terrain implements IEntityContainer {
         // This will be implemented to modify base attributes based on context
         // Parameters prefixed with _ are intentionally unused for now
         return {
-           ...this._attributes
+            ...this._attributes
         };
     }
 }

@@ -223,7 +223,7 @@ export class Inventory {
      * @returns The total weight.
      */
     get currentWeight(): number {
-        return this.items.reduce((total, item) => 
+        return this.items.reduce((total, item) =>
             total + (item.weight || 0) * item.quantity, 0);
     }
 

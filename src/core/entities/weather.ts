@@ -4,7 +4,265 @@ import { EffectType, Effect, EffectTarget } from '../types/effects';
 import type { WeatherTransition } from '../types/weather';
 
 /**
- * Defines the types of effects that weather can have on the environment.
+ * OVERVIEW: Global weather system
+ *
+ * Simulates dynamic weather affecting entire world or regions.
+ * Manages weather transitions, intensity changes, and environmental effects.
+ * Weather modifies plant growth, creature behavior, temperature, visibility, and player health.
+ * Includes probabilistic state machine for realistic transitions (sunny→cloudy→rainy→sunny).
+ *
+ * ## Weather Types (WeatherType)
+ *
+ * Six primary weather conditions with gameplay impacts:
+ *
+ * | Type | Temperature | Visibility | Plant Growth | Creature Behavior | Hazards | Duration |
+ * |------|-------------|-----------|------|------|---------|---------|
+ * | CLEAR | Normal (+5°) | 100% | 1.0× | Active | None | 3-7 days |
+ * | CLOUDY | -2°C | 90% | 1.0× | Normal | None | 1-3 days |
+ * | RAIN | -5°C | 70% | 1.3× | Sheltering | Wetness | 1-3 days |
+ * | STORM | -10°C | 40% | 1.1× | Hiding | Lightning, flooding | 6-12 hours |
+ * | SNOW | -20°C | 50% | 0.3× | Dormant | Frostbite (10 HP/min) | 1-5 days |
+ * | DROUGHT | +15°C | 100% | 0.6× | Aggressive | Heat damage, fire risk | 5-14 days |
+ *
+ * ### Weather Effects on Gameplay
+ *
+ * **Plant Growth:**
+ * ```typescript
+ * growthModifier = {
+ *   CLEAR: 1.0,      // Normal growth
+ *   CLOUDY: 1.0,     // Same as clear
+ *   RAIN: 1.3,       // +30% (water abundant)
+ *   STORM: 1.1,      // Slight boost but risky
+ *   SNOW: 0.3,       // -70% (cold dormancy)
+ *   DROUGHT: 0.6     // -40% (water scarce)
+ * }
+ * ```
+ *
+ * **Creature Spawning:**
+ * ```typescript
+ * spawnChance = {
+ *   CLEAR: 1.0,      // Normal spawn rate
+ *   CLOUDY: 0.9,     // Slightly less
+ *   RAIN: 0.7,       // Much fewer (sheltering)
+ *   STORM: 0.3,      // Rare (hiding from danger)
+ *   SNOW: 0.5,       // Some active (hunters)
+ *   DROUGHT: 1.2     // More (competing for water)
+ * }
+ * ```
+ *
+ * **Visibility & Movement:**
+ * ```typescript
+ * sightRange = baseRange × weatherVisibility
+ * movementSpeed = baseSpeed × weatherModifier
+ * Example: STORM (40% visibility)
+ *   Player at range 20 tiles: 20 × 0.4 = 8 tile vision
+ *   Movement in storm: normal_speed × 0.7 (15% penalty)
+ * ```
+ *
+ * ## Weather Intensity (WeatherIntensity)
+ *
+ * Three severity levels for each weather type:
+ *
+ * | Intensity | Effect Multiplier | Player Hazard | Movement | Visual |
+ * |-----------|------------------|------|---------|--------|
+ * | MILD | 0.7× | Light rain (small puddles) | -5% | Few clouds |
+ * | NORMAL | 1.0× | Moderate rain (wet ground) | -15% | Clear clouds |
+ * | SEVERE | 1.5× | Heavy rain (flooding) | -30% | Dark sky |
+ *
+ * ### Examples
+ *
+ * ```typescript
+ * // MILD RAIN
+ * temperature: -3°C
+ * visibility: 80%
+ * damage: 2 HP/turn
+ * planting: not recommended but possible
+ *
+ * // NORMAL STORM
+ * temperature: -10°C
+ * visibility: 40%
+ * damage: 10 HP/turn (lightning strikes)
+ * planting: impossible (crops destroyed)
+ *
+ * // SEVERE DROUGHT
+ * temperature: +20°C
+ * visibility: 100%
+ * damage: 5 HP/turn (sunstroke)
+ * planting: fails immediately (needs water)
+ * ```
+ *
+ * ## Weather Transitions
+ *
+ * Probabilistic state machine:
+ *
+ * ```
+ * CLEAR (60% chance stay)
+ *   └─20% → CLOUDY
+ *   └─15% → RAIN
+ *   └─5% → DROUGHT
+ *
+ * CLOUDY (40% chance stay)
+ *   └─50% → CLEAR
+ *   └─40% → RAIN
+ *   └─10% → STORM
+ *
+ * RAIN (50% chance stay)
+ *   └─30% → CLOUDY
+ *   └─15% → CLEAR
+ *   └─5% → STORM
+ *
+ * STORM (100% clears within 12 hours)
+ *   └─80% → RAIN
+ *   └─20% → CLEAR
+ *
+ * SNOW (stays 1-5 days)
+ *   └─5% → CLEAR (rapid thaw)
+ *
+ * DROUGHT (locked 5-14 days)
+ *   └─2% → RAIN (breakpoint)
+ * ```
+ *
+ * Duration calculation:
+ * ```typescript
+ * duration = baseMinutes[weather] + (Math.random() * variance[weather])
+ * Example RAIN:
+ *   baseDuration = 1440 minutes (1 day)
+ *   variance = 1440 (±1 day)
+ *   actual = 720 to 2880 minutes (12 hours to 2 days)
+ * ```
+ *
+ * ## WeatherEffect Type
+ *
+ * Weather effects are EffectType extensions:
+ *
+ * ```typescript
+ * type WeatherEffectType = EffectType.TEMPERATURE | EffectType.MOISTURE | EffectType.WIND
+ * ```
+ *
+ * Applied effects:
+ *
+ * ```typescript
+ * createWeatherEffect('temperature', -10, 1.5) returns:
+ * {
+ *   id: 'weather_temperature',
+ *   type: 'temperature',
+ *   value: -15,                           // -10 base × 1.5 intensity
+ *   target: EffectTarget.AREA,           // World-wide effect
+ *   description: 'Storm brings cold'
+ * }
+ * ```
+ *
+ * ## Weather Parameters (WeatherParams)
+ *
+ * Initialization configuration:
+ *
+ * ```typescript
+ * interface WeatherParams {
+ *   type: WeatherType,                   // CLEAR, RAIN, SNOW, etc.
+ *   intensity?: WeatherIntensity,        // MILD, NORMAL, SEVERE (default NORMAL)
+ *   duration?: number,                   // Minutes active (auto-calculated if omitted)
+ *   regionId?: number,                   // Optional: regional weather only
+ *   temperature?: number,                // Current temperature (°C)
+ *   visibility?: number,                 // Sight range multiplier (0-1)
+ *   moisture?: number,                   // Water in air (0-100)
+ * }
+ * ```
+ *
+ * ## Weather-Based Gameplay Events
+ *
+ * ### CLEAR Weather
+ * - **For player**: Optimal conditions for exploration
+ * - **For farming**: Normal plant growth (1.0×)
+ * - **For creatures**: Normal spawn rates
+ * - **Hazards**: None
+ *
+ * ### RAIN Weather
+ * - **For player**: Reduced visibility, can farm effectively
+ * - **For farming**: +30% plant growth (abundant water)
+ * - **For creatures**: 30% less common (sheltering)
+ * - **Hazards**: Flooding (risk of falling into pits)
+ *
+ * ### STORM Weather
+ * - **For player**: Critical visibility (40%), -30% movement speed
+ * - **For farming**: Crops may be damaged (risk of crop loss)
+ * - **For creatures**: Rarely spawn (only brave/hungry types)
+ * - **Hazards**: Lightning strikes (20-50 HP damage, random timing)
+ *
+ * ### SNOW Weather
+ * - **For player**: Extreme cold (10 HP/min if unprepared), visibility 50%
+ * - **For farming**: Crops freeze, growth stops (-70%)
+ * - **For creatures**: Dormant (only predators hunting)
+ * - **Hazards**: Avalanche, hypothermia, blindness
+ *
+ * ### DROUGHT Weather
+ * - **For player**: Heat damage (5 HP/min), normal visibility
+ * - **For farming**: -40% plant growth (water critical)
+ * - **For creatures**: +20% spawn (fighting for water)
+ * - **Hazards**: Wildfires, heatstroke, water sources dry
+ *
+ * ## Regional Weather (Optional)
+ *
+ * Weather can be region-specific instead of global:
+ *
+ * ```typescript
+ * // Global weather
+ * weather.setGlobal(WeatherType.RAIN)
+ *
+ * // Regional (one biome)
+ * weather.setRegional(regionId, WeatherType.SNOW)
+ * // Mountains experience snow while grassland has rain
+ * ```
+ *
+ * ## Seasonal Weather Patterns
+ *
+ * | Season | Common | Rare | Impossible |
+ * |--------|--------|------|-----------|
+ * | SPRING | RAIN, CLOUDY | STORM, CLEAR | SNOW, DROUGHT |
+ * | SUMMER | CLEAR, DROUGHT | CLOUDY, RAIN | SNOW |
+ * | FALL | CLOUDY, RAIN | STORM | SNOW, DROUGHT |
+ * | WINTER | SNOW | CLEAR | RAIN, DROUGHT |
+ *
+ * ## Weather Effect Calculations
+ *
+ * ### Temperature Impact
+ * ```typescript
+ * baseTemp = 15°C (average)
+ * weatherTemp = baseTemp + weatherModifier
+ * CLEAR: 15 + 5 = 20°C (pleasant)
+ * RAIN: 15 - 5 = 10°C (cool)
+ * STORM: 15 - 10 = 5°C (cold)
+ * SNOW: 15 - 20 = -5°C (freezing)
+ * DROUGHT: 15 + 15 = 30°C (hot)
+ * ```
+ *
+ * ### Player Survival in Extreme Weather
+ * ```typescript
+ * // Snow (unprepared)
+ * damage = 10 HP/min = 600 HP/hour
+ * At level 5 (100 HP): dies in ~6 minutes
+ *
+ * // Snow (with warm coat)
+ * damage = 2 HP/min = 120 HP/hour
+ * At level 5 (100 HP): can survive 50 minutes
+ *
+ * // Drought (unprepared)
+ * damage = 5 HP/min = 300 HP/hour
+ * At level 5 (100 HP): dies in 20 minutes
+ *
+ * // Drought (with water supply)
+ * damage = 0 HP/min
+ * Can survive indefinitely (resource management)
+ * ```
+ *
+ * ## Design Philosophy
+ *
+ * - **Dynamic World**: Weather adds unpredictability and challenge
+ * - **Strategic Depth**: Players plan farming/exploration by forecast
+ * - **Realism**: Seasonal patterns feel natural
+ * - **Balance**: No weather is universally bad (rain hurts but helps farming)
+ * - **Modding**: WeatherParams + effect registration allows custom weather
+ * - **Performance**: Single global weather vs per-region choices (optimization)
+ *
  */
 export type WeatherEffectType = EffectType.TEMPERATURE | EffectType.MOISTURE | EffectType.WIND;
 

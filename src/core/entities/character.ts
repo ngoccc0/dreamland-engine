@@ -398,7 +398,7 @@ export class Character {
     useSkill(skillId: string): void {
         const skill = this.skillInstances.get(skillId);
         if (!skill || !this.canUseSkill(skillId)) return;
-        
+
         this.mana -= skill.manaCost;
         skill.startCooldown();
     }

@@ -1,10 +1,10 @@
 import { TranslatableString } from '../types/i18n';
 import { Effect } from '../types/effects';
-import { 
-    Skill as SkillType, 
-    SkillType as SkillTypeEnum, 
-    SkillUnlockCondition, 
-    SkillRequirements 
+import {
+    Skill as SkillType,
+    SkillType as SkillTypeEnum,
+    SkillUnlockCondition,
+    SkillRequirements
 } from '../types/skills';
 
 /**
@@ -552,7 +552,7 @@ export class SkillTree {
         }
 
         // All conditions must have their progress meet or exceed their required value.
-        return skill.unlockConditions.every(condition => 
+        return skill.unlockConditions.every(condition =>
             (condition.progress || 0) >= condition.value
         );
     }
@@ -580,7 +580,7 @@ export class SkillTree {
      * @returns An array of root {@link SkillNode}s.
      */
     getRootNodes(): SkillNode[] {
-        return Array.from(this.nodes.values()).filter(node => 
+        return Array.from(this.nodes.values()).filter(node =>
             node.prerequisites.length === 0
         );
     }
@@ -591,7 +591,7 @@ export class SkillTree {
      * @returns An array of child {@link SkillNode}s.
      */
     getChildNodes(skillId: string): SkillNode[] {
-        return Array.from(this.nodes.values()).filter(node => 
+        return Array.from(this.nodes.values()).filter(node =>
             node.prerequisites.includes(skillId)
         );
     }

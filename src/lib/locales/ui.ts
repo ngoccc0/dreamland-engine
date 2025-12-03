@@ -375,6 +375,12 @@ export const uiTranslations = {
                 player_stamina_normal: "Stamina normal",
                 ".": ".",
                 some_translation_key: "some_translation_key",
+                itemHealEffect: "{amount} health restored",
+                itemRestoreStaminaEffect: "{amount} stamina restored",
+                itemRestoreManaEffect: "{amount} mana restored",
+                itemRestoreHungerEffect: "{amount} hunger satisfied",
+                manaShort: "Mana",
+                aiThinking: "AI is thinking...",
 
         },
         vi: {
@@ -735,5 +741,11 @@ export const uiTranslations = {
                 player_stamina_normal: "Thể lực bình thường",
                 ".": ".",
                 some_translation_key: "some_translation_key",
+                itemHealEffect: "{amount} máu được hồi phục",
+                itemRestoreStaminaEffect: "{amount} thể lực được hồi phục",
+                itemRestoreManaEffect: "{amount} phép lực được hồi phục",
+                itemRestoreHungerEffect: "{amount} cơm no",
+                manaShort: "Phép lực",
+                aiThinking: "AI đang suy nghĩ...",
         }
 };

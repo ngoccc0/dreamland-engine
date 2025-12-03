@@ -33,7 +33,7 @@ export function createHandleOfflineItemUse(context: Partial<ActionHandlerDeps> &
         return;
       }
       itemWasConsumed = true;
-      try { audio?.playSfx('Spell_00'); } catch {}
+      try { audio?.playSfx('Spell_00'); } catch { }
       let effectDescriptions: string[] = [];
       itemDef.effects.forEach((effect: any) => {
         const amt = effect.amount ?? 0;
@@ -42,10 +42,29 @@ export function createHandleOfflineItemUse(context: Partial<ActionHandlerDeps> &
           newPlayerStats.hp = Math.min(100, (newPlayerStats.hp || 0) + amt);
           if (newPlayerStats.hp > old) effectDescriptions.push(t('itemHealEffect', { amount: newPlayerStats.hp - old }));
         }
-        // Other effect handling elided for brevity — keep core behavior
+        if (effect.type === 'RESTORE_STAMINA') {
+          const old = newPlayerStats.stamina || 0;
+          newPlayerStats.stamina = Math.min(100, (newPlayerStats.stamina || 0) + amt);
+          if (newPlayerStats.stamina > old) effectDescriptions.push(t('itemRestoreStaminaEffect', { amount: newPlayerStats.stamina - old }));
+        }
+        if (effect.type === 'RESTORE_MANA') {
+          const old = newPlayerStats.mana || 0;
+          newPlayerStats.mana = Math.min(100, (newPlayerStats.mana || 0) + amt);
+          if (newPlayerStats.mana > old) effectDescriptions.push(t('itemRestoreManaEffect', { amount: newPlayerStats.mana - old }));
+        }
+        if (effect.type === 'RESTORE_HUNGER') {
+          const old = newPlayerStats.hunger || 0;
+          newPlayerStats.hunger = Math.max(0, (newPlayerStats.hunger || 0) - amt);
+          if (newPlayerStats.hunger < old) effectDescriptions.push(t('itemRestoreHungerEffect', { amount: old - newPlayerStats.hunger }));
+        }
       });
       narrativeResult.wasUsed = effectDescriptions.length > 0;
       narrativeResult.effectDescription = effectDescriptions.join(', ');
+
+      // Add narrative entry with effect feedback
+      if (narrativeResult.wasUsed && narrativeResult.effectDescription) {
+        addNarrativeEntry(`${t(itemName)}: ${narrativeResult.effectDescription}`, 'system');
+      }
     }
 
     // Apply farming/tool/seed logic simplified here; original file contains full behavior.

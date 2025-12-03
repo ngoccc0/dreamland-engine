@@ -13,6 +13,152 @@ interface PlantInstance {
 }
 
 /**
+ * OVERVIEW: Plant growth simulation engine
+ *
+ * Simulates individual plant instances and their life cycles within chunks, including growth, maturity,
+ * reproduction, and environmental stress mechanics. This is the core system for vegetation dynamics.
+ *
+ * ## Core Responsibilities
+ * - **Individual Plant Simulation:** Tracks PlantInstance entities with health, maturity, and age
+ * - **Environmental Modeling:** Calculates suitability based on moisture, light, season, and human presence
+ * - **Growth Calculations:** Multi-factor growth mechanics with resource constraints (nutrition, fertilizer, water)
+ * - **Reproduction System:** Mature plants spread to adjacent chunks with probability-based offspring
+ * - **Resource Management:** Tracks and consumes nutrition, fertilizer, and water over plant lifecycle
+ * - **Stress System:** Applies health penalties under environmental stress (stressLevel > 0.7)
+ *
+ * ## Growth Formula (Core Algorithm)
+ *
+ * The plant growth system uses a multi-step formula combining environmental and resource factors:
+ *
+ * ### Step 1: Environmental Stress Calculation
+ * ```
+ * environmentalSuitability = (moistureFactor + lightFactor + seasonMultiplier) / 3 × (1 - humanPenalty)
+ * environmentalSuitability = max(0.1, environmentalSuitability) // Floor prevents complete stall
+ * stressLevel = 1 - environmentalSuitability // Higher stress = less suitable
+ * ```
+ *
+ * Components:
+ * - **moistureFactor**: chunk.moisture / 100 (scaled to 0-1, where 1.0 = 100% moisture)
+ * - **lightFactor**: chunk.lightLevel / 100 (scaled to 0-1)
+ * - **seasonMultiplier**: season-based modifier (spring: 1.3, summer: 1.1, autumn: 0.9, winter: 0.6)
+ *   - Spring: optimal growth season (1.3× bonus)
+ *   - Summer: good growth (1.1× bonus)
+ *   - Autumn: moderate decline (0.9× penalty)
+ *   - Winter: harsh conditions (0.6× penalty)
+ * - **humanPenalty**: (humanPresence / 100) × 0.5 (humans reduce suitability; max 50% penalty at 100% presence)
+ * - **0.1 floor**: Ensures plants can always grow minimally, even in terrible conditions
+ *
+ * ### Step 2: Base Growth Gain
+ * ```
+ * baseGain = max(0, (1 - stressLevel) × baseGrowthMultiplier × maturityRate)
+ * baseGain = max(0, (1 - stressLevel) × 0.5 × 0.02)
+ * Result range: 0 (stressed) to ~0.01 per tick (ideal conditions)
+ * ```
+ *
+ * Config values from `game-config.plant`:
+ * - **baseGrowthMultiplier** (0.5): Base growth rate scaler. Affects overall growth speed across all plants.
+ * - **maturityRate** (0.02): Baseline maturity gain per tick (2% per tick under ideal conditions)
+ *
+ * Rationale: Lower stress → higher growth. Under ideal conditions (stressLevel=0), max gain. Under max stress (stressLevel=1), zero gain.
+ *
+ * ### Step 3: Growth Bonuses from Resources
+ * ```
+ * growthBonus = 1 + (nutrition × 0.01) + (fertilizer × 0.02)
+ * waterFactor = waterTimer > 0 ? 1.2 : 1.0
+ * potentialGain = baseGain × growthBonus × waterFactor
+ * ```
+ *
+ * Resource scaling:
+ * - **nutrition**: +1% growth per nutrition unit (max 100 nutrition = +1.0 multiplier, 2× base growth)
+ * - **fertilizer**: +2% growth per fertilizer unit (max 100 fertilizer = +2.0 multiplier, 3× base growth)
+ *   - Note: Fertilizer bonus is 2× nutrition, indicating fertilizer is more potent
+ * - **waterFactor**: +20% growth bonus when watered (waterTimer > 0)
+ *   - Simple on/off switch; doesn't scale with water amount
+ *
+ * Maximum bonus scenario: nutrition=100 + fertilizer=100 + watered = (0.01 + 0.01 + 0.01) × 1.2 = 1.2× growth
+ *
+ * ### Step 4: Resource Constraint Scaling
+ * ```
+ * nutritionNeeded = potentialGain × 0.1  // 0.1 units nutrition consumed per maturity gain
+ * fertilizerNeeded = potentialGain × 0.05
+ * waterNeeded = potentialGain × 0.15
+ *
+ * // Bottleneck: limited by scarcest resource
+ * finalGain = potentialGain × min(nutritionFactor, fertilizerFactor, waterFactorResource)
+ * ```
+ *
+ * If resources insufficient, growth scales down. Example: if chunk has 50% of needed nutrition,
+ * nutritionFactor = 0.5, so finalGain = potentialGain × 0.5.
+ *
+ * ### Step 5: Maturity Increment
+ * ```
+ * plant.maturity += finalGain
+ * plant.maturity = min(100, plant.maturity)
+ * ```
+ *
+ * Maturity capped at 100%. Plants at maturity >= 80 can reproduce.
+ *
+ * ## Environmental Stress System
+ *
+ * If stressLevel > 0.7 (severe environmental stress):
+ * ```
+ * plant.hp -= ceil(stressLevel × 5)
+ * if plant.hp <= 0: plant dies and is removed
+ * ```
+ *
+ * Health loss scales with stress severity. At max stress (stressLevel=1), lose 5 HP per tick.
+ * Most plants die within 20 ticks under extreme stress (assuming ~100 HP baseline).
+ *
+ * ## Reproduction System
+ *
+ * When plant.maturity >= 80 and reproduction chance succeeds:
+ * ```
+ * offspringCount = floor(random × maxOffspring) + 1
+ * spreadPlants(chunk, chunks, position, definition, offspringCount, range)
+ * ```
+ *
+ * Offspring spread to adjacent chunks within reproduction.range using random placement.
+ * New plants start at maturity=0.
+ *
+ * ## Resource Consumption
+ *
+ * Each tick:
+ * ```
+ * fertilizer -= 0.1 per tick (fertilizer decay)
+ * waterTimer -= 1 per tick (water duration)
+ * nutrition -= nutritionConsumed (see Step 4)
+ * ```
+ *
+ * Fertilizer and water are temporary buffs that decay over time, encouraging player maintenance of crops.
+ *
+ * ## Vegetation Density Contribution
+ *
+ * Each plant contributes to chunk.vegetationDensity based on maturity:
+ * ```
+ * vegetationDensity += plant.maturity / 100  // Mature plant contributes 1 unit, seedling 0.1 unit
+ * ```
+ *
+ * ## Configuration Parameters (from game-config.plant)
+ *
+ * | Parameter | Value | Purpose |
+ * |-----------|-------|---------|
+ * | baseGrowthMultiplier | 0.5 | Base growth rate scaler |
+ * | maturityRate | 0.02 | Baseline maturity gain per tick (2%) |
+ * | nutritionPerMaturity | 0.1 | Nutrition cost per maturity unit gained |
+ * | fertilizerPerMaturity | 0.05 | Fertilizer cost per maturity unit gained |
+ * | waterPerMaturity | 0.15 | Water cost per maturity unit gained |
+ * | fertilizerDecayPerTick | 0.1 | Fertilizer decay rate per tick |
+ *
+ * ## Design Notes
+ *
+ * - **Player Agency**: Resource constraints (nutrition, fertilizer, water) require player investment to maintain crops
+ * - **Environmental Realism**: Seasonal variation, moisture/light dependence simulate real plant biology
+ * - **Stress Penalty**: Severe stress kills plants, creating resource scarcity scenarios in poor conditions
+ * - **Reproduction**: Mature plants naturally spread, reducing player workload but increasing world complexity
+ * - **Narrative Hooks**: Vegetation change events trigger discovery narratives, encouraging environmental observation
+ */
+
+/**
  * Enhanced PlantEngine that simulates individual plant instances and their effects on vegetation.
  * Plant instances can grow, reproduce, and contribute to the chunk's vegetation density.
  */
@@ -47,7 +193,40 @@ export class PlantEngine {
 
     /**
      * Update plants for the provided chunks for a single tick.
+     * 
      * Now handles individual plant instances and their contributions to vegetation density.
+     * 
+     * ## Algorithm Overview
+     * 
+     * For each chunk:
+     * 1. Process each PlantInstance:
+     *    - Calculate environmental suitability (stress level)
+     *    - Apply stress damage if stressLevel > 0.7
+     *    - Calculate growth gain using multi-factor formula (see class OVERVIEW)
+     *    - Apply resource constraints (nutrition, fertilizer, water bottleneck)
+     *    - Increment maturity and consume resources
+     *    - Attempt reproduction if maturity >= 80
+     *    - Remove dead plants (hp <= 0)
+     * 2. Update chunk vegetation density from summed plant maturity
+     * 3. Generate narrative messages for significant changes (delta > 10)
+     * 
+     * Time complexity: O(chunks × plants × checks) ≈ O(n) where n = total plants
+     * 
+     * @param currentTick Current game tick number (used for aging plants)
+     * @param chunks Map of chunk positions (key: "x,y") to Chunk data
+     * @param season Current season affecting growth multiplier (spring/summer/autumn/winter)
+     * @param worldProfile Optional world profile for region-level affects (unused currently)
+     * @returns Array of narrative and system messages (e.g., plant reproduction events, vegetation changes)
+     * 
+     * ## State Mutations
+     * - plant.maturity: incremented based on growth formula
+     * - plant.age: incremented each tick
+     * - plant.hp: decremented under stress, plant removed if hp <= 0
+     * - chunk.nutrition: decremented by amount consumed
+     * - chunk.fertilizerLevel: decremented by amount consumed + decay
+     * - chunk.waterTimer: decremented by amount consumed + tick decay
+     * - chunk.vegetationDensity: recalculated from plant maturities
+     * - chunk.plants: deceased plants removed
      */
     updatePlants(
         currentTick: number,

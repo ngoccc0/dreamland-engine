@@ -536,6 +536,8 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const shelter = world[`${playerPosition.x},${playerPosition.y}`]?.structures.find((s: any) => s.restEffect);
     if (!shelter?.restEffect) { toast({ title: t('cantRestTitle'), description: t('cantRestDesc') }); return; }
 
+    audio.playSfxForAction(AudioActionType.REST_ENTER, {});
+
     const actionText = t('restInShelter', { shelterName: t(shelter.name as TranslationKey) });
     addNarrativeEntry(actionText, 'action');
 

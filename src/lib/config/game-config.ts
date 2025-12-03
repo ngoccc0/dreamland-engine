@@ -114,15 +114,15 @@ export const defaultGameConfig: GameConfig = {
         /** Base mana regeneration per tick when not hungry. */
         manaRegenPerTick: 1.5,
         /** Hunger threshold for mild regeneration penalty (0-100). */
-        hungerThresholdMild: 10,
+        hungerThresholdMild: 15,
         /** Hunger threshold for severe regeneration penalty (0-100). */
-        hungerThresholdSevere: 30,
+        hungerThresholdSevere: 35,
         /** Regeneration penalty multiplier for mild hunger (0.5 = 50% reduction). */
-        hungerRegenPenaltyMild: 0.5,
+        hungerRegenPenaltyMild: 0.6,
         /** Regeneration penalty multiplier for severe hunger (0.0 = no regeneration). */
-        hungerRegenPenaltySevere: 0.0,
+        hungerRegenPenaltySevere: 0.2,
         /** HP damage per tick when severely hungry/starving. */
-        starvationDamagePerTick: 5,
+        starvationDamagePerTick: 1,
         /** Hunger decay per hunger tick. */
         hungerDecayPerTick: 1,
         /** Number of ticks between hunger decay events. */

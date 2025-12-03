@@ -654,12 +654,12 @@ export default function GameLayout(props: GameLayoutProps) {
                                 ));
                             })()}
                             {isLoading && (
-                                <div className="flex items-center gap-2 text-muted-foreground italic mt-4">
-                                    <Cpu className="h-4 w-4 animate-pulse" />
-                                    <p>AI is thinking...</p>
+                                <div className="flex items-center gap-2 text-muted-foreground italic mt-4 py-2 px-3 rounded bg-muted/30 animate-pulse">
+                                    <Cpu className="h-4 w-4 animate-spin" />
+                                    <p className="text-sm">{t('aiThinking') || 'AI is thinking...'}</p>
                                 </div>
                             )}
-                            có                         </div>
+                        </div>
                     </main>
 
                     {/* Desktop horizontal action bar removed - main actions are now inline in the header for desktop non-legacy layout */}

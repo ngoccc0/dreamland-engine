@@ -58,6 +58,163 @@ interface CreatureState extends Enemy {
 }
 
 /**
+ * OVERVIEW: Creature AI & behavior engine
+ *
+ * Simulates creature behavior, movement, hunger mechanics, and AI decision-making in the game world.
+ * Handles pathfinding using Chebyshev (square) distance, behavior state transitions, and async updates.
+ *
+ * ## Core Responsibilities
+ *
+ * - **Creature State Management**: Tracks CreatureState entities with position, behavior, hunger level
+ * - **Behavior State Machine**: Idle → Hunting → Fleeing → Eating transitions based on stimuli
+ * - **Movement & Pathfinding**: Chebyshev-distance based movement toward targets or random walk
+ * - **Hunger System**: Creatures consume satiation each tick, seek food when hungry, die if starved
+ * - **Async Updates**: Movement updates scheduled via setTimeout to avoid blocking game loop
+ * - **Area Scanning**: Creature vision/detection uses square range scanning (configurable range)
+ * - **Creature Interactions**: Hunts player-owned plants, flees from dangerous areas, eats available food
+ *
+ * ## Behavior State Machine
+ *
+ * States and transitions:
+ *
+ * ```
+ * IDLE
+ *   ├─ (hunger > threshold) → HUNTING (seek nearby food)
+ *   ├─ (player in range) → FLEEING (escape)
+ *   └─ (random) → MOVING (wander)
+ *
+ * HUNTING
+ *   ├─ (food found && in range) → EATING (consume)
+ *   ├─ (hunger low) → IDLE
+ *   ├─ (player nearby) → FLEEING
+ *   └─ (search exhausted) → IDLE
+ *
+ * EATING
+ *   ├─ (satiation full) → IDLE
+ *   ├─ (no food) → HUNTING
+ *   └─ (danger nearby) → FLEEING
+ *
+ * FLEEING
+ *   ├─ (danger cleared) → IDLE
+ *   ├─ (hunger high) → HUNTING
+ *   └─ (in safe distance) → IDLE
+ *
+ * MOVING
+ *   ├─ (reached target) → IDLE
+ *   ├─ (hunger high) → HUNTING
+ *   └─ (random) → IDLE
+ * ```
+ *
+ * ## Movement Algorithm
+ *
+ * ### Chebyshev Distance (Square Range)
+ *
+ * Creatures use Chebyshev distance for range calculations and movement:
+ *
+ * ```
+ * distance = max(|x1 - x2|, |y1 - y2|)
+ * range = 1 means adjacent including diagonals (8 neighbors)
+ * range = 2 means 5×5 area around creature
+ * range = 10 means 20×20 search area
+ * ```
+ *
+ * Rationale: Chebyshev is simple, fast, and feels natural for grid-based tactics (like chess king movement).
+ *
+ * ### Pathfinding (Simplified)
+ *
+ * Current implementation uses:
+ * 1. **Towards target**: Step closer by one cell (Manhattan-like diagonal moves)
+ * 2. **Avoid obstacles**: Check chunk terrain, skip blocked cells
+ * 3. **Wander fallback**: Random move if no target or path blocked
+ *
+ * Time complexity: O(1) per move (no full pathfinding; greedy one-step approach).
+ * Space complexity: O(1) (no pathfinding queue).
+ *
+ * ### Movement Update Scheduling
+ *
+ * Creature movement updates are asynchronous to avoid blocking the game loop:
+ *
+ * ```
+ * // Creature at distance d triggers update after delay(d)
+ * moveDelay(distance):
+ *   distance <= 5:    0ms     (immediate)
+ *   distance 6-10:    50-150ms (nearby)
+ *   distance 11-20:   150-300ms (mid-range)
+ *   distance > 20:    300-500ms (far)
+ * ```
+ *
+ * This creates dynamic perceived movement: close creatures move quickly, distant creatures move slowly.
+ * Updates stored in `pendingCreatureUpdates` Map to aggregate multiple updates before applying.
+ *
+ * ## Hunger & Satiation
+ *
+ * Each creature has a `satiation` value (0 = starving, maxSatiation = full):
+ *
+ * ```
+ * // Each tick
+ * satiation -= hungerPerTick (usually 0.1-0.5)
+ * hungerThreshold = maxSatiation × 0.3
+ *
+ * if satiation < hungerThreshold: // Creature is hungry
+ *   behavior = 'hunting' // Seek food
+ * ```
+ *
+ * ### Food Seeking
+ *
+ * Hungry creatures search nearby chunks for:
+ * 1. Player crops (plants with maturity > 50)
+ * 2. Natural vegetation (vegetationDensity > threshold)
+ * 3. Any available food
+ *
+ * Range: 2-10 chunks depending on creature type.
+ *
+ * ### Starvation
+ *
+ * ```
+ * if satiation <= 0:
+ *   creature dies (removed from world)
+ *   emit 'creatureDied' event
+ * ```
+ *
+ * ## Area Scanning
+ *
+ * Creatures use `scanAreaAround()` helper to detect:
+ *
+ * - **Food sources** (search range: creature.searchRange, default 2)
+ * - **Player proximity** (flee range: 3)
+ * - **Allies** (flock/herd range: 5)
+ *
+ * Predicate function filters results (e.g., "only food chunks").
+ *
+ * ## Configuration Parameters (from game-config.creature)
+ *
+ * | Parameter | Type | Purpose |
+ * |-----------|------|---------|
+ * | hungerPerTick | number | Satiation loss per game tick |
+ * | maxSatiation | number | Full hunger bar capacity |
+ * | searchRange | number | Chebyshev range for food seeking (default 2) |
+ * | moveSpeed | number | Base movement speed (affects async delay) |
+ * | senseEffectRange | number | Range for detecting player effects/abilities |
+ *
+ * ## State Persistence & Serialization
+ *
+ * CreatureState is stored in world state but has **serialization risks**:
+ * - GridPosition may have methods (not JSON-safe)
+ * - Chunk circular references (creature has chunk, chunk has creature)
+ * - currentBehavior string is safe
+ *
+ * See: Weakness 3 (Serialization Validation) for fixing persistence issues.
+ *
+ * ## Event System
+ *
+ * Creatures emit messages for significant events:
+ * - 'creature.attacked' - attacked player
+ * - 'creature.ate' - consumed food
+ * - 'creature.spawned' - entered visible range
+ * - 'creature.died' - starvation or combat death
+ */
+
+/**
  * Engine responsible for simulating creature behavior, movement, and AI.
  * Handles hunger mechanics, movement patterns, and behavior-based actions.
  */

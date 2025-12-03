@@ -1,5 +1,5 @@
 
-import type {Metadata} from 'next';
+import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { LanguageProvider } from '@/context/language-context';
@@ -13,6 +13,13 @@ export const metadata: Metadata = {
   title: 'Dreamland Engine',
   description: 'An AI-driven text-based adventure game.',
   manifest: '/manifest.json',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: 'cover',
+  },
 };
 
 export default function RootLayout({
@@ -30,18 +37,18 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <ClientInit />
-            <LanguageProvider>
-              <SettingsProvider>
-                <AuthProvider>
-                  <PwaInstallProvider>
-                    <AudioProvider>
-                      {children}
-                    </AudioProvider>
-                  </PwaInstallProvider>
-                </AuthProvider>
-              </SettingsProvider>
-            </LanguageProvider>
-            <Toaster />
+        <LanguageProvider>
+          <SettingsProvider>
+            <AuthProvider>
+              <PwaInstallProvider>
+                <AudioProvider>
+                  {children}
+                </AudioProvider>
+              </PwaInstallProvider>
+            </AuthProvider>
+          </SettingsProvider>
+        </LanguageProvider>
+        <Toaster />
       </body>
     </html>
   );

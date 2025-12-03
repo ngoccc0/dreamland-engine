@@ -131,19 +131,21 @@ export function applyTickEffects(stats: PlayerStatusDefinition, currentTurn: num
 
         // Apply hunger penalties to regeneration rates
         if (hunger < regenConfig.hungerThresholdMild) {
-            // Severe hunger (< 10): no regeneration, starvation damage
+            // Severe hunger (< hungerThresholdMild): starvation damage + severe regen penalty
             hpDelta -= regenConfig.starvationDamagePerTick;
             messages.push({ text: t('starvationDamage'), type: 'system' });
         } else if (hunger < regenConfig.hungerThresholdSevere) {
-            // Mild hunger (10-29): reduced regeneration
+            // Mild hunger (hungerThresholdMild-hungerThresholdSevere): reduced regeneration
             messages.push({ text: t('hungerSlowsRegeneration'), type: 'system' });
         }
-        // Else (hunger >= 30): no hunger penalty, full regeneration
+        // Else (hunger >= hungerThresholdSevere): no hunger penalty, full regeneration
 
         // Apply HP regeneration at configured interval
         if (newStats.hpRegenTickCounter >= regenConfig.hpRegenInterval) {
             hpRegen = regenConfig.hpRegenPerTick;
-            if (hunger < regenConfig.hungerThresholdSevere) {
+            if (hunger < regenConfig.hungerThresholdMild) {
+                hpRegen *= regenConfig.hungerRegenPenaltySevere;
+            } else if (hunger < regenConfig.hungerThresholdSevere) {
                 hpRegen *= regenConfig.hungerRegenPenaltyMild;
             }
             newStats.hpRegenTickCounter = 0; // Reset counter
@@ -152,7 +154,9 @@ export function applyTickEffects(stats: PlayerStatusDefinition, currentTurn: num
         // Apply stamina regeneration at configured interval
         if (newStats.staminaRegenTickCounter >= regenConfig.staminaRegenInterval) {
             staminaRegen = regenConfig.staminaRegenPerTick;
-            if (hunger < regenConfig.hungerThresholdSevere) {
+            if (hunger < regenConfig.hungerThresholdMild) {
+                staminaRegen *= regenConfig.hungerRegenPenaltySevere;
+            } else if (hunger < regenConfig.hungerThresholdSevere) {
                 staminaRegen *= regenConfig.hungerRegenPenaltyMild;
             }
             newStats.staminaRegenTickCounter = 0; // Reset counter
@@ -161,7 +165,9 @@ export function applyTickEffects(stats: PlayerStatusDefinition, currentTurn: num
         // Apply mana regeneration at configured interval
         if (newStats.manaRegenTickCounter >= regenConfig.manaRegenInterval) {
             manaRegen = regenConfig.manaRegenPerTick;
-            if (hunger < regenConfig.hungerThresholdSevere) {
+            if (hunger < regenConfig.hungerThresholdMild) {
+                manaRegen *= regenConfig.hungerRegenPenaltySevere;
+            } else if (hunger < regenConfig.hungerThresholdSevere) {
                 manaRegen *= regenConfig.hungerRegenPenaltyMild;
             }
             newStats.manaRegenTickCounter = 0; // Reset counter

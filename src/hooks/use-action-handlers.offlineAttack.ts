@@ -8,7 +8,6 @@ export function createHandleOfflineAttack(context: Partial<ActionHandlerDeps> & 
     const baseChunk = world[key];
     if (!baseChunk || !baseChunk.enemy) { addNarrativeEntry(t('noTarget'), 'system'); return; }
 
-    logger.debug('[Offline] Starting attack sequence', { playerPosition, enemy: baseChunk.enemy });
     const currentChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime, sStart, sDayDuration);
 
     const { roll } = rollDice ? rollDice(context.settings?.diceType) : { roll: 0 };

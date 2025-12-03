@@ -182,7 +182,7 @@ export class SkillUseCase implements ISkillUseCase {
     constructor(
         private readonly characterRepository: any, // Will be defined in infrastructure layer
         private readonly skillRepository: any     // Will be defined in infrastructure layer
-    ) {}
+    ) { }
 
     async learnSkill(characterId: string, skillId: string): Promise<boolean> {
         const character = await this.characterRepository.findById(characterId);
@@ -239,8 +239,8 @@ export class SkillUseCase implements ISkillUseCase {
     }
 
     private hasEnoughResource(
-        _character: Combatant, 
-        _resourceType: 'MANA' | 'STAMINA' | 'HEALTH', 
+        _character: Combatant,
+        _resourceType: 'MANA' | 'STAMINA' | 'HEALTH',
         _amount: number
     ): boolean {
         // Implementation depends on how resources are stored in Combatant
@@ -248,8 +248,8 @@ export class SkillUseCase implements ISkillUseCase {
     }
 
     private consumeResource(
-        _character: Combatant, 
-        _resourceType: 'MANA' | 'STAMINA' | 'HEALTH', 
+        _character: Combatant,
+        _resourceType: 'MANA' | 'STAMINA' | 'HEALTH',
         _amount: number
     ): void {
         // Implementation depends on how resources are stored in Combatant

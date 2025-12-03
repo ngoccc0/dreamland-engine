@@ -241,7 +241,7 @@ export class CombatUseCase implements ICombatUseCase {
         const base = attacker.stats.attack;
         const isCritical = Math.random() < (attacker.stats.criticalChance || 0);
         const critMult = isCritical ? (attacker.stats.criticalDamage || 1.5) : 1;
-        
+
         return {
             amount: Math.floor(base * critMult),
             type: 'PHYSICAL' as const,

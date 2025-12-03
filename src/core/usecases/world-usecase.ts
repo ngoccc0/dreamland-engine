@@ -308,7 +308,7 @@ export class WorldUseCase implements IWorldUseCase {
         private readonly worldGenerator: WorldGenerator,
         private readonly worldRepository: any, // Will be defined in infrastructure
         private readonly creatureEngine: CreatureEngine
-    ) {}
+    ) { }
 
     /**
      * Generate a new world using the provided configuration.

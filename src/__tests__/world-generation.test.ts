@@ -55,10 +55,10 @@ describe('world-generation', () => {
             getChunksByTerrain: jest.fn(() => []),
             update: jest.fn(),
             getExploredPercentage: jest.fn(() => 0),
-            getRegion: jest.fn(() => ({ 
-                id: 1, 
-                exploredPercentage: 0, 
-                dominantTerrain: { type: 'grassland' } 
+            getRegion: jest.fn(() => ({
+                id: 1,
+                exploredPercentage: 0,
+                dominantTerrain: { type: 'grassland' }
             })),
         };
 

@@ -117,14 +117,14 @@ export class ExperienceUseCase implements IExperienceUseCase {
     constructor(
         private readonly characterRepository: any, // Will be defined in infrastructure layer
         private readonly notificationService: any  // For level up notifications
-    ) {}
+    ) { }
 
     async gainExperience(characterId: string, amount: number): Promise<LevelUpResult> {
         const character = await this.characterRepository.findById(characterId);
         if (!character) throw new Error('Character not found');
 
         const result = character.experience.addExperience(amount);
-        
+
         if (result.levelsGained > 0) {
             // Handle level up rewards
             await this.handleLevelUpRewards(character, result);

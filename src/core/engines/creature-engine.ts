@@ -358,26 +358,26 @@ export class CreatureEngine {
             });
         }
 
-    // Update behavior based on current state and surroundings
-    this.updateBehavior(updatedCreature, playerPosition, playerStats);
+        // Update behavior based on current state and surroundings
+        this.updateBehavior(updatedCreature, playerPosition, playerStats);
 
         // If creature is hunting the player and is in melee range, perform an attack
         try {
-                const searchRange = (updatedCreature as any).trophicRange ?? 2; // default 2 -> 5x5 area
+            const searchRange = (updatedCreature as any).trophicRange ?? 2; // default 2 -> 5x5 area
             const inSearchSquare = arePositionsWithinSquareRange(updatedCreature.position, playerPosition, searchRange);
             const isAdjacent = arePositionsWithinSquareRange(updatedCreature.position, playerPosition, 1);
 
-                    if (updatedCreature.currentBehavior === 'hunting' && inSearchSquare) {
-                        // If creature is a carnivore (or aggressive predator) and is adjacent, attack the player
-                        if ((updatedCreature.trophic === 'carnivore' || updatedCreature.behavior === 'aggressive') && isAdjacent) {
-                            // Calculate damage (do not mutate playerStats here - return as meta so caller can update React state)
-                            const damage = updatedCreature.damage || 0;
+            if (updatedCreature.currentBehavior === 'hunting' && inSearchSquare) {
+                // If creature is a carnivore (or aggressive predator) and is adjacent, attack the player
+                if ((updatedCreature.trophic === 'carnivore' || updatedCreature.behavior === 'aggressive') && isAdjacent) {
+                    // Calculate damage (do not mutate playerStats here - return as meta so caller can update React state)
+                    const damage = updatedCreature.damage || 0;
 
-                            const creatureName = (updatedCreature as any).name?.en || updatedCreature.type || 'creature';
-                            const attackText = `${creatureName} ${this.t('creatureHunting', { creature: creatureName })} and attacks you (-${damage} HP).`;
-                            messages.push({ text: attackText, type: 'narrative', meta: { playerDamage: damage } });
-                        }
-                    }
+                    const creatureName = (updatedCreature as any).name?.en || updatedCreature.type || 'creature';
+                    const attackText = `${creatureName} ${this.t('creatureHunting', { creature: creatureName })} and attacks you (-${damage} HP).`;
+                    messages.push({ text: attackText, type: 'narrative', meta: { playerDamage: damage } });
+                }
+            }
         } catch {
             // ignore attack errors
         }

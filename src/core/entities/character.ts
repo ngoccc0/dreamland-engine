@@ -4,7 +4,183 @@ import type { TranslatableString } from '../types/i18n';
 import { Skill } from './skill';
 
 /**
- * Character statistics representing core attributes that influence a character's capabilities.
+ * OVERVIEW: Character entity system
+ *
+ * Represents a player or NPC character in the game world with complete attribute,
+ * inventory, skill, and status management. Characters are the primary unit of interaction
+ * in the game, tracking progression, items, abilities, and effects.
+ *
+ * ## Character Attributes
+ *
+ * ### Core Stats (CharacterStats)
+ *
+ * Five core attributes determine character capabilities:
+ *
+ * | Stat | Effect | Scaling | Primary Use |
+ * |------|--------|---------|-------------|
+ * | Strength | +1 attack per point | Melee damage, carry capacity | Physical combat |
+ * | Dexterity | +1 critical chance % per point | Hit chance, evasion, critical damage | Accuracy, evasion |
+ * | Intelligence | +2 mana per point | Spell damage, mana pool | Magic casting |
+ * | Vitality | +3 health per point | HP pool, defense | Tanking, survival |
+ * | Luck | +1 critical damage % per point | Rare item drop rate, critical hit frequency | Loot quality |
+ *
+ * ### Health & Resources
+ *
+ * ```typescript
+ * health / maxHealth: 0-100% lifecycle (0 = dead)
+ * stamina / maxStamina: for physical abilities (regenerates out of combat)
+ * mana / maxMana: for magic abilities (regenerates faster than stamina)
+ * bodyTemperature: -20 to +50°C (extremes cause damage)
+ * ```
+ *
+ * ## Character Progression
+ *
+ * ### Experience & Leveling
+ *
+ * ```typescript
+ * experience: total XP accumulated
+ * level: derived from experience threshold (see ExperienceUseCase)
+ * levelUpRewards: skill points, stat points, ability unlocks
+ * ```
+ *
+ * ### Skills System
+ *
+ * Characters learn skills from a skill tree:
+ * ```typescript
+ * skills: string[] of skill IDs known
+ * skillInstances: Map<skillId, Skill> runtime state (level, cooldown, XP)
+ * ```
+ *
+ * Skills are learned via SkillUseCase:
+ * - Cost skill points (1-5 depending on tier)
+ * - Have level-up progression (level 1-10)
+ * - Can have prerequisites (must know parent skill)
+ *
+ * ## Inventory Management
+ *
+ * Characters carry items with weight limits:
+ *
+ * ```typescript
+ * inventory: Inventory object with capacity management
+ * maxCarryWeight: default 100 units
+ * currentWeight: sum of all items × quantity
+ * availableSpace: maxWeight - currentWeight
+ * ```
+ *
+ * Common items:
+ * - Equipment (weapons, armor): equipped via slots
+ * - Consumables (potions, food): used to restore resources
+ * - Crafting materials: gathered from world, used to create items
+ * - Quest items: special, don't drop on death
+ *
+ * ## Status Effects & Active Effects
+ *
+ * Characters can have multiple active effects:
+ *
+ * ```typescript
+ * activeEffects: Effect[] currently active
+ * statuses: Set<string> status flags (stunned, blessed, poisoned)
+ * ```
+ *
+ * Effect types:
+ * - Buffs: positive stat changes (duration-based)
+ * - Debuffs: negative stat changes
+ * - DoT: damage over time (poison, bleeding)
+ * - Stun: prevent action for duration
+ * - Temperature: hypothermia, heatstroke
+ *
+ * Effects automatically expire after duration or can be manually removed.
+ *
+ * ## Character Flags & State
+ *
+ * Runtime state flags track special conditions:
+ *
+ * ```typescript
+ * flags: {
+ *   invulnerable: true,  // Takes no damage
+ *   stunned: true,       // Cannot act
+ *   cursed: true,        // Reduced effectiveness
+ *   blessed: true,       // Enhanced effectiveness
+ *   frozen: true,        // Immobilized
+ *   burning: true,       // Takes DoT damage
+ * }
+ * ```
+ *
+ * ## Character Actions
+ *
+ * Characters can perform various actions:
+ *
+ * ```typescript
+ * type CharacterAction = {
+ *   type: 'move' | 'attack' | 'cast' | 'use_item' | 'interact',
+ *   target?: position or entity ID,
+ *   item?: item ID (for use_item),
+ *   skill?: skill ID (for cast)
+ * }
+ * ```
+ *
+ * Actions are routed through ActionHandlers to apply game logic:
+ * - Move: update position, trigger movement costs
+ * - Attack: initiate combat with CombatUseCase
+ * - Cast: use skill from skillInstances, apply effects
+ * - UseItem: consume item, apply effects
+ * - Interact: NPC dialogue, chest looting, etc.
+ *
+ * ## Character Types
+ *
+ * ### Player Character
+ * - Controlled by human player
+ * - Has inventory, equipment slots
+ * - Can learn skills and level up
+ * - Respawns on death at last checkpoint
+ *
+ * ### NPC Character
+ * - Controlled by AI or static
+ * - May have dialogue trees
+ * - Provides quests or services (shops)
+ * - Cannot be looted on defeat
+ *
+ * ### Enemy Character
+ * - Hostile, attacks on sight
+ * - Uses simplified AI (attack > defend > flee)
+ * - Drops loot and XP on defeat
+ * - May have special abilities (boss fights)
+ *
+ * ## Serialization
+ *
+ * Characters persist to database (see CharacterRepository):
+ *
+ * ```typescript
+ * // Safe to serialize
+ * id, name, level, health, maxHealth, stats, experience, position
+ * inventory: PlayerItem[]
+ * skills: string[] (IDs only, instances recreated on load)
+ * activeEffects: Effect[]
+ * 
+ * // Runtime only (not persisted)
+ * skillInstances: Map (recreated from skill IDs on load)
+ * flags: {...} (recalculated on load)
+ * ```
+ *
+ * ## API Methods
+ *
+ * | Method | Purpose |
+ * |--------|---------|
+ * | `takeDamage(amount)` | Reduce health, check if dead |
+ * | `heal(amount)` | Restore health |
+ * | `addEffect(effect)` | Apply temporary effect |
+ * | `hasStatus(status)` | Check if status active |
+ * | `learnSkill(skillId)` | Add skill to known skills |
+ * | `updateEffects()` | Tick down durations, remove expired |
+ *
+ * ## Design Philosophy
+ *
+ * - **Flexible Stats**: 5-stat system balances complexity vs depth
+ * - **Resource Management**: Mana/stamina encourage strategic ability use
+ * - **Skill Specialization**: Skills unlock via tree, not arbitrary learning
+ * - **Effect Driven**: Status effects implement most gameplay mechanics
+ * - **Persistent Progression**: Characters saved between sessions with full state
+ *
  */
 export interface CharacterStats {
     /** Physical power and melee damage. Higher strength increases physical attack power. */

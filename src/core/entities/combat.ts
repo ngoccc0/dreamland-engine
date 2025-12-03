@@ -1,7 +1,174 @@
 import { TranslatableString } from '../types/i18n';
 
 /**
- * Defines the types of combatants that can participate in battle.
+ * OVERVIEW: Combat system entities
+ *
+ * Defines all data structures for turn-based combat between Combatants.
+ * Includes combat statistics, skills, effects, actions, and outcome tracking.
+ *
+ * ## Combat Statistics (CombatStats)
+ *
+ * Every combatant has core combat metrics:
+ *
+ * | Stat | Effect | Range | Notes |
+ * |------|--------|-------|-------|
+ * | health | Current HP (0 = dead) | 0 to maxHealth | |
+ * | maxHealth | HP capacity | 10-500 | Character level dependent |
+ * | attack | Damage dealt per action | 1-100 | Stat-based, scales 1:1 |
+ * | defense | Damage reduction per turn | 0-50 | Scales damage reduction directly |
+ * | speed | Turn priority & frequency | 1-20 | Higher = earlier turn, more actions |
+ * | criticalChance | % chance for 1.5× damage | 0-100 | 100 = guaranteed crit, 0 = no crit |
+ * | criticalDamage | Crit damage multiplier | 1.0-3.0 | Weapon/item dependent |
+ *
+ * ## Combat Skills (CombatSkill)
+ *
+ * Skills are abilities used in combat:
+ *
+ * ```typescript
+ * interface CombatSkill {\n *   id: string,                    // Unique identifier
+ *   name: TranslatableString,      // Display name (EN/VI)
+ *   description: TranslatableString, // Ability description
+ *   damage?: number,               // Base damage (optional)
+ *   cooldown: number,              // Turns before reuse
+ *   type: 'PHYSICAL' | 'MAGICAL' | 'TRUE', // Damage type
+ *   effects?: CombatEffect[],      // Applied on hit
+ * }
+ * ```
+ *
+ * ### Skill Types
+ *
+ * - **PHYSICAL**: Scales with attack stat, reduced by defense
+ * - **MAGICAL**: Scales with intelligence, unaffected by physical defense
+ * - **TRUE**: Fixed damage, ignores all defenses (rare, powerful)
+ *
+ * ### Cooldowns
+ *
+ * ```
+ * turnsSinceLast >= cooldown → skill ready
+ * After use: turnsSinceLast = 0, increment each turn
+ * ```
+ *
+ * Examples:
+ * - Basic Attack: cooldown = 0 (always ready)
+ * - Power Slash: cooldown = 2 (usable every 2-3 turns)
+ * - Ultimate: cooldown = 5-10 (rare, powerful)
+ *
+ * ## Combat Effects (CombatEffect)
+ *
+ * Temporary effects applied by skills:
+ *
+ * ```typescript
+ * interface CombatEffect {\n *   type: string,           // 'poison', 'stun', 'buff_attack', etc.
+ *   duration: number,       // Turns active
+ *   value: number,          // Magnitude (damage/turn, stat boost, etc.)
+ *   stackable?: boolean,    // Multiple instances allowed
+ * }
+ * ```
+ *
+ * ### Common Effects
+ *
+ * | Type | Duration | Value | Effect |
+ * |------|----------|-------|--------|
+ * | poison | 3-5 | 2-5 dmg/turn | DoT damage |
+ * | stun | 1-2 | N/A | Skip next turn |
+ * | buff_attack | 2-3 | +10-20% | Increased damage |
+ * | debuff_defense | 2-3 | -50% | Reduced damage reduction |
+ * | bleeding | 2-4 | 3-8 dmg/turn | Stackable DoT |
+ * | regeneration | 3-5 | 2-4 hp/turn | Healing over time |
+ *
+ * ### Stacking Rules
+ *
+ * ```typescript
+ * if effect.stackable:
+ *   apply effect, allow multiples
+ * else:
+ *   only 1 instance active, new replaces old
+ * ```
+ *
+ * ## Combatant Class
+ *
+ * Represents a participant in battle:
+ *
+ * ```typescript
+ * class Combatant {
+ *   id: string,                    // Unique ID
+ *   type: CombatantType,           // PLAYER | NPC | MONSTER
+ *   name: TranslatableString,      // Display name
+ *   stats: CombatStats,            // Combat metrics
+ *   skills: CombatSkill[],         // Learned abilities
+ *   activeEffects: Map<type, CombatEffect[]>, // Active status effects
+ * }
+ * ```
+ *
+ * ### Combatant Types
+ *
+ * - **PLAYER**: Human-controlled, learns skills, has inventory
+ * - **NPC**: Friendly/neutral, simple AI, provides rewards (quests, shops)
+ * - **MONSTER**: Hostile, aggressive AI, drops loot
+ *
+ * ## Combat Results (CombatResult)
+ *
+ * Outcome of a completed battle:
+ *
+ * ```typescript
+ * interface CombatResult {
+ *   winner: Combatant,           // Defeating combatant
+ *   loser: Combatant,            // Defeated combatant
+ *   duration: number,            // Number of rounds fought
+ *   xpGained: number,            // XP earned by winner
+ *   lootDropped: Item[],         // Items dropped by loser
+ *   combatLog: CombatRound[],    // Full history of rounds
+ * }
+ * ```
+ *
+ * Winner gains:
+ * - XP: loser.level × 100 × difficulty modifier
+ * - Loot: random drop from loser's loot table
+ * - Achievements: if special conditions met
+ *
+ * ## Combat Rounds (CombatRound)
+ *
+ * Single round of combat (both combatants act):
+ *
+ * ```typescript
+ * interface CombatRound {
+ *   roundNumber: number,
+ *   actions: CombatAction[],             // Both combatants' actions
+ *   results: Map<action, outcome>,       // Damage dealt, effects applied
+ *   effects: Map<combatant, Effect[]>,  // Active effects after round
+ * }
+ * ```
+ *
+ * ## Combat Actions (CombatAction)
+ *
+ * Individual action taken in combat:
+ *
+ * ```typescript
+ * interface CombatAction {
+ *   combatant: Combatant,
+ *   actionType: 'attack' | 'skill' | 'defend' | 'item' | 'flee',
+ *   target: Combatant,
+ *   skill?: CombatSkill,              // If actionType = 'skill'
+ *   item?: Item,                      // If actionType = 'item'
+ * }
+ * ```
+ *
+ * ### Action Types
+ *
+ * - **attack**: Basic attack, always available, damage = attack - defense
+ * - **skill**: Use learned skill (if cooldown ready, resources available)
+ * - **defend**: Reduce incoming damage by 50% next turn
+ * - **item**: Use healing/buff item from inventory
+ * - **flee**: Attempt escape (50% success chance)
+ *
+ * ## Design Philosophy
+ *
+ * - **Simple yet Strategic**: Attack vs defend creates tension
+ * - **Skill Depth**: Cooldowns and costs encourage ability use over spam
+ * - **Effect Synergy**: Skills combine for powerful combos
+ * - **Deterministic**: Formulas transparent (players can calculate expected damage)
+ * - **Balanced**: No dominant strategy (rock-paper-scissors: attack-defend-skill)
+ *
  */
 export enum CombatantType {
     PLAYER = 'PLAYER',    // A player-controlled character.

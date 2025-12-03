@@ -213,7 +213,7 @@ export class EffectEngine {
     private canApplyEffect(effect: Effect, target: any): boolean {
         if (!effect.conditions) return true;
 
-        return effect.conditions.every(condition => 
+        return effect.conditions.every(condition =>
             this.checkCondition(condition, target));
     }
 

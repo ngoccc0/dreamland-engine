@@ -196,7 +196,7 @@ export class WeatherEngine {
     private currentWeather: Weather;
     private gameTime: number = 0;
     private lastUpdate: number = 0;
-    
+
     constructor(
         private readonly effectEngine: EffectEngine,
         private readonly weatherData: Map<WeatherType, WeatherCondition>,
@@ -329,9 +329,9 @@ export class WeatherEngine {
             getDuration: () => condition.duration || 0,
             remainingDuration: () => condition.duration || 0,
             getPossibleTransitions: () => condition.transitions || [],
-            update: () => {},
+            update: () => { },
             getWeatherAtPosition: () => null,
-            addRegionalVariation: () => {},
+            addRegionalVariation: () => { },
             getPrimaryCondition: () => condition
         };
     }
@@ -390,7 +390,7 @@ export class WeatherEngine {
 
         // Apply intensity modifier
         const intensityMultiplier = intensity === WeatherIntensity.SEVERE ? 1.5 :
-                                   intensity === WeatherIntensity.MILD ? 0.5 : 1.0;
+            intensity === WeatherIntensity.MILD ? 0.5 : 1.0;
         weatherModifier *= intensityMultiplier;
 
         // Apply day/night cycle modifier

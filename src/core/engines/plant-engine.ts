@@ -411,16 +411,16 @@ export class PlantEngine {
         const props = plantDef.plantProperties;
         if (!props) return { suitability: 0, canGrow: false, canReproduce: false };
 
-    // Effective moisture: chunk.moisture plus any recent watering applied via waterTimer
-    const baseMoisture = chunk.moisture ?? 50;
-    const waterBonus = (chunk as any).waterTimer && (chunk as any).waterTimer > 0 ? ((chunk as any).waterRetention ?? 1) * 20 : 0;
-    const moisture = Math.min(100, baseMoisture + waterBonus);
-    const temp = chunk.temperature ?? 20;
-    const vegDensity = chunk.vegetationDensity ?? 0;
+        // Effective moisture: chunk.moisture plus any recent watering applied via waterTimer
+        const baseMoisture = chunk.moisture ?? 50;
+        const waterBonus = (chunk as any).waterTimer && (chunk as any).waterTimer > 0 ? ((chunk as any).waterRetention ?? 1) * 20 : 0;
+        const moisture = Math.min(100, baseMoisture + waterBonus);
+        const temp = chunk.temperature ?? 20;
+        const vegDensity = chunk.vegetationDensity ?? 0;
 
         // Basic environmental suitability
         let suitability = 1;
-        
+
         if (props.reproduction?.requirements) {
             const req = props.reproduction.requirements;
             if (moisture < req.minMoisture) suitability *= (moisture / req.minMoisture);
@@ -439,12 +439,12 @@ export class PlantEngine {
         const seasonMod = this.config.plant.seasonMultiplier[season] ?? 1;
         suitability *= seasonMod;
 
-    // Determine if conditions support growth and reproduction
-    // Apply soil nutrition / fertilizer as modifiers to suitability for growth
-    const nutrition = (chunk as any).nutrition ?? 0;
-    const fertilizer = (chunk as any).fertilizerLevel ?? 0;
-    const growthBoost = 1 + (nutrition * 0.005) + (fertilizer * 0.01);
-    const canGrow = (suitability * growthBoost) > 0.3;
+        // Determine if conditions support growth and reproduction
+        // Apply soil nutrition / fertilizer as modifiers to suitability for growth
+        const nutrition = (chunk as any).nutrition ?? 0;
+        const fertilizer = (chunk as any).fertilizerLevel ?? 0;
+        const growthBoost = 1 + (nutrition * 0.005) + (fertilizer * 0.01);
+        const canGrow = (suitability * growthBoost) > 0.3;
         const canReproduce = props.reproduction?.requirements ? (
             moisture >= props.reproduction.requirements.minMoisture &&
             temp >= props.reproduction.requirements.minTemperature &&

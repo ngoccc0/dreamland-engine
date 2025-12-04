@@ -56,10 +56,10 @@ export function useGameState({ gameSlot: _gameSlot }: GameStateProps) {
     
     // Sync gameTime with turn: gameTime cycles 0-1439 (1440 minutes per day)
     useEffect(() => {
-        // Each turn = 1 minute of game time
-        // day increments every 1440 turns; gameTime wraps 0-1439
-        const newGameTime = ((turn - 1) % 1440);
-        const newDay = Math.floor((turn - 1) / 1440) + 1;
+        // Each turn = 15 minutes of game time (1 day = 96 turns)
+        // gameTime wraps 0-1439; day increments every 96 turns
+        const newGameTime = ((turn - 1) * 15) % 1440;
+        const newDay = Math.floor((turn - 1) / 96) + 1;
         setGameTime(newGameTime);
         setDay(newDay);
     }, [turn]);

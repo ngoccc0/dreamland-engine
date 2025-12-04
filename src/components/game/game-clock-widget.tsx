@@ -106,19 +106,20 @@ export function GameClockWidget({
                 aria-hidden="true"
             />
 
-            {/* Pointer - fixed at top (12 o'clock) */}
-            <div
+            {/* Pointer - fixed at top (12 o'clock), using inverted pointer image */}
+            <img
+                src="/asset/images/clock_pointer.png"
+                alt="Clock pointer"
                 className="absolute z-20 pointer-events-none"
                 style={{
-                    width: "3px",
-                    height: `${size * 0.5}px`, // Pointer half the clock size
-                    backgroundColor: "rgba(0, 0, 0, 0.7)", // Dark pointer
-                    top: 0,
+                    width: `${size * 0.15}px`,
+                    height: `${size * 0.5}px`,
+                    top: `${size * 0.05}px`,
                     left: "50%",
-                    transform: "translateX(-50%)",
-                    borderRadius: "2px",
-                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
+                    transform: "translateX(-50%) scaleY(-1)", // Invert triangle (point up)
+                    objectFit: "contain",
                 }}
+                aria-hidden="true"
             />
 
             {/* Sun/Moon indicator - always at top (12 o'clock) */}

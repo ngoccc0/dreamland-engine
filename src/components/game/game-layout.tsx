@@ -712,7 +712,6 @@ export default function GameLayout(props: GameLayoutProps) {
                                     <TooltipTrigger asChild>
                                         <div className="flex flex-col items-center cursor-default">
                                             <GameClockWidget gameTime={gameTime || 0} size={48} />
-                                            <span className="text-xs mt-1 text-muted-foreground">{String(Math.floor((gameTime || 0) / 60)).padStart(2, '0')}:{String((gameTime || 0) % 60).padStart(2, '0')}</span>
                                         </div>
                                     </TooltipTrigger>
                                     <TooltipContent><p>Game Time: {String(Math.floor((gameTime || 0) / 60)).padStart(2, '0')}:{String((gameTime || 0) % 60).padStart(2, '0')}</p></TooltipContent>

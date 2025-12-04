@@ -106,7 +106,7 @@ export function GameClockWidget({
                 aria-hidden="true"
             />
 
-            {/* Pointer - fixed at top (12 o'clock), using inverted pointer image */}
+            {/* Pointer - fixed at top (12 o'clock), extending above border, using inverted pointer image */}
             <img
                 src="/asset/images/clock_pointer.png"
                 alt="Clock pointer"
@@ -114,102 +114,13 @@ export function GameClockWidget({
                 style={{
                     width: `${size * 0.15}px`,
                     height: `${size * 0.5}px`,
-                    top: `${size * 0.05}px`,
+                    top: `${size * -0.15}px`,
                     left: "50%",
                     transform: "translateX(-50%) scaleY(-1)", // Invert triangle (point up)
                     objectFit: "contain",
                 }}
                 aria-hidden="true"
             />
-
-            {/* Sun/Moon indicator - always at top (12 o'clock) */}
-            <div
-                className="absolute z-10 pointer-events-none"
-                style={{
-                    width: `${size * 0.25}px`,
-                    height: `${size * 0.25}px`,
-                    top: `${size * 0.05}px`,
-                    left: "50%",
-                    transform: `translateX(-50%) translateY(0)`,
-                }}
-            >
-                <svg
-                    viewBox="0 0 100 100"
-                    className="w-full h-full"
-                    aria-hidden="true"
-                >
-                    {isDaytime ? (
-                        /* Sun: yellow circle with rays */
-                        <>
-                            <circle cx="50" cy="50" r="40" fill="#FFD700" />
-                            {/* Sun rays */}
-                            <line
-                                x1="50"
-                                y1="5"
-                                x2="50"
-                                y2="15"
-                                stroke="#FFD700"
-                                strokeWidth="4"
-                                strokeLinecap="round"
-                            />
-                            <line
-                                x1="50"
-                                y1="85"
-                                x2="50"
-                                y2="95"
-                                stroke="#FFD700"
-                                strokeWidth="4"
-                                strokeLinecap="round"
-                            />
-                            <line
-                                x1="5"
-                                y1="50"
-                                x2="15"
-                                y2="50"
-                                stroke="#FFD700"
-                                strokeWidth="4"
-                                strokeLinecap="round"
-                            />
-                            <line
-                                x1="85"
-                                y1="50"
-                                x2="95"
-                                y2="50"
-                                stroke="#FFD700"
-                                strokeWidth="4"
-                                strokeLinecap="round"
-                            />
-                        </>
-                    ) : (
-                        /* Moon: crescent shape (white) */
-                        <>
-                            <path
-                                d="M 70 50 A 40 40 0 1 1 40 30 A 35 35 0 0 0 70 50"
-                                fill="#E8E8E8"
-                                stroke="#C0C0C0"
-                                strokeWidth="2"
-                            />
-                            {/* Moon craters for detail */}
-                            <circle cx="50" cy="40" r="3" fill="#C0C0C0" opacity="0.6" />
-                            <circle cx="60" cy="55" r="2" fill="#C0C0C0" opacity="0.6" />
-                        </>
-                    )}
-                </svg>
-            </div>
-
-            {/* Optional: Time display below clock (for debugging/reference) */}
-            <div
-                className="absolute text-xs font-mono text-gray-600 text-center whitespace-nowrap pointer-events-none"
-                style={{
-                    bottom: `${-size * 0.4}px`,
-                    width: "100%",
-                }}
-                aria-hidden="true"
-            >
-                {/* Format time as HH:MM */}
-                {String(Math.floor((gameTime % 1440) / 60)).padStart(2, "0")}:
-                {String((gameTime % 1440) % 60).padStart(2, "0")}
-            </div>
         </div>
     );
 }

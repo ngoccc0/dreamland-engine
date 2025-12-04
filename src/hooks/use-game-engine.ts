@@ -249,11 +249,9 @@ export function useGameEngine(props: GameEngineProps) {
                 const next = prev + (settings as any).timePerTurn; // Use timePerTurn from settings
                 if (next >= (settings as any).dayDuration) { // Use dayDuration from settings
                     gameState.setDay(d => d + 1);
-                    gameState.setTurn(t => t + 1);
-                    return next % (settings as any).dayDuration; // Use dayDuration from settings
-            }
-            gameState.setTurn(t => t + 1);
-            return next;
+                }
+                gameState.setTurn(t => t + 1); // Increment turn once per tick
+                return next % (settings as any).dayDuration; // Use dayDuration from settings
         });
 
         // If caller provided a candidate stats object, apply per-tick effects

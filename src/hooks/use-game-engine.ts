@@ -159,7 +159,7 @@ export function useGameEngine(props: GameEngineProps) {
     const addNarrativeEntry = (text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string) => {
         // Preserve explicit entryId when provided (placeholders use predictable ids).
         // If no id provided, generate a stable unique id.
-        const id = entryId ?? `${Date.now()}_${Math.random().toString(36).slice(2,9)}`;
+        const id = entryId ?? `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
         const entry = { id, text, type } as any;
         gameState.setNarrativeLog(prev => {
             const arr = (prev || []);
@@ -216,7 +216,7 @@ export function useGameEngine(props: GameEngineProps) {
                                 if (!existingId || existingId === u.creatureId) {
                                     delete nw[prevKey].enemy;
                                 }
-                            } catch {}
+                            } catch { }
                         }
 
                         // Prepare enemy data for world (strip runtime-only fields)
@@ -229,7 +229,7 @@ export function useGameEngine(props: GameEngineProps) {
                         delete raw._prevPosition;
 
                         // Persist stable id so world chunk keeps identity
-                        try { raw.id = u.creatureId; } catch {}
+                        try { raw.id = u.creatureId; } catch { }
 
                         // Ensure destination chunk exists in world
                         if (!nw[newKey]) {
@@ -246,12 +246,12 @@ export function useGameEngine(props: GameEngineProps) {
         }
 
         gameState.setGameTime(prev => {
-                const next = prev + (settings as any).timePerTurn; // Use timePerTurn from settings
-                if (next >= (settings as any).dayDuration) { // Use dayDuration from settings
-                    gameState.setDay(d => d + 1);
-                }
-                gameState.setTurn(t => t + 1); // Increment turn once per tick
-                return next % (settings as any).dayDuration; // Use dayDuration from settings
+            const next = prev + ((settings as any).timePerTurn || 15); // Use timePerTurn from settings, default 15
+            if (next >= (settings as any).dayDuration) { // Use dayDuration from settings
+                gameState.setDay(d => d + 1);
+            }
+            gameState.setTurn(t => t + 1); // Increment turn once per tick
+            return next % (settings as any).dayDuration; // Use dayDuration from settings
         });
 
         // If caller provided a candidate stats object, apply per-tick effects
@@ -339,13 +339,13 @@ export function useGameEngine(props: GameEngineProps) {
             console.warn('Failed to register visible creatures for simulation', err);
         }
 
-            // Update plants in visible area
-            try {
-                const plantMessages = plantEngineRef.current.updatePlants(currentTurn, visibleChunks, gameState.currentSeason, gameState.worldProfile);
-                for (const m of plantMessages) addNarrativeEntry(m.text, m.type);
-            } catch (err: any) {
-                console.warn('PlantEngine update failed', err);
-            }
+        // Update plants in visible area
+        try {
+            const plantMessages = plantEngineRef.current.updatePlants(currentTurn, visibleChunks, gameState.currentSeason, gameState.worldProfile);
+            for (const m of plantMessages) addNarrativeEntry(m.text, m.type);
+        } catch (err: any) {
+            console.warn('PlantEngine update failed', err);
+        }
 
         const creatureMessages = creatureEngineRef.current.updateCreatures(
             currentTurn,
@@ -359,7 +359,7 @@ export function useGameEngine(props: GameEngineProps) {
             addNarrativeEntry(message.text, message.type);
         }
     };
-    
+
     // This effect ensures that whenever the narrativeLog changes, we scroll to the bottom.
     // The dependency array [gameState.narrativeLog] triggers the effect on every new entry.
     useEffect(() => {
@@ -413,7 +413,7 @@ export function useGameEngine(props: GameEngineProps) {
             }
         }
     }, [gameState.playerPosition.x, gameState.playerPosition.y, gameState.world, playAmbienceForBiome]);
-    
+
 
     const actionHandlers = useActionHandlers({
         ...gameState,
@@ -429,7 +429,7 @@ export function useGameEngine(props: GameEngineProps) {
         advanceGameTime,
         gameSlot: props.gameSlot,
     } as any);
-    
+
     return {
         ...gameState,
         ...actionHandlers,

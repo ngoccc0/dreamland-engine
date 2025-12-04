@@ -60,13 +60,16 @@ export function GameClockWidget({
     size = 76,
 }: GameClockWidgetProps) {
     // Calculate clock face rotation in degrees
-    // At 720 min (noon): rotation = 180° (sun moves to top)
-    // At 0 min (midnight): rotation = 0° (moon at top)
-    // Clock rotates continuously to show time passing
-    // Negate rotation to fix backwards rotation
+    // Clock image positioning: sun at 9 o'clock = 6 AM, sun at 12 o'clock = noon
+    // At 360 min (6 AM): rotation = -90° (sun at left)
+    // At 720 min (noon): rotation = 0° (sun at top)
+    // At 1080 min (6 PM): rotation = 90° (sun at right)
+    // At 0 min (midnight): rotation = -180° (moon at bottom)
     const rotationDegrees = useMemo(() => {
         const normalizedTime = gameTime % 1440; // Ensure 0-1439 range
-        return -((normalizedTime / 1440) * 360); // Convert to degrees (negated for correct direction)
+        // Formula: rotate to align time with image orientation
+        // 6 AM (360 min) → -90°, noon (720 min) → 0°, 6 PM (1080 min) → 90°
+        return -(normalizedTime / 1440) * 360 + 90;
     }, [gameTime]);
 
     // Determine if it's daytime (6 AM to 6 PM = 360-1080 min)

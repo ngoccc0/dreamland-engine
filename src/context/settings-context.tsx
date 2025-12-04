@@ -26,7 +26,7 @@ const defaultSettings = {
   minimapViewportSize: 5,
   startTime: 360, // 6 AM
   dayDuration: 1440, // 24 hours
-  timePerTurn: 10, // 10 minutes per turn
+  timePerTurn: 15, // 15 minutes per turn (1 day = 96 turns)
   keyBindings: {
     moveUp: ['w', 'ArrowUp'],
     moveDown: ['s', 'ArrowDown'],

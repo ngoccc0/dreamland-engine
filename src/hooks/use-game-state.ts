@@ -53,7 +53,7 @@ export function useGameState({ gameSlot: _gameSlot }: GameStateProps) {
     const [gameTime, setGameTime] = useState(360); // 6 AM
     const [day, setDay] = useState(1);
     const [turn, setTurn] = useState(1);
-    
+
     const [weatherZones, setWeatherZones] = useState<{ [zoneId: string]: WeatherZone }>({});
     const [world, setWorld] = useState<WorldType>(() => {
         // Initialize world with an empty concrete WorldImpl instance so consumers

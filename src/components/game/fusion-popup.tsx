@@ -82,7 +82,7 @@ export function FusionPopup({ open, onOpenChange, playerItems, itemDefinitions, 
 
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl animate-fadeIn">
         <DialogHeader>
           <DialogTitle className="font-headline flex items-center gap-2">
             <FlaskConical /> {t('fusionAltar')}

@@ -186,7 +186,7 @@ function CraftingPopupImpl({ open, onOpenChange, playerItems, itemDefinitions, r
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl">
+      <DialogContent className="sm:max-w-2xl animate-fadeIn">
         <DialogHeader>
           <DialogTitle className="font-headline flex items-center gap-2">
             <Hammer /> {t('crafting')}

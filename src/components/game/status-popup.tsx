@@ -82,7 +82,7 @@ export function StatusPopup({ open, onOpenChange, stats, itemDefinitions, onRequ
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] animate-fadeIn">
         <DialogHeader>
           <DialogTitle className="font-headline">{t('playerStatus')}</DialogTitle>
           <DialogDescription>

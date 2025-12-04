@@ -38,7 +38,7 @@ export function BuildingPopup({ open, onOpenChange, playerItems, buildableStruct
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-[500px] animate-fadeIn">
         <DialogHeader>
           <DialogTitle className="font-headline flex items-center gap-2">
             <Home /> {t('building')}

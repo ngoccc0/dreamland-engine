@@ -130,7 +130,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]" tabIndex={0} onKeyDown={(e) => {
+      <DialogContent className="sm:max-w-[425px] animate-fadeIn" tabIndex={0} onKeyDown={(e) => {
         if (e.key.toLowerCase() === 'q' && lastOpenedIndex.current !== null && typeof onDropItem === 'function') {
           const idx = lastOpenedIndex.current;
           const item = items[idx];

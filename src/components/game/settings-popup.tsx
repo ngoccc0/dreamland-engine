@@ -128,7 +128,7 @@ export function SettingsPopup({ open, onOpenChange, isInGame, currentBiome }: Se
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-md animate-fadeIn">
                 <DialogHeader>
                     <DialogTitle className="font-headline flex items-center gap-2"><Settings /> {t('gameSettings')}</DialogTitle>
                     <DialogDescription>{t('gameSettingsDesc')}</DialogDescription>

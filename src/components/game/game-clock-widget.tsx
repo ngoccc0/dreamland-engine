@@ -84,87 +84,130 @@ export function GameClockWidget({
 
     return (
         <div
-            className="relative flex items-center justify-center bg-gradient-to-br from-slate-200 to-slate-300 rounded-full border-2 border-slate-400 shadow-lg"
+            className={cn(
+                "relative flex items-center justify-center",
+                "bg-opacity-0",
+                className
+            )}
             style={{
                 width: `${size}px`,
                 height: `${size}px`,
             }}
         >
-            {/* Clock face - using SVG instead of image */}
-            <svg
-                viewBox="0 0 100 100"
+            {/* Clock face image - rotates with game time */}
+            <img
+                src="/asset/images/time_clock_ui.png"
+                alt="Clock face"
                 className="absolute inset-0 w-full h-full"
                 style={{
-                    filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
-                }}
-            >
-                {/* Clock numbers */}
-                <text x="50" y="8" textAnchor="middle" fontSize="8" fontWeight="bold" fill="#333">12</text>
-                <text x="92" y="54" textAnchor="start" fontSize="8" fontWeight="bold" fill="#333">3</text>
-                <text x="50" y="98" textAnchor="middle" fontSize="8" fontWeight="bold" fill="#333">6</text>
-                <text x="8" y="54" textAnchor="end" fontSize="8" fontWeight="bold" fill="#333">9</text>
-                
-                {/* Hour markers */}
-                {[...Array(12)].map((_, i) => {
-                    const angle = (i * 30) * Math.PI / 180;
-                    const x1 = 50 + 45 * Math.cos(angle - Math.PI / 2);
-                    const y1 = 50 + 45 * Math.sin(angle - Math.PI / 2);
-                    const x2 = 50 + 40 * Math.cos(angle - Math.PI / 2);
-                    const y2 = 50 + 40 * Math.sin(angle - Math.PI / 2);
-                    return (
-                        <line
-                            key={`marker-${i}`}
-                            x1={x1}
-                            y1={y1}
-                            x2={x2}
-                            y2={y2}
-                            stroke="#666"
-                            strokeWidth="2"
-                        />
-                    );
-                })}
-            </svg>
-
-            {/* Rotating clock hand - minute/hour combined */}
-            <div
-                className="absolute z-20 origin-center"
-                style={{
-                    width: "4px",
-                    height: `${size * 0.35}px`,
-                    backgroundColor: "#333",
-                    top: "50%",
-                    left: "50%",
-                    marginLeft: "-2px",
-                    marginTop: `-${size * 0.35 / 2}px`,
                     transform: `rotate(${rotationDegrees}deg)`,
-                    transition: "transform 0.05s linear",
-                    borderRadius: "2px",
+                    transition: "transform 0.05s linear", // Smooth rotation
                 }}
+                aria-hidden="true"
             />
 
-            {/* Center dot */}
+            {/* Pointer - fixed at top (12 o'clock) */}
             <div
-                className="absolute z-30 bg-gray-800 rounded-full"
+                className="absolute z-20 pointer-events-none"
                 style={{
-                    width: "8px",
-                    height: "8px",
-                    top: "50%",
-                    left: "50%",
-                    marginLeft: "-4px",
-                    marginTop: "-4px",
-                }}
-            />
-
-            {/* Sun/Moon indicator */}
-            <div
-                className="absolute z-10 flex items-center justify-center font-bold text-lg"
-                style={{
-                    top: "8%",
+                    width: "3px",
+                    height: `${size * 0.5}px`, // Pointer half the clock size
+                    backgroundColor: "rgba(0, 0, 0, 0.7)", // Dark pointer
+                    top: 0,
                     left: "50%",
                     transform: "translateX(-50%)",
+                    borderRadius: "2px",
+                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
+                }}
+            />
+
+            {/* Sun/Moon indicator - always at top (12 o'clock) */}
+            <div
+                className="absolute z-10 pointer-events-none"
+                style={{
+                    width: `${size * 0.25}px`,
+                    height: `${size * 0.25}px`,
+                    top: `${size * 0.05}px`,
+                    left: "50%",
+                    transform: `translateX(-50%) translateY(0)`,
                 }}
             >
-                {isDaytime ? "☀️" : "🌙"}
+                <svg
+                    viewBox="0 0 100 100"
+                    className="w-full h-full"
+                    aria-hidden="true"
+                >
+                    {isDaytime ? (
+                        /* Sun: yellow circle with rays */
+                        <>
+                            <circle cx="50" cy="50" r="40" fill="#FFD700" />
+                            {/* Sun rays */}
+                            <line
+                                x1="50"
+                                y1="5"
+                                x2="50"
+                                y2="15"
+                                stroke="#FFD700"
+                                strokeWidth="4"
+                                strokeLinecap="round"
+                            />
+                            <line
+                                x1="50"
+                                y1="85"
+                                x2="50"
+                                y2="95"
+                                stroke="#FFD700"
+                                strokeWidth="4"
+                                strokeLinecap="round"
+                            />
+                            <line
+                                x1="5"
+                                y1="50"
+                                x2="15"
+                                y2="50"
+                                stroke="#FFD700"
+                                strokeWidth="4"
+                                strokeLinecap="round"
+                            />
+                            <line
+                                x1="85"
+                                y1="50"
+                                x2="95"
+                                y2="50"
+                                stroke="#FFD700"
+                                strokeWidth="4"
+                                strokeLinecap="round"
+                            />
+                        </>
+                    ) : (
+                        /* Moon: crescent shape (white) */
+                        <>
+                            <path
+                                d="M 70 50 A 40 40 0 1 1 40 30 A 35 35 0 0 0 70 50"
+                                fill="#E8E8E8"
+                                stroke="#C0C0C0"
+                                strokeWidth="2"
+                            />
+                            {/* Moon craters for detail */}
+                            <circle cx="50" cy="40" r="3" fill="#C0C0C0" opacity="0.6" />
+                            <circle cx="60" cy="55" r="2" fill="#C0C0C0" opacity="0.6" />
+                        </>
+                    )}
+                </svg>
+            </div>
+
+            {/* Optional: Time display below clock (for debugging/reference) */}
+            <div
+                className="absolute text-xs font-mono text-gray-600 text-center whitespace-nowrap pointer-events-none"
+                style={{
+                    bottom: `${-size * 0.4}px`,
+                    width: "100%",
+                }}
+                aria-hidden="true"
+            >
+                {/* Format time as HH:MM */}
+                {String(Math.floor((gameTime % 1440) / 60)).padStart(2, "0")}:
+                {String((gameTime % 1440) % 60).padStart(2, "0")}
             </div>
         </div>
     );

@@ -707,6 +707,17 @@ export default function GameLayout(props: GameLayoutProps) {
                                     <TooltipContent><p>{t('bodyTempDesc')}</p></TooltipContent>
                                 </Tooltip>
 
+                                {/* Game Clock Widget */}
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div className="flex flex-col items-center cursor-default">
+                                            <GameClockWidget gameTime={gameTime || 0} size={48} />
+                                            <span className="text-xs mt-1 text-muted-foreground">{String(Math.floor((gameTime || 0) / 60)).padStart(2, '0')}:{String((gameTime || 0) % 60).padStart(2, '0')}</span>
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>Game Time: {String(Math.floor((gameTime || 0) / 60)).padStart(2, '0')}:{String((gameTime || 0) % 60).padStart(2, '0')}</p></TooltipContent>
+                                </Tooltip>
+
                                 {/* Minimap Size Control Button - Magnifying Glass */}
                                 <Tooltip>
                                     <TooltipTrigger asChild>
@@ -799,14 +810,6 @@ export default function GameLayout(props: GameLayoutProps) {
                                     <TooltipContent><p>{t('hudHunger') ?? 'Hunger'}: {Math.round(playerStats.hunger ?? 0)}/{playerStats.maxHunger ?? 100}</p></TooltipContent>
                                 </Tooltip>
                                 <button onClick={() => { handleStatusToggle(); focusCustomActionInput(); }} className={`text-xs mt-1 ${statColorClass(hungerPct)} focus:outline-none`}>{Math.round(hungerVal)}/{hungerMax}</button>
-                            </div>
-
-                            {/* Game Clock Widget */}
-                            <div className="flex flex-col items-center gap-2">
-                                <GameClockWidget gameTime={gameTime || 0} size={80} />
-                                <p className="text-xs text-muted-foreground">
-                                    {String(Math.floor((gameTime || 0) / 60)).padStart(2, '0')}:{String((gameTime || 0) % 60).padStart(2, '0')}
-                                </p>
                             </div>
                         </div>
                     </div>

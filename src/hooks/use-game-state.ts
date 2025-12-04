@@ -53,6 +53,17 @@ export function useGameState({ gameSlot: _gameSlot }: GameStateProps) {
     const [gameTime, setGameTime] = useState(360); // 6 AM
     const [day, setDay] = useState(1);
     const [turn, setTurn] = useState(1);
+    
+    // Sync gameTime with turn: gameTime cycles 0-1439 (1440 minutes per day)
+    useEffect(() => {
+        // Each turn = 1 minute of game time
+        // day increments every 1440 turns; gameTime wraps 0-1439
+        const newGameTime = ((turn - 1) % 1440);
+        const newDay = Math.floor((turn - 1) / 1440) + 1;
+        setGameTime(newGameTime);
+        setDay(newDay);
+    }, [turn]);
+    
     const [weatherZones, setWeatherZones] = useState<{ [zoneId: string]: WeatherZone }>({});
     const [world, setWorld] = useState<WorldType>(() => {
         // Initialize world with an empty concrete WorldImpl instance so consumers

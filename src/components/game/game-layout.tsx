@@ -97,6 +97,7 @@ export default function GameLayout(props: GameLayoutProps) {
         finalWorldSetup,
         customItemDefinitions,
         currentChunk,
+        gameTime,
         turn,
         biomeDefinitions,
         weatherZones,
@@ -801,18 +802,20 @@ export default function GameLayout(props: GameLayoutProps) {
                             </div>
 
                             {/* Game Clock Widget */}
-                            <div className="flex flex-col items-center p-2">
+                            <div className="flex flex-col items-center p-2 gap-1">
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Button variant="ghost" size="icon" aria-label="Game Time" className="p-0">
+                                        <Button variant="ghost" size="icon" aria-label="Game Time" className="p-0 h-auto w-auto hover:bg-transparent">
                                             ⏰
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                        <p>Game Time: {String(Math.floor(((turn || 0) % 1440) / 60)).padStart(2, '0')}:{String((turn || 0) % 60).padStart(2, '0')}</p>
+                                        <p>Game Time: {String(Math.floor((gameTime || 0) / 60)).padStart(2, '0')}:{String((gameTime || 0) % 60).padStart(2, '0')}</p>
                                     </TooltipContent>
                                 </Tooltip>
-                                <GameClockWidget gameTime={turn ? turn % 1440 : 0} size={76} />
+                                <div className="relative w-20 h-20 flex-shrink-0">
+                                    <GameClockWidget gameTime={gameTime || 0} size={76} />
+                                </div>
                             </div>
                         </div>
                     </div>

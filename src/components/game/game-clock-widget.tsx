@@ -63,9 +63,10 @@ export function GameClockWidget({
     // At 720 min (noon): rotation = 180° (sun moves to top)
     // At 0 min (midnight): rotation = 0° (moon at top)
     // Clock rotates continuously to show time passing
+    // Negate rotation to fix backwards rotation
     const rotationDegrees = useMemo(() => {
         const normalizedTime = gameTime % 1440; // Ensure 0-1439 range
-        return (normalizedTime / 1440) * 360; // Convert to degrees
+        return -((normalizedTime / 1440) * 360); // Convert to degrees (negated for correct direction)
     }, [gameTime]);
 
     // Determine if it's daytime (6 AM to 6 PM = 360-1080 min)

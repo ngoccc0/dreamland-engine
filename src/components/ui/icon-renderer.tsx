@@ -33,10 +33,11 @@ export function IconRenderer({ icon, size, alt = '', className }: IconRendererPr
     );
   }
 
-  // Handle string emoji format
+  // Handle string emoji format - scale emoji to 2/3 size
   if (typeof icon === 'string') {
-    const style = size ? { fontSize: size, width: size, height: size } : undefined;
-    const classes = size ? 'flex items-center justify-center flex-shrink-0' : 'w-full h-full flex items-center justify-center';
+    const emojiSize = size ? Math.round(size * 2 / 3) : undefined;
+    const style = emojiSize ? { fontSize: emojiSize, width: emojiSize, height: emojiSize } : undefined;
+    const classes = emojiSize ? 'flex items-center justify-center flex-shrink-0' : 'w-full h-full flex items-center justify-center';
     return (
       <span
         className={cn(classes, className)}

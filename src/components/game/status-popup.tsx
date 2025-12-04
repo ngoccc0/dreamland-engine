@@ -35,9 +35,9 @@ interface StatusPopupProps {
 
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
 const normalizeTemp = (temp: number) => {
-    const minTemp = 20;
-    const maxTemp = 50;
-    return clamp(((temp - minTemp) / (maxTemp - minTemp)) * 100, 0, 100);
+  const minTemp = 20;
+  const maxTemp = 50;
+  return clamp(((temp - minTemp) / (maxTemp - minTemp)) * 100, 0, 100);
 }
 
 type HintFetchStatus = {
@@ -46,10 +46,10 @@ type HintFetchStatus = {
 }
 
 const getNextUnlockableSkills = (currentSkills: Skill[]): Skill[] => {
-    const currentSkillNames = new Set(currentSkills.map(s => getTranslatedText(s.name, 'en')));
-    return skillDefinitions.filter(
-        skillDef => !currentSkillNames.has(getTranslatedText(skillDef.name, 'en')) && skillDef.unlockCondition
-    );
+  const currentSkillNames = new Set(currentSkills.map(s => getTranslatedText(s.name, 'en')));
+  return skillDefinitions.filter(
+    skillDef => !currentSkillNames.has(getTranslatedText(skillDef.name, 'en')) && skillDef.unlockCondition
+  );
 };
 
 
@@ -69,12 +69,12 @@ export function StatusPopup({ open, onOpenChange, stats, itemDefinitions, onRequ
     }
 
     setHintFetchStatus(prev => ({ ...prev, [questText]: { isLoading: true } }));
-    
+
     try {
-        await onRequestHint(questText);
-        setHintFetchStatus(prev => ({ ...prev, [questText]: { isLoading: false } }));
+      await onRequestHint(questText);
+      setHintFetchStatus(prev => ({ ...prev, [questText]: { isLoading: false } }));
     } catch (error: any) {
-        setHintFetchStatus(prev => ({ ...prev, [questText]: { isLoading: false, error: t('suggestionError') } }));
+      setHintFetchStatus(prev => ({ ...prev, [questText]: { isLoading: false, error: t('suggestionError') } }));
     }
   };
 
@@ -90,7 +90,7 @@ export function StatusPopup({ open, onOpenChange, stats, itemDefinitions, onRequ
           </DialogDescription>
         </DialogHeader>
         <Separator />
-        
+
         <ScrollArea className="max-h-[70vh] pr-6">
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
@@ -105,54 +105,54 @@ export function StatusPopup({ open, onOpenChange, stats, itemDefinitions, onRequ
               <label htmlFor="stamina" className="text-sm font-medium">{t('stamina', { stamina: stats.stamina.toFixed(0) })}</label>
               <Progress id="stamina" value={stats.stamina} className="h-4" indicatorClassName="bg-gradient-to-r from-yellow-400 to-orange-500" />
             </div>
-             <div className="space-y-2">
+            <div className="space-y-2">
               <label htmlFor="bodyTemp" className="text-sm font-medium">{t('bodyTemperature', { temp: bodyTemp.toFixed(1) })}</label>
               <p className="text-xs text-muted-foreground px-1">{t('bodyTempDesc')}</p>
               <div className="relative h-4 w-full overflow-hidden rounded-full bg-gradient-to-r from-blue-400 via-green-400 to-red-600 mt-2">
-                  <div 
-                      className="absolute top-0 h-full w-1 bg-white/80 border-x border-black/50" 
-                      style={{ left: `${normalizeTemp(bodyTemp)}%` }}
-                      title={`Current: ${bodyTemp.toFixed(1)}°C`}
-                  />
-                  <div 
-                      className="absolute top-0 h-full w-0.5 bg-white/50" 
-                      style={{ left: `${normalizeTemp(37)}%` }}
-                       title="Ideal: 37°C"
-                  />
+                <div
+                  className="absolute top-0 h-full w-1 bg-white/80 border-x border-black/50"
+                  style={{ left: `${normalizeTemp(bodyTemp)}%` }}
+                  title={`Current: ${bodyTemp.toFixed(1)}°C`}
+                />
+                <div
+                  className="absolute top-0 h-full w-0.5 bg-white/50"
+                  style={{ left: `${normalizeTemp(37)}%` }}
+                  title="Ideal: 37°C"
+                />
               </div>
             </div>
           </div>
           <Separator />
-            <div className="py-4">
-                <h3 className="mb-2 font-headline font-semibold">{t('equipment')}</h3>
-                <div className="space-y-2 text-sm bg-muted p-2 rounded-md">
-                    {stats.equipment && Object.entries(stats.equipment).map(([slot, item]) => (
-                    <div key={slot} className="flex justify-between items-center">
-                        <span className="capitalize text-muted-foreground">{t(slot)}:</span>
-                        {item ? (
-                        <div className="flex items-center gap-2">
-                            <span className="font-semibold text-foreground flex items-center gap-1">
-                                <IconRenderer icon={resolveItemDef(getTranslatedText(item.name, 'en'), itemDefinitions)?.emoji || item.emoji} size={18} alt={getTranslatedText(item.name, language)} />
-                                {getTranslatedText(item.name, language, t)}
-                            </span>
-                            <Button variant="ghost" size="sm" onClick={() => onUnequipItem(slot as EquipmentSlot)}>
-                            {t('unequipItem')}
-                            </Button>
-                        </div>
-                        ) : (
-                        <span className="text-foreground italic">{t('emptySlot')}</span>
-                        )}
+          <div className="py-4">
+            <h3 className="mb-2 font-headline font-semibold">{t('equipment')}</h3>
+            <div className="space-y-2 text-sm bg-muted p-2 rounded-md">
+              {stats.equipment && Object.entries(stats.equipment).map(([slot, item]) => (
+                <div key={slot} className="flex justify-between items-center">
+                  <span className="capitalize text-muted-foreground">{t(slot)}:</span>
+                  {item ? (
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-foreground flex items-center gap-1">
+                        <IconRenderer icon={resolveItemDef(getTranslatedText(item.name, 'en'), itemDefinitions)?.emoji || item.emoji} size={18} alt={getTranslatedText(item.name, language)} />
+                        {getTranslatedText(item.name, language, t)}
+                      </span>
+                      <Button variant="ghost" size="sm" onClick={() => onUnequipItem(slot as EquipmentSlot)}>
+                        {t('unequipItem')}
+                      </Button>
                     </div>
-                    ))}
+                  ) : (
+                    <span className="text-foreground italic">{t('emptySlot')}</span>
+                  )}
                 </div>
+              ))}
             </div>
+          </div>
           <Separator />
           <div className="py-4">
             <h3 className="mb-2 font-headline font-semibold flex items-center gap-2"><SwordIcon /> {t('combatStats')}</h3>
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-muted-foreground">
               <span>{t('physicalAttack')}:</span>
               <span className="font-medium text-right text-foreground">{stats.attributes.physicalAttack}</span>
-              
+
               <span>{t('magicalAttack')}:</span>
               <span className="font-medium text-right text-foreground">{stats.attributes.magicalAttack}</span>
 
@@ -171,32 +171,32 @@ export function StatusPopup({ open, onOpenChange, stats, itemDefinitions, onRequ
             <h3 className="mb-2 font-headline font-semibold flex items-center gap-2">
               <Star className="h-4 w-4" /> {t('skillUnlockProgressTitle')}
             </h3>
-             <div className="p-2 bg-muted rounded-md text-sm">
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                    <span className="text-muted-foreground">{t('moves')}:</span>
-                    <span className="font-medium text-right text-foreground">{stats.unlockProgress.moves ?? 0}</span>
-                    <span className="text-muted-foreground">{t('kills')}:</span>
-                    <span className="font-medium text-right text-foreground">{stats.unlockProgress.kills}</span>
-                    <span className="text-muted-foreground">{t('damageSpells')}:</span>
-                    <span className="font-medium text-right text-foreground">{stats.unlockProgress.damageSpells}</span>
-                </div>
-                {nextUnlockableSkills.length > 0 && (
-                    <>
-                        <Separator className="my-2" />
-                        <div className="space-y-1">
-              {nextUnlockableSkills.map(skill => {
-                // skill.name may be a TranslatableString object; use the English translation as a stable key
-                const stableKey = getTranslatedText(skill.name, 'en') || `${skill.tier}-${skill.manaCost}`;
-                return (
-                  <div key={stableKey}>
-                    <p className="text-xs text-accent-foreground font-semibold">{t(skill.name)}</p>
-                    <p className="text-xs text-muted-foreground">({t('unlockCondition')}: {skill.unlockCondition!.count} {t(skill.unlockCondition!.type)})</p>
-                  </div>
-                );
-              })}
+            <div className="p-2 bg-muted rounded-md text-sm">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                <span className="text-muted-foreground">{t('moves')}:</span>
+                <span className="font-medium text-right text-foreground">{stats.unlockProgress.moves ?? 0}</span>
+                <span className="text-muted-foreground">{t('kills')}:</span>
+                <span className="font-medium text-right text-foreground">{stats.unlockProgress.kills}</span>
+                <span className="text-muted-foreground">{t('damageSpells')}:</span>
+                <span className="font-medium text-right text-foreground">{stats.unlockProgress.damageSpells}</span>
+              </div>
+              {nextUnlockableSkills.length > 0 && (
+                <>
+                  <Separator className="my-2" />
+                  <div className="space-y-1">
+                    {nextUnlockableSkills.map(skill => {
+                      // skill.name may be a TranslatableString object; use the English translation as a stable key
+                      const stableKey = getTranslatedText(skill.name, 'en') || `${skill.tier}-${skill.manaCost}`;
+                      return (
+                        <div key={stableKey}>
+                          <p className="text-xs text-accent-foreground font-semibold">{t(skill.name)}</p>
+                          <p className="text-xs text-muted-foreground">({t('unlockCondition')}: {skill.unlockCondition!.count} {t(skill.unlockCondition!.type)})</p>
                         </div>
-                    </>
-                )}
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
           </div>
           <Separator />
@@ -236,7 +236,7 @@ export function StatusPopup({ open, onOpenChange, stats, itemDefinitions, onRequ
                       <AccordionContent className="pt-2 text-accent-foreground italic">
                         {hintFetchStatus[questText]?.isLoading && (
                           <div className="flex items-center gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin"/>
+                            <Loader2 className="h-4 w-4 animate-spin" />
                             <span>{t('suggesting')}...</span>
                           </div>
                         )}
@@ -263,7 +263,7 @@ export function StatusPopup({ open, onOpenChange, stats, itemDefinitions, onRequ
                     <AccordionTrigger className="py-0 text-left hover:no-underline text-muted-foreground">
                       {t('dayX', { day })}
                     </AccordionTrigger>
-                      <AccordionContent className="pt-2 text-accent-foreground/90 italic whitespace-pre-line">
+                    <AccordionContent className="pt-2 text-accent-foreground/90 italic whitespace-pre-line">
                       {String(entry)}
                     </AccordionContent>
                   </AccordionItem>

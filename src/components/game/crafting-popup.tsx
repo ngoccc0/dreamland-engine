@@ -226,12 +226,12 @@ function CraftingPopupImpl({ open, onOpenChange, playerItems, itemDefinitions, r
                   <label className="text-xs font-semibold text-muted-foreground mb-1 block">
                     {t('category') || 'Category'}
                   </label>
-                  <Select value={selectedCategory || ""} onValueChange={(val) => setSelectedCategory(val || null)}>
+                  <Select value={selectedCategory || "all"} onValueChange={(val) => setSelectedCategory(val === "all" ? null : val)}>
                     <SelectTrigger>
                       <SelectValue placeholder={t('all') || 'All'} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">
+                      <SelectItem value="all">
                         {t('all') || 'All'}
                       </SelectItem>
                       {availableCategories.map(cat => (

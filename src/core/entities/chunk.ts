@@ -210,7 +210,7 @@ export class Chunk implements IEntityContainer {
     }
 
     // Basic properties
-    get position(): Position { 
+    get position(): Position {
         return this._position;
     }
 
@@ -268,7 +268,7 @@ export class Chunk implements IEntityContainer {
     update(): void {
         const now = Date.now();
         const hoursSinceLastUpdate = (now - this._lastUpdated) / (1000 * 60 * 60);
-        
+
         if (hoursSinceLastUpdate > 1) {
             this._attributes = this.calculateNewAttributes(hoursSinceLastUpdate);
             this._lastUpdated = now;
@@ -285,7 +285,7 @@ export class Chunk implements IEntityContainer {
 
         // Example: Vegetation grows slightly over time in suitable conditions
         if (attrs.moisture >= 30 && attrs.temperature >= 10 && attrs.temperature <= 35) {
-            attrs.vegetationDensity = Math.min(100, 
+            attrs.vegetationDensity = Math.min(100,
                 attrs.vegetationDensity + (0.1 * hoursPassed)
             );
         }

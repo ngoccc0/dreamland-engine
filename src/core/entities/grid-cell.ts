@@ -286,7 +286,7 @@ export class GridCell {
     update(): void {
         const now = Date.now();
         const hoursSinceLastUpdate = (now - this._lastUpdated) / (1000 * 60 * 60);
-        
+
         // Update attributes based on time passed and current conditions
         if (hoursSinceLastUpdate > 1) {
             this._attributes = this.calculateNewAttributes(hoursSinceLastUpdate);

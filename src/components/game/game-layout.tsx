@@ -28,6 +28,7 @@ import HudIconStamina from "@/components/game/hud-icon-stamina";
 import HudIconMana from "@/components/game/hud-icon-mana";
 import HudIconHunger from "@/components/game/hud-icon-hunger";
 import HudIconTemperature, { getWeatherEmoji } from "@/components/game/hud-icon-temperature";
+import { GameClockWidget } from "@/components/game/game-clock-widget";
 import { useLanguage } from "@/context/language-context";
 import { useSettings } from "@/context/settings-context";
 import useKeyboardBindings from "@/hooks/use-keyboard-bindings";
@@ -797,6 +798,21 @@ export default function GameLayout(props: GameLayoutProps) {
                                     <TooltipContent><p>{t('hudHunger') ?? 'Hunger'}: {Math.round(playerStats.hunger ?? 0)}/{playerStats.maxHunger ?? 100}</p></TooltipContent>
                                 </Tooltip>
                                 <button onClick={() => { handleStatusToggle(); focusCustomActionInput(); }} className={`text-xs mt-1 ${statColorClass(hungerPct)} focus:outline-none`}>{Math.round(hungerVal)}/{hungerMax}</button>
+                            </div>
+
+                            {/* Game Clock Widget */}
+                            <div className="flex flex-col items-center p-2">
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="ghost" size="icon" aria-label="Game Time" className="p-0">
+                                            ⏰
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Game Time: {String(Math.floor(((turn || 0) % 1440) / 60)).padStart(2, '0')}:{String((turn || 0) % 60).padStart(2, '0')}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                                <GameClockWidget gameTime={turn ? turn % 1440 : 0} size={76} />
                             </div>
                         </div>
                     </div>

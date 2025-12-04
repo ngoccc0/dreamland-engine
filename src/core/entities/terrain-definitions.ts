@@ -229,7 +229,7 @@ export class TerrainRegistry {
     /**
      * Private constructor to enforce the singleton pattern.
      */
-    private constructor() {}
+    private constructor() { }
 
     /**
      * Returns the singleton instance of the TerrainRegistry.
@@ -282,7 +282,7 @@ export type TerrainType = string;
  * Represents different types of soil that can exist in the game world.
  * Each soil type can have unique properties affecting plant growth, resource generation, etc.
  */
-export type SoilType = 
+export type SoilType =
     | 'rocky'     // Characterized by a high proportion of stones and gravel.
     | 'sandy'     // Loose, granular soil with good drainage but poor water retention.
     | 'fertile'   // Rich in organic matter, ideal for plant growth.

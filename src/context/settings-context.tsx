@@ -66,10 +66,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         const validFontSizes: FontSize[] = ['sm', 'base', 'lg'];
         if (!validFontSizes.includes(parsed.fontSize)) parsed.fontSize = defaultSettings.fontSize;
 
-        // Ensure time settings are numbers
-        if (typeof parsed.startTime !== 'number') parsed.startTime = (defaultSettings as any).startTime;
-        if (typeof parsed.dayDuration !== 'number') parsed.dayDuration = (defaultSettings as any).dayDuration;
-        if (typeof parsed.timePerTurn !== 'number') parsed.timePerTurn = (defaultSettings as any).timePerTurn;
+        // Ensure time settings are numbers and always use defaults (bypass localStorage cache)
+        parsed.startTime = (defaultSettings as any).startTime;
+        parsed.dayDuration = (defaultSettings as any).dayDuration;
+        parsed.timePerTurn = (defaultSettings as any).timePerTurn; // Always use default 15min
 
         // Also load mods from localStorage
         const savedMods = localStorage.getItem('gameMods');

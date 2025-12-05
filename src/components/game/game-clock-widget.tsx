@@ -116,9 +116,9 @@ export function GameClockWidget({
                 alt="Clock pointer"
                 className="absolute z-20 pointer-events-none"
                 style={{
-                    width: `${size * 0.15}px`,
-                    height: `${size * 0.5}px`,
-                    top: `${size * -0.15}px`,
+                    width: `${size * 0.3}px`,
+                    height: `${size * 1}px`,
+                    top: `${size * -0.22}px`,
                     left: "50%",
                     transform: "translateX(-50%) scaleY(-1)", // Invert triangle (point up)
                     objectFit: "contain",

@@ -68,8 +68,8 @@ export function GameClockWidget({
     const rotationDegrees = useMemo(() => {
         const normalizedTime = gameTime % 1440; // Ensure 0-1439 range
         // Formula: rotate to align time with image orientation
-        // 6 AM (360 min) → -90°, noon (720 min) → 0°, 6 PM (1080 min) → 90°
-        return -(normalizedTime / 1440) * 360 + 90;
+        // Add 120° offset for initial backward rotation, reverse direction (opposite sign)
+        return ((normalizedTime / 1440) * 360 - 90) + 120;
     }, [gameTime]);
 
     // Determine if it's daytime (6 AM to 6 PM = 360-1080 min)
@@ -105,7 +105,7 @@ export function GameClockWidget({
                 className="absolute inset-0 w-full h-full"
                 style={{
                     transform: `rotate(${rotationDegrees}deg)`,
-                    transition: "transform 0.05s linear", // Smooth rotation
+                    transition: "transform 0.15s linear", // Slower rotation
                 }}
                 aria-hidden="true"
             />
@@ -118,7 +118,7 @@ export function GameClockWidget({
                 style={{
                     width: `${size * 0.3}px`,
                     height: `${size * 1}px`,
-                    top: `${size * -0.22}px`,
+                    top: `${size * 0.05}px`,
                     left: "50%",
                     transform: "translateX(-50%) scaleY(-1)", // Invert triangle (point up)
                     objectFit: "contain",

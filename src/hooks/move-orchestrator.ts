@@ -3,18 +3,43 @@
    `handleMove(direction)` signature and expects a context object with the
    same names as the originals (e.g., isLoading, playerPosition, world, etc.).
 */
+
+// Module-level Set to track in-flight move operations and prevent React.StrictMode
+// double-invocation from triggering duplicate narrative updates
+const activeMoveOps = new Set<string>();
+
 export function createHandleMove(ctx: any) {
   return (direction: "north" | "south" | "east" | "west") => {
+    let moveKey: string | null = null;
     try {
       if (ctx.isLoading || ctx.isGameOver) return;
 
-      if (ctx.isAnimatingMove) return;
+      // Skip if this move is already in-flight (prevents double-invoke in StrictMode)
+      moveKey = `${ctx.playerPosition.x},${ctx.playerPosition.y}->${direction}`;
+      if (activeMoveOps.has(moveKey)) {
+        console.log('[MOVE] Skipping duplicate move operation:', moveKey);
+        return;
+      }
+      activeMoveOps.add(moveKey);
+
+      // Clean up tracking when done (use timer to ensure async flows complete)
+      const cleanup = () => {
+        setTimeout(() => activeMoveOps.delete(moveKey!), 5000);
+      };
+
+      // Helper to handle early returns and cleanup
+      const returnEarly = () => {
+        cleanup();
+        return;
+      };
+
+      if (ctx.isAnimatingMove) return returnEarly() as any;
 
       let { x, y } = ctx.playerPosition;
       const nowClick = Date.now();
       const lastMove = ctx.lastMoveAtRef?.current || 0;
       if (nowClick - lastMove < 120) {
-        return;
+        return returnEarly() as any;
       }
       ctx.lastMoveAtRef.current = nowClick;
       if (direction === "north") y += 1;
@@ -29,11 +54,11 @@ export function createHandleMove(ctx: any) {
 
       if (nextChunk?.terrain === 'wall') {
         ctx.addNarrativeEntry(ctx.t('wallBlock'), 'system');
-        return;
+        return returnEarly() as any;
       }
       if (nextChunk?.terrain === 'ocean' && !(ctx.playerStats.items || []).some((item: any) => ctx.getTranslatedText(item.name, 'en') === 'inflatable_raft')) {
         ctx.addNarrativeEntry(ctx.t('oceanTravelBlocked'), 'system');
-        return;
+        return returnEarly() as any;
       }
 
       const runSoon = (fn: () => void) => {
@@ -56,9 +81,20 @@ export function createHandleMove(ctx: any) {
       const placeholderId = `${Date.now()}-move-${x}-${y}`;
       const movingKey = ctx.settings.narrativeLength === 'long' ? 'movingLong' : 'movingShort';
       const placeholderText = ctx.t(movingKey as any, { direction: directionText, brief_sensory: '' });
+      // Batch both narrative entries to prevent duplicate adds due to React batching issues
+      // Use flushSync or batch both in same microtask to ensure state consistency
       setTimeout(() => {
-        try { ctx.addNarrativeEntry(actionText, 'action'); } catch { }
-        try { ctx.addNarrativeEntry(placeholderText, 'narrative', placeholderId); } catch { }
+        try {
+          console.log('[MOVE] Adding action entry:', actionText);
+          ctx.addNarrativeEntry(actionText, 'action');
+        } catch (e) { console.error('[MOVE] Error adding action:', e); }
+        // Schedule placeholder add slightly later to ensure it finds the action entry
+        Promise.resolve().then(() => {
+          try {
+            console.log('[MOVE] Adding placeholder entry:', { placeholderId, text: placeholderText.substring(0, 50) });
+            ctx.addNarrativeEntry(placeholderText, 'narrative', placeholderId);
+          } catch (e) { console.error('[MOVE] Error adding placeholder:', e); }
+        });
       }, 0);
 
       let moveTrace: any = null;
@@ -83,16 +119,23 @@ export function createHandleMove(ctx: any) {
             });
           } catch { }
 
-          // Pick up to 3 stepping sounds (allowing duplicates) and schedule playback
-          const steppingCandidates = [
-            'steping_sounds/rustle01.flac', 'steping_sounds/rustle02.flac', 'steping_sounds/rustle03.flac',
-            'steping_sounds/rustle04.flac', 'steping_sounds/rustle05.flac', 'steping_sounds/rustle06.flac',
-            'steping_sounds/rustle07.flac', 'steping_sounds/rustle08.flac', 'steping_sounds/rustle09.flac',
-            'steping_sounds/rustle10.flac', 'steping_sounds/rustle11.flac', 'steping_sounds/rustle12.flac',
-            'steping_sounds/rustle13.flac', 'steping_sounds/rustle14.flac', 'steping_sounds/rustle15.flac',
-            'steping_sounds/rustle16.flac', 'steping_sounds/rustle17.flac', 'steping_sounds/rustle18.flac',
-            'steping_sounds/rustle19.flac', 'steping_sounds/rustle20.flac'
-          ];
+          // Pick up to 3 stepping sounds (allowing duplicates) based on biome and schedule playback
+          // Import biome-specific footstep arrays dynamically to avoid circular dependencies
+          let steppingCandidates: string[] = [];
+          try {
+            const { getFootstepForBiome } = require('@/lib/audio/biome-footsteps');
+            const biome = nextChunk?.terrain || 'forest';
+            steppingCandidates = getFootstepForBiome(biome) || [];
+            if (!steppingCandidates || steppingCandidates.length === 0) {
+              // Fallback to FOOTSTEP_GENERIC_SFX if biome function returns empty
+              const { FOOTSTEP_GENERIC_SFX } = require('@/lib/audio/assets');
+              steppingCandidates = FOOTSTEP_GENERIC_SFX || [];
+            }
+          } catch {
+            // Final fallback to generic if import fails
+            const { FOOTSTEP_GENERIC_SFX } = require('@/lib/audio/assets');
+            steppingCandidates = FOOTSTEP_GENERIC_SFX || [];
+          }
           const picks: string[] = Array.from({ length: 3 }).map(() => steppingCandidates[Math.floor(Math.random() * steppingCandidates.length)]);
           const stagger = 140;
           // Defer audio playback to idle time to avoid blocking main thread
@@ -322,7 +365,7 @@ export function createHandleMove(ctx: any) {
             const scores: { key: string; score: number }[] = [];
             if (typeof c.temperature === 'number') {
               const temp = c.temperature;
-              const score = Math.abs(temp - 50) + (temp >= 80 || temp <= 10 ? 20 : 0);
+              const score = Math.abs(temp - 20) + (temp >= 40 || temp <= 0 ? 20 : 0);
               scores.push({ key: 'temperature', score });
             }
             if (typeof c.moisture === 'number') {
@@ -343,8 +386,8 @@ export function createHandleMove(ctx: any) {
             const pickAdj = () => {
               try {
                 if (primary === 'temperature') {
-                  if (c.temperature >= 80) return ctx.t('temp_hot') || 'scorching';
-                  if (c.temperature <= 10) return ctx.t('temp_cold') || 'freezing';
+                  if (c.temperature >= 40) return ctx.t('temp_hot') || 'scorching';
+                  if (c.temperature <= 0) return ctx.t('temp_cold') || 'freezing';
                   return ctx.t('temp_mild') || 'mild';
                 }
                 if (primary === 'moisture') {
@@ -369,7 +412,9 @@ export function createHandleMove(ctx: any) {
           briefSensory = computeBriefSensory(finalChunk);
           if (briefSensory && briefSensory.length > 0) {
             const updatedPlaceholder = ctx.t(movingKey as any, { direction: directionText, brief_sensory: briefSensory });
-            ctx.addNarrativeEntry(String(updatedPlaceholder).replace(/\{[^}]+\}/g, '').trim(), 'narrative', placeholderId);
+            const finalText = String(updatedPlaceholder).replace(/\{[^}]+\}/g, '').trim();
+            console.log('[MOVE] Updating placeholder with sensory:', { placeholderId, text: finalText.substring(0, 50) });
+            ctx.addNarrativeEntry(finalText, 'narrative', placeholderId);
           }
           try {
             if ((ctx.settings as any).autoPickup) {
@@ -438,6 +483,7 @@ export function createHandleMove(ctx: any) {
             if (pool && Array.isArray(pool) && pool.length > 0) {
               const pick = pool[Math.floor(Math.random() * pool.length)];
               const text = String(pick).replace('{direction}', directionText).replace('{biome}', ctx.t(finalChunk.terrain as any));
+              console.log('[MOVE] Updating with continuation text:', { placeholderId, text: text.substring(0, 50) });
               ctx.addNarrativeEntry(text, 'narrative', placeholderId);
               ctx.lastMoveRef.current = { biome: finalChunk.terrain, time: Date.now() };
               return;
@@ -451,7 +497,9 @@ export function createHandleMove(ctx: any) {
               const mn = await import('@/lib/game/movement-narrative');
               const conditional = mn.selectMovementNarrative({ chunk: finalChunk, playerStats: newPlayerStats || ctx.playerStats, directionText, language: ctx.language, briefSensory });
               if (conditional) {
-                ctx.addNarrativeEntry(String(conditional).replace(/\{[^}]+\}/g, '').trim(), 'narrative', placeholderId);
+                const finalText = String(conditional).replace(/\{[^}]+\}/g, '').trim();
+                console.log('[MOVE] Updating with movement narrative:', { placeholderId, text: finalText.substring(0, 50) });
+                ctx.addNarrativeEntry(finalText, 'narrative', placeholderId);
                 return;
               }
             } catch { }
@@ -470,6 +518,7 @@ export function createHandleMove(ctx: any) {
                     finalText = finalText.replace(/\{\s*brief_sensory\s*\}/g, briefSensory).replace(/{{\s*brief_sensory\s*}}/g, briefSensory);
                   }
                   finalText = finalText.replace(/\{[^}]+\}/g, '').trim();
+                  console.log('[MOVE] Updating with bundle variant:', { placeholderId, text: finalText.substring(0, 50) });
                   ctx.addNarrativeEntry(finalText, 'narrative', placeholderId);
                   return;
                 }
@@ -480,6 +529,7 @@ export function createHandleMove(ctx: any) {
                 const res = orchestrator.pickVariantFromBundle(bundle as any, tplId, { seed, persona: undefined });
                 if (res && res.text) {
                   const finalText = String(res.text).replace(/\{[^}]+\}/g, '').trim();
+                  console.log('[MOVE] Updating with fallback bundle:', { placeholderId, text: finalText.substring(0, 50) });
                   ctx.addNarrativeEntry(finalText, 'narrative', placeholderId);
                   return;
                 }
@@ -497,12 +547,17 @@ export function createHandleMove(ctx: any) {
           const effectiveLength = (repeatCount >= 3) ? 'short' : ctx.settings.narrativeLength;
           let narrative = ctx.generateOfflineNarrative(finalChunk, effectiveLength as any, ctx.world, { x, y }, ctx.t, ctx.language);
           narrative = String(narrative).replace(/\{[^}]+\}/g, '').trim();
+          console.log('[MOVE] Updating with offline narrative:', { placeholderId, text: narrative.substring(0, 50) });
           ctx.addNarrativeEntry(narrative, 'narrative', placeholderId);
+          cleanup();
         })();
       });
 
     } catch (err) {
       // Silently fail - critical move logic has fallbacks
+      if (moveKey && activeMoveOps.has(moveKey)) {
+        setTimeout(() => activeMoveOps.delete(moveKey!), 5000);
+      }
     }
   };
 }

@@ -266,6 +266,11 @@ export function SettingsPopup({ open, onOpenChange, isInGame, currentBiome }: Se
                                     </div>
 
                                     <div className="mt-4">
+                                        <div className="text-xs text-muted-foreground mb-1">Ambience Volume</div>
+                                        <Slider value={[audio.ambienceVolume]} onValueChange={(v) => audio.setAmbienceVolume(v[0] ?? 0.7)} step={0.01} min={0} max={1} />
+                                    </div>
+
+                                    <div className="mt-4">
                                         <div className="text-xs text-muted-foreground mb-1">{t('playbackFrequency')}</div>
                                         <div className="flex items-center gap-4 mb-2">
                                             <label className="flex items-center gap-1">
@@ -334,6 +339,45 @@ export function SettingsPopup({ open, onOpenChange, isInGame, currentBiome }: Se
                                     <div><RadioGroupItem value="medium" id="medium" className="sr-only peer" /><Label htmlFor="medium" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">{t('lengthMedium')}</Label></div>
                                     <div><RadioGroupItem value="long" id="long" className="sr-only peer" /><Label htmlFor="long" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">{t('lengthLong')}</Label></div>
                                 </RadioGroup>
+                            </div>
+                            <Separator />
+                            <div className="space-y-3">
+                                <Label className="font-semibold flex items-center gap-2">⚙️ Performance</Label>
+                                <p className="text-sm leading-snug text-muted-foreground">Frame-limiting controls to improve performance on low-end devices or reduce power consumption.</p>
+                                <div className="space-y-3 pl-4">
+                                    <div>
+                                        <Label className="text-sm">Target FPS</Label>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <input
+                                                type="number"
+                                                min={30}
+                                                max={120}
+                                                step={10}
+                                                defaultValue={localStorage.getItem('dl_fps_target') || '60'}
+                                                onChange={(e) => {
+                                                    const val = Math.max(30, Math.min(120, Number(e.target.value) || 60));
+                                                    localStorage.setItem('dl_fps_target', String(val));
+                                                }}
+                                                className="w-20 p-1 rounded bg-popover"
+                                            />
+                                            <span className="text-xs text-muted-foreground">FPS (30-120)</span>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground mt-1">Sets maximum frames-per-second limit. Lower values = less power usage.</p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            id="vsync-toggle"
+                                            defaultChecked={localStorage.getItem('dl_vsync') !== '0'}
+                                            onChange={(e) => {
+                                                localStorage.setItem('dl_vsync', e.target.checked ? '1' : '0');
+                                            }}
+                                            className="w-4 h-4 rounded"
+                                        />
+                                        <Label htmlFor="vsync-toggle" className="text-sm">Enable VSync (disables frame-limiter, uses monitor refresh rate)</Label>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-2">When VSync is ON: Frame-limiter disabled, animations use native monitor refresh rate (~60Hz). When VSync is OFF: Frame-limiter applies target FPS cap. Changes take effect immediately.</p>
+                                </div>
                             </div>
                             <Separator />
                             <div className="flex items-center justify-between space-x-4">

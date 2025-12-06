@@ -4,6 +4,7 @@
  * Extracted from GameLayout to improve readability and modularize layout.
  * Displays: Story entries, action descriptions, system messages
  * Features: Deduplication, type-based styling, auto-scroll to latest entry
+ * Enhanced (Phase 1a): Typing animations, emphasis rendering, mobile optimization
  * 
  * Located: Main content area (left panel in desktop layout)
  */
@@ -18,6 +19,9 @@ import { cn, getTranslatedText } from "@/lib/utils";
 import type { NarrativeEntry } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 import { Menu, LifeBuoy, Settings, LogOut, Cpu } from "./icons";
+import { useTypingAnimation } from "@/hooks/useTypingAnimation";
+import { applyEmphasisRules, getEmphasisClass } from "@/lib/narrative/textEmphasisRules";
+import { useMobileOptimization } from "@/hooks/useMobileOptimization";
 
 interface GameNarrativePanelProps {
     /** Array of narrative entries to display */
@@ -55,6 +59,76 @@ interface GameNarrativePanelProps {
 
     /** Optional className for styling */
     className?: string;
+
+    /** Animation mode: 'instant' | 'typing' | 'fade' (default: 'typing') */
+    animationMode?: 'instant' | 'typing' | 'fade';
+
+    /** Enable text emphasis rules (bold, italic, color highlights) */
+    enableEmphasis?: boolean;
+
+    /** Cap narrative panel at this many entries (for performance, default: 50) */
+    maxEntries?: number;
+}
+
+/**
+ * Helper component: Renders narrative entry with optional animation.
+ * Phase 2.2-4 Integration: Uses mobile optimization, animation metadata, and emphasis rules.
+ */
+function NarrativeEntryRenderer({
+    entry,
+    language,
+    t,
+    animationMode,
+    enableEmphasis,
+}: {
+    entry: NarrativeEntry;
+    language: "en" | "vi";
+    t: (key: TranslationKey, params?: any) => string;
+    animationMode?: 'instant' | 'typing' | 'fade';
+    enableEmphasis?: boolean;
+}) {
+    // Phase 4: Get mobile-optimized configuration
+    const mobileConfig = useMobileOptimization();
+
+    // Determine animation speed based on mobile config and animation metadata
+    // Phase 3: If entry has animationMetadata, use its speedMultiplier and animationType
+    const speedMultiplier = (entry as any).animationMetadata?.speedMultiplier ?? 1.0;
+    const effectiveDelay = Math.round(mobileConfig.delayPerWord * speedMultiplier);
+
+    // Choose animation type: mobile config provides base, metadata overrides
+    const finalAnimationType = (entry as any).animationMetadata?.animationType ?? mobileConfig.animationType;
+    const isTypingAnimation = animationMode === 'typing' && (finalAnimationType === 'typing' || finalAnimationType === 'typing-mobile');
+
+    const text = getTranslatedText(entry.text, language, t);
+    const { displayedText } = useTypingAnimation(text, {
+        delayPerWord: effectiveDelay,
+        enabled: isTypingAnimation,
+    });
+
+    const renderedText = isTypingAnimation ? displayedText : text;
+
+    if (!enableEmphasis) {
+        return <>{renderedText}</>;
+    }
+
+    const emphasized = applyEmphasisRules(renderedText);
+
+    return (
+        <>
+            {emphasized.map((node, idx) => {
+                if (node.type === 'text') {
+                    return <span key={idx}>{node.content}</span>;
+                }
+
+                const styleClass = getEmphasisClass(node.style!);
+                return (
+                    <span key={idx} className={styleClass}>
+                        {node.content}
+                    </span>
+                );
+            })}
+        </>
+    );
 }
 
 /**
@@ -66,6 +140,7 @@ interface GameNarrativePanelProps {
  * - Auto-scroll to latest entry
  * - Header with world name and menu controls
  * - Desktop toggle for narrative visibility
+ * - Phase 1a: Optional typing animation, text emphasis, entry capping
  * 
  * @param narrativeLog - Array of narrative entries
  * @param worldName - World name for header display
@@ -79,6 +154,9 @@ interface GameNarrativePanelProps {
  * @param onOpenSettings - Callback to open settings
  * @param onReturnToMenu - Callback to return to menu
  * @param className - Optional CSS classes
+ * @param animationMode - Animation type for narrative entries
+ * @param enableEmphasis - Enable keyword emphasis highlighting
+ * @param maxEntries - Cap panel at N entries
  * @returns JSX element rendering the narrative panel
  */
 export function GameNarrativePanel({
@@ -94,16 +172,30 @@ export function GameNarrativePanel({
     onOpenSettings,
     onReturnToMenu,
     className = "",
+    animationMode = 'typing',
+    enableEmphasis = true,
+    maxEntries = 50,
 }: GameNarrativePanelProps) {
     const narrativeContainerRef = useRef<HTMLElement>(null);
+    const mobileConfig = useMobileOptimization();
 
-    // Auto-scroll to latest entry
+    // Auto-scroll to latest entry - scroll to absolute bottom after each new entry
     useEffect(() => {
         if (narrativeContainerRef.current) {
-            const latestEntry = narrativeContainerRef.current.lastElementChild;
-            if (latestEntry) {
-                latestEntry.scrollIntoView({ behavior: "smooth", block: "end" });
-            }
+            // Use multiple timing attempts to ensure scroll reaches actual bottom
+            // even if content is still being laid out
+            const scrollToBottom = () => {
+                const container = narrativeContainerRef.current;
+                if (container) {
+                    // Scroll to the absolute bottom of the scrollable area
+                    container.scrollTop = container.scrollHeight - container.clientHeight;
+                }
+            };
+
+            // Try multiple times with different delays to catch all layout updates
+            requestAnimationFrame(() => scrollToBottom());
+            setTimeout(() => scrollToBottom(), 0);
+            setTimeout(() => scrollToBottom(), 10);
         }
     }, [narrativeLog.length]);
 
@@ -182,18 +274,28 @@ export function GameNarrativePanel({
             {/* Narrative Log Container */}
             <main
                 ref={narrativeContainerRef}
-                className="flex-grow p-4 md:p-6 overflow-y-auto max-h-[50dvh] md:max-h-full hide-scrollbar"
+                className={cn(
+                    "flex-grow p-3 md:p-6 overflow-y-auto hide-scrollbar text-sm md:text-base",
+                    mobileConfig.fontSize,
+                    mobileConfig.padding,
+                    mobileConfig.maxHeight
+                )}
             >
-                <div className="prose prose-stone dark:prose-invert max-w-4xl mx-auto">
+                <div className="prose prose-stone dark:prose-invert max-w-4xl mx-auto leading-relaxed">
                     {(() => {
-                        // Defensive render-time deduplication: if duplicates exist in state,
-                        // keep the last occurrence (most recent) and log the condition for debugging
+                        // Defensive render-time deduplication
                         const map = new Map(narrativeLog.map((e: NarrativeEntry) => [e.id, e]));
-                        const deduped = Array.from(map.values());
+                        let deduped = Array.from(map.values());
+
                         if (deduped.length !== narrativeLog.length) {
                             console.warn(
                                 "[GameNarrativePanel] narrativeLog contained duplicate ids; rendering deduped list."
                             );
+                        }
+
+                        // Cap entries to prevent performance issues
+                        if (deduped.length > maxEntries) {
+                            deduped = deduped.slice(-maxEntries);
                         }
 
                         return deduped.map((entry: NarrativeEntry) => (
@@ -201,23 +303,32 @@ export function GameNarrativePanel({
                                 key={entry.id}
                                 id={entry.id}
                                 className={cn(
-                                    "animate-in fade-in duration-500 whitespace-pre-line text-base md:text-lg",
+                                    "whitespace-pre-line",
+                                    entry.isNew ? "animate-in fade-in duration-500" : "",
                                     String(entry.type) === "action" || String(entry.type) === "monologue"
                                         ? "italic text-muted-foreground"
                                         : "",
-                                    entry.type === "system" ? "font-semibold text-accent" : ""
+                                    entry.type === "system" ? "font-semibold text-accent" : "",
+                                    animationMode === 'fade' ? 'animate-fade-in' : '',
+                                    "mb-3" // Add spacing between entries
                                 )}
                             >
-                                {getTranslatedText(entry.text, language, t)}
+                                <NarrativeEntryRenderer
+                                    entry={entry}
+                                    language={language}
+                                    t={t}
+                                    animationMode={animationMode}
+                                    enableEmphasis={enableEmphasis}
+                                />
                             </p>
                         ));
                     })()}
 
                     {/* Loading indicator */}
                     {isLoading && (
-                        <div className="flex items-center gap-2 text-muted-foreground italic mt-4 py-2 px-3 rounded bg-muted/30 animate-pulse">
+                        <div className="flex items-center gap-2 text-muted-foreground italic mt-4 py-2 px-3 rounded bg-muted/30 animate-pulse text-sm">
                             <Cpu className="h-4 w-4 animate-spin" />
-                            <p className="text-sm">{t("aiThinking") || "AI is thinking..."}</p>
+                            <p>{t("aiThinking") || "AI is thinking..."}</p>
                         </div>
                     )}
                 </div>

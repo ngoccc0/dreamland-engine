@@ -54,8 +54,10 @@ type AudioContextType = {
   emitAudioEventDirect: (actionType: AudioActionType, context?: AudioEventContext) => void;
   musicVolume: number;
   sfxVolume: number;
+  ambienceVolume: number;
   setMusicVolume: (v: number) => void;
   setSfxVolume: (v: number) => void;
+  setAmbienceVolume: (v: number) => void;
   muted: boolean;
   setMuted: (m: boolean) => void;
   currentTrack?: string;
@@ -83,11 +85,16 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [sfxVolume, setSfxVolumeState] = useState<number>(() => {
     try { return Number(localStorage.getItem('dl_sfx_volume') ?? 0.9); } catch { return 0.9; }
   });
+  const [ambienceVolume, setAmbienceVolumeState] = useState<number>(() => {
+    try { return Number(localStorage.getItem('dl_ambience_volume') ?? 0.7); } catch { return 0.7; }
+  });
   const [muted, setMutedState] = useState<boolean>(() => {
     try { return localStorage.getItem('dl_muted') === '1'; } catch { return false; }
   });
+  const [autoplayBlocked, setAutoplayBlocked] = useState<boolean>(() => {
+    try { return localStorage.getItem('dl_auto_menu') === '0'; } catch { return false; }
+  });
   const [currentTrack, setCurrentTrack] = useState<string | undefined>(undefined);
-  const [autoplayBlocked, setAutoplayBlocked] = useState<boolean>(false);
   const [playbackMode, setPlaybackModeState] = useState<'off' | 'occasional' | 'always'>(() => {
     try { return (localStorage.getItem('dl_playback_mode') as any) ?? 'off'; } catch { return 'off'; }
   });
@@ -105,6 +112,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [musicVolume, muted]);
 
   useEffect(() => { try { localStorage.setItem('dl_sfx_volume', String(sfxVolume)); } catch { } }, [sfxVolume]);
+  useEffect(() => { try { localStorage.setItem('dl_ambience_volume', String(ambienceVolume)); } catch { } }, [ambienceVolume]);
   useEffect(() => { try { localStorage.setItem('dl_muted', muted ? '1' : '0'); } catch { } }, [muted]);
   useEffect(() => { try { localStorage.setItem('dl_playback_mode', playbackMode); } catch { } }, [playbackMode]);
   useEffect(() => { try { localStorage.setItem('dl_playback_interval_minutes', String(playbackIntervalMinutes)); } catch { } }, [playbackIntervalMinutes]);
@@ -288,7 +296,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       try {
         const fullPath = `/asset/sound/ambience/${layer.track}`;
         const audio = new Audio(fullPath);
-        audio.volume = (muted ? 0 : musicVolume) * layer.volume;
+        audio.volume = (muted ? 0 : ambienceVolume) * layer.volume;
         audio.preload = 'auto';
         audio.loop = true; // Ambience always loops
 
@@ -300,7 +308,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           const fadeInterval = setInterval(() => {
             const elapsed = Date.now() - startTime;
             const progress = Math.min(elapsed / layer.fadeInMs!, 1);
-            audio.volume = (muted ? 0 : musicVolume) * layer.volume * progress;
+            audio.volume = (muted ? 0 : ambienceVolume) * layer.volume * progress;
             if (progress === 1) clearInterval(fadeInterval);
           }, 30);
           fadeIntervalsRef.current.push(fadeInterval);
@@ -313,7 +321,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         console.error('[AudioProvider] Failed to play ambience layer:', layer.track, e);
       }
     });
-  }, [musicVolume, muted]);
+  }, [musicVolume, ambienceVolume, muted]);
 
   /**
    * Helper function to fade out an audio element and stop it when done.
@@ -367,9 +375,12 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // schedule occasional play every playbackIntervalMinutes minutes
       const ms = Math.max(1, playbackIntervalMinutes) * 60 * 1000;
       try {
+        // Apply 50% chance to normal plays (weighted random selection)
         occasionalTimerRef.current = window.setInterval(() => {
-          // pick a random background track and play it
           if (BACKGROUND_MUSIC.length === 0) return;
+          // 50% chance to skip this interval for occasional playback
+          if (Math.random() > 0.5) return;
+          // Select random track
           const idx = Math.floor(Math.random() * BACKGROUND_MUSIC.length);
           playMusic(BACKGROUND_MUSIC[idx]);
         }, ms);
@@ -446,6 +457,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const setMusicVolume = useCallback((v: number) => setMusicVolumeState(Math.max(0, Math.min(1, v))), []);
   const setSfxVolume = useCallback((v: number) => setSfxVolumeState(Math.max(0, Math.min(1, v))), []);
+  const setAmbienceVolume = useCallback((v: number) => setAmbienceVolumeState(Math.max(0, Math.min(1, v))), []);
   const setMuted = useCallback((m: boolean) => setMutedState(m), []);
   const setPlaybackMode = useCallback((m: 'off' | 'occasional' | 'always') => setPlaybackModeState(m), []);
   const setPlaybackIntervalMinutes = useCallback((n: number) => setPlaybackIntervalMinutesState(Math.max(1, Math.floor(n))), []);
@@ -468,8 +480,9 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Attempt to autoplay menu music on first client mount.
   useEffect(() => {
     try {
-      // Respect user mute: if muted, don't attempt autoplay
-      if (muted) return;
+      // Respect user autoplay setting and mute flag
+      const autoplayEnabled = localStorage.getItem('dl_auto_menu') !== '0';
+      if (!autoplayEnabled || muted) return;
       // try to play menu music; browsers may block autoplay until a user gesture.
       if (!MENU_MUSIC.length) return;
       try {
@@ -493,7 +506,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch {
       // ignore
     }
-  }, [playMenuMusic]);
+  }, [playMenuMusic, muted]);
 
   const tryEnableAutoplay = useCallback(() => {
     // attempt to play menu music and clear blocked flag on success
@@ -559,8 +572,10 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     emitAudioEventDirect,
     musicVolume,
     sfxVolume,
+    ambienceVolume,
     setMusicVolume,
     setSfxVolume,
+    setAmbienceVolume,
     muted,
     setMuted,
     currentTrack,

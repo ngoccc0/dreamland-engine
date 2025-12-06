@@ -269,8 +269,8 @@ export class WeatherEngine {
             const tempDifference = environmentalTemp - idealTemp;
 
             // Create a temperature effect based on the difference
-            // Scale the effect to prevent instant temperature changes
-            const tempEffectValue = tempDifference * 0.01; // Small incremental change
+            // Increase convergence speed: apply 5% per tick instead of 1% for faster realistic temperature changes
+            const tempEffectValue = tempDifference * 0.05; // Increased from 0.01 to 0.05 for faster convergence
 
             if (Math.abs(tempEffectValue) > 0.001) { // Only apply if there's a meaningful difference
                 const tempEffect: Effect = {
@@ -358,48 +358,87 @@ export class WeatherEngine {
      * @param position - The grid position to calculate temperature for.
      * @returns The environmental temperature in Celsius.
      */
+    /**
+     * OVERVIEW: Gets effective environmental temperature at a position.
+     * Uses percentage-based modifiers for season, weather, and day/night.
+     *
+     * Formula: finalTemp = baseTemp × (1 + seasonMod% + weatherMod%) + dayNightMod
+     *
+     * Example:
+     * - Desert base 35-50°C, summer +20%, heatwave +5% = 35×1.45 = 50.75°C
+     * - Tundra base -20-0°C, winter -25%, snowfall -6.5% = -20×(1-0.315) = -13.7°C
+     */
     getEnvironmentalTemperature(position: GridPosition): number {
         // Get terrain temperature as base
         const weatherCondition = this.getWeatherAt(position);
         const baseTerrainTemp = weatherCondition.temperature || 20; // Default if no terrain data
 
-        // Apply weather modifiers
-        let weatherModifier = 0;
+        // Apply percentage-based season modifier (already in seasonConfig as decimal: 0.1 = +10%)
+        const seasonModifier = this.getSeasonModifier();
+
+        // Apply percentage-based weather modifier
+        const weatherModifier = this.getWeatherTemperatureModifier();
+
+        // Apply day/night cycle modifier (fixed offset, not percentage)
+        const dayNightModifier = this.getDayNightTemperatureModifier();
+
+        // Calculate final temperature with percentage application
+        // finalTemp = base × (1 + seasonMod% + weatherMod%) + dayNightMod
+        const environmentalTemp = baseTerrainTemp * (1 + seasonModifier + weatherModifier) + dayNightModifier;
+
+        // Clamp to realistic range: -30 to +50°C
+        return Math.round(Math.max(-30, Math.min(50, environmentalTemp)));
+    }
+
+    /**
+     * Gets current season modifier as a decimal percentage.
+     * Returns value like 0.2 for +20% (summer), -0.25 for -25% (winter).
+     */
+    private getSeasonModifier(): number {
+        // This would integrate with game time to get current season
+        // For now, return 0 (no seasonal modifier applied here - would come from game state)
+        // In actual use: seasonConfig[currentSeason].temperatureMod
+        return 0;
+    }
+
+    /**
+     * Gets weather-based temperature modifier as a decimal percentage.
+     * Returns values like 0.05 for +5% (heatwave), -0.065 for -6.5% (snowfall).
+     */
+    private getWeatherTemperatureModifier(): number {
+        // Get current weather type and intensity
         const weatherType = this.currentWeather.getType();
         const intensity = this.currentWeather.getIntensity();
 
+        // Get percentage modifier from weather type
+        let weatherModifier = 0;
         switch (weatherType) {
             case WeatherType.CLEAR:
                 weatherModifier = 0;
                 break;
             case WeatherType.CLOUDY:
-                weatherModifier = -2;
+                weatherModifier = -0.01; // -1%
                 break;
             case WeatherType.RAIN:
-                weatherModifier = -5;
+                weatherModifier = -0.025; // -2.5%
                 break;
             case WeatherType.SNOW:
-                weatherModifier = -10;
+                weatherModifier = -0.065; // -6.5%
                 break;
             case WeatherType.HEATWAVE:
-                weatherModifier = 10;
+                weatherModifier = 0.05; // +5%
                 break;
             default:
                 weatherModifier = 0;
         }
 
-        // Apply intensity modifier
+        // Apply intensity multiplier to percentage
+        // MILD: 0.5× modifier, MODERATE: 1.0×, SEVERE: 1.5×
         const intensityMultiplier = intensity === WeatherIntensity.SEVERE ? 1.5 :
             intensity === WeatherIntensity.MILD ? 0.5 : 1.0;
         weatherModifier *= intensityMultiplier;
 
-        // Apply day/night cycle modifier
-        const dayNightModifier = this.getDayNightTemperatureModifier();
-
-        // Calculate final temperature
-        const environmentalTemp = baseTerrainTemp + weatherModifier + dayNightModifier;
-
-        return Math.round(environmentalTemp);
+        return weatherModifier;
     }
 
     /**

@@ -1,7 +1,8 @@
 
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
+import { flushSync } from 'react-dom';
 import { useLanguage } from '@/context/language-context';
 import { applyTickEffects } from '@/lib/game/effect-engine';
 import type { PlayerStatusDefinition } from '@/core/types/game';
@@ -156,27 +157,41 @@ export function useGameEngine(props: GameEngineProps) {
     // Initialize plant engine
     const plantEngineRef = useRef(new PlantEngine(t));
 
-    const addNarrativeEntry = (text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string) => {
+    const addNarrativeEntry = useCallback((text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string, animationMetadata?: any) => {
         // Preserve explicit entryId when provided (placeholders use predictable ids).
         // If no id provided, generate a stable unique id.
         const id = entryId ?? `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-        const entry = { id, text, type } as any;
-        gameState.setNarrativeLog(prev => {
-            const arr = (prev || []);
-            const existingIdx = arr.findIndex((e: any) => e.id === id);
-            let next: any[];
-            if (existingIdx >= 0) {
-                // Replace existing entry in-place to avoid duplicates when updating placeholders
-                next = arr.map((e: any) => e.id === id ? { ...e, text: entry.text, type: entry.type } : e);
-            } else {
-                next = [...arr, entry];
-            }
-            // Defensive dedupe: keep last occurrence for each id (handles race conditions)
-            const deduped = Array.from(new Map(next.map((e: any) => [e.id, e])).values());
-            narrativeLogRef.current = deduped;
-            return deduped;
+        const entry = { id, text, type, isNew: true, ...(animationMetadata && { animationMetadata }) } as any;
+        console.log('[addNarrativeEntry] Called with:', { id, text: text.substring(0, 40), isUpdate: !!entryId });
+
+        // Use flushSync to apply state update immediately, preventing React batching
+        // from causing duplicate adds when multiple calls occur in rapid succession
+        flushSync(() => {
+            gameState.setNarrativeLog(prev => {
+                const arr = (prev || []);
+                const existingIdx = arr.findIndex((e: any) => e.id === id);
+                console.log('[addNarrativeEntry] Before update:', { id, existingIdx, totalEntries: arr.length });
+                let next: any[];
+                if (existingIdx >= 0) {
+                    // Replace existing entry in-place to avoid duplicates when updating placeholders
+                    // Mark as isNew=false since this is an update, not a new entry
+                    console.log('[addNarrativeEntry] REPLACING entry at index', existingIdx);
+                    next = arr.map((e: any) => e.id === id ? { ...e, text: entry.text, type: entry.type, isNew: false, ...(animationMetadata && { animationMetadata }) } : e);
+                } else {
+                    console.log('[addNarrativeEntry] ADDING new entry');
+                    next = [...arr, entry];
+                }
+                // Defensive dedupe: keep last occurrence for each id (handles race conditions)
+                const deduped = Array.from(new Map(next.map((e: any) => [e.id, e])).values());
+                if (deduped.length < next.length) {
+                    console.warn('[DEBUG] Deduped entries', { removed: next.length - deduped.length, id, text: text.substring(0, 50) });
+                }
+                console.log('[addNarrativeEntry] After update:', { totalEntries: deduped.length });
+                narrativeLogRef.current = deduped;
+                return deduped;
+            });
         });
-    };
+    }, []);
 
     const advanceGameTime = (stats?: any) => {
         const currentTurn = gameState.turn || 0;

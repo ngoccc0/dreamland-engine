@@ -208,7 +208,7 @@ export const foodItems: Record<string, ItemDefinition> = {
         tier: 1,
         category: 'Food',
         subCategory: 'Vegetable',
-        emoji: { type: 'image', url: '/asset/images/twisted_mushroom.png' },
+        emoji: { type: 'image', url: '/asset/images/spiral_dot_brown_mushroom.png' },
         effects: [{ type: 'RESTORE_STAMINA', amount: 8 }, { type: 'RESTORE_MANA', amount: 2 }, { type: 'RESTORE_HUNGER', amount: 5 }],
         baseQuantity: { min: 1, max: 2 },
         spawnEnabled: true,

@@ -73,9 +73,11 @@ export function createHandleOnlineNarrative(context: Partial<ActionHandlerDeps> 
       const resp = await fetch('/api/narrative', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
       const result = await resp.json();
       logger.info('[AI] Narrative generated successfully', { entryId, result });
+      console.log('[DEBUG] API response:', { narrative: result.narrative?.substring(0, 100), systemMessage: result.systemMessage });
 
-      addNarrativeEntry(result.narrative, 'narrative', entryId);
-      if (result.systemMessage) addNarrativeEntry(result.systemMessage, 'system', `${Date.now()}-system`);
+      // Phase 3: Pass animationMetadata from Genkit flow to narrative entries
+      addNarrativeEntry(result.narrative, 'narrative', entryId, result.animationMetadata);
+      if (result.systemMessage) addNarrativeEntry(result.systemMessage, 'system', `${Date.now()}-system`, result.animationMetadata);
 
       let finalPlayerStats: any = { ...playerStatsCtx, ...(result.updatedPlayerStatus || {}) };
       finalPlayerStats.unlockProgress = {

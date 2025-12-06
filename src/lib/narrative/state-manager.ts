@@ -1,6 +1,15 @@
 import type { RNG } from './rng';
 import type Lexicon from './lexicon';
 
+/**
+ * NARRATIVE STATE - Tracks narrative generation state for repetition avoidance and continuity.
+ *
+ * Extended fields for Phase 1a (polish):
+ *   - lastNarrativeTimestamp: For movement throttling (don't generate narrative faster than MIN_INTERVAL)
+ *   - biomeVisitCount: Track cumulative visits to each biome (for familiarity-aware density)
+ *   - biomeLastVisitTime: Timestamp of last visit (for time-based freshness reset)
+ *   - lastAnimationType: Remember last animation type to avoid repeats
+ */
 export type NarrativeState = {
   lastBiome?: string | null;
   lastActionId?: string | null;
@@ -13,6 +22,16 @@ export type NarrativeState = {
   // can decide to reduce detail or add continuation fragments when an
   // event repeats frequently.
   eventMemory?: Record<string, number>;
+
+  // Phase 1a: Movement throttling & animation
+  /** Timestamp (ms) of last narrative generation - used for MIN_NARRATIVE_INTERVAL throttling */
+  lastNarrativeTimestamp?: number | null;
+  /** Per-biome visit tracking: { biomeId: visitCount } */
+  biomeVisitCount?: Record<string, number>;
+  /** Per-biome last visit timestamp: { biomeId: timestamp } */
+  biomeLastVisitTime?: Record<string, number>;
+  /** Remember last animation type to avoid repeats */
+  lastAnimationType?: 'typing' | 'fade' | 'instant' | null;
 };
 
 export class StateManager {
@@ -28,6 +47,11 @@ export class StateManager {
       motifsSeen: initial?.motifsSeen ? { ...initial?.motifsSeen } : {},
       lastConnector: initial?.lastConnector ?? null,
       eventMemory: initial?.eventMemory ? { ...initial.eventMemory } : {},
+      // Phase 1a: Initialize throttling fields
+      lastNarrativeTimestamp: initial?.lastNarrativeTimestamp ?? null,
+      biomeVisitCount: initial?.biomeVisitCount ? { ...initial.biomeVisitCount } : {},
+      biomeLastVisitTime: initial?.biomeLastVisitTime ? { ...initial.biomeLastVisitTime } : {},
+      lastAnimationType: initial?.lastAnimationType ?? null,
     };
   }
 
@@ -46,6 +70,11 @@ export class StateManager {
       motifsSeen: {},
       lastConnector: null,
       eventMemory: {},
+      // Phase 1a: Reset throttling fields
+      lastNarrativeTimestamp: null,
+      biomeVisitCount: {},
+      biomeLastVisitTime: {},
+      lastAnimationType: null,
     };
   }
 
@@ -136,6 +165,94 @@ export class StateManager {
     }
 
     return this.getState();
+  }
+
+  /**
+   * Phase 1a: Check if narrative should be throttled based on MIN_NARRATIVE_INTERVAL.
+   * Prevents spam when player moves rapidly in same biome.
+   *
+   * @param minIntervalMs - Minimum milliseconds between narratives (default: 1500ms)
+   * @returns true if should generate narrative, false if throttled
+   */
+  shouldGenerateNarrative(minIntervalMs: number = 1500): boolean {
+    const now = Date.now();
+    if (!this.state.lastNarrativeTimestamp) {
+      this.state.lastNarrativeTimestamp = now;
+      return true;
+    }
+
+    const timeSinceLast = now - this.state.lastNarrativeTimestamp;
+    if (timeSinceLast >= minIntervalMs) {
+      this.state.lastNarrativeTimestamp = now;
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Phase 1a: Update biome visit tracking for adaptive narrative density.
+   * Tracks how many times player has visited a biome and when.
+   *
+   * @param biomeId - Biome terrain ID
+   * @returns Visit count after increment
+   */
+  recordBiomeVisit(biomeId: string): number {
+    const now = Date.now();
+    const visits = (this.state.biomeVisitCount?.[biomeId] ?? 0) + 1;
+
+    this.state.biomeVisitCount = this.state.biomeVisitCount || {};
+    this.state.biomeVisitCount[biomeId] = visits;
+
+    this.state.biomeLastVisitTime = this.state.biomeLastVisitTime || {};
+    this.state.biomeLastVisitTime[biomeId] = now;
+
+    return visits;
+  }
+
+  /**
+   * Phase 1a: Get adaptive narrative frequency based on biome familiarity.
+   * First visit: every move
+   * 2-3 visits: every 2-3 moves
+   * 4+ visits (< 1 hour): every 4-5 moves
+   * After 24 hours: reset to first visit
+   *
+   * @param biomeId - Biome terrain ID
+   * @param maxAge - Max time (ms) to keep visit history (default: 86400000 = 24h)
+   * @returns Frequency: generate every N moves (1 = every move)
+   */
+  getNarrativeFrequency(biomeId: string, maxAge: number = 86400000): number {
+    const visits = this.state.biomeVisitCount?.[biomeId] ?? 0;
+    const lastVisit = this.state.biomeLastVisitTime?.[biomeId] ?? 0;
+    const now = Date.now();
+    const timeSinceLastVisit = now - lastVisit;
+
+    // If too old, treat as first visit
+    if (timeSinceLastVisit > maxAge) {
+      return 1;
+    }
+
+    // Adaptive density: first visit → 1, 2-3 visits → 2-3, 4+ visits → 4-5
+    if (visits <= 1) return 1;
+    if (visits <= 3) return visits;
+    if (timeSinceLastVisit < 3600000) return 4; // < 1 hour: every 4th move
+    return 1; // > 1 hour: reset to every move
+  }
+
+  /**
+   * Phase 1a: Record animation type to avoid repeats.
+   * @param animationType - 'typing' | 'fade' | 'instant'
+   */
+  recordAnimationType(animationType: 'typing' | 'fade' | 'instant'): void {
+    this.state.lastAnimationType = animationType;
+  }
+
+  /**
+   * Phase 1a: Get last animation type used.
+   * @returns Last animation type or null
+   */
+  getLastAnimationType(): 'typing' | 'fade' | 'instant' | null {
+    return this.state.lastAnimationType ?? null;
   }
 }
 

@@ -60,16 +60,24 @@ export function GameClockWidget({
     size = 76,
 }: GameClockWidgetProps) {
     // Calculate clock face rotation in degrees
-    // Clock image positioning: sun at 9 o'clock = 6 AM, sun at 12 o'clock = noon
-    // At 360 min (6 AM): rotation = -90° (sun at left)
-    // At 720 min (noon): rotation = 0° (sun at top)
-    // At 1080 min (6 PM): rotation = 90° (sun at right)
-    // At 0 min (midnight): rotation = -180° (moon at bottom)
+    // Clockwise rotation: 0 min (midnight, moon top) → 360 min (6 AM, sun left) → 720 min (noon, sun top)
+    // → 1080 min (6 PM, sun right) → 1440 min (midnight again)
     const rotationDegrees = useMemo(() => {
         const normalizedTime = gameTime % 1440; // Ensure 0-1439 range
-        // Formula: rotate to align time with image orientation
-        // Add 120° offset for initial backward rotation, reverse direction (opposite sign)
-        return ((normalizedTime / 1440) * 360 - 90) + 120;
+
+        // Time mapping for pointer (fixed at 12 o'clock):
+        // - 0 min (midnight): mặt trăng chỉ vào pointer → rotation = 0°
+        // - 360 min (6 AM): sun ở bên trái → rotation = -90°
+        // - 720 min (noon): mặt trời chỉ vào pointer → rotation = -180°
+        // - 1080 min (6 PM): sun ở bên phải → rotation = -270°
+        // - 1440 min: quay lại rotation = 0° (hoặc -360°)
+
+        // Formula: rotation = -(normalizedTime / 1440) * 360 - offset
+        // Offset để điều chỉnh vị trí ảnh ban đầu
+        // Offset = 180 để mặt trời ở vị trí đối diện (180°) ban đầu
+        // Khi rotation xoay, mặt trời sẽ chỉ đúng vào pointer
+
+        return -((normalizedTime / 1440) * 360) - 180;
     }, [gameTime]);
 
     // Determine if it's daytime (6 AM to 6 PM = 360-1080 min)
@@ -110,17 +118,17 @@ export function GameClockWidget({
                 aria-hidden="true"
             />
 
-            {/* Pointer - fixed at top (12 o'clock), extending above border, using inverted pointer image */}
+            {/* Pointer - fixed at top (12 o'clock), tip overlaps 3px INTO clock face, rest extends above */}
             <img
                 src="/asset/images/clock_pointer.png"
                 alt="Clock pointer"
                 className="absolute z-20 pointer-events-none"
                 style={{
-                    width: `${size * 0.3}px`,
-                    height: `${size * 1}px`,
-                    top: `${size * 0.05}px`,
+                    width: `${size * 0.25}px`,
+                    height: `${size * 0.6}px`,
+                    top: `-${size * 0.05}px`, // Position tip 3px (at 5% of size) above top edge of container
                     left: "50%",
-                    transform: "translateX(-50%) scaleY(-1)", // Invert triangle (point up)
+                    transform: "translateX(-50%)", // Center horizontally
                     objectFit: "contain",
                 }}
                 aria-hidden="true"

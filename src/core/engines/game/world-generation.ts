@@ -3,7 +3,7 @@ import { worldConfig, seasonConfig } from "@/lib/game/world-config";
 import { logger } from "@/lib/logger";
 import { clamp } from "@/lib/utils";
 
-export const getRandomInRange = (range: { min: number, max: number }) => 
+export const getRandomInRange = (range: { min: number, max: number }) =>
     Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
 
 export const weightedRandom = (options: [Terrain, number][]): Terrain => {
@@ -23,7 +23,7 @@ export const weightedRandom = (options: [Terrain, number][]): Terrain => {
     }
     // Fallback in case of unexpected issues
     logger.warn("[weightedRandom] Failed to select an option through standard logic, returning first option.", { options });
-    return options[0][0]; 
+    return options[0][0];
 }
 
 export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentWorld: World): Terrain[] => {
@@ -40,7 +40,7 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
         // No adjacent terrains, so any non-wall terrain is possible.
         return Object.keys(worldConfig).filter(t => t !== 'wall') as Terrain[];
     }
-    
+
     // Get all possible neighbors of our adjacent terrains
     const allPossibleNeighbors = new Set<Terrain>();
     for (const adjTerrain of adjacentTerrains) {
@@ -56,7 +56,7 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
         const config = worldConfig[terrain];
         if (!config) return false;
 
-        for(const adjTerrain of adjacentTerrains) {
+        for (const adjTerrain of adjacentTerrains) {
             const adjConfig = worldConfig[adjTerrain];
             if (!adjConfig.allowedNeighbors.includes(terrain)) {
                 return false;
@@ -64,7 +64,7 @@ export const getValidAdjacentTerrains = (pos: { x: number; y: number }, currentW
         }
         return true;
     });
-    
+
     // If no terrain is valid for ALL neighbors, relax the condition.
     // For now, we'll return a safe default.
     return validTerrains.length > 0 ? validTerrains : ['grassland', 'forest'];
@@ -74,7 +74,7 @@ export function calculateDependentChunkAttributes(
     terrain: Terrain,
     baseAttributes: {
         vegetationDensity: number;
-        moisture: number; 
+        moisture: number;
         dangerLevel: number;
         temperature: number;
     },
@@ -84,11 +84,12 @@ export function calculateDependentChunkAttributes(
     const biomeDef = worldConfig[terrain];
     const seasonMods = seasonConfig[currentSeason];
 
-    // Calculate final attributes, clamping them within the 0-100 range
-    const temperature = clamp(baseAttributes.temperature + (seasonMods.temperatureMod * 10) + worldProfile.tempBias, 0, 100);
+    // Calculate final attributes, clamping them within realistic ranges
+    // Temperature: -30°C to +50°C realistic range (instead of 0-100 scale)
+    const temperature = clamp(baseAttributes.temperature + (seasonMods.temperatureMod * 10) + worldProfile.tempBias, -30, 50);
     const finalMoisture = clamp(baseAttributes.moisture + (seasonMods.moistureMod * 10) + worldProfile.moistureBias, 0, 100);
-    const windLevel = clamp(getRandomInRange({min: 20, max: 80}) + (seasonMods.windMod * 10), 0, 100);
-    
+    const windLevel = clamp(getRandomInRange({ min: 20, max: 80 }) + (seasonMods.windMod * 10), 0, 100);
+
     let lightLevel: number;
     if (terrain === 'cave') {
         lightLevel = getRandomInRange({ min: -80, max: -50 });
@@ -120,7 +121,7 @@ export function calculateDependentChunkAttributes(
      * - May require rebalancing other game mechanics that rely on stamina as a limiting factor.
      */
     const travelCost = Math.max(1, Math.round(biomeDef.travelCost * 0.33));
-    
+
     return {
         temperature,
         moisture: finalMoisture,

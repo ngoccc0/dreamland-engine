@@ -1,6 +1,22 @@
 // Extracted move handler.
 import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
 import { AudioActionType } from '@/lib/definitions/audio-events';
+import { StateManager } from '@/lib/narrative/state-manager';
+
+/**
+ * OVERVIEW: Move handler with integrated narrative throttling (Phase 1a Bonus)
+ * 
+ * Movement throttling reduces narrative spam when moving frequently by enforcing
+ * a 1500ms minimum interval between full narrative generations. Quick moves show
+ * placeholder text, then narrative updates asynchronously.
+ * 
+ * Biome visit tracking enables adaptive narrative frequency (less detail in
+ * familiar areas) by tracking visit count and time-based decay.
+ */
+
+// Shared StateManager instance for narrative throttling and biome tracking
+// This persists across move invocations, allowing cross-move state tracking
+const narrativeStateManager = new StateManager();
 
 export function createHandleMove(context: Partial<ActionHandlerDeps> & Record<string, any>) {
   return (direction: "north" | "south" | "east" | "west") => {
@@ -75,7 +91,7 @@ export function createHandleMove(context: Partial<ActionHandlerDeps> & Record<st
           const scores: { key: string; score: number }[] = [];
           if (typeof c.temperature === 'number') {
             const temp = c.temperature;
-            const score = Math.abs(temp - 50) + (temp >= 80 || temp <= 10 ? 20 : 0);
+            const score = Math.abs(temp - 20) + (temp >= 40 || temp <= 0 ? 20 : 0);
             scores.push({ key: 'temperature', score });
           }
           if (typeof c.moisture === 'number') {
@@ -110,8 +126,8 @@ export function createHandleMove(context: Partial<ActionHandlerDeps> & Record<st
           const pickAdj = () => {
             try {
               if (primary === 'temperature') {
-                if (c.temperature >= 80) return t('temp_hot') || 'scorching';
-                if (c.temperature <= 10) return t('temp_cold') || 'freezing';
+                if (c.temperature >= 40) return t('temp_hot') || 'scorching';
+                if (c.temperature <= 0) return t('temp_cold') || 'freezing';
                 return t('temp_mild') || 'mild';
               }
               if (primary === 'moisture') {
@@ -162,6 +178,19 @@ export function createHandleMove(context: Partial<ActionHandlerDeps> & Record<st
 
       (async () => {
         try {
+          // Phase 1a Bonus: Check if enough time has passed since last narrative generation
+          // This prevents narrative spam during rapid movement
+          const shouldGenerateFullNarrative = narrativeStateManager.shouldGenerateNarrative(1500);
+
+          if (!shouldGenerateFullNarrative) {
+            // Too soon for full narrative generation - skip expensive operations
+            try { console.debug('[narrative-throttle] skipping full generation, min interval not met'); } catch { }
+            return;
+          }
+
+          // Record this biome visit for adaptive frequency tracking
+          narrativeStateManager.recordBiomeVisit(finalChunk.terrain || finalChunk.biome || 'default');
+
           try {
             const mn = await import('@/lib/game/movement-narrative');
             const conditional = mn.selectMovementNarrative({ chunk: finalChunk, playerStats: newPlayerStats || playerStats, directionText, language, briefSensory });

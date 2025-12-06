@@ -8,8 +8,8 @@ import { maybeDebug } from '@/lib/debug';
 export const generateWeatherForZone = (terrain: Terrain, season: Season, previousWeather?: WeatherState): WeatherState => {
     maybeDebug('generateWeatherForZone');
     let candidateWeather = weatherPresets.filter(
-      w => w.biome_affinity.includes(terrain) &&
-           w.season_affinity.includes(season)
+        w => w.biome_affinity.includes(terrain) &&
+            w.season_affinity.includes(season)
     );
 
     // Cooldown logic to prevent back-to-back extreme weather
@@ -20,7 +20,7 @@ export const generateWeatherForZone = (terrain: Terrain, season: Season, previou
             candidateWeather = candidateWeather.filter(w => !w.exclusive_tags.some(tag => extremeTags.includes(tag)));
         }
     }
-    
+
     if (candidateWeather.length === 0) {
         return weatherPresets.find(w => w.id === 'clear')!;
     }
@@ -34,8 +34,8 @@ export const generateWeatherForZone = (terrain: Terrain, season: Season, previou
             return weather;
         }
     }
-    
-    return candidateWeather[0]; 
+
+    return candidateWeather[0];
 };
 
 export function getEffectiveChunk(baseChunk: Chunk, weatherZones: Record<string, WeatherZone>, gameTime: number, startTime: number, dayDuration: number): Chunk {
@@ -43,7 +43,8 @@ export function getEffectiveChunk(baseChunk: Chunk, weatherZones: Record<string,
     const weatherZone = weatherZones[baseChunk.regionId];
     if (weatherZone) {
         const weather = weatherZone.currentWeather;
-        effectiveChunk.temperature = clamp((effectiveChunk.temperature ?? 50) + weather.temperature_delta, 0, 100);
+        // Temperature range: -30°C to +50°C (realistic scale)
+        effectiveChunk.temperature = clamp((effectiveChunk.temperature ?? 20) + weather.temperature_delta, -30, 50);
         effectiveChunk.moisture = clamp(effectiveChunk.moisture + weather.moisture_delta, 0, 100);
         effectiveChunk.lightLevel = clamp(effectiveChunk.lightLevel + weather.light_delta, -100, 100);
         effectiveChunk.windLevel = clamp((effectiveChunk.windLevel ?? 0) + weather.wind_delta, 0, 100);
@@ -53,6 +54,6 @@ export function getEffectiveChunk(baseChunk: Chunk, weatherZones: Record<string,
     if (!isCurrentDay && baseChunk.terrain !== 'cave') {
         effectiveChunk.lightLevel = Math.min(effectiveChunk.lightLevel, -20);
     }
-    
+
     return effectiveChunk;
 }

@@ -62,40 +62,47 @@ export function getWeatherEmoji(weatherId?: string): string {
 }
 
 /**
- * Get temperature-based color ramp (cold=blue, neutral=yellow, hot=red).
- * @param temp Current temperature
- * @param maxTemp Maximum temperature on scale
+ * Get temperature-based color ramp (cold=blue, neutral=green, hot=red).
+ * Scale: -30°C (blue) → 0°C (cyan) → 20°C (green) → 40°C (orange) → 50°C (red)
+ * @param temp Current temperature in Celsius
+ * @param maxTemp Maximum temperature on scale (default: 50°C)
+ * @param minTemp Minimum temperature on scale (default: -30°C)
  * @returns Color RGB string
  */
-export function getTempColor(temp: number, maxTemp: number = 50): string {
-    // Clamp to 0..maxTemp range
-    const normalized = Math.max(0, Math.min(1, temp / maxTemp));
+export function getTempColor(temp: number, maxTemp: number = 50, minTemp: number = -30): string {
+    // Clamp to minTemp..maxTemp range
+    const normalized = Math.max(0, Math.min(1, (temp - minTemp) / (maxTemp - minTemp)));
 
-    if (normalized < 0.33) {
-        // Cold (blue) 0-33%
-        const t = normalized / 0.33;
-        const r = Math.round(0 + (255 - 0) * t);
+    if (normalized < 0.25) {
+        // Very cold (blue) -30 to 0°C (0-25%)
+        const t = normalized / 0.25;
+        const r = Math.round(0 + (100 - 0) * t);
         const g = Math.round(100 + (150 - 100) * t);
         const b = Math.round(200 + (255 - 200) * t);
         return `rgb(${r}, ${g}, ${b})`;
-    } else if (normalized < 0.66) {
-        // Neutral (yellow) 33-66%
-        const t = (normalized - 0.33) / 0.33;
-        const r = Math.round(255 + (255 - 255) * t);
+    } else if (normalized < 0.5) {
+        // Cold (cyan) 0 to 20°C (25-50%)
+        const t = (normalized - 0.25) / 0.25;
+        const r = Math.round(100 + (0 - 100) * t);
         const g = Math.round(150 + (200 - 150) * t);
-        const b = Math.round(255 + (100 - 255) * t);
+        const b = Math.round(255 + (255 - 255) * t);
+        return `rgb(${r}, ${g}, ${b})`;
+    } else if (normalized < 0.75) {
+        // Warm (yellow-orange) 20 to 40°C (50-75%)
+        const t = (normalized - 0.5) / 0.25;
+        const r = Math.round(255);
+        const g = Math.round(200 + (120 - 200) * t);
+        const b = Math.round(50 + (0 - 50) * t);
         return `rgb(${r}, ${g}, ${b})`;
     } else {
-        // Hot (red) 66-100%
-        const t = (normalized - 0.66) / 0.34;
-        const r = Math.round(255 + (255 - 255) * t);
-        const g = Math.round(200 + (50 - 200) * t);
-        const b = Math.round(100 + (0 - 100) * t);
+        // Hot (red) 40 to 50°C (75-100%)
+        const t = (normalized - 0.75) / 0.25;
+        const r = Math.round(255);
+        const g = Math.round(120 + (50 - 120) * t);
+        const b = Math.round(0);
         return `rgb(${r}, ${g}, ${b})`;
     }
-}
-
-export function HudIconTemperature({
+} export function HudIconTemperature({
     temp,
     maxTemp = 50,
     weatherType,

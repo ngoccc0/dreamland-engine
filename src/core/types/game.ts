@@ -812,15 +812,21 @@ export type NarrativeEntry = {
     /** The text content of the narrative entry. */
     text: string;
     /** The type of entry (e.g., 'narrative', 'action', 'system'). */
-    type: 'narrative' | 'action' | 'system';
-    /** The name of the item (translatable). */
-    name: TranslatableString;
-    /** The quantity of the item. */
-    quantity: number;
-    /** The tier/rarity of the item. */
-    tier: number;
-    /** An emoji for UI. */
-    emoji: string;
+    type: 'narrative' | 'action' | 'system' | 'monologue';
+    /** Optional animation metadata for narrative rendering (typing speed, thinking marker, etc.) */
+    animationMetadata?: {
+        animationType?: 'typing' | 'fadeIn' | 'typing-mobile' | 'thinking';
+        thinkingMarker?: boolean;
+        emphasizedSegments?: Array<{
+            start: number;
+            end: number;
+            style: 'bold' | 'italic' | 'highlight' | 'highlight-danger';
+        }>;
+        speedMultiplier?: number;
+        delayMs?: number;
+    };
+    /** Flag to track if this entry is newly added (true) or updated (false). Used to control fade-in animation re-trigger. */
+    isNew?: boolean;
 }
 
 /**

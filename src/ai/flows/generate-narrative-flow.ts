@@ -11,11 +11,18 @@ import { getTranslatedText } from "@/lib/utils";
  * - `generateNarrative`: Hàm chính được gọi từ giao diện người dùng game.
  * - `GenerateNarrativeInput`: Zod schema cho dữ liệu đầu vào.
  * - `GenerateNarrativeOutput`: Zod schema cho phản hồi AI có cấu trúc.
+ *
+ * Animation Integration (Phase 3):
+ * - Determines animationType based on mood strength and game state
+ * - Injects thinkingMarker for complex state or dangerous actions
+ * - Sets speedMultiplier based on narrative length and mood intensity
+ * - Defers emphasizedSegments to TextEmphasisRules for keyword highlighting
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema, GeneratedItemSchema, NpcSchema } from '@/ai/schemas';
+import { determineAnimationMetadata, adjustAnimationForMobile, adjustAnimationForLowBandwidth } from '@/ai/animation-metadata';
 
 import { LanguageEnum as Language } from '@/lib/i18n'; // Import Language enum
 
@@ -95,6 +102,7 @@ export type GenerateNarrativeInput = z.infer<typeof GenerateNarrativeInputSchema
  * @property {z.object} [updatedPlayerStatus] - Thay đổi tùy chọn đối với trạng thái của người chơi.
  * @property {z.string} [systemMessage] - Một thông báo hệ thống ngắn, tùy chọn cho các sự kiện quan trọng.
  * @property {GeneratedItemSchema} [newlyGeneratedItem] - Một vật phẩm mới được tạo ra để thêm lặng lẽ vào danh mục vật phẩm chính của thế giới.
+ * @property {AnimationMetadata} [animationMetadata] - Animation hints for narrative rendering (typing speed, thinking marker, etc.)
  */
 export type GenerateNarrativeOutput = {
     narrative: string;
@@ -116,6 +124,17 @@ export type GenerateNarrativeOutput = {
     };
     systemMessage?: string;
     newlyGeneratedItem?: z.infer<typeof GeneratedItemSchema>;
+    animationMetadata?: {
+        animationType: string;
+        thinkingMarker: boolean;
+        emphasizedSegments: Array<{
+            start: number;
+            end: number;
+            style: 'bold' | 'italic' | 'highlight' | 'highlight-danger';
+        }>;
+        speedMultiplier: number;
+        delayMs: number;
+    };
 };
 
 
@@ -396,6 +415,46 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
                 }
             }
         }
+    }
+
+    // Phase 3: Inject animation metadata based on game state
+    // Determines animation type, thinking marker, and speed from mood profile
+    try {
+        // Assume current chunk has mood strength data; fallback to 0.5 if not available
+        const moodStrength = (input.currentChunk as any).moodStrength || 0.5;
+
+        // Check if action is dangerous (combat, high-risk exploration, etc.)
+        const isDangerousAction =
+            input.playerAction.toLowerCase().includes('attack') ||
+            input.playerAction.toLowerCase().includes('combat') ||
+            input.playerAction.toLowerCase().includes('danger') ||
+            (input.currentChunk as any).dangerLevel > 70;
+
+        // Check if game state is complex (multiple NPCs, dynamic events, etc.)
+        const isComplexGameState =
+            ((input.currentChunk as any).NPCs && (input.currentChunk as any).NPCs.length > 2) ||
+            ((input.currentChunk as any).enemy && (input.currentChunk as any).enemy !== null);
+
+        const animationMetadata = determineAnimationMetadata({
+            primaryMood: (input.currentChunk as any).primaryMood,
+            moodStrength,
+            isDangerousAction,
+            isComplexGameState,
+            narrativeLength: input.narrativeLength,
+            language: input.language
+        });
+
+        finalOutput.animationMetadata = animationMetadata;
+    } catch (e: any) {
+        console.warn('[generateNarrative] Failed to determine animation metadata:', e.message);
+        // Gracefully fall back to default animation metadata if calculation fails
+        finalOutput.animationMetadata = {
+            animationType: 'typing',
+            thinkingMarker: false,
+            emphasizedSegments: [],
+            speedMultiplier: 1.0,
+            delayMs: 0
+        };
     }
 
     return finalOutput;

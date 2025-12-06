@@ -5,7 +5,7 @@ import {
     has_mood_overlap,
     select_template_by_weight,
     fill_template,
-} from './offline'; 
+} from './offline';
 
 import { SmartJoinSentences } from '../../utils';
 import type { Chunk, NarrativeTemplate, NarrativeLength, PlayerStatus, World } from '@/core/types/game';
@@ -32,7 +32,7 @@ const mockT = (key: string, replacements?: any) => {
         'Goblin': 'Goblin',
         'Healing Potion': 'Bình Hồi Phục',
         'Kiếm Thần': 'Kiếm Thần',
-        'exploreFoundNothing': [ "Không tìm thấy gì." ],
+        'exploreFoundNothing': ["Không tìm thấy gì."],
     };
     let text = translations[key] || `MISSING_TRANSLATION:${key}`;
     if (replacements) {
@@ -79,7 +79,7 @@ describe('analyze_chunk_mood', () => {
             x: 0, y: 0, terrain: 'tundra', description: '', NPCs: [], items: [], structures: [], explored: false,
             lastVisited: 0, enemy: null, actions: [], regionId: 1, travelCost: 1, vegetationDensity: 10,
             moisture: 60, elevation: 20, lightLevel: 60, dangerLevel: 20, magicAffinity: 0, humanPresence: 0,
-            explorability: 30, soilType: 'rocky', predatorPresence: 30, temperature: 10, windLevel: 0
+            explorability: 30, soilType: 'rocky', predatorPresence: 30, temperature: -10, windLevel: 0
         };
         expect(analyze_chunk_mood(coldChunk)).toEqual(expect.arrayContaining(["Cold", "Harsh", "Desolate", "Barren"]));
 
@@ -87,7 +87,7 @@ describe('analyze_chunk_mood', () => {
             x: 0, y: 0, terrain: 'desert', description: '', NPCs: [], items: [], structures: [], explored: false,
             lastVisited: 0, enemy: null, actions: [], regionId: 1, travelCost: 1, vegetationDensity: 5,
             moisture: 5, elevation: 10, lightLevel: 95, dangerLevel: 45, magicAffinity: 5, humanPresence: 15,
-            explorability: 40, soilType: 'sandy', predatorPresence: 25, temperature: 90, windLevel: 0
+            explorability: 40, soilType: 'sandy', predatorPresence: 25, temperature: 45, windLevel: 0
         };
         expect(analyze_chunk_mood(hotChunk)).toEqual(expect.arrayContaining(["Hot", "Harsh", "Arid", "Desolate", "Threatening", "Vibrant", "Peaceful", "Abandoned"]));
     });
@@ -97,7 +97,7 @@ describe('analyze_chunk_mood', () => {
             x: 0, y: 0, terrain: 'grassland', description: '', NPCs: [], items: [], structures: [], explored: false,
             lastVisited: 0, enemy: null, actions: [], regionId: 1, travelCost: 1, vegetationDensity: 50,
             moisture: 50, elevation: 50, lightLevel: 50, dangerLevel: 20, magicAffinity: 20, humanPresence: 20,
-            explorability: 50, soilType: 'loamy', predatorPresence: 20, temperature: 50, windLevel: 0
+            explorability: 50, soilType: 'loamy', predatorPresence: 20, temperature: 22, windLevel: 0
         };
         const moods = analyze_chunk_mood(neutralChunk);
         expect(moods).toEqual(expect.arrayContaining(["Peaceful", "Abandoned"]));
@@ -110,10 +110,10 @@ describe('analyze_chunk_mood', () => {
             moisture: 0, elevation: 0, lightLevel: 0, dangerLevel: 0, magicAffinity: 0, humanPresence: 0,
             explorability: 0, soilType: 'rocky', predatorPresence: 0, temperature: 0, windLevel: 0
         };
-         expect(analyze_chunk_mood(minChunk)).toEqual(expect.arrayContaining([
+        expect(analyze_chunk_mood(minChunk)).toEqual(expect.arrayContaining([
             "Dark", "Gloomy", "Mysterious", "Arid", "Desolate", "Cold", "Harsh", "Confined", "Foreboding"
         ]));
-        
+
         const maxChunk: Chunk = {
             x: 0, y: 0, terrain: 'volcanic', description: '', NPCs: [], items: [], structures: [], explored: false,
             lastVisited: 0, enemy: null, actions: [], regionId: 1, travelCost: 1, vegetationDensity: 100,
@@ -157,7 +157,7 @@ describe('check_conditions', () => {
     const basePlayerState: PlayerStatus = {
         hp: 75, mana: 50, stamina: 80, bodyTemperature: 37, items: [], equipment: { weapon: null, armor: null, accessory: null },
         maxStamina: 100,
-        quests: [], questsCompleted: 0, skills: [], persona: 'explorer', attributes: {physicalAttack: 0, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0}, unlockProgress: { kills: 0, damageSpells: 0, moves: 0 },
+        quests: [], questsCompleted: 0, skills: [], persona: 'explorer', attributes: { physicalAttack: 0, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 }, unlockProgress: { kills: 0, damageSpells: 0, moves: 0 },
         language: 'en', journal: {}, dailyActionLog: [], questHints: {}, trackedEnemy: undefined
     };
 
@@ -182,9 +182,9 @@ describe('check_conditions', () => {
 
     it('should handle timeOfDay condition', () => {
         const dayConditions = { timeOfDay: 'day' as 'day' | 'night' };
-        expect(check_conditions(dayConditions, {...baseChunk, gameTime: 540})).toBe(true);
+        expect(check_conditions(dayConditions, { ...baseChunk, gameTime: 540 })).toBe(true);
         const nightConditions = { timeOfDay: 'night' as 'day' | 'night' };
-        expect(check_conditions(nightConditions, {...baseChunk, gameTime: 1200})).toBe(true);
+        expect(check_conditions(nightConditions, { ...baseChunk, gameTime: 1200 })).toBe(true);
         expect(check_conditions(nightConditions, baseChunk)).toBe(false);
     });
 
@@ -204,7 +204,7 @@ describe('check_conditions', () => {
     });
 
     it('should handle requiredEntities (item)', () => {
-        const itemChunk: Chunk = { ...baseChunk, items: [{ name: { en: 'Healing Potion', vi: 'Bình Hồi Phục' }, description: {en: '', vi: ''}, quantity: 1, tier: 1, emoji: '🧪' }] };
+        const itemChunk: Chunk = { ...baseChunk, items: [{ name: { en: 'Healing Potion', vi: 'Bình Hồi Phục' }, description: { en: '', vi: '' }, quantity: 1, tier: 1, emoji: '🧪' }] };
         const conditions = { requiredEntities: { itemType: 'Bình Hồi Phục' } };
         expect(check_conditions(conditions, itemChunk, basePlayerState)).toBe(true);
         const noItemConditions = { requiredEntities: { itemType: 'Kiếm Thần' } };
@@ -263,7 +263,7 @@ describe('select_template_by_weight', () => {
 describe('fill_template', () => {
     const mockChunk: Chunk = {
         x: 0, y: 0, terrain: 'jungle', description: '', NPCs: [], items: [
-            { name: { en: 'Healing Potion', vi: 'Bình Hồi Phục' }, description: {en: '', vi: ''}, quantity: 1, tier: 1, emoji: '🧪' }
+            { name: { en: 'Healing Potion', vi: 'Bình Hồi Phục' }, description: { en: '', vi: '' }, quantity: 1, tier: 1, emoji: '🧪' }
         ], structures: [], explored: false,
         lastVisited: 0, enemy: { type: { en: 'Goblin', vi: 'Goblin' }, hp: 50, damage: 10, behavior: 'aggressive', size: 'medium', diet: [], satiation: 0, maxSatiation: 1, emoji: '👺' }, actions: [], regionId: 1, travelCost: 1, vegetationDensity: 80,
         moisture: 90, elevation: 30, lightLevel: 5, dangerLevel: 60, magicAffinity: 75, humanPresence: 0,
@@ -274,7 +274,7 @@ describe('fill_template', () => {
     const basePlayerState: PlayerStatus = {
         hp: 75, mana: 50, stamina: 80, bodyTemperature: 37, items: [], equipment: { weapon: null, armor: null, accessory: null },
         maxStamina: 100,
-        quests: [], questsCompleted: 0, skills: [], persona: 'explorer', attributes: {physicalAttack: 0, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0}, unlockProgress: { kills: 0, damageSpells: 0, moves: 0 },
+        quests: [], questsCompleted: 0, skills: [], persona: 'explorer', attributes: { physicalAttack: 0, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 }, unlockProgress: { kills: 0, damageSpells: 0, moves: 0 },
         language: 'vi', journal: {}, dailyActionLog: [], questHints: {}, trackedEnemy: undefined
     };
 
@@ -321,8 +321,7 @@ describe('SmartJoinSentences', () => {
         const result = SmartJoinSentences(sentences, 'medium');
         expect(result.trim()).not.toMatch(/\s{2,}/);
         expect(result).not.toMatch(/\.\./);
-        expect(result).toMatch(/\.$/); 
+        expect(result).toMatch(/\.$/);
     });
 });
 
-    

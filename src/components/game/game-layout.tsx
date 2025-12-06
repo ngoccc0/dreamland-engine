@@ -42,6 +42,7 @@ import type { TranslationKey } from "@/lib/i18n";
 
 import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, LifeBuoy, FlaskConical, Settings, Loader2, Menu, LogOut, Minus, Plus } from "./icons";
 import { IconRenderer } from "@/components/ui/icon-renderer";
+import { GameNarrativePanel } from "@/components/game/game-narrative-panel";
 import { resolveItemDef } from '@/lib/game/item-utils';
 import { logger } from "@/lib/logger";
 
@@ -118,7 +119,6 @@ export default function GameLayout(props: GameLayoutProps) {
         handleWaitTick,
         handleDropItem,
         handleReturnToMenu,
-        narrativeContainerRef,
     } = useGameEngine(props);
 
     // Keep a short grace window after visual move animations finish where the
@@ -561,112 +561,23 @@ export default function GameLayout(props: GameLayoutProps) {
     return (
         <TooltipProvider>
             <div className="flex flex-col md:flex-row md:h-dvh bg-background text-foreground font-body" style={{ ['--aside-w' as any]: 'min(462px,36vw)' }}>
-                {/* Left Panel: Narrative */}
-                <div className={`${isDesktop && !showNarrativeDesktop ? 'md:hidden' : ''} w-full md:flex-1 flex flex-col md:overflow-hidden md:pb-16`}>
-                    <header className="px-3 py-2 md:p-4 border-b flex-shrink-0 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                        <div className="flex items-center gap-3 w-full md:max-w-3xl">
-                            <h1 className="text-xl md:text-2xl font-bold font-headline">{worldNameText}</h1>
-                            {/* Desktop: show main actions next to the world title as inline icon buttons */}
-                            {isDesktop && (
-                                <div className="ml-6 hidden md:flex md:items-center md:flex-1 gap-2">
-                                    <div className="flex items-center gap-2">
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button aria-label={t('statusShort') || 'Status'} variant="outline" size="icon" onClick={() => { handleStatusToggle(); focusCustomActionInput(); }}><Shield /></Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent><p>{t('statusShort') || 'Status'}</p></TooltipContent>
-                                        </Tooltip>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button aria-label={t('inventoryShort') || 'Inventory'} variant="outline" size="icon" onClick={() => { handleInventoryToggle(); focusCustomActionInput(); }}><Backpack /></Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent><p>{t('inventoryShort') || 'Inventory'}</p></TooltipContent>
-                                        </Tooltip>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button aria-label={t('craftingShort') || 'Craft'} variant="outline" size="icon" onClick={() => { handleCraftingToggle(); focusCustomActionInput(); }}><Hammer /></Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent><p>{t('craftingShort') || 'Craft'}</p></TooltipContent>
-                                        </Tooltip>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button aria-label={t('buildingShort') || 'Build'} variant="outline" size="icon" onClick={() => { setBuildingOpen(true); focusCustomActionInput(); }}><Home /></Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent><p>{t('buildingShort') || 'Build'}</p></TooltipContent>
-                                        </Tooltip>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button aria-label={t('fusionShort') || 'Fuse'} variant="outline" size="icon" onClick={() => { setFusionOpen(true); focusCustomActionInput(); }}><FlaskConical /></Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent><p>{t('fusionShort') || 'Fuse'}</p></TooltipContent>
-                                        </Tooltip>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                            {/* Desktop-only toggle for narrative visibility */}
-                            <Button variant="ghost" size="icon" className="hidden md:inline-flex" onClick={() => setShowNarrativeDesktop(s => !s)} aria-label={showNarrativeDesktop ? (t('hideNarrative') || 'Hide narrative') : (t('showNarrative') || 'Show narrative')}>
-                                {showNarrativeDesktop ? 'Hide' : 'Show'}
-                            </Button>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" aria-label={t('openMenu') || 'Open menu'}>
-                                        <Menu />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => { setTutorialOpen(true); focusCustomActionInput(); }}>
-                                        <LifeBuoy className="mr-2 h-4 w-4" />
-                                        <span>{t('tutorialTitle')}</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => { setSettingsOpen(true); focusCustomActionInput(); }}>
-                                        <Settings className="mr-2 h-4 w-4" />
-                                        <span>{t('gameSettings')}</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={handleReturnToMenu}>
-                                        <LogOut className="mr-2 h-4 w-4" />
-                                        <span>{t('returnToMenu')}</span>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                    </header>
-
-                    <main ref={narrativeContainerRef} className="flex-grow p-4 md:p-6 overflow-y-auto max-h-[50dvh] md:max-h-full hide-scrollbar">
-                        <div className="prose prose-stone dark:prose-invert max-w-4xl mx-auto">
-                            {(() => {
-                                // Defensive render-time dedupe: ensure we never render multiple elements with the same key.
-                                // If duplicates exist in state due to a transient race, keep the last occurrence (most recent)
-                                // and log the condition to aid debugging.
-                                const map = new Map(narrativeLog.map((e: NarrativeEntry) => [e.id, e]));
-                                const deduped = Array.from(map.values());
-                                if (deduped.length !== narrativeLog.length) {
-
-                                    console.warn('[GameLayout] narrativeLog contained duplicate ids; rendering deduped list.');
-                                }
-                                return deduped.map((entry: NarrativeEntry) => (
-                                    <p key={entry.id} id={entry.id} className={cn("animate-in fade-in duration-500 whitespace-pre-line text-base md:text-lg",
-                                        (String(entry.type) === 'action' || String(entry.type) === 'monologue') ? 'italic text-muted-foreground' : '',
-                                        entry.type === 'system' ? 'font-semibold text-accent' : ''
-                                    )}>
-                                        {getTranslatedText(entry.text, language, t)}
-                                    </p>
-                                ));
-                            })()}
-                            {isLoading && (
-                                <div className="flex items-center gap-2 text-muted-foreground italic mt-4 py-2 px-3 rounded bg-muted/30 animate-pulse">
-                                    <Cpu className="h-4 w-4 animate-spin" />
-                                    <p className="text-sm">{t('aiThinking') || 'AI is thinking...'}</p>
-                                </div>
-                            )}
-                        </div>
-                    </main>
-
-                    {/* Desktop horizontal action bar removed - main actions are now inline in the header for desktop non-legacy layout */}
-
-                </div>
+                {/* Left Panel: Narrative - Using GameNarrativePanel component (Phase 2.2-4 Integration) */}
+                <GameNarrativePanel
+                    narrativeLog={narrativeLog}
+                    worldName={worldNameText}
+                    isDesktop={isDesktop}
+                    showNarrativeDesktop={showNarrativeDesktop}
+                    onToggleNarrativeDesktop={setShowNarrativeDesktop}
+                    isLoading={isLoading}
+                    t={t}
+                    language={language}
+                    onOpenTutorial={() => { setTutorialOpen(true); focusCustomActionInput(); }}
+                    onOpenSettings={() => { setSettingsOpen(true); focusCustomActionInput(); }}
+                    onReturnToMenu={handleReturnToMenu}
+                    animationMode="instant"
+                    enableEmphasis={true}
+                    maxEntries={50}
+                />
 
                 {/* Right Panel: Controls & Actions */}
                 <aside className="w-full md:w-[min(462px,36vw)] md:flex-none bg-card border-l pt-4 pb-0 px-4 md:pt-6 md:pb-0 md:px-6 flex flex-col gap-6 min-h-0">

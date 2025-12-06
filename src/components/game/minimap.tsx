@@ -268,7 +268,7 @@ export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatin
                                 Math.abs(cell.y - refPos.y)
                             ) : 999;
                             const isInVisibleRange = distanceFromPlayer <= 1;
-                            const isFoggy = turnDifference > 25 && cell && cell.lastVisited !== 0;
+                            const isFoggy = turnDifference > 75 && cell && cell.lastVisited !== 0; // Fog after 75 turns post-visit (3x prior)
 
                             return (
                                 <MinimapCell

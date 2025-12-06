@@ -125,7 +125,7 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
             }
 
             const turnDifference = turn - chunk.lastVisited;
-            const isFoggy = turnDifference > 50 && chunk.lastVisited !== 0;
+            const isFoggy = turnDifference > 150 && chunk.lastVisited !== 0; // Fog after 150 turns post-visit (3x prior)
 
             if (!chunk.explored || (isFoggy && !isPlayerHere)) {
                 return (
@@ -398,7 +398,7 @@ export function FullMapPopup({ open, onOpenChange, world, playerPosition, turn }
 
                                         const isPlayerHere = playerPosition.x === worldX && playerPosition.y === worldY;
                                         const turnDifference = turn - chunk.lastVisited;
-                                        const isFoggy = turnDifference > 50 && chunk.lastVisited !== 0;
+                                        const isFoggy = turnDifference > 150 && chunk.lastVisited !== 0; // Fog after 150 turns post-visit (3x prior)
 
                                         if (!chunk.explored || (isFoggy && !isPlayerHere)) {
                                             return (

@@ -6,6 +6,7 @@ import { getTimeOfDay } from '@/lib/game/time/time-utils';
 import type { AudioActionType, AudioEventContext } from '@/lib/definitions/audio-events';
 import { emitAudioEvent } from '@/core/usecases/emit-audio-event';
 import { selectAmbienceLayers, buildAmbienceContext, type AmbienceContext, type AmbienceLayer } from './ambience-engine';
+import { fadeOutAudio, fadeInAudio, stopAllAudio } from './audio-utils';
 import type { MoodTag } from '@/core/types/game';
 
 // Prefer static serving from `public/asset/sound` so browsers can fetch files directly.
@@ -342,29 +343,10 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   /**
    * Helper function to fade out an audio element and stop it when done.
+   * (Implemented in audio-utils.ts for reusability)
    */
-  const fadeOutAudio = useCallback((audio: HTMLAudioElement, durationMs: number = 2500) => {
-    if (!audio || audio.volume === 0) {
-      try { audio?.pause(); } catch { }
-      try { audio && (audio.src = ''); } catch { }
-      return;
-    }
-
-    const startVolume = audio.volume;
-    const startTime = Date.now();
-    const fadeInterval = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / durationMs, 1);
-      audio.volume = startVolume * (1 - progress);
-
-      if (progress === 1) {
-        clearInterval(fadeInterval);
-        try { audio.pause(); } catch { }
-        try { audio.src = ''; } catch { }
-      }
-    }, 30);
-
-    fadeIntervalsRef.current.push(fadeInterval);
+  const fadeOutAudioElement = useCallback((audio: HTMLAudioElement, durationMs: number = 2500) => {
+    fadeOutAudio(audio, durationMs);
   }, []);
 
   const playBackgroundForMoods = useCallback((moods: string[] | undefined) => {

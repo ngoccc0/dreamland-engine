@@ -4,7 +4,7 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { useLanguage } from '@/context/language-context';
 import { applyTickEffects } from '@/lib/game/effect-engine';
-import type { PlayerStatusDefinition } from '@/core/types/game';
+import type { PlayerStatusDefinition, NarrativeEntry } from '@/core/types/game';
 import { CreatureEngine } from '@/core/engines/creature-engine';
 import { PlantEngine } from '@/core/engines/plant-engine';
 import { EffectEngine } from '@/core/engines/effect-engine';
@@ -156,29 +156,29 @@ export function useGameEngine(props: GameEngineProps) {
     // Initialize plant engine
     const plantEngineRef = useRef(new PlantEngine(t));
 
-    const addNarrativeEntry = useCallback((text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string, animationMetadata?: any) => {
+    const addNarrativeEntry = useCallback((text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string, animationMetadata?: NarrativeEntry['animationMetadata']) => {
         // Preserve explicit entryId when provided (placeholders use predictable ids).
         // If no id provided, generate a stable unique id.
         const id = entryId ?? `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-        const entry = { id, text, type, isNew: true, ...(animationMetadata && { animationMetadata }) } as any;
+        const entry: NarrativeEntry = { id, text, type, isNew: true, ...(animationMetadata && { animationMetadata }) };
 
         // Use microtask instead of flushSync to avoid React lifecycle warnings.
         // This ensures state updates are processed immediately while being safe to call
         // from inside lifecycle methods like useEffect.
         Promise.resolve().then(() => {
             gameState.setNarrativeLog(prev => {
-                const arr = (prev || []);
-                const existingIdx = arr.findIndex((e: any) => e.id === id);
-                let next: any[];
+                const arr: NarrativeEntry[] = (prev || []);
+                const existingIdx = arr.findIndex((e: NarrativeEntry) => e.id === id);
+                let next: NarrativeEntry[];
                 if (existingIdx >= 0) {
                     // Replace existing entry in-place to avoid duplicates when updating placeholders
                     // Mark as isNew=false since this is an update, not a new entry
-                    next = arr.map((e: any) => e.id === id ? { ...e, text: entry.text, type: entry.type, isNew: false, ...(animationMetadata && { animationMetadata }) } : e);
+                    next = arr.map((e: NarrativeEntry) => e.id === id ? { ...e, text: entry.text, type: entry.type, isNew: false, ...(animationMetadata && { animationMetadata }) } : e);
                 } else {
                     next = [...arr, entry];
                 }
                 // Defensive dedupe: keep last occurrence for each id (handles race conditions)
-                const deduped = Array.from(new Map(next.map((e: any) => [e.id, e])).values());
+                const deduped: NarrativeEntry[] = Array.from(new Map(next.map((e: NarrativeEntry) => [e.id, e])).values());
                 narrativeLogRef.current = deduped;
                 return deduped;
             });

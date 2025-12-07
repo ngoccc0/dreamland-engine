@@ -563,7 +563,7 @@ export default function GameLayout(props: GameLayoutProps) {
             <div className="flex flex-col md:flex-row md:h-dvh bg-background text-foreground font-body overflow-hidden" style={{ ['--aside-w' as any]: 'min(462px,36vw)' }}>
                 {/* Mobile Layout: Map/HUD on top (fixed), Narrative scrollable below */}
                 {/* Desktop Layout: Narrative left (scrollable), Map/HUD right (fixed) */}
-                
+
                 {/* LEFT PANEL: On mobile this is at bottom (scrollable), on desktop it's left (scrollable) */}
                 <div className="order-2 md:order-1 w-full md:w-auto md:flex-1 flex flex-col min-h-0 overflow-hidden">
                     <GameNarrativePanel

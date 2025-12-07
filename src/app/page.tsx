@@ -107,14 +107,14 @@ export default function Home() {
 
   const handleDelete = async (slotIndex: number) => {
     try {
-        await gameStateRepository.delete(`slot_${slotIndex}`);
-        setSaveSlots(prev => {
-            const newSlots = [...prev];
-            newSlots[slotIndex] = null;
-            return newSlots;
-        });
+      await gameStateRepository.delete(`slot_${slotIndex}`);
+      setSaveSlots(prev => {
+        const newSlots = [...prev];
+        newSlots[slotIndex] = null;
+        return newSlots;
+      });
     } catch (error: any) {
-        toast({ title: "Error", description: "Failed to delete save.", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to delete save.", variant: "destructive" });
     }
   };
 
@@ -127,33 +127,33 @@ export default function Home() {
 
     // Properly type item in reduce
     const customDefs = allCustomItems.reduce<Record<string, ItemDefinition>>((acc: Record<string, ItemDefinition>, item: ItemDefinition) => {
-        const itemName = getTranslatedText(item.name, 'en');
-        if (!itemName) return acc; // Skip items without valid names
-    acc[itemName] = {
-      // Create a minimal ItemDefinition shape expected by the engine
-      id: item.id,
-      name: item.name,
-      description: item.description,
-      tier: item.tier || 0,
-      category: (item.category as any) || 'Misc',
-      emoji: item.emoji || '❓',
-      effects: item.effects || [],
-      baseQuantity: (item as any).baseQuantity || { min: 1, max: 1 },
-      spawnEnabled: (item as any).spawnEnabled ?? true,
-    } as import("@/core/types/game").ItemDefinition;
-        return acc;
+      const itemName = getTranslatedText(item.name, 'en');
+      if (!itemName) return acc; // Skip items without valid names
+      acc[itemName] = {
+        // Create a minimal ItemDefinition shape expected by the engine
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        tier: item.tier || 0,
+        category: (item.category as any) || 'Misc',
+        emoji: item.emoji || '❓',
+        effects: item.effects || [],
+        baseQuantity: (item as any).baseQuantity || { min: 1, max: 1 },
+        spawnEnabled: (item as any).spawnEnabled ?? true,
+      } as import("@/core/types/game").ItemDefinition;
+      return acc;
     }, {} as Record<string, ItemDefinition>);
 
     // selectedConcept.playerInventory is PlayerItem[]
     const initialPlayerInventory = (selectedConcept.playerInventory ?? []).map((item: import("@/core/types/game").PlayerItem) => {
-        const itemName = getTranslatedText(item.name, 'en');
-        const def = allCustomItems.find((d) => getTranslatedText(d.name, 'en') === itemName);
-        return {
-            name: item.name,
-            quantity: item.quantity,
-            tier: def?.tier || 1,
-            emoji: def?.emoji || '❓'
-        };
+      const itemName = getTranslatedText(item.name, 'en');
+      const def = allCustomItems.find((d) => getTranslatedText(d.name, 'en') === itemName);
+      return {
+        name: item.name,
+        quantity: item.quantity,
+        tier: def?.tier || 1,
+        emoji: def?.emoji || '❓'
+      };
     });
 
     const worldConceptForState: GameState['worldSetup'] = {
@@ -174,10 +174,10 @@ export default function Home() {
       worldSetup: worldConceptForState,
       playerStats: {
         hp: 100, mana: 50, stamina: 100, bodyTemperature: 37, items: initialPlayerInventory, equipment: { weapon: null, armor: null, accessory: null },
-  maxStamina: 100,
-  // Player stats expect string[] for quests; translate any TranslatableString entries to plain strings.
-  quests: (selectedConcept.initialQuests || []).map((q: any) => getTranslatedText(q, language)),
-  questsCompleted: 0,
+        maxStamina: 100,
+        // Player stats expect string[] for quests; translate any TranslatableString entries to plain strings.
+        quests: (selectedConcept.initialQuests || []).map((q: any) => getTranslatedText(q, language)),
+        questsCompleted: 0,
         skills: selectedConcept.startingSkill ? [selectedConcept.startingSkill] : [],
         pets: [], persona: 'none',
         attributes: { physicalAttack: 10, magicalAttack: 5, critChance: 5, attackSpeed: 1.0, cooldownReduction: 0, physicalDefense: 0, magicalDefense: 0 },
@@ -188,27 +188,27 @@ export default function Home() {
       customItemCatalog: allCustomItems,
       customItemDefinitions: customDefs,
       customStructures: worldSetupData.customStructures || [],
-      day: 1, 
-      turn: 1, 
-      narrativeLog: [], 
-      worldProfile: { 
-        climateBase: 'temperate', 
-        magicLevel: 5, 
-        mutationFactor: 2, 
-        sunIntensity: 7, 
-        weatherTypesAllowed: ['clear', 'rain', 'fog'], 
-        moistureBias: 0, 
-        tempBias: 0, 
-        resourceDensity: 5, 
-        theme: 'Normal' 
+      day: 1,
+      turn: 1,
+      narrativeLog: [],
+      worldProfile: {
+        climateBase: 'temperate',
+        magicLevel: 5,
+        mutationFactor: 2,
+        sunIntensity: 7,
+        weatherTypesAllowed: ['clear', 'rain', 'fog'],
+        moistureBias: 0,
+        tempBias: 0,
+        resourceDensity: 5,
+        theme: 'Normal'
       },
-      currentSeason: 'spring', 
-      gameTime: 360, 
-      weatherZones: {}, 
-      world: {}, 
-      recipes: {}, 
-      buildableStructures: {}, 
-      regions: {}, 
+      currentSeason: 'spring',
+      gameTime: 360,
+      weatherZones: {},
+      world: {},
+      recipes: {},
+      buildableStructures: {},
+      regions: {},
       regionCounter: 0,
       playerPosition: { x: 0, y: 0 },
       playerBehaviorProfile: {
@@ -218,18 +218,18 @@ export default function Home() {
         quantity: 1, tier: 1, emoji: '🙂'
       },
     };
-    
+
     try {
       await gameStateRepository.save(`slot_${activeSlot}`, newGameState);
-      
+
       setSaveSlots((prev: SaveSlotSummary[]) => {
         const newSlots = [...prev];
         if (typeof activeSlot === 'number') {
-          newSlots[activeSlot] = { 
-            worldSetup: newGameState.worldSetup, 
-            day: newGameState.day, 
-            gameTime: newGameState.gameTime, 
-            playerStats: newGameState.playerStats 
+          newSlots[activeSlot] = {
+            worldSetup: newGameState.worldSetup,
+            day: newGameState.day,
+            gameTime: newGameState.gameTime,
+            playerStats: newGameState.playerStats
           };
         }
         return newSlots;
@@ -253,11 +253,11 @@ export default function Home() {
       setInstallPrompt(null);
     });
   };
-  
+
   const getGameTimeAsString = (gameTime: number): string => {
-      const hour = Math.floor(gameTime / 60);
-      const minute = gameTime % 60;
-      return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+    const hour = Math.floor(gameTime / 60);
+    const minute = gameTime % 60;
+    return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
   }
 
   // Render loading screen
@@ -282,12 +282,12 @@ export default function Home() {
       </div>
     );
   }
-  
+
   // Render language selector if needed
   if (loadState === 'language_select') {
     return <LanguageSelector onLanguageSelected={handleLanguageSelected} />;
   }
-  
+
   // Render the main slot selection menu
   if (loadState === 'slot_selection') {
     return (
@@ -298,18 +298,18 @@ export default function Home() {
               <Settings className="h-5 w-5" />
             </Button>
             <Tooltip>
-                <TooltipTrigger asChild>
-                    <span className="w-full sm:w-auto">
-                        <Button onClick={handleInstallClick} variant="ghost" size="icon" disabled={!installPrompt}>
-                            <Download className="h-5 w-5" />
-                        </Button>
-                    </span>
-                </TooltipTrigger>
-                {!installPrompt && (
-                    <TooltipContent>
-                        <p>{t('installNotAvailableTooltip')}</p>
-                    </TooltipContent>
-                )}
+              <TooltipTrigger asChild>
+                <span className="w-full sm:w-auto">
+                  <Button onClick={handleInstallClick} variant="ghost" size="icon" disabled={!installPrompt}>
+                    <Download className="h-5 w-5" />
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {!installPrompt && (
+                <TooltipContent>
+                  <p>{t('installNotAvailableTooltip')}</p>
+                </TooltipContent>
+              )}
             </Tooltip>
           </div>
 
@@ -319,84 +319,84 @@ export default function Home() {
             </h1>
             <p className="text-muted-foreground">{t('welcomeBack')}</p>
           </header>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
             {saveSlots.map((slot, index) => (
-               <Card key={index} className={cn("flex flex-col", slot ? "border-primary" : "border-dashed")}>
-                 <div className="p-4 flex flex-col flex-grow">
-                   {slot ? (
-                     <>
-                        <div className="flex-grow space-y-4">
-                            <CardTitle className="truncate">{getTranslatedText(slot.worldSetup.worldName, language, t)}</CardTitle>
-                            <CardDescription>{t('dayX_time', { day: slot.day, time: getGameTimeAsString(slot.gameTime ?? 360) })}</CardDescription>
+              <Card key={index} className={cn("flex flex-col", slot ? "border-primary" : "border-dashed")}>
+                <div className="p-4 flex flex-col flex-grow">
+                  {slot ? (
+                    <>
+                      <div className="flex-grow space-y-4">
+                        <CardTitle className="truncate">{getTranslatedText(slot.worldSetup.worldName, language, t)}</CardTitle>
+                        <CardDescription>{t('dayX_time', { day: slot.day, time: getGameTimeAsString(slot.gameTime ?? 360) })}</CardDescription>
 
-                            <Separator />
+                        <Separator />
 
-                            <div className="text-sm text-muted-foreground space-y-2">
-                                <div className="flex items-center gap-2">
-                                    <Star className="h-4 w-4 text-primary" />
-                                    <span>{t('levelLabel')}: {(slot.playerStats.questsCompleted ?? 0) + 1}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <User className="h-4 w-4 text-primary" />
-                                    <span>{t(slot.playerStats.persona)}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Backpack className="h-4 w-4 text-primary" />
-                                    <span>{t('itemsLabel')}: {slot.playerStats.items.reduce((acc, item) => acc + item.quantity, 0)}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Swords className="h-4 w-4 text-primary" />
-                                    <span>{t('killsLabel')}: {slot.playerStats.unlockProgress.kills}</span>
-                                </div>
-                            </div>
+                        <div className="text-sm text-muted-foreground space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Star className="h-4 w-4 text-primary" />
+                            <span>{t('levelLabel')}: {(slot.playerStats.questsCompleted ?? 0) + 1}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-primary" />
+                            <span>{t(slot.playerStats.persona)}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Backpack className="h-4 w-4 text-primary" />
+                            <span>{t('itemsLabel')}: {slot.playerStats.items.reduce((acc, item) => acc + item.quantity, 0)}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Swords className="h-4 w-4 text-primary" />
+                            <span>{t('killsLabel')}: {slot.playerStats.unlockProgress.kills}</span>
+                          </div>
                         </div>
+                      </div>
 
-                       <div className="mt-auto pt-6">
-                         <div className="grid grid-cols-2 gap-2">
-                           <Button onClick={() => handlePlay(index)} className="w-full">
-                             <Play className="mr-2 h-4 w-4" /> {t('continueJourney')}
-                           </Button>
-                           <AlertDialog>
-                             <AlertDialogTrigger asChild>
-                               <Button variant="destructive" className="w-full">
-                                 <Trash2 className="mr-2 h-4 w-4" /> {t('deleteSave')}
-                               </Button>
-                             </AlertDialogTrigger>
-                             <AlertDialogContent>
-                               <AlertDialogHeader>
-                                 <AlertDialogTitle>{t('confirmDeleteTitle')}</AlertDialogTitle>
-                                 <AlertDialogDescription>
-                                   {slot.worldSetup?.worldName
-                                     ? t('confirmDeleteDesc', { worldName: getTranslatedText(slot.worldSetup.worldName, language, t) })
-                                     : t('confirmDeleteDescGeneric')
-                                   }
-                                 </AlertDialogDescription>
-                               </AlertDialogHeader>
-                               <AlertDialogFooter>
-                                 <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-                                 <AlertDialogAction onClick={() => handleDelete(index)}>{t('confirm')}</AlertDialogAction>
-                               </AlertDialogFooter>
-                             </AlertDialogContent>
-                           </AlertDialog>
-                         </div>
-                       </div>
-                     </>
-                   ) : (
-                     <div className="flex flex-col h-full">
-                        <div className="flex-grow">
-                            <CardTitle>{t('emptySlot')}</CardTitle>
-                            <CardDescription>{t('newAdventureHint')}</CardDescription>
+                      <div className="mt-auto pt-6">
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button onClick={() => handlePlay(index)} className="w-full">
+                            <Play className="mr-2 h-4 w-4" /> {t('continueJourney')}
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" className="w-full">
+                                <Trash2 className="mr-2 h-4 w-4" /> {t('deleteSave')}
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>{t('confirmDeleteTitle')}</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  {slot.worldSetup?.worldName
+                                    ? t('confirmDeleteDesc', { worldName: getTranslatedText(slot.worldSetup.worldName, language, t) })
+                                    : t('confirmDeleteDescGeneric')
+                                  }
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(index)}>{t('confirm')}</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
-                        <div className="mt-auto">
-                            <Button onClick={() => handleNewGame(index)} className="w-full">
-                                <PlusCircle className="mr-2 h-4 w-4" /> {t('startNewAdventure')}
-                            </Button>
-                        </div>
-                     </div>
-                   )}
-                 </div>
-               </Card>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex flex-col h-full">
+                      <div className="flex-grow">
+                        <CardTitle>{t('emptySlot')}</CardTitle>
+                        <CardDescription>{t('newAdventureHint')}</CardDescription>
+                      </div>
+                      <div className="mt-auto">
+                        <Button onClick={() => handleNewGame(index)} className="w-full">
+                          <PlusCircle className="mr-2 h-4 w-4" /> {t('startNewAdventure')}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Card>
             ))}
           </div>
         </div>

@@ -79,7 +79,7 @@ export function emitAudioEvent(
     // Step 2: Resolve SFX files from registry
     const mapper = AUDIO_EVENTS_REGISTRY[actionType];
     if (!mapper) {
-    // Action type not mapped; skip silently
+        // Action type not mapped; skip silently
         return null;
     }
 

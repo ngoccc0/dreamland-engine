@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
     init();
     return () => {
-      try { if (typeof unsub === 'function') unsub(); } catch {};
+      try { if (typeof unsub === 'function') unsub(); } catch { };
     };
   }, []);
 

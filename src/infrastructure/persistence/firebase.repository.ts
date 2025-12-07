@@ -89,7 +89,7 @@ export class FirebaseGameStateRepository implements IGameStateRepository {
             const slots: Array<Pick<GameState, 'worldSetup' | 'day' | 'gameTime' | 'playerStats'> | null> = [null, null, null];
             const q = query(collection(db, this.basePath), limit(3));
             const querySnapshot = await getDocs(q);
-            
+
             querySnapshot.forEach(docSnap => {
                 const docId = docSnap.id; // e.g., "slot_0"
                 const slotIndex = parseInt(docId.split('_')[1], 10);
@@ -111,4 +111,4 @@ export class FirebaseGameStateRepository implements IGameStateRepository {
     }
 }
 
-    
+

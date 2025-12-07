@@ -24,25 +24,25 @@
  * fadeOutAudio(audio, 3000); // Fade out over 3 seconds
  */
 export function fadeOutAudio(audio: HTMLAudioElement, durationMs: number = 2500): void {
-  if (!audio || audio.volume === 0) {
-    try { audio?.pause(); } catch { }
-    try { audio && (audio.src = ''); } catch { }
-    return;
-  }
-
-  const startVolume = audio.volume;
-  const startTime = Date.now();
-  const fadeInterval = setInterval(() => {
-    const elapsed = Date.now() - startTime;
-    const progress = Math.min(elapsed / durationMs, 1);
-    audio.volume = startVolume * (1 - progress);
-
-    if (progress === 1) {
-      clearInterval(fadeInterval);
-      try { audio.pause(); } catch { }
-      try { audio.src = ''; } catch { }
+    if (!audio || audio.volume === 0) {
+        try { audio?.pause(); } catch { }
+        try { audio && (audio.src = ''); } catch { }
+        return;
     }
-  }, 30);
+
+    const startVolume = audio.volume;
+    const startTime = Date.now();
+    const fadeInterval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / durationMs, 1);
+        audio.volume = startVolume * (1 - progress);
+
+        if (progress === 1) {
+            clearInterval(fadeInterval);
+            try { audio.pause(); } catch { }
+            try { audio.src = ''; } catch { }
+        }
+    }, 30);
 }
 
 /**
@@ -63,20 +63,20 @@ export function fadeOutAudio(audio: HTMLAudioElement, durationMs: number = 2500)
  * fadeInAudio(audio, 0.7, 2000); // Fade in to 70% over 2 seconds
  */
 export function fadeInAudio(audio: HTMLAudioElement, targetVolume: number = 1, durationMs: number = 1500): void {
-  if (!audio) return;
+    if (!audio) return;
 
-  audio.volume = 0;
-  const startTime = Date.now();
-  const fadeInterval = setInterval(() => {
-    const elapsed = Date.now() - startTime;
-    const progress = Math.min(elapsed / durationMs, 1);
-    audio.volume = targetVolume * progress;
+    audio.volume = 0;
+    const startTime = Date.now();
+    const fadeInterval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / durationMs, 1);
+        audio.volume = targetVolume * progress;
 
-    if (progress === 1) {
-      clearInterval(fadeInterval);
-      audio.volume = targetVolume;
-    }
-  }, 30);
+        if (progress === 1) {
+            clearInterval(fadeInterval);
+            audio.volume = targetVolume;
+        }
+    }, 30);
 }
 
 /**
@@ -99,15 +99,15 @@ export function fadeInAudio(audio: HTMLAudioElement, targetVolume: number = 1, d
  * crossFadeAudio(oldTrack, newTrack, 0.8, 2500);
  */
 export function crossFadeAudio(
-  fromAudio: HTMLAudioElement | null,
-  toAudio: HTMLAudioElement,
-  targetVolume: number = 1,
-  durationMs: number = 2000
+    fromAudio: HTMLAudioElement | null,
+    toAudio: HTMLAudioElement,
+    targetVolume: number = 1,
+    durationMs: number = 2000
 ): void {
-  if (fromAudio) {
-    fadeOutAudio(fromAudio, durationMs);
-  }
-  fadeInAudio(toAudio, targetVolume, durationMs);
+    if (fromAudio) {
+        fadeOutAudio(fromAudio, durationMs);
+    }
+    fadeInAudio(toAudio, targetVolume, durationMs);
 }
 
 /**
@@ -125,17 +125,17 @@ export function crossFadeAudio(
  * stopAllAudio(layers);
  */
 export function stopAllAudio(audioElements: HTMLAudioElement[] | HTMLCollection): void {
-  try {
-    for (let i = 0; i < audioElements.length; i++) {
-      const audio = audioElements[i] as HTMLAudioElement;
-      if (audio) {
-        try { audio.pause(); } catch { }
-        try { audio.src = ''; } catch { }
-      }
+    try {
+        for (let i = 0; i < audioElements.length; i++) {
+            const audio = audioElements[i] as HTMLAudioElement;
+            if (audio) {
+                try { audio.pause(); } catch { }
+                try { audio.src = ''; } catch { }
+            }
+        }
+    } catch {
+        // Silently handle iteration errors
     }
-  } catch {
-    // Silently handle iteration errors
-  }
 }
 
 /**
@@ -155,8 +155,8 @@ export function stopAllAudio(audioElements: HTMLAudioElement[] | HTMLCollection)
  * audio.volume = audioVolume; // Feels like 50% to human ear
  */
 export function getLogarithmicVolume(linearValue: number): number {
-  // Formula: log10(linearValue + 1) / log10(2)
-  // Maps 0 → 0, 1 → 1 with logarithmic curve
-  const clamped = Math.max(0, Math.min(1, linearValue));
-  return Math.log10(clamped * 9 + 1) / Math.log10(10);
+    // Formula: log10(linearValue + 1) / log10(2)
+    // Maps 0 → 0, 1 → 1 with logarithmic curve
+    const clamped = Math.max(0, Math.min(1, linearValue));
+    return Math.log10(clamped * 9 + 1) / Math.log10(10);
 }

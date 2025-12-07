@@ -8,7 +8,7 @@ export type ActionHelpersDeps = {
   resolveItemDef: (name: string) => ItemDefinition | undefined;
   t: (k: any, p?: any) => string;
   language: string;
-  addNarrativeEntry: (text: string, type: 'narrative'|'action'|'system'|'monologue', id?: string) => void;
+  addNarrativeEntry: (text: string, type: 'narrative' | 'action' | 'system' | 'monologue', id?: string) => void;
   audio?: any;
   toast?: any;
   customItemDefinitions?: Record<string, any>;
@@ -38,16 +38,16 @@ export function createActionHelpers(deps: ActionHelpersDeps) {
         const sensory = buildSensoryText(resolvedDef);
         const narrativeText = t('pickedUpItem_single_1' as any, { itemName: itemNameText, sensory });
         addNarrativeEntry(narrativeText, 'narrative');
-        try { audio?.playSfx('Pickup_Gold_00'); } catch {}
+        try { audio?.playSfx('Pickup_Gold_00'); } catch { }
         return;
       }
 
       const grouped: Record<string, number> = {};
-  items.forEach((it: any) => { const key = getTranslatedText(it.name, language as any); grouped[key] = (grouped[key] || 0) + (it.quantity || 1); });
+      items.forEach((it: any) => { const key = getTranslatedText(it.name, language as any); grouped[key] = (grouped[key] || 0) + (it.quantity || 1); });
       const summaryList = Object.keys(grouped).map(k => `${grouped[k]} ${k}`).slice(0, 6).join(', ');
       const summaryText = language === 'vi' ? `Bạn gom được ${summaryList}.` : `You picked up ${summaryList}.`;
       addNarrativeEntry(summaryText, 'narrative');
-      try { audio?.playSfx('Pickup_Gold_00'); } catch {}
+      try { audio?.playSfx('Pickup_Gold_00'); } catch { }
 
       const distinct = Object.keys(grouped).length;
       const now = Date.now();
@@ -74,10 +74,10 @@ export function createActionHelpers(deps: ActionHelpersDeps) {
         return true;
       }
       if ((player.items || []).length >= 40) {
-        try { toast?.({ title: t('inventoryFull') || 'Inventory Full', description: t('inventoryFullDesc') || 'You have no free slots.', variant: 'destructive' }); } catch {}
+        try { toast?.({ title: t('inventoryFull') || 'Inventory Full', description: t('inventoryFullDesc') || 'You have no free slots.', variant: 'destructive' }); } catch { }
         return false;
       }
-  player.items.push(ensurePlayerItemId({ ...item }, customItemDefinitions || {}, t, language as any));
+      player.items.push(ensurePlayerItemId({ ...item }, customItemDefinitions || {}, t, language as any));
       return true;
     } catch (e) {
       // Silently handle inventory add errors

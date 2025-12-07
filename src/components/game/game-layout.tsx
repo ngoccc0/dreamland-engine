@@ -560,27 +560,32 @@ export default function GameLayout(props: GameLayoutProps) {
 
     return (
         <TooltipProvider>
-            <div className="flex flex-col md:flex-row md:h-dvh bg-background text-foreground font-body" style={{ ['--aside-w' as any]: 'min(462px,36vw)' }}>
-                {/* Left Panel: Narrative - Using GameNarrativePanel component (Phase 2.2-4 Integration) */}
-                <GameNarrativePanel
-                    narrativeLog={narrativeLog}
-                    worldName={worldNameText}
-                    isDesktop={isDesktop}
-                    showNarrativeDesktop={showNarrativeDesktop}
-                    onToggleNarrativeDesktop={setShowNarrativeDesktop}
-                    isLoading={isLoading}
-                    t={t}
-                    language={language}
-                    onOpenTutorial={() => { setTutorialOpen(true); focusCustomActionInput(); }}
-                    onOpenSettings={() => { setSettingsOpen(true); focusCustomActionInput(); }}
-                    onReturnToMenu={handleReturnToMenu}
-                    animationMode="instant"
-                    enableEmphasis={true}
-                    maxEntries={50}
-                />
+            <div className="flex flex-col md:flex-row md:h-dvh bg-background text-foreground font-body overflow-hidden" style={{ ['--aside-w' as any]: 'min(462px,36vw)' }}>
+                {/* Mobile Layout: Map/HUD on top (fixed), Narrative scrollable below */}
+                {/* Desktop Layout: Narrative left (scrollable), Map/HUD right (fixed) */}
+                
+                {/* LEFT PANEL: On mobile this is at bottom (scrollable), on desktop it's left (scrollable) */}
+                <div className="order-2 md:order-1 w-full md:w-auto md:flex-1 flex flex-col min-h-0 overflow-hidden">
+                    <GameNarrativePanel
+                        narrativeLog={narrativeLog}
+                        worldName={worldNameText}
+                        isDesktop={isDesktop}
+                        showNarrativeDesktop={showNarrativeDesktop}
+                        onToggleNarrativeDesktop={setShowNarrativeDesktop}
+                        isLoading={isLoading}
+                        t={t}
+                        language={language}
+                        onOpenTutorial={() => { setTutorialOpen(true); focusCustomActionInput(); }}
+                        onOpenSettings={() => { setSettingsOpen(true); focusCustomActionInput(); }}
+                        onReturnToMenu={handleReturnToMenu}
+                        animationMode="instant"
+                        enableEmphasis={true}
+                        maxEntries={50}
+                    />
+                </div>
 
-                {/* Right Panel: Controls & Actions */}
-                <aside className="w-full md:w-[min(462px,36vw)] md:flex-none bg-card border-l pt-4 pb-0 px-4 md:pt-6 md:pb-0 md:px-6 flex flex-col gap-6 min-h-0">
+                {/* RIGHT PANEL: Map/HUD/Controls (fixed on mobile, scrollable on desktop) */}
+                <aside className="order-1 md:order-2 w-full md:w-[min(462px,36vw)] md:flex-none bg-card border-t md:border-t-0 md:border-l h-auto max-h-[55vh] md:max-h-none md:h-full overflow-y-auto md:overflow-y-auto pt-4 pb-4 px-4 md:pt-6 md:pb-0 md:px-6 flex flex-col gap-6 md:min-h-0">
                     {/* Top Section - HUD & Minimap */}
                     <div className="flex-shrink-0 flex flex-col gap-4">
                         {/* Minimap */}

@@ -113,8 +113,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [musicVolume, muted]);
 
   useEffect(() => { try { localStorage.setItem('dl_sfx_volume', String(sfxVolume)); } catch { } }, [sfxVolume]);
-  
-  useEffect(() => { 
+
+  useEffect(() => {
     try { localStorage.setItem('dl_ambience_volume', String(ambienceVolume)); } catch { }
     // Update volume for all currently playing ambience layers
     ambienceLayersRef.current.forEach(audio => {

@@ -68,7 +68,7 @@ export function createHandleMove(context: Partial<ActionHandlerDeps> & Record<st
     addNarrativeEntry(placeholderText, 'narrative', placeholderId);
 
     setPlayerPosition({ x, y });
-      // Optimistic UI update: set player position before authoritative update
+    // Optimistic UI update: set player position before authoritative update
 
     const staminaCost = worldSnapshot[nextChunkKey]?.travelCost ?? 1;
 
@@ -184,7 +184,7 @@ export function createHandleMove(context: Partial<ActionHandlerDeps> & Record<st
 
           if (!shouldGenerateFullNarrative) {
             // Too soon for full narrative generation - skip expensive operations
-          // Narrative throttle: skipping full generation, min interval not met
+            // Narrative throttle: skipping full generation, min interval not met
             return;
           }
 

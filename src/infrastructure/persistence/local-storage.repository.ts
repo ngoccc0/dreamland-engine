@@ -72,20 +72,20 @@ export class LocalStorageGameStateRepository implements IGameStateRepository {
     if (typeof window === 'undefined') return [null, null, null];
     const summaries: Array<Pick<GameState, 'worldSetup' | 'day' | 'gameTime' | 'playerStats'> | null> = [null, null, null];
     for (let i = 0; i < 3; i++) {
-        try {
-            const data = await this.load(`slot_${i}`);
-            if (data) {
-                summaries[i] = {
-                    worldSetup: data.worldSetup,
-                    day: data.day,
-                    gameTime: data.gameTime,
-                    playerStats: data.playerStats
-                };
-            }
-        } catch (error: any) {
-            // Silently handle summary load errors
-            summaries[i] = null;
+      try {
+        const data = await this.load(`slot_${i}`);
+        if (data) {
+          summaries[i] = {
+            worldSetup: data.worldSetup,
+            day: data.day,
+            gameTime: data.gameTime,
+            playerStats: data.playerStats
+          };
         }
+      } catch (error: any) {
+        // Silently handle summary load errors
+        summaries[i] = null;
+      }
     }
     return summaries;
   }

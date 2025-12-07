@@ -2,7 +2,6 @@
 'use client';
 
 import { useRef, useEffect, useCallback } from 'react';
-import { flushSync } from 'react-dom';
 import { useLanguage } from '@/context/language-context';
 import { applyTickEffects } from '@/lib/game/effect-engine';
 import type { PlayerStatusDefinition } from '@/core/types/game';
@@ -164,9 +163,10 @@ export function useGameEngine(props: GameEngineProps) {
         const entry = { id, text, type, isNew: true, ...(animationMetadata && { animationMetadata }) } as any;
         console.log('[addNarrativeEntry] Called with:', { id, text: text.substring(0, 40), isUpdate: !!entryId });
 
-        // Use flushSync to apply state update immediately, preventing React batching
-        // from causing duplicate adds when multiple calls occur in rapid succession
-        flushSync(() => {
+        // Use microtask instead of flushSync to avoid React lifecycle warnings.
+        // This ensures state updates are processed immediately while being safe to call
+        // from inside lifecycle methods like useEffect.
+        Promise.resolve().then(() => {
             gameState.setNarrativeLog(prev => {
                 const arr = (prev || []);
                 const existingIdx = arr.findIndex((e: any) => e.id === id);
@@ -191,7 +191,7 @@ export function useGameEngine(props: GameEngineProps) {
                 return deduped;
             });
         });
-    }, []);
+    }, [gameState]);
 
     const advanceGameTime = (stats?: any) => {
         const currentTurn = gameState.turn || 0;

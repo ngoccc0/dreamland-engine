@@ -112,7 +112,22 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [musicVolume, muted]);
 
   useEffect(() => { try { localStorage.setItem('dl_sfx_volume', String(sfxVolume)); } catch { } }, [sfxVolume]);
-  useEffect(() => { try { localStorage.setItem('dl_ambience_volume', String(ambienceVolume)); } catch { } }, [ambienceVolume]);
+  
+  useEffect(() => { 
+    try { localStorage.setItem('dl_ambience_volume', String(ambienceVolume)); } catch { }
+    // Update volume for all currently playing ambience layers
+    ambienceLayersRef.current.forEach(audio => {
+      if (audio) audio.volume = muted ? 0 : ambienceVolume * (audio.dataset.layerVolume ? Number(audio.dataset.layerVolume) : 1);
+    });
+  }, [ambienceVolume, muted]);
+
+  useEffect(() => {
+    try { localStorage.setItem('dl_playback_interval_minutes', String(playbackIntervalMinutes)); } catch { }
+  }, [playbackIntervalMinutes]);
+
+  useEffect(() => {
+    try { localStorage.setItem('dl_playback_mode', playbackMode); } catch { }
+  }, [playbackMode]);
   useEffect(() => { try { localStorage.setItem('dl_muted', muted ? '1' : '0'); } catch { } }, [muted]);
   useEffect(() => { try { localStorage.setItem('dl_playback_mode', playbackMode); } catch { } }, [playbackMode]);
   useEffect(() => { try { localStorage.setItem('dl_playback_interval_minutes', String(playbackIntervalMinutes)); } catch { } }, [playbackIntervalMinutes]);
@@ -299,6 +314,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         audio.volume = (muted ? 0 : ambienceVolume) * layer.volume;
         audio.preload = 'auto';
         audio.loop = true; // Ambience always loops
+        // Store layer volume ratio for dynamic updates when master volume changes
+        (audio as any).dataset.layerVolume = layer.volume;
 
         // Fade in new track
         if (layer.fadeInMs && layer.fadeInMs > 0) {
@@ -375,12 +392,15 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // schedule occasional play every playbackIntervalMinutes minutes
       const ms = Math.max(1, playbackIntervalMinutes) * 60 * 1000;
       try {
-        // Apply 50% chance to normal plays (weighted random selection)
+        // Play immediately on mode change, then schedule future plays
+        if (BACKGROUND_MUSIC.length > 0) {
+          const idx = Math.floor(Math.random() * BACKGROUND_MUSIC.length);
+          playMusic(BACKGROUND_MUSIC[idx]);
+        }
+        // Schedule next plays at intervals
         occasionalTimerRef.current = window.setInterval(() => {
           if (BACKGROUND_MUSIC.length === 0) return;
-          // 50% chance to skip this interval for occasional playback
-          if (Math.random() > 0.5) return;
-          // Select random track
+          // Select random track (don't skip, play every interval)
           const idx = Math.floor(Math.random() * BACKGROUND_MUSIC.length);
           playMusic(BACKGROUND_MUSIC[idx]);
         }, ms);

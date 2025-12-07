@@ -60,6 +60,10 @@ PHASES_*.md
 KE_HOACH_TOAN_BO.md
 QUICK_REFERENCE.md
 
+# Internal development/planning directories
+.clinerules/
+.github/prompts/
+
 # Build and Test Artifacts
 build-log.txt
 test-output.txt

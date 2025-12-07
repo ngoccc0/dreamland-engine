@@ -64,7 +64,6 @@ export function adaptivePlantTick({ plant, chunk, config, rngSeed, gameTime }: P
     const narrativeEvents: PlantTickOutput['narrativeEvents'] = [];
     let plantRemoved = false;
 
-    const rng = createRng(rngSeed);
     const envMultiplier = calculateEnvironmentalMultiplier(chunk, config, gameTime);
     const totalMaxQty = newParts.reduce((sum, part) => sum + part.maxQty, 0);
     let totalCurrentQty = newParts.reduce((sum, part) => sum + (part.currentQty || 0), 0);
@@ -76,7 +75,7 @@ export function adaptivePlantTick({ plant, chunk, config, rngSeed, gameTime }: P
         return acc;
     }, {} as Record<string, number>);
 
-    newParts = newParts.map(part => {
+    newParts = newParts.map((part, partIndex) => {
         let newPart = { ...part };
         let currentQty = newPart.currentQty || 0;
 
@@ -84,6 +83,9 @@ export function adaptivePlantTick({ plant, chunk, config, rngSeed, gameTime }: P
         if (!newPlant.plantProperties) {
             return newPart;
         }
+
+        // Create RNG per part with unique seed to enable deterministic testing
+        const partRng = createRng(`${rngSeed}-${part.name}-${partIndex}`);
 
         // Check triggerFrom dependency
         if (newPart.triggerFrom && partQuantities[newPart.triggerFrom] === 0) {
@@ -93,7 +95,7 @@ export function adaptivePlantTick({ plant, chunk, config, rngSeed, gameTime }: P
 
         // --- Growth Probability ---
         const growProb = newPart.growProb * envMultiplier;
-        if (currentQty < newPart.maxQty && rng.float() < growProb) {
+        if (currentQty < newPart.maxQty && partRng.float() < growProb) {
             newPart.currentQty = Math.min(newPart.maxQty, currentQty + 1);
             narrativeEvents.push({ key: 'growEvent', params: { part: newPart.name, target: getTranslatedText(newPlant.name, 'en') } });
         }
@@ -103,15 +105,15 @@ export function adaptivePlantTick({ plant, chunk, config, rngSeed, gameTime }: P
         const windFactor = (chunk.windLevel || 0) / 100; // Wind increases drop chance
         const finalDropProb = dropProb + (newPart.name === 'leaves' ? windFactor * 0.005 : 0); // Leaves more affected by wind
 
-        if (currentQty > 0 && rng.float() < finalDropProb) {
+        if (currentQty > 0 && partRng.float() < finalDropProb) {
             newPart.currentQty = currentQty - 1;
             narrativeEvents.push({ key: 'dropEvent', params: { part: newPart.name, target: getTranslatedText(newPlant.name, 'en') } });
 
             // Add dropped loot to list
             if (newPart.droppedLoot && newPart.droppedLoot.length > 0) {
                 newPart.droppedLoot.forEach((lootDef: LootDrop) => { // Explicitly type lootDef
-                    if (rng.float() < lootDef.chance) {
-                        const quantity = rng.int(lootDef.quantity.min, lootDef.quantity.max);
+                    if (partRng.float() < lootDef.chance) {
+                        const quantity = partRng.int(lootDef.quantity.min, lootDef.quantity.max);
                         if (quantity > 0) {
                             droppedItems.push({ name: lootDef.name, quantity, sourcePlantId: newPlant.id || 'unknown' });
                         }

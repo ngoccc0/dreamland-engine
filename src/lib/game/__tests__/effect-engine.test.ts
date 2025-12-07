@@ -1,11 +1,14 @@
 import { applyTickEffects } from '@/lib/game/effect-engine';
 import type { PlayerStatusDefinition } from '@/core/types/game';
+import { defaultGameConfig } from '@/lib/config/game-config';
 
 // Minimal i18n stub used by tests
 const t = (k: string, p?: any) => {
   if (k === 'poisonDamage') return `You suffer ${p.amount} poison damage.`;
   if (k === 'effectWornOff') return `Effect ${p.effect} has worn off.`;
   if (k === 'youAreStarving') return `You are starving.`;
+  if (k === 'starvationDamage') return `You take starvation damage.`;
+  if (k === 'hungerSlowsRegeneration') return `Hunger slows your regeneration.`;
   return k;
 };
 
@@ -20,12 +23,12 @@ describe('applyTickEffects', () => {
   });
 
   test('hunger decay and starvation damage', () => {
-  const stats = ({ hp: 5, hunger: 0.4, statusEffects: [] } as unknown) as PlayerStatusDefinition;
-  const { newStats, messages } = applyTickEffects(stats, 200, t);
-    // hunger 0.4 - 0.5 => 0
+  const stats = ({ hp: 5, hunger: 0.4, statusEffects: [], hungerTickCounter: 9 } as unknown) as PlayerStatusDefinition;
+  const { newStats, messages } = applyTickEffects(stats, 200, t, defaultGameConfig);
+    // hunger 0.4 - 1 => 0 (decays by hungerDecayPerTick=1 when hungerTickCounter reaches 10)
     expect(newStats.hunger).toBe(0);
-    // hp decreased by 1 due starvation
-    expect(newStats.hp).toBe(4);
+    // hp decreased by 2 total: -1 from starvation check, -1 from starvationDamagePerTick when hunger < hungerThresholdMild (15)
+    expect(newStats.hp).toBe(3);
     expect(messages.some(m => m.text.includes('starving'))).toBeTruthy();
   });
 

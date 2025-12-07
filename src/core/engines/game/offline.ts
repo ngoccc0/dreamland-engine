@@ -249,7 +249,7 @@ export const fill_template = (
             return category[Math.floor(Math.random() * category.length)];
         }
         logger.warn(`Placeholder category not found or empty: ${p1}`);
-        return match;
+        return ''; // Return empty string instead of unresolved placeholder
     });
 
     filled_template = filled_template.replace('{light_level_detail}', () => chunk.lightLevel <= 10 ? t('light_level_dark') : chunk.lightLevel < 50 ? t('light_level_dim') : t('light_level_normal'));
@@ -300,7 +300,7 @@ export const generateOfflineNarrative = (
     if (candidateTemplates.length === 0) {
         candidateTemplates = narrativeTemplates.filter((tmpl: NarrativeTemplate) => tmpl && tmpl.mood && tmpl.mood.length === 0);
     }
-    if (candidateTemplates.length === 0) return currentChunk.description;
+    if (candidateTemplates.length === 0) return currentChunk.description || "An unknown area.";
 
     const { min_s, max_s } = get_sentence_limits(narrativeLength);
     // Choose a target sentence count within the allowed range so that

@@ -1,12 +1,14 @@
-import {useMemo} from 'react';
-import {useAudioContext} from './AudioProvider';
+import { useMemo } from 'react';
+import { useAudioContext } from './AudioProvider';
 
 export function useAudio() {
   const ctx = useAudioContext();
   return useMemo(() => ({
     playMusic: ctx.playMusic,
     playMenuMusic: ctx.playMenuMusic,
+    playMenuMusicForTime: ctx.playMenuMusicForTime,
     playAmbienceForBiome: ctx.playAmbienceForBiome,
+    playAmbienceLayers: ctx.playAmbienceLayers,
     playBackgroundForMoods: ctx.playBackgroundForMoods,
     autoplayBlocked: ctx.autoplayBlocked,
     tryEnableAutoplay: ctx.tryEnableAutoplay,
@@ -17,10 +19,14 @@ export function useAudio() {
     stopMusic: ctx.stopMusic,
     pauseMusic: ctx.pauseMusic,
     playSfx: ctx.playSfx,
+    playSfxForAction: ctx.playSfxForAction,
+    emitAudioEventDirect: ctx.emitAudioEventDirect,
     setMusicVolume: ctx.setMusicVolume,
     setSfxVolume: ctx.setSfxVolume,
+    setAmbienceVolume: ctx.setAmbienceVolume,
     musicVolume: ctx.musicVolume,
     sfxVolume: ctx.sfxVolume,
+    ambienceVolume: ctx.ambienceVolume,
     muted: ctx.muted,
     setMuted: ctx.setMuted,
     currentTrack: ctx.currentTrack,

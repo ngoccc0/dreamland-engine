@@ -1,4 +1,5 @@
 import { Terrain, SoilType } from './terrain';
+import type { CreatureDefinition } from './creature'; // Import CreatureDefinition
 
 export interface Position {
     x: number;
@@ -27,6 +28,11 @@ export interface Chunk extends Position, WorldAttributes {
     lastVisited: number;
     regionId: number;
     travelCost: number;
+    actions: any[]; // Added to support actions in chunks
+    items: any[]; // Added to support items in chunks
+    NPCs: any[]; // Added to support NPCs in chunks
+    structures: any[]; // Added to support structures in chunks
+    enemy: CreatureDefinition | null; // Added to support a single enemy creature in chunks
 }
 
 export interface Region {

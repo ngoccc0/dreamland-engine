@@ -1,283 +1,345 @@
+/**
+ * OVERVIEW: Minimap component renders a grid-based map visualization with pan animations.
+ * Handles movement visualization, overlay flight animations, and interactive tile popovers.
+ * Uses rAF for smooth GPU-accelerated pan animations synchronized with player movement.
+ * TSDOC: Receives grid data, player position, biome definitions; emits moveStart/landing events.
+ */
 
 "use client";
 
 import { cn } from "@/lib/utils";
 import { PlayerIcon, NpcIcon, Home, MapPin } from "./icons";
 import { useLanguage } from "@/context/language-context";
-import React, { useEffect } from "react";
+import { useSettings } from "@/context/settings-context";
+import React, { useEffect, useCallback, memo } from "react";
+import PlayerOverlay from './player-overlay';
 import type { Chunk, Terrain, BiomeDefinition } from "@/lib/game/types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Separator } from "../ui/separator";
-import { SwordIcon } from "./icons";
-import { Backpack } from "lucide-react";
-import { getTranslatedText } from "@/lib/utils";
 import { logger } from "@/lib/logger";
-import { resolveItemDef } from '@/lib/game/item-utils';
-import { IconRenderer } from "@/components/ui/icon-renderer";
+import { useState, useRef } from 'react';
+import { MinimapCell } from "./minimap-cell";
+import { MapCellDetails } from "./minimap-details";
+import { biomeColors, type MinimapProps } from "./minimap-types";
+import { cn as classNameUtils } from "@/lib/utils";
 
+interface GameLayoutMinimapProps extends MinimapProps {
+    // Extends MinimapProps with additional props if needed
+}
 
-export const MapCellDetails = ({ chunk, itemDefinitions }: { chunk: Chunk; itemDefinitions?: Record<string, any> }) => {
+export function Minimap({ grid, playerPosition, visualPlayerPosition, isAnimatingMove, visualMoveFrom, visualMoveTo, visualJustLanded, turn, biomeDefinitions }: GameLayoutMinimapProps) {
     const { t, language } = useLanguage();
-    const pickIcon = (definition: any, item: any) => {
-        // Prefer image objects when available
-        if (definition?.emoji && typeof definition.emoji === 'object' && definition.emoji.type === 'image') return definition.emoji;
-        if (definition && (definition as any).image) return (definition as any).image;
-        if (item?.emoji && typeof item.emoji === 'object' && item.emoji.type === 'image') return item.emoji;
-        return definition?.emoji ?? item?.emoji ?? '❓';
-    };
-    return (
-        <div className="p-1 space-y-2">
-            <div className="flex items-center gap-2">
-                 <MapPin className="h-4 w-4 text-muted-foreground" />
-                 <h4 className="font-bold capitalize">{chunk.terrain === 'wall' ? t('wall') : t(chunk.terrain as any)} ({chunk.x}, {chunk.y})</h4>
-            </div>
-            <p className="text-xs text-muted-foreground italic line-clamp-3">{chunk.description}</p>
-            
-            {(chunk.structures && chunk.structures.length > 0 || chunk.items.length > 0 || chunk.enemy || chunk.NPCs.length > 0) && <Separator />}
+    const { settings } = useSettings();
 
-            <div className="space-y-2 mt-2">
-                {chunk.structures && chunk.structures.length > 0 && (
-                    <div>
-                        <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><Home />{t('structures')}:</h5>
-                        <ul className="space-y-1 text-xs pl-5">
-                           {chunk.structures.map((s, idx) => {
-                                const structData = (s as any).data || s;
-                                // Use index as key here to avoid relying on language-specific strings for React keys
-                                return <li key={idx} className="flex items-center gap-1"><IconRenderer icon={structData.emoji} size={16} /> {getTranslatedText(structData.name, language, t)}</li>
-                            })}
-                        </ul>
-                    </div>
-                )}
-                {chunk.items.length > 0 && (
-                    <div>
-                        <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><Backpack />{t('inventory')}:</h5>
-                        <ul className="space-y-1 text-xs pl-5">
-                            {chunk.items.map((item, idx) => {
-                                const definition = itemDefinitions ? resolveItemDef(getTranslatedText(item.name, 'en'), itemDefinitions) : null;
-                                const emoji = pickIcon(definition, item);
-                                return <li key={idx} className="flex items-center gap-1"><IconRenderer icon={emoji} size={16} /> {getTranslatedText(item.name, language, t)} (x{item.quantity})</li>;
-                            })}
-                        </ul>
-                    </div>
-                )}
-                {chunk.enemy && (
-                    <div>
-                        <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><SwordIcon />{t('enemy')}:</h5>
-                        <p className="text-xs pl-5 flex items-center gap-1"><IconRenderer icon={chunk.enemy.emoji} size={16} /> {chunk.enemy.type ? getTranslatedText(chunk.enemy.type, language, t) : t('no_enemy_found')} (HP: {chunk.enemy.hp})</p>
-                    </div>
-                )}
-                {chunk.NPCs.length > 0 && (
-                     <div>
-                        <h5 className="font-semibold text-xs flex items-center gap-1.5 mb-1"><NpcIcon />{t('npcs')}:</h5>
-                        <ul className="space-y-1 text-xs pl-5">
-                            {chunk.NPCs.map((npc, idx) => <li key={idx}>{getTranslatedText(npc.name, language, t)}</li>)}
-                        </ul>
-                    </div>
-                )}
+    // Track transient visibility of enemy HP bars keyed by chunk coordinate
+    const [hpBarVisible, setHpBarVisible] = useState<Record<string, boolean>>({});
+    const hpBaseMap = useRef<Record<string, number>>({}); // stores observed max HP for percent calculations
+    const prevHpMap = useRef<Record<string, number>>({}); // stores last seen hp to detect changes
+
+    // Get viewport size early so cell sizing can depend on it
+    const viewportSize = (settings?.minimapViewportSize as 5 | 7 | 9) || 5;
+
+    // Fixed container size (w-80 h-80 = 320px × 320px)
+    // Cell size = containerSize / viewportSize (visible cells fill container)
+    const cellSizePx = 320 / viewportSize;
+
+    useEffect(() => {
+        if (grid?.length > 0) {
+            // Grid loaded
+        }
+    }, [grid, playerPosition, turn]);
+
+    // Track the most recent moveStart detail so overlay callbacks can dispatch
+    const lastOverlayDetailRef = useRef<any>(null);
+
+    // rAF pan animation state (NOT React state to avoid re-render)
+    const panAnimRef = useRef<{
+        active: boolean;
+        startTime: number | null;
+        duration: number;
+        fromX: number;
+        fromY: number;
+        toX: number;
+        toY: number;
+        rafId: number | null;
+    }>({
+        active: false,
+        startTime: null,
+        duration: 600,
+        fromX: 0,
+        fromY: 0,
+        toX: 0,
+        toY: 0,
+        rafId: null,
+    });
+
+    const prevAnimatingRef = useRef<boolean>(Boolean(isAnimatingMove));
+    const prevCenterRef = useRef<{ x: number; y: number } | null>(playerPosition);
+    // Prevent double-triggering pan when we initiate it at animation start
+    const panInProgressRef = useRef<boolean>(false);
+
+    // Track keys of tiles that are currently fading in from unexplored -> explored
+    const [fadingExplored, setFadingExplored] = useState<Record<string, boolean>>({});
+    const prevExploredRef = useRef<Record<string, boolean>>({});
+    const [externalFlyDuration, setExternalFlyDuration] = useState<number | null>(null);
+
+    // Main rAF effect: cleanup any pending RAF/timeouts
+    useEffect(() => {
+        // Pan animation disabled - grid is frozen during moves, no pan needed
+        return () => {
+            // Cleanup: cancel any pending rAF or timeout
+            if (panAnimRef.current.rafId) {
+                cancelAnimationFrame(panAnimRef.current.rafId as any);
+                panAnimRef.current.rafId = null;
+            }
+        };
+    }, []);
+
+    // Listen for moveStart events so we can begin panning immediately
+    useEffect(() => {
+        const onMoveStart = (ev: Event) => {
+            try {
+                const detail = (ev as CustomEvent).detail as any;
+                try { console.debug('[minimap] moveStart received', detail); } catch { }
+                if (!detail) return;
+                const target = detail.to as { x: number; y: number } | undefined;
+                if (!target) return;
+
+                // adopt external fly duration for overlay + pan
+                if (typeof detail.visualTotalMs === 'number') setExternalFlyDuration(detail.visualTotalMs);
+                // remember detail for overlay callbacks
+                lastOverlayDetailRef.current = detail;
+
+                // NO PAN ANIMATION NEEDED: Grid is already frozen to visualMoveTo in game-layout.tsx
+                // so the viewport doesn't need to move. Just dispatch completion event when overlay finishes.
+                // This prevents viewport jumping.
+
+                // Instead of pan animation, just wait for the animation duration and dispatch completion
+                const animDuration = typeof detail.visualTotalMs === 'number' ? Number(detail.visualTotalMs) : 600;
+
+                // Cancel previous timeout if any
+                const pan = panAnimRef.current;
+                if (pan.rafId) {
+                    cancelAnimationFrame(pan.rafId);
+                    pan.rafId = null;
+                }
+
+                // Schedule completion after animation duration
+                const timeoutId = setTimeout(() => {
+                    panInProgressRef.current = false;
+                    try {
+                        const detail = lastOverlayDetailRef.current;
+                        if (detail?.to) {
+                            prevCenterRef.current = { x: detail.to.x, y: detail.to.y };
+                            const ev = new CustomEvent('minimapPanComplete', { detail: { center: detail.to, id: detail.id } });
+                            try { console.info('[minimap] dispatch minimapPanComplete (after animation)', { center: detail.to, id: detail.id }); } catch { }
+                            window.dispatchEvent(ev as any);
+                        }
+                    } catch { }
+                }, animDuration);
+
+                // Store timeout ID for cleanup
+                pan.rafId = timeoutId as any;
+                panInProgressRef.current = true;
+            } catch { }
+        };
+        window.addEventListener('moveStart', onMoveStart as EventListener);
+        return () => window.removeEventListener('moveStart', onMoveStart as EventListener);
+    }, []);
+
+    // Watch for newly explored tiles and trigger a fade-in
+    useEffect(() => {
+        try {
+            const newFlags: Record<string, boolean> = {};
+            for (let r = 0; r < grid.length; r++) {
+                for (let c = 0; c < grid[r].length; c++) {
+                    const cell = grid[r][c];
+                    if (!cell) continue;
+                    const key = `${cell.x},${cell.y}`;
+                    const prev = prevExploredRef.current[key] || false;
+                    if (!prev && cell.explored) {
+                        newFlags[key] = true;
+                    }
+                    prevExploredRef.current[key] = !!cell.explored;
+                }
+            }
+            if (Object.keys(newFlags).length > 0) {
+                setFadingExplored(prev => ({ ...prev, ...newFlags }));
+                const id = setTimeout(() => {
+                    setFadingExplored(prev => {
+                        const copy = { ...prev };
+                        Object.keys(newFlags).forEach(k => delete copy[k]);
+                        return copy;
+                    });
+                }, 500);
+                return () => clearTimeout(id);
+            }
+        } catch {
+            // ignore
+        }
+    }, [grid, isAnimatingMove]);
+
+
+    if (!grid || grid.length === 0) {
+        logger.warn("[MINIMAP] No map data provided.");
+        return (
+            <div className="flex flex-col items-center gap-2">
+                <div className="grid border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-visible" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))' }}>
+                    {Array.from({ length: 49 }).map((_, i) => (
+                        <div key={i} className={cn("bg-map-empty border-r border-b border-dashed border-border/50")} style={{ width: cellSizePx, height: cellSizePx }} />
+                    ))}
+                </div>
+            </div>
+        )
+    }
+
+    // Calculate viewport clipping
+    const viewportRadius = Math.floor(viewportSize / 2);
+    const gridSize = grid.length;
+    const gridCenter = Math.floor(gridSize / 2);
+
+    // Function to check if tile is visible in viewport
+    const isViewportVisible = (rowIdx: number, colIdx: number): boolean => {
+        const distFromCenter = Math.max(
+            Math.abs(rowIdx - gridCenter),
+            Math.abs(colIdx - gridCenter)
+        );
+        return distFromCenter <= viewportRadius;
+    };
+
+    // compute overlay flight geometry
+    const overlayData = (() => {
+        if (!visualMoveFrom || !visualMoveTo || !isAnimatingMove) return null;
+        let fromRow = -1, fromCol = -1, toRow = -1, toCol = -1;
+        for (let r = 0; r < grid.length; r++) {
+            for (let c = 0; c < grid[r].length; c++) {
+                const cell = grid[r][c];
+                if (!cell) continue;
+                if (cell.x === visualMoveFrom.x && cell.y === visualMoveFrom.y) { fromRow = r; fromCol = c; }
+                if (cell.x === visualMoveTo.x && cell.y === visualMoveTo.y) { toRow = r; toCol = c; }
+            }
+        }
+        if (fromRow === -1 || fromCol === -1 || toRow === -1 || toCol === -1) return null;
+        const size = grid.length || 5;
+        const cellPct = 100 / size;
+        const left = `${fromCol * cellPct}%`;
+        const top = `${fromRow * cellPct}%`;
+        const width = `${cellPct}%`;
+        const height = `${cellPct}%`;
+        const dx = (toCol - fromCol) * 100;
+        const dy = (toRow - fromRow) * 100;
+        const flyDurationMs = externalFlyDuration ?? 500;
+        return { left, top, width, height, dx, dy, flyDurationMs };
+    })();
+
+    return (
+        <div className="flex flex-col items-center gap-2">
+            <div className="relative w-80 h-80">
+                {/* Grid container (relative to contain overlay) */}
+                <div
+                    data-minimap-container
+                    className={cn(
+                        "absolute inset-0 grid border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-hidden",
+                        "map-pan-anim"
+                    )}
+                    style={{
+                        gridTemplateColumns: `repeat(${grid?.length || 7}, 1fr)`,
+                        gridTemplateRows: `repeat(${grid?.length || 7}, 1fr)`,
+                        gap: '0px',
+                        ['--pan-x' as any]: '0px',
+                        ['--pan-y' as any]: '0px',
+                    }}
+                >
+                    {grid.map((row, rowIndex) =>
+                        row.map((cell, colIndex) => {
+                            const key = `${rowIndex}-${colIndex}`;
+                            const isVisible = isViewportVisible(rowIndex, colIndex);
+                            const refPos = (() => {
+                                if (isAnimatingMove) {
+                                    if (visualMoveTo) return visualMoveTo;
+                                    if (visualPlayerPosition) return visualPlayerPosition;
+                                }
+                                return playerPosition;
+                            })();
+                            const playerToShow = refPos;
+                            const isPlayerHere = playerToShow.x === cell?.x && playerToShow.y === cell?.y;
+                            const turnDifference = cell ? turn - cell.lastVisited : 0;
+                            const distanceFromPlayer = cell ? Math.max(
+                                Math.abs(cell.x - refPos.x),
+                                Math.abs(cell.y - refPos.y)
+                            ) : 999;
+                            const isInVisibleRange = distanceFromPlayer <= 1;
+                            const isFoggy = turnDifference > 75 && cell && cell.lastVisited !== 0; // Fog after 75 turns post-visit (3x prior)
+
+                            return (
+                                <MinimapCell
+                                    key={key}
+                                    cell={cell}
+                                    rowIndex={rowIndex}
+                                    colIndex={colIndex}
+                                    cellSizePx={cellSizePx}
+                                    isVisible={isVisible}
+                                    isPlayerHere={isPlayerHere}
+                                    isInVisibleRange={isInVisibleRange}
+                                    isFoggy={isFoggy}
+                                    turn={turn}
+                                    biomeDefinitions={biomeDefinitions}
+                                    fadingExplored={fadingExplored}
+                                    hpBarVisible={hpBarVisible}
+                                    hpBaseMap={hpBaseMap}
+                                    language={language}
+                                    t={t}
+                                    customItemDefinitions={undefined}
+                                    isAnimatingMove={isAnimatingMove}
+                                />
+                            );
+                        })
+                    )}
+                </div>
+                {/* PlayerOverlay positioned absolutely above grid with high z-index */}
+                {overlayData ? (
+                    <PlayerOverlay
+                        overlayData={overlayData}
+                        autoPlay={true}
+                        usePortal={false}
+                        onLanding={() => {
+                            try {
+                                const d = lastOverlayDetailRef.current;
+                                if (!d) return;
+                                const ev = new CustomEvent('playerOverlayLanding', { detail: { center: d.to, id: d.id } });
+                                window.dispatchEvent(ev as any);
+                            } catch { }
+                        }}
+                        onFinished={() => {
+                            try {
+                                const d = lastOverlayDetailRef.current;
+                                const ev = new CustomEvent('moveAnimationsFinished', { detail: { center: d?.to, id: d?.id } });
+                                window.dispatchEvent(ev as any);
+                            } catch { }
+                        }}
+                    />
+                ) : null}
             </div>
         </div>
     );
-};
-
-
-interface MinimapProps {
-    grid: (Chunk | null)[][];
-    playerPosition: { x: number; y: number };
-    turn: number;
-    biomeDefinitions: Record<string, BiomeDefinition>;
 }
 
-const biomeColors: Record<Terrain | 'empty', string> = {
-  forest: "bg-map-forest",
-  grassland: "bg-map-grassland",
-  desert: "bg-map-desert",
-  swamp: "bg-map-swamp",
-  mountain: "bg-map-mountain",
-  cave: "bg-map-cave",
-  jungle: "bg-map-jungle",
-  volcanic: "bg-map-volcanic",
-  floptropica: "bg-map-floptropica",
-  wall: "bg-map-wall",
-  tundra: "bg-map-tundra",
-  beach: "bg-map-beach",
-  mesa: "bg-map-mesa",
-  mushroom_forest: "bg-map-mushroom_forest",
-  ocean: "bg-map-ocean",
-  city: "bg-map-city",
-  space_station: "bg-map-space_station",
-  underwater: "bg-map-underwater",
-  empty: "bg-map-empty",
-};
+// Memoize with custom comparison: only rerender if grid, player position, or animation state changes
+// During animation, ignore turn changes - keep frozen grid
+export const MinimapMemoized = memo(Minimap, (prevProps, nextProps) => {
+    // Return true if props are equal (don't rerender), false if different (rerender)
+    const gridSame = prevProps.grid === nextProps.grid;
+    const playerPosSame = prevProps.playerPosition === nextProps.playerPosition;
+    const visualPlayerPosSame = prevProps.visualPlayerPosition === nextProps.visualPlayerPosition;
+    const animatingSame = prevProps.isAnimatingMove === nextProps.isAnimatingMove;
+    const visualMoveFromSame = prevProps.visualMoveFrom === nextProps.visualMoveFrom;
+    const visualMoveToSame = prevProps.visualMoveTo === nextProps.visualMoveTo;
+    const visualJustLandedSame = prevProps.visualJustLanded === nextProps.visualJustLanded;
+    // CRITICAL: During animation, IGNORE turn changes to prevent rerender
+    // Grid is frozen to visualMoveTo, so turn doesn't matter until animation completes
+    const turnSame = nextProps.isAnimatingMove ? true : (prevProps.turn === nextProps.turn);
 
+    const allSame = gridSame && playerPosSame && visualPlayerPosSame && animatingSame &&
+        visualMoveFromSame && visualMoveToSame && visualJustLandedSame && turnSame;
 
-
-
-export function Minimap({ grid, playerPosition, turn, biomeDefinitions }: MinimapProps) {
-    const { t, language } = useLanguage();
-    // Use clamp() so cell sizes scale down on smaller viewports and the full map can fit without panning
-    const responsiveCellSize = "w-[clamp(28px,6vw,48px)] h-[clamp(28px,6vw,48px)]";
-
-  useEffect(() => {
-    if (grid?.length > 0) {
-    }
-  }, [grid, playerPosition, turn]);
-
-
-  if (!grid || grid.length === 0) {
-    logger.warn("[MINIMAP] No map data provided.");
-    return (
-      <div className="flex flex-col items-center gap-2">
-        <div className="grid grid-cols-5 border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-visible">
-          {Array.from({ length: 25 }).map((_, i) => (
-             <div key={i} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex flex-col items-center gap-2">
-    <div className="grid grid-cols-5 border-l border-t border-dashed border-border/50 bg-black/20 rounded-md shadow-inner overflow-visible">
-        {grid.map((row, rowIndex) =>
-            row.map((cell, colIndex) => {
-              const key = `${rowIndex}-${colIndex}`;
-              
-              if (!cell) {
-                return <div key={key} className={cn(responsiveCellSize, "bg-map-empty border-r border-b border-dashed border-border/50")} />;
-              }
-              
-              const isPlayerHere = playerPosition.x === cell.x && playerPosition.y === cell.y;
-              const turnDifference = turn - cell.lastVisited;
-              // Calculate if the tile is within the 3x3 visibility radius
-              const distanceFromPlayer = Math.max(
-                Math.abs(cell.x - playerPosition.x),
-                Math.abs(cell.y - playerPosition.y)
-              );
-              const isInVisibleRange = distanceFromPlayer <= 1; // 1 tile radius for 3x3 area
-
-              // Shorter fog of war timing (25 turns)
-              const isFoggy = turnDifference > 25 && cell.lastVisited !== 0;
-
-              // Unexplored tiles should still be rendered but with a fog effect
-              if (!cell.explored) {
-                return (
-                    <Popover key={key}>
-                        <PopoverTrigger asChild>
-                            <div className={cn(
-                                responsiveCellSize, 
-                                "bg-map-empty/50 border-r border-b border-dashed border-border/50 flex items-center justify-center"
-                            )}>
-                                <span className="text-2xl opacity-20" title={t('unexploredArea') as string}>🌫️</span>
-                            </div>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80">
-                            <div className="p-2 text-sm text-muted-foreground">
-                                {t('unexploredAreaDesc')}
-                            </div>
-                        </PopoverContent>
-                    </Popover>
-                );
-              }
-              
-              // Tiles in fog of war show more detailed tooltips
-              if (isFoggy && !isInVisibleRange) {
-                 const tooltipMessages = [
-                    { vi: "Đã lâu bạn không đến đây, mọi thứ dường như đã thay đổi...", en: "It's been a while since you've been here, things might have changed..." },
-                    { vi: "Thời gian trôi qua khiến ký ức về nơi này trở nên mờ nhạt.", en: "Time has made your memories of this place fade." },
-                    { vi: "Sương mù dày đặc khiến bạn không thể nhớ rõ nơi này có gì.", en: "The thick fog makes it hard to remember what's here." }
-                 ];
-                 const randomMessage = tooltipMessages[Math.floor(Math.random() * tooltipMessages.length)];
-
-                 return (
-                    <Popover key={key}>
-                        <PopoverTrigger asChild>
-                            <div className={cn(
-                                responsiveCellSize, 
-                                "bg-map-empty border-r border-b border-dashed border-border/50 flex items-center justify-center"
-                            )}>
-                                <span className="text-2xl opacity-30" title={t('fogOfWarDesc') as string}>🌫️</span>
-                            </div>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80">
-                            <div className="p-2 space-y-2">
-                                <p className="text-sm text-muted-foreground">{language === 'vi' ? randomMessage.vi : randomMessage.en}</p>
-                                {cell.terrain && (
-                                    <p className="text-xs text-muted-foreground/70">
-                                        {t('lastKnownTerrain')}: {t(cell.terrain as any)}
-                                    </p>
-                                )}
-                            </div>
-                        </PopoverContent>
-                    </Popover>
-                );
-              }
-              
-                            const firstStructure = cell.structures && cell.structures.length > 0 ? (cell.structures[0] as any) : null;
-                            const structData = firstStructure?.data || firstStructure;
-                                            const lookupBiomeDef = (terrain: string | undefined) => {
-                                                if (!terrain) return undefined;
-                                                if (!biomeDefinitions) return undefined;
-                                                if (biomeDefinitions[terrain]) return biomeDefinitions[terrain];
-                                                const keyLower = String(terrain).toLowerCase();
-                                                if (biomeDefinitions[keyLower]) return biomeDefinitions[keyLower];
-                                                const underscored = keyLower.replace(/\s+/g, '_');
-                                                if (biomeDefinitions[underscored]) return biomeDefinitions[underscored];
-                                                return undefined;
-                                            };
-                                            const biomeDef = lookupBiomeDef(cell.terrain as string);
-                            const mainIcon = structData
-                                ? <IconRenderer icon={structData.emoji} size={28} className="text-3xl opacity-90 drop-shadow-lg" alt={getTranslatedText(structData.name, language, t)} />
-                                : (biomeDef?.emoji ? <IconRenderer icon={biomeDef.emoji} size={28} className="text-3xl opacity-90 drop-shadow-lg" alt={getTranslatedText(cell.terrain as any, language, t)} /> : null);
-
-              return (
-                 <Popover key={key}>
-                    <PopoverTrigger asChild>
-                        <div
-                            className={cn(
-                                responsiveCellSize,
-                                "relative transition-all duration-300 flex items-center justify-center p-1 cursor-pointer hover:ring-2 hover:ring-white border-r border-b border-dashed border-border/50",
-                                biomeColors[cell.terrain],
-                                isPlayerHere && "ring-2 ring-white shadow-lg z-10"
-                            )}
-                            aria-label={`Map cell at ${cell.x}, ${cell.y}. Biome: ${cell.terrain}`}
-                        >
-                            {mainIcon}
-                            
-                            {isPlayerHere && (
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <PlayerIcon />
-                                </div>
-                            )}
-                            
-                            {cell.NPCs.length > 0 && (
-                                <div className="absolute top-px right-px">
-                                    <NpcIcon />
-                                </div>
-                            )}
-                            
-                            {cell.enemy && (
-                                <div className="absolute bottom-px left-px">
-                                    <IconRenderer icon={cell.enemy.emoji} size={20} />
-                                </div>
-                            )}
-
-                            {cell.items.length > 0 && (
-                                <div className="absolute bottom-px right-px">
-                                    {/* Prefer item's emoji (which may be an image object) */}
-                                    <IconRenderer icon={cell.items[0].emoji} size={20} />
-                                </div>
-                            )}
-                        </div>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-80">
-                      <MapCellDetails chunk={cell} />
-                    </PopoverContent>
-                  </Popover>
-              );
-            })
-        )}
-        </div>
-    </div>
-  );
-}
+    return allSame;
+});

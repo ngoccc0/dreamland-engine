@@ -35,6 +35,7 @@ body {
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
+
   .dark {
     --background: 23 20% 10%;
     --foreground: 40 60% 89%;
@@ -67,6 +68,7 @@ body {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -76,8 +78,187 @@ body {
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
   .hide-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
+
+  /* Simple jump animation used for player avatar when moving */
+  @keyframes jump {
+    0% {
+      transform: translateY(0);
+    }
+
+    30% {
+      transform: translateY(-12px);
+    }
+
+    100% {
+      transform: translateY(0);
+    }
+  }
+
+  .animate-jump {
+    animation-name: jump;
+    animation-duration: 600ms;
+    animation-timing-function: cubic-bezier(.22, .9, .33, 1);
+    animation-fill-mode: both;
+  }
+
+  /* Player overlay flight/bounce styling */
+  .player-overlay {
+    position: absolute;
+    will-change: transform, left, top;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition-property: transform, opacity;
+    transition-timing-function: cubic-bezier(.22, .9, .33, 1);
+    /* duration will be set inline via style="--fly-duration: 500ms" */
+    transition-duration: var(--fly-duration, 500ms);
+    pointer-events: none;
+    z-index: 40;
+  }
+
+  .player-overlay.bounce {
+    /* Very short bounce after landing to avoid pre-flight popping; keep subtle */
+    animation: player-bounce 50ms cubic-bezier(.22, .9, .34, 1) 1;
+  }
+
+  /* Disable transition during active flight so animation is smooth */
+  .player-overlay.player-flying {
+    animation-name: flight-arc;
+    animation-duration: var(--fly-duration, 500ms);
+    animation-timing-function: cubic-bezier(.22, .9, .33, 1);
+    animation-fill-mode: both;
+    transition: none;
+  }
+
+  @keyframes player-bounce {
+    0% {
+      transform: translateY(0);
+    }
+
+    40% {
+      transform: translateY(-4px);
+    }
+
+    100% {
+      transform: translateY(0);
+    }
+  }
+
+  /* Flight arc for moving between tiles - UNIFIED lift + horizontal arc in single smooth motion */
+  /* Lift duration is ~150ms of the total animation, rest is horizontal flight */
+  /* Arc height adapts to movement direction: adds 20px arc regardless of vertical movement */
+  @keyframes flight-arc {
+    0% {
+      /* Start at ground level (0) */
+      transform: translate(0, 0);
+    }
+
+    15% {
+      /* ~0-63ms into animation: lift up to peak height (-20px above start) */
+      transform: translate(0, -20px);
+    }
+
+    50% {
+      /* ~210ms: at midpoint of both horizontal and vertical travel */
+      /* Peak of arc: interpolate both dx and dy, add 20px upward boost */
+      transform: translate(calc(var(--fly-dx, 0) * 0.5), calc(var(--fly-dy, 0) * 0.5 - 20px));
+    }
+
+    85% {
+      /* ~357ms: near destination, starting descent */
+      /* 85% of the way there horizontally and vertically */
+      transform: translate(calc(var(--fly-dx, 0) * 0.85), calc(var(--fly-dy, 0) * 0.85 - 8px));
+    }
+
+    100% {
+      /* Land at destination tile */
+      transform: translate(var(--fly-dx, 0), var(--fly-dy, 0));
+    }
+  }
+
+  .player-flying .player-arc {
+    /* Arc animation is now on parent; remove from child */
+  }
+
+  /* Initial lift phase (vertical only) */
+  .player-lift {
+    transform: translateY(var(--lift-y, -18px));
+    transition: transform var(--lift-duration, 150ms) cubic-bezier(.22, .9, .33, 1);
+  }
+
+  /* Fade-in for newly explored tiles during animation */
+  .fade-explored {
+    transition: opacity 400ms ease-in-out, filter 400ms ease-in-out, transform 400ms ease-in-out;
+    opacity: 0;
+    transform: scale(0.98);
+  }
+
+  .fade-explored.show {
+    opacity: 1;
+    filter: none;
+    transform: scale(1);
+  }
+
+  /* Pan animation: when recenter completes after landing make the map
+     shift from a small offset back to its final position so the recenter
+     feels more like a camera pan. Uses CSS variable --pan-x/--pan-y. */
+  @keyframes map-pan-in {
+    from {
+      transform: translate(var(--pan-x, 0px), var(--pan-y, 0px));
+    }
+
+    to {
+      transform: translate(0, 0);
+    }
+  }
+
+  .map-pan-anim {
+    /* Use rAF loop to update CSS vars, smooth 60fps panning */
+    transform: translate(var(--pan-x, 0px), var(--pan-y, 0px));
+    will-change: transform;
+  }
+
+  /* Craft success animation: pop and flash effect */
+  @keyframes craft-success-pop {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+
+    50% {
+      transform: scale(1.1);
+      opacity: 0.9;
+    }
+
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes craft-success-flash {
+    0% {
+      background-color: rgba(34, 197, 94, 0);
+    }
+
+    50% {
+      background-color: rgba(34, 197, 94, 0.3);
+    }
+
+    100% {
+      background-color: rgba(34, 197, 94, 0);
+    }
+  }
+
+  .craft-success-animate {
+    animation: craft-success-pop 0.6s cubic-bezier(0.36, 0, 0.66, -0.56),
+      craft-success-flash 0.8s ease-out;
   }
 }

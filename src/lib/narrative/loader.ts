@@ -32,7 +32,7 @@ export async function loadPrecomputedBundle(biome: string, locale = 'en'): Promi
   // Prefer IndexedDB cache (faster & larger). Fall back to localStorage on failure.
   try {
     // lazy-import cache to keep bundles small when not used
-     
+
     const cache = require('./cache').default as { get: (k: string) => Promise<any>; set: (k: string, v: any) => Promise<boolean>; del: (k: string) => Promise<boolean> };
     const saved = await cache.get(key);
     if (saved) return saved as PrecomputedBundle;
@@ -47,7 +47,7 @@ export async function loadPrecomputedBundle(biome: string, locale = 'en'): Promi
           localStorage.removeItem(key);
         }
       }
-      } catch {
+    } catch {
       // ignore
     }
   }
@@ -75,7 +75,7 @@ export async function loadPrecomputedBundle(biome: string, locale = 'en'): Promi
     }
     return json as PrecomputedBundle;
   } catch (e: any) {
-    console.warn('Failed to fetch precomputed bundle', url, String(e));
+    // Silently handle bundle fetch failure
     return null;
   }
 }

@@ -1,10 +1,10 @@
 
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import { useLanguage } from '@/context/language-context';
 import { applyTickEffects } from '@/lib/game/effect-engine';
-import type { PlayerStatusDefinition } from '@/lib/game/types';
+import type { PlayerStatusDefinition, NarrativeEntry } from '@/core/types/game';
 import { CreatureEngine } from '@/core/engines/creature-engine';
 import { PlantEngine } from '@/core/engines/plant-engine';
 import { EffectEngine } from '@/core/engines/effect-engine';
@@ -13,8 +13,10 @@ import { WeatherType, WeatherIntensity, WeatherCondition } from '@/core/types/we
 import { GridPosition } from '@/core/values/grid-position';
 import { useGameState } from "./use-game-state";
 import { useActionHandlers } from "./use-action-handlers";
-import { useGameEffects } from "./useGameEffects";
+import { useGameEffects } from "./use-game-effects";
 import { useSettings } from "@/context/settings-context"; // Import useSettings
+import { useAudioContext } from '@/lib/audio/AudioProvider';
+import { defaultGameConfig } from '@/lib/config/game-config';
 
 interface GameEngineProps {
     gameSlot: number;
@@ -40,6 +42,7 @@ export function useGameEngine(props: GameEngineProps) {
     const narrativeLogRef = useRef(gameState.narrativeLog || [] as any[]);
     const { t } = useLanguage();
     const { settings } = useSettings(); // Use settings context
+    const { playAmbienceForBiome, stopMusic } = useAudioContext();
 
     // Initialize creature engine
     const creatureEngineRef = useRef(new CreatureEngine(t));
@@ -153,46 +156,115 @@ export function useGameEngine(props: GameEngineProps) {
     // Initialize plant engine
     const plantEngineRef = useRef(new PlantEngine(t));
 
-    const addNarrativeEntry = (text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string) => {
+    const addNarrativeEntry = useCallback((text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string, animationMetadata?: NarrativeEntry['animationMetadata']) => {
         // Preserve explicit entryId when provided (placeholders use predictable ids).
         // If no id provided, generate a stable unique id.
-        const id = entryId ?? `${Date.now()}_${Math.random().toString(36).slice(2,9)}`;
-        const entry = { id, text, type } as any;
-        gameState.setNarrativeLog(prev => {
-            const arr = (prev || []);
-            const existingIdx = arr.findIndex((e: any) => e.id === id);
-            let next: any[];
-            if (existingIdx >= 0) {
-                // Replace existing entry in-place to avoid duplicates when updating placeholders
-                next = arr.map((e: any) => e.id === id ? { ...e, text: entry.text, type: entry.type } : e);
-            } else {
-                next = [...arr, entry];
-            }
-            // Defensive dedupe: keep last occurrence for each id (handles race conditions)
-            const deduped = Array.from(new Map(next.map((e: any) => [e.id, e])).values());
-            narrativeLogRef.current = deduped;
-            return deduped;
+        const id = entryId ?? `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+        const entry: NarrativeEntry = { id, text, type, isNew: true, ...(animationMetadata && { animationMetadata }) };
+
+        // Use microtask instead of flushSync to avoid React lifecycle warnings.
+        // This ensures state updates are processed immediately while being safe to call
+        // from inside lifecycle methods like useEffect.
+        Promise.resolve().then(() => {
+            gameState.setNarrativeLog(prev => {
+                const arr: NarrativeEntry[] = (prev || []);
+                const existingIdx = arr.findIndex((e: NarrativeEntry) => e.id === id);
+                let next: NarrativeEntry[];
+                if (existingIdx >= 0) {
+                    // Replace existing entry in-place to avoid duplicates when updating placeholders
+                    // Mark as isNew=false since this is an update, not a new entry
+                    next = arr.map((e: NarrativeEntry) => e.id === id ? { ...e, text: entry.text, type: entry.type, isNew: false, ...(animationMetadata && { animationMetadata }) } : e);
+                } else {
+                    next = [...arr, entry];
+                }
+                // Defensive dedupe: keep last occurrence for each id (handles race conditions)
+                const deduped: NarrativeEntry[] = Array.from(new Map(next.map((e: NarrativeEntry) => [e.id, e])).values());
+                narrativeLogRef.current = deduped;
+                return deduped;
+            });
         });
-    };
+    }, [gameState]);
 
     const advanceGameTime = (stats?: any) => {
         const currentTurn = gameState.turn || 0;
 
-        gameState.setGameTime(prev => {
-                const next = prev + (settings as any).timePerTurn; // Use timePerTurn from settings
-                if (next >= (settings as any).dayDuration) { // Use dayDuration from settings
-                    gameState.setDay(d => d + 1);
-                    gameState.setTurn(t => t + 1);
-                    return next % (settings as any).dayDuration; // Use dayDuration from settings
+        // Apply any pending creature updates from the previous turn
+        const pending = creatureEngineRef.current.applyPendingUpdates();
+        const pendingMessages = pending.messages || [];
+        const pendingUpdates = pending.updates || [];
+
+        for (const message of pendingMessages) {
+            // If the creature produced damage to the player, apply it to React state here
+            if (message.meta && typeof message.meta.playerDamage === 'number') {
+                const damage = message.meta.playerDamage as number;
+                // Use gameState.setPlayerStats (returned from useGameState) to update React state
+                if (typeof gameState.setPlayerStats === 'function') {
+                    gameState.setPlayerStats((prev: any) => ({ ...(prev || {}), hp: Math.max(0, (prev?.hp || 0) - damage) }));
+                }
             }
-            gameState.setTurn(t => t + 1);
-            return next;
+
+            // Add narrative/system entries as before
+            addNarrativeEntry(message.text, message.type as any);
+        }
+
+        // Sync creature position updates into the world/chunk map so UI and handlers see movement
+        if (pendingUpdates.length > 0) {
+            try {
+                gameState.setWorld((prev: any) => {
+                    const nw = { ...(prev || {}) };
+                    for (const u of pendingUpdates) {
+                        const prevKey = u.prevPosition ? `${u.prevPosition.x},${u.prevPosition.y}` : undefined;
+                        const newKey = `${u.newPosition.x},${u.newPosition.y}`;
+
+                        // Remove enemy from previous chunk if moved across tiles, but only when it matches the same creature id
+                        if (prevKey && prevKey !== newKey && nw[prevKey] && nw[prevKey].enemy) {
+                            try {
+                                const existingId = (nw[prevKey].enemy as any)?.id;
+                                if (!existingId || existingId === u.creatureId) {
+                                    delete nw[prevKey].enemy;
+                                }
+                            } catch { }
+                        }
+
+                        // Prepare enemy data for world (strip runtime-only fields)
+                        const raw = { ...(u.creature as any) };
+                        delete raw.position;
+                        delete raw.currentChunk;
+                        delete raw.lastMoveTick;
+                        delete raw.targetPosition;
+                        delete raw.currentBehavior;
+                        delete raw._prevPosition;
+
+                        // Persist stable id so world chunk keeps identity
+                        try { raw.id = u.creatureId; } catch { }
+
+                        // Ensure destination chunk exists in world
+                        if (!nw[newKey]) {
+                            nw[newKey] = { x: u.newPosition.x, y: u.newPosition.y, items: [], actions: [], structures: [] };
+                        }
+
+                        nw[newKey] = { ...(nw[newKey] || {}), enemy: raw };
+                    }
+                    return nw;
+                });
+            } catch (err) {
+                // Silently handle creature sync failures
+            }
+        }
+
+        gameState.setGameTime(prev => {
+            const next = prev + ((settings as any).timePerTurn || 15); // Use timePerTurn from settings, default 15
+            if (next >= (settings as any).dayDuration) { // Use dayDuration from settings
+                gameState.setDay(d => d + 1);
+            }
+            gameState.setTurn(t => t + 1); // Increment turn once per tick
+            return next % (settings as any).dayDuration; // Use dayDuration from settings
         });
 
         // If caller provided a candidate stats object, apply per-tick effects
         if (stats) {
             const newStats = { ...stats } as PlayerStatusDefinition;
-            const { newStats: updated, messages } = applyTickEffects(newStats, currentTurn, t);
+            const { newStats: updated, messages } = applyTickEffects(newStats, currentTurn, t, defaultGameConfig);
             for (const m of messages) addNarrativeEntry(m.text, m.type);
             gameState.setPlayerStats(() => updated);
         }
@@ -209,7 +281,7 @@ export function useGameEngine(props: GameEngineProps) {
                     weatherEngineRef.current.applyWeatherEffects(playerCurrentCell, gameState.playerStats);
                 }
             } catch {
-                console.warn('World getCellAt method not available or failed, skipping weather effects');
+                // Silently handle world method unavailability
             }
         }
 
@@ -236,7 +308,6 @@ export function useGameEngine(props: GameEngineProps) {
                 }
             } catch {
                 // Fallback to just current chunk if world methods are not available
-                console.warn('World getChunksInArea method not available, attempting per-cell getCellAt fallback for visibleChunks');
                 // Try to fill visibleChunks by querying getCellAt for each coordinate in viewRadius
                 if (gameState.world && typeof gameState.world.getCellAt === 'function' && gameState.currentChunk) {
                     const cx = gameState.currentChunk.x;
@@ -255,18 +326,32 @@ export function useGameEngine(props: GameEngineProps) {
                         }
                     }
                 } else {
-                    console.warn('World getCellAt not available; visibleChunks will contain only currentChunk');
+                    // visibleChunks will contain only currentChunk
                 }
             }
         }
 
-            // Update plants in visible area
-            try {
-                const plantMessages = plantEngineRef.current.updatePlants(currentTurn, visibleChunks, gameState.currentSeason, gameState.worldProfile);
-                for (const m of plantMessages) addNarrativeEntry(m.text, m.type);
-            } catch (err: any) {
-                console.warn('PlantEngine update failed', err);
+        // Register creatures found in visibleChunks so CreatureEngine can simulate them.
+        try {
+            for (const [chunkKey, chunk] of visibleChunks) {
+                if (chunk && chunk.enemy) {
+                    const creatureId = `creature_${chunk.x}_${chunk.y}`;
+                    if (!creatureEngineRef.current.getCreature(creatureId)) {
+                        creatureEngineRef.current.registerCreature(creatureId, chunk.enemy, new GridPosition(chunk.x, chunk.y), chunk);
+                    }
+                }
             }
+        } catch (err) {
+            // Silently handle creature registration failures
+        }
+
+        // Update plants in visible area
+        try {
+            const plantMessages = plantEngineRef.current.updatePlants(currentTurn, visibleChunks, gameState.currentSeason, gameState.worldProfile);
+            for (const m of plantMessages) addNarrativeEntry(m.text, m.type);
+        } catch (err: any) {
+            // Silently handle plant updates; world continues
+        }
 
         const creatureMessages = creatureEngineRef.current.updateCreatures(
             currentTurn,
@@ -280,7 +365,7 @@ export function useGameEngine(props: GameEngineProps) {
             addNarrativeEntry(message.text, message.type);
         }
     };
-    
+
     // This effect ensures that whenever the narrativeLog changes, we scroll to the bottom.
     // The dependency array [gameState.narrativeLog] triggers the effect on every new entry.
     useEffect(() => {
@@ -301,7 +386,40 @@ export function useGameEngine(props: GameEngineProps) {
             }, 50);
         }
     }, [gameState.narrativeLog]);
-    
+
+    // This effect stops menu music and starts ambience when the game loads.
+    useEffect(() => {
+        if (gameState.isLoaded && gameState.world && typeof gameState.world.getCellAt === 'function') {
+            // Stop any menu music
+            stopMusic();
+            // Start ambience for current biome
+            try {
+                const playerPosition = new GridPosition(gameState.playerPosition.x, gameState.playerPosition.y);
+                const playerCurrentCell = gameState.world.getCellAt(playerPosition);
+                if (playerCurrentCell && playerCurrentCell.terrain) {
+                    playAmbienceForBiome(playerCurrentCell.terrain);
+                }
+            } catch {
+                console.warn('Failed to get current biome for ambience music');
+            }
+        }
+    }, [gameState.isLoaded, gameState.world, gameState.playerPosition.x, gameState.playerPosition.y, stopMusic, playAmbienceForBiome]);
+
+    // This effect triggers ambience music when the player enters a new biome.
+    useEffect(() => {
+        if (gameState.world && typeof gameState.world.getCellAt === 'function') {
+            try {
+                const playerPosition = new GridPosition(gameState.playerPosition.x, gameState.playerPosition.y);
+                const playerCurrentCell = gameState.world.getCellAt(playerPosition);
+                if (playerCurrentCell && playerCurrentCell.terrain) {
+                    playAmbienceForBiome(playerCurrentCell.terrain);
+                }
+            } catch {
+                // Silently handle biome fetch
+            }
+        }
+    }, [gameState.playerPosition.x, gameState.playerPosition.y, gameState.world, playAmbienceForBiome]);
+
 
     const actionHandlers = useActionHandlers({
         ...gameState,
@@ -317,7 +435,7 @@ export function useGameEngine(props: GameEngineProps) {
         advanceGameTime,
         gameSlot: props.gameSlot,
     } as any);
-    
+
     return {
         ...gameState,
         ...actionHandlers,

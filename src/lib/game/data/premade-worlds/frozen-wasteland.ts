@@ -6,7 +6,7 @@
  * to prevent them from appearing in other, less hostile game worlds.
  */
 import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
-import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
+import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/core/types/game';
 
 const frozenWastelandItems: GeneratedItem[] = [
     { id: 'insulated_canvas', name: { en: 'Insulated Canvas', vi: 'Vải Bố Cách Nhiệt' }, description: { en: 'Thick canvas, patched together to offer some protection against the biting cold.', vi: 'Vải bạt dày, được vá lại với nhau để bảo vệ khỏi cái lạnh cắt da.' }, emoji: '🧣', category: 'Material', tier: 2, effects: [], baseQuantity: { min: 1, max: 2 }, spawnEnabled: false },

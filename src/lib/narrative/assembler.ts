@@ -1,5 +1,5 @@
 import { getTranslatedText } from '@/lib/utils';
-import type { Language } from '@/lib/game/types';
+import type { Language } from '@/core/types/game';
 import type Lexicon from './lexicon';
 import type { RNG } from './rng';
 

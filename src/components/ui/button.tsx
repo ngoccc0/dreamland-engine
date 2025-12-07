@@ -5,6 +5,8 @@ import { cva } from "class-variance-authority"
 import type { VariantProps } from 'class-variance-authority'
 
 import { cn } from "@/lib/utils"
+import { useAudio } from '@/lib/audio/useAudio';
+import { AudioActionType } from '@/lib/definitions/audio-events';
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
@@ -38,18 +40,34 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  VariantProps<typeof buttonVariants> {
   asChild?: boolean
+  // when true, this button will not play the default UI click SFX
+  noSfx?: boolean
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, onClick, noSfx = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
+    const audio = useAudio();
+
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      try {
+        if (typeof onClick === 'function') onClick(e as any);
+      } catch (err) {
+        // ignore handler error here so sfx still attempts to play
+      }
+      try {
+        if (!noSfx) audio.playSfxForAction?.(AudioActionType.UI_BUTTON_CLICK);
+      } catch { }
+    };
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         {...props}
+        // prefer our wrapped click so we can play a UI sfx automatically
+        onClick={handleClick as any}
       />
     )
   }

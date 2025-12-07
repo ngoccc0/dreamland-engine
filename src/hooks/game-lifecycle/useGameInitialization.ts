@@ -9,7 +9,7 @@ import { recipes as staticRecipes } from '@/lib/game/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
 import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
 import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
-import type { GameState, PlayerStatusDefinition, WorldDefinition, GeneratedItem, Recipe, ItemDefinition } from '@/lib/game/types';
+import type { GameState, PlayerStatusDefinition, WorldDefinition, GeneratedItem, Recipe, ItemDefinition } from '@/core/types/game';
 import { logger } from '@/lib/logger';
 import { getTranslatedText, ensurePlayerItemId } from '@/lib/utils';
 import { normalizePlayerStatus } from '@/lib/game/normalize';
@@ -177,9 +177,10 @@ export function useGameInitialization(deps: GameInitializationDeps) {
         if (Array.isArray(normalizedStats.items) && normalizedStats.items.length > 0) {
           normalizedStats.items = normalizedStats.items.map((it: any) => ensurePlayerItemId(it, finalDefs, t, language));
         }
-        setPlayerStats(() => normalizedStats);
-        setFinalWorldSetup(() => stateToInitialize.worldSetup);
-        setPlayerPosition(stateToInitialize.playerPosition || { x: 0, y: 0 });
+  setPlayerStats(() => normalizedStats);
+  setFinalWorldSetup(() => stateToInitialize.worldSetup);
+  try { logger.debug('[GameInit] initializing playerPosition', { pos: stateToInitialize.playerPosition || { x: 0, y: 0 }, at: Date.now() }); } catch {}
+  setPlayerPosition(stateToInitialize.playerPosition || { x: 0, y: 0 });
         setPlayerBehaviorProfile(stateToInitialize.playerBehaviorProfile || { moves: 0, attacks: 0, crafts: 0, customActions: 0 });
 
         let worldSnapshot: Record<string, any> = stateToInitialize.world || {};
@@ -221,11 +222,18 @@ export function useGameInitialization(deps: GameInitializationDeps) {
           const region = regionsSnapshot[Number(regionId)];
           if (region) {
             const initialWeather = generateWeatherForZone(region.terrain, stateToInitialize!.currentSeason);
+            // Schedule the next weather change in game "turns". duration_range is expressed in turns,
+            // so pick a random value between min and max (inclusive) and add it to the current gameTime.
+            // Previous code mistakenly multiplied only the minimum by 10 which mixed units and produced
+            // unexpectedly short/long schedules.
+            const minDur = initialWeather.duration_range[0];
+            const maxDur = initialWeather.duration_range[1];
+            const randDur = Math.floor(Math.random() * (maxDur - minDur + 1));
             weatherZonesSnapshot[regionId] = {
               id: regionId,
               terrain: region.terrain,
               currentWeather: initialWeather,
-              nextChangeTime: (stateToInitialize!.gameTime || 360) + Math.floor(Math.random() * (initialWeather.duration_range[1] - initialWeather.duration_range[0] + 1)) + initialWeather.duration_range[0] * 10
+              nextChangeTime: (stateToInitialize!.gameTime || 360) + (minDur + randDur)
             };
             logger.debug('[GameInit] Generated weather for region', {
               regionId,

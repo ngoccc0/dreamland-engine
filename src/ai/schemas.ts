@@ -12,8 +12,8 @@ import {z} from 'genkit';
 import { ItemDefinitionSchema, ItemCategorySchema, ItemEffectSchema, PlayerAttributesSchema, SpawnConditionsSchema, RecipeSchema, RecipeResultSchema, RecipeIngredientSchema, StructureDefinitionSchema, CreatureDefinitionSchema, TranslatableStringSchema } from '@/lib/game/definitions';
 
 import { LanguageEnum as Language } from '@/lib/i18n'; // Correct import and alias to Language
-import type { TranslatableString } from '@/lib/game/types';
-import { allTerrains, SoilTypeEnum } from '@/lib/game/types'; // Import allTerrains and SoilTypeEnum
+import type { TranslatableString } from '@/core/types/game';
+import { allTerrains, SoilTypeEnum } from '@/core/types/game'; // Import allTerrains and SoilTypeEnum
 // Re-export the canonical terrain list so AI flows can import it from this adapter
 export { allTerrains };
 

@@ -6,7 +6,7 @@
  * combat or consumption. Some tools may double as weak weapons.
  */
 
-import type { ItemDefinition } from "../../definitions/item";
+import type { ItemDefinition } from '@/core/types/definitions/item';
 
 export const toolItems: Record<string, ItemDefinition> = {
     'whetstone': {
@@ -77,6 +77,36 @@ export const toolItems: Record<string, ItemDefinition> = {
         tier: 1,
         category: 'Tool',
         emoji: '🏮',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
+    },
+    'hoe': {
+        name: { en: 'Hoe', vi: 'Cuốc' },
+        description: { en: 'A simple hoe for preparing soil for planting.', vi: 'Một cái cuốc đơn giản để chuẩn bị đất trồng.' },
+        tier: 1,
+        category: 'Tool',
+        emoji: '🪓',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
+    },
+    'watering_can': {
+        name: { en: 'Watering Can', vi: 'Bình Tưới' },
+        description: { en: 'A watering can to irrigate nearby soil.', vi: 'Một bình tưới để tưới đất xung quanh.' },
+        tier: 1,
+        category: 'Tool',
+        emoji: '🪣',
+        effects: [],
+        baseQuantity: { min: 1, max: 1 },
+        spawnEnabled: false,
+    },
+    'fertilizer_compost': {
+        name: { en: 'Compost', vi: 'Phân Hữu Cơ' },
+        description: { en: 'Compost to enrich soil nutrition.', vi: 'Phân hữu cơ giúp tăng dinh dưỡng đất.' },
+        tier: 1,
+        category: 'Consumable',
+        emoji: '🧴',
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: false,

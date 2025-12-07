@@ -1,6 +1,6 @@
 
 
-import type { BiomeTemplateData, Language, NarrativeLength } from '@/lib/game/types';
+import type { BiomeTemplateData, Language, NarrativeLength } from '@/core/types/game';
 import { validateBiomeTemplatesRecord } from '../schemas/narrativeSchema';
 
 // This file holds structured narrative templates and keyword variations.
@@ -46,7 +46,7 @@ export function selectByRange(map: { [key: string]: string[] }, value: number | 
 const keyword_variations_vi: PlaceholderMap = {
     // CREATURE BEHAVIORS 
     creatureEating: ["{{creature}} gặm nhấm thảm thực vật", "{{creature}} đang kiếm ăn", "{{creature}} nhai nuốt lá cây"],
-    creatureHungry: ["{{creature}} có vẻ đang đói", "{{creature}} tìm kiếm thức ăn quanh đây", "{{creature}} ngó nghiêng tìm thức ăn"],
+    creatureHungry: ["{{creature}} có vẻ đang đói", "{{creature}} tìm kiếm thức ăn quanh đây", "{{creature}} ngó nghiêng tìm thức ải"],
     
     // DANGER & THREATS
     danger_feeling_high: ["nguy hiểm rình rập", "bất an sâu sắc", "rờn rợn đến sống lưng"],
@@ -82,7 +82,7 @@ const keyword_variations_vi: PlaceholderMap = {
   swamp_continuation: ["Bạn tiếp tục mò qua đầm lầy; bùn vẫn nhão dưới chân.", "Bạn bước tiếp, tiếng vo ve không dứt.", "Bạn vẫn di chuyển giữa lớp sương mỏng của đầm lầy."],
   mountain_continuation: ["Bạn tiếp tục leo lên sườn núi, hơi thở vẫn gấp.", "Bạn tiếp tục vượt qua những mỏm đá, không thấy dấu hiệu khác.", "Bạn tiếp tục bước lên đỉnh cao, cảm giác mệt mỏi theo từng bước."],
   tundra_continuation: ["Bạn tiếp tục băng qua đồng băng, gió lạnh không thay đổi.", "Bạn tiếp tục bước trên băng giá; cảnh vật trắng xoá.", "Bạn vẫn đi trong cái lạnh, không có gì khác lạ."],
-  cave_continuation: ["Bạn tiếp tục dò dẫm trong hang; tiếng giọt nước vẫn văng vẳng.", "Bạn bước thêm chút nữa trong bóng tối, cảm giác yên tĩnh vẫn vậy.", "Bạn vẫn len lỏi qua những hành lang đá, im lặng xung quanh."],
+  cave_continuation: ["Bạn tiếp tục dò dẫm trong hang; tiếng giọt nước vẫn văng vảng.", "Bạn bước thêm chút nữa trong bóng tối, cảm giác yên tĩnh vẫn vậy.", "Bạn vẫn len lỏi qua những hành lang đá, im lặng xung quanh."],
   // Additional biome monologue pools (VI)
   beach_monologue: ["Không khí mặn khiến tôi mệt.", "Tiếng sóng êm nhưng tôi mệt dần.", "Cát làm chân tôi nặng nề.", "Nên trú bóng mát một lát."],
   desert_monologue: ["Cái nóng rút cạn sức lực.", "Mặt trời thiêu đốt không ngừng.", "Nước có vẻ xa vời.", "Nên giữ sức và tìm bóng râm."],
@@ -151,7 +151,7 @@ const keyword_variations_en: PlaceholderMap = {
 export const biomeNarrativeTemplates: Record<string, BiomeTemplateData> = {
   "Jungle": {
     terrain: "Jungle",
-    emoji: { type: 'image', url: '/assets/images/jungle.png' },
+  emoji: { type: 'image', url: '/asset/images/jungle.png' },
     descriptionTemplates: [
       {
         id: "jungle_opening_gloomy",
@@ -257,7 +257,7 @@ export const biomeNarrativeTemplates: Record<string, BiomeTemplateData> = {
   },
   "grassland": {
     terrain: "grassland",
-    emoji: { type: 'image', url: '/assets/images/grass_field.png' },
+  emoji: { type: 'image', url: '/asset/images/grass_field.png' },
     descriptionTemplates: [
       {
         id: "grassland_opening_vast",
@@ -266,7 +266,7 @@ export const biomeNarrativeTemplates: Record<string, BiomeTemplateData> = {
         length: "medium",
         conditions: {"lightLevel": {"min": 5}},
         weight: 0.8,
-        template: "Bạn bước vào một cánh đồng cỏ {{adjective_vast}} trải dài vô tận, nơi bầu trời {{sky_vast}} mở rộng trên đầu. Không khí {{temp_detail}} và {{moisture_detail}} mang theo {{smell_vast}}."
+        template: "{{narrative.grassland_opening_vast}}"
       },
       {
         id: "grassland_opening_windy",
@@ -275,7 +275,7 @@ export const biomeNarrativeTemplates: Record<string, BiomeTemplateData> = {
         length: "long",
         conditions: {"lightLevel": {"min": 5}},
         weight: 0.7,
-        template: "Gió {{wind_adj}} lướt qua những ngọn cỏ {{grass_adj}} cao, tạo nên những làn sóng xanh rì rào khắp không gian. Bạn cảm nhận được {{feeling_windy}} khi đứng giữa {{grassland_feature}}."
+        template: "{{narrative.grassland_opening_windy}}"
       },
       {
         id: "grassland_sensory_detail_calm",

@@ -1,5 +1,3 @@
-
-'use server';
 /**
  * An AI agent for dynamically generating new quests after one is completed.
  *
@@ -81,7 +79,7 @@ const generateNewQuestFlow = ai.defineFlow(
                 console.warn(`[generateNewQuest] Model '${model}' failed. Trying next...`);
             }
         }
-        
+
         console.error("All AI models failed for new quest generation.", lastError);
         throw lastError || new Error("AI failed to generate a new quest.");
     }

@@ -5,7 +5,7 @@
  * `itemDefinitions` object. This approach supports easy expansion and modding.
  */
 
-import type { ItemDefinition } from "./types";
+import type { ItemDefinition } from "@/core/types/game";
 import { dataItems } from "./data/items/data";
 import { equipmentItems } from "./data/items/equipment";
 import { foodItems } from "./data/items/food";

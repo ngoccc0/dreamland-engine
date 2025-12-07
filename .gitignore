@@ -51,3 +51,30 @@ env/
 
 # TypeScript build info
 tsconfig.tsbuildinfo
+
+# Temporary/Generated Documentation Files
+AUTONOMOUS_EXECUTION_SUMMARY.md
+PHASE_*.md
+COMPLETION_*.md
+PHASES_*.md
+KE_HOACH_TOAN_BO.md
+QUICK_REFERENCE.md
+
+# Internal development/planning directories
+.clinerules/
+.github/prompts/
+
+# Build and Test Artifacts
+build-log.txt
+test-output.txt
+response.html
+temp_minimap.txt
+debug-minimap.js
+
+# ESLint Reports
+eslint-report.json
+eslint-report.tmp.json
+eslint-compact.txt
+
+# TypeDoc Debug
+typedoc.debug.json

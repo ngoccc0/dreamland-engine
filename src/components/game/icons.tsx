@@ -1,10 +1,35 @@
+import React from 'react';
+
 // Helper: render emoji or image file (dùng lại cho mọi thành phần)
-export function renderItemEmoji(emoji: string, size: number = 20) {
-  if (!emoji) return null;
-  if (/^[^./\\]{1,3}$/.test(emoji)) {
-    return <span>{emoji}</span>;
+export function renderItemEmoji(emoji: any, size: number = 20) {
+  if (emoji === null || emoji === undefined) return null;
+
+  // If it's a React element, return as-is
+  if (React.isValidElement(emoji)) return emoji;
+
+  // If it's an object that describes an image, try common fields
+  if (typeof emoji === 'object') {
+    const src = (emoji.src || emoji.url || emoji.file || emoji.path || emoji.image) as string | undefined;
+    if (src) {
+      const href = typeof src === 'string' && src.startsWith('/') ? src : `/asset/${String(src)}`;
+      return <img src={href} alt="icon" style={{ width: size, height: size, display: 'inline-block', verticalAlign: 'middle' }} />;
+    }
+    // fallback to nested string like { emoji: '🪙' }
+    if (typeof (emoji as any).emoji === 'string') return renderItemEmoji((emoji as any).emoji, size);
+    return null;
   }
-  return <img src={emoji.startsWith('/') ? emoji : `/assets/${emoji}`} alt="icon" style={{ width: size, height: size, display: 'inline-block', verticalAlign: 'middle' }} />;
+
+  // If it's a string short token, render inline; otherwise treat as asset path
+  if (typeof emoji === 'string') {
+    if (/^[^./\\]{1,3}$/.test(emoji)) {
+      return <span>{emoji}</span>;
+    }
+    const href = emoji.startsWith('/') ? emoji : `/asset/${emoji}`;
+    return <img src={href} alt="icon" style={{ width: size, height: size, display: 'inline-block', verticalAlign: 'middle' }} />;
+  }
+
+  // Fallback: stringify
+  return <span>{String(emoji)}</span>;
 }
 // Re-export Lucide icons for a single point of management
 export {
@@ -52,6 +77,9 @@ export {
   BaggageClaim,
   ListTodo,
   Beef,
+  PersonStanding,
+  Minus,
+  Plus,
 } from 'lucide-react';
 
 
@@ -71,10 +99,10 @@ export function EnemyIcon({ emoji, size = 20 }: { emoji: string, size?: number }
 export function SwordIcon() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14.5 17.5l-8-8"/>
-        <path d="M5 3l16 16"/>
-        <path d="M17 3l4 4"/>
-        <path d="M3 17l4 4"/>
+      <path d="M14.5 17.5l-8-8" />
+      <path d="M5 3l16 16" />
+      <path d="M17 3l4 4" />
+      <path d="M3 17l4 4" />
     </svg>
   );
 }

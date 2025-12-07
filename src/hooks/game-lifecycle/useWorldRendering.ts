@@ -5,7 +5,7 @@
 import { useEffect } from 'react';
 import { getEffectiveChunk } from '@/lib/game/engine/generation';
 import { useSettings } from '@/context/settings-context';
-import type { GameState, Chunk } from "@/lib/game/types";
+import type { GameState, Chunk } from "@/core/types/game";
 
 /**
  * @typedef {object} WorldRenderingDeps

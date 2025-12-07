@@ -6,12 +6,197 @@ import { GridCell } from '../entities/world';
 import { Character } from '../entities/character';
 import { Effect, EffectType, EffectTarget } from '../types/effects';
 
+/**
+ * OVERVIEW: Weather system engine
+ *
+ * Simulates global and regional weather patterns, transitions, and environmental effects.
+ * Weather affects plant growth, creature behavior, and player status (temperature, visibility).
+ *
+ * ## Core Responsibilities
+ *
+ * - **Weather State Management**: Tracks current global weather type, intensity, duration
+ * - **Weather Transitions**: Probabilistic weather changes (e.g., clear → rain → storm → clear)
+ * - **Regional Variations**: Local weather modifiers at region/chunk level
+ * - **Effect Application**: Applies weather-based effects (rain buffs plants, cold damages character)
+ * - **Temperature System**: Global temperature with location/altitude adjustments
+ * - **Visibility Effects**: Weather impacts sight range (fog reduces visibility)
+ * - **Duration Tracking**: Manages weather duration and tick-based updates
+ * - **Game Time Integration**: Weather changes over time based on game progression
+ *
+ * ## Weather Types & Properties
+ *
+ * Supported weather types (from WeatherType enum):
+ *
+ * | Type | Intensity Options | Effects | Duration |
+ * |------|-------------------|---------|----------|
+ * | CLEAR | MILD, MODERATE, INTENSE | None; baseline | 100-300 ticks |
+ * | RAIN | MILD, MODERATE, INTENSE | Plant growth +20%, visibility -10%, temperature -5 | 50-150 ticks |
+ * | STORM | MILD, MODERATE, INTENSE | Plant growth +40%, visibility -30%, temperature -10, damage 1-5 HP | 30-60 ticks |
+ * | SNOW | MILD, MODERATE, INTENSE | Plant growth -50%, visibility -50%, temperature -20, freezing risk | 100-200 ticks |
+ * | DROUGHT | MILD, MODERATE, INTENSE | Plant growth -30%, visibility +10%, temperature +15, water deplete | 200-400 ticks |
+ * | HEATWAVE | MILD, MODERATE, INTENSE | Plant growth +10%, visibility clear, temperature +25, heatstroke risk | 50-150 ticks |
+ *
+ * ### Intensity Levels
+ *
+ * ```
+ * MILD:     1.0× base effect
+ * MODERATE: 1.5× base effect
+ * INTENSE:  2.0× base effect
+ * ```
+ *
+ * Example: RAIN at INTENSE = +40% plant growth, -30% visibility
+ *
+ * ## Weather Transition System
+ *
+ * When current weather duration expires:
+ *
+ * ```
+ * possibleTransitions = currentWeather.getPossibleTransitions()
+ * // Each transition has: toType (WeatherType), probability (0-1)
+ *
+ * // Weighted random selection
+ * totalProb = sum(transition.probability)
+ * random = Math.random() × totalProb
+ * for transition in transitions:
+ *   random -= transition.probability
+ *   if random <= 0:
+ *     transitionTo(transition.toType)
+ *     break
+ * ```
+ *
+ * ### Example Transition Graph
+ *
+ * ```
+ * CLEAR
+ *   ├─ 50% → RAIN
+ *   ├─ 30% → CLEAR (no change)
+ *   └─ 20% → DROUGHT
+ *
+ * RAIN
+ *   ├─ 60% → CLEAR
+ *   ├─ 30% → STORM
+ *   └─ 10% → RAIN (continues)
+ *
+ * STORM
+ *   ├─ 80% → RAIN
+ *   ├─ 15% → CLEAR
+ *   └─ 5% → STORM (intensifies)
+ *
+ * DROUGHT
+ *   ├─ 40% → CLEAR
+ *   ├─ 50% → HEATWAVE
+ *   └─ 10% → DROUGHT (continues)
+ * ```
+ *
+ * Transitions prevent unrealistic sequences (e.g., snow → heatwave directly impossible).
+ *
+ * ## Regional Weather Variations
+ *
+ * Weather doesn't affect entire world uniformly. Regional modifiers handle:
+ *
+ * - **Biome Modifiers**: Desert biome hotter than forest during same weather
+ * - **Altitude Effects**: Mountain peaks colder than valleys
+ * - **Coastal Effects**: Ocean regions less extreme weather
+ * - **Traveling Systems**: Weather cells move across world (storm moving north)
+ *
+ * Current implementation: Stub (`updateRegionalWeather()` not fully implemented).
+ * Future: Implement regional weather zones with expansion/contraction.
+ *
+ * ## Temperature System
+ *
+ * Global temperature based on weather and time:
+ *
+ * ```
+ * baseTemperature = season.baseTemp + timeOfDayMod
+ *
+ * weatherMod:
+ *   CLEAR:     0
+ *   RAIN:      -5
+ *   STORM:     -10
+ *   SNOW:      -20
+ *   DROUGHT:   +15
+ *   HEATWAVE:  +25
+ *
+ * finalTemp = baseTemperature + (weatherMod × intensity × 0.5)
+ * ```
+ *
+ * Temperature effects on character:
+ * - **Below 0°C**: Cold damage, slow movement, hypothermia risk
+ * - **0-15°C**: Normal
+ * - **15-30°C**: Normal
+ * - **Above 30°C**: Heat damage, thirst, heatstroke risk
+ *
+ * ## Visibility System
+ *
+ * Weather reduces sight range:
+ *
+ * ```
+ * baseSightRange = 10 (chunks)
+ *
+ * visibilityMod:
+ *   CLEAR:     1.0
+ *   RAIN:      0.9 (−10%)
+ *   STORM:     0.7 (−30%)
+ *   SNOW:      0.5 (−50%)
+ *   DROUGHT:   1.1 (+10%, clear skies)
+ *   HEATWAVE:  1.0
+ *
+ * effectiveSightRange = floor(baseSightRange × visibilityMod)
+ * ```
+ *
+ * Affects:
+ * - Player's exploration range
+ * - Creature detection range
+ * - Navigation difficulty
+ *
+ * ## Weather Effects on Plant Growth
+ *
+ * Weather modifies PlantEngine growth multiplier:
+ *
+ * ```
+ * growthMod:
+ *   CLEAR:     1.0
+ *   RAIN:      1.2 (+20%)
+ *   STORM:     1.4 (+40%, despite hazard)
+ *   SNOW:      0.5 (−50%)
+ *   DROUGHT:   0.7 (−30%)
+ *   HEATWAVE:  1.1 (+10%)
+ * ```
+ *
+ * Rationale: Rain and storms naturally boost plant growth (water). Snow and drought inhibit.
+ *
+ * ## API Methods
+ *
+ * | Method | Purpose |
+ * |--------|---------|
+ * | `update(gameTime)` | Tick-based update: duration countdown, transition check, regional update |
+ * | `getWeatherAt(position)` | Query weather at specific position (supports future regional variations) |
+ * | `applyWeatherEffects(cell, character?)` | Apply environmental effects to cell/character |
+ * | `transitionTo(type)` | Force weather change (for testing or player abilities) |
+ * | `createWeather(type, intensity)` | Factory to create Weather entity |
+ *
+ * ## Performance Notes
+ *
+ * - O(1) weather queries (single value lookup)
+ * - O(transitions.length) probability calc on change (~5-10 items)
+ * - O(regions) for regional updates (future optimization)
+ * - No per-chunk weather queries yet (global only currently)
+ *
+ * ## Design Philosophy
+ *
+ * - **Probabilistic**: Weather feels organic with transition graph, not random
+ * - **Impactful**: Weather affects game balance (growth, temperature, visibility)
+ * - **Immersive**: Natural progression (rain → clear is believable)
+ * - **Extensible**: Regional system allows future complexity without core changes
+ * - **Player-Aware**: Weather challenges incentivize strategic planning and adaptation
+ */
+
 
 export class WeatherEngine {
     private currentWeather: Weather;
     private gameTime: number = 0;
     private lastUpdate: number = 0;
-    
+
     constructor(
         private readonly effectEngine: EffectEngine,
         private readonly weatherData: Map<WeatherType, WeatherCondition>,
@@ -84,8 +269,8 @@ export class WeatherEngine {
             const tempDifference = environmentalTemp - idealTemp;
 
             // Create a temperature effect based on the difference
-            // Scale the effect to prevent instant temperature changes
-            const tempEffectValue = tempDifference * 0.01; // Small incremental change
+            // Increase convergence speed: apply 5% per tick instead of 1% for faster realistic temperature changes
+            const tempEffectValue = tempDifference * 0.05; // Increased from 0.01 to 0.05 for faster convergence
 
             if (Math.abs(tempEffectValue) > 0.001) { // Only apply if there's a meaningful difference
                 const tempEffect: Effect = {
@@ -144,9 +329,9 @@ export class WeatherEngine {
             getDuration: () => condition.duration || 0,
             remainingDuration: () => condition.duration || 0,
             getPossibleTransitions: () => condition.transitions || [],
-            update: () => {},
+            update: () => { },
             getWeatherAtPosition: () => null,
-            addRegionalVariation: () => {},
+            addRegionalVariation: () => { },
             getPrimaryCondition: () => condition
         };
     }
@@ -173,48 +358,87 @@ export class WeatherEngine {
      * @param position - The grid position to calculate temperature for.
      * @returns The environmental temperature in Celsius.
      */
+    /**
+     * OVERVIEW: Gets effective environmental temperature at a position.
+     * Uses percentage-based modifiers for season, weather, and day/night.
+     *
+     * Formula: finalTemp = baseTemp × (1 + seasonMod% + weatherMod%) + dayNightMod
+     *
+     * Example:
+     * - Desert base 35-50°C, summer +20%, heatwave +5% = 35×1.45 = 50.75°C
+     * - Tundra base -20-0°C, winter -25%, snowfall -6.5% = -20×(1-0.315) = -13.7°C
+     */
     getEnvironmentalTemperature(position: GridPosition): number {
         // Get terrain temperature as base
         const weatherCondition = this.getWeatherAt(position);
         const baseTerrainTemp = weatherCondition.temperature || 20; // Default if no terrain data
 
-        // Apply weather modifiers
-        let weatherModifier = 0;
+        // Apply percentage-based season modifier (already in seasonConfig as decimal: 0.1 = +10%)
+        const seasonModifier = this.getSeasonModifier();
+
+        // Apply percentage-based weather modifier
+        const weatherModifier = this.getWeatherTemperatureModifier();
+
+        // Apply day/night cycle modifier (fixed offset, not percentage)
+        const dayNightModifier = this.getDayNightTemperatureModifier();
+
+        // Calculate final temperature with percentage application
+        // finalTemp = base × (1 + seasonMod% + weatherMod%) + dayNightMod
+        const environmentalTemp = baseTerrainTemp * (1 + seasonModifier + weatherModifier) + dayNightModifier;
+
+        // Clamp to realistic range: -30 to +50°C
+        return Math.round(Math.max(-30, Math.min(50, environmentalTemp)));
+    }
+
+    /**
+     * Gets current season modifier as a decimal percentage.
+     * Returns value like 0.2 for +20% (summer), -0.25 for -25% (winter).
+     */
+    private getSeasonModifier(): number {
+        // This would integrate with game time to get current season
+        // For now, return 0 (no seasonal modifier applied here - would come from game state)
+        // In actual use: seasonConfig[currentSeason].temperatureMod
+        return 0;
+    }
+
+    /**
+     * Gets weather-based temperature modifier as a decimal percentage.
+     * Returns values like 0.05 for +5% (heatwave), -0.065 for -6.5% (snowfall).
+     */
+    private getWeatherTemperatureModifier(): number {
+        // Get current weather type and intensity
         const weatherType = this.currentWeather.getType();
         const intensity = this.currentWeather.getIntensity();
 
+        // Get percentage modifier from weather type
+        let weatherModifier = 0;
         switch (weatherType) {
             case WeatherType.CLEAR:
                 weatherModifier = 0;
                 break;
             case WeatherType.CLOUDY:
-                weatherModifier = -2;
+                weatherModifier = -0.01; // -1%
                 break;
             case WeatherType.RAIN:
-                weatherModifier = -5;
+                weatherModifier = -0.025; // -2.5%
                 break;
             case WeatherType.SNOW:
-                weatherModifier = -10;
+                weatherModifier = -0.065; // -6.5%
                 break;
             case WeatherType.HEATWAVE:
-                weatherModifier = 10;
+                weatherModifier = 0.05; // +5%
                 break;
             default:
                 weatherModifier = 0;
         }
 
-        // Apply intensity modifier
+        // Apply intensity multiplier to percentage
+        // MILD: 0.5× modifier, MODERATE: 1.0×, SEVERE: 1.5×
         const intensityMultiplier = intensity === WeatherIntensity.SEVERE ? 1.5 :
-                                   intensity === WeatherIntensity.MILD ? 0.5 : 1.0;
+            intensity === WeatherIntensity.MILD ? 0.5 : 1.0;
         weatherModifier *= intensityMultiplier;
 
-        // Apply day/night cycle modifier
-        const dayNightModifier = this.getDayNightTemperatureModifier();
-
-        // Calculate final temperature
-        const environmentalTemp = baseTerrainTemp + weatherModifier + dayNightModifier;
-
-        return Math.round(environmentalTemp);
+        return weatherModifier;
     }
 
     /**

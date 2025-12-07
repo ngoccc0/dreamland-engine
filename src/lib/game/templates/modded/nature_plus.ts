@@ -1,4 +1,4 @@
-import type { EnemySpawn } from '@/lib/game/types';
+import type { EnemySpawn } from '@/core/types/game';
 
 export const naturePlusForestEnemies: EnemySpawn[] = [
     {

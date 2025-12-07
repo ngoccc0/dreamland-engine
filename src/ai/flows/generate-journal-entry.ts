@@ -1,5 +1,3 @@
-
-'use server';
 /**
  * An AI agent for writing daily journal entries from the player's perspective.
  *
@@ -11,7 +9,7 @@
  * - GenerateJournalEntryOutput - The Zod schema for the output data.
  */
 
-import {ai} from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { GenerateJournalEntryInputSchema, GenerateJournalEntryOutputSchema } from '@/ai/schemas';
 
@@ -67,7 +65,7 @@ const generateJournalEntryFlow = ai.defineFlow(
                         custom: input
                     }
                 ]);
-                
+
                 if (output && output.journalEntry) return { journalEntry: output.journalEntry };
             } catch (error: any) {
                 lastError = error;
@@ -75,7 +73,7 @@ const generateJournalEntryFlow = ai.defineFlow(
                 continue;
             }
         }
-        
+
         console.error("All AI models failed for journal entry generation.", lastError);
         throw lastError || new Error("AI failed to generate a journal entry.");
     }

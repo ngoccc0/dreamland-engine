@@ -8,9 +8,11 @@ type Dir = 'north' | 'south' | 'west' | 'east';
 export interface KeyboardHandlers {
   move: (dir: Dir) => void;
   attack: () => void;
+  wait?: () => void;
   openInventory?: () => void;
   openStatus?: () => void;
   openMap?: () => void;
+  openCrafting?: () => void;
   customAction?: () => void;
   pickUp?: () => void;
   hotkey?: (index: number) => void;
@@ -53,13 +55,15 @@ export function useKeyboardBindings({ handlers, popupOpen = false, focusCustomAc
     add(keyBindings.openInventory, 'openInventory');
     add(keyBindings.openStatus, 'openStatus');
     add(keyBindings.openMap, 'openMap');
-  add(keyBindings.customAction, 'customAction');
-  add((keyBindings as any).pickUp, 'pickUp');
-  add((keyBindings as any).hot1, 'hot1');
-  add((keyBindings as any).hot2, 'hot2');
-  add((keyBindings as any).hot3, 'hot3');
-  add((keyBindings as any).hot4, 'hot4');
-  add((keyBindings as any).hot5, 'hot5');
+    add((keyBindings as any).openCrafting, 'openCrafting');
+    add(keyBindings.customAction, 'customAction');
+    add((keyBindings as any).pickUp, 'pickUp');
+    add((keyBindings as any).hot1, 'hot1');
+    add((keyBindings as any).hot2, 'hot2');
+    add((keyBindings as any).hot3, 'hot3');
+    add((keyBindings as any).hot4, 'hot4');
+    add((keyBindings as any).hot5, 'hot5');
+    add((keyBindings as any).wait, 'wait');
 
     // Always include common defaults if not provided
     if (!map.has('ArrowUp')) map.set('ArrowUp', 'moveUp');
@@ -67,6 +71,7 @@ export function useKeyboardBindings({ handlers, popupOpen = false, focusCustomAc
     if (!map.has('ArrowLeft')) map.set('moveLeft', 'moveLeft');
     if (!map.has('ArrowRight')) map.set('moveRight', 'moveRight');
     if (!map.has(' ')) map.set(' ', 'attack');
+    if (!map.has('Shift')) map.set('Shift', 'wait');
 
     return map;
   }, [keyBindings]);
@@ -127,6 +132,10 @@ export function useKeyboardBindings({ handlers, popupOpen = false, focusCustomAc
             handlers.openMap?.();
             focusCustomActionInput?.();
             break;
+          case 'openCrafting':
+            handlers.openCrafting?.();
+            focusCustomActionInput?.();
+            break;
           case 'pickUp':
             handlers.pickUp?.();
             focusCustomActionInput?.();
@@ -153,6 +162,10 @@ export function useKeyboardBindings({ handlers, popupOpen = false, focusCustomAc
             break;
           case 'customAction':
             handlers.customAction?.();
+            focusCustomActionInput?.();
+            break;
+          case 'wait':
+            handlers.wait?.();
             focusCustomActionInput?.();
             break;
           default:

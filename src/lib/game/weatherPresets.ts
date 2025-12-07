@@ -1,6 +1,17 @@
 
 import type { WeatherDefinition } from "./definitions";
 
+/**
+ * OVERVIEW: Weather preset modifiers as PERCENTAGES of biome temperature range.
+ * These apply percentage multipliers to base biome temperature.
+ * Formula: finalTemp = baseTemp × (1 + temperatureModPercent)
+ * Range: -30°C to +50°C (80°C span)
+ * 
+ * Example conversions from fixed deltas to percentages:
+ * - Old +4 fixed = +5% (for heatwave)
+ * - Old -5 fixed = -6% (for snowfall)
+ * - Old -3 fixed = -4% (for heavy rain)
+ */
 export const weatherPresets: WeatherDefinition[] = [
     // --- NEUTRAL ---
     {
@@ -25,7 +36,7 @@ export const weatherPresets: WeatherDefinition[] = [
         description: { en: 'A gentle breeze blows through, bringing fresh air.', vi: 'Một làn gió nhẹ thổi qua, mang theo không khí trong lành.' },
         biome_affinity: ['grassland', 'mountain', 'forest', 'jungle', 'beach', 'mesa'],
         season_affinity: ['spring', 'summer'],
-        temperature_delta: -1,
+        temperature_delta: -0.01, // -1%
         moisture_delta: 0,
         wind_delta: 2,
         light_delta: 0,
@@ -39,7 +50,7 @@ export const weatherPresets: WeatherDefinition[] = [
         description: { en: 'A light drizzle begins to fall, cooling the air.', vi: 'Một cơn mưa phùn bắt đầu rơi, làm mát không khí.' },
         biome_affinity: ['forest', 'grassland', 'swamp', 'jungle', 'mushroom_forest', 'beach'],
         season_affinity: ['spring', 'autumn'],
-        temperature_delta: -2,
+        temperature_delta: -0.025, // -2.5%
         moisture_delta: 2,
         wind_delta: 1,
         light_delta: -1,
@@ -55,7 +66,7 @@ export const weatherPresets: WeatherDefinition[] = [
         description: { en: 'The rain begins to pour down, making the ground muddy.', vi: 'Mưa bắt đầu đổ xuống, làm cho mặt đất trở nên lầy lội.' },
         biome_affinity: ['forest', 'swamp', 'jungle', 'mushroom_forest'],
         season_affinity: ['spring', 'autumn'],
-        temperature_delta: -3,
+        temperature_delta: -0.04, // -4%
         moisture_delta: 4,
         wind_delta: 3,
         light_delta: -3,
@@ -69,7 +80,7 @@ export const weatherPresets: WeatherDefinition[] = [
         description: { en: 'A thick fog envelops the landscape, greatly reducing visibility.', vi: 'Một lớp sương mù dày đặc bao trùm cảnh quan, làm giảm đáng kể tầm nhìn.' },
         biome_affinity: ['swamp', 'forest', 'mountain', 'jungle', 'tundra', 'mushroom_forest'],
         season_affinity: ['autumn', 'winter', 'spring'],
-        temperature_delta: -1,
+        temperature_delta: -0.01, // -1%
         moisture_delta: 1,
         wind_delta: -2,
         light_delta: -4,
@@ -83,7 +94,7 @@ export const weatherPresets: WeatherDefinition[] = [
         description: { en: 'The scorching heat of the sun makes the air feel oppressive.', vi: 'Cái nóng như thiêu đốt của mặt trời làm cho không khí trở nên ngột ngạt.' },
         biome_affinity: ['desert', 'grassland', 'volcanic', 'mesa', 'beach'],
         season_affinity: ['summer'],
-        temperature_delta: 4,
+        temperature_delta: 0.05, // +5%
         moisture_delta: -3,
         wind_delta: 0,
         light_delta: 2,
@@ -97,7 +108,7 @@ export const weatherPresets: WeatherDefinition[] = [
         description: { en: 'White snowflakes begin to fall gently from the sky, covering the ground in a thin layer.', vi: 'Những bông tuyết trắng bắt đầu rơi nhẹ nhàng từ trên trời, phủ một lớp mỏng lên mặt đất.' },
         biome_affinity: ['mountain', 'forest', 'tundra'],
         season_affinity: ['winter'],
-        temperature_delta: -5,
+        temperature_delta: -0.065, // -6.5%
         moisture_delta: 1,
         wind_delta: 1,
         light_delta: -1,
@@ -111,7 +122,7 @@ export const weatherPresets: WeatherDefinition[] = [
         description: { en: 'A fierce blizzard erupts, with wind howling and heavy snow falling.', vi: 'Một trận bão tuyết dữ dội bùng phát, với gió hú và tuyết rơi dày đặc.' },
         biome_affinity: ['mountain', 'tundra'],
         season_affinity: ['winter'],
-        temperature_delta: -8,
+        temperature_delta: -0.1, // -10%
         moisture_delta: 2,
         wind_delta: 6,
         light_delta: -5,
@@ -125,7 +136,7 @@ export const weatherPresets: WeatherDefinition[] = [
         description: { en: 'The wind picks up, carrying sand and dust, creating a blinding sandstorm.', vi: 'Gió nổi lên, mang theo cát và bụi, tạo thành một cơn bão cát mù mịt.' },
         biome_affinity: ['desert', 'mesa', 'beach'],
         season_affinity: ['summer', 'autumn'],
-        temperature_delta: 1,
+        temperature_delta: 0.015, // +1.5%
         moisture_delta: -2,
         wind_delta: 7,
         light_delta: -4,
@@ -133,7 +144,7 @@ export const weatherPresets: WeatherDefinition[] = [
         exclusive_tags: ['windy', 'storm'],
         duration_range: [10, 20]
     },
-    
+
     // --- SPECIAL BIOME WEATHER ---
     {
         id: 'cave_stillness',
@@ -141,7 +152,7 @@ export const weatherPresets: WeatherDefinition[] = [
         description: { en: 'The air in the cave is damp and strangely still.', vi: 'Không khí trong hang ẩm ướt và tĩnh lặng một cách kỳ lạ.' },
         biome_affinity: ['cave'],
         season_affinity: ['spring', 'summer', 'autumn', 'winter'],
-        temperature_delta: 0,
+        temperature_delta: 0, // 0%
         moisture_delta: 1,
         wind_delta: -5,
         light_delta: 0,
@@ -155,7 +166,7 @@ export const weatherPresets: WeatherDefinition[] = [
         description: { en: 'A cold draft blows from an unknown source through the rock crevices.', vi: 'Một luồng gió lạnh thổi từ một nguồn không xác định qua các khe đá.' },
         biome_affinity: ['cave'],
         season_affinity: ['spring', 'summer', 'autumn', 'winter'],
-        temperature_delta: -2,
+        temperature_delta: -0.025, // -2.5%
         moisture_delta: 0,
         wind_delta: 2,
         light_delta: 0,
@@ -169,7 +180,7 @@ export const weatherPresets: WeatherDefinition[] = [
         description: { en: 'Ash from the nearby volcano begins to fall, covering everything in a layer of gray dust.', vi: 'Tro từ ngọn núi lửa gần đó bắt đầu rơi xuống, phủ một lớp bụi xám lên mọi thứ.' },
         biome_affinity: ['volcanic'],
         season_affinity: ['spring', 'summer', 'autumn', 'winter'],
-        temperature_delta: 1,
+        temperature_delta: 0.015, // +1.5%
         moisture_delta: -1,
         wind_delta: 1,
         light_delta: -3,
@@ -183,7 +194,7 @@ export const weatherPresets: WeatherDefinition[] = [
         description: { en: 'The air is thick with glowing spores, dancing in the air.', vi: 'Không khí đặc quánh những bào tử phát sáng, nhảy múa trong không trung.' },
         biome_affinity: ['mushroom_forest'],
         season_affinity: ['spring', 'summer', 'autumn', 'winter'],
-        temperature_delta: 0,
+        temperature_delta: 0, // 0%
         moisture_delta: 1,
         wind_delta: 0,
         light_delta: 2,

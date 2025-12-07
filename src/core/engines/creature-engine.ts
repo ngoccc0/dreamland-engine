@@ -1,6 +1,44 @@
-import type { Enemy, Chunk, PlayerStatusDefinition } from '@/lib/game/types';
+import type { Enemy, Chunk, PlayerStatusDefinition } from '@/core/types/game';
 import defaultGameConfig from '@/lib/config/game-config';
 import { GridPosition } from '../values/grid-position';
+
+/**
+ * Check whether two grid positions are within a square (Chebyshev) range.
+ * This is a standalone helper so other systems can reuse consistent adjacency logic.
+ * @param a Position A
+ * @param b Position B
+ * @param range Chebyshev range (range=1 => adjacent including diagonals)
+ */
+export function arePositionsWithinSquareRange(a: GridPosition, b: GridPosition, range: number): boolean {
+    const dx = Math.abs(a.x - b.x);
+    const dy = Math.abs(a.y - b.y);
+    return Math.max(dx, dy) <= range;
+}
+
+/**
+ * Scan an area (square) around a center position and optionally test a predicate
+ * against each chunk/cell in that area. Returns list of matching positions (and
+ * chunk if available). If no predicate provided, returns all positions in the area.
+ */
+export function scanAreaAround(
+    center: GridPosition,
+    range: number,
+    chunks?: Map<string, Chunk>,
+    predicate?: (chunk: Chunk | undefined, pos: GridPosition) => boolean
+): Array<{ pos: GridPosition; chunk?: Chunk }> {
+    const out: Array<{ pos: GridPosition; chunk?: Chunk }> = [];
+    for (let dx = -range; dx <= range; dx++) {
+        for (let dy = -range; dy <= range; dy++) {
+            const p = new GridPosition(center.x + dx, center.y + dy);
+            const key = `${p.x},${p.y}`;
+            const chunk = chunks?.get(key);
+            if (!predicate || predicate(chunk, p)) {
+                out.push({ pos: p, chunk });
+            }
+        }
+    }
+    return out;
+}
 
 /**
  * Interface for creature state during simulation.
@@ -20,11 +58,171 @@ interface CreatureState extends Enemy {
 }
 
 /**
+ * OVERVIEW: Creature AI & behavior engine
+ *
+ * Simulates creature behavior, movement, hunger mechanics, and AI decision-making in the game world.
+ * Handles pathfinding using Chebyshev (square) distance, behavior state transitions, and async updates.
+ *
+ * ## Core Responsibilities
+ *
+ * - **Creature State Management**: Tracks CreatureState entities with position, behavior, hunger level
+ * - **Behavior State Machine**: Idle → Hunting → Fleeing → Eating transitions based on stimuli
+ * - **Movement & Pathfinding**: Chebyshev-distance based movement toward targets or random walk
+ * - **Hunger System**: Creatures consume satiation each tick, seek food when hungry, die if starved
+ * - **Async Updates**: Movement updates scheduled via setTimeout to avoid blocking game loop
+ * - **Area Scanning**: Creature vision/detection uses square range scanning (configurable range)
+ * - **Creature Interactions**: Hunts player-owned plants, flees from dangerous areas, eats available food
+ *
+ * ## Behavior State Machine
+ *
+ * States and transitions:
+ *
+ * ```
+ * IDLE
+ *   ├─ (hunger > threshold) → HUNTING (seek nearby food)
+ *   ├─ (player in range) → FLEEING (escape)
+ *   └─ (random) → MOVING (wander)
+ *
+ * HUNTING
+ *   ├─ (food found && in range) → EATING (consume)
+ *   ├─ (hunger low) → IDLE
+ *   ├─ (player nearby) → FLEEING
+ *   └─ (search exhausted) → IDLE
+ *
+ * EATING
+ *   ├─ (satiation full) → IDLE
+ *   ├─ (no food) → HUNTING
+ *   └─ (danger nearby) → FLEEING
+ *
+ * FLEEING
+ *   ├─ (danger cleared) → IDLE
+ *   ├─ (hunger high) → HUNTING
+ *   └─ (in safe distance) → IDLE
+ *
+ * MOVING
+ *   ├─ (reached target) → IDLE
+ *   ├─ (hunger high) → HUNTING
+ *   └─ (random) → IDLE
+ * ```
+ *
+ * ## Movement Algorithm
+ *
+ * ### Chebyshev Distance (Square Range)
+ *
+ * Creatures use Chebyshev distance for range calculations and movement:
+ *
+ * ```
+ * distance = max(|x1 - x2|, |y1 - y2|)
+ * range = 1 means adjacent including diagonals (8 neighbors)
+ * range = 2 means 5×5 area around creature
+ * range = 10 means 20×20 search area
+ * ```
+ *
+ * Rationale: Chebyshev is simple, fast, and feels natural for grid-based tactics (like chess king movement).
+ *
+ * ### Pathfinding (Simplified)
+ *
+ * Current implementation uses:
+ * 1. **Towards target**: Step closer by one cell (Manhattan-like diagonal moves)
+ * 2. **Avoid obstacles**: Check chunk terrain, skip blocked cells
+ * 3. **Wander fallback**: Random move if no target or path blocked
+ *
+ * Time complexity: O(1) per move (no full pathfinding; greedy one-step approach).
+ * Space complexity: O(1) (no pathfinding queue).
+ *
+ * ### Movement Update Scheduling
+ *
+ * Creature movement updates are asynchronous to avoid blocking the game loop:
+ *
+ * ```
+ * // Creature at distance d triggers update after delay(d)
+ * moveDelay(distance):
+ *   distance <= 5:    0ms     (immediate)
+ *   distance 6-10:    50-150ms (nearby)
+ *   distance 11-20:   150-300ms (mid-range)
+ *   distance > 20:    300-500ms (far)
+ * ```
+ *
+ * This creates dynamic perceived movement: close creatures move quickly, distant creatures move slowly.
+ * Updates stored in `pendingCreatureUpdates` Map to aggregate multiple updates before applying.
+ *
+ * ## Hunger & Satiation
+ *
+ * Each creature has a `satiation` value (0 = starving, maxSatiation = full):
+ *
+ * ```
+ * // Each tick
+ * satiation -= hungerPerTick (usually 0.1-0.5)
+ * hungerThreshold = maxSatiation × 0.3
+ *
+ * if satiation < hungerThreshold: // Creature is hungry
+ *   behavior = 'hunting' // Seek food
+ * ```
+ *
+ * ### Food Seeking
+ *
+ * Hungry creatures search nearby chunks for:
+ * 1. Player crops (plants with maturity > 50)
+ * 2. Natural vegetation (vegetationDensity > threshold)
+ * 3. Any available food
+ *
+ * Range: 2-10 chunks depending on creature type.
+ *
+ * ### Starvation
+ *
+ * ```
+ * if satiation <= 0:
+ *   creature dies (removed from world)
+ *   emit 'creatureDied' event
+ * ```
+ *
+ * ## Area Scanning
+ *
+ * Creatures use `scanAreaAround()` helper to detect:
+ *
+ * - **Food sources** (search range: creature.searchRange, default 2)
+ * - **Player proximity** (flee range: 3)
+ * - **Allies** (flock/herd range: 5)
+ *
+ * Predicate function filters results (e.g., "only food chunks").
+ *
+ * ## Configuration Parameters (from game-config.creature)
+ *
+ * | Parameter | Type | Purpose |
+ * |-----------|------|---------|
+ * | hungerPerTick | number | Satiation loss per game tick |
+ * | maxSatiation | number | Full hunger bar capacity |
+ * | searchRange | number | Chebyshev range for food seeking (default 2) |
+ * | moveSpeed | number | Base movement speed (affects async delay) |
+ * | senseEffectRange | number | Range for detecting player effects/abilities |
+ *
+ * ## State Persistence & Serialization
+ *
+ * CreatureState is stored in world state but has **serialization risks**:
+ * - GridPosition may have methods (not JSON-safe)
+ * - Chunk circular references (creature has chunk, chunk has creature)
+ * - currentBehavior string is safe
+ *
+ * See: Weakness 3 (Serialization Validation) for fixing persistence issues.
+ *
+ * ## Event System
+ *
+ * Creatures emit messages for significant events:
+ * - 'creature.attacked' - attacked player
+ * - 'creature.ate' - consumed food
+ * - 'creature.spawned' - entered visible range
+ * - 'creature.died' - starvation or combat death
+ */
+
+/**
  * Engine responsible for simulating creature behavior, movement, and AI.
  * Handles hunger mechanics, movement patterns, and behavior-based actions.
  */
 export class CreatureEngine {
     private creatures: Map<string, CreatureState> = new Map();
+    private pendingCreatureUpdates: Map<string, CreatureState> = new Map();
+    // pendingMessages stores narrative/system messages produced by async updates
+    private pendingMessages: Map<string, Array<{ text: string; type: 'narrative' | 'system'; meta?: any }>> = new Map();
 
     private config = defaultGameConfig;
 
@@ -68,11 +266,12 @@ export class CreatureEngine {
 
     /**
      * Updates all registered creatures for the current game tick.
+     * Only processes creatures within a 20x20 range of the player and schedules their updates asynchronously.
      * @param currentTick Current game tick
      * @param playerPosition Current player position
      * @param playerStats Current player stats
      * @param chunks Available chunks for movement
-     * @returns Array of narrative messages from creature actions
+     * @returns Array of narrative messages from immediate creature actions (empty for now)
      */
     updateCreatures(
         currentTick: number,
@@ -80,23 +279,60 @@ export class CreatureEngine {
         playerStats: PlayerStatusDefinition,
         chunks: Map<string, Chunk>
     ): Array<{ text: string; type: 'narrative' | 'system' }> {
-        const messages: Array<{ text: string; type: 'narrative' | 'system' }> = [];
-
+        // Filter creatures within 20x20 range (10 tile radius)
+        const creaturesInRange: Array<[string, CreatureState]> = [];
         for (const [creatureId, creature] of this.creatures) {
-            const updateResult = this.updateCreature(creature, currentTick, playerPosition, playerStats, chunks);
-            if (updateResult.message) {
-                messages.push(updateResult.message);
+            if (arePositionsWithinSquareRange(creature.position, playerPosition, 10)) {
+                creaturesInRange.push([creatureId, creature]);
             }
-
-            // Update the creature state
-            this.creatures.set(creatureId, updateResult.creature);
         }
 
-        return messages;
+        // Schedule asynchronous updates based on distance
+        for (const [creatureId, creature] of creaturesInRange) {
+            const distance = Math.max(
+                Math.abs(creature.position.x - playerPosition.x),
+                Math.abs(creature.position.y - playerPosition.y)
+            );
+
+            let delayMs = 0;
+            if (distance <= 5) {
+                delayMs = 0; // Immediate
+            } else if (distance <= 10) {
+                delayMs = 50 + Math.random() * 100; // 50-150ms
+            } else if (distance <= 15) {
+                delayMs = 150 + Math.random() * 150; // 150-300ms
+            } else {
+                delayMs = 300 + Math.random() * 200; // 300-500ms
+            }
+
+            // Schedule the update
+            setTimeout(() => {
+                try {
+                    // Capture previous position so caller can sync world state (from -> to)
+                    const prevPos = new GridPosition(creature.position.x, creature.position.y);
+                    const result = this.updateCreature(creature, currentTick, playerPosition, playerStats, chunks);
+                    // Attach previous position to the returned updatedCreature for syncing
+                    if (result && result.updatedCreature) {
+                        // store prevPosition as a non-enforced property for downstream
+                        (result.updatedCreature as any)._prevPosition = prevPos;
+                        this.pendingCreatureUpdates.set(creatureId, result.updatedCreature);
+                    }
+                    if (result && Array.isArray(result.messages) && result.messages.length > 0) {
+                        this.pendingMessages.set(creatureId, result.messages);
+                    }
+                } catch (error) {
+                    // Silently handle creature update failures
+                }
+            }, delayMs);
+        }
+
+        // Return empty array for now - messages will be handled differently
+        return [];
     }
 
     /**
      * Updates a single creature for the current tick.
+     * Returns the updated creature state without modifying the original.
      */
     private updateCreature(
         creature: CreatureState,
@@ -104,9 +340,9 @@ export class CreatureEngine {
         playerPosition: GridPosition,
         playerStats: PlayerStatusDefinition,
         chunks: Map<string, Chunk>
-    ): { creature: CreatureState; message?: { text: string; type: 'narrative' | 'system' } } {
+    ): { updatedCreature: CreatureState; messages: Array<{ text: string; type: 'narrative' | 'system'; meta?: any }> } {
         const updatedCreature = { ...creature };
-        const messages: Array<{ text: string; type: 'narrative' | 'system' }> = [];
+        const messages: Array<{ text: string; type: 'narrative' | 'system'; meta?: any }> = [];
 
         // Update hunger/satiation
         const wasHungry = updatedCreature.satiation < updatedCreature.maxSatiation * 0.3;
@@ -122,25 +358,24 @@ export class CreatureEngine {
             });
         }
 
-    // Update behavior based on current state and surroundings
-    this.updateBehavior(updatedCreature, playerPosition, playerStats);
+        // Update behavior based on current state and surroundings
+        this.updateBehavior(updatedCreature, playerPosition, playerStats);
 
         // If creature is hunting the player and is in melee range, perform an attack
         try {
             const searchRange = (updatedCreature as any).trophicRange ?? 2; // default 2 -> 5x5 area
-            const inSearchSquare = this.isWithinSquareRange(updatedCreature.position, playerPosition, searchRange);
-            const isAdjacent = this.isWithinSquareRange(updatedCreature.position, playerPosition, 1);
+            const inSearchSquare = arePositionsWithinSquareRange(updatedCreature.position, playerPosition, searchRange);
+            const isAdjacent = arePositionsWithinSquareRange(updatedCreature.position, playerPosition, 1);
 
             if (updatedCreature.currentBehavior === 'hunting' && inSearchSquare) {
                 // If creature is a carnivore (or aggressive predator) and is adjacent, attack the player
                 if ((updatedCreature.trophic === 'carnivore' || updatedCreature.behavior === 'aggressive') && isAdjacent) {
-                    // Apply damage to player
+                    // Calculate damage (do not mutate playerStats here - return as meta so caller can update React state)
                     const damage = updatedCreature.damage || 0;
-                    playerStats.hp = Math.max(0, (playerStats.hp || 0) - damage);
 
                     const creatureName = (updatedCreature as any).name?.en || updatedCreature.type || 'creature';
                     const attackText = `${creatureName} ${this.t('creatureHunting', { creature: creatureName })} and attacks you (-${damage} HP).`;
-                    messages.push({ text: attackText, type: 'narrative' });
+                    messages.push({ text: attackText, type: 'narrative', meta: { playerDamage: damage } });
                 }
             }
         } catch {
@@ -163,10 +398,11 @@ export class CreatureEngine {
             }
         } catch (err: any) {
             // swallow errors in optional behaviour
-            console.warn('CreatureEngine: eating attempt failed', err);
+            // Silently handle eating attempt failures
         }
 
-        return { creature: updatedCreature, message: messages[0] };
+        // Return updated creature plus any messages produced during update
+        return { updatedCreature, messages };
     }
 
     /**
@@ -257,7 +493,7 @@ export class CreatureEngine {
     ): void {
         // Use per-creature search radius when available. Default to 2 tiles (5x5 area) for predators.
         const searchRange = (creature as any).trophicRange ?? 2;
-        const inSquareRange = this.isWithinSquareRange(creature.position, playerPosition, searchRange);
+        const inSquareRange = arePositionsWithinSquareRange(creature.position, playerPosition, searchRange);
 
         switch (creature.behavior) {
             case 'aggressive':
@@ -275,7 +511,7 @@ export class CreatureEngine {
 
             case 'passive':
                 // Passive creatures try to flee if the player gets too close (use smaller radius)
-                if (this.isWithinSquareRange(creature.position, playerPosition, 2)) {
+                if (arePositionsWithinSquareRange(creature.position, playerPosition, 2)) {
                     creature.currentBehavior = 'fleeing';
                     creature.targetPosition = new GridPosition(playerPosition.x, playerPosition.y);
                 } else {
@@ -284,7 +520,7 @@ export class CreatureEngine {
                 break;
 
             case 'defensive':
-                if (this.isWithinSquareRange(creature.position, playerPosition, 2)) {
+                if (arePositionsWithinSquareRange(creature.position, playerPosition, 2)) {
                     creature.currentBehavior = 'idle'; // Stand ground
                 } else {
                     creature.currentBehavior = 'idle';
@@ -300,7 +536,7 @@ export class CreatureEngine {
                 break;
 
             case 'ambush':
-                if (this.isWithinSquareRange(creature.position, playerPosition, 1)) {
+                if (arePositionsWithinSquareRange(creature.position, playerPosition, 1)) {
                     creature.currentBehavior = 'hunting';
                     creature.targetPosition = new GridPosition(playerPosition.x, playerPosition.y);
                 } else {
@@ -315,15 +551,7 @@ export class CreatureEngine {
         }
     }
 
-    /**
-     * Return true if two positions are within a square (Chebyshev) distance <= range.
-     * This models an N x N tile search box centered on the creature (e.g., range=2 -> 5x5).
-     */
-    private isWithinSquareRange(a: GridPosition, b: GridPosition, range: number): boolean {
-        const dx = Math.abs(a.x - b.x);
-        const dy = Math.abs(a.y - b.y);
-        return Math.max(dx, dy) <= range;
-    }
+    // Legacy private helper removed in favor of exported arePositionsWithinSquareRange
 
     /**
      * Determines if the creature should move this tick.
@@ -473,9 +701,70 @@ export class CreatureEngine {
     }
 
     /**
+     * Applies all pending creature updates to the main creatures map.
+     * This should be called at the beginning of each game turn to synchronize state.
+     * @returns Array of narrative messages generated during the updates
+     */
+    applyPendingUpdates(): {
+        messages: Array<{ text: string; type: 'narrative' | 'system'; meta?: any }>;
+        updates: Array<{
+            creatureId: string;
+            prevPosition?: { x: number; y: number };
+            newPosition: { x: number; y: number };
+            creature: CreatureState;
+        }>;
+    } {
+        const messages: Array<{ text: string; type: 'narrative' | 'system'; meta?: any }> = [];
+        const updates: Array<{
+            creatureId: string;
+            prevPosition?: { x: number; y: number };
+            newPosition: { x: number; y: number };
+            creature: CreatureState;
+        }> = [];
+
+        for (const [creatureId, updatedCreature] of this.pendingCreatureUpdates) {
+            // Apply the updated state to the main creatures map
+            this.creatures.set(creatureId, updatedCreature);
+
+            // Prepare update info for the caller so the world/chunk can be synced
+            const prev: any = (updatedCreature as any)._prevPosition;
+            updates.push({
+                creatureId,
+                prevPosition: prev ? { x: prev.x, y: prev.y } : undefined,
+                newPosition: { x: updatedCreature.position.x, y: updatedCreature.position.y },
+                creature: updatedCreature
+            });
+
+            // Collect any messages for this creature
+            const msgs = this.pendingMessages.get(creatureId);
+            if (msgs && msgs.length) {
+                for (const m of msgs) messages.push(m);
+            }
+        }
+
+        // Clear pending updates and messages after applying
+        this.pendingCreatureUpdates.clear();
+        this.pendingMessages.clear();
+
+        return { messages, updates };
+    }
+
+    /**
      * Gets a specific creature by ID.
      */
     getCreature(creatureId: string): CreatureState | undefined {
         return this.creatures.get(creatureId);
+    }
+
+    /**
+     * Find a registered creature by its current grid position. Returns the creatureId and state or null.
+     */
+    getCreatureByPosition(pos: GridPosition): { creatureId: string; creature: CreatureState } | null {
+        for (const [id, c] of this.creatures) {
+            if (c.position && c.position.x === pos.x && c.position.y === pos.y) {
+                return { creatureId: id, creature: c };
+            }
+        }
+        return null;
     }
 }

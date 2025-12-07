@@ -6,7 +6,7 @@
  * `spawnEnabled: false` to prevent them from appearing in other, non-sci-fi game worlds.
  */
 import type { GenerateWorldSetupOutput } from '@/ai/flows/generate-world-setup';
-import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/lib/game/types';
+import type { GeneratedItem, Structure, Skill, WorldConcept } from '@/core/types/game';
 
 const items: GeneratedItem[] = [
     { id: 'maintenance_wrench', name: { en: 'Maintenance Wrench', vi: 'Cờ lê Bảo trì' }, description: { en: 'A heavy, all-purpose wrench. Can be used for repairs or for cracking skulls.', vi: 'Một chiếc cờ lê nặng, đa năng. Có thể dùng để sửa chữa hoặc để đập đầu.' }, emoji: '🔧', category: 'Weapon', tier: 1, effects: [], baseQuantity: { min: 1, max: 1 }, equipmentSlot: 'weapon', attributes: { physicalAttack: 3, magicalAttack: 0, physicalDefense: 0, magicalDefense: 0, critChance: 0, attackSpeed: 0, cooldownReduction: 0 }, spawnEnabled: false },

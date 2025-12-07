@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "biome": "grassland",
+  "locale": "en",
+  "generatedAt": "2025-11-12T00:00:00Z",
+  "templates": [
+    {
+      "id": "movement_default",
+      "weight": 1,
+      "variants": [
+        {
+          "patternId": null,
+          "seed": "v1",
+          "text": "You continue across the grassland. {brief_sensory}",
+          "picks": []
+        }
+      ],
+      "conditions": {}
+    }
+  ]
+}

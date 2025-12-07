@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useCallback } from 'react';
-import type { Action } from '@/lib/game/types'; // Assuming Action type is defined here
-import type { PlayerStatus, World } from '@/lib/game/types'; // Assuming these types are needed
+import type { Action } from '@/core/types/game'; // Assuming Action type is defined here
+import type { PlayerStatus, World } from '@/core/types/game'; // Assuming these types are needed
 
 // Define the types for the handlers that will be passed to this hook
 type MoveHandler = (direction: "north" | "south" | "east" | "west") => void;

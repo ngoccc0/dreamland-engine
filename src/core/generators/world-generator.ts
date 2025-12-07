@@ -2,6 +2,8 @@ import { GridPosition } from '../values/grid-position';
 import { RegionAttributes } from '../types/world-attributes';
 import { GridCell, GridCellAttributes } from '../entities/world';
 import { Terrain, TerrainType, SoilType } from '../entities/terrain';
+import WorldImpl from '../entities/world-impl';
+import type { Chunk } from '@/core/types/game';
 
 // Define WorldGenerationConfig using the correct types
 interface WorldGenerationConfig {
@@ -18,39 +20,76 @@ export class WorldGenerator {
         private readonly config: WorldGenerationConfig,
         // Type terrainFactory properly if possible, otherwise keep 'any'
         private readonly terrainFactory: any // Will be properly typed later
-    ) {}
+    ) { }
 
     /**
-     * Generates the world as a collection of regions, each with its own grid of cells.
-     * @returns An array of Region objects.
+     * Generates the full world grid and returns a concrete WorldImpl instance
+     * containing a `Chunk[][]` grid.
      */
-    async generateWorld(): Promise<any[]> {
-        // TODO: Replace 'any' with a proper Region class or interface if/when available
-        const regions = await this.generateRegions();
-        return regions;
+    async generateWorld(): Promise<WorldImpl> {
+        // Build a concrete world grid (Chunk[][]) and return a WorldImpl instance.
+        const width = this.config.width;
+        const height = this.config.height;
+        const grid: (Chunk | null)[][] = [];
+
+        for (let r = 0; r < height; r++) {
+            const row: (Chunk | null)[] = [];
+            for (let c = 0; c < width; c++) {
+                const pos = new GridPosition(c, r);
+                const terrainEntity = await this.selectTerrainForRegion(pos);
+                const attrs = terrainEntity.attributes as any;
+                const chunk: Chunk = {
+                    x: pos.x,
+                    y: pos.y,
+                    terrain: terrainEntity.type as any,
+                    description: '',
+                    NPCs: [],
+                    items: [],
+                    structures: [],
+                    explored: false,
+                    lastVisited: 0,
+                    enemy: null,
+                    actions: [],
+                    regionId: 0,
+                    travelCost: attrs.travelCost ?? 1,
+                    vegetationDensity: attrs.vegetationDensity ?? 0,
+                    moisture: attrs.moisture ?? 0,
+                    elevation: attrs.elevation ?? 0,
+                    lightLevel: attrs.lightLevel ?? 0,
+                    dangerLevel: attrs.dangerLevel ?? 0,
+                    magicAffinity: attrs.magicAffinity ?? 0,
+                    humanPresence: attrs.humanPresence ?? 0,
+                    explorability: attrs.explorability ?? 0,
+                    soilType: (attrs.soilType as any) ?? 'loamy',
+                    predatorPresence: attrs.predatorPresence ?? 0,
+                    windLevel: attrs.windLevel ?? 0,
+                    temperature: attrs.temperature ?? 0,
+                };
+                row.push(chunk);
+            }
+            grid.push(row);
+        }
+
+        // Regions generation can still run if needed, but WorldImpl currently accepts regions externally
+        const world = new WorldImpl(grid, {});
+        return world;
     }
 
     private async generateRegions(): Promise<any[]> {
+        // kept for compatibility but not currently used by generateWorld
         const regions: any[] = [];
-    const gridPositions = this.generateGridPositions();
-
+        const gridPositions = this.generateGridPositions();
         while (gridPositions.length > 0) {
             const centerPos = this.selectRandomPosition(gridPositions);
-            // terrainEntity is of type Terrain (entity)
             const terrainEntity = await this.selectTerrainForRegion(centerPos);
-
-                // region size calculation removed for now (unused in current flow)
-
-            // Construct RegionAttributes for this region (cells generation happens elsewhere when needed)
             const regionAttributes: RegionAttributes = {
                 ...terrainEntity.attributes,
                 regionType: terrainEntity.type,
-                difficultyLevel: 50, // Default or calculate as needed
-                fertility: 50, // Default or calculate as needed
-                biodiversity: 50, // Default or calculate as needed
+                difficultyLevel: 50,
+                fertility: 50,
+                biodiversity: 50,
                 soilType: typeof terrainEntity.attributes.soilType === 'string' ? terrainEntity.attributes.soilType : String(terrainEntity.attributes.soilType)
             };
-            // Construct the region without using Region class
             regions.push(regionAttributes);
         }
         return regions;

@@ -6,7 +6,7 @@ import { getKeywordVariations } from '@/lib/game/data/narrative-templates';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
 import { skillDefinitions } from '@/lib/game/skills';
-import type { PlayerStatus, PlayerBehaviorProfile, PlayerPersona } from "@/lib/game/types";
+import type { PlayerStatus, PlayerBehaviorProfile, PlayerPersona } from "@/core/types/game";
 import type { TranslationKey } from "@/lib/i18n";
 
 type PlayerProgressionDeps = {

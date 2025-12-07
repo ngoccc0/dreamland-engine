@@ -1,5 +1,3 @@
-
-'use server';
 /**
  * An AI agent for providing helpful hints for active quests.
  *
@@ -50,23 +48,23 @@ const provideQuestHintFlow = ai.defineFlow(
         outputSchema: ProvideQuestHintOutputSchema,
     },
     async (input) => {
-            try {
-                // Render the prompt template with Handlebars so we pass a fully
-                // rendered text to Gemini. Storyteller voices are different
-                // prompt templates, not different providers.
-                const template = Handlebars.compile(promptText);
-                const renderedPrompt = template(input as any);
+        try {
+            // Render the prompt template with Handlebars so we pass a fully
+            // rendered text to Gemini. Storyteller voices are different
+            // prompt templates, not different providers.
+            const template = Handlebars.compile(promptText);
+            const renderedPrompt = template(input as any);
 
-                const result = await ai.generate([
-                    { text: renderedPrompt, custom: {} }
-                ]);
+            const result = await ai.generate([
+                { text: renderedPrompt, custom: {} }
+            ]);
 
-                if (result?.output) return result.output as ProvideQuestHintOutput;
-                // If no structured output exists, try to coerce / validate.
-                throw new Error('AI returned no structured output for quest hint');
-            } catch (error: any) {
-                console.error('AI failed to generate a hint (Gemini):', error);
-                throw error;
-            }
+            if (result?.output) return result.output as ProvideQuestHintOutput;
+            // If no structured output exists, try to coerce / validate.
+            throw new Error('AI returned no structured output for quest hint');
+        } catch (error: any) {
+            console.error('AI failed to generate a hint (Gemini):', error);
+            throw error;
+        }
     }
 );

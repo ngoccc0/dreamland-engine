@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { useAudio } from '@/lib/audio/useAudio';
+import { AudioActionType } from '@/lib/definitions/audio-events';
 import { BACKGROUND_MUSIC, MENU_MUSIC } from '@/lib/audio/assets';
 
 export default function AudioControls() {
@@ -16,7 +17,7 @@ export default function AudioControls() {
       <div className="flex items-center justify-between mb-2">
         <div className="font-semibold">Audio</div>
         <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={() => audio.setMuted(!audio.muted)}>
+          <Button variant="ghost" size="sm" noSfx onClick={() => audio.setMuted(!audio.muted)}>
             {audio.muted ? 'Unmute' : 'Mute'}
           </Button>
         </div>
@@ -33,9 +34,9 @@ export default function AudioControls() {
           </select>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" onClick={() => audio.playMusic(selectedTrack)}>{'Phát'}</Button>
-          <Button size="sm" onClick={() => audio.pauseMusic()}>Tạm dừng</Button>
-          <Button size="sm" onClick={() => audio.stopMusic()}>Dừng</Button>
+          <Button size="sm" noSfx onClick={() => audio.playMusic(selectedTrack)}>{'Phát'}</Button>
+          <Button size="sm" noSfx onClick={() => audio.pauseMusic()}>Tạm dừng</Button>
+          <Button size="sm" noSfx onClick={() => audio.stopMusic()}>Dừng</Button>
         </div>
         <div className="mt-2">
           <Slider value={[audio.musicVolume]} onValueChange={(v) => audio.setMusicVolume(v[0] ?? 0.5)} step={0.01} min={0} max={1} />
@@ -48,34 +49,32 @@ export default function AudioControls() {
           <Slider value={[audio.sfxVolume]} onValueChange={(v) => audio.setSfxVolume(v[0] ?? 0.9)} step={0.01} min={0} max={1} />
         </div>
         <div className="flex gap-2 mt-3">
-          <Button size="sm" onClick={() => audio.playSfx('Menu_Select_00.mp3')}>Play select</Button>
-          <Button size="sm" onClick={() => audio.playSfx('Pickup_Gold_00.mp3')}>Play pickup</Button>
+          <Button size="sm" noSfx onClick={() => audio.playSfx('Menu_Select_00.mp3')}>Play select</Button>
+          <Button size="sm" noSfx onClick={() => audio.playSfx('Pickup_Gold_00.mp3')}>Play pickup</Button>
+        </div>
+        <div className="flex flex-col gap-2 mt-3 text-xs">
+          <Button size="sm" onClick={() => audio.playSfxForAction?.(AudioActionType.PLAYER_MOVE)}>Test Move</Button>
+          <Button size="sm" onClick={() => audio.playSfxForAction?.(AudioActionType.PLAYER_ATTACK)}>Test Attack</Button>
+          <Button size="sm" onClick={() => audio.playSfxForAction?.(AudioActionType.ITEM_PICKUP, { itemRarity: 'rare' })}>Test Pickup</Button>
         </div>
         <div className="mt-3">
-          <div className="text-xs text-neutral-300 mb-1">Tần suất nhạc nền</div>
+          <div className="text-xs text-neutral-300 mb-1">Tần suất âm thanh hành động</div>
           <div className="flex items-center gap-2 mb-2">
             <label className="flex items-center gap-1">
-              <input type="radio" name="playbackMode" checked={audio.playbackMode === 'off'} onChange={() => audio.setPlaybackMode('off')} />
+              <input type="radio" name="sfxPlaybackMode" checked={audio.playbackMode === 'off'} onChange={() => audio.setPlaybackMode('off')} />
               <span className="ml-1">Không</span>
             </label>
             <label className="flex items-center gap-1">
-              <input type="radio" name="playbackMode" checked={audio.playbackMode === 'occasional'} onChange={() => audio.setPlaybackMode('occasional')} />
+              <input type="radio" name="sfxPlaybackMode" checked={audio.playbackMode === 'occasional'} onChange={() => audio.setPlaybackMode('occasional')} />
               <span className="ml-1">Thỉnh thoảng</span>
             </label>
             <label className="flex items-center gap-1">
-              <input type="radio" name="playbackMode" checked={audio.playbackMode === 'always'} onChange={() => audio.setPlaybackMode('always')} />
+              <input type="radio" name="sfxPlaybackMode" checked={audio.playbackMode === 'always'} onChange={() => audio.setPlaybackMode('always')} />
               <span className="ml-1">Luôn luôn</span>
             </label>
           </div>
           {audio.playbackMode === 'occasional' && (
-            <div className="flex items-center gap-2">
-              <label className="text-xs text-neutral-300">Khoảng (phút)</label>
-              <input type="number" min={1} value={audio.playbackIntervalMinutes} onChange={(e) => audio.setPlaybackIntervalMinutes(Number(e.target.value) || 1)} className="w-16 p-1 rounded bg-neutral-800" />
-              <div className="text-xs text-neutral-400">Một bài sẽ tự phát sau mỗi khoảng đã chọn.</div>
-            </div>
-          )}
-          {audio.playbackMode === 'always' && (
-            <div className="text-xs text-neutral-400">Luôn phát liên tiếp: sau khi 1 bài kết thúc sẽ phát tiếp sau 5 giây.</div>
+            <div className="text-xs text-neutral-400">50% sự kiện thường, 100% sự kiện quan trọng</div>
           )}
         </div>
       </div>

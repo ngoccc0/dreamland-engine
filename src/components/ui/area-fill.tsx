@@ -56,7 +56,7 @@ export function AreaFill({ pathD, percent, size = 48, fill = '#ff5a76', fillGrou
       path = new Path2D(pathD);
     } catch (e: any) {
       // If path parsing fails, bail out
-      console.warn('AreaFill: invalid pathD', e);
+      // Silently handle invalid path
       setMap(null);
       return;
     }
@@ -74,7 +74,7 @@ export function AreaFill({ pathD, percent, size = 48, fill = '#ff5a76', fillGrou
     ctx.fill(path);
     ctx.restore();
 
-  // Read pixels row by row and build cumulative alpha counts
+    // Read pixels row by row and build cumulative alpha counts
     const img = ctx.getImageData(0, 0, pixelSize, pixelSize);
     const alpha = img.data;
     const rows = pixelSize;

@@ -1,5 +1,3 @@
-
-'use server';
 /**
  * An AI agent for dynamically generating the first step of a new legendary quest.
  *
@@ -78,11 +76,10 @@ const generateLegendaryQuestFlow = ai.defineFlow(
                 if (output) return output;
             } catch (error: any) {
                 lastError = error;
-                console.warn(`[generateLegendaryQuest] Model '${model}' failed. Trying next...`);
+                // Continue to next model
             }
         }
-        
-        console.error("All AI models failed for legendary quest generation.", lastError);
+
         throw lastError || new Error("AI failed to generate a legendary quest.");
     }
 );

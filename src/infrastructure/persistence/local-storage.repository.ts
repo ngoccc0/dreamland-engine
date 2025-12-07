@@ -1,5 +1,5 @@
 import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
-import type { GameState } from '@/lib/game/types';
+import type { GameState } from '@/core/types/game';
 
 /**
  * @class LocalStorageGameStateRepository
@@ -30,7 +30,7 @@ export class LocalStorageGameStateRepository implements IGameStateRepository {
     try {
       return JSON.parse(data);
     } catch (error: any) {
-      console.error(`Error parsing JSON from localStorage for key "${key}":`, error);
+      // Silently handle JSON parse errors
       // Optional: Corrupted data could be removed to prevent future errors
       // localStorage.removeItem(key);
       return null;
@@ -48,7 +48,7 @@ export class LocalStorageGameStateRepository implements IGameStateRepository {
     try {
       localStorage.setItem(this.getKey(slotId), JSON.stringify(state));
     } catch (error: any) {
-      console.error('Error saving game state to localStorage:', error);
+      // Silently handle localStorage save errors
       throw error;
     }
   }
@@ -72,20 +72,20 @@ export class LocalStorageGameStateRepository implements IGameStateRepository {
     if (typeof window === 'undefined') return [null, null, null];
     const summaries: Array<Pick<GameState, 'worldSetup' | 'day' | 'gameTime' | 'playerStats'> | null> = [null, null, null];
     for (let i = 0; i < 3; i++) {
-        try {
-            const data = await this.load(`slot_${i}`);
-            if (data) {
-                summaries[i] = {
-                    worldSetup: data.worldSetup,
-                    day: data.day,
-                    gameTime: data.gameTime,
-                    playerStats: data.playerStats
-                };
-            }
-        } catch (error: any) {
-            console.error(`Error loading summary for slot ${i}:`, error);
-            summaries[i] = null;
+      try {
+        const data = await this.load(`slot_${i}`);
+        if (data) {
+          summaries[i] = {
+            worldSetup: data.worldSetup,
+            day: data.day,
+            gameTime: data.gameTime,
+            playerStats: data.playerStats
+          };
         }
+      } catch (error: any) {
+        // Silently handle summary load errors
+        summaries[i] = null;
+      }
     }
     return summaries;
   }

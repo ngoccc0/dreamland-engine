@@ -43,14 +43,6 @@ export const forest_vi = {
     ],
     structures: [
         structureDefinitions['abandoned_altar']
-    ],
-    creatures: [
-        { name: 'common_tree', conditions: { chance: 0.7, vegetationDensity: { min: 3 } } },
-        { name: 'wolf', conditions: { predatorPresence: { min: 5 }, chance: 0.3 } },
-        { name: 'giant_spider', conditions: { vegetationDensity: { min: 8 }, dangerLevel: { min: 6 }, chance: 0.25 } },
-        { name: 'wild_boar', conditions: { predatorPresence: { min: 4 }, chance: 0.25 } },
-        { name: 'forest_goblin', conditions: { dangerLevel: { min: 5 }, humanPresence: { min: 1 }, chance: 0.2 } },
-        { name: 'bear', conditions: { predatorPresence: { min: 8 }, dangerLevel: { min: 7 }, chance: 0.08 } }
     ]
 };
 

@@ -203,7 +203,8 @@ export const premadeWorldTranslations = {
     // Narratives
     detective_narrative1: "Mưa quất vào cửa sổ văn phòng của bạn. Một đêm nữa ở Thành phố Neon. Một hồ sơ vụ án mới xuất hiện trên bàn của bạn, được luồn dưới cửa bởi một nhân vật bí ẩn. Có vẻ như vụ án này nguy hiểm hơn hầu hết các vụ khác.",
     genship_narrative1: 'Tiếng rít của việc giảm áp là thứ đầu tiên bạn nghe thấy. Bạn lảo đảo bước ra khỏi kén ngủ đông vào một con tàu im lặng, tối tăm. Đèn khẩn cấp tạo ra những cái bóng dài. AI của tàu, HELIOS, không phản hồi. Có điều gì đó rất không ổn.',
-    mansion_narrative1: "Một tia chớp lóe lên soi sáng hình bóng hùng vĩ của Biệt thự Blackwood. Bạn thấy mình bị mắc kẹt bên trong, cánh cửa gỗ sồi nặng nề đóng sầm lại sau lưng bạn. Một lời thì thầm lạnh lẽo vang vọng xuống hành lang lớn. Ngôi nhà này còn sống, và nó không muốn bạn rời đi.",
+    mansion_narrative1: "narrative.blackwood_mansion_intro",
+    
     mansion_narrative2: "Bạn tìm thấy một cuốn nhật ký cũ. Trang đầu tiên là lời cầu xin tuyệt vọng của người chủ trước, cảnh báo về một linh hồn độc ác bị mắc kẹt trong những bức tường của biệt thự.",
     western_narrative1: "Hai mặt trời của Kaelen Prime chiếu xuống con đường chính bụi bặm của Rustwater. Bạn bước ra khỏi quán rượu, chiếc đĩa tiền thưởng ấm trong tay. Công việc này có vẻ dễ kiếm tiền, nhưng trên một hành tinh như thế này, không có gì là dễ dàng cả.",
     western_narrative2: "Bạn sắp hết nước và đồ tiếp tế. Một cơn bão cát khổng lồ đang hình thành ở phía chân trời. Bạn cần tìm nơi trú ẩn hoặc một cách thoát khỏi hành tinh này, nhanh chóng.",
@@ -211,7 +212,7 @@ export const premadeWorldTranslations = {
     underwater_narrative2: "Bạn là người bảo vệ Vương quốc Vực thẳm. Một con thủy quái, tức giận vì bệnh dịch ngày càng lan rộng, đã bắt đầu tấn công các tiền đồn của thành phố. Bạn phải tìm cách xoa dịu hoặc đánh bại nó.",
     frozen_narrative1: "Bạn tỉnh dậy trong tiếng gió hú. Trước mắt bạn trải dài một vùng đất hoang băng giá rộng lớn, điểm xuyết những bộ xương kim loại của một thời đại đã bị lãng quên. Hơi thở của bạn ngay lập tức biến thành sương. Sinh tồn là suy nghĩ duy nhất của bạn.",
     mage_narrative1: "Bạn đang đứng trên một hòn đảo nổi, một phần của Học viện Aethelgard danh tiếng. Dưới chân bạn là một biển mây. Xung quanh bạn, những ngọn tháp bằng đá cẩm thạch và pha lê rung động với ma thuật tiềm ẩn. Kỳ thi cuối kỳ của bạn sắp bắt đầu.",
-    floptropica_narrative1: "Bạn tỉnh dậy trên một hòn đảo sôi động, hơi hỗn loạn. Không khí có mùi sản phẩm của Jiafei và tiếng la hét yếu ớt của 'ATE!'. Một bài hát pop kỳ lạ phát ra từ khu rừng. Bạn cảm thấy một sự thôi thúc kỳ lạ để 'phục vụ cvnt'.",
+    floptropica_narrative1: "{{narrative.floptropica_narrative1}}",
     floptropica_narrative2: "Bị dạt vào bờ, bạn thấy mình ở một vùng đất nơi meme là tiền tệ và sự mỉa mai là vũ khí nguy hiểm nhất. Một cung điện xa xôi vang lên âm thanh của Nicki Minaj.",
     floptropica_narrative3: "Bạn đã bị đày đến Vùng đất hoang Bad Bussy. Ở đây, chỉ những người mang tính biểu tượng nhất mới có thể tồn tại. Mặt đất rung chuyển với tiếng bass của những bản remix mạnh mẽ.",
 
@@ -235,8 +236,8 @@ export const premadeWorldTranslations = {
     frozen_quest2: "Nhặt nhạnh bất kỳ vật liệu nào có thể sử dụng được từ đống đổ nát.",
     mage_quest1: "Báo cáo với Thư viện Lớn để nhận nhiệm vụ của bạn.",
     mage_quest2: "Thu thập Bụi Sao từ gió thiên thể.",
-    floptropica_quest1: "Tìm nguồn gốc của bản nhạc pop bí ẩn.",
-    floptropica_quest2: "Phục vụ cvnt đầu tiên của bạn.",
+    floptropica_quest1: "{{quest.floptropica_quest1}}",
+    floptropica_quest2: "{{quest.floptropica_quest2}}",
     floptropica_quest3: "Đến Bệnh viện Barbz của Nicki.",
     floptropica_quest4: "Tạo một meme xứng đáng với stan.",
     floptropica_quest5: "Sống sót qua đêm.",

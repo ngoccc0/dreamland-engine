@@ -1,14 +1,222 @@
 import { TranslatableString } from '../types/i18n';
 import { Effect } from '../types/effects';
-import { 
-    Skill as SkillType, 
-    SkillType as SkillTypeEnum, 
-    SkillUnlockCondition, 
-    SkillRequirements 
+import {
+    Skill as SkillType,
+    SkillType as SkillTypeEnum,
+    SkillUnlockCondition,
+    SkillRequirements
 } from '../types/skills';
 
 /**
- * Defines the possible targets for a skill.
+ * OVERVIEW: Skill system entities
+ *
+ * Defines all data structures for character skills, including skill effects, targeting,
+ * unlock conditions, requirements, and progression mechanics.
+ * Skills are learned abilities usable in combat or exploration, governed by cooldowns,
+ * resource costs, and level prerequisites.
+ *
+ * ## Skill Basics (Skill Type & SkillTarget)
+ *
+ * ### SkillType Classification
+ *
+ * | Type | Example | Context | Effect |
+ * |------|---------|---------|--------|
+ * | COMBAT | Power Slash | Battle | Deal damage, apply effects |
+ * | UTILITY | Teleport | Exploration/Battle | Positional or support effects |
+ * | CRAFTING | Forge Weapon | Out-of-battle | Combine materials into items |
+ * | PASSIVE | Regeneration | Always Active | Constant bonuses (no activation) |
+ * | EXPLORATION | Tracker | Exploration | Reveal map info, track creatures |
+ *
+ * ### SkillTarget Enumeration
+ *
+ * Determines who/what skill can affect:
+ *
+ * ```typescript
+ * enum SkillTarget {
+ *   SELF = 'SELF',                       // Skill user only
+ *   SINGLE_ENEMY = 'SINGLE_ENEMY',      // One enemy (combat)
+ *   MULTIPLE_ENEMIES = 'MULTIPLE_ENEMIES', // AoE damage (combat)
+ *   SINGLE_ALLY = 'SINGLE_ALLY',        // One ally/NPC (support)
+ *   MULTIPLE_ALLIES = 'MULTIPLE_ALLIES', // Group heal/buff
+ *   AREA = 'AREA'                        // Map area (exploration)
+ * }
+ * ```
+ *
+ * ## Skill Effects (SkillEffect)
+ *
+ * Specialized effects applied when skill activates:
+ *
+ * ```typescript
+ * interface SkillEffect extends Effect {
+ *   baseValue: number,            // Raw effect magnitude before scaling
+ *   scaling?: {
+ *     attribute: string,          // Stat name (intelligence, strength, etc.)
+ *     multiplier: number          // How much attribute affects effect
+ *   }
+ * }
+ * ```
+ *
+ * ### Examples
+ *
+ * - **Fireball**:
+ *   - baseValue: 20 damage
+ *   - scaling: {attribute: 'intelligence', multiplier: 0.5}
+ *   - Actual damage: 20 + (intelligence × 0.5)
+ *   - At intelligence = 30: 20 + 15 = 35 damage
+ *
+ * - **Heal**:
+ *   - baseValue: 15 HP restore
+ *   - scaling: {attribute: 'wisdom', multiplier: 0.3}
+ *   - At wisdom = 40: 15 + 12 = 27 HP restored
+ *
+ * ## Skill Requirements (SkillRequirements)
+ *
+ * Prerequisites for learning/using skills:
+ *
+ * ```typescript
+ * interface SkillRequirements {
+ *   minimumLevel: number,         // Character level required
+ *   minimumStats?: {
+ *     strength?: number,
+ *     intelligence?: number,
+ *     dexterity?: number,
+ *     vitality?: number,
+ *     luck?: number
+ *   },
+ *   skillPoints: number,          // Points spent to learn
+ *   materials?: Item[],           // Items consumed (rare)
+ *   prerequisites?: string[]      // Other skills required first
+ * }
+ * ```
+ *
+ * ### Progression Gates
+ *
+ * ```
+ * Beginner Skill: Level 1, 0 points, no stats → Open immediately
+ * Common Skill: Level 5, 1 point, strength ≥ 10 → Mid-early game
+ * Advanced Skill: Level 15, 3 points, intelligence ≥ 20 → Mid-game requirement
+ * Rare Skill: Level 25, 10 points, wisdom ≥ 25, needs 3 prerequisites → Late-game build
+ * Ultimate Skill: Level 40, 20 points, max stat ≥ 50 → End-game power
+ * ```
+ *
+ * ## Skill Unlock Conditions (SkillUnlockCondition)
+ *
+ * Special conditions beyond level/stats to unlock skills:
+ *
+ * ```typescript
+ * type SkillUnlockCondition =
+ *   | {type: 'level', value: number}          // Reach level X
+ *   | {type: 'stat', stat: string, value: number} // Stat ≥ value
+ *   | {type: 'quest', questId: string}        // Complete quest
+ *   | {type: 'area', areaId: string}          // Discover area
+ *   | {type: 'custom', checkFn: () => boolean} // Arbitrary logic
+ * ```
+ *
+ * ### Examples
+ *
+ * - **Fire Mastery**: {type: 'quest', questId: 'fire_temple'}
+ *   - Unlocked only after Fire Temple quest completion
+ * - **Ancient Knowledge**: {type: 'area', areaId: 'lost_library'}
+ *   - Unlocked upon discovering Lost Library
+ * - **Legendary Strike**: {type: 'custom', checkFn: () => hasAllWeapons()}
+ *   - Unlocked when player owns all legendary weapons
+ *
+ * ## Skill Progression Mechanics
+ *
+ * ### Learning Skills
+ *
+ * ```
+ * Input: Character has skill points + meets requirements
+ * Action: learnSkill(skill)
+ * Outcome: Skill added to skills[], skill points spent, cooldown set to 0
+ * Result: Skill now usable in combat
+ * ```
+ *
+ * ### Leveling Skills
+ *
+ * ```
+ * Usage: Each time skill used in combat, gain experience
+ * Threshold: skillXP reaches 100 × level
+ * Outcome: Skill level increases
+ * Benefit: baseValue increases, cooldown decreases, scaling improves
+ * Formula: New baseValue = old × (1 + 0.1 × level)
+ * ```
+ *
+ * Example progression:
+ * - Level 1: 20 damage, 3 turn cooldown
+ * - Level 2: 22 damage, 2.7 turn cooldown (20 × 1.1)
+ * - Level 3: 24.2 damage, 2.4 turn cooldown
+ * - Level 5: 29.28 damage, 1.8 turn cooldown
+ *
+ * ### Cooldowns
+ *
+ * ```
+ * After use: cooldownTurns = cooldown
+ * Each turn: cooldownTurns -= 1
+ * Ready: cooldownTurns <= 0
+ * Can use: Yes (resets cooldown)
+ * ```
+ *
+ * Common cooldowns:
+ * - Basic Attack: 0 (always usable)
+ * - Quick Skill: 1-2 (frequently available)
+ * - Standard Skill: 2-3 (regular usage)
+ * - Powerful Skill: 4-5 (limited usage)
+ * - Ultimate Skill: 8-10 (rare usage)
+ *
+ * ## Resource Costs
+ *
+ * Skills may consume resources:
+ *
+ * | Resource | Regen Rate | Skill Examples | Cost Range |
+ * |----------|-----------|----------------|-----------|
+ * | Mana | 10/turn | Fireball, Heal | 10-50 |
+ * | Stamina | 5/turn | Power Slash | 10-30 |
+ * | Health | None | Sacrifice | 10-50 (risky) |
+ * | Items | Consumed | Bomb Throw | 1 item |
+ *
+ * Usage check:
+ * ```
+ * if currentMana >= manaCost:
+ *   cast skill
+ *   currentMana -= manaCost
+ * else:
+ *   reject skill (insufficient mana)
+ * ```
+ *
+ * ## Skill Tree Structure
+ *
+ * Skills often arranged hierarchically:
+ *
+ * ```
+ * Combat Branch
+ *   ├─ Basic Attack (always available)
+ *   ├─ Physical Branch
+ *   │  ├─ Power Slash → Whirlwind
+ *   │  └─ Riposte → Perfect Guard
+ *   └─ Magic Branch
+ *      ├─ Fireball → Meteor
+ *      └─ Ice Spear → Blizzard
+ * Exploration Branch
+ *   ├─ Tracker → Keen Sight
+ *   └─ Climber → Mountain Master
+ * ```
+ *
+ * Progression rules:
+ * - Must learn prerequisites first
+ * - Unlock at specified levels
+ * - Horizontal skills (same branch) independent
+ * - Vertical skills (chain) cumulative benefits
+ *
+ * ## Design Philosophy
+ *
+ * - **Meaningful Choices**: Skill points create build diversity
+ * - **Progression Reward**: Leveling skills feels impactful
+ * - **Cooldown Tension**: Creates turn-based rhythm
+ * - **Resource Management**: Mana/Stamina adds strategic depth
+ * - **Customization**: Tree structure supports many playstyles
+ * - **Balance**: Requirements prevent overpowering early access
+ *
  */
 export enum SkillTarget {
     SELF = 'SELF',                // Targets the skill user.
@@ -344,7 +552,7 @@ export class SkillTree {
         }
 
         // All conditions must have their progress meet or exceed their required value.
-        return skill.unlockConditions.every(condition => 
+        return skill.unlockConditions.every(condition =>
             (condition.progress || 0) >= condition.value
         );
     }
@@ -372,7 +580,7 @@ export class SkillTree {
      * @returns An array of root {@link SkillNode}s.
      */
     getRootNodes(): SkillNode[] {
-        return Array.from(this.nodes.values()).filter(node => 
+        return Array.from(this.nodes.values()).filter(node =>
             node.prerequisites.length === 0
         );
     }
@@ -383,7 +591,7 @@ export class SkillTree {
      * @returns An array of child {@link SkillNode}s.
      */
     getChildNodes(skillId: string): SkillNode[] {
-        return Array.from(this.nodes.values()).filter(node => 
+        return Array.from(this.nodes.values()).filter(node =>
             node.prerequisites.includes(skillId)
         );
     }

@@ -1,6 +1,3 @@
-
-'use server';
-
 /**
  * An AI agent for suggesting creative keywords.
  *
@@ -9,8 +6,8 @@
  * to try multiple AI models for increased reliability.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'zod';
+import { ai } from '@/ai/genkit';
+import { z } from 'zod';
 
 // Input: The user's current idea and the desired language.
 const SuggestKeywordsInputSchema = z.object({

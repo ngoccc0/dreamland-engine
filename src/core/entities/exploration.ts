@@ -3,7 +3,204 @@ import { GridCell } from './grid-cell';
 import type { TranslatableString } from '../types/i18n';
 
 /**
- * Defines the various types of discoveries that can be made during exploration.
+ * OVERVIEW: Exploration discovery system
+ *
+ * Manages world discoveries (landmarks, resources, dungeons, artifacts, secrets) that players
+ * find while exploring. Each discovery has type, difficulty, location, and rewards.
+ * Supports discovery tracking, duplicate prevention, and player progression gates.
+ *
+ * ## Discovery Types (DiscoveryType)
+ *
+ * Six categories of discoverable locations:
+ *
+ * | Type | Description | Example | Rewards | Notes |
+ * |------|-------------|---------|---------|-------|
+ * | LANDMARK | Notable geographic feature | Mountain Peak, Waterfall | 10-50 XP | Safe, visual |
+ * | RESOURCE | Valuable material source | Ore Deposit, Herb Field | 20-100 XP + materials | Respawns over time |
+ * | SETTLEMENT | Populated area or ruin | Village, Ancient Ruins | 50-200 XP + NPC access | Quests/NPCs |
+ * | DUNGEON | Dangerous challenge area | Goblin Cave, Lost Temple | 100-500 XP + rare loot | Combat required |
+ * | ARTIFACT | Rare/unique item location | Legendary Sword Altar | 200+ XP + artifact | Quest-gated |
+ * | SECRET | Hidden area or lore | Enchanted Grove, Map Easter Egg | 50-300 XP + knowledge | Difficult to find |
+ *
+ * ## Difficulty Levels (ExplorationDifficulty)
+ *
+ * Five-tier difficulty system gating rewards and accessibility:
+ *
+ * | Level | Description | Suggested Level | Combat? | XP Multiplier | Item Rarity |
+ * |-------|-------------|-----------------|---------|---------------|-------------|
+ * | EASY | Open to all, walk-in discovery | 1+ | No | 1.0× | Common |
+ * | NORMAL | Moderate challenge | 5+ | Optional | 1.3× | Uncommon |
+ * | HARD | Real danger, skills needed | 15+ | Likely | 1.8× | Rare |
+ * | EXTREME | Very dangerous, group content | 25+ | Required | 2.5× | Epic |
+ * | LEGENDARY | Peak difficulty, solo challenge | 35+ | Required | 3.5× | Legendary |
+ *
+ * ### Progression Gates
+ *
+ * ```
+ * if player.level < discovery.recommendedLevel:
+ *   apply damage multiplier: 1 + (recommendedLevel - player.level) × 0.2
+ *   apply XP penalty: final = base × 0.5
+ * elif player.level > discovery.recommendedLevel + 5:
+ *   apply XP penalty: final = base × 0.8^(player.level - recommendation)
+ * ```
+ *
+ * ## Discovery Interface (Discovery)
+ *
+ * Complete discovery definition:
+ *
+ * ```typescript
+ * interface Discovery {
+ *   id: string,                 // Unique identifier (e.g., 'goblin_cave_01')
+ *   type: DiscoveryType,        // LANDMARK, RESOURCE, etc.
+ *   name: TranslatableString,   // Localized name (EN/VI)
+ *   description: TranslatableString, // Localized description with lore
+ *   difficulty: ExplorationDifficulty, // Challenge level
+ *   location: GridPosition,     // Map coordinates
+ *   rewards: {
+ *     experience: number,       // XP granted
+ *     items?: string[],         // Item IDs dropped
+ *     unlocks?: string[],       // Features/quests unlocked
+ *   },
+ *   enemies?: string[],         // Creature types present
+ *   requirements?: {            // Optional gates
+ *     minLevel?: number,
+ *     questId?: string,
+ *     items?: string[],
+ *   }
+ * }
+ * ```
+ *
+ * ## Discovery Examples
+ *
+ * ### Example 1: LANDMARK (Waterfall)
+ * ```typescript
+ * {
+ *   id: 'waterfall_spring',
+ *   type: DiscoveryType.LANDMARK,
+ *   name: {en: 'Crystal Waterfall', vi: 'Thác nước Tinh thể'},
+ *   difficulty: ExplorationDifficulty.EASY,
+ *   location: {x: 5, y: 12},
+ *   rewards: {experience: 20},
+ *   description: 'A serene waterfall with healing properties',
+ *   requirements: {minLevel: 1}  // Open to all
+ * }
+ * ```
+ * - No combat, just walk there
+ * - Small XP reward
+ * - Available immediately
+ *
+ * ### Example 2: RESOURCE (Ore Field)
+ * ```typescript
+ * {
+ *   id: 'iron_ore_deposit_north',
+ *   type: DiscoveryType.RESOURCE,
+ *   name: {en: 'Iron Ore Field', vi: 'Mỏ sắt'},
+ *   difficulty: ExplorationDifficulty.NORMAL,
+ *   location: {x: 20, y: 8},
+ *   rewards: {
+ *     experience: 50,
+ *     items: ['iron_ore', 'iron_ore', 'copper_ore']
+ *   },
+ *   requirements: {minLevel: 5}
+ * }
+ * ```
+ * - Limited combat (maybe 1-2 mobs)
+ * - Resources respawn weekly
+ * - Travel time moderate
+ *
+ * ### Example 3: DUNGEON (Goblin Cave)
+ * ```typescript
+ * {
+ *   id: 'goblin_cave_west',
+ *   type: DiscoveryType.DUNGEON,
+ *   name: {en: 'Goblin\'s Lair', vi: 'Hang ổ Goblin'},
+ *   difficulty: ExplorationDifficulty.HARD,
+ *   location: {x: -15, y: 30},
+ *   rewards: {
+ *     experience: 200,
+ *     items: ['goblin_spear', 'crude_armor', 'emerald', 'gemstone'],
+ *     unlocks: ['goblin_crafting_recipes']
+ *   },
+ *   enemies: ['goblin_warrior', 'goblin_shaman', 'goblin_boss'],
+ *   requirements: {minLevel: 15, items: ['silver_sword']}
+ * }
+ * ```
+ * - Boss fight required
+ * - 3-5 combat encounters
+ * - High risk/reward
+ * - Special equipment recommended
+ *
+ * ### Example 4: ARTIFACT (Legendary Sword)
+ * ```typescript
+ * {
+ *   id: 'excalibur_statue',
+ *   type: DiscoveryType.ARTIFACT,
+ *   name: {en: 'Excalibur Statue', vi: 'Bức tượng Excalibur'},
+ *   difficulty: ExplorationDifficulty.EXTREME,
+ *   location: {x: 0, y: 0},
+ *   rewards: {
+ *     experience: 500,
+ *     items: ['excalibur_sword'],
+ *     unlocks: ['ultimate_warrior_skill']
+ *   },
+ *   enemies: ['cursed_knight', 'cursed_knight', 'cursed_knight_elite'],
+ *   requirements: {
+ *     minLevel: 30,
+ *     questId: 'sword_legend_quest',
+ *     items: ['holy_water', 'ancient_scroll']
+ *   }
+ * }
+ * ```
+ * - Multiple story gates
+ * - Dangerous bosses
+ * - Most powerful reward
+ * - End-game content
+ *
+ * ## Exploration State Machine
+ *
+ * ```
+ * NOT_DISCOVERED
+ *   ├─ [Enter area] → IN_PROGRESS
+ *   └─ [Requirements unmet] → BLOCKED
+ *
+ * IN_PROGRESS
+ *   ├─ [Defeat enemies] → COMPLETED
+ *   └─ [Flee] → NOT_DISCOVERED (not yet)
+ *
+ * COMPLETED
+ *   ├─ [Visit again] → REVISIT_AVAILABLE
+ *   └─ [Resources respawned] → IN_PROGRESS
+ *
+ * BLOCKED
+ *   ├─ [Gain level/item/quest] → IN_PROGRESS
+ *   └─ [Time passes] → remains BLOCKED
+ * ```
+ *
+ * ## XP Reward Calculation
+ *
+ * ```
+ * baseXP = discovery.rewards.experience
+ *
+ * if player.level < discovery.minLevel:
+ *   xp = baseXP × 0.5  (penalty for underlevel)
+ * elif player.level > discovery.minLevel + 10:
+ *   xp = baseXP × 0.7  (penalty for overlevel)
+ * else:
+ *   xp = baseXP  (base reward)
+ *
+ * if difficulty == EXTREME:
+ *   xp *= 1.5  (bonus for hard content)
+ * ```
+ *
+ * ## Design Philosophy
+ *
+ * - **Type Diversity**: Multiple discovery types create exploration goals
+ * - **Difficulty Scaling**: Progressively challenging content over 30+ levels
+ * - **Location-Based**: Discoveries tied to map coordinates reward exploration
+ * - **Replayability**: Resources respawn, tough dungeons provide repeated challenge
+ * - **Story Integration**: Quests and unlocks connect discoveries to narrative
+ * - **Accessibility + Depth**: Easy discoveries for casual play, secrets for completionists
+ *
  */
 export enum DiscoveryType {
     LANDMARK = 'landmark',    // A notable geographical or structural feature.
@@ -115,10 +312,10 @@ export class ExplorationManager {
         const discoveries = this.checkForDiscoveries(cell, explorationSkills);
         // Calculate exploration points gained from this action.
         const explorationPoints = this.calculateExplorationPoints(cell, discoveries);
-        
+
         // Add points to total exploration score.
         this._progress.totalExplorationScore += explorationPoints;
-        
+
         return {
             type: 'success',
             discoveries,
@@ -175,7 +372,7 @@ export class ExplorationManager {
             // Explorability directly scales the chance.
             chance *= (cell.attributes.explorability / 100);
             // Reduce chance if many neighbors are already explored, simulating less "new" to find.
-            chance *= (1 - (this.getNeighborExploredCount(cell.position) * 0.1)); 
+            chance *= (1 - (this.getNeighborExploredCount(cell.position) * 0.1));
             this._discoveryChances.set(key, chance);
         }
         return this._discoveryChances.get(key)!;
@@ -225,7 +422,7 @@ export class ExplorationManager {
      */
     private calculateDifficulty(cell: GridCell): ExplorationDifficulty {
         // Difficulty is a weighted sum of danger, travel cost, and inverse explorability.
-        const difficultyScore = 
+        const difficultyScore =
             (cell.attributes.dangerLevel * 0.4) +
             (cell.attributes.travelCost * 0.3) +
             ((100 - cell.attributes.explorability) * 0.3);
@@ -320,7 +517,7 @@ export class ExplorationManager {
      */
     private updateSkillLevels(discoveries: Discovery[]): Map<string, number> {
         const _skillGains = new Map<string, number>(); // This variable is currently unused.
-        
+
         discoveries.forEach(discovery => {
             switch (discovery.type) {
                 case DiscoveryType.ARTIFACT:
@@ -348,7 +545,7 @@ export class ExplorationManager {
         // Simplified experience gain: if amount >= expNeeded, level up.
         // In a real system, this would involve tracking current XP within a level.
         const expNeeded = Math.floor(100 * Math.pow(1.5, currentLevel - 1));
-        
+
         if (amount >= expNeeded) {
             this._progress.skillLevels.set(skill, currentLevel + 1);
         }

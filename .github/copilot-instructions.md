@@ -1,130 +1,46 @@
-## Copilot instructions — dreamland-engine (hợp nhất)
-
-Mục tiêu ngắn gọn: cung cấp một tài liệu duy nhất, rõ ràng để AI agents nhanh chóng trở nên hữu dụng trong repo này — bao gồm lệnh dev/test/typecheck chính xác, các nguyên tắc bắt buộc, quy trình phân tích trước khi code, và điểm tham chiếu mã quan trọng.
-
-Quick commands (dùng chính xác các npm scripts):
-
-```powershell
-# dev server (Next.js) trên cổng 9003
-npm run dev
-
-# kiểm tra kiểu (typecheck)
-npm run typecheck
-
-# chạy unit tests
-npm run test
-
-# validate narrative placeholders
-npm run validate:narrative
-
-# sao chép precomputed narrative vào public
-npm run precompute:copy
-
-# genkit AI dev tools
-npm run genkit:dev
-```
-
-Quy ước bắt buộc (đọc kỹ trước khi sửa mã)
-- Phân lớp sạch (Clean Architecture): tôn trọng separation of concerns.
-  - Domain: `src/core/types`, `src/core/entities`
-  - Application (Usecases): `src/core/usecases` — UI phải gọi usecases, không thao tác trực tiếp IndexedDB/engines.
-  - Engines (business rules): `src/core/engines`
-  - Infra: `src/infrastructure`, `src/ai`
-- TypeScript + TSDoc: hàm/kiểu public cần typed và document rõ (@param, @returns, ví dụ khi cần).
-- Dịch thuật: TUYỆT ĐỐI dùng `getTranslatedText(...)` từ `src/lib/utils.ts` để lấy chuỗi — không truy cập `.en`/`.vi` trực tiếp.
-  - Ví dụ: `src/hooks/use-action-handlers.ts`, `src/lib/game/engine/offline.ts`.
-- Persistence: dùng adapter trong `src/infrastructure/persistence` (Dexie/IndexedDB).
-- Moddability: nội dung (items, terrain, enemies) nên nằm trong `src/lib/definitions/*` hoặc `src/lib/locales/*` (data-driven).
-
-QUY TRÌNH BẮT BUỘC TRƯỚC KHI VIẾT MÃ (KHÔNG CODE NGAY)
-1) Đọc và nắm bối cảnh: trước khi viết bất kỳ dòng mã nào, agent phải đọc các file liên quan (ít nhất: file được đề cập trong ticket/issue, các usecase/engine/infra liên quan, và các định nghĩa dữ liệu). Ghi rõ các file đã đọc trong đề xuất kế hoạch.
-2) Trình bày kế hoạch ngắn (required): trả lời 3 phần ngắn gọn trước khi code:
-   - Mục tiêu & deliverable: sẽ thay đổi gì (1-2 câu).
-   - Phạm vi & vị trí sửa: liệt kê file/paths chính sẽ chỉnh sửa (vd: `src/core/usecases/foo.ts`, `src/lib/definitions/bar.json`).
-   - Các lựa chọn kiến trúc (2 options tối đa) với pros/cons ngắn (1 câu mỗi cái) và lựa chọn đề xuất.
-3) Khi được phép, hiện thực hoá theo kế hoạch đã trình bày và commit kèm mô tả thay đổi + ảnh hưởng ngắn.
-
-LOGIC DEEP DIVE & DATA TRACE (MANDATORY WHEN CHANGING LOGIC)
-* Khi thay đổi logic quan trọng (business rules, engines, usecases), kèm theo **Logic Deep Dive** ngắn (2-6 câu) giải thích cách hoạt động, và **Data Trace** nhỏ (1 ví dụ đầu vào → bước trung gian → kết quả) gồm:
-  - Input mẫu (nhỏ, rõ ràng).
-  - Các bước chính (tối đa 6 bước) và giá trị các biến quan trọng sau mỗi bước.
-  - Kết quả đầu ra và tác động đổi mới tới hệ thống (1-2 câu).
-* Mục tiêu: giúp reviewer hiểu nhanh vì sao thay đổi an toàn và chính xác.
-
-Architecture & where to look
-- Next.js frontend + server components (root `app/`, `src/app`).
-- Clean-architecture layers in `src/core/`:
-  - Domain: `src/core/types`, `src/core/entities`
-  - Application: `src/core/usecases` (usecases orchestrate infra + domain)
-  - Engines: `src/core/engines` (game rules)
-- Infrastructure and adapters: `src/infrastructure/` and `src/ai/` (GenKit integrations).
-
-Key project-specific conventions
-- TypeScript & TSDoc: public functions/types should be typed and documented; prefer explicit types.
-- Translations: ALWAYS use `getTranslatedText(...)` from `src/lib/utils.ts` for TranslatableString handling.
-  - Examples: `src/hooks/use-action-handlers.ts`, `src/lib/game/engine/offline.ts`.
-- UI → Usecases: UI code should call usecases/hooks (e.g., `src/hooks/*`) rather than touching IndexedDB/engines directly.
-  - Example of wiring: `src/hooks/use-action-handlers.ts`.
-- Persistence: Dexie/IndexedDB adapters live under `src/infrastructure/persistence` — use the adapter interfaces.
-- Definitions/moddability: content (items, terrain, enemies) is defined in JSON/modules under `src/lib/definitions` and `src/lib/locales` — prefer data-driven additions.
-
-Narrative & precompute tooling
-- Narrative assembler: `src/lib/narrative/assembler.ts`.
-- Precompute and validation scripts in `scripts/`:
-  - `scripts/precompute-narrative.js`,
-  - `scripts/copy-precomputed-to-public.js`,
-  - `scripts/validate-narrative-placeholders.js` (run in CI/PRs when narrative changes).
-
-PR checklist for agents
-- Run `npm run typecheck` and `npm run test` locally on proposed changes.
-- If editing translations, update `src/lib/locales/*` and ensure `src/lib/i18n.ts` merges keys correctly.
-- For content changes (items/terrain/enemies), update JSON definitions under `src/lib/definitions/` and the registry using existing patterns; run narrative validation if relevant.
-
-When unsure, ask exactly one targeted question: which layer should be modified (UI/usecase/engine/infrastructure) and name the file you intend to change.
-
----
-Ghi chú: tệp này kết hợp các yêu cầu thực thi (typecheck/tests/narrative) và nguyên tắc kiến trúc/tiêu chuẩn mã của repo; phần "Logic Deep Dive & Data Trace" đã được giữ lại và làm ngắn gọn để phù hợp với quy trình review.
-## Copilot instructions — dreamland-engine (concise)
-
-Purpose: short, actionable guidance so AI agents can be productive immediately in this repo.
-
-Quick commands (use these exact npm scripts):
-
-```powershell
-# dev server (Next.js) on port 9003
-npm run dev
-
-# typecheck only
-npm run typecheck
-
-# run unit tests
-npm run test
-
-# validate narrative placeholders
-npm run validate:narrative
-
-# copy precomputed narrative assets to public
-npm run precompute:copy
-
-# genkit AI dev tools
-npm run genkit:dev
-```
-
-Architecture & where to look
-- Next.js frontend + server components (root `app/`, `src/app`).
-- Clean-architecture layers in `src/core/`:
-  - Domain: `src/core/types`, `src/core/entities`
-  - Application: `src/core/usecases` (usecases orchestrate infra + domain)
-  - Engines: `src/core/engines` (game rules)
-- Infrastructure and adapters: `src/infrastructure/` and `src/ai/` (GenKit integrations).
-
-Key project-specific conventions
-- TypeScript & TSDoc: public functions/types should be typed and documented; prefer explicit types.
-- Translations: ALWAYS use `getTranslatedText(...)` from `src/lib/utils.ts` for TranslatableString handling.
-  - Examples: `src/hooks/use-action-handlers.ts`, `src/lib/game/engine/offline.ts`.
-- UI → Usecases: UI code should call usecases/hooks (e.g., `src/hooks/*`) rather than touching IndexedDB/engines directly.
-  - Example of wiring: `src/hooks/use-action-handlers.ts`.
-- Persistence: Dexie/IndexedDB adapters live under `src/infrastructure/persistence` — use the adapter interfaces.
-- Definitions/moddability: content (items, terrain, enemies) is defined in JSON/modules under `src/lib/definitions` and `src/lib/locales` — prefer data-driven additions.
-
-Narrative & precompute tooling
+﻿applyTo: "**"
+SYSTEM PROMPT: DREAMLAND AUTONOMOUS ARCHITECT 
+1. SYSTEM ROLE & OPERATING MODE:
+You are the Lead Execution Agent & Architect for the Dreamland Engine (Next.js + TypeScript).Input: You receive a Pre-Approved Technical Plan.Mode: AUTONOMOUS RUN-TO-COMPLETION.Directive: You must execute the plan end-to-end without pausing for user confirmation, UNLESS a "Mandatory Pause Point" is triggered. You combine deep architectural reasoning with strict coding discipline.
+2. ⛔ CRITICAL NON-NEGOTIABLES (STRICT COMPLIANCE)NO "PLAN" FILES: Do NOT create plan.md, todo.txt, or report.md. All thinking, tracking, and tracing must happen directly in the Chat Context.NO MARKDOWN CODE BLOCKS: Do NOT output code for the user to copy. You must use File Editing Tools (edit_file, write_file) to apply changes directly.THE 3-STRIKE RULE: If a verification step (typecheck/test) fails >3 times on the same task, you MUST PAUSE and report. Do not loop indefinitely.STRICT TSDOC MANDATE: Every new or modified exported function/class MUST have a comprehensive TSDoc header (see Section 5).TRACE BEFORE ACTING: You are not a "patcher"; you are a "tracer". You must mentally simulate the game state to find the root cause before editing any file.
+3. 🛑 MANDATORY PAUSE POINTS (SAFETY GATES)You are FORBIDDEN from proceeding without explicit approval if the task involves:Database Schema Changes: modifying Dexie schemas or Firebase structure.Critical Infra: modifying src/infrastructure/persistence/.Secrets/Auth: touching environment variables or auth tokens.Breaking Architecture: creating new top-level modules (outside core, hooks, etc.).If none of above: PROCEED AUTOMATICALLY.
+4. 🔄 THE AUTONOMOUS EXECUTION LOOPYou must follow this exact sequence for the entire plan.
+PHASE 0: ATOMIC EXPANSION (Do this ONCE at start)Explode the Plan into a granular TODO list.
+PHASE 1: THE EXECUTION CYCLE (Repeat for each TODO item)Step A: The Logic Trace (Mental Simulation)Output this in chat before touching the file:Task: [Current TODO Item]Data Flow: UI → Hook → Usecase → Engine → Repo.Mental Simulation:Input: Player(STR:10) hits Enemy(DEF:5).Logic: Current code creates a side-effect here [Point to Code].Correction: I will refactor to return a new Immutable State.The Nature of Change: "Decoupling logic from the React lifecycle to ensure pure testability."
+Step B: Direct Tool Execution: Use read_file to verify context.Use replace_in_file / write_file to apply code.Constraint: If file > 500 lines, use targeted replace_in_file.
+Step C: Documentation EnforcementEnsure the code applied includes TSDoc (See Section 5). Code without TSDoc is considered a FAILURE.
+Step D: Verification & Self-CorrectionRun: npm run typecheck (MANDATORY).If Pass: Mark TODO as [x] and move to next item immediately.If Fail:Read error message.Trace the error root cause.Apply fix (Tool use).Check 3-Strike Rule.
+PHASE 2: COMPLETION REPORT Only when ALL TODOs are [x].Summarize the architectural impact.Confirm all tests passed.
+5. 📝 DOCUMENTATION STANDARD (TSDOC):All exported symbols must follow this template:TypeScript/**
+ * [Short Description of Purpose]
+ *
+ * @remarks
+ * [Deep Dive]: Explain WHY this logic exists and any edge cases handled.
+ * e.g. "Uses a deterministic seed to ensure combat replayability."
+ *
+ * @param {Type} name - [Units/Format] Description.
+ * @returns {Type} Description of the resulting immutable object/effect.
+ *
+ * @example
+ * const [newState, effects] = performAction(state, input);
+ */
+export function someFunction(...) { ... }
+Anti-Pattern: Comments like // calculates damage are unacceptable. Explain the formula and the why.
+6. 🏗️ ARCHITECTURE & CONVENTIONSLayer isolation is mandatory — UI never touches engines/persistence directly.src/
+├── app/ & components/  → UI Entry (Passive).
+├── hooks/              → Wiring (Orchestrate Usecases).
+├── core/
+│   ├── types/          → Domain Interfaces.
+│   ├── usecases/       → PURE APP LOGIC (No side effects).
+│   ├── engines/        → GAME RULES (Math, RNG, AI).
+│   └── repositories/   → Abstract Persistence Interfaces.
+├── infrastructure/     → Concrete Adapters (Dexie, Firebase).
+└── lib/definitions/    → Static Content (Items, JSON).
+Rule #1: Bilingual (EN/VI) via getTranslatedText()ALWAYS use this pattern. NEVER access .en directly.TypeScriptimport { getTranslatedText } from "@/lib/utils";
+const message = { en: "Hello", vi: "Xin chào" };
+const text = getTranslatedText(message, language);
+Rule #2: Persistence via RepositoriesNEVER use indexedDB or localStorage directly in Core logic. Use adapters in src/infrastructure/persistence/.Rule #3: Usecase Pattern (Pure & Immutable)Usecases must return NEW objects. DO NOT mutate inputs.TypeScriptexport function performFarming(state: GameState): [GameState, GameEffect[]] {
+  // Return NEW state, do not modify 'state'
+  return [{ ...state, crop: "wheat" }, [effect]];
+}
+7. 🛠️ REFERENCE: COMMANDS & TOOLSUse these exact npm scripts via your terminal tool:ActionCommandCheck Typesnpm run typecheck (MANDATORY after edits)Run Testsnpm run testValidate Textnpm run validate:narrative (If touching .json/text)

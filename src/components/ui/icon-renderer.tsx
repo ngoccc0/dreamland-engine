@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 
 interface IconRendererProps {
   icon: string | { type: 'image'; url: string };
+  /** If omitted, size will be driven by CSS (e.g. minimap cell rules) */
   size?: number;
   alt?: string;
   className?: string;
@@ -17,27 +18,30 @@ interface IconRendererProps {
  * - String: Direct emoji character (e.g., '🍎')
  * - Object: Image object with type and url (e.g., { type: 'image', url: '/assets/items/apple.png' })
  */
-export function IconRenderer({ icon, size = 24, alt = '', className }: IconRendererProps) {
+export function IconRenderer({ icon, size, alt = '', className }: IconRendererProps) {
   // Handle image object format
   if (typeof icon === 'object' && icon.type === 'image') {
     return (
       <Image
         src={icon.url}
         alt={alt}
-        width={size}
-        height={size}
-        className={cn('object-contain flex-shrink-0', className)}
-        style={{ width: size, height: size }}
+        width={size ?? undefined}
+        height={size ?? undefined}
+        className={cn(size ? 'object-contain flex-shrink-0' : 'w-full h-full object-contain', className)}
+        style={size ? { width: size, height: size } : undefined}
       />
     );
   }
 
-  // Handle string emoji format
+  // Handle string emoji format - scale emoji to 2/3 size
   if (typeof icon === 'string') {
+    const emojiSize = size ? Math.round(size * 2 / 3) : undefined;
+    const style = emojiSize ? { fontSize: emojiSize, width: emojiSize, height: emojiSize } : undefined;
+    const classes = emojiSize ? 'flex items-center justify-center flex-shrink-0' : 'w-full h-full flex items-center justify-center';
     return (
       <span
-        className={cn('flex items-center justify-center flex-shrink-0', className)}
-        style={{ fontSize: size, width: size, height: size }}
+        className={cn(classes, className)}
+        style={style}
         role="img"
         aria-label={alt}
       >

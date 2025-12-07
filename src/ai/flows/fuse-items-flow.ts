@@ -1,4 +1,3 @@
-'use server';
 /**
  * An AI agent for dynamically fusing items based on player experimentation.
  *
@@ -18,7 +17,7 @@ import { z } from 'zod';
 import { FuseItemsInputSchema, FuseItemsOutputSchema, GeneratedItemSchema, PlayerItemSchema } from '@/ai/schemas';
 import { clamp, getEmojiForItem, getTranslatedText } from '@/lib/utils';
 import { logger } from '@/lib/logger';
-import type { GeneratedItem } from '@/lib/game/types';
+import type { GeneratedItem } from '@/core/types/game';
 import { resolveItemDef } from '@/lib/game/item-utils';
 
 // --- The Exported Function ---
@@ -35,9 +34,9 @@ export type FuseItemsInput = z.infer<typeof FuseItemsInputSchema>;
 export type FuseItemsOutput = z.infer<typeof FuseItemsOutputSchema>;
 
 export async function fuseItems(input: FuseItemsInput): Promise<FuseItemsOutput> {
-  logger.info('Starting fuseItems flow');
-  const result = await fuseItemsFlow(input);
-  return result;
+    logger.info('Starting fuseItems flow');
+    const result = await fuseItemsFlow(input);
+    return result;
 }
 
 // --- New schema for the prompt's specific input needs ---
@@ -107,7 +106,7 @@ const fuseItemsFlow = ai.defineFlow(
 
         if (!hasTool) {
             logger.warn('Fuse attempt failed: No tool provided.');
-            const narrative = input.language === 'vi' 
+            const narrative = input.language === 'vi'
                 ? 'Bạn cần một công cụ để có thể gia công và kết hợp các vật liệu đúng cách. Thử nghiệm của bạn thất bại.'
                 : 'You need a tool to properly work and combine the materials. Your attempt fails.';
             return {
@@ -121,7 +120,7 @@ const fuseItemsFlow = ai.defineFlow(
         if (typedInput.playerPersona === 'artisan') bonus += 10;
         const finalChance = clamp(baseChance + bonus, 5, 95);
         const roll = Math.random() * 100;
-        
+
         logger.debug('Fusion chance calculation', { baseChance, bonus, finalChance, roll });
 
         let determinedOutcome: 'success' | 'degraded' | 'totalLoss' | 'realityGlitch';
@@ -155,7 +154,7 @@ const fuseItemsFlow = ai.defineFlow(
                 finalTier = clamp(lowestTier - 1, 1, 6);
             }
         }
-        
+
         logger.info('Fusion outcome determined', { outcome: determinedOutcome, tier: finalTier, glitchItem: glitchItem?.name ? getTranslatedText(glitchItem.name, 'en') : 'None' });
 
         const promptInput: FuseItemsPromptInput = {
@@ -163,7 +162,7 @@ const fuseItemsFlow = ai.defineFlow(
             determinedOutcome,
             glitchItem,
         };
-        
+
         const { output: aiOutput } = await ai.generate({
             prompt: [
                 {
@@ -181,7 +180,7 @@ const fuseItemsFlow = ai.defineFlow(
             logger.error("AI model returned an empty or invalid output for fusion.");
             throw new Error("The ethereal currents of possibility did not align, leaving the outcome shrouded in mystery.");
         }
-        
+
         logger.debug('AI fusion output received', { aiOutput });
 
         const finalOutput: FuseItemsOutput = {

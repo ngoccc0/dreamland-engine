@@ -1,10 +1,11 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 
-export async function GET(_req: Request, { params }: { params: { path?: string[] } }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   try {
-    const segments = params?.path ?? [];
+    const resolvedParams = await params;
+    const segments = (resolvedParams?.path as string[] | undefined) ?? [];
     if (!segments || segments.length === 0) return new NextResponse('Not found', { status: 404 });
 
     // root of asset folder in repo

@@ -135,6 +135,31 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         description: {en: 'Fire clay in a kiln to create a sturdy pot for carrying water or cooking.', vi: 'Nung đất sét trong lò để tạo ra một cái nồi chắc chắn để đựng nước hoặc nấu ăn.'},
         requiredTool: 'kiln',
     },
+    'hoe_recipe': {
+        result: { name: 'hoe', quantity: 1, emoji: '🪓' },
+        ingredients: [
+            { name: 'hollow_wood_core', quantity: 1 },
+            { name: 'plant_fiber', quantity: 2 }
+        ],
+        description: { en: 'Assemble a simple hoe for preparing soil for planting.', vi: 'Lắp ráp một chiếc cuốc đơn giản để chuẩn bị đất trồng.' },
+    },
+    'watering_can_recipe': {
+        result: { name: 'watering_can', quantity: 1, emoji: '🪣' },
+        ingredients: [
+            { name: 'clay_pot', quantity: 1 },
+            { name: 'sturdy_branch', quantity: 1 },
+            { name: 'plant_fiber', quantity: 1 }
+        ],
+        description: { en: 'Create a basic watering can for irrigating small plots.', vi: 'Tạo một bình tưới cơ bản để tưới các mảnh ruộng nhỏ.' },
+    },
+    'fertilizer_compost_recipe': {
+        result: { name: 'fertilizer_compost', quantity: 1, emoji: '🧴' },
+        ingredients: [
+            { name: 'plant_fiber', quantity: 2 },
+            { name: 'large_leaf', quantity: 2 }
+        ],
+        description: { en: 'Mix plant material into a simple compost to enrich soil nutrition.', vi: 'Trộn vật liệu thực vật thành phân hữu cơ đơn giản để làm giàu dinh dưỡng đất.' },
+    },
     'mortar': {
         result: { name: 'mortar', quantity: 1, emoji: '🧱💧' },
         ingredients: [

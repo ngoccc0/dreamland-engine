@@ -1,6 +1,3 @@
-
-
-'use server';
 /**
  * An AI agent for dynamically generating new crafting recipes during gameplay.
  *
@@ -18,11 +15,11 @@ import { generateCompat as aiGenerate } from '@/ai/client';
 import { z } from 'genkit';
 
 import { GeneratedItemSchema, RecipeSchema, RecipeResultSchema } from '@/ai/schemas';
-import type { Recipe } from '@/lib/game/types';
+import type { Recipe } from '@/core/types/game';
 import { getEmojiForItem } from '@/lib/utils';
 import { setDoc, doc } from 'firebase/firestore';
 import type { Firestore } from 'firebase/firestore'
-import { db } from '@/lib/firebase-config';
+import { getDb } from '@/lib/firebase-config';
 
 // --- INPUT SCHEMA ---
 const GenerateNewRecipeInputSchema = z.object({
@@ -43,7 +40,7 @@ export async function generateNewRecipe(input: GenerateNewRecipeInput): Promise<
 // The AI only generates the name and quantity for the result, not the emoji.
 const AI_RecipeResultSchema = RecipeResultSchema.omit({ emoji: true });
 const AI_RecipeSchema = RecipeSchema.extend({
-  result: AI_RecipeResultSchema
+    result: AI_RecipeResultSchema
 });
 
 
@@ -109,24 +106,25 @@ const generateNewRecipeFlow = ai.defineFlow(
 
         // Add the emoji using code logic
         const emoji = getEmojiForItem(aiRecipe.result.name, category);
-        
+
         const finalRecipe: Recipe = {
-          ...aiRecipe,
-          result: {
-            ...aiRecipe.result,
-            emoji,
-          }
+            ...aiRecipe,
+            result: {
+                ...aiRecipe.result,
+                emoji,
+            }
         };
 
-        // Save the new recipe to Firestore for persistence across games
-        if (db) {
-            try {
+        // Save the new recipe to Firestore for persistence across games (lazy DB)
+        try {
+            const db = await getDb();
+            if (db) {
                 await setDoc(doc(db, "world-catalog", "recipes", "generated", finalRecipe.result.name), finalRecipe);
                 console.log(`[generateNewRecipeFlow] Successfully saved new recipe '${finalRecipe.result.name}' to Firestore.`);
-            } catch (error: any) {
-                console.error("Failed to save new recipe to Firestore:", error);
-                // We don't throw here, as the game can continue without this save.
             }
+        } catch (error: any) {
+            console.error("Failed to save new recipe to Firestore:", error);
+            // don't throw: non-fatal
         }
 
         return finalRecipe;

@@ -58,7 +58,7 @@ export async function ensureFirebaseInitialized(): Promise<Cached> {
     } catch (e) {
         // If any dynamic import fails, mark initialized to avoid retry storms; callers
         // should handle missing db/auth gracefully.
-        console.warn('[firebase-config] dynamic initialization failed', e);
+        // Silently handle dynamic initialization
         cached.initialized = true;
         return cached;
     }

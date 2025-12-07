@@ -277,7 +277,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const newBiome = context.biome || null;
     if (newBiome === currentBiomeRef.current && ambienceLayersRef.current.length > 0) {
       // Same biome, same ambience still playing - no need to restart
-      try { console.debug('[AudioProvider] Same biome, continuing seamless ambience'); } catch { }
+      try { } catch { }
       return;
     }
 
@@ -335,7 +335,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         ambienceLayersRef.current.push(audio);
       } catch (e) {
-        console.error('[AudioProvider] Failed to play ambience layer:', layer.track, e);
+        // Silently handle layer playback failure
       }
     });
   }, [musicVolume, ambienceVolume, muted]);

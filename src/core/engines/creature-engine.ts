@@ -321,7 +321,7 @@ export class CreatureEngine {
                         this.pendingMessages.set(creatureId, result.messages);
                     }
                 } catch (error) {
-                    console.warn(`CreatureEngine: Failed to update creature ${creatureId}`, error);
+                    // Silently handle creature update failures
                 }
             }, delayMs);
         }
@@ -398,7 +398,7 @@ export class CreatureEngine {
             }
         } catch (err: any) {
             // swallow errors in optional behaviour
-            console.warn('CreatureEngine: eating attempt failed', err);
+            // Silently handle eating attempt failures
         }
 
         // Return updated creature plus any messages produced during update

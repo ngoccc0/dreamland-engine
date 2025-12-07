@@ -62,7 +62,6 @@ export default function Home() {
       const summaries = await gameStateRepository.listSaveSummaries();
       setSaveSlots(summaries);
     } catch (error: any) {
-      console.error("Failed to load save slots:", error);
       toast({ title: "Error", description: "Failed to load save data.", variant: "destructive" });
       setSaveSlots([null, null, null]); // Fallback to empty slots on error
     } finally {
@@ -115,7 +114,6 @@ export default function Home() {
             return newSlots;
         });
     } catch (error: any) {
-        console.error("Failed to delete save slot:", error);
         toast({ title: "Error", description: "Failed to delete save.", variant: "destructive" });
     }
   };
@@ -238,7 +236,6 @@ export default function Home() {
       });
       setLoadState('continue_game');
     } catch (error: any) {
-      console.error("Failed to save new game state:", error);
       toast({ title: t('worldGenError'), description: "Could not save the new world. Please try again.", variant: "destructive" });
     }
   };
@@ -249,9 +246,9 @@ export default function Home() {
     installPrompt.prompt();
     installPrompt.userChoice.then((choiceResult: any) => {
       if (choiceResult.outcome === 'accepted') {
-        console.log('User accepted the PWA installation');
+        // PWA installation accepted
       } else {
-        console.log('User dismissed the PWA installation');
+        // PWA installation dismissed
       }
       setInstallPrompt(null);
     });

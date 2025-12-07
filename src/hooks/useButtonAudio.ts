@@ -31,7 +31,7 @@ export function useButtonAudio<T extends any[]>(
                 try {
                     handler(...args);
                 } catch (error) {
-                    console.error('Error in button handler:', error);
+                    // Silently handle button audio errors
                 }
             }
         },

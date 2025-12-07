@@ -84,14 +84,13 @@ const generateNewItemFlow = ai.defineFlow(
                 if (llmResponse?.output) break;
             } catch (error: any) {
                 lastError = error;
-                console.warn(`[generateNewItem] Model '${model}' failed. Trying next...`);
+                // Continue to next model
             }
         }
 
         const itemWithoutEmoji = llmResponse?.output;
 
         if (!itemWithoutEmoji) {
-            console.error("All AI models failed for new item generation.", lastError);
             throw lastError || new Error("AI failed to generate a new item.");
         }
 

@@ -22,7 +22,7 @@ export class IndexedDbGameStateRepository implements IGameStateRepository {
             const data = await db.gameState.get(slotId);
             return data || null;
         } catch (error: any) {
-            console.error('Error loading game state from IndexedDB:', error);
+            // Silently handle IndexedDB load errors
             throw error;
         }
     }
@@ -42,13 +42,13 @@ export class IndexedDbGameStateRepository implements IGameStateRepository {
             try {
                 safeState = JSON.parse(JSON.stringify(state));
             } catch (serErr) {
-                console.error('Failed to serialize state before saving to IndexedDB; aborting save.', serErr);
+                // Silently handle serialization errors
                 throw serErr;
             }
             const _db = getIndexedDb();
             await _db.gameState.put({ ...safeState, id: slotId });
         } catch (error: any) {
-            console.error('Error saving game state to IndexedDB:', error);
+            // Silently handle IndexedDB save errors
             throw error;
         }
     }
@@ -63,7 +63,7 @@ export class IndexedDbGameStateRepository implements IGameStateRepository {
             const _db = getIndexedDb();
             await _db.gameState.delete(slotId);
         } catch (error: any) {
-            console.error('Error deleting game state from IndexedDB:', error);
+            // Silently handle IndexedDB delete errors
             throw error;
         }
     }
@@ -92,7 +92,7 @@ export class IndexedDbGameStateRepository implements IGameStateRepository {
             });
             return summaries;
         } catch (error: any) {
-            console.error('Error listing save summaries from IndexedDB:', error);
+            // Silently handle IndexedDB listing errors
             throw error;
         }
     }

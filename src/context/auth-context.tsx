@@ -53,13 +53,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const fcModule = await import('@/lib/firebase-config');
       const fc = await (fcModule.getFirebaseExports ? fcModule.getFirebaseExports() : (fcModule as any));
       if (!fc || !fc.auth || !fc.googleProvider) {
-        console.error('Firebase is not configured. Cannot log in.');
+        // Firebase not configured; silently skip login
         return;
       }
       const { signInWithPopup } = await import('firebase/auth');
       await signInWithPopup(fc.auth as any, fc.googleProvider as any);
     } catch (error: any) {
-      console.error('Error during sign-in:', error);
+      // Silently handle sign-in errors
     }
   };
 
@@ -68,13 +68,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const fcModule = await import('@/lib/firebase-config');
       const fc = await (fcModule.getFirebaseExports ? fcModule.getFirebaseExports() : (fcModule as any));
       if (!fc || !fc.auth) {
-        console.error('Firebase is not configured. Cannot log out.');
+        // Firebase not configured; silently skip logout
         return;
       }
       const { signOut } = await import('firebase/auth');
       await signOut(fc.auth as any);
     } catch (error: any) {
-      console.error('Error during sign-out:', error);
+      // Silently handle sign-out errors
     }
   };
 

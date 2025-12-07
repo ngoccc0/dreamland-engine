@@ -68,7 +68,7 @@ export function createHandleMove(context: Partial<ActionHandlerDeps> & Record<st
     addNarrativeEntry(placeholderText, 'narrative', placeholderId);
 
     setPlayerPosition({ x, y });
-    try { console.info('[optimistic] setPlayerPosition', { x, y, now: Date.now() }); } catch { }
+      // Optimistic UI update: set player position before authoritative update
 
     const staminaCost = worldSnapshot[nextChunkKey]?.travelCost ?? 1;
 
@@ -157,7 +157,7 @@ export function createHandleMove(context: Partial<ActionHandlerDeps> & Record<st
           addNarrativeEntry(String(updatedPlaceholder).replace(/\{[^}]+\}/g, '').trim(), 'narrative', placeholderId);
         }
       } catch (e: any) {
-        console.warn('[narrative] brief sensory computation failed', e);
+        // Silently handle narrative computation failures
       }
 
       try {
@@ -184,7 +184,7 @@ export function createHandleMove(context: Partial<ActionHandlerDeps> & Record<st
 
           if (!shouldGenerateFullNarrative) {
             // Too soon for full narrative generation - skip expensive operations
-            try { console.debug('[narrative-throttle] skipping full generation, min interval not met'); } catch { }
+          // Narrative throttle: skipping full generation, min interval not met
             return;
           }
 
@@ -223,7 +223,7 @@ export function createHandleMove(context: Partial<ActionHandlerDeps> & Record<st
             }
           }
         } catch (e: any) {
-          console.warn('[narrative] precomputed load failed, falling back', String(e));
+          // Silently handle precomputed bundle load failure
         }
 
         const recent = narrativeLogRef.current?.slice(-6) || [];

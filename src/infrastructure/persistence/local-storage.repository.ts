@@ -30,7 +30,7 @@ export class LocalStorageGameStateRepository implements IGameStateRepository {
     try {
       return JSON.parse(data);
     } catch (error: any) {
-      console.error(`Error parsing JSON from localStorage for key "${key}":`, error);
+      // Silently handle JSON parse errors
       // Optional: Corrupted data could be removed to prevent future errors
       // localStorage.removeItem(key);
       return null;
@@ -48,7 +48,7 @@ export class LocalStorageGameStateRepository implements IGameStateRepository {
     try {
       localStorage.setItem(this.getKey(slotId), JSON.stringify(state));
     } catch (error: any) {
-      console.error('Error saving game state to localStorage:', error);
+      // Silently handle localStorage save errors
       throw error;
     }
   }
@@ -83,7 +83,7 @@ export class LocalStorageGameStateRepository implements IGameStateRepository {
                 };
             }
         } catch (error: any) {
-            console.error(`Error loading summary for slot ${i}:`, error);
+            // Silently handle summary load errors
             summaries[i] = null;
         }
     }

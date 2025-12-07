@@ -338,7 +338,6 @@ export class WorldUseCase implements IWorldUseCase {
     async generateWorld(config: WorldGenerationConfig): Promise<World> {
         // Use WorldGenerator to create the world with terrain, creatures, vegetation
         // This replaces the TODO and provides actual world generation
-        console.log(`Generating world: ${config.width}×${config.height} with terrain distribution`, config.terrainDistribution);
 
         // Note: WorldGenerator.generateWorld() currently doesn't take config params
         // Future enhancement: pass config to generator for procedural generation customization
@@ -347,7 +346,6 @@ export class WorldUseCase implements IWorldUseCase {
         // Persist generated world
         await this.worldRepository.save(this.world);
 
-        console.log('World generation complete. Persisted to repository.');
         return this.world;
     }
 

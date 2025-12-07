@@ -17,7 +17,6 @@ export const PwaInstallProvider = ({ children }: { children: ReactNode }) => {
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       setInstallPrompt(event);
-      console.log('beforeinstallprompt event captured and stored.');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);

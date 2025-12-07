@@ -79,10 +79,7 @@ export function emitAudioEvent(
     // Step 2: Resolve SFX files from registry
     const mapper = AUDIO_EVENTS_REGISTRY[actionType];
     if (!mapper) {
-        // Action type not mapped; skip silently
-        console.warn(
-            `[Audio] Action type not mapped in registry: ${actionType}`
-        );
+    // Action type not mapped; skip silently
         return null;
     }
 
@@ -91,10 +88,7 @@ export function emitAudioEvent(
     try {
         sfxResult = mapper(context);
     } catch (err) {
-        console.warn(
-            `[Audio] Error resolving SFX for action ${actionType}:`,
-            err
-        );
+        // Silently handle SFX resolution errors
         return null;
     }
 
@@ -111,9 +105,7 @@ export function emitAudioEvent(
         (f) => f && typeof f === 'string' && f.length > 0
     );
     if (validSfxFiles.length === 0) {
-        console.warn(
-            `[Audio] No valid SFX files resolved for action ${actionType}`
-        );
+        // No valid SFX files resolved; skip silently
         return null;
     }
 

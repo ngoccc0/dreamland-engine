@@ -80,7 +80,7 @@ export function createActionHelpers(deps: ActionHelpersDeps) {
   player.items.push(ensurePlayerItemId({ ...item }, customItemDefinitions || {}, t, language as any));
       return true;
     } catch (e) {
-      console.error('Failed to add item to inventory', e);
+      // Silently handle inventory add errors
       return false;
     }
   };

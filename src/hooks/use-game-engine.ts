@@ -161,7 +161,6 @@ export function useGameEngine(props: GameEngineProps) {
         // If no id provided, generate a stable unique id.
         const id = entryId ?? `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
         const entry = { id, text, type, isNew: true, ...(animationMetadata && { animationMetadata }) } as any;
-        console.log('[addNarrativeEntry] Called with:', { id, text: text.substring(0, 40), isUpdate: !!entryId });
 
         // Use microtask instead of flushSync to avoid React lifecycle warnings.
         // This ensures state updates are processed immediately while being safe to call
@@ -170,23 +169,16 @@ export function useGameEngine(props: GameEngineProps) {
             gameState.setNarrativeLog(prev => {
                 const arr = (prev || []);
                 const existingIdx = arr.findIndex((e: any) => e.id === id);
-                console.log('[addNarrativeEntry] Before update:', { id, existingIdx, totalEntries: arr.length });
                 let next: any[];
                 if (existingIdx >= 0) {
                     // Replace existing entry in-place to avoid duplicates when updating placeholders
                     // Mark as isNew=false since this is an update, not a new entry
-                    console.log('[addNarrativeEntry] REPLACING entry at index', existingIdx);
                     next = arr.map((e: any) => e.id === id ? { ...e, text: entry.text, type: entry.type, isNew: false, ...(animationMetadata && { animationMetadata }) } : e);
                 } else {
-                    console.log('[addNarrativeEntry] ADDING new entry');
                     next = [...arr, entry];
                 }
                 // Defensive dedupe: keep last occurrence for each id (handles race conditions)
                 const deduped = Array.from(new Map(next.map((e: any) => [e.id, e])).values());
-                if (deduped.length < next.length) {
-                    console.warn('[DEBUG] Deduped entries', { removed: next.length - deduped.length, id, text: text.substring(0, 50) });
-                }
-                console.log('[addNarrativeEntry] After update:', { totalEntries: deduped.length });
                 narrativeLogRef.current = deduped;
                 return deduped;
             });
@@ -256,7 +248,7 @@ export function useGameEngine(props: GameEngineProps) {
                     return nw;
                 });
             } catch (err) {
-                console.warn('Failed to sync creature updates into world', err);
+                // Silently handle creature sync failures
             }
         }
 
@@ -289,7 +281,7 @@ export function useGameEngine(props: GameEngineProps) {
                     weatherEngineRef.current.applyWeatherEffects(playerCurrentCell, gameState.playerStats);
                 }
             } catch {
-                console.warn('World getCellAt method not available or failed, skipping weather effects');
+                // Silently handle world method unavailability
             }
         }
 
@@ -316,7 +308,6 @@ export function useGameEngine(props: GameEngineProps) {
                 }
             } catch {
                 // Fallback to just current chunk if world methods are not available
-                console.warn('World getChunksInArea method not available, attempting per-cell getCellAt fallback for visibleChunks');
                 // Try to fill visibleChunks by querying getCellAt for each coordinate in viewRadius
                 if (gameState.world && typeof gameState.world.getCellAt === 'function' && gameState.currentChunk) {
                     const cx = gameState.currentChunk.x;
@@ -335,7 +326,7 @@ export function useGameEngine(props: GameEngineProps) {
                         }
                     }
                 } else {
-                    console.warn('World getCellAt not available; visibleChunks will contain only currentChunk');
+                    // visibleChunks will contain only currentChunk
                 }
             }
         }
@@ -351,7 +342,7 @@ export function useGameEngine(props: GameEngineProps) {
                 }
             }
         } catch (err) {
-            console.warn('Failed to register visible creatures for simulation', err);
+            // Silently handle creature registration failures
         }
 
         // Update plants in visible area
@@ -359,7 +350,7 @@ export function useGameEngine(props: GameEngineProps) {
             const plantMessages = plantEngineRef.current.updatePlants(currentTurn, visibleChunks, gameState.currentSeason, gameState.worldProfile);
             for (const m of plantMessages) addNarrativeEntry(m.text, m.type);
         } catch (err: any) {
-            console.warn('PlantEngine update failed', err);
+            // Silently handle plant updates; world continues
         }
 
         const creatureMessages = creatureEngineRef.current.updateCreatures(
@@ -424,7 +415,7 @@ export function useGameEngine(props: GameEngineProps) {
                     playAmbienceForBiome(playerCurrentCell.terrain);
                 }
             } catch {
-                console.warn('Failed to get current biome for ambience music');
+                // Silently handle biome fetch
             }
         }
     }, [gameState.playerPosition.x, gameState.playerPosition.y, gameState.world, playAmbienceForBiome]);

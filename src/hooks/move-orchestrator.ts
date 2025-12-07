@@ -17,7 +17,6 @@ export function createHandleMove(ctx: any) {
       // Skip if this move is already in-flight (prevents double-invoke in StrictMode)
       moveKey = `${ctx.playerPosition.x},${ctx.playerPosition.y}->${direction}`;
       if (activeMoveOps.has(moveKey)) {
-        console.log('[MOVE] Skipping duplicate move operation:', moveKey);
         return;
       }
       activeMoveOps.add(moveKey);
@@ -85,15 +84,13 @@ export function createHandleMove(ctx: any) {
       // Use flushSync or batch both in same microtask to ensure state consistency
       setTimeout(() => {
         try {
-          console.log('[MOVE] Adding action entry:', actionText);
           ctx.addNarrativeEntry(actionText, 'action');
-        } catch (e) { console.error('[MOVE] Error adding action:', e); }
+        } catch (e) { }
         // Schedule placeholder add slightly later to ensure it finds the action entry
         Promise.resolve().then(() => {
           try {
-            console.log('[MOVE] Adding placeholder entry:', { placeholderId, text: placeholderText.substring(0, 50) });
             ctx.addNarrativeEntry(placeholderText, 'narrative', placeholderId);
-          } catch (e) { console.error('[MOVE] Error adding placeholder:', e); }
+          } catch (e) { }
         });
       }, 0);
 
@@ -172,7 +169,6 @@ export function createHandleMove(ctx: any) {
           };
 
           window.addEventListener('playerOverlayLanding', landingListener as EventListener);
-          try { console.debug('[move-orchestrator] landing listener attached'); } catch { }
 
           ctx.__lastMoveAnimationMs = 600;  // Consistent with visualTotalMs
         } else {
@@ -413,7 +409,6 @@ export function createHandleMove(ctx: any) {
           if (briefSensory && briefSensory.length > 0) {
             const updatedPlaceholder = ctx.t(movingKey as any, { direction: directionText, brief_sensory: briefSensory });
             const finalText = String(updatedPlaceholder).replace(/\{[^}]+\}/g, '').trim();
-            console.log('[MOVE] Updating placeholder with sensory:', { placeholderId, text: finalText.substring(0, 50) });
             ctx.addNarrativeEntry(finalText, 'narrative', placeholderId);
           }
           try {
@@ -470,7 +465,7 @@ export function createHandleMove(ctx: any) {
             // ignore
           }
         } catch (e: any) {
-          console.warn('[narrative] brief sensory computation failed', e);
+          // Silently handle sensory computation failures
         }
 
         if (shouldAbortAfterPickup) return;
@@ -483,7 +478,6 @@ export function createHandleMove(ctx: any) {
             if (pool && Array.isArray(pool) && pool.length > 0) {
               const pick = pool[Math.floor(Math.random() * pool.length)];
               const text = String(pick).replace('{direction}', directionText).replace('{biome}', ctx.t(finalChunk.terrain as any));
-              console.log('[MOVE] Updating with continuation text:', { placeholderId, text: text.substring(0, 50) });
               ctx.addNarrativeEntry(text, 'narrative', placeholderId);
               ctx.lastMoveRef.current = { biome: finalChunk.terrain, time: Date.now() };
               return;
@@ -498,7 +492,6 @@ export function createHandleMove(ctx: any) {
               const conditional = mn.selectMovementNarrative({ chunk: finalChunk, playerStats: newPlayerStats || ctx.playerStats, directionText, language: ctx.language, briefSensory });
               if (conditional) {
                 const finalText = String(conditional).replace(/\{[^}]+\}/g, '').trim();
-                console.log('[MOVE] Updating with movement narrative:', { placeholderId, text: finalText.substring(0, 50) });
                 ctx.addNarrativeEntry(finalText, 'narrative', placeholderId);
                 return;
               }
@@ -518,7 +511,6 @@ export function createHandleMove(ctx: any) {
                     finalText = finalText.replace(/\{\s*brief_sensory\s*\}/g, briefSensory).replace(/{{\s*brief_sensory\s*}}/g, briefSensory);
                   }
                   finalText = finalText.replace(/\{[^}]+\}/g, '').trim();
-                  console.log('[MOVE] Updating with bundle variant:', { placeholderId, text: finalText.substring(0, 50) });
                   ctx.addNarrativeEntry(finalText, 'narrative', placeholderId);
                   return;
                 }
@@ -529,7 +521,6 @@ export function createHandleMove(ctx: any) {
                 const res = orchestrator.pickVariantFromBundle(bundle as any, tplId, { seed, persona: undefined });
                 if (res && res.text) {
                   const finalText = String(res.text).replace(/\{[^}]+\}/g, '').trim();
-                  console.log('[MOVE] Updating with fallback bundle:', { placeholderId, text: finalText.substring(0, 50) });
                   ctx.addNarrativeEntry(finalText, 'narrative', placeholderId);
                   return;
                 }
@@ -547,7 +538,6 @@ export function createHandleMove(ctx: any) {
           const effectiveLength = (repeatCount >= 3) ? 'short' : ctx.settings.narrativeLength;
           let narrative = ctx.generateOfflineNarrative(finalChunk, effectiveLength as any, ctx.world, { x, y }, ctx.t, ctx.language);
           narrative = String(narrative).replace(/\{[^}]+\}/g, '').trim();
-          console.log('[MOVE] Updating with offline narrative:', { placeholderId, text: narrative.substring(0, 50) });
           ctx.addNarrativeEntry(narrative, 'narrative', placeholderId);
           cleanup();
         })();

@@ -84,8 +84,7 @@ export function useGameState({ gameSlot: _gameSlot }: GameStateProps) {
                 setWorld(w as unknown as WorldType);
                 setIsLoaded(true);
             } catch (e) {
-                // swallow errors to avoid breaking app startup; keep world empty
-                try { console.error('World generation failed', e); } catch { }
+                // Silently handle world generation failures
             }
         })();
         return () => { mounted = false; };

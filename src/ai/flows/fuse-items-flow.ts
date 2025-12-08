@@ -12,7 +12,7 @@
  * @export FuseItemsOutput - The Zod schema for the structured output.
  */
 
-import { ai } from '@/ai/genkit';
+import { getAi } from '@/ai/genkit';
 import { z } from 'zod';
 import { FuseItemsInputSchema, FuseItemsOutputSchema, GeneratedItemSchema, PlayerItemSchema } from '@/ai/schemas';
 import { clamp, getEmojiForItem, getTranslatedText } from '@/lib/utils';
@@ -32,12 +32,6 @@ import { resolveItemDef } from '@/lib/game/item-utils';
 export type ItemToFuse = z.infer<typeof PlayerItemSchema>;
 export type FuseItemsInput = z.infer<typeof FuseItemsInputSchema>;
 export type FuseItemsOutput = z.infer<typeof FuseItemsOutputSchema>;
-
-export async function fuseItems(input: FuseItemsInput): Promise<FuseItemsOutput> {
-    logger.info('Starting fuseItems flow');
-    const result = await fuseItemsFlow(input);
-    return result;
-}
 
 // --- New schema for the prompt's specific input needs ---
 type FuseItemsPromptInput = z.infer<typeof FuseItemsInputSchema> & {
@@ -89,15 +83,20 @@ The outcome has already been decided by the laws of the world. Your task is to n
 3.  **Respond:** Provide your response in the required JSON format. Ensure the 'outcome' field matches the provided 'determinedOutcome'.
 `;
 
-const fuseItemsFlow = ai.defineFlow(
-    {
-        name: 'fuseItemsFlow',
-        inputSchema: FuseItemsInputSchema,
-        outputSchema: FuseItemsOutputSchema,
-    },
-    async (input: FuseItemsInput): Promise<FuseItemsOutput> => {
-        const typedInput = input;
-        logger.info('Executing fuseItemsFlow with input', { items: typedInput.itemsToFuse.map((i: ItemToFuse) => getTranslatedText(i.name, 'en')), persona: typedInput.playerPersona });
+let fuseItemsFlow: any = null;
+
+async function initFuseItemsFlow() {
+    if (fuseItemsFlow) return;
+    const ai = await getAi();
+    fuseItemsFlow = ai.defineFlow(
+        {
+            name: 'fuseItemsFlow',
+            inputSchema: FuseItemsInputSchema,
+            outputSchema: FuseItemsOutputSchema,
+        },
+        async (input: FuseItemsInput): Promise<FuseItemsOutput> => {
+            const typedInput = input;
+            logger.info('Executing fuseItemsFlow with input', { items: typedInput.itemsToFuse.map((i: ItemToFuse) => getTranslatedText(i.name, 'en')), persona: typedInput.playerPersona });
 
         const hasTool = typedInput.itemsToFuse.some((item: ItemToFuse) => {
             const def = resolveItemDef(getTranslatedText(item.name, 'en'), typedInput.customItemDefinitions);
@@ -204,4 +203,12 @@ const fuseItemsFlow = ai.defineFlow(
 
         return finalOutput;
     }
-);
+    );
+}
+
+export async function fuseItems(input: FuseItemsInput): Promise<FuseItemsOutput> {
+    await initFuseItemsFlow();
+    logger.info('Starting fuseItems flow');
+    const result = await fuseItemsFlow(input);
+    return result;
+}

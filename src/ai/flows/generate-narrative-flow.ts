@@ -19,22 +19,22 @@ import { getTranslatedText } from "@/lib/utils";
  * - Defers emphasizedSegments to TextEmphasisRules for keyword highlighting
  */
 
-import { ai } from '@/ai/genkit';
+import { getAi } from '@/ai/genkit';
 import { z } from 'zod';
 import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema, GeneratedItemSchema, NpcSchema } from '@/ai/schemas';
 import { determineAnimationMetadata, adjustAnimationForMobile, adjustAnimationForLowBandwidth } from '@/ai/animation-metadata';
 
 import { LanguageEnum as Language } from '@/lib/i18n'; // Import Language enum
 
-// SỬA: Import các schema đã đặt tên và các tool từ game-actions.ts
+// Import tool getter functions and schemas from game-actions
 import {
-    playerAttackTool, PlayerAttackOutputSchema,
-    takeItemTool, TakeItemOutputSchema,
-    useItemTool, UseItemOutputSchema,
-    tameEnemyTool, TameEnemyOutputSchema,
-    useSkillTool, UseSkillOutputSchema,
-    completeQuestTool, CompleteQuestInputSchema, CompleteQuestOutputSchema,
-    startQuestTool, StartQuestOutputSchema
+    getPlayerAttackTool, PlayerAttackOutputSchema,
+    getTakeItemTool, TakeItemOutputSchema,
+    getUseItemTool, UseItemOutputSchema,
+    getTameEnemyTool, TameEnemyOutputSchema,
+    getUseSkillTool, UseSkillOutputSchema,
+    getCompleteQuestTool, CompleteQuestInputSchema, CompleteQuestOutputSchema,
+    getStartQuestTool, StartQuestOutputSchema
 } from '@/ai/tools/game-actions';
 
 import { generateNewQuest } from './generate-new-quest';
@@ -195,7 +195,19 @@ const modelMap: Record<AiModel, string> = {
  * @returns {Promise<GenerateNarrativeOutput>} - Một Promise giải quyết thành câu chuyện do AI tạo ra và các thay đổi trạng thái.
  */
 export async function generateNarrative(input: GenerateNarrativeInput): Promise<GenerateNarrativeOutput> {
+    const ai = await getAi();
     const preferredModel = modelMap[input.aiModel] || modelMap.balanced;
+
+    // Load all tools (lazy-initialized on first call)
+    const [playerAttackTool, takeItemTool, useItemTool, tameEnemyTool, useSkillTool, completeQuestTool, startQuestTool] = await Promise.all([
+        getPlayerAttackTool(),
+        getTakeItemTool(),
+        getUseItemTool(),
+        getTameEnemyTool(),
+        getUseSkillTool(),
+        getCompleteQuestTool(),
+        getStartQuestTool()
+    ]);
 
     const modelsToTry = [
         preferredModel,

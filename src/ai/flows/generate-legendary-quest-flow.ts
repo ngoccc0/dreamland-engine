@@ -9,7 +9,7 @@
  * - GenerateLegendaryQuestOutput - The Zod schema for the output data.
  */
 
-import { ai } from '@/ai/genkit';
+import { getAi } from '@/ai/genkit';
 import { z } from 'zod';
 import { GenerateNewQuestInputSchema, GenerateNewQuestOutputSchema } from '@/ai/schemas';
 
@@ -20,6 +20,7 @@ export type GenerateLegendaryQuestOutput = z.infer<typeof GenerateNewQuestOutput
 
 // --- The Exported Function ---
 export async function generateLegendaryQuest(input: GenerateLegendaryQuestInput): Promise<GenerateLegendaryQuestOutput> {
+    await initGenerateLegendaryQuestFlow();
     return generateLegendaryQuestFlow(input);
 }
 
@@ -47,39 +48,45 @@ Your task is to design a new, **Legendary Quest**. This quest should be a multi-
 Generate the first step of one (1) new Legendary Quest in the required JSON format.
 `;
 
-const generateLegendaryQuestFlow = ai.defineFlow(
-    {
-        name: 'generateLegendaryQuestFlow',
-        inputSchema: GenerateNewQuestInputSchema,
-        outputSchema: GenerateNewQuestOutputSchema,
-    },
-    async (input) => {
-        const modelsToTry = [
-            'openai/gpt-4o',
-            'googleai/gemini-1.5-pro',
-            'deepseek/deepseek-chat',
-            'googleai/gemini-2.0-flash',
-        ];
+let generateLegendaryQuestFlow: any = null;
 
-        let lastError;
-        for (const model of modelsToTry) {
-            try {
-                const { output } = await ai.generate([
-                    {
-                        text: "You are a game's quest designer. Generate challenging and engaging legendary quests based on the player's status and game world."
-                    },
-                    {
-                        text: promptText,
-                        custom: input
-                    }
-                ]);
-                if (output) return output;
-            } catch (error: any) {
-                lastError = error;
-                // Continue to next model
+async function initGenerateLegendaryQuestFlow() {
+    if (generateLegendaryQuestFlow) return;
+    const ai = await getAi();
+    generateLegendaryQuestFlow = ai.defineFlow(
+        {
+            name: 'generateLegendaryQuestFlow',
+            inputSchema: GenerateNewQuestInputSchema,
+            outputSchema: GenerateNewQuestOutputSchema,
+        },
+        async (input) => {
+            const modelsToTry = [
+                'openai/gpt-4o',
+                'googleai/gemini-1.5-pro',
+                'deepseek/deepseek-chat',
+                'googleai/gemini-2.0-flash',
+            ];
+
+            let lastError;
+            for (const model of modelsToTry) {
+                try {
+                    const { output } = await ai.generate([
+                        {
+                            text: "You are a game's quest designer. Generate challenging and engaging legendary quests based on the player's status and game world."
+                        },
+                        {
+                            text: promptText,
+                            custom: input
+                        }
+                    ]);
+                    if (output) return output;
+                } catch (error: any) {
+                    lastError = error;
+                    // Continue to next model
+                }
             }
-        }
 
-        throw lastError || new Error("AI failed to generate a legendary quest.");
-    }
-);
+            throw lastError || new Error("AI failed to generate a legendary quest.");
+        }
+    );
+}

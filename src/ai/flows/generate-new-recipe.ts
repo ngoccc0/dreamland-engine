@@ -10,7 +10,7 @@
  * - Recipe - The Zod schema for a single recipe output.
  */
 
-import { ai } from '@/ai/genkit';
+import { getAi } from '@/ai/genkit';
 import { generateCompat as aiGenerate } from '@/ai/client';
 import { z } from 'genkit';
 
@@ -32,6 +32,7 @@ export type GenerateNewRecipeInput = z.infer<typeof GenerateNewRecipeInputSchema
 
 // --- The Exported Function ---
 export async function generateNewRecipe(input: GenerateNewRecipeInput): Promise<Recipe> {
+    await initGenerateNewRecipeFlow();
     return generateNewRecipeFlow(input);
 }
 
@@ -61,72 +62,78 @@ const promptText = `You are a master artisan and game designer. Your task is to 
 Generate one (1) new crafting recipe in the required JSON format.
 `;
 
-const generateNewRecipeFlow = ai.defineFlow(
-    {
-        name: 'generateNewRecipeFlow',
-        inputSchema: GenerateNewRecipeInputSchema,
-        outputSchema: RecipeSchema,
-    },
-    async (input) => {
-        const modelsToTry = [
-            'openai/gpt-4o',
-            'googleai/gemini-1.5-pro',
-            'deepseek/deepseek-chat',
-            'googleai/gemini-2.0-flash',
-        ];
+let generateNewRecipeFlow: any = null;
 
-        let llmResponse;
-        let lastError;
+async function initGenerateNewRecipeFlow() {
+    if (generateNewRecipeFlow) return;
+    const ai = await getAi();
+    generateNewRecipeFlow = ai.defineFlow(
+        {
+            name: 'generateNewRecipeFlow',
+            inputSchema: GenerateNewRecipeInputSchema,
+            outputSchema: RecipeSchema,
+        },
+        async (input) => {
+            const modelsToTry = [
+                'openai/gpt-4o',
+                'googleai/gemini-1.5-pro',
+                'deepseek/deepseek-chat',
+                'googleai/gemini-2.0-flash',
+            ];
 
-        for (const model of modelsToTry) {
+            let llmResponse;
+            let lastError;
+
+            for (const model of modelsToTry) {
+                try {
+                    llmResponse = await aiGenerate({
+                        model: model,
+                        prompt: promptText,
+                        input: input,
+                        output: { schema: AI_RecipeSchema },
+                    });
+                    if (llmResponse?.output) break;
+                } catch (error: any) {
+                    lastError = error;
+                    console.warn(`[generateNewRecipe] Model '${model}' failed. Trying next...`);
+                }
+            }
+
+            const aiRecipe = llmResponse?.output;
+
+            if (!aiRecipe) {
+                console.error("All AI models failed for recipe generation.", lastError);
+                throw lastError || new Error("AI failed to generate a new recipe.");
+            }
+
+            // Determine the category of the result item to help with emoji selection
+            const resultDef = input.customItemCatalog.find(item => item.name === aiRecipe.result.name);
+            const category = resultDef?.category || 'Material'; // Default to material if not found
+
+            // Add the emoji using code logic
+            const emoji = getEmojiForItem(aiRecipe.result.name, category);
+
+            const finalRecipe: Recipe = {
+                ...aiRecipe,
+                result: {
+                    ...aiRecipe.result,
+                    emoji,
+                }
+            };
+
+            // Save the new recipe to Firestore for persistence across games (lazy DB)
             try {
-                llmResponse = await aiGenerate({
-                    model: model,
-                    prompt: promptText,
-                    input: input,
-                    output: { schema: AI_RecipeSchema },
-                });
-                if (llmResponse?.output) break;
+                const db = await getDb();
+                if (db) {
+                    await setDoc(doc(db, "world-catalog", "recipes", "generated", finalRecipe.result.name), finalRecipe);
+                    console.log(`[generateNewRecipeFlow] Successfully saved new recipe '${finalRecipe.result.name}' to Firestore.`);
+                }
             } catch (error: any) {
-                lastError = error;
-                console.warn(`[generateNewRecipe] Model '${model}' failed. Trying next...`);
+                console.error("Failed to save new recipe to Firestore:", error);
+                // don't throw: non-fatal
             }
+
+            return finalRecipe;
         }
-
-        const aiRecipe = llmResponse?.output;
-
-        if (!aiRecipe) {
-            console.error("All AI models failed for recipe generation.", lastError);
-            throw lastError || new Error("AI failed to generate a new recipe.");
-        }
-
-        // Determine the category of the result item to help with emoji selection
-        const resultDef = input.customItemCatalog.find(item => item.name === aiRecipe.result.name);
-        const category = resultDef?.category || 'Material'; // Default to material if not found
-
-        // Add the emoji using code logic
-        const emoji = getEmojiForItem(aiRecipe.result.name, category);
-
-        const finalRecipe: Recipe = {
-            ...aiRecipe,
-            result: {
-                ...aiRecipe.result,
-                emoji,
-            }
-        };
-
-        // Save the new recipe to Firestore for persistence across games (lazy DB)
-        try {
-            const db = await getDb();
-            if (db) {
-                await setDoc(doc(db, "world-catalog", "recipes", "generated", finalRecipe.result.name), finalRecipe);
-                console.log(`[generateNewRecipeFlow] Successfully saved new recipe '${finalRecipe.result.name}' to Firestore.`);
-            }
-        } catch (error: any) {
-            console.error("Failed to save new recipe to Firestore:", error);
-            // don't throw: non-fatal
-        }
-
-        return finalRecipe;
-    }
-);
+    );
+}

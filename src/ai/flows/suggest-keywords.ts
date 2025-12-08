@@ -6,7 +6,7 @@
  * to try multiple AI models for increased reliability.
  */
 
-import { ai } from '@/ai/genkit';
+import { getAi } from '@/ai/genkit';
 import { z } from 'zod';
 
 // Input: The user's current idea and the desired language.
@@ -28,16 +28,18 @@ export type SuggestKeywordsOutput = z.infer<typeof SuggestKeywordsOutputSchema>;
  * @param input The user's current world idea and language.
  * @returns A promise that resolves to an object containing suggested keywords.
  */
-export async function suggestKeywords(input: SuggestKeywordsInput): Promise<SuggestKeywordsOutput> {
-  return suggestKeywordsFlow(input);
-}
+// Define the prompt with input and output schemas - will be initialized lazily
+let keywordSuggestionPrompt: any = null;
+let suggestKeywordsFlow: any = null;
 
-// Define the prompt with input and output schemas.
-const keywordSuggestionPrompt = ai.definePrompt({
-  name: 'keywordSuggestionPrompt',
-  input: { schema: SuggestKeywordsInputSchema },
-  output: { schema: SuggestKeywordsOutputSchema },
-  prompt: `You are a creative brainstorming assistant helping a user design a game world. All keywords you generate MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
+async function initSuggestKeywordsFlow() {
+  if (suggestKeywordsFlow) return;
+  const ai = await getAi();
+  keywordSuggestionPrompt = ai.definePrompt({
+    name: 'keywordSuggestionPrompt',
+    input: { schema: SuggestKeywordsInputSchema },
+    output: { schema: SuggestKeywordsOutputSchema },
+    prompt: `You are a creative brainstorming assistant helping a user design a game world. All keywords you generate MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
 
 Based on the user's input below, suggest 5-7 related keywords or short, evocative phrases to help them expand their world concept.
 The suggestions should be creative, interesting, and varied.
@@ -45,26 +47,31 @@ The suggestions should be creative, interesting, and varied.
 User's Idea: {{{userInput}}}
 
 Return the keywords in the required JSON format.`,
-});
+  });
 
-
-const suggestKeywordsFlow = ai.defineFlow(
-  {
-    name: 'suggestKeywordsFlow',
-    inputSchema: SuggestKeywordsInputSchema,
-    outputSchema: SuggestKeywordsOutputSchema,
-  },
-  async (input) => {
-    try {
-      // Use the configured Genkit instance (Gemini). Different keyword voices
-      // or styles should be implemented by changing the prompt text, not
-      // by switching providers.
-      const { output } = await keywordSuggestionPrompt(input);
-      if (output) return output;
-      throw new Error('AI returned no output for keyword suggestion');
-    } catch (e: any) {
-      console.error('AI failed to generate keyword suggestions (Gemini):', e);
-      throw e;
+  suggestKeywordsFlow = ai.defineFlow(
+    {
+      name: 'suggestKeywordsFlow',
+      inputSchema: SuggestKeywordsInputSchema,
+      outputSchema: SuggestKeywordsOutputSchema,
+    },
+    async (input) => {
+      try {
+        // Use the configured Genkit instance (Gemini). Different keyword voices
+        // or styles should be implemented by changing the prompt text, not
+        // by switching providers.
+        const { output } = await keywordSuggestionPrompt(input);
+        if (output) return output;
+        throw new Error('AI returned no output for keyword suggestion');
+      } catch (e: any) {
+        console.error('AI failed to generate keyword suggestions (Gemini):', e);
+        throw e;
+      }
     }
-  }
-);
+  );
+}
+
+export async function suggestKeywords(input: SuggestKeywordsInput): Promise<SuggestKeywordsOutput> {
+  await initSuggestKeywordsFlow();
+  return suggestKeywordsFlow(input);
+}

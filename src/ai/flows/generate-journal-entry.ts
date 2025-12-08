@@ -9,7 +9,7 @@
  * - GenerateJournalEntryOutput - The Zod schema for the output data.
  */
 
-import { ai } from '@/ai/genkit';
+import { getAi } from '@/ai/genkit';
 import { z } from 'zod';
 import { GenerateJournalEntryInputSchema, GenerateJournalEntryOutputSchema } from '@/ai/schemas';
 
@@ -20,6 +20,7 @@ export type GenerateJournalEntryOutput = z.infer<typeof GenerateJournalEntryOutp
 
 // --- The Exported Function ---
 export async function generateJournalEntry(input: GenerateJournalEntryInput): Promise<GenerateJournalEntryOutput> {
+    await initGenerateJournalEntryFlow();
     return generateJournalEntryFlow(input);
 }
 
@@ -42,39 +43,45 @@ Your task is to write a short, reflective, first-person journal entry summarizin
 Generate one (1) journal entry in the required JSON format.
 `;
 
-const generateJournalEntryFlow = ai.defineFlow(
-    {
-        name: 'generateJournalEntryFlow',
-        inputSchema: GenerateJournalEntryInputSchema,
-        outputSchema: GenerateJournalEntryOutputSchema,
-    },
-    async (input) => {
-        const modelsToTry = [
-            'openai/gpt-4',
-            'googleai/gemini-1.5-pro',
-            'deepseek/deepseek-chat',
-            'googleai/gemini-2.0-flash',
-        ];
+let generateJournalEntryFlow: any = null;
 
-        let lastError;
-        for (const model of modelsToTry) {
-            try {
-                const { output } = await ai.generate([
-                    {
-                        text: promptText,
-                        custom: input
-                    }
-                ]);
+async function initGenerateJournalEntryFlow() {
+    if (generateJournalEntryFlow) return;
+    const ai = await getAi();
+    generateJournalEntryFlow = ai.defineFlow(
+        {
+            name: 'generateJournalEntryFlow',
+            inputSchema: GenerateJournalEntryInputSchema,
+            outputSchema: GenerateJournalEntryOutputSchema,
+        },
+        async (input) => {
+            const modelsToTry = [
+                'openai/gpt-4',
+                'googleai/gemini-1.5-pro',
+                'deepseek/deepseek-chat',
+                'googleai/gemini-2.0-flash',
+            ];
 
-                if (output && output.journalEntry) return { journalEntry: output.journalEntry };
-            } catch (error: any) {
-                lastError = error;
-                console.warn(`[generateJournalEntry] Model '${model}' failed. Trying next...`);
-                continue;
+            let lastError;
+            for (const model of modelsToTry) {
+                try {
+                    const { output } = await ai.generate([
+                        {
+                            text: promptText,
+                            custom: input
+                        }
+                    ]);
+
+                    if (output && output.journalEntry) return { journalEntry: output.journalEntry };
+                } catch (error: any) {
+                    lastError = error;
+                    console.warn(`[generateJournalEntry] Model '${model}' failed. Trying next...`);
+                    continue;
+                }
             }
-        }
 
-        console.error("All AI models failed for journal entry generation.", lastError);
-        throw lastError || new Error("AI failed to generate a journal entry.");
-    }
-);
+            console.error("All AI models failed for journal entry generation.", lastError);
+            throw lastError || new Error("AI failed to generate a journal entry.");
+        }
+    );
+}

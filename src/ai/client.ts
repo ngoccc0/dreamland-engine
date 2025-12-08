@@ -1,4 +1,4 @@
-import { ai } from './genkit';
+import { getAi } from './genkit';
 
 /**
  * Compatibility wrapper for older ai.generate({ model, prompt, input, output }) callsites.
@@ -10,6 +10,7 @@ import { ai } from './genkit';
  * permissive (uses any) to ease incremental migration.
  */
 export async function generateCompat(opts: any): Promise<any> {
+  const ai = await getAi();
   if (!opts) return ai.generate('');
   if (typeof opts === 'string') return ai.generate(opts);
   // If a prompt is provided, call the newer ai.generate with the prompt string.

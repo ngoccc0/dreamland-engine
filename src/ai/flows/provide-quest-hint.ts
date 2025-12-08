@@ -8,7 +8,7 @@
  * - ProvideQuestHintOutput - The Zod schema for the output data.
  */
 
-import { ai } from '@/ai/genkit';
+import { getAi } from '@/ai/genkit';
 import Handlebars from 'handlebars';
 import { z } from 'genkit';
 import { ProvideQuestHintInputSchema, ProvideQuestHintOutputSchema } from '@/ai/schemas';
@@ -20,12 +20,20 @@ export type ProvideQuestHintOutput = z.infer<typeof ProvideQuestHintOutputSchema
 
 // --- The Exported Function ---
 export async function provideQuestHint(input: ProvideQuestHintInput): Promise<ProvideQuestHintOutput> {
-    return provideQuestHintFlow(input);
+    return provideQuestHintFlowRef(input);
 }
 
 
-// --- The Genkit Prompt and Flow ---
-const promptText = `You are a helpful but mysterious game guide. Your entire response MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
+// --- Lazy initialization for flow ---
+let provideQuestHintFlowRef: any = null;
+
+async function initProvideQuestHintFlow() {
+    if (provideQuestHintFlowRef) return;
+    
+    const ai = await getAi();
+    
+    // --- The Genkit Prompt and Flow ---
+    const promptText = `You are a helpful but mysterious game guide. Your entire response MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
 
 The player is asking for a hint for the following quest:
 "{{{questText}}}"
@@ -41,30 +49,36 @@ Your task is to provide a short, one or two-sentence hint. The hint should be he
 Generate one (1) hint in the required JSON format.
 `;
 
-const provideQuestHintFlow = ai.defineFlow(
-    {
-        name: 'provideQuestHintFlow',
-        inputSchema: ProvideQuestHintInputSchema,
-        outputSchema: ProvideQuestHintOutputSchema,
-    },
-    async (input) => {
-        try {
-            // Render the prompt template with Handlebars so we pass a fully
-            // rendered text to Gemini. Storyteller voices are different
-            // prompt templates, not different providers.
-            const template = Handlebars.compile(promptText);
-            const renderedPrompt = template(input as any);
+    provideQuestHintFlowRef = ai.defineFlow(
+        {
+            name: 'provideQuestHintFlow',
+            inputSchema: ProvideQuestHintInputSchema,
+            outputSchema: ProvideQuestHintOutputSchema,
+        },
+        async (input) => {
+            try {
+                // Render the prompt template with Handlebars so we pass a fully
+                // rendered text to Gemini. Storyteller voices are different
+                // prompt templates, not different providers.
+                const template = Handlebars.compile(promptText);
+                const renderedPrompt = template(input as any);
 
-            const result = await ai.generate([
-                { text: renderedPrompt, custom: {} }
-            ]);
+                const result = await ai.generate([
+                    { text: renderedPrompt, custom: {} }
+                ]);
 
-            if (result?.output) return result.output as ProvideQuestHintOutput;
-            // If no structured output exists, try to coerce / validate.
-            throw new Error('AI returned no structured output for quest hint');
-        } catch (error: any) {
-            console.error('AI failed to generate a hint (Gemini):', error);
-            throw error;
+                if (result?.output) return result.output as ProvideQuestHintOutput;
+                // If no structured output exists, try to coerce / validate.
+                throw new Error('AI returned no structured output for quest hint');
+            } catch (error: any) {
+                console.error('AI failed to generate a hint (Gemini):', error);
+                throw error;
+            }
         }
-    }
-);
+    );
+}
+
+async function provideQuestHintFlow(input: ProvideQuestHintInput): Promise<ProvideQuestHintOutput> {
+    await initProvideQuestHintFlow();
+    return provideQuestHintFlowRef(input);
+}

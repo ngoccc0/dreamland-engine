@@ -71,6 +71,9 @@ export enum AudioActionType {
     UI_BUTTON_CLICK = 'UI_BUTTON_CLICK',
     UI_CONFIRM = 'UI_CONFIRM',
     UI_CANCEL = 'UI_CANCEL',
+    UI_MAP_OPEN = 'UI_MAP_OPEN',
+    UI_MAP_CLOSE = 'UI_MAP_CLOSE',
+    UI_INVENTORY_OPEN = 'UI_INVENTORY_OPEN',
 
     // Skills
     SKILL_CAST = 'SKILL_CAST',
@@ -164,20 +167,19 @@ export const AUDIO_EVENTS_REGISTRY: Record<
     [AudioActionType.PLAYER_ATTACK]: (ctx) => [
         'punch.wav',
         'punch_2.wav',
-        'punch_3.wav',
         'kick.wav',
+        'slap.wav',
     ],
 
     [AudioActionType.ENEMY_HIT]: () => [
         'slap.wav',
         'swipe.wav',
-        'splat_quick.wav',
+        'crunch_quick.wav',
     ],
 
     [AudioActionType.ENEMY_DEFEATED]: () => [
-        'crunch_splat.wav',
-        'squelching_2.wav',
-        'squelching_3.wav',
+        'crunch_quick.wav',
+        'bone_snap.wav',
     ],
 
     // ITEMS
@@ -197,19 +199,19 @@ export const AUDIO_EVENTS_REGISTRY: Record<
     [AudioActionType.ITEM_EQUIP_ARMOR]: () => [
         'clothing_1.wav',
         'clothing_2.wav',
-        'item_equip.wav',
+        'weapon_equip.wav',
     ],
 
     [AudioActionType.ITEM_UNEQUIP]: () => 'weapon_unequip.wav',
 
     [AudioActionType.ITEM_USE]: () => [
-        'drink_slurp.wav',
-        'munching_food.wav',
+        'page_turn.wav',
+        'book_close.wav',
     ],
 
     [AudioActionType.ITEM_DROP]: () => [
         'wood_small_drop.wav',
-        'cardboard_drop.wav',
+        'Cloth_Winter_Coat_Throw_Moderate_Stereo.wav',
     ],
 
     // CRAFTING
@@ -219,23 +221,22 @@ export const AUDIO_EVENTS_REGISTRY: Record<
     ],
 
     [AudioActionType.CRAFT_SUCCESS]: () => [
-        'brass_chime_positive.wav',
-        '8_bit_chime_positive.wav',
-        'synth_confirmation.wav',
+        'UI/craftting_success.wav',
+        'pop_1.wav',
+        'pop_2.wav',
     ],
 
     [AudioActionType.CRAFT_FAIL]: () => [
-        'synth_error.wav',
-        'UI/crafting_fail.wav',
+        'UI/craftting_fail.wav',
+        'UI/cancel.wav',
     ],
 
     // FARMING
     [AudioActionType.FARM_TILL]: () => 'shovel_dig.wav',
 
     [AudioActionType.FARM_WATER]: () => [
-        'water_dripping.wav',
-        'water_drop_medium.wav',
-        'water_drop_synthetic.wav',
+        'air_pump.wav',
+        'ice_in_water.wav',
     ],
 
     [AudioActionType.FARM_FERTILIZE]: () => [
@@ -244,8 +245,8 @@ export const AUDIO_EVENTS_REGISTRY: Record<
     ],
 
     [AudioActionType.FARM_PLANT]: () => [
-        'snap.wav',
-        'subtle_knock.wav',
+        'door_knock.wav',
+        'pop_1.wav',
     ],
 
     // HARVESTING
@@ -258,40 +259,41 @@ export const AUDIO_EVENTS_REGISTRY: Record<
     ],
 
     [AudioActionType.HARVEST_COMPLETE]: () => [
-        'brass_level_complete.wav',
-        '8_bit_level_complete.wav',
+        'pop_1.wav',
+        'pop_2.wav',
+        'jingle_bells_1.wav',
     ],
 
     // BUILDING
     [AudioActionType.BUILD_CONSTRUCT]: () => [
-        'metal_clang.wav',
+        'sword_clash.wav',
         'wood_small_gather.wav',
     ],
 
     [AudioActionType.BUILD_SUCCESS]: () => [
-        'brass_chime_positive.wav',
-        '8_bit_chime_positive.wav',
+        'pop_1.wav',
+        'jingle_bells_1.wav',
     ],
 
     // ENVIRONMENT
-    [AudioActionType.ENVIRONMENT_DOOR_OPEN]: () => 'door_open.wav',
+    [AudioActionType.ENVIRONMENT_DOOR_OPEN]: () => 'Household_Door_Wood_Open_Stereo.wav',
 
-    [AudioActionType.ENVIRONMENT_DOOR_CLOSE]: () => 'door_close.wav',
+    [AudioActionType.ENVIRONMENT_DOOR_CLOSE]: () => 'industrial_door_close.wav',
 
     // REST/SHELTER
     [AudioActionType.REST_ENTER]: () => [
-        'door_open.wav',
-        'creaky_door_short.wav',
+        'Household_Door_Wood_Open_Stereo.wav',
+        'industrial_door_open.wav',
     ],
 
     [AudioActionType.REST_EXIT]: () => [
-        'door_close.wav',
-        'creaky_door_short.wav',
+        'industrial_door_close.wav',
     ],
 
     [AudioActionType.REST_COMPLETE]: () => [
-        'brass_inn.wav',
-        '8_bit_inn.wav',
+        'pop_2.wav',
+        'whistle.wav',
+        'jingle_bells_2.wav',
     ],
 
     // UI
@@ -301,17 +303,27 @@ export const AUDIO_EVENTS_REGISTRY: Record<
 
     [AudioActionType.UI_CANCEL]: () => 'UI/cancel.wav',
 
+    [AudioActionType.UI_MAP_OPEN]: () => 'map_open.wav',
+
+    [AudioActionType.UI_MAP_CLOSE]: () => 'map_close.wav',
+
+    [AudioActionType.UI_INVENTORY_OPEN]: () => 'open_inventory.wav',
+
     // SKILLS
-    [AudioActionType.SKILL_CAST]: () => 'whoosh_1.wav',
+    [AudioActionType.SKILL_CAST]: () => [
+        'air_burst.wav',
+        'swipe.wav',
+    ],
 
     [AudioActionType.SKILL_SUCCESS]: () => [
-        'brass_chime_quick.wav',
-        'synth_confirmation.wav',
+        'pop_1.wav',
+        'pop_2.wav',
+        'clicking.wav',
     ],
 
     [AudioActionType.SKILL_FAIL]: () => [
-        'synth_error.wav',
-        'synth_warning.wav',
+        'UI/cancel.wav',
+        'UI/craftting_fail.wav',
     ],
 
     // NPC
@@ -333,8 +345,8 @@ export const AUDIO_EVENTS_REGISTRY: Record<
 
     // OTHER
     [AudioActionType.ANALYZE]: () => [
-        'whoosh_1.wav',
-        'whoosh_2.wav',
+        'air_burst.wav',
+        'swipe.wav',
     ],
 };
 

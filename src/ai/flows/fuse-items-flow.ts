@@ -98,111 +98,111 @@ async function initFuseItemsFlow() {
             const typedInput = input;
             logger.info('Executing fuseItemsFlow with input', { items: typedInput.itemsToFuse.map((i: ItemToFuse) => getTranslatedText(i.name, 'en')), persona: typedInput.playerPersona });
 
-        const hasTool = typedInput.itemsToFuse.some((item: ItemToFuse) => {
-            const def = resolveItemDef(getTranslatedText(item.name, 'en'), typedInput.customItemDefinitions);
-            return def?.category === 'Tool';
-        });
+            const hasTool = typedInput.itemsToFuse.some((item: ItemToFuse) => {
+                const def = resolveItemDef(getTranslatedText(item.name, 'en'), typedInput.customItemDefinitions);
+                return def?.category === 'Tool';
+            });
 
-        if (!hasTool) {
-            logger.warn('Fuse attempt failed: No tool provided.');
-            const narrative = input.language === 'vi'
-                ? 'Bạn cần một công cụ để có thể gia công và kết hợp các vật liệu đúng cách. Thử nghiệm của bạn thất bại.'
-                : 'You need a tool to properly work and combine the materials. Your attempt fails.';
-            return {
-                outcome: 'totalLoss',
-                narrative: narrative,
-            } as FuseItemsOutput;
-        }
-
-        const baseChance = 50;
-        let bonus = typedInput.environmentalModifiers.successChanceBonus;
-        if (typedInput.playerPersona === 'artisan') bonus += 10;
-        const finalChance = clamp(baseChance + bonus, 5, 95);
-        const roll = Math.random() * 100;
-
-        logger.debug('Fusion chance calculation', { baseChance, bonus, finalChance, roll });
-
-        let determinedOutcome: 'success' | 'degraded' | 'totalLoss' | 'realityGlitch';
-        let finalTier: number | undefined = undefined;
-        let glitchItem: GeneratedItem | undefined = undefined;
-
-        if (roll < finalChance) {
-            if (roll < 5 && input.environmentalModifiers.chaosFactor > 80) { // Critical success under high chaos
-                determinedOutcome = 'realityGlitch';
-                const unspawnableItems = input.fullItemCatalog.filter((item: GeneratedItem) => item.spawnEnabled === false);
-                if (unspawnableItems.length > 0) {
-                    glitchItem = unspawnableItems[Math.floor(Math.random() * unspawnableItems.length)];
-                    finalTier = glitchItem?.tier;
-                } else {
-                    determinedOutcome = 'success'; // Fallback if no glitch items available
-                }
-            } else {
-                determinedOutcome = 'success';
+            if (!hasTool) {
+                logger.warn('Fuse attempt failed: No tool provided.');
+                const narrative = input.language === 'vi'
+                    ? 'Bạn cần một công cụ để có thể gia công và kết hợp các vật liệu đúng cách. Thử nghiệm của bạn thất bại.'
+                    : 'You need a tool to properly work and combine the materials. Your attempt fails.';
+                return {
+                    outcome: 'totalLoss',
+                    narrative: narrative,
+                } as FuseItemsOutput;
             }
-            if (determinedOutcome === 'success') {
-                const avgTier = input.itemsToFuse.reduce((sum: number, item: ItemToFuse) => sum + item.tier, 0) / input.itemsToFuse.length;
-                const randomMultiplier = Math.random() * (1.5 - 0.75) + 0.75;
-                finalTier = clamp(Math.round(avgTier * randomMultiplier), 1, 6);
-            }
-        } else {
-            const lowestTier = Math.min(...input.itemsToFuse.map((i: ItemToFuse) => i.tier));
-            if (roll > 95 || lowestTier <= 1) {
-                determinedOutcome = 'totalLoss';
-            } else {
-                determinedOutcome = 'degraded';
-                finalTier = clamp(lowestTier - 1, 1, 6);
-            }
-        }
 
-        logger.info('Fusion outcome determined', { outcome: determinedOutcome, tier: finalTier, glitchItem: glitchItem?.name ? getTranslatedText(glitchItem.name, 'en') : 'None' });
+            const baseChance = 50;
+            let bonus = typedInput.environmentalModifiers.successChanceBonus;
+            if (typedInput.playerPersona === 'artisan') bonus += 10;
+            const finalChance = clamp(baseChance + bonus, 5, 95);
+            const roll = Math.random() * 100;
 
-        const promptInput: FuseItemsPromptInput = {
-            ...input,
-            determinedOutcome,
-            glitchItem,
-        };
+            logger.debug('Fusion chance calculation', { baseChance, bonus, finalChance, roll });
 
-        const { output: aiOutput } = await ai.generate({
-            prompt: [
-                {
-                    text: fuseItemsPromptText,
-                    custom: {
-                        model: 'openai/gpt-4o-mini',
-                        input: promptInput,
-                        output: { schema: AIPromptOutputSchema }
+            let determinedOutcome: 'success' | 'degraded' | 'totalLoss' | 'realityGlitch';
+            let finalTier: number | undefined = undefined;
+            let glitchItem: GeneratedItem | undefined = undefined;
+
+            if (roll < finalChance) {
+                if (roll < 5 && input.environmentalModifiers.chaosFactor > 80) { // Critical success under high chaos
+                    determinedOutcome = 'realityGlitch';
+                    const unspawnableItems = input.fullItemCatalog.filter((item: GeneratedItem) => item.spawnEnabled === false);
+                    if (unspawnableItems.length > 0) {
+                        glitchItem = unspawnableItems[Math.floor(Math.random() * unspawnableItems.length)];
+                        finalTier = glitchItem?.tier;
+                    } else {
+                        determinedOutcome = 'success'; // Fallback if no glitch items available
                     }
+                } else {
+                    determinedOutcome = 'success';
                 }
-            ]
-        });
+                if (determinedOutcome === 'success') {
+                    const avgTier = input.itemsToFuse.reduce((sum: number, item: ItemToFuse) => sum + item.tier, 0) / input.itemsToFuse.length;
+                    const randomMultiplier = Math.random() * (1.5 - 0.75) + 0.75;
+                    finalTier = clamp(Math.round(avgTier * randomMultiplier), 1, 6);
+                }
+            } else {
+                const lowestTier = Math.min(...input.itemsToFuse.map((i: ItemToFuse) => i.tier));
+                if (roll > 95 || lowestTier <= 1) {
+                    determinedOutcome = 'totalLoss';
+                } else {
+                    determinedOutcome = 'degraded';
+                    finalTier = clamp(lowestTier - 1, 1, 6);
+                }
+            }
 
-        if (!aiOutput) {
-            logger.error("AI model returned an empty or invalid output for fusion.");
-            throw new Error("The ethereal currents of possibility did not align, leaving the outcome shrouded in mystery.");
+            logger.info('Fusion outcome determined', { outcome: determinedOutcome, tier: finalTier, glitchItem: glitchItem?.name ? getTranslatedText(glitchItem.name, 'en') : 'None' });
+
+            const promptInput: FuseItemsPromptInput = {
+                ...input,
+                determinedOutcome,
+                glitchItem,
+            };
+
+            const { output: aiOutput } = await ai.generate({
+                prompt: [
+                    {
+                        text: fuseItemsPromptText,
+                        custom: {
+                            model: 'openai/gpt-4o-mini',
+                            input: promptInput,
+                            output: { schema: AIPromptOutputSchema }
+                        }
+                    }
+                ]
+            });
+
+            if (!aiOutput) {
+                logger.error("AI model returned an empty or invalid output for fusion.");
+                throw new Error("The ethereal currents of possibility did not align, leaving the outcome shrouded in mystery.");
+            }
+
+            logger.debug('AI fusion output received', { aiOutput });
+
+            const finalOutput: FuseItemsOutput = {
+                outcome: aiOutput.outcome,
+                narrative: aiOutput.narrative,
+            };
+
+            if (glitchItem) {
+                finalOutput.resultItem = glitchItem;
+            } else if (aiOutput.resultItem && finalTier) {
+                finalOutput.resultItem = {
+                    ...aiOutput.resultItem,
+                    category: 'Fusion',
+                    tier: finalTier,
+                    emoji: getEmojiForItem(getTranslatedText(aiOutput.resultItem.name, 'en'), 'Fusion'),
+                    spawnEnabled: false,
+                    baseQuantity: { min: 1, max: 1 },
+                } as GeneratedItem;
+                logger.info('New fused item created', { item: finalOutput.resultItem ? getTranslatedText(finalOutput.resultItem.name, 'en') : 'None' });
+            }
+
+            return finalOutput;
         }
-
-        logger.debug('AI fusion output received', { aiOutput });
-
-        const finalOutput: FuseItemsOutput = {
-            outcome: aiOutput.outcome,
-            narrative: aiOutput.narrative,
-        };
-
-        if (glitchItem) {
-            finalOutput.resultItem = glitchItem;
-        } else if (aiOutput.resultItem && finalTier) {
-            finalOutput.resultItem = {
-                ...aiOutput.resultItem,
-                category: 'Fusion',
-                tier: finalTier,
-                emoji: getEmojiForItem(getTranslatedText(aiOutput.resultItem.name, 'en'), 'Fusion'),
-                spawnEnabled: false,
-                baseQuantity: { min: 1, max: 1 },
-            } as GeneratedItem;
-            logger.info('New fused item created', { item: finalOutput.resultItem ? getTranslatedText(finalOutput.resultItem.name, 'en') : 'None' });
-        }
-
-        return finalOutput;
-    }
     );
 }
 

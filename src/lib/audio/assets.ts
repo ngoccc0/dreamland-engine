@@ -99,8 +99,11 @@ export const BACKGROUND_MUSIC = [
 
 // ===== MENU MUSIC =====
 export const MENU_MUSIC = [
-  '8bit Bossa.mp3',
-];
+  'morning.mp3',
+  'afternoon.mp3',
+  'evening.mp3',
+  'night.mp3',
+] as const;
 
 // ===== SFX BY CATEGORY =====
 

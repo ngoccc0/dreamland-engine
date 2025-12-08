@@ -29,9 +29,9 @@ let provideQuestHintFlowRef: any = null;
 
 async function initProvideQuestHintFlow() {
     if (provideQuestHintFlowRef) return;
-    
+
     const ai = await getAi();
-    
+
     // --- The Genkit Prompt and Flow ---
     const promptText = `You are a helpful but mysterious game guide. Your entire response MUST be in the language specified by the code '{{language}}' (e.g., 'en' for English, 'vi' for Vietnamese). This is a critical and non-negotiable instruction.
 

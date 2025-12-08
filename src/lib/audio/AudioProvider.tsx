@@ -148,7 +148,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       filename = parts[1];
     } else {
       // Legacy format - determine folder from MENU_MUSIC
-      const isMenu = MENU_MUSIC.includes(chosen);
+      const isMenu = MENU_MUSIC.includes(chosen as any);
       folder = isMenu ? 'menu_music' : 'background_music';
     }
 
@@ -205,8 +205,9 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [musicVolume, muted]);
 
   const playMenuMusic = useCallback(() => {
-    if (MENU_MUSIC.length === 0) return;
-    playMusic(MENU_MUSIC[0]);
+    if (MENU_MUSIC.length) {
+      playMusic(MENU_MUSIC[0]);
+    }
   }, [playMusic]);
 
   /**
@@ -355,7 +356,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const candidates = MOOD_TRACK_MAP[m];
       if (!candidates) continue;
       for (const c of candidates) {
-        if (BACKGROUND_MUSIC.includes(c) || MENU_MUSIC.includes(c)) {
+        if (BACKGROUND_MUSIC.includes(c as any) || MENU_MUSIC.includes(c as any)) {
           playMusic(c);
           return;
         }

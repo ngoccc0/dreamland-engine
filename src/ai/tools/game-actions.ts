@@ -1,81 +1,81 @@
 /**
  * Lazy-loading wrapper for game action tools.
  *
- * This module wraps the game-actions tools to defer their initialization
- * until they're actually used (i.e., at request time), not at module load time.
- * This prevents Genkit initialization errors during Next.js build.
+ * Delays Genkit initialization until first actual use, preventing
+ * "noConflict is not a function" errors during Next.js build time.
+ *
+ * This module exports async getter functions that lazily initialize tools
+ * on first call. Each subsequent call returns the cached tool.
  */
 
-import { getAi } from '@/ai/genkit';
-import type { Genkit } from 'genkit';
-
-// Tool caches
-let toolsInitialized = false;
-let toolsCache: any = {};
+import { initializeGameTools } from './game-actions-impl';
 
 /**
- * Initialize all game action tools on first call
+ * Initialize all tools on first call
  */
-async function initializeGameTools() {
-    if (toolsInitialized) return toolsCache;
-
-    const ai = await getAi();
-
-    // Import and execute the tool definitions within the async context
-    // where ai is guaranteed to be available
-    const toolDefinitions = await import('./game-actions-impl');
-    
-    // Re-export all tools from the cached definitions
-    Object.assign(toolsCache, toolDefinitions);
-    toolsInitialized = true;
-    
-    return toolsCache;
-}
-
-/**
- * Lazy-load and return the game tools
- */
-export async function getGameTools() {
+async function getTools() {
     return initializeGameTools();
 }
 
-// Create proxy exports that ensure tools are available before use
+/**
+ * Get the playerAttack tool
+ */
 export async function getPlayerAttackTool() {
-    const tools = await getGameTools();
+    const tools = await getTools();
     return tools.playerAttackTool;
 }
 
+/**
+ * Get the takeItem tool
+ */
 export async function getTakeItemTool() {
-    const tools = await getGameTools();
+    const tools = await getTools();
     return tools.takeItemTool;
 }
 
+/**
+ * Get the useItem tool
+ */
 export async function getUseItemTool() {
-    const tools = await getGameTools();
+    const tools = await getTools();
     return tools.useItemTool;
 }
 
+/**
+ * Get the tameEnemy tool
+ */
 export async function getTameEnemyTool() {
-    const tools = await getGameTools();
+    const tools = await getTools();
     return tools.tameEnemyTool;
 }
 
+/**
+ * Get the useSkill tool
+ */
 export async function getUseSkillTool() {
-    const tools = await getGameTools();
+    const tools = await getTools();
     return tools.useSkillTool;
 }
 
+/**
+ * Get the completeQuest tool
+ */
 export async function getCompleteQuestTool() {
-    const tools = await getGameTools();
+    const tools = await getTools();
     return tools.completeQuestTool;
 }
 
+/**
+ * Get the startQuest tool
+ */
 export async function getStartQuestTool() {
-    const tools = await getGameTools();
+    const tools = await getTools();
     return tools.startQuestTool;
 }
 
-// Re-export schemas (these don't need the AI instance)
+/**
+ * Re-export schemas (no Genkit init needed for these)
+ */
 export {
     PlayerAttackInputSchema, PlayerAttackOutputSchema,
     TakeItemInputSchema, TakeItemOutputSchema,
@@ -83,5 +83,5 @@ export {
     TameEnemyInputSchema, TameEnemyOutputSchema,
     UseSkillInputSchema, UseSkillOutputSchema,
     CompleteQuestInputSchema, CompleteQuestOutputSchema,
-    StartQuestInputSchema, StartQuestOutputSchema
+    StartQuestInputSchema, StartQuestOutputSchema,
 } from './game-actions-impl';

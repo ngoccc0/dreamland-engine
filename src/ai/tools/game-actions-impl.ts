@@ -8,6 +8,10 @@
  */
 
 import { getAi } from '@/ai/genkit';
+
+// Flag to track whether tools have been initialized
+let toolsInitialized = false;
+const toolCache: Record<string, any> = {};
 import { z } from 'genkit';
 
 import { EnemySchema, PlayerItemSchema, ChunkItemSchema, ItemDefinitionSchema, PetSchema } from '@/ai/schemas';
@@ -109,15 +113,8 @@ export const PlayerAttackOutputSchema = z.object({
  */
 let playerAttackTool: any = null;
 
-async function createPlayerAttackTool() {
-    if (playerAttackTool) return playerAttackTool;
-    const ai = await getAi();
-    playerAttackTool = ai.defineTool({
-        name: 'playerAttack',
-        description: 'Calculates the result of a player attacking an enemy in a single combat round. Call this when the player action is an attack.',
-        inputSchema: PlayerAttackInputSchema,
-        outputSchema: PlayerAttackOutputSchema
-    }, async ({ playerStatus, enemy, terrain, customItemDefinitions, lightLevel, moisture, successLevel }) => {
+// Moved to initializeGameTools() - no longer module-level export
+async function _playerAttackToolHandler({ playerStatus, enemy, terrain, customItemDefinitions, lightLevel, moisture, successLevel }: any) {
     let playerDamage = 0;
     const combatLogParts: string[] = [];
     let damageMultiplier = 1.0;
@@ -248,11 +245,7 @@ async function createPlayerAttackTool() {
         combatLog: combatLogParts.join(' '),
         lootDrops: undefined,
     };
-    });
-    return playerAttackTool;
 }
-
-export { createPlayerAttackTool as playerAttackTool };
 
 // --- TakeItem Tool Schemas ---
 
@@ -284,17 +277,13 @@ export const TakeItemOutputSchema = z.object({
  * @param {object} input - Dữ liệu đầu vào theo `TakeItemInputSchema`.
  * @returns {Promise<object>} - Kết quả cập nhật túi đồ và chunk theo `TakeItemOutputSchema`.
  */
-export const takeItemTool = ai.defineTool({
-    name: 'takeItem',
-    description: "Moves an entire stack of items from the game world into the player's inventory. Call this when the player action is to pick up or take an item.",
-    inputSchema: TakeItemInputSchema,
-    outputSchema: TakeItemOutputSchema
-}, async ({ itemToTake, currentChunkItems, playerInventory }) => {
-    const updatedChunkItems = currentChunkItems.filter(i => getTranslatedText(i.name, 'en') !== getTranslatedText(itemToTake.name, 'en')); // Use 'en' for filtering consistency if internal
+// Moved to initializeGameTools() - no longer module-level export
+async function _takeItemToolHandler({ itemToTake, currentChunkItems, playerInventory }: any) {
+    const updatedChunkItems = currentChunkItems.filter((i: any) => getTranslatedText(i.name, 'en') !== getTranslatedText(itemToTake.name, 'en')); // Use 'en' for filtering consistency if internal
     const updatedPlayerInventory = [...playerInventory];
 
     // Fix: Use getTranslatableStringValue for comparison
-    const existingItem = updatedPlayerInventory.find(i => getTranslatedText(i.name, 'en') === getTranslatedText(itemToTake.name, 'en'));
+    const existingItem = updatedPlayerInventory.find((i: any) => getTranslatedText(i.name, 'en') === getTranslatedText(itemToTake.name, 'en'));
 
     if (existingItem) {
         existingItem.quantity += itemToTake.quantity;
@@ -308,7 +297,7 @@ export const takeItemTool = ai.defineTool({
     }
 
     return { updatedPlayerInventory, updatedChunkItems };
-});
+}
 
 // --- UseItem Tool Schemas ---
 
@@ -342,12 +331,8 @@ export const UseItemOutputSchema = z.object({
  * @param {object} input - Dữ liệu đầu vào theo `UseItemInputSchema`.
  * @returns {Promise<object>} - Kết quả cập nhật trạng thái người chơi theo `UseItemOutputSchema`.
  */
-export const useItemTool = ai.defineTool({
-    name: 'useItem',
-    description: "Uses one item from the player's inventory, applying its effect and decrementing its quantity. Call this when the player action is to use an item ON THEMSELVES (e.g. 'eat berry', 'drink potion').",
-    inputSchema: UseItemInputSchema,
-    outputSchema: UseItemOutputSchema
-}, async ({ itemName, playerStatus, customItemDefinitions }) => {
+// Moved to initializeGameTools() - no longer module-level export
+async function _useItemToolHandler({ itemName, playerStatus, customItemDefinitions }: any) {
     const newStatus: PlayerStatus = JSON.parse(JSON.stringify(playerStatus)); // Deep copy
     newStatus.items = newStatus.items || [];
     newStatus.skills = newStatus.skills || [];
@@ -405,7 +390,7 @@ export const useItemTool = ai.defineTool({
         wasUsed: true,
         effectDescription: effectDescriptions.join(' ')
     };
-});
+}
 
 // --- TameEnemy Tool Schemas ---
 
@@ -445,12 +430,8 @@ export const TameEnemyOutputSchema = z.object({
  * @param {object} input - Dữ liệu đầu vào theo `TameEnemyInputSchema`.
  * @returns {Promise<object>} - Kết quả thuần hóa theo `TameEnemyOutputSchema`.
  */
-export const tameEnemyTool = ai.defineTool({
-    name: 'tameEnemy',
-    description: "Attempts to tame an enemy by giving it a food item from the player's inventory. Call this when the player's action is to use an item on a creature (e.g. 'give meat to wolf').",
-    inputSchema: TameEnemyInputSchema,
-    outputSchema: TameEnemyOutputSchema
-}, async ({ itemName, playerStatus, enemy }) => {
+// Moved to initializeGameTools() - no longer module-level export
+async function _tameEnemyToolHandler({ itemName, playerStatus, enemy }: any) {
     const newStatus: PlayerStatus = JSON.parse(JSON.stringify(playerStatus)); // Deep copy
     // Fix: Use getTranslatableStringValue for comparison
     const itemIndex = newStatus.items.findIndex(i => getTranslatableStringValue(i.name, playerStatus.language || 'en').toLowerCase() === itemName.toLowerCase());
@@ -522,7 +503,7 @@ export const tameEnemyTool = ai.defineTool({
             log: `The ${getTranslatedText(enemy.type ?? '', playerStatus.language || 'en')} ate the ${itemName ?? ''}, but remains wild.`
         };
     }
-});
+}
 
 // --- UseSkill Tool Schemas ---
 
@@ -558,12 +539,8 @@ export const UseSkillOutputSchema = z.object({
  * @param {object} input - Dữ liệu đầu vào theo `UseSkillInputSchema`.
  * @returns {Promise<object>} - Kết quả sử dụng kỹ năng theo `UseSkillOutputSchema`.
  */
-export const useSkillTool = ai.defineTool({
-    name: 'useSkill',
-    description: "Uses one of the player's known skills, considering the d20 roll's success level. Call this when the player's action is to use a skill (e.g., 'use Heal', 'cast Fireball').",
-    inputSchema: UseSkillInputSchema,
-    outputSchema: UseSkillOutputSchema
-}, async ({ skillName, playerStatus, enemy, successLevel }) => {
+// Moved to initializeGameTools() - no longer module-level export
+async function _useSkillToolHandler({ skillName, playerStatus, enemy, successLevel }: any) {
     const newPlayerStatus: PlayerStatus = JSON.parse(JSON.stringify(playerStatus));
     let newEnemy: typeof enemy | null = enemy ? JSON.parse(JSON.stringify(enemy)) : null;
 
@@ -660,13 +637,12 @@ export const useSkillTool = ai.defineTool({
             }
             break;
     }
-
     return {
         updatedPlayerStatus: newPlayerStatus,
         updatedEnemy: newEnemy,
         log,
     };
-});
+}
 
 // --- CompleteQuest Tool Schemas ---
 
@@ -698,12 +674,8 @@ export const CompleteQuestOutputSchema = z.object({
  * @param {object} input - Dữ liệu đầu vào theo `CompleteQuestInputSchema`.
  * @returns {Promise<object>} - Kết quả hoàn thành nhiệm vụ và phần thưởng theo `CompleteQuestOutputSchema`.
  */
-export const completeQuestTool = ai.defineTool({
-    name: 'completeQuest',
-    description: "Confirms a quest is completed and determines a suitable reward. Call this ONLY when the player's action directly fulfills a quest's objective.",
-    inputSchema: CompleteQuestInputSchema,
-    outputSchema: CompleteQuestOutputSchema
-}, async ({ questText, playerStatus }) => {
+// Moved to initializeGameTools() - no longer module-level export
+async function _completeQuestToolHandler({ questText, playerStatus }: any) {
     const possibleRewards: PlayerItem[] = [
         { name: { en: 'Minor Healing Potion', vi: 'Thuốc Máu Yếu' }, quantity: 2, tier: 1, emoji: '🧪' },
         { name: { en: 'Sharpening Stone', vi: 'Đá Mài' }, quantity: 1, tier: 2, emoji: '🔪' },
@@ -727,7 +699,7 @@ export const completeQuestTool = ai.defineTool({
         rewardDescription: "As a token of gratitude, you receive a reward.",
         rewardItems: rewardItems,
     };
-});
+}
 
 // --- StartQuest Tool Schemas ---
 
@@ -753,13 +725,93 @@ export const StartQuestOutputSchema = z.object({
  * @param {object} input - Dữ liệu đầu vào theo `StartQuestInputSchema`.
  * @returns {Promise<object>} - Kết quả bắt đầu nhiệm vụ theo `StartQuestOutputSchema`.
  */
-export const startQuestTool = ai.defineTool({
-    name: 'startQuest',
-    description: "Starts a new quest for the player. Call this ONLY when an NPC gives the player a new quest during a conversation.",
-    inputSchema: StartQuestInputSchema,
-    outputSchema: StartQuestOutputSchema
-}, async ({ questText }) => {
+// Tool definitions moved to initializeGameTools()
+async function _startQuestToolHandler({ questText }: any) {
     return {
         questStarted: questText,
     };
-});
+}
+
+/**
+ * Initialize all game action tools lazily
+ * This function creates all tools when first called, ensuring Genkit is already initialized
+ */
+export async function initializeGameTools() {
+    if (toolsInitialized) return toolCache;
+
+    const ai = await getAi();
+
+    // Create all tools
+    toolCache.playerAttackTool = ai.defineTool(
+        {
+            name: 'playerAttack',
+            description: 'Calculates the result of a player attacking an enemy in a single combat round. Call this when the player action is an attack.',
+            inputSchema: PlayerAttackInputSchema,
+            outputSchema: PlayerAttackOutputSchema,
+        },
+        _playerAttackToolHandler
+    );
+
+    toolCache.takeItemTool = ai.defineTool(
+        {
+            name: 'takeItem',
+            description: "Moves an entire stack of items from the game world into the player's inventory. Call this when the player action is to pick up or take an item.",
+            inputSchema: TakeItemInputSchema,
+            outputSchema: TakeItemOutputSchema,
+        },
+        _takeItemToolHandler
+    );
+
+    toolCache.useItemTool = ai.defineTool(
+        {
+            name: 'useItem',
+            description: 'Uses an item from the player\'s inventory.',
+            inputSchema: UseItemInputSchema,
+            outputSchema: UseItemOutputSchema,
+        },
+        _useItemToolHandler
+    );
+
+    toolCache.tameEnemyTool = ai.defineTool(
+        {
+            name: 'tameEnemy',
+            description: 'Attempts to tame an enemy creature to add to player pets.',
+            inputSchema: TameEnemyInputSchema,
+            outputSchema: TameEnemyOutputSchema,
+        },
+        _tameEnemyToolHandler
+    );
+
+    toolCache.useSkillTool = ai.defineTool(
+        {
+            name: 'useSkill',
+            description: 'Uses a skill and calculates the result.',
+            inputSchema: UseSkillInputSchema,
+            outputSchema: UseSkillOutputSchema,
+        },
+        _useSkillToolHandler
+    );
+
+    toolCache.completeQuestTool = ai.defineTool(
+        {
+            name: 'completeQuest',
+            description: 'Marks a quest as completed and returns the rewards.',
+            inputSchema: CompleteQuestInputSchema,
+            outputSchema: CompleteQuestOutputSchema,
+        },
+        _completeQuestToolHandler
+    );
+
+    toolCache.startQuestTool = ai.defineTool(
+        {
+            name: 'startQuest',
+            description: "Starts a new quest for the player. Call this ONLY when an NPC gives the player a new quest during a conversation.",
+            inputSchema: StartQuestInputSchema,
+            outputSchema: StartQuestOutputSchema,
+        },
+        _startQuestToolHandler
+    );
+
+    toolsInitialized = true;
+    return toolCache;
+}

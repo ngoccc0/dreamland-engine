@@ -8,6 +8,7 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   reactStrictMode: true,
   pageExtensions: ['ts', 'tsx', 'mdx'],
   transpilePackages: [

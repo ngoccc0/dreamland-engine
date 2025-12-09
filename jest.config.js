@@ -18,6 +18,10 @@ module.exports = {
     },
     reporters: ['summary'],
     testMatch: ["**/?(*.)+(spec|test).[jt]s?(x)"],
+    testPathIgnorePatterns: [
+        '<rootDir>/.next',
+        '<rootDir>/node_modules',
+    ],
     moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/src/$1', // Map '@/' to 'src/'
     },

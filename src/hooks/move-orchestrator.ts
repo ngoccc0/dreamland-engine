@@ -4,8 +4,31 @@
    same names as the originals (e.g., isLoading, playerPosition, world, etc.).
 */
 
-// Module-level Set to track in-flight move operations and prevent React.StrictMode
-// double-invocation from triggering duplicate narrative updates
+/**
+ * Module-level tracking for in-flight move operations
+ *
+ * @remarks
+ * Prevents React.StrictMode double-invocation from triggering duplicate narrative updates.
+ *
+ * KNOWN ISSUE (Race Condition):
+ * - Uses a module-level Set with 5-second timeout cleanup
+ * - If component unmounts/remounts within 5 seconds, stale entries may block moves
+ * - Particularly problematic in React.StrictMode where double-invoke is intentional
+ *
+ * TODO [REFACTORING]: Replace with turn-based cleanup
+ * - Instead of 5-second timeout, reset activeMoveOps when gameState.turn increments
+ * - Ensures cleanup happens at deterministic game logic boundaries
+ * - Eliminates timing issues and StrictMode conflicts
+ *
+ * @example
+ * // Current (problematic):
+ * activeMoveOps.add(moveKey);
+ * setTimeout(() => activeMoveOps.delete(moveKey), 5000); // May block subsequent moves
+ *
+ * // Proposed:
+ * activeMoveOps.add(moveKey);
+ * // Clean up in useEffect when turn increments
+ */
 const activeMoveOps = new Set<string>();
 
 export function createHandleMove(ctx: any) {

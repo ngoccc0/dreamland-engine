@@ -157,8 +157,28 @@ export function useGameEngine(props: GameEngineProps) {
     const plantEngineRef = useRef(new PlantEngine(t));
 
     const addNarrativeEntry = useCallback((text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string, animationMetadata?: NarrativeEntry['animationMetadata']) => {
-        // Preserve explicit entryId when provided (placeholders use predictable ids).
-        // If no id provided, generate a stable unique id.
+        /**
+         * Add narrative entry with atomic deduplication
+         *
+         * @remarks
+         * PERFORMANCE NOTE: This function uses Promise.resolve().then() for state updates
+         * to avoid React lifecycle warnings. However, this creates a potential race condition
+         * if multiple entries are queued in rapid succession (>1 entry per frame).
+         *
+         * TODO [REFACTORING]: Implement proper batching with useLayoutEffect instead
+         * of Promise.resolve().then() to ensure atomic updates and proper ordering.
+         *
+         * Current issue (race condition scenario):
+         * - Tick 1: addNarrativeEntry("move"), queues microtask A
+         * - Tick 2: addNarrativeEntry("pickup"), queues microtask B
+         * - Tick 3: addNarrativeEntry("combat"), queues microtask C
+         * - Microtasks may execute out of order if browser throttles, causing entries to be lost
+         *
+         * Proposed fix:
+         * - Maintain a Queue<NarrativeEntry> ref
+         * - useLayoutEffect flushes queue atomically per frame
+         * - Ensures FIFO ordering and no dedup race conditions
+         */
         const id = entryId ?? `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
         const entry: NarrativeEntry = { id, text, type, isNew: true, ...(animationMetadata && { animationMetadata }) };
 

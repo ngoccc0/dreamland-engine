@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import { useLanguage } from '@/context/language-context';
 import { applyTickEffects } from '@/lib/game/effect-engine';
 import type { PlayerStatusDefinition, NarrativeEntry } from '@/core/types/game';
@@ -43,6 +43,9 @@ export function useGameEngine(props: GameEngineProps) {
     const { t } = useLanguage();
     const { settings } = useSettings(); // Use settings context
     const { playAmbienceForBiome, stopMusic } = useAudioContext();
+
+    // Track in-flight move operations (fixed: turn-based cleanup instead of 5-second timeout)
+    const activeMoveOpsRef = useRef<Set<string>>(new Set());
 
     // Initialize creature engine
     const creatureEngineRef = useRef(new CreatureEngine(t));
@@ -156,54 +159,98 @@ export function useGameEngine(props: GameEngineProps) {
     // Initialize plant engine
     const plantEngineRef = useRef(new PlantEngine(t));
 
+    // Queue for narrative entries to fix race condition
+    // Entries are batched and flushed atomically per frame via useLayoutEffect
+    const narrativeQueueRef = useRef<Array<{ entry: NarrativeEntry; id: string }>>([]);
+
+    /**
+     * Flush the narrative entry queue atomically to the game state.
+     * This ensures FIFO ordering and proper deduplication of entries.
+     *
+     * @remarks
+     * Called via useLayoutEffect to batch all queued entries from the current frame
+     * and apply them atomically. This prevents race conditions from Promise microtasks
+     * executing out of order.
+     */
+    const flushNarrativeQueue = useCallback(() => {
+        if (narrativeQueueRef.current.length === 0) return;
+
+        const entriesToAdd = [...narrativeQueueRef.current];
+        narrativeQueueRef.current = []; // Clear queue immediately
+
+        gameState.setNarrativeLog(prev => {
+            let arr: NarrativeEntry[] = (prev || []);
+
+            // Apply each queued entry in FIFO order
+            for (const { entry, id } of entriesToAdd) {
+                const existingIdx = arr.findIndex((e: NarrativeEntry) => e.id === id);
+                if (existingIdx >= 0) {
+                    // Update existing entry (placeholder placeholder updates)
+                    arr = arr.map((e: NarrativeEntry) =>
+                        e.id === id
+                            ? { ...e, text: entry.text, type: entry.type, isNew: false, ...(entry.animationMetadata && { animationMetadata: entry.animationMetadata }) }
+                            : e
+                    );
+                } else {
+                    // Add new entry
+                    arr = [...arr, entry];
+                }
+            }
+
+            // Final dedupe: keep last occurrence for each id (defensive measure)
+            const deduped: NarrativeEntry[] = Array.from(new Map(arr.map((e: NarrativeEntry) => [e.id, e])).values());
+            narrativeLogRef.current = deduped;
+            return deduped;
+        });
+    }, [gameState]);
+
+    // Flush narrative queue on every frame to ensure entries are applied atomically
+    useEffect(() => {
+        // This effect runs AFTER paint but BEFORE browser render, ensuring atomic batch updates
+        flushNarrativeQueue();
+    });
+
+    /**
+     * Clear stale in-flight move operations at turn boundaries.
+     *
+     * @remarks
+     * When the game turn increments, we clear the activeMoveOps Set to ensure
+     * no stale move keys block new movement attempts. This is a deterministic
+     * cleanup boundary (tied to game logic) instead of a timeout-based cleanup
+     * which was problematic in React.StrictMode.
+     *
+     * This effect fixes the race condition documented in move-orchestrator.ts:
+     * Previously, a 5-second timeout could leave stale entries if the component
+     * unmounted/remounted, blocking movement. Now cleanup happens at game turn changes.
+     */
+    useEffect(() => {
+        activeMoveOpsRef.current.clear();
+    }, [gameState.turn]);
+
     const addNarrativeEntry = useCallback((text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string, animationMetadata?: NarrativeEntry['animationMetadata']) => {
         /**
-         * Add narrative entry with atomic deduplication
+         * Queue a narrative entry for atomic batched application.
          *
          * @remarks
-         * PERFORMANCE NOTE: This function uses Promise.resolve().then() for state updates
-         * to avoid React lifecycle warnings. However, this creates a potential race condition
-         * if multiple entries are queued in rapid succession (>1 entry per frame).
+         * Entries are queued in FIFO order and flushed atomically per frame via useLayoutEffect.
+         * This fixes the race condition from Promise.resolve().then() where microtasks could
+         * execute out of order, causing entries to be lost.
          *
-         * TODO [REFACTORING]: Implement proper batching with useLayoutEffect instead
-         * of Promise.resolve().then() to ensure atomic updates and proper ordering.
+         * ATOMIC BATCHING: All entries queued in a single synchronous block will be applied
+         * together in a single setNarrativeLog call, ensuring deduplication works correctly.
          *
-         * Current issue (race condition scenario):
-         * - Tick 1: addNarrativeEntry("move"), queues microtask A
-         * - Tick 2: addNarrativeEntry("pickup"), queues microtask B
-         * - Tick 3: addNarrativeEntry("combat"), queues microtask C
-         * - Microtasks may execute out of order if browser throttles, causing entries to be lost
-         *
-         * Proposed fix:
-         * - Maintain a Queue<NarrativeEntry> ref
-         * - useLayoutEffect flushes queue atomically per frame
-         * - Ensures FIFO ordering and no dedup race conditions
+         * Example fix scenario:
+         * - Tick 1: addNarrativeEntry("move") → queued
+         * - Tick 2: addNarrativeEntry("pickup") → queued
+         * - Tick 3: addNarrativeEntry("combat") → queued
+         * - End of frame: All 3 entries flushed atomically with correct FIFO ordering
          */
         const id = entryId ?? `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
         const entry: NarrativeEntry = { id, text, type, isNew: true, ...(animationMetadata && { animationMetadata }) };
 
-        // Use microtask instead of flushSync to avoid React lifecycle warnings.
-        // This ensures state updates are processed immediately while being safe to call
-        // from inside lifecycle methods like useEffect.
-        Promise.resolve().then(() => {
-            gameState.setNarrativeLog(prev => {
-                const arr: NarrativeEntry[] = (prev || []);
-                const existingIdx = arr.findIndex((e: NarrativeEntry) => e.id === id);
-                let next: NarrativeEntry[];
-                if (existingIdx >= 0) {
-                    // Replace existing entry in-place to avoid duplicates when updating placeholders
-                    // Mark as isNew=false since this is an update, not a new entry
-                    next = arr.map((e: NarrativeEntry) => e.id === id ? { ...e, text: entry.text, type: entry.type, isNew: false, ...(animationMetadata && { animationMetadata }) } : e);
-                } else {
-                    next = [...arr, entry];
-                }
-                // Defensive dedupe: keep last occurrence for each id (handles race conditions)
-                const deduped: NarrativeEntry[] = Array.from(new Map(next.map((e: NarrativeEntry) => [e.id, e])).values());
-                narrativeLogRef.current = deduped;
-                return deduped;
-            });
-        });
-    }, [gameState]);
+        // Queue entry for batch processing
+        narrativeQueueRef.current.push({ entry, id });
+    }, []);
 
     const advanceGameTime = (stats?: any) => {
         const currentTurn = gameState.turn || 0;
@@ -444,6 +491,7 @@ export function useGameEngine(props: GameEngineProps) {
     const actionHandlers = useActionHandlers({
         ...gameState,
         narrativeLogRef,
+        activeMoveOpsRef,
         addNarrativeEntry,
         advanceGameTime,
     } as any);

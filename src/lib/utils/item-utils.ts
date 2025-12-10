@@ -26,57 +26,57 @@ import { getTranslatedText } from './translation';
  * getEmojiForItem("Healing Potion", "Support") // → "🧪"
  */
 export function getEmojiForItem(name: string, category: string): string {
-  const lowerName = name.toLowerCase();
-  const lowerCategory = category.toLowerCase();
+    const lowerName = name.toLowerCase();
+    const lowerCategory = category.toLowerCase();
 
-  // Specific keywords in name take precedence for accuracy
-  const keywordMap: Record<string, string> = {
-    'axe': '🪓', 'pickaxe': '⛏️', 'hammer': '🔨', 'sword': '⚔️', 'blade': '🔪', 'knife': '🔪',
-    'dagger': '🔪', 'bow': '🏹', 'arrow': '🏹', 'shield': '🛡️',
-    'potion': '🧪', 'elixir': '🧪', 'vial': '🧪', 'flask': '🧪',
-    'herb': '🌿', 'leaf': '🍃', 'flower': '🌸', 'root': '🌱', 'moss': '🌿',
-    'wood': '🪵', 'log': '🪵', 'branch': '🌿', 'plank': '🪵',
-    'stone': '🪨', 'rock': '🪨', 'pebble': '🪨', 'ore': '⛏️', 'ingot': '🔩',
-    'gem': '💎', 'crystal': '💎', 'ruby': '💎', 'sapphire': '💎',
-    'meat': '🍖', 'fruit': '🍎', 'berry': '🍓', 'fish': '🐟', 'bread': '🍞', 'egg': '🥚',
-    'hide': '🩹', 'pelt': '🩹', 'leather': '👜', 'scale': '🐉',
-    'scroll': '📜', 'book': '📖', 'tome': '📖', 'map': '🗺️', 'key': '🗝️',
-    'fire': '🔥', 'flame': '🔥', 'torch': '🔥', 'lava': '🌋', 'magma': '🌋',
-    'water': '💧', 'ice': '❄️', 'snow': '❄️', 'frost': '❄️',
-    'lightning': '⚡', 'storm': '⛈️', 'wind': '💨',
-    'heart': '❤️', 'soul': '👻', 'spirit': '👻',
-    'bone': '🦴', 'skull': '💀', 'fang': '🦷', 'tooth': '🦷', 'claw': '🐾',
-    'cloth': '🧣', 'silk': '🕸️', 'thread': '🧵', 'string': '🧵', 'rope': '🪢',
-    'seed': '🌱',
-  };
+    // Specific keywords in name take precedence for accuracy
+    const keywordMap: Record<string, string> = {
+        'axe': '🪓', 'pickaxe': '⛏️', 'hammer': '🔨', 'sword': '⚔️', 'blade': '🔪', 'knife': '🔪',
+        'dagger': '🔪', 'bow': '🏹', 'arrow': '🏹', 'shield': '🛡️',
+        'potion': '🧪', 'elixir': '🧪', 'vial': '🧪', 'flask': '🧪',
+        'herb': '🌿', 'leaf': '🍃', 'flower': '🌸', 'root': '🌱', 'moss': '🌿',
+        'wood': '🪵', 'log': '🪵', 'branch': '🌿', 'plank': '🪵',
+        'stone': '🪨', 'rock': '🪨', 'pebble': '🪨', 'ore': '⛏️', 'ingot': '🔩',
+        'gem': '💎', 'crystal': '💎', 'ruby': '💎', 'sapphire': '💎',
+        'meat': '🍖', 'fruit': '🍎', 'berry': '🍓', 'fish': '🐟', 'bread': '🍞', 'egg': '🥚',
+        'hide': '🩹', 'pelt': '🩹', 'leather': '👜', 'scale': '🐉',
+        'scroll': '📜', 'book': '📖', 'tome': '📖', 'map': '🗺️', 'key': '🗝️',
+        'fire': '🔥', 'flame': '🔥', 'torch': '🔥', 'lava': '🌋', 'magma': '🌋',
+        'water': '💧', 'ice': '❄️', 'snow': '❄️', 'frost': '❄️',
+        'lightning': '⚡', 'storm': '⛈️', 'wind': '💨',
+        'heart': '❤️', 'soul': '👻', 'spirit': '👻',
+        'bone': '🦴', 'skull': '💀', 'fang': '🦷', 'tooth': '🦷', 'claw': '🐾',
+        'cloth': '🧣', 'silk': '🕸️', 'thread': '🧵', 'string': '🧵', 'rope': '🪢',
+        'seed': '🌱',
+    };
 
-  // Check for keyword matches
-  for (const keyword in keywordMap) {
-    if (lowerName.includes(keyword)) {
-      return keywordMap[keyword];
+    // Check for keyword matches
+    for (const keyword in keywordMap) {
+        if (lowerName.includes(keyword)) {
+            return keywordMap[keyword];
+        }
     }
-  }
 
-  // Fall back to category-based mapping
-  const categoryMap: Record<string, string> = {
-    'weapon': '⚔️',
-    'material': '🧱',
-    'energy source': '⚡',
-    'food': '🍴',
-    'data': '📜',
-    'tool': '🛠️',
-    'equipment': '🛡️',
-    'support': '❤️‍🩹',
-    'magic': '✨',
-    'fusion': '🌀',
-  };
+    // Fall back to category-based mapping
+    const categoryMap: Record<string, string> = {
+        'weapon': '⚔️',
+        'material': '🧱',
+        'energy source': '⚡',
+        'food': '🍴',
+        'data': '📜',
+        'tool': '🛠️',
+        'equipment': '🛡️',
+        'support': '❤️‍🩹',
+        'magic': '✨',
+        'fusion': '🌀',
+    };
 
-  if (lowerCategory in categoryMap) {
-    return categoryMap[lowerCategory];
-  }
+    if (lowerCategory in categoryMap) {
+        return categoryMap[lowerCategory];
+    }
 
-  // Default emoji if no match
-  return '❓';
+    // Default emoji if no match
+    return '❓';
 }
 
 /**
@@ -98,49 +98,49 @@ export function getEmojiForItem(name: string, category: string): string {
  * // → "iron_sword" (if that's the record key)
  */
 export function resolveItemId(
-  itemOrName: TranslatableString | string | undefined | null,
-  itemDefs?: Record<string, any>,
-  t?: (k: string, opts?: any) => string,
-  _language: Language = 'en'
+    itemOrName: TranslatableString | string | undefined | null,
+    itemDefs?: Record<string, any>,
+    t?: (k: string, opts?: any) => string,
+    _language: Language = 'en'
 ): string | undefined {
-  if (!itemOrName) return undefined;
+    if (!itemOrName) return undefined;
 
-  // If string and directly a key in itemDefs, return it
-  if (typeof itemOrName === 'string') {
-    if (itemDefs && itemDefs[itemOrName]) return itemOrName;
+    // If string and directly a key in itemDefs, return it
+    if (typeof itemOrName === 'string') {
+        if (itemDefs && itemDefs[itemOrName]) return itemOrName;
 
-    // Try to match by definition id or English name
-    if (itemDefs) {
-      for (const [key, def] of Object.entries(itemDefs)) {
-        if (def?.id && def.id === itemOrName) return def.id;
-        try {
-          // Match against English and Vietnamese names
-          const defNameEn = getTranslatedText(def.name, 'en', t as any);
-          const defNameVi = getTranslatedText(def.name, 'vi', t as any);
-          if (defNameEn === itemOrName || defNameVi === itemOrName) return def.id ?? key;
-        } catch {
-          // Ignore malformed definitions
+        // Try to match by definition id or English name
+        if (itemDefs) {
+            for (const [key, def] of Object.entries(itemDefs)) {
+                if (def?.id && def.id === itemOrName) return def.id;
+                try {
+                    // Match against English and Vietnamese names
+                    const defNameEn = getTranslatedText(def.name, 'en', t as any);
+                    const defNameVi = getTranslatedText(def.name, 'vi', t as any);
+                    if (defNameEn === itemOrName || defNameVi === itemOrName) return def.id ?? key;
+                } catch {
+                    // Ignore malformed definitions
+                }
+            }
         }
-      }
+        return undefined;
     }
+
+    // itemOrName is a TranslatableString-like object
+    if (itemDefs) {
+        const inputNameEn = getTranslatedText(itemOrName as TranslatableString, 'en', t as any);
+        for (const [key, def] of Object.entries(itemDefs)) {
+            if (def?.id && (itemOrName as any).id && def.id === (itemOrName as any).id) return def.id;
+            try {
+                const defNameEn = getTranslatedText(def.name, 'en', t as any);
+                if (defNameEn === inputNameEn) return def.id ?? key;
+            } catch {
+                // Ignore and continue
+            }
+        }
+    }
+
     return undefined;
-  }
-
-  // itemOrName is a TranslatableString-like object
-  if (itemDefs) {
-    const inputNameEn = getTranslatedText(itemOrName as TranslatableString, 'en', t as any);
-    for (const [key, def] of Object.entries(itemDefs)) {
-      if (def?.id && (itemOrName as any).id && def.id === (itemOrName as any).id) return def.id;
-      try {
-        const defNameEn = getTranslatedText(def.name, 'en', t as any);
-        if (defNameEn === inputNameEn) return def.id ?? key;
-      } catch {
-        // Ignore and continue
-      }
-    }
-  }
-
-  return undefined;
 }
 
 /**
@@ -161,24 +161,24 @@ export function resolveItemId(
  * @returns Item with id field populated
  */
 export function ensurePlayerItemId<T extends { name?: any; id?: string }>(
-  item: T,
-  itemDefs?: Record<string, any>,
-  t?: (k: string, opts?: any) => string,
-  _language: Language = 'en'
+    item: T,
+    itemDefs?: Record<string, any>,
+    t?: (k: string, opts?: any) => string,
+    _language: Language = 'en'
 ): T {
-  if (!item) return item;
-  if (item.id) return item;
+    if (!item) return item;
+    if (item.id) return item;
 
-  try {
-    const resolved =
-      resolveItemId(item.name, itemDefs, t, _language) ??
-      getTranslatedText(item.name as any, 'en', t as any);
-    if (resolved) item.id = resolved as any;
-  } catch {
-    // Ignore errors and leave item as-is
-  }
+    try {
+        const resolved =
+            resolveItemId(item.name, itemDefs, t, _language) ??
+            getTranslatedText(item.name as any, 'en', t as any);
+        if (resolved) item.id = resolved as any;
+    } catch {
+        // Ignore errors and leave item as-is
+    }
 
-  return item;
+    return item;
 }
 
 /**
@@ -192,14 +192,14 @@ export function ensurePlayerItemId<T extends { name?: any; id?: string }>(
  * @returns Record keyed by English item names
  */
 export function convertItemArrayToRecord(items: any[]): Record<string, any> {
-  const record: Record<string, any> = {};
-  for (const item of items) {
-    if (item && item.name) {
-      const englishName = getTranslatedText(item.name, 'en');
-      if (englishName) {
-        record[englishName] = item;
-      }
+    const record: Record<string, any> = {};
+    for (const item of items) {
+        if (item && item.name) {
+            const englishName = getTranslatedText(item.name, 'en');
+            if (englishName) {
+                record[englishName] = item;
+            }
+        }
     }
-  }
-  return record;
+    return record;
 }

@@ -36,34 +36,34 @@ import { isTranslationObject, isInlineTranslation } from '@/core/types/i18n';
  * // → "Start Game"
  */
 export function getTranslatedText(
-  translatable: TranslatableString | undefined | null,
-  language: Language,
-  t?: (key: TranslationKey, options?: any) => string
+    translatable: TranslatableString | undefined | null,
+    language: Language,
+    t?: (key: TranslationKey, options?: any) => string
 ): string {
-  if (!translatable) return '';
+    if (!translatable) return '';
 
-  // Handle direct translation keys (strings)
-  if (typeof translatable === 'string') {
-    if (t) {
-      return t(translatable);
+    // Handle direct translation keys (strings)
+    if (typeof translatable === 'string') {
+        if (t) {
+            return t(translatable);
+        }
+        return translatable;
     }
-    return translatable;
-  }
 
-  // Handle translation objects with key + params
-  if (isTranslationObject(translatable)) {
-    if (t) {
-      return t(translatable.key, translatable.params);
+    // Handle translation objects with key + params
+    if (isTranslationObject(translatable)) {
+        if (t) {
+            return t(translatable.key, translatable.params);
+        }
+        return translatable.key;
     }
-    return translatable.key;
-  }
 
-  // Handle inline translations (direct language object)
-  if (isInlineTranslation(translatable)) {
-    // Fallback to English if requested language unavailable
-    return translatable[language] || translatable.en;
-  }
+    // Handle inline translations (direct language object)
+    if (isInlineTranslation(translatable)) {
+        // Fallback to English if requested language unavailable
+        return translatable[language] || translatable.en;
+    }
 
-  // Fallback for unexpected cases
-  return '';
+    // Fallback for unexpected cases
+    return '';
 }

@@ -76,8 +76,8 @@ export function useAutoSave(options: UseAutoSaveOptions = {}) {
             // Get or create repository and service using factory
             if (!gameStateRepoRef.current) {
                 gameStateRepoRef.current = createGameStateRepository({
-                  userId: null,
-                  preferOffline: true,
+                    userId: null,
+                    preferOffline: true,
                 });
             }
             if (!autoSaveRef.current) {
@@ -262,8 +262,8 @@ export function useAutoSaveStatus() {
         const interval = setInterval(() => {
             try {
                 const repo = createGameStateRepository({
-                  userId: null,
-                  preferOffline: true,
+                    userId: null,
+                    preferOffline: true,
                 });
                 const service = getAutoSaveService(repo);
                 setIsSaving(service.isSaveInProgress());

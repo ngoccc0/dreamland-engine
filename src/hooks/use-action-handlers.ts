@@ -81,6 +81,7 @@ export type ActionHandlerDeps = {
   customItemCatalog: GameState['customItemCatalog'];
   customStructures: GameState['customStructures'];
   narrativeLogRef: React.RefObject<NarrativeEntry[]>;
+  activeMoveOpsRef?: React.RefObject<Set<string>>;
 };
 
 export function useActionHandlers(deps: ActionHandlerDeps) {
@@ -771,6 +772,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
       getEffectiveChunk,
       generateOfflineNarrative,
       narrativeLogRef,
+      activeMoveOpsRef: deps.activeMoveOpsRef,
       getTranslatedText,
       getTemplates,
       t,

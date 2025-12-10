@@ -44,12 +44,12 @@ import { renderConfig } from './render-config';
  * Useful for debugging and config validation.
  */
 export const gameConfig = {
-  combat: combatConfig,
-  playerStats: playerStatsConfig,
-  environment: environmentConfig,
-  plants: plantConfig,
-  creatures: creatureConfig,
-  rendering: renderConfig,
+    combat: combatConfig,
+    playerStats: playerStatsConfig,
+    environment: environmentConfig,
+    plants: plantConfig,
+    creatures: creatureConfig,
+    rendering: renderConfig,
 } as const;
 
 /**

@@ -20,10 +20,10 @@ export { getTranslatedText } from './translation';
 
 // Item management
 export {
-  getEmojiForItem,
-  resolveItemId,
-  ensurePlayerItemId,
-  convertItemArrayToRecord,
+    getEmojiForItem,
+    resolveItemId,
+    ensurePlayerItemId,
+    convertItemArrayToRecord,
 } from './item-utils';
 
 // Narrative & text processing

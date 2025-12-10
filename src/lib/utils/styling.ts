@@ -24,5 +24,5 @@ import { twMerge } from 'tailwind-merge';
  * // → "p-4 font-bold bg-red-500" (or adjusted for conflicts)
  */
 export function cn(...inputs: ClassValue[]): string {
-  return twMerge(clsx(inputs));
+    return twMerge(clsx(inputs));
 }

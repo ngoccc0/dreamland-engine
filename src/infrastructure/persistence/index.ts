@@ -33,12 +33,12 @@ import { IndexedDbGameStateRepository } from './indexed-db.repository';
  * Configuration options for repository creation
  */
 export interface RepositoryConfig {
-  /** User ID for cloud-based persistence (Firebase). If null, uses local storage. */
-  userId: string | null;
-  /** Prefer offline storage even if userId is available */
-  preferOffline?: boolean;
-  /** Force specific storage backend (for testing) */
-  forceBackend?: 'firebase' | 'indexeddb' | 'localstorage';
+    /** User ID for cloud-based persistence (Firebase). If null, uses local storage. */
+    userId: string | null;
+    /** Prefer offline storage even if userId is available */
+    preferOffline?: boolean;
+    /** Force specific storage backend (for testing) */
+    forceBackend?: 'firebase' | 'indexeddb' | 'localstorage';
 }
 
 /**
@@ -67,30 +67,30 @@ export interface RepositoryConfig {
  * });
  */
 export function createGameStateRepository(config: RepositoryConfig): IGameStateRepository {
-  // Force specific backend (testing/debugging)
-  if (config.forceBackend === 'firebase' && config.userId) {
-    return new FirebaseGameStateRepository(config.userId);
-  }
-  if (config.forceBackend === 'indexeddb') {
-    return new IndexedDbGameStateRepository();
-  }
-  if (config.forceBackend === 'localstorage') {
-    return new LocalStorageGameStateRepository();
-  }
+    // Force specific backend (testing/debugging)
+    if (config.forceBackend === 'firebase' && config.userId) {
+        return new FirebaseGameStateRepository(config.userId);
+    }
+    if (config.forceBackend === 'indexeddb') {
+        return new IndexedDbGameStateRepository();
+    }
+    if (config.forceBackend === 'localstorage') {
+        return new LocalStorageGameStateRepository();
+    }
 
-  // Production logic: Cloud first, then local
-  if (config.userId && !config.preferOffline) {
-    return new FirebaseGameStateRepository(config.userId);
-  }
+    // Production logic: Cloud first, then local
+    if (config.userId && !config.preferOffline) {
+        return new FirebaseGameStateRepository(config.userId);
+    }
 
-  // Offline: Try IndexedDB first (better performance), fallback to localStorage
-  try {
-    // IndexedDB is available in most environments
-    return new IndexedDbGameStateRepository();
-  } catch {
-    // Fallback to localStorage if IndexedDB is unavailable
-    return new LocalStorageGameStateRepository();
-  }
+    // Offline: Try IndexedDB first (better performance), fallback to localStorage
+    try {
+        // IndexedDB is available in most environments
+        return new IndexedDbGameStateRepository();
+    } catch {
+        // Fallback to localStorage if IndexedDB is unavailable
+        return new LocalStorageGameStateRepository();
+    }
 }
 
 /**

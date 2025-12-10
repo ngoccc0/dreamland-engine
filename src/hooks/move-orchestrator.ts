@@ -5,31 +5,34 @@
 */
 
 /**
- * Module-level tracking for in-flight move operations
+ * In-flight move operations tracking (moved from module-level to per-context)
  *
  * @remarks
  * Prevents React.StrictMode double-invocation from triggering duplicate narrative updates.
+ * Now uses turn-based cleanup (via gameState.turn) instead of 5-second timer.
  *
- * KNOWN ISSUE (Race Condition):
- * - Uses a module-level Set with 5-second timeout cleanup
- * - If component unmounts/remounts within 5 seconds, stale entries may block moves
- * - Particularly problematic in React.StrictMode where double-invoke is intentional
+ * FIXED: Race Condition Resolution
+ * - Old approach: Module-level Set with 5-second timeout cleanup
+ *   Problem: If component unmounts/remounts within 5 seconds, stale entries could block moves
+ *   Particularly problematic in React.StrictMode where double-invoke is intentional
  *
- * TODO [REFACTORING]: Replace with turn-based cleanup
- * - Instead of 5-second timeout, reset activeMoveOps when gameState.turn increments
- * - Ensures cleanup happens at deterministic game logic boundaries
- * - Eliminates timing issues and StrictMode conflicts
+ * - New approach: Turn-based cleanup via gameState.turn increments
+ *   Solution: Entries are cleared at deterministic game logic boundaries
+ *   Eliminates timing issues and StrictMode conflicts
+ *
+ * The context should now include:
+ * @param ctx.activeMoveOpsRef - A ref to the Set of in-flight move keys (provided by hook)
+ * @param ctx.currentTurn - Current game turn (for cleanup coordination)
  *
  * @example
- * // Current (problematic):
- * activeMoveOps.add(moveKey);
- * setTimeout(() => activeMoveOps.delete(moveKey), 5000); // May block subsequent moves
- *
- * // Proposed:
- * activeMoveOps.add(moveKey);
- * // Clean up in useEffect when turn increments
+ * // In use-game-engine.ts:
+ * const activeMoveOpsRef = useRef<Set<string>>(new Set());
+ * 
+ * // Clear stale move ops at turn boundaries
+ * useEffect(() => {
+ *   activeMoveOpsRef.current.clear();
+ * }, [gameState.turn]);
  */
-const activeMoveOps = new Set<string>();
 
 export function createHandleMove(ctx: any) {
   return (direction: "north" | "south" | "east" | "west") => {
@@ -39,14 +42,18 @@ export function createHandleMove(ctx: any) {
 
       // Skip if this move is already in-flight (prevents double-invoke in StrictMode)
       moveKey = `${ctx.playerPosition.x},${ctx.playerPosition.y}->${direction}`;
+      
+      // Use the ref from context (turn-based cleanup) instead of module-level Set
+      const activeMoveOps = ctx.activeMoveOpsRef?.current || new Set<string>();
       if (activeMoveOps.has(moveKey)) {
         return;
       }
       activeMoveOps.add(moveKey);
 
-      // Clean up tracking when done (use timer to ensure async flows complete)
+      // Clean up tracking when done - NO TIMEOUT
+      // Instead, cleanup happens via turn increment (see use-game-engine.ts)
       const cleanup = () => {
-        setTimeout(() => activeMoveOps.delete(moveKey!), 5000);
+        activeMoveOps.delete(moveKey!);
       };
 
       // Helper to handle early returns and cleanup
@@ -568,8 +575,9 @@ export function createHandleMove(ctx: any) {
 
     } catch (err) {
       // Silently fail - critical move logic has fallbacks
-      if (moveKey && activeMoveOps.has(moveKey)) {
-        setTimeout(() => activeMoveOps.delete(moveKey!), 5000);
+      if (moveKey) {
+        const activeMoveOps = ctx.activeMoveOpsRef?.current || new Set<string>();
+        activeMoveOps.delete(moveKey);
       }
     }
   };

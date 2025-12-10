@@ -29,6 +29,7 @@ import HudIconMana from "@/components/game/hud-icon-mana";
 import HudIconHunger from "@/components/game/hud-icon-hunger";
 import HudIconTemperature, { getWeatherEmoji } from "@/components/game/hud-icon-temperature";
 import { GameClockWidget } from "@/components/game/game-clock-widget";
+import { VisualEffectsLayer } from "@/components/game/visual-effects-layer";
 import { useLanguage } from "@/context/language-context";
 import { useSettings } from "@/context/settings-context";
 import useKeyboardBindings from "@/hooks/use-keyboard-bindings";
@@ -561,6 +562,15 @@ export default function GameLayout(props: GameLayoutProps) {
     return (
         <TooltipProvider>
             <div className="flex flex-col md:flex-row md:h-dvh bg-background text-foreground font-body overflow-hidden" style={{ ['--aside-w' as any]: 'min(462px,36vw)' }}>
+                {/* Visual Effects Layer: Weather, Status Effects, Low HP Vignette, Damage Popups */}
+                <VisualEffectsLayer
+                    currentHp={Number(playerStats.hp ?? 0)}
+                    maxHp={Number(playerStats.maxHp ?? 100)}
+                    weather={weatherZones?.[currentChunk?.regionId]?.currentWeather?.id || 'CLEAR'}
+                    gameTime={gameTime}
+                    activeEffects={playerStats?.activeEffects || []}
+                />
+
                 {/* Mobile Layout: Map/HUD on top (fixed), Narrative scrollable below */}
                 {/* Desktop Layout: Narrative left (scrollable), Map/HUD right (fixed) */}
 

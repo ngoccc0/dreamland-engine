@@ -1,0 +1,134 @@
+/* Visual Effects Animations */
+/* Weather particles, status effects, damage popups, and vignette effects */
+
+@layer utilities {
+
+    /* Rain drop animation: straight fall */
+    @keyframes rain-drop {
+        0% {
+            transform: translateY(-10vh) scaleY(1);
+            opacity: 0;
+        }
+
+        10% {
+            opacity: 1;
+        }
+
+        90% {
+            opacity: 1;
+        }
+
+        100% {
+            transform: translateY(110vh) scaleY(1.5);
+            opacity: 0;
+        }
+    }
+
+    /* Snow float animation: gentle swaying motion */
+    @keyframes snow-float {
+        0% {
+            transform: translateY(-10vh) translateX(0px) rotate(0deg);
+            opacity: 0;
+        }
+
+        20% {
+            opacity: 1;
+        }
+
+        25% {
+            transform: translateY(20vh) translateX(15px) rotate(45deg);
+        }
+
+        50% {
+            transform: translateY(50vh) translateX(-15px) rotate(90deg);
+        }
+
+        75% {
+            transform: translateY(80vh) translateX(15px) rotate(135deg);
+        }
+
+        100% {
+            transform: translateY(110vh) translateX(0px) rotate(180deg);
+            opacity: 0;
+        }
+    }
+
+    /* Low HP heartbeat vignette: pulsing red overlay */
+    @keyframes heartbeat-vignette {
+        0% {
+            box-shadow: inset 0 0 40px rgba(255, 0, 0, 0.2);
+        }
+
+        50% {
+            box-shadow: inset 0 0 100px rgba(255, 0, 0, 0.6);
+        }
+
+        100% {
+            box-shadow: inset 0 0 40px rgba(255, 0, 0, 0.2);
+        }
+    }
+
+    /* Damage popup float animation: text rises and fades */
+    @keyframes damage-popup-float {
+        0% {
+            transform: translateY(0) translateX(0);
+            opacity: 1;
+        }
+
+        100% {
+            transform: translateY(-60px) translateX(var(--drift, 0px));
+            opacity: 0;
+        }
+    }
+
+    /* Status effect poison overlay: slight green tint pulse */
+    @keyframes poison-tint {
+        0% {
+            background-color: rgba(34, 197, 94, 0.1);
+        }
+
+        50% {
+            background-color: rgba(34, 197, 94, 0.25);
+        }
+
+        100% {
+            background-color: rgba(34, 197, 94, 0.1);
+        }
+    }
+
+    /* Status effect frozen overlay: blue tint with frost */
+    @keyframes frozen-tint {
+        0% {
+            background-color: rgba(59, 130, 246, 0.15);
+        }
+
+        50% {
+            background-color: rgba(59, 130, 246, 0.3);
+        }
+
+        100% {
+            background-color: rgba(59, 130, 246, 0.15);
+        }
+    }
+
+    /* Screen shake animation: subtle horizontal vibration */
+    @keyframes screen-shake {
+
+        0%,
+        100% {
+            transform: translateX(0);
+        }
+
+        25% {
+            transform: translateX(-2px);
+        }
+
+        50% {
+            transform: translateX(2px);
+        }
+
+        75% {
+            transform: translateX(-2px);
+        }
+    }
+}

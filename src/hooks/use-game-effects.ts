@@ -5,10 +5,7 @@
 import { useEffect, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { useAuth } from '@/context/auth-context';
-import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
-import { FirebaseGameStateRepository } from '@/infrastructure/persistence/firebase.repository';
-import { LocalStorageGameStateRepository } from '@/infrastructure/persistence/local-storage.repository';
-import { IndexedDbGameStateRepository } from '@/infrastructure/persistence/indexed-db.repository';
+import { createGameStateRepository, type IGameStateRepository } from '@/infrastructure/persistence';
 import type { GameState, PlayerStatus, NarrativeEntry, Chunk, Season, WorldProfile, PlayerBehaviorProfile, Structure, Recipe, GeneratedItem, ItemDefinition } from "@/core/types/game";
 import { useGameInitialization } from './game-lifecycle/useGameInitialization';
 import { useGameSaving } from './game-lifecycle/useGameSaving';
@@ -104,18 +101,22 @@ type GameEffectsDeps = {
 export function useGameEffects(deps: GameEffectsDeps) {
   const { user } = useAuth();
   const { language } = useLanguage();
-  const [gameStateRepository, setGameStateRepository] = useState<IGameStateRepository>(new LocalStorageGameStateRepository());
+  const [gameStateRepository, setGameStateRepository] = useState<IGameStateRepository>(
+    createGameStateRepository({ userId: null })
+  );
 
-  // Logic to select the appropriate repository based on user status and browser capabilities.
+  /**
+   * Select appropriate repository based on authentication status
+   *
+   * @remarks
+   * Uses createGameStateRepository factory to abstract implementation selection logic.
+   * When user authenticates, switches to Firebase; when logging out, switches to offline storage.
+   */
   useEffect(() => {
-    let repo: IGameStateRepository;
-    if (user) {
-      repo = new FirebaseGameStateRepository(user.uid);
-    } else if (typeof window !== 'undefined' && 'indexedDB' in window) {
-      repo = new IndexedDbGameStateRepository();
-    } else {
-      repo = new LocalStorageGameStateRepository();
-    }
+    const repo = createGameStateRepository({
+      userId: user?.uid ?? null,
+      preferOffline: false,
+    });
     setGameStateRepository(repo);
   }, [user]);
 

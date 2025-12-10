@@ -23,7 +23,7 @@
 
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { getAutoSaveService, resetAutoSaveService } from '@/infrastructure/persistence/auto-save.service';
-import { IndexedDbGameStateRepository } from '@/infrastructure/persistence/indexed-db.repository';
+import { createGameStateRepository, type IGameStateRepository } from '@/infrastructure/persistence';
 import type { GameState } from '@/core/types/game';
 
 /**
@@ -58,7 +58,7 @@ export interface UseAutoSaveOptions {
  */
 export function useAutoSave(options: UseAutoSaveOptions = {}) {
     const autoSaveRef = useRef<ReturnType<typeof getAutoSaveService> | null>(null);
-    const gameStateRepoRef = useRef<IndexedDbGameStateRepository | null>(null);
+    const gameStateRepoRef = useRef<IGameStateRepository | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [lastSaveTime, setLastSaveTime] = useState<string | null>(null);
     const [lastError, setLastError] = useState<Error | null>(null);
@@ -68,13 +68,17 @@ export function useAutoSave(options: UseAutoSaveOptions = {}) {
      * Initialize auto-save service
      *
      * @remarks
-     * Called once on mount. Creates service instances and sets up monitoring.
+     * Uses createGameStateRepository factory to create an appropriate repository
+     * instance. Called once on mount to set up monitoring and persistence.
      */
     const initializeAutoSave = useCallback(() => {
         try {
-            // Get or create repository and service
+            // Get or create repository and service using factory
             if (!gameStateRepoRef.current) {
-                gameStateRepoRef.current = new IndexedDbGameStateRepository();
+                gameStateRepoRef.current = createGameStateRepository({
+                  userId: null,
+                  preferOffline: true,
+                });
             }
             if (!autoSaveRef.current) {
                 autoSaveRef.current = getAutoSaveService(gameStateRepoRef.current);
@@ -257,7 +261,10 @@ export function useAutoSaveStatus() {
         // Set up periodic checks
         const interval = setInterval(() => {
             try {
-                const repo = new IndexedDbGameStateRepository();
+                const repo = createGameStateRepository({
+                  userId: null,
+                  preferOffline: true,
+                });
                 const service = getAutoSaveService(repo);
                 setIsSaving(service.isSaveInProgress());
                 const timeStr = service.getTimeSinceLastSave();

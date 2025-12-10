@@ -1,27 +1,34 @@
 import type { LevelUpResult } from '../entities/experience';
+import { combatConfig } from '@/lib/config';
 
 /**
  * calculateXpForLevel
  *
  * Pure utility function to calculate XP required to progress from a given level to the next.
- * Uses exponential formula: xpForLevel(n) = 100 × 1.5^(n-1)
+ * Uses exponential formula based on combatConfig values.
  *
  * @remarks
- * Levels start at 1. Level 1→2 requires 100 XP.
+ * Formula: xpForLevel(n) = combatConfig.baseXp × combatConfig.xpCurveBase^(n-1)
+ * Currently: 50 × 1.5^(n-1) for level progression.
+ * Levels start at 1. Level 1→2 requires 50 XP.
  * Each subsequent level requires 50% more XP than the previous.
  *
- * Examples:
- * - calculateXpForLevel(2) = 100 (to reach level 2)
- * - calculateXpForLevel(3) = 150 (to reach level 3)
- * - calculateXpForLevel(4) = 225 (to reach level 4)
- * - calculateXpForLevel(5) = 337 (to reach level 5)
+ * Examples (with current config):
+ * - calculateXpForLevel(2) = 50 (to reach level 2)
+ * - calculateXpForLevel(3) = 75 (to reach level 3)
+ * - calculateXpForLevel(4) = 112 (to reach level 4)
+ * - calculateXpForLevel(5) = 169 (to reach level 5)
  *
  * @param {number} level - Target level (1-based). If level <= 1, returns 0.
  * @returns {number} XP required to reach that level from the previous level.
+ *
+ * @remarks
+ * Game designers can tune progression by modifying combatConfig.baseXp and combatConfig.xpCurveBase
+ * without changing this function logic.
  */
 export function calculateXpForLevel(level: number): number {
     if (level <= 1) return 0;
-    return Math.floor(100 * Math.pow(1.5, level - 2));
+    return Math.floor(combatConfig.baseXp * Math.pow(combatConfig.xpCurveBase, level - 2));
 }
 
 /**

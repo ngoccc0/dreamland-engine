@@ -288,11 +288,19 @@ export interface LevelUpResult {
  * Default level thresholds following a common RPG progression curve.
  * This array defines the experience required for each level up to 100,
  * along with default rewards like skill and stat points.
+ *
+ * @remarks
+ * Experience curve is data-driven via combatConfig values:
+ * - requiredExp = combatConfig.baseXp × Math.pow(combatConfig.xpCurveBase, level)
+ * Currently: 50 × 1.5^level for exponential progression
  */
+import { combatConfig } from '@/lib/config';
+
 const defaultLevelThresholds: ExperienceLevel[] = Array.from({ length: 100 }, (_, i) => ({
     level: i + 1,
-    // Experience required increases exponentially: 100 * (1.5 ^ level)
-    requiredExp: Math.floor(100 * (Math.pow(1.5, i))),
+    // Experience required increases exponentially using config values
+    // Formula: baseXp * (xpCurveBase ^ level)
+    requiredExp: Math.floor(combatConfig.baseXp * (Math.pow(combatConfig.xpCurveBase, i))),
     rewards: {
         // Skill points are granted every 5 levels
         skillPoints: (i + 1) % 5 === 0 ? 1 : 0,

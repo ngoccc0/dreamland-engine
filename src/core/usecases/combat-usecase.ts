@@ -1,5 +1,6 @@
 import { Combatant, CombatResult, CombatRound, CombatAction } from '../entities/combat';
 import { itemDefinitions } from '@/lib/game/items';
+import { combatConfig } from '@/lib/config';
 
 /**
  * OVERVIEW: Combat system orchestrator
@@ -241,7 +242,7 @@ export class CombatUseCase implements ICombatUseCase {
     private calculateDamage(attacker: Combatant, defender: Combatant) {
         const base = attacker.stats.attack;
         const isCritical = Math.random() < (attacker.stats.criticalChance || 0);
-        const critMult = isCritical ? (attacker.stats.criticalDamage || 1.5) : 1;
+        const critMult = isCritical ? (attacker.stats.criticalDamage || combatConfig.criticalHitMultiplier) : 1;
 
         return {
             amount: Math.floor(base * critMult),
@@ -255,26 +256,27 @@ export class CombatUseCase implements ICombatUseCase {
          * Calculate XP gain based on opponent difficulty.
          *
          * Formula:
-         * - Base XP: 50
+         * - Base XP: combatConfig.baseXp (currently 50)
          * - Difficulty multiplier based on maxHealth (proxy for level)
-         * - Multiplier: 1 + (loserMaxHealth - winnerMaxHealth) × 0.002
-         * - Range: 10 (minimum) to 150 (maximum realistic)
+         * - Multiplier: 1 + (loserMaxHealth - winnerMaxHealth) × combatConfig.xpHealthDifferenceMultiplier
+         * - Clamped to sensible range (minimum 10 XP)
          *
          * @remarks
          * Uses maxHealth as a proxy for opponent difficulty since combat stats
          * don't directly store player level. Higher HP enemies grant more XP.
+         * Configuration values from combatConfig enable balance tuning without code changes.
          * 
          * Examples:
          * - Same difficulty: 50 XP
          * - Enemy 30 HP higher: 50 × 1.06 = 53 XP
          * - Enemy 50 HP higher: 50 × 1.1 = 55 XP
          */
-        const baseXp = 50;
-        const winnerMaxHealth = winner.stats?.maxHealth ?? 100;
-        const loserMaxHealth = loser.stats?.maxHealth ?? 100;
+        const baseXp = combatConfig.baseXp;
+        const winnerMaxHealth = winner.stats?.maxHealth ?? combatConfig.defaultMaxHealth;
+        const loserMaxHealth = loser.stats?.maxHealth ?? combatConfig.defaultMaxHealth;
 
         const healthDiff = loserMaxHealth - winnerMaxHealth;
-        const multiplier = Math.max(0.5, 1 + healthDiff * 0.002);
+        const multiplier = Math.max(0.5, 1 + healthDiff * combatConfig.xpHealthDifferenceMultiplier);
 
         const xpGain = Math.floor(baseXp * multiplier);
         return Math.max(10, xpGain);

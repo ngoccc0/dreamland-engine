@@ -110,7 +110,7 @@ function SkillButton({
           <span className="sm:hidden">{String(label).substring(0, 3)}</span>
         </Button>
       </TooltipTrigger>
-      <TooltipContent>{tooltip}</TooltipContent>
+      <TooltipContent>{String(tooltip)}</TooltipContent>
     </Tooltip>
   );
 }

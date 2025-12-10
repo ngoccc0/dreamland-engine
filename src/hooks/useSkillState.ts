@@ -42,11 +42,21 @@ export interface SkillUIState {
  * Minimal skill interface for the hook
  */
 export interface SkillForUIState {
-    name?: string;
-    description?: string;
+    name?: string | any;
+    description?: string | any;
     manaCost?: number;
     cooldownRemaining?: number;
     cooldown?: number;
+}
+
+/**
+ * Helper to convert translatable object or string to plain string
+ */
+function toString(value: string | any | undefined): string {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'object' && value.en) return value.en;
+    return String(value);
 }
 
 /**
@@ -62,7 +72,8 @@ export function useSkillState(
 ): SkillUIState {
     const manaCost = skill.manaCost ?? 0;
     const cooldownRemaining = skill.cooldownRemaining ?? 0;
-    const skillName = skill.name ?? 'Skill';
+    const skillName = toString(skill.name) || 'Skill';
+    const description = toString(skill.description) || 'Click to cast';
 
     // Priority 1: Check cooldown first
     if (cooldownRemaining > 0) {
@@ -91,6 +102,6 @@ export function useSkillState(
         state: 'READY',
         disabled: false,
         label: skillName,
-        tooltip: skill.description ?? 'Click to cast'
+        tooltip: description
     };
 }

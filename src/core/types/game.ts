@@ -114,6 +114,27 @@ export interface WorldDefinition {
     gameTime?: number;  // Ticks elapsed
     seed?: number;  // Reproducibility
     version?: 1;  // Format version
+
+    /**
+     * Settlements discovered by the player.
+     * Used to display discovered locations on the map.
+     * Each settlement unlocks associated NPCs and quests.
+     */
+    discoveredSettlements?: DiscoveredSettlement[];
+
+    /**
+     * NPCs unlocked by discovering settlements.
+     * Used for NPC interactions, trading, and quest-giving.
+     * Frontends should render these in the game world at their positions.
+     */
+    unlockedNPCs?: UnlockedNPC[];
+
+    /**
+     * Monsters spawned in discovered dungeons.
+     * Indexed by dungeon ID for easy lookup.
+     * Frontends should render these as combatants in the dungeon UI.
+     */
+    dungeonMonsters?: Record<string, DungeonMonster[]>;
 }
 
 /**
@@ -193,6 +214,18 @@ export interface PlayerStatusDefinition {
     dailyActionLog?: string[];
     /** Optional: A record of quest hints provided to the player. */
     questHints?: Record<string, string>;
+    /**
+     * Artifacts collected by the player.
+     * Each artifact can be part of an artifact set.
+     * When a set is complete, passive bonuses are granted.
+     */
+    artifactCollection?: CollectedArtifact[];
+    /**
+     * Artifact sets that have been completed by the player.
+     * Each completed set grants passive stat bonuses.
+     * These bonuses are applied by the usePlayerStats hook.
+     */
+    unlockedArtifactSets?: UnlockedArtifactSet[];
     /** Allows for other dynamic fields used by code or mods. */
     [key: string]: any;
 }
@@ -328,6 +361,112 @@ export type AiModel = 'balanced' | 'creative' | 'fast' | 'quality';
  * Defines the available equipment slots for player items.
  */
 export type EquipmentSlot = 'weapon' | 'armor' | 'accessory';
+
+/**
+ * Represents a position in the game world grid.
+ * Used for discovery locations, NPC placement, and monster spawns.
+ * @property x - The x-coordinate on the world grid
+ * @property y - The y-coordinate on the world grid
+ */
+export interface GridPosition {
+    x: number;
+    y: number;
+}
+
+/**
+ * Represents an unlocked NPC that the player can interact with.
+ * NPCs are unlocked through settlement discoveries.
+ * @property npcId - Unique identifier for the NPC
+ * @property name - Translatable name of the NPC
+ * @property role - The NPC's primary role (merchant, quest-giver, etc.)
+ * @property settlementId - The settlement where this NPC is located
+ * @property position - Optional grid position of the NPC
+ * @property unlockedAt - Timestamp when the NPC was discovered
+ */
+export interface UnlockedNPC {
+    npcId: string;
+    name?: TranslatableString;
+    role: 'merchant' | 'quest_giver' | 'trainer' | 'storyteller';
+    settlementId?: string;
+    position?: GridPosition;
+    unlockedAt?: string;
+}
+
+/**
+ * Represents a discovered settlement in the game world.
+ * Settlements unlock NPCs and provide social/quest interaction points.
+ * @property id - Unique identifier for the settlement
+ * @property name - Translatable name of the settlement
+ * @property position - Grid position of the settlement
+ * @property type - Settlement classification
+ * @property discoveredAt - Timestamp of discovery
+ */
+export interface DiscoveredSettlement {
+    id: string;
+    name: TranslatableString;
+    position: GridPosition;
+    type: 'settlement' | 'village' | 'city';
+    discoveredAt?: string;
+}
+
+/**
+ * Represents a monster spawn in a dungeon.
+ * Dungeons contain multiple monsters to challenge the player.
+ * @property id - Unique identifier for this spawn instance
+ * @property creatureType - The type of creature (goblin, orc, etc.)
+ * @property level - The creature's level, scaled to dungeon difficulty
+ * @property health - Current HP of the monster
+ * @property loot - The loot table for this monster
+ * @property position - Optional grid position within the dungeon
+ */
+export interface DungeonMonster {
+    id: string;
+    creatureType: string;
+    level: number;
+    health: number;
+    loot?: any[];
+    position?: GridPosition;
+}
+
+/**
+ * Represents an unlocked artifact set that the player has completed.
+ * Artifact sets grant passive bonuses when all pieces are collected.
+ * @property setName - Name of the artifact set
+ * @property completedAt - Timestamp of set completion
+ * @property bonuses - Passive stat bonuses granted by this set
+ * @property artifactCount - Number of artifacts in this set
+ */
+export interface UnlockedArtifactSet {
+    setName: string;
+    completedAt?: string;
+    bonuses?: {
+        str?: number;
+        dex?: number;
+        con?: number;
+        int?: number;
+        wis?: number;
+        cha?: number;
+    };
+    artifactCount: number;
+}
+
+/**
+ * Represents a collected artifact in the player's collection.
+ * Artifacts are special items that unlock when discovered and can form sets.
+ * @property id - Unique artifact identifier
+ * @property name - Translatable name
+ * @property rarity - Rarity level (rare, epic, legendary)
+ * @property setName - The artifact set this belongs to
+ * @property collectedAt - Timestamp of collection
+ */
+export interface CollectedArtifact {
+    id: string;
+    name: TranslatableString;
+    rarity: 'rare' | 'epic' | 'legendary';
+    setName: string;
+    collectedAt?: string;
+}
+
 /**
  * Defines the supported font families for the game's user interface.
  */

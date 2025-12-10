@@ -4,12 +4,17 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { WandSparkles } from "./icons";
-import { getTranslatedText } from "@/lib/utils";
+import { getTranslatedText, cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { useSkillState } from "@/hooks/useSkillState";
+import { useSkillShake } from "@/hooks/useSkillShake";
 
 interface Skill {
   name: any;
   description?: any;
   manaCost?: number;
+  cooldownRemaining?: number;
+  cooldown?: number;
 }
 
 interface Action {
@@ -38,26 +43,114 @@ interface Props {
   onOpenFusion: () => void;
 }
 
-export function BottomActionBar({ skills = [], playerStats, language, t, pickUpActions, otherActions: _otherActions, isLoading,
-  onUseSkill, onActionClick: _onActionClick, onOpenPickup, onOpenAvailableActions, onOpenCustomDialog, onOpenStatus: _onOpenStatus, onOpenInventory: _onOpenInventory, onOpenCrafting: _onOpenCrafting, onOpenBuilding: _onOpenBuilding, onOpenFusion: _onOpenFusion
+/**
+ * Skill button component that renders a single skill with proper state management.
+ * Shows button state (ready/cooldown/insufficient mana) with visual feedback.
+ */
+function SkillButton({
+  skill,
+  skillName,
+  language,
+  t,
+  onUseSkill,
+  playerMana
+}: {
+  skill: Skill;
+  skillName: string;
+  language: any;
+  t: (k: any, p?: any) => string;
+  onUseSkill: (name: string) => void;
+  playerMana: number;
+}) {
+  const { state, disabled, label, tooltip } = useSkillState(skill, playerMana);
+  const { shake, triggerShake } = useSkillShake();
+  const { toast } = useToast();
+
+  const handleClick = () => {
+    if (disabled) {
+      // Trigger visual feedback
+      triggerShake();
+
+      // Show error toast
+      if (state === 'INSUFFICIENT_MANA') {
+        toast({
+          title: '❌ Mana không đủ',
+          description: `Bạn cần ${(skill.manaCost ?? 0) - playerMana} mana nữa để sử dụng ${skillName}`,
+          variant: 'destructive'
+        });
+      } else if (state === 'ON_COOLDOWN') {
+        toast({
+          title: '⏳ Kỹ năng đang cooldown',
+          description: `${skillName} sẽ sẵn sàng trong ${label}`,
+          variant: 'default'
+        });
+      }
+      return;
+    }
+
+    // Skill is ready - use it
+    onUseSkill(skillName);
+  };
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant={state === 'ON_COOLDOWN' ? 'outline' : 'secondary'}
+          className={cn(
+            'text-xs relative',
+            shake && 'animate-shake',
+            state === 'ON_COOLDOWN' && 'animate-pulse text-amber-600'
+          )}
+          onClick={handleClick}
+          disabled={disabled}
+        >
+          <WandSparkles className="h-4 w-4 mr-2" />
+          <span className="hidden sm:inline">{label}</span>
+          <span className="sm:hidden">{label.substring(0, 3)}</span>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{tooltip}</TooltipContent>
+    </Tooltip>
+  );
+}
+
+export function BottomActionBar({
+  skills = [],
+  playerStats,
+  language,
+  t,
+  pickUpActions,
+  otherActions: _otherActions,
+  isLoading,
+  onUseSkill,
+  onActionClick: _onActionClick,
+  onOpenPickup,
+  onOpenAvailableActions,
+  onOpenCustomDialog,
+  onOpenStatus: _onOpenStatus,
+  onOpenInventory: _onOpenInventory,
+  onOpenCrafting: _onOpenCrafting,
+  onOpenBuilding: _onOpenBuilding,
+  onOpenFusion: _onOpenFusion
 }: Props) {
   return (
     <TooltipProvider>
-  <div className="hidden md:flex fixed bottom-0 left-0 md:right-auto md:[width:calc(100%-var(--aside-w))] bg-card p-3 items-center gap-3 overflow-x-auto z-40">
+      <div className="hidden md:flex fixed bottom-0 left-0 md:right-auto md:[width:calc(100%-var(--aside-w))] bg-card p-3 items-center gap-3 overflow-x-auto z-40">
         {/* Skills (left) */}
         <div className="flex items-center gap-2">
           {skills.map((skill: Skill) => {
             const skillName = getTranslatedText(skill.name, language, t);
             return (
-              <Tooltip key={skillName}>
-                <TooltipTrigger asChild>
-                  <Button variant="secondary" className="text-xs" onClick={() => onUseSkill(skillName)} disabled={isLoading || (playerStats.mana < (skill.manaCost ?? 0))}>
-                    <WandSparkles className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">{skillName}</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent><p>{getTranslatedText(skill.description, language, t)}</p></TooltipContent>
-              </Tooltip>
+              <SkillButton
+                key={skillName}
+                skill={skill}
+                skillName={skillName}
+                language={language}
+                t={t}
+                onUseSkill={onUseSkill}
+                playerMana={playerStats.mana ?? 0}
+              />
             );
           })}
         </div>
@@ -65,16 +158,20 @@ export function BottomActionBar({ skills = [], playerStats, language, t, pickUpA
         {/* Available actions (center) */}
         <div className="flex-1 flex items-center justify-center gap-2">
           {pickUpActions.length > 0 && (
-            <Button variant="accent" onClick={onOpenPickup}>{t('pickUpItems') || 'Pick up items'}</Button>
+            <Button variant="accent" onClick={onOpenPickup}>
+              {t('pickUpItems') || 'Pick up items'}
+            </Button>
           )}
-            {/* Intentionally show only the Pick Up button among contextual actions on desktop.
-               Other contextual actions are accessible via the "Actions" menu. */}
         </div>
 
-        {/* Right: only keep Actions & Custom on desktop (main action icons removed) */}
+        {/* Right: only keep Actions & Custom on desktop */}
         <div className="ml-auto flex items-center gap-2">
-          <Button variant="outline" onClick={onOpenAvailableActions}>{t('actions') || 'Actions'}</Button>
-          <Button variant="outline" onClick={onOpenCustomDialog}>{t('customAction') || 'Custom'}</Button>
+          <Button variant="outline" onClick={onOpenAvailableActions}>
+            {t('actions') || 'Actions'}
+          </Button>
+          <Button variant="outline" onClick={onOpenCustomDialog}>
+            {t('customAction') || 'Custom'}
+          </Button>
         </div>
       </div>
     </TooltipProvider>

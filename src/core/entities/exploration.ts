@@ -236,6 +236,10 @@ export interface Discovery {
     description: TranslatableString;
     /** The difficulty associated with making or interacting with this discovery. */
     difficulty: ExplorationDifficulty;
+    /** The grid position where this discovery is located. */
+    position: { x: number; y: number };
+    /** Optional: Area radius for multi-cell discoveries (e.g., dungeons). */
+    areaRadius?: number;
     /** Optional: Rewards obtained upon making this discovery. */
     rewards?: {
         /** Experience points gained. */
@@ -403,6 +407,7 @@ export class ExplorationManager {
             type,
             name: { key: `discovery.${type}.name` }, // Placeholder for translatable name.
             description: { key: `discovery.${type}.description` }, // Placeholder for translatable description.
+            position: { x: cell.position.x, y: cell.position.y },
             difficulty: this.calculateDifficulty(cell),
             rewards: {
                 experience: this.calculateExperienceReward(type, cell),

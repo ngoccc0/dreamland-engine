@@ -1,6 +1,76 @@
 import type { LevelUpResult } from '../entities/experience';
 
 /**
+ * calculateXpForLevel
+ *
+ * Pure utility function to calculate XP required to progress from a given level to the next.
+ * Uses exponential formula: xpForLevel(n) = 100 × 1.5^(n-1)
+ *
+ * @remarks
+ * Levels start at 1. Level 1→2 requires 100 XP.
+ * Each subsequent level requires 50% more XP than the previous.
+ *
+ * Examples:
+ * - calculateXpForLevel(2) = 100 (to reach level 2)
+ * - calculateXpForLevel(3) = 150 (to reach level 3)
+ * - calculateXpForLevel(4) = 225 (to reach level 4)
+ * - calculateXpForLevel(5) = 337 (to reach level 5)
+ *
+ * @param {number} level - Target level (1-based). If level <= 1, returns 0.
+ * @returns {number} XP required to reach that level from the previous level.
+ */
+export function calculateXpForLevel(level: number): number {
+    if (level <= 1) return 0;
+    return Math.floor(100 * Math.pow(1.5, level - 2));
+}
+
+/**
+ * calculateCumulativeXp
+ *
+ * Pure utility function to calculate total XP needed to reach a given level from level 1.
+ *
+ * @remarks
+ * Cumulative XP = sum of calculateXpForLevel(2) + calculateXpForLevel(3) + ... + calculateXpForLevel(level)
+ *
+ * Examples:
+ * - calculateCumulativeXp(1) = 0
+ * - calculateCumulativeXp(2) = 100
+ * - calculateCumulativeXp(3) = 250 (100 + 150)
+ * - calculateCumulativeXp(4) = 475 (100 + 150 + 225)
+ *
+ * @param {number} level - Target level (1-based).
+ * @returns {number} Total cumulative XP required to reach that level.
+ */
+export function calculateCumulativeXp(level: number): number {
+    if (level <= 1) return 0;
+    let total = 0;
+    for (let i = 2; i <= level; i++) {
+        total += calculateXpForLevel(i);
+    }
+    return total;
+}
+
+/**
+ * calculatePlayerLevel
+ *
+ * Pure utility function to determine player level from cumulative XP.
+ *
+ * @remarks
+ * Performs binary search or linear search to find the level where cumulative XP < playerXp < cumulative XP of next level.
+ * Since level progression is exponential, we cap searches at level 100 max.
+ *
+ * @param {number} playerXp - Player's total accumulated XP.
+ * @returns {number} Player's current level (1+).
+ */
+export function calculatePlayerLevel(playerXp: number): number {
+    let level = 1;
+    while (level < 100 && playerXp >= calculateCumulativeXp(level + 1)) {
+        level++;
+    }
+    return level;
+}
+
+/**
  * OVERVIEW: Experience & progression system
  *
  * Manages character experience gain, level-up mechanics, skill points, stat points, and unlockable content.
@@ -137,7 +207,7 @@ export class ExperienceUseCase implements IExperienceUseCase {
     }
 
     calculateRequiredExperience(level: number): number {
-        return Math.floor(100 * (Math.pow(1.5, level - 1)));
+        return calculateXpForLevel(level);
     }
 
     async getCharacterLevel(characterId: string): Promise<number> {

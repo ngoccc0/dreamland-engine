@@ -252,6 +252,12 @@ export class Character {
     private skillInstances: Map<string, Skill>;
     /** Character state flags (e.g., 'invulnerable', 'stunned'). */
     private flags: { [key: string]: boolean };
+    /** Equipped items: 1 weapon, 1 armor, and up to 4 accessories */
+    equippedItems: {
+        weapon?: any;
+        armor?: any;
+        accessories: any[];
+    };
 
     /**
      * Creates an instance of Character.
@@ -269,7 +275,7 @@ export class Character {
         this.maxStamina = 100;
         this.mana = 100;
         this.maxMana = 100;
-        this.bodyTemperature = 37; // Normal human body temperature in Celsius
+        this.bodyTemperature = 37;
         this.experience = 0;
         this.position = { x: 0, y: 0 };
         this.inventory = [];
@@ -279,6 +285,7 @@ export class Character {
         this.skillInstances = new Map();
         this.statuses = new Set();
         this.flags = {};
+        this.equippedItems = { accessories: [] };
     }
 
     /**
@@ -446,6 +453,119 @@ export class Character {
      */
     canMove(): boolean {
         return !this.flags['stunned'];
+    }
+
+    /**
+     * getEffectiveStats
+     *
+     * Computes the character's final stats after applying equipment bonuses.
+     *
+     * @remarks
+     * Equipment provides attribute bonuses scaled by tier and grade.
+     * Tier 1-6: tier 1 = 1.0x (no bonus), tier 2 = 1.1x, tier 3 = 1.2x, etc.
+     * Grade 0-5: grade 0 = 1.0x (no bonus), grade 1 = 1.1x, grade 5 = 1.5x
+     * 
+     * Formula: effective_stat = base_stat + equipment_bonus × tier_mult × grade_mult
+     *
+     * @returns {CharacterStats} New stats object with equipment bonuses applied.
+     */
+    getEffectiveStats(): CharacterStats {
+        const effective = { ...this.stats };
+
+        // Helper to apply item bonuses
+        const applyItemBonus = (item: any) => {
+            if (!item) return;
+
+            // Calculate tier and grade multipliers
+            // Tier: 1 = 1.0x, 2 = 1.1x, 3 = 1.2x, 4 = 1.3x, 5 = 1.4x, 6 = 1.5x
+            const tierMult = 1 + Math.max(0, item.tier - 1) * 0.1;
+            // Grade: 0 = 1.0x, 1 = 1.1x, 2 = 1.2x, 3 = 1.3x, 4 = 1.4x, 5 = 1.5x
+            const gradeMult = 1 + (item.grade ?? 0) * 0.1;
+
+            // Hardcoded bonus based on equipment type for now
+            // In production, would look up from itemDefinitions
+            if (item.itemId?.includes('weapon') || item.itemId?.includes('sword')) {
+                effective.strength += 5 * tierMult * gradeMult;
+            } else if (item.itemId?.includes('armor') || item.itemId?.includes('shield')) {
+                effective.vitality += 5 * tierMult * gradeMult;
+            } else if (item.itemId?.includes('ring') || item.itemId?.includes('amulet')) {
+                effective.intelligence += 3 * tierMult * gradeMult;
+            }
+        };
+
+        // Apply equipment bonuses
+        applyItemBonus(this.equippedItems.weapon);
+        applyItemBonus(this.equippedItems.armor);
+        this.equippedItems.accessories.forEach(acc => applyItemBonus(acc));
+
+        return effective;
+    }
+
+    /**
+     * equipItem
+     *
+     * Equips an item to the appropriate slot.
+     *
+     * @remarks
+     * - Weapon: Only 1 equipped at a time
+     * - Armor: Only 1 equipped at a time
+     * - Accessories: Up to 4 can be equipped simultaneously
+     *
+     * If a slot is full, the old item is returned.
+     *
+     * @param {any} item - Item with itemId, tier, grade
+     * @param {string} slot - 'weapon', 'armor', or 'accessory'
+     * @returns {any} Previously equipped item, if any
+     */
+    equipItem(item: any, slot: 'weapon' | 'armor' | 'accessory'): any {
+        if (!item) return null;
+
+        let previous: any = null;
+
+        switch (slot) {
+            case 'weapon':
+                previous = this.equippedItems.weapon;
+                this.equippedItems.weapon = item;
+                break;
+            case 'armor':
+                previous = this.equippedItems.armor;
+                this.equippedItems.armor = item;
+                break;
+            case 'accessory':
+                if (this.equippedItems.accessories.length < 4) {
+                    this.equippedItems.accessories.push(item);
+                } else {
+                    previous = this.equippedItems.accessories.shift();
+                    this.equippedItems.accessories.push(item);
+                }
+                break;
+        }
+
+        return previous;
+    }
+
+    /**
+     * unequipItem
+     *
+     * Removes an item from an equipment slot.
+     *
+     * @param {string | number} slot - 'weapon', 'armor', or accessory index
+     * @returns {any} The unequipped item
+     */
+    unequipItem(slot: 'weapon' | 'armor' | number): any {
+        let unequipped: any = null;
+
+        if (slot === 'weapon') {
+            unequipped = this.equippedItems.weapon;
+            this.equippedItems.weapon = undefined;
+        } else if (slot === 'armor') {
+            unequipped = this.equippedItems.armor;
+            this.equippedItems.armor = undefined;
+        } else if (typeof slot === 'number' && slot >= 0 && slot < this.equippedItems.accessories.length) {
+            unequipped = this.equippedItems.accessories.splice(slot, 1)[0];
+        }
+
+        return unequipped;
     }
 
     /**

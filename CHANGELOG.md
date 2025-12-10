@@ -1,82 +1,41 @@
 # Dreamland Engine Changelog - Early Alpha
 
-## Version 0.1.0 - The Initial Spark (June 25-29, 2025)
+## Version 0.7.0 - Deployment Optimization & Build Reduction (December 7-9, 2025)
 
-Hey Explorers! Welcome to the very first sparks of Dreamland Engine! We've been busy laying the absolute groundwork for our world, fixing initial glitches, and getting the most basic systems in place.
-
-### What's New & Fixed:
-*   **Engine Scaffolding & Next.js Foundation**: Established the core engine structure and resolved foundational Next.js errors to get the application running smoothly.
-*   **Basic UI & Layout**: Started sketching out the game's interface, ensuring readability and basic responsiveness across devices.
-*   **World Configuration & Chunk Generation**: Implemented initial world generation parameters, improved chunk creation, and handled SVG assets for the minimap.
-*   **Core Systems Foundation**: Laid groundwork for critical systems like character stats (HP, Mana, Stamina), progress saving, and an early AI narrative system.
-*   **Minimap Essentials**: Introduced basic minimap functionality, dynamic entity icons using emojis, and addressed initial display issues.
-*   **Dynamic Entities**: Enabled each map cell to be a distinct entity, allowing for future interactive world elements.
-*   **Ecosystem & AI Concepts**: Began defining how creatures and plants interact, setting up basic logic for a dynamic world.
-
-**With this version, the dream of Dreamland Engine officially begins! We've established a stable core, ready to expand into a vibrant, interactive world.**
-
-### What's Brewing Next:
-Get ready for a massive architectural overhaul! Our next update will dive deep into refactoring the engine's "brain," introducing a dynamic narrative system, a flexible multilingual architecture, and standardized game data. This is a huge leap towards a truly robust and moddable world!
-
-## Version 0.2.0 - The Architectural Foundation (July 2025)
-
-Hello, Future Builders and Steadfast Engineers! This is a single, monumental update focusing on fortifying the engine's "backbone" and laying down a robust architectural blueprint. We've conducted a sweeping review and deep refactoring, ensuring our engine is resilient, type-safe, and ready for future expansion.
+Hello, Explorers! This update focuses on making Dreamland Engine leaner, faster, and more deployment-ready. We've achieved significant build size reductions and resolved critical deployment issues to ensure smooth sailing for our upcoming Alpha release!
 
 ### What's New & Fixed:
-*   **Offline Narrative Engine v2.0 & Refinements**: Moved beyond simple static templates to implement a dynamic narrative engine based on "Mood." This transforms the engine into a "storyteller" that "feels" and describes the environment soulfully, even without online AI. Core functions have been moved to their proper homes (`offline.ts`), fixing critical runtime errors and ensuring seamless player actions in offline mode.
-*   **Hybrid Multilingual Architecture (i18n Overhaul)**: Implemented a combined multilingual strategy that handles both static UI translation keys and dynamic `TranslatableString` objects for in-game data. A `getTranslatedText` helper ensures consistent text display.
-*   **Standardized Game Data & Player Attributes**: All in-game environmental metrics are now standardized to a 0-100 range. `ItemDefinition`s have been overhauled to use unique `id`s and standard multilingual objects for `name` and `description`. `PlayerAttributesSchema` has been made flexible with `.optional().default(0)` for item attributes.
-*   **Type Safety & Consistency**: Addressed a series of critical TypeScript errors and refactored core components for data consistency. This includes fixing inconsistent type errors, standardizing `TranslatableString`, and expanding `ItemCategorySchema`.
-*   **Performance & Stability Fixes**:
-    *   **Infinite Render Loop Fix**: Resolved a critical bug in `useGameInitialization` causing infinite render loops by using safer state update methods.
-    *   **Logic Module Refactoring**: Key logic functions were moved to correct engine modules, resolving "Module not found" errors.
-    *   **State Update Logic in useActionHandlers**: Fixed a subtle error where action handler functions failed to call `setPlayerStats`, leading to "stale state." Player state now reflects accurately and immediately after every action.
-    *   **Crash Fix in generateChunkContent**: Resolved a serious `TypeError` during chunk generation with guard clauses and optional chaining, preventing game crashes and enhancing resilience to invalid data.
-    *   **Dependency Cleanup**: Removed unnecessary dependencies from `useCallback` hooks, optimizing performance.
-*   **Code Documentation & Debugging**: Integrated TSDoc comment blocks (`/** ... */`) into critical files, preparing for automated API documentation. Created a detailed `report_chunk_creation_and_loading.md` in `docs/` to aid future debugging of chunk and world loading processes.
-*   **Template Data Fortification**: Reinforced `generateOfflineNarrative` and `selectEntities` with guard clauses and filtering to handle inconsistent template data gracefully, preventing runtime errors. Removed trailing commas in `forest.ts` and `mountain.ts` to ensure data integrity.
+*   **Massive Build Size Reduction**: Converted all audio files from WAV to MP3 format, achieving a stunning 95% reduction in build size! This transforms our deployment from heavy to lightning-fast.
+*   **Netlify Deployment Excellence**: Implemented Next.js standalone output mode to stay under Netlify's 250MB function limit. Added comprehensive netlify.toml configuration and aligned Node.js version to 22.17.0 for optimal compatibility.
+*   **Security Enhancement**: Upgraded Next.js from 15.5.6 to 15.5.7 to patch critical security vulnerability CVE-2025-55182, keeping our explorers safe.
+*   **Development Tool Optimization**: Excluded .next directory from Jest module resolution to prevent Haste collisions. Implemented lazy initialization for Genkit flows and game action tools to eliminate build-time errors.
+*   **CI/CD Pipeline Stability**: Fixed Husky installation failures in Netlify CI environment and enabled devDependencies installation with NPM_CONFIG_PRODUCTION=false for smoother builds.
+*   **Audio System Cleanup**: Performed aggressive audio cleanup and optimization, removing redundant files and streamlining our 407 SFX asset collection for deployment efficiency.
 
-**The engine now boasts absolute reliability and self-recovery capabilities, operating stably even with imperfect template data. This comprehensive overhaul has created a robust, type-safe, and highly maintainable foundation for all future features!**
+**With this optimization milestone, Dreamland Engine is now ready for its Alpha 0.7.0 release! We've transformed a bulky prototype into a sleek, deployment-ready experience that's 95% smaller and far more stable. This is a massive step toward our vision of making immersive gaming accessible to all explorers.**
 
 ### What's Brewing Next:
-Our journey continues towards a more interactive and living world! Expect to see significant enhancements to creature AI, dynamic world mechanics, and the introduction of foundational gameplay loops like farming. We're setting the stage for truly engaging player experiences!
+As we prepare for the official Alpha 1 launch, our focus will be on final stability testing, performance monitoring, and gathering early explorer feedback. We're committed to delivering the smoothest possible experience as Dreamland grows from prototype to full-fledged adventure!
 
-## Version 0.3.0 - Ecosystem & Core Mechanics (November 06-15, 2025)
+## Version 0.6.0 - UI Polish & Core Documentation (December 1-7, 2025)
 
-Hello, Dynamic Dreamers! This update marks a significant leap in how our world feels alive and interactive, focusing on nuanced narratives, a thriving ecosystem, and core gameplay mechanics.
+Greetings, Adventurers! This update brings Dreamland's interface and core systems to a new level of polish and reliability. We've enhanced the visual experience, strengthened our foundation with comprehensive documentation, and added meaningful time mechanics that make every moment in Dreamland feel special.
 
 ### What's New & Fixed:
-*   **Narrative Voice & Tone Refinements**: Refined narrative voice filtering, ensuring story descriptions are more aligned with the chosen tone, making tales richer and more consistent.
-*   **Dynamic World & Visual Refresh**: Further developed world mechanisms for a more dynamic environment. Logo, favicon, and HUD received a refresh for a polished look.
-*   **Creature AI & Ecology**: Introduced trophic metadata and predator 5x5 aggro/attack behavior. New eating narrative templates bring interactions to life, and `visibleChunks` have better fallbacks.
-*   **Enhanced Type Safety & Linting**: Comprehensive cleanup fixing numerous type-check errors across the codebase, including missing type imports, corrected catch variables, refined AI flow typings, standardized `import type` usage, and restored catch bindings.
-*   **AI Flow Optimization & Terrain API**: Deferred Genkit initialization to runtime and streamlined the terrain API by removing legacy wrappers, simplifying world generation.
-*   **Farming Mechanics Foundation**: Laid minimal groundwork for farming use cases (till, water, fertilize, plant) and migrated forest creature spawns to definitions.
-*   **Refined Spawning Mechanisms**: Separate and more refined spawning mechanisms implemented for items, plants, and animals.
-*   **Action Handler Refactoring**: Extracted and wired factories for `offline-attack` and `offline-skill` handlers, and cleaned up unused empty hook files, improving modularity and maintainability.
-*   **Hunger Bar & Move Orchestration**: `hudHunger` translation key now correctly displayed. Implemented move handler and overlay/pan fixes, improving move orchestration and addressing missing translation keys.
+*   **Comprehensive Documentation (Phase 2.3 COMPLETE)**: Added complete tSDoc documentation to all 15 core entities, covering entity systems, time & weather, world & exploration, and core logic. This creates a robust foundation for future development and modding.
+*   **Game Time System Overhaul**: Implemented complete game time synchronization with the game engine, featuring a beautiful clock widget that rotates smoothly, starts at 6 AM, and uses 15-minute turns for meaningful progression.
+*   **Enhanced HUD & Visual Polish**: Refined temperature display with dynamic weather integration and color-changing icons. Added PersonStanding icon for body temperature that responds to environmental conditions.
+*   **Fog of War Enhancement**: Tripled fog-of-war thresholds on both minimap and full-map views, creating more strategic exploration and discovery.
+*   **Audio Immersion**: Implemented biome-specific footstep SFX in move orchestrator, seamless ambience transitions, and dynamic volume updates with proper background music playback.
+*   **Mobile Experience Optimization**: Fixed HUD display on mobile devices, enabled smooth narrative panel scrolling, and optimized responsive design across all screen sizes.
+*   **Type Safety & Performance**: Strengthened TypeScript types in critical paths, extracted audio fade-out utilities, resolved 5 test failures (effect-engine, RNG seeding, narrative templates), and removed all debug console logging for cleaner production builds.
+*   **React Lifecycle Optimization**: Replaced flushSync with microtask to eliminate lifecycle warnings and improve rendering performance.
+*   **Repository Cleanup**: Removed all temporary and generated files, ensuring a clean, professional codebase ready for production.
 
-**With this update, Dreamland feels more alive and coherent than ever! The narrative flows more naturally, creatures interact dynamically, and the engine's foundation is stronger and more reliable. We've introduced fundamental gameplay loops, setting the stage for deeper player engagement.**
-
-### What's Brewing Next:
-Get ready for an even smoother visual experience! Our next updates will dive into comprehensive minimap and player movement polishing, addressing scaling, animations, and centering issues to make your exploration truly seamless.
-
-## Version 0.4.0 - Visual & Interactive Harmony (November 16-29, 2025)
-
-Hello, Visionary Voyagers! This update is all about enhancing your journey through Dreamland, with a sharp focus on smoother visuals, clearer interactions, and a more responsive environment. We've been polishing the experience to make every step feel more engaging!
-
-### What's New & Fixed:
-*   **Minimap Polish & Control**: Gave the minimap a major facelift! Expect smoother panning animations that now use grid cell sizes, better scaling with inline styles, and a unified magnifying glass icon for zoom. Addressed minimap scaling and centering issues. We've also disabled viewport pan animation and kept the grid frozen during moves to prevent minimap re-renders from turn changes during animation.
-*   **Flight Animations Refined**: Player flight animations are now silky smooth! We've unified the lift and flight into a single, seamless arc that adapts to all movement directions. Your avatar will gracefully soar across the map.
-*   **Plant Interaction System**: Get ready to become a botanist! Implemented a comprehensive plant interaction system, including stamina costs for harvesting, environmental preferences for plants, a 3-state suitability system (SUITABLE/UNFAVORABLE/UNSUITABLE), and a reactive decay mechanism. The new Plant Inspection Modal provides all the details you need.
-*   **Avatar Display Improvements**: Squashed several bugs related to avatar rendering and minimap centering, ensuring your character always looks great and is precisely where they should be on the map.
-*   **Debug & Performance**: Added extensive logging and analysis tools (`debug: add logging for avatar visibility issue`) to identify and resolve animation blocking issues and race conditions, leading to a more performant and stable game. This includes detailed animation debugging (blocking, duration, delay, pan calc issues).
-*   **Viewport & Scaling**: Preferred cover scaling and relaxed viewport minHeight for minimap, avoiding upscaling beyond native size.
-
-**We've achieved a significant upgrade in how you see and interact with the world! The minimap is clearer, animations are smoother, and interacting with plants is now a rich, strategic experience. Dreamland is more beautiful and responsive than ever!**
+**Dreamland now feels more alive and polished than ever! The time system adds real weight to your decisions, the interface responds beautifully to your environment, and our codebase is now thoroughly documented and battle-tested. We've transformed Dreamland from a promising prototype into a refined experience that honors every explorer's journey.**
 
 ### What's Brewing Next:
-Get ready for a profound shift in how time passes in Dreamland! Our next updates will introduce an advanced idle progression system, complete with warning notifications and a visual indicator. You'll be able to pause game progression and catch up on elapsed time with immersive narrative messages. Prepare for a more thoughtful and dynamic passage of time, even when you're away!
+We're entering the final optimization phase before Alpha! Expect deployment-focused improvements, massive build size reductions, and critical security updates that will make Dreamland ready for its first public release.
 
 ## Version 0.5.0 - Time Mechanics & Alpha Readiness (November 29-30, 2025)
 

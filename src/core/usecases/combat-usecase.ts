@@ -1,4 +1,5 @@
 import { Combatant, CombatResult, CombatRound, CombatAction } from '../entities/combat';
+import { itemDefinitions } from '@/lib/game/items';
 
 /**
  * OVERVIEW: Combat system orchestrator
@@ -249,13 +250,107 @@ export class CombatUseCase implements ICombatUseCase {
         };
     }
 
-    private calculateExperience(_winner: Combatant, _loser: Combatant): number {
-        // Implement experience calculation logic
-        return 100; // Placeholder
+    private calculateExperience(winner: Combatant, loser: Combatant): number {
+        /**
+         * Calculate XP gain based on opponent difficulty.
+         *
+         * Formula:
+         * - Base XP: 50
+         * - Difficulty multiplier based on maxHealth (proxy for level)
+         * - Multiplier: 1 + (loserMaxHealth - winnerMaxHealth) × 0.002
+         * - Range: 10 (minimum) to 150 (maximum realistic)
+         *
+         * @remarks
+         * Uses maxHealth as a proxy for opponent difficulty since combat stats
+         * don't directly store player level. Higher HP enemies grant more XP.
+         * 
+         * Examples:
+         * - Same difficulty: 50 XP
+         * - Enemy 30 HP higher: 50 × 1.06 = 53 XP
+         * - Enemy 50 HP higher: 50 × 1.1 = 55 XP
+         */
+        const baseXp = 50;
+        const winnerMaxHealth = winner.stats?.maxHealth ?? 100;
+        const loserMaxHealth = loser.stats?.maxHealth ?? 100;
+
+        const healthDiff = loserMaxHealth - winnerMaxHealth;
+        const multiplier = Math.max(0.5, 1 + healthDiff * 0.002);
+
+        const xpGain = Math.floor(baseXp * multiplier);
+        return Math.max(10, xpGain);
     }
 
-    private async generateLoot(_loser: Combatant): Promise<any[]> {
-        // Implement loot generation logic
-        return []; // Placeholder
+    private async generateLoot(loser: Combatant): Promise<any[]> {
+        /**
+         * Generate combat loot from defeated creature.
+         *
+         * Logic:
+         * 1. Check if creature has loot definition
+         * 2. For each loot entry, roll chance
+         * 3. If successful, generate quantity
+         * 4. Only add tier/grade for equipment items (Weapon/Armor/Accessory)
+         * 5. Non-equipment items (Food/Material/Consumable) have no tier/grade
+         *
+         * @remarks
+         * Uses creature definition's loot field to determine drops.
+         * Equipment items get tier from itemDefinitions.tier, grade randomly assigned.
+         * Non-equipment items are dropped without tier/grade fields.
+         * Grade distribution for equipment: 50% grade 0, 30% grade 1, 20% grade 2.
+         * 
+         * If no loot is defined on creature, returns empty array.
+         */
+        // Check if creature has loot definition
+        const creatureLoot = (loser as any).definition?.loot;
+        if (!creatureLoot || creatureLoot.length === 0) {
+            return [];
+        }
+
+        const droppedItems: any[] = [];
+        const equipmentCategories = ['Weapon', 'Armor', 'Accessory'];
+
+        // Process each loot entry
+        for (const lootEntry of creatureLoot) {
+            // Roll for this specific loot
+            if (Math.random() > lootEntry.chance) {
+                continue; // Didn't drop
+            }
+
+            // Determine quantity
+            const minQty = lootEntry.quantity?.min ?? 1;
+            const maxQty = lootEntry.quantity?.max ?? 1;
+            const quantity = Math.floor(Math.random() * (maxQty - minQty + 1)) + minQty;
+
+            // Look up item definition to check category
+            const itemDef = itemDefinitions[lootEntry.name];
+            const isEquipment = itemDef && equipmentCategories.includes(itemDef.category);
+
+            // Only assign tier/grade for equipment items
+            if (isEquipment && itemDef) {
+                // Assign grade randomly: 50% grade 0, 30% grade 1, 20% grade 2
+                const gradeRoll = Math.random();
+                let grade = 0;
+                if (gradeRoll > 0.5 && gradeRoll <= 0.8) {
+                    grade = 1;
+                } else if (gradeRoll > 0.8) {
+                    grade = 2;
+                }
+
+                // Add equipment item with tier and grade
+                droppedItems.push({
+                    itemId: lootEntry.name,
+                    tier: itemDef.tier,
+                    grade: grade,
+                    quantity: quantity
+                });
+            } else {
+                // Add non-equipment item without tier/grade
+                droppedItems.push({
+                    itemId: lootEntry.name,
+                    quantity: quantity
+                });
+            }
+        }
+
+        return droppedItems;
     }
 }

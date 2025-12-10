@@ -108,7 +108,7 @@ export function GameClockWidget({
         >
             {/* Clock face image - rotates with game time */}
             <img
-                src="/asset/images/time_clock_ui.png"
+                src="/asset/images/ui/time_clock_ui.png"
                 alt="Clock face"
                 className="absolute inset-0 w-full h-full"
                 style={{
@@ -120,7 +120,7 @@ export function GameClockWidget({
 
             {/* Pointer - fixed at top (12 o'clock), tip overlaps 3px INTO clock face, rest extends above */}
             <img
-                src="/asset/images/clock_pointer.png"
+                src="/asset/images/ui/clock_pointer.png"
                 alt="Clock pointer"
                 className="absolute z-20 pointer-events-none"
                 style={{

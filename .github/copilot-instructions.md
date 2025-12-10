@@ -12,7 +12,7 @@ PHASE 0: ATOMIC EXPANSION (Do this ONCE at start)Explode the Plan into a granula
 PHASE 1: THE EXECUTION CYCLE (Repeat for each TODO item)Step A: The Logic Trace (Mental Simulation)Output this in chat before touching the file:Task: [Current TODO Item]Data Flow: UI → Hook → Usecase → Engine → Repo.Mental Simulation:Input: Player(STR:10) hits Enemy(DEF:5).Logic: Current code creates a side-effect here [Point to Code].Correction: I will refactor to return a new Immutable State.The Nature of Change: "Decoupling logic from the React lifecycle to ensure pure testability."
 Step B: Direct Tool Execution: Use read_file to verify context.Use replace_in_file / write_file to apply code.Constraint: If file > 500 lines, use targeted replace_in_file.
 Step C: Documentation EnforcementEnsure the code applied includes TSDoc (See Section 5). Code without TSDoc is considered a FAILURE.
-Step D: Verification & Self-CorrectionRun: npm run typecheck (MANDATORY).If Pass: Mark TODO as [x] and move to next item immediately.If Fail:Read error message.Trace the error root cause.Apply fix (Tool use).Check 3-Strike Rule.
+Step D: Verification & Self-CorrectionRun: npm run typecheck (PowerShell-MANDATORY).If Pass: Mark TODO as [x] and move to next item immediately.If Fail:Read error message.Trace the error root cause. run all other test and fix before report back : lint , npm run test , etc .Apply fix (Tool use).Check 3-Strike Rule.
 PHASE 2: COMPLETION REPORT Only when ALL TODOs are [x].Summarize the architectural impact.Confirm all tests passed.
 5. 📝 DOCUMENTATION STANDARD (TSDOC):All exported symbols must follow this template:TypeScript/**
  * [Short Description of Purpose]
@@ -42,8 +42,10 @@ Anti-Pattern: Comments like // calculates damage are unacceptable. Explain the f
 Rule #1: Bilingual (EN/VI) via getTranslatedText()ALWAYS use this pattern. NEVER access .en directly.TypeScriptimport { getTranslatedText } from "@/lib/utils";
 const message = { en: "Hello", vi: "Xin chào" };
 const text = getTranslatedText(message, language);
-Rule #2: Persistence via RepositoriesNEVER use indexedDB or localStorage directly in Core logic. Use adapters in src/infrastructure/persistence/.Rule #3: Usecase Pattern (Pure & Immutable)Usecases must return NEW objects. DO NOT mutate inputs.TypeScriptexport function performFarming(state: GameState): [GameState, GameEffect[]] {
+Rule #2: Persistence via Repositories: NEVER use indexedDB or localStorage directly in Core logic. Use adapters in src/infrastructure/persistence/.
+Rule #3: Usecase Pattern (Pure & Immutable)Usecases must return NEW objects. DO NOT mutate inputs.TypeScriptexport function performFarming(state: GameState): [GameState, GameEffect[]] {
   // Return NEW state, do not modify 'state'
   return [{ ...state, crop: "wheat" }, [effect]];
 }
-7. 🛠️ REFERENCE: COMMANDS & TOOLSUse these exact npm scripts via your terminal tool:ActionCommandCheck Typesnpm run typecheck (MANDATORY after edits)Run Testsnpm run testValidate Textnpm run validate:narrative (If touching .json/text)
+Rule #4: Never write any outside report files (e.g., plan.md, report.md). All reports must be in chat.
+7. 🛠️ REFERENCE: COMMANDS & TOOLS Use these exact npm scripts via your terminal tool:ActionCommandCheck Typesnpm run typecheck (MANDATORY after edits)Run Testsnpm run testValidate Textnpm run validate:narrative (If touching .json/text)

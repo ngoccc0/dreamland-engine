@@ -107,7 +107,7 @@ function SkillButton({
         >
           <WandSparkles className="h-4 w-4 mr-2" />
           <span className="hidden sm:inline">{label}</span>
-          <span className="sm:hidden">{label.substring(0, 3)}</span>
+          <span className="sm:hidden">{String(label).substring(0, 3)}</span>
         </Button>
       </TooltipTrigger>
       <TooltipContent>{tooltip}</TooltipContent>

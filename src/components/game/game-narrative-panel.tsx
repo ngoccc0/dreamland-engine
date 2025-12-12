@@ -18,7 +18,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { cn, getTranslatedText } from "@/lib/utils";
 import type { NarrativeEntry } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
-import { Menu, LifeBuoy, Settings, LogOut, Cpu } from "./icons";
+import { Menu, LifeBuoy, Settings, LogOut, Cpu, Shield, Backpack, Hammer, Home, FlaskConical } from "./icons";
 import { useTypingAnimation } from "@/hooks/useTypingAnimation";
 import { applyEmphasisRules, getEmphasisClass } from "@/lib/narrative/textEmphasisRules";
 import { useMobileOptimization } from "@/hooks/useMobileOptimization";
@@ -211,6 +211,54 @@ export function GameNarrativePanel({
             <header className="px-3 py-2 md:p-4 border-b flex-shrink-0 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div className="flex items-center gap-3 w-full md:max-w-3xl">
                     <h1 className="text-xl md:text-2xl font-bold font-headline">{worldName}</h1>
+
+                    {/* Desktop-only: muted, icon-only quick actions next to world title */}
+                    <div className="hidden md:flex items-center gap-2 ml-3">
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <button onClick={onOpenSettings} className="p-1 rounded text-amber-400/70 hover:opacity-90" aria-label={t('gameSettings') || 'Settings'}>
+                                    <Shield className="h-5 w-5" />
+                                </button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>{t('gameSettings')}</p></TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <button onClick={onOpenTutorial} className="p-1 rounded text-sky-400/70 hover:opacity-90" aria-label={t('tutorialTitle') || 'Tutorial'}>
+                                    <Backpack className="h-5 w-5" />
+                                </button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>{t('tutorialTitle')}</p></TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <button onClick={onReturnToMenu} className="p-1 rounded text-indigo-400/70 hover:opacity-90" aria-label={t('returnToMenu') || 'Return'}>
+                                    <Hammer className="h-5 w-5" />
+                                </button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>{t('returnToMenu')}</p></TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <button onClick={onOpenSettings} className="p-1 rounded text-green-400/65 hover:opacity-90" aria-label={t('buildingTooltip') || 'Build'}>
+                                    <Home className="h-5 w-5" />
+                                </button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>{t('buildingTooltip')}</p></TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <button onClick={onOpenTutorial} className="p-1 rounded text-pink-300/70 hover:opacity-90" aria-label={t('fusionTooltip') || 'Fuse'}>
+                                    <FlaskConical className="h-5 w-5" />
+                                </button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>{t('fusionTooltip')}</p></TooltipContent>
+                        </Tooltip>
+                    </div>
                 </div>
 
                 {/* Header Controls: Hide/Show Toggle + Menu */}

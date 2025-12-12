@@ -731,6 +731,8 @@ export interface GameSettings {
     maxCatchupTicks?: number;
     /** How many in-game minutes each tick represents. Default 15 (each tick = 15 in-game minutes). */
     tickGameDurationMinutes?: number;
+    /** Joystick size on mobile in pixels (100-180). Default 140. */
+    joystickSize?: number;
 }
 
 /**

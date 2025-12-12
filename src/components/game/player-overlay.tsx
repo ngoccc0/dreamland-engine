@@ -104,7 +104,7 @@ export default function PlayerOverlay({ overlayData, overlayFlying = false, visu
     const content = (
         <div style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, pointerEvents: 'none' }} aria-hidden={ariaHidden ?? true}>
             <div
-                className={cn('player-overlay', flyFlag ? 'player-flying' : '', landedFlag ? 'bounce' : '', className)}
+                className={cn('player-overlay z-[25]', flyFlag ? 'player-flying' : '', landedFlag ? 'bounce' : '', className)}
                 style={{
                     left: overlayData.left,
                     top: overlayData.top,

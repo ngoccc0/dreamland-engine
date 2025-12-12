@@ -73,7 +73,7 @@ function fillTemplate(
       voice: opts.persona?.voice,  // Use persona voice directly
     };
 
-    const pick = lex.pick(slotName, pickOpts, opts.rng as any);
+    const pick = lex.pick(slotName, pickOpts, opts.rng);
     if (!pick) return m; // leave placeholder if not found
     return pick.text;
   });
@@ -81,7 +81,7 @@ function fillTemplate(
   if (repeatCount >= 2) {
     // if the template did not include continuation_fragment slot, prefix one
     if (!/{{\s*continuation_fragment\s*}}/.test(template)) {
-      const cont = lex.pick('continuation_phrase', { detail: opts.detail, biome: opts.biome, tone: opts.tone, voice: opts.persona?.voice }, opts.rng as any);
+      const cont = lex.pick('continuation_phrase', { detail: opts.detail, biome: opts.biome, tone: opts.tone, voice: opts.persona?.voice }, opts.rng);
       if (cont && cont.text) {
         return `${cont.text} ${replaced}`;
       }

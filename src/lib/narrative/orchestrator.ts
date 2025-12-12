@@ -38,7 +38,7 @@ export function generateNarrative(snapshot: any, templates: any[], options: Gene
   const pattern = primary.patterns && primary.patterns[0] ? primary.patterns[0].template : primary.id;
   const slots = primary.patterns && primary.patterns[0] ? primary.patterns[0].slots : undefined;
 
-  let text = fillTemplate(pattern, lex as any, snapshot, {
+  let text = fillTemplate(pattern, lex, snapshot, {
     lang,
     detail: desiredDetail,
     biome: snapshot?.chunk?.terrain,
@@ -63,7 +63,7 @@ export function generateNarrative(snapshot: any, templates: any[], options: Gene
       const reactionWeights = availableReactions.map(rp => rp.weight ?? 1);
       const selectedReaction = rng.weightedChoice(availableReactions, reactionWeights) || availableReactions[0];
 
-      const reactionText = fillTemplate(selectedReaction.template, lex as any, snapshot, {
+      const reactionText = fillTemplate(selectedReaction.template, lex, snapshot, {
         lang,
         detail: desiredDetail,
         biome: snapshot?.chunk?.terrain,
@@ -84,7 +84,7 @@ export function generateNarrative(snapshot: any, templates: any[], options: Gene
     snapshot,
     { templateIds: [primary.id], detailLevel: desiredDetail },
     lex,
-    rng as any,
+    rng,
   );
 
   if (newState.lastConnector) {
@@ -94,7 +94,7 @@ export function generateNarrative(snapshot: any, templates: any[], options: Gene
   return { text, meta: { templateId: primary.id, seed, persona: options.persona } };
 }
 
-export function loadPersonasSample() : Persona[] {
+export function loadPersonasSample(): Persona[] {
   const p = path.resolve(process.cwd(), 'src/lib/narrative/data/personas.sample.json');
   if (!fs.existsSync(p)) return [];
   return JSON.parse(fs.readFileSync(p, 'utf8')) as Persona[];

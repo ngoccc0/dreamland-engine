@@ -6,13 +6,39 @@ export type Comparison = {
   value: any;
 };
 
+export type RequiredEntities = {
+  requiredEntities: { enemyType?: string; itemType?: string };
+};
+
 export type ConditionExpr =
   | { all: ConditionExpr[] }
   | { any: ConditionExpr[] }
   | { not: ConditionExpr }
   | Comparison
-  | { requiredEntities: { enemyType?: string; itemType?: string } }
-  ;
+  | RequiredEntities;
+
+/**
+ * Type guards for condition expressions.
+ */
+function isComparison(cond: ConditionExpr): cond is Comparison {
+  return 'path' in cond;
+}
+
+function isRequiredEntities(cond: ConditionExpr): cond is RequiredEntities {
+  return 'requiredEntities' in cond;
+}
+
+function isAllCondition(cond: ConditionExpr): cond is { all: ConditionExpr[] } {
+  return 'all' in cond;
+}
+
+function isAnyCondition(cond: ConditionExpr): cond is { any: ConditionExpr[] } {
+  return 'any' in cond;
+}
+
+function isNotCondition(cond: ConditionExpr): cond is { not: ConditionExpr } {
+  return 'not' in cond;
+}
 
 function getPath(obj: any, path: string): any {
   if (!path) return undefined;
@@ -32,25 +58,22 @@ export function compileCondition(cond?: ConditionExpr) {
 
   const fn = (ctx: any, state: any): EvalResult => {
     // Comparison
-    if ((cond as any).path) {
-      const c = cond as Comparison;
-      const v = getPath(ctx, c.path);
+    if (isComparison(cond)) {
+      const v = getPath(ctx, cond.path);
       let matches = false;
-      switch (c.op) {
-        case '<': matches = v < c.value; break;
-        case '<=': matches = v <= c.value; break;
-        case '>': matches = v > c.value; break;
-        case '>=': matches = v >= c.value; break;
-        case '==': matches = v == c.value; break;
-        case '!=': matches = v != c.value; break;
+      switch (cond.op) {
+        case '<': matches = v < cond.value; break;
+        case '<=': matches = v <= cond.value; break;
+        case '>': matches = v > cond.value; break;
+        case '>=': matches = v >= cond.value; break;
+        case '==': matches = v == cond.value; break;
+        case '!=': matches = v != cond.value; break;
       }
       return { matches, score: matches ? 1 : 0 };
     }
 
-    if ((cond as any).requiredEntities) {
-      const req = (cond as any).requiredEntities;
-      const enemyType = req.enemyType;
-      const itemType = req.itemType;
+    if (isRequiredEntities(cond)) {
+      const { enemyType, itemType } = cond.requiredEntities;
       let found = false;
       const chunk = ctx?.chunk;
       if (enemyType && chunk?.enemy && chunk.enemy.type === enemyType) found = true;
@@ -60,8 +83,8 @@ export function compileCondition(cond?: ConditionExpr) {
       return { matches: found, score: found ? 1 : 0 };
     }
 
-    if ((cond as any).all) {
-      const subs: ConditionExpr[] = (cond as any).all;
+    if (isAllCondition(cond)) {
+      const subs: ConditionExpr[] = cond.all;
       let total = 0;
       for (const s of subs) {
         const r = compileCondition(s)(ctx, state);
@@ -71,8 +94,8 @@ export function compileCondition(cond?: ConditionExpr) {
       return { matches: true, score: total / subs.length };
     }
 
-    if ((cond as any).any) {
-      const subs: ConditionExpr[] = (cond as any).any;
+    if (isAnyCondition(cond)) {
+      const subs: ConditionExpr[] = cond.any;
       let best = 0;
       for (const s of subs) {
         const r = compileCondition(s)(ctx, state);
@@ -82,8 +105,8 @@ export function compileCondition(cond?: ConditionExpr) {
       return { matches: false, score: best };
     }
 
-    if ((cond as any).not) {
-      const r = compileCondition((cond as any).not)(ctx, state);
+    if (isNotCondition(cond)) {
+      const r = compileCondition(cond.not)(ctx, state);
       return { matches: !r.matches, score: r.matches ? 0 : 1 };
     }
 

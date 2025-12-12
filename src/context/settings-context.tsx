@@ -24,6 +24,7 @@ const defaultSettings = {
   controlsPreventScroll: true,
   autoPickup: false,
   minimapViewportSize: 5,
+  joystickSize: 140,
   startTime: 360, // 6 AM
   dayDuration: 1440, // 24 hours
   timePerTurn: 15, // 15 minutes per turn (1 day = 96 turns)

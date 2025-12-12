@@ -2,6 +2,14 @@ import type { RNG } from './rng';
 import type Lexicon from './lexicon';
 
 /**
+ * Type guard to detect if an object is a Lexicon by checking for the pick method.
+ * Lexicon has a pick(slotName, options?, rng?) method for template slot filling.
+ */
+function isLexicon(obj: any): obj is Lexicon {
+  return obj && typeof obj.pick === 'function';
+}
+
+/**
  * NARRATIVE STATE - Tracks narrative generation state for repetition avoidance and continuity.
  *
  * Extended fields for Phase 1a (polish):
@@ -90,9 +98,9 @@ export class StateManager {
     let lex: Lexicon | undefined;
     let rng: RNG | undefined;
     if (lexOrRng) {
-      // Heuristic: Lexicon has a `pick` method; RNG likely exposes `random` or is a function
-      if ((lexOrRng as any).pick && typeof (lexOrRng as any).pick === 'function') {
-        lex = lexOrRng as Lexicon;
+      // Use type guard to distinguish Lexicon from RNG
+      if (isLexicon(lexOrRng)) {
+        lex = lexOrRng;
         rng = maybeRng;
       } else {
         // third argument is RNG

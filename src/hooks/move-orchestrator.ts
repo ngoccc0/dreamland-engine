@@ -42,7 +42,7 @@ export function createHandleMove(ctx: any) {
 
       // Skip if this move is already in-flight (prevents double-invoke in StrictMode)
       moveKey = `${ctx.playerPosition.x},${ctx.playerPosition.y}->${direction}`;
-      
+
       // Use the ref from context (turn-based cleanup) instead of module-level Set
       const activeMoveOps = ctx.activeMoveOpsRef?.current || new Set<string>();
       if (activeMoveOps.has(moveKey)) {

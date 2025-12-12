@@ -562,14 +562,16 @@ export default function GameLayout(props: GameLayoutProps) {
     return (
         <TooltipProvider>
             <div className="flex flex-col md:flex-row md:h-dvh bg-background text-foreground font-body overflow-hidden" style={{ ['--aside-w' as any]: 'min(462px,36vw)' }}>
-                {/* Visual Effects Layer: Weather, Status Effects, Low HP Vignette, Damage Popups */}
-                <VisualEffectsLayer
-                    currentHp={Number(playerStats.hp ?? 0)}
-                    maxHp={Number(playerStats.maxHp ?? 100)}
-                    weather={weatherZones?.[currentChunk?.regionId]?.currentWeather?.id || 'CLEAR'}
-                    gameTime={gameTime}
-                    activeEffects={playerStats?.activeEffects || []}
-                />
+                {/* Full-screen Low HP heartbeat vignette */}
+                {(Number(playerStats.hp ?? 0) / Number(playerStats.maxHp ?? 100)) * 100 < 30 && (
+                    <div
+                        className="fixed inset-0 pointer-events-none z-[15]"
+                        style={{
+                            animation: 'heartbeat-vignette 1.5s infinite',
+                            background: 'radial-gradient(circle, transparent 60%, rgba(180, 0, 0, 0.4) 100%)',
+                        }}
+                    />
+                )}
 
                 {/* Mobile Layout: Map/HUD on top (fixed), Narrative scrollable below */}
                 {/* Desktop Layout: Narrative left (scrollable), Map/HUD right (fixed) */}
@@ -596,11 +598,18 @@ export default function GameLayout(props: GameLayoutProps) {
 
                 {/* RIGHT PANEL: Map/HUD/Controls (fixed on mobile, scrollable on desktop) */}
                 <aside className="order-1 md:order-2 w-full md:w-[min(462px,36vw)] md:flex-none bg-card border-t md:border-t-0 md:border-l h-auto max-h-[55vh] md:max-h-none md:h-full overflow-y-auto md:overflow-y-auto pt-4 pb-4 px-4 md:pt-6 md:pb-0 md:px-6 flex flex-col gap-6 md:min-h-0">
+                    {/* Desktop Only: action icons will be displayed inline next to the minimap title */}
+
                     {/* Top Section - HUD & Minimap */}
                     <div className="flex-shrink-0 flex flex-col gap-4">
                         {/* Minimap */}
                         <div className="flex flex-col items-center gap-2 w-full md:max-w-xs mx-auto">
-                            <h3 className="text-lg font-headline font-semibold text-center text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { handleMapToggle(); focusCustomActionInput(); }}>{t('minimap')}</h3>
+                            <div className="w-full flex items-center justify-center">
+                                <div className="flex items-center gap-2">
+                                    <h3 className="text-lg font-headline font-semibold text-foreground/80 cursor-pointer hover:text-accent transition-colors" onClick={() => { handleMapToggle(); focusCustomActionInput(); }}>{t('minimap')}</h3>
+                                    {/* Icons moved to world title header to avoid duplication */}
+                                </div>
+                            </div>
                             {/* Temperature Display & Minimap Size Control - Single Row */}
                             <div className="flex flex-row items-center justify-center gap-1 w-full px-2">
                                 {/* Weather Emoji - Always Display */}
@@ -678,7 +687,15 @@ export default function GameLayout(props: GameLayoutProps) {
                                     <TooltipContent><p>Cycle minimap size</p></TooltipContent>
                                 </Tooltip>
                             </div>
-                            <div className="w-full max-w-full md:max-w-xs">
+                            <div className="w-full max-w-full md:max-w-xs relative z-[20]">
+                                {/* Visual Effects Layer: Only over minimap - Weather, Status Effects, Damage Popups */}
+                                <VisualEffectsLayer
+                                    currentHp={Number(playerStats.hp ?? 0)}
+                                    maxHp={Number(playerStats.maxHp ?? 100)}
+                                    weather={weatherZones?.[currentChunk?.regionId]?.currentWeather?.id || 'CLEAR'}
+                                    gameTime={gameTime}
+                                    activeEffects={playerStats?.activeEffects || []}
+                                />
                                 <Minimap grid={gridToPass} playerPosition={playerPosition} visualPlayerPosition={visualPlayerPosition} isAnimatingMove={isAnimatingMove} visualMoveFrom={visualMoveFrom} visualMoveTo={visualMoveTo} visualJustLanded={visualJustLanded} turn={turn} biomeDefinitions={biomeDefinitions} />
                             </div>
                         </div>
@@ -744,7 +761,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         {/* Controls (mobile only). On desktop we show the bottom fixed action bar instead. */}
                         <div className="flex items-center justify-between gap-4">
                             {!isDesktop && (
-                                <Controls onMove={(dir) => { handleMove(dir); focusCustomActionInput(); }} onAttack={() => { handleAttack(); focusCustomActionInput(); }} onRest={() => { handleWaitTick(); focusCustomActionInput(); }} />
+                                <Controls onMove={(dir) => { if (dir) handleMove(dir); focusCustomActionInput(); }} onAttack={() => { handleAttack(); focusCustomActionInput(); }} onRest={() => { handleWaitTick(); focusCustomActionInput(); }} />
                             )}
                         </div>
 

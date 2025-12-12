@@ -24,6 +24,26 @@ import { ENGLISH_LEXICON, getRandomAdjective as getRandomAdjectiveEN } from '@/l
 import { VIETNAMESE_LEXICON, getRandomAdjective as getRandomAdjectiveVI } from '@/lib/definitions/narrative/lexicon/vi';
 
 /**
+ * Safe accessor for getting continuation phrases by action type.
+ * Prevents undefined access and provides type safety.
+ */
+function getContinuationsForActionType(lexicon: { continuations: Record<string, string[]> }, actionType?: string): string[] | undefined {
+    if (!actionType) return undefined;
+    return lexicon.continuations[actionType];
+}
+
+/**
+ * Safe accessor for getting adjectives by mood.
+ * Prevents undefined access and provides type safety.
+ */
+function getAdjectivesByMood(
+    lexicon: { adjectives: Record<string, { standard: string[]; subtle: string[]; emphatic: string[] }> },
+    mood: string
+): { standard: string[]; subtle: string[]; emphatic: string[] } | undefined {
+    return lexicon.adjectives[mood];
+}
+
+/**
  * Lexicon selection options
  */
 export interface LexiconSelectionOptions {
@@ -142,11 +162,11 @@ export function selectContinuation(options: LexiconSelectionOptions = {}): strin
     } = options;
 
     const lexicon = language === 'vi' ? VIETNAMESE_LEXICON : ENGLISH_LEXICON;
-    const continuations = (lexicon.continuations as any)[actionType];
+    const continuations = getContinuationsForActionType(lexicon, actionType);
 
     if (!continuations || continuations.length === 0) {
         // Fall back to transition type
-        const transitionContinuations = (lexicon.continuations as any)['transition'];
+        const transitionContinuations = getContinuationsForActionType(lexicon, 'transition');
         if (transitionContinuations && transitionContinuations.length > 0) {
             const filtered = transitionContinuations.filter((c: string) => !excludeRecent.includes(c));
             if (filtered.length > 0) {
@@ -208,7 +228,7 @@ export function getAdjectivesForMood(
     language: 'en' | 'vi' = 'en'
 ): string[] {
     const lexicon = language === 'vi' ? VIETNAMESE_LEXICON : ENGLISH_LEXICON;
-    const moodData = (lexicon.adjectives as any)[mood];
+    const moodData = getAdjectivesByMood(lexicon, mood);
 
     if (!moodData) {
         return [];

@@ -60,9 +60,9 @@ function evalOp(lhs: any, op: string, rhs: any) {
     case '<=': return lhs <= rhs;
     case '>': return lhs > rhs;
     case '>=': return lhs >= rhs;
-    case '==': return lhs == rhs;  
+    case '==': return lhs == rhs;
     case '===': return lhs === rhs;
-    case '!=': return lhs != rhs;  
+    case '!=': return lhs != rhs;
     case '!==': return lhs !== rhs;
     default: return false;
   }
@@ -141,7 +141,7 @@ export function pickVariantFromBundleWithConditions(
   if (!bundle || !Array.isArray(bundle.templates) || bundle.templates.length === 0) return { text: '', meta: { templateId: undefined } };
   // Collect templates that match conditions (or all if no conditions present)
   const candidates = bundle.templates.filter((t) => {
-    return templateMatchesConditions((t as any).conditions, context);
+    return templateMatchesConditions(t.conditions, context);
   });
 
   const seedBase = options?.seed ?? `conditional::runtime`;

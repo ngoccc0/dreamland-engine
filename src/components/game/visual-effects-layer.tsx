@@ -50,12 +50,17 @@ interface VisualEffectsLayerProps {
  *
  * Props are passed from parent (game-layout.tsx) to control all visual effects.
  * This avoids hooking directly into game state, keeping the component flexible.
+ * 
+ * Positioned absolutely inside the minimap container only—weather effects appear
+ * only over the minimap, not over the main game canvas or HUD elements.
  *
- * All overlays use z-index layering:
- * - z-10: Weather particles
- * - z-20: Status effect overlay
- * - z-30: Low HP vignette
- * - z-40: Damage popups
+ * All overlays use z-index layering (parent positioned within minimap):
+ * - z-10: Weather particles (rain/snow/cloudy drizzle)
+ * - z-20: Status effect overlay (poison/frozen/burning/stunned)
+ * - z-30: Low HP vignette (< 30% health heartbeat)
+ * - z-40: Damage popups (floating numbers)
+ * 
+ * Parent container: absolute inset-0 z-[10] ensures effects stay within minimap bounds.
  *
  * @param {VisualEffectsLayerProps} props - Configuration from parent component
  *
@@ -89,17 +94,18 @@ export const VisualEffectsLayer = ({
         return 'night';
     })();
 
-    // Time overlay CSS classes
-    const timeOverlayClass = (() => {
+    // Time overlay color class and opacity (animate opacity for smooth fade)
+    // Provide RGB base colors and slightly stronger opacity at edges for a subtle vignette
+    const { baseRgb, overlayBlendClass, overlayInnerOpacity, overlayOuterOpacity } = (() => {
         switch (timeOfDay) {
             case 'morning':
-                return 'bg-orange-100/10 mix-blend-overlay';
+                return { baseRgb: '255,179,71', overlayBlendClass: 'mix-blend-overlay', overlayInnerOpacity: 0.02, overlayOuterOpacity: 0.08 };
             case 'evening':
-                return 'bg-orange-500/20 mix-blend-overlay';
+                return { baseRgb: '255,140,60', overlayBlendClass: 'mix-blend-overlay', overlayInnerOpacity: 0.035, overlayOuterOpacity: 0.12 };
             case 'night':
-                return 'bg-[#050b14]/70 mix-blend-multiply';
+                return { baseRgb: '5,11,20', overlayBlendClass: 'mix-blend-multiply', overlayInnerOpacity: 0.08, overlayOuterOpacity: 0.32 };
             default:
-                return '';
+                return { baseRgb: '', overlayBlendClass: '', overlayInnerOpacity: 0, overlayOuterOpacity: 0 };
         }
     })();
 
@@ -115,28 +121,24 @@ export const VisualEffectsLayer = ({
     }, []);
 
     return (
-        <div className="absolute inset-0 z-[5] pointer-events-none overflow-hidden transition-all duration-[2000ms]">
-            {/* Time-of-day color overlay */}
-            <div
-                className={`absolute inset-0 w-full h-full transition-all duration-[2000ms] ${timeOverlayClass}`}
-            />
+        <div className="absolute inset-0 z-[5] pointer-events-none overflow-hidden">
+            {/* Time-of-day color overlay with smooth fade in/out on change */}
+            {baseRgb && (
+                <div
+                    aria-hidden
+                    className={`absolute inset-0 w-full h-full ${overlayBlendClass}`}
+                    style={{
+                        background: `radial-gradient(circle at 45% 40%, rgba(${baseRgb}, ${overlayInnerOpacity}) 35%, rgba(${baseRgb}, ${overlayOuterOpacity}) 100%)`,
+                        transition: 'background 900ms ease-in-out, opacity 900ms ease-in-out',
+                    }}
+                />
+            )}
 
             {/* Weather particles (rain/snow) */}
             <WeatherParticles weather={weather as any} />
 
             {/* Status effect overlay (poison, frozen, etc.) */}
             <StatusEffectOverlay activeEffects={activeEffects} />
-
-            {/* Low HP heartbeat vignette */}
-            {isLowHealth && (
-                <div
-                    className="absolute inset-0 pointer-events-none z-30"
-                    style={{
-                        animation: 'heartbeat-vignette 1.5s infinite',
-                        background: 'radial-gradient(circle, transparent 60%, rgba(180, 0, 0, 0.4) 100%)',
-                    }}
-                />
-            )}
 
             {/* Damage popups */}
             <DamagePopup ref={damagePopupRef} maxPopups={5} />

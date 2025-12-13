@@ -41,7 +41,7 @@ import type { Structure, Action, NarrativeEntry } from "@/lib/game/types";
 import { cn, getTranslatedText } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
 
-import { Backpack, Shield, Cpu, Hammer, WandSparkles, Home, BedDouble, LifeBuoy, FlaskConical, Settings, Loader2, Menu, LogOut, Minus, Plus } from "./icons";
+import { Backpack, Shield, Hammer, WandSparkles, Home, BedDouble, LifeBuoy, FlaskConical, Settings, Loader2, Menu, LogOut, Minus, Plus, MapPin } from "./icons";
 import { IconRenderer } from "@/components/ui/icon-renderer";
 import { GameNarrativePanel } from "@/components/game/game-narrative-panel";
 import { resolveItemDef } from '@/lib/game/item-utils';
@@ -924,7 +924,7 @@ export default function GameLayout(props: GameLayoutProps) {
                                 <span className="text-xs">{t('fusionShort') || 'Fuse'}</span>
                             </Button>
                             <Button variant="outline" className="flex flex-col items-center gap-1 h-16" onClick={() => { handleMapToggle(); setAvailableActionsOpen(false); focusCustomActionInput(); }}>
-                                <Cpu className="h-6 w-6" />
+                                <MapPin className="h-6 w-6" />
                                 <span className="text-xs">{t('map') || 'Map'}</span>
                             </Button>
                         </div>

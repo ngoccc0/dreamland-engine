@@ -35,7 +35,6 @@ export function renderItemEmoji(emoji: any, size: number = 20) {
 export {
   Backpack,
   Shield,
-  Cpu,
   Hammer,
   WandSparkles,
   Home,

@@ -45,9 +45,18 @@ env/
 *.user
 *.vs/
 
-# TypeDoc generated output (debug + normal)
-/docs/api
-/docs/api-debug
+# Editor swap files (Vim/Neovim)
+*.swp
+*.swo
+*.swn
+
+# Build caches
+.eslint-cache
+.turbo/
+
+# Documentation and Technical Notes (local only, not synced)
+docs/
+LONG_TERM_NOTES.md
 
 # TypeScript build info
 tsconfig.tsbuildinfo

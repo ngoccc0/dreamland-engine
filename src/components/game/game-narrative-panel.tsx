@@ -18,7 +18,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { cn, getTranslatedText } from "@/lib/utils";
 import type { NarrativeEntry } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
-import { Menu, LifeBuoy, Settings, LogOut, Shield, Backpack, Hammer, Home, FlaskConical } from "./icons";
+import { Menu, LifeBuoy, Settings, LogOut, Shield, Backpack, Hammer, Home, FlaskConical, Loader2 } from "./icons";
 import { useTypingAnimation } from "@/hooks/useTypingAnimation";
 import { applyEmphasisRules, getEmphasisClass } from "@/lib/narrative/textEmphasisRules";
 import { useMobileOptimization } from "@/hooks/useMobileOptimization";
@@ -375,7 +375,7 @@ export function GameNarrativePanel({
                     {/* Loading indicator */}
                     {isLoading && (
                         <div className="flex items-center gap-2 text-muted-foreground italic mt-4 py-2 px-3 rounded bg-muted/30 animate-pulse text-sm">
-                            <Cpu className="h-4 w-4 animate-spin" />
+                            <Loader2 className="h-4 w-4 animate-spin" />
                             <p>{t("aiThinking") || "AI is thinking..."}</p>
                         </div>
                     )}

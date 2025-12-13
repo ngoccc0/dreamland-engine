@@ -590,6 +590,11 @@ export default function GameLayout(props: GameLayoutProps) {
                         onOpenTutorial={() => { setTutorialOpen(true); focusCustomActionInput(); }}
                         onOpenSettings={() => { setSettingsOpen(true); focusCustomActionInput(); }}
                         onReturnToMenu={handleReturnToMenu}
+                        onOpenStatus={() => { handleStatusToggle(); focusCustomActionInput(); }}
+                        onOpenInventory={() => { handleInventoryToggle(); focusCustomActionInput(); }}
+                        onOpenCrafting={() => { handleCraftingToggle(); focusCustomActionInput(); }}
+                        onOpenBuilding={() => { setBuildingOpen(true); focusCustomActionInput(); }}
+                        onOpenFusion={() => { setFusionOpen(true); focusCustomActionInput(); }}
                         animationMode="instant"
                         enableEmphasis={true}
                         maxEntries={50}

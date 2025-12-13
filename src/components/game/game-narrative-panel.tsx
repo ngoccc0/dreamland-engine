@@ -18,7 +18,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { cn, getTranslatedText } from "@/lib/utils";
 import type { NarrativeEntry } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
-import { Menu, LifeBuoy, Settings, LogOut, Cpu, Shield, Backpack, Hammer, Home, FlaskConical } from "./icons";
+import { Menu, LifeBuoy, Settings, LogOut, Shield, Backpack, Hammer, Home, FlaskConical } from "./icons";
 import { useTypingAnimation } from "@/hooks/useTypingAnimation";
 import { applyEmphasisRules, getEmphasisClass } from "@/lib/narrative/textEmphasisRules";
 import { useMobileOptimization } from "@/hooks/useMobileOptimization";
@@ -56,6 +56,21 @@ interface GameNarrativePanelProps {
 
     /** Callback to return to menu */
     onReturnToMenu: () => void;
+
+    /** Callback to open status popup */
+    onOpenStatus: () => void;
+
+    /** Callback to open inventory popup */
+    onOpenInventory: () => void;
+
+    /** Callback to open crafting popup */
+    onOpenCrafting: () => void;
+
+    /** Callback to open building popup */
+    onOpenBuilding: () => void;
+
+    /** Callback to open fusion popup */
+    onOpenFusion: () => void;
 
     /** Optional className for styling */
     className?: string;
@@ -171,6 +186,11 @@ export function GameNarrativePanel({
     onOpenTutorial,
     onOpenSettings,
     onReturnToMenu,
+    onOpenStatus,
+    onOpenInventory,
+    onOpenCrafting,
+    onOpenBuilding,
+    onOpenFusion,
     className = "",
     animationMode = 'typing',
     enableEmphasis = true,
@@ -214,80 +234,60 @@ export function GameNarrativePanel({
 
                     {/* Desktop-only: muted, icon-only quick actions next to world title */}
                     <div className="hidden md:flex items-center gap-2 ml-3">
+                        {/* Status Button */}
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <button onClick={onOpenSettings} className="p-1 rounded text-amber-400/70 hover:opacity-90" aria-label={t('gameSettings') || 'Settings'}>
+                                <Button variant="ghost" size="icon" onClick={onOpenStatus} className="text-amber-400" aria-label={t('statusShort') || 'Status'}>
                                     <Shield className="h-5 w-5" />
-                                </button>
+                                </Button>
                             </TooltipTrigger>
-                            <TooltipContent><p>{t('gameSettings')}</p></TooltipContent>
+                            <TooltipContent><p>{t('statusShort') || 'Status'}</p></TooltipContent>
                         </Tooltip>
 
+                        {/* Inventory Button */}
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <button onClick={onOpenTutorial} className="p-1 rounded text-sky-400/70 hover:opacity-90" aria-label={t('tutorialTitle') || 'Tutorial'}>
+                                <Button variant="ghost" size="icon" onClick={onOpenInventory} className="text-sky-400" aria-label={t('inventoryShort') || 'Inventory'}>
                                     <Backpack className="h-5 w-5" />
-                                </button>
+                                </Button>
                             </TooltipTrigger>
-                            <TooltipContent><p>{t('tutorialTitle')}</p></TooltipContent>
+                            <TooltipContent><p>{t('inventoryShort') || 'Inventory'}</p></TooltipContent>
                         </Tooltip>
 
+                        {/* Crafting Button */}
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <button onClick={onReturnToMenu} className="p-1 rounded text-indigo-400/70 hover:opacity-90" aria-label={t('returnToMenu') || 'Return'}>
+                                <Button variant="ghost" size="icon" onClick={onOpenCrafting} className="text-purple-400" aria-label={t('craftingShort') || 'Craft'}>
                                     <Hammer className="h-5 w-5" />
-                                </button>
+                                </Button>
                             </TooltipTrigger>
-                            <TooltipContent><p>{t('returnToMenu')}</p></TooltipContent>
+                            <TooltipContent><p>{t('craftingShort') || 'Craft'}</p></TooltipContent>
                         </Tooltip>
 
+                        {/* Building Button */}
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <button onClick={onOpenSettings} className="p-1 rounded text-green-400/65 hover:opacity-90" aria-label={t('buildingTooltip') || 'Build'}>
+                                <Button variant="ghost" size="icon" onClick={onOpenBuilding} className="text-green-400" aria-label={t('buildingShort') || 'Build'}>
                                     <Home className="h-5 w-5" />
-                                </button>
+                                </Button>
                             </TooltipTrigger>
-                            <TooltipContent><p>{t('buildingTooltip')}</p></TooltipContent>
+                            <TooltipContent><p>{t('buildingShort') || 'Build'}</p></TooltipContent>
                         </Tooltip>
 
+                        {/* Fusion Button */}
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <button onClick={onOpenTutorial} className="p-1 rounded text-pink-300/70 hover:opacity-90" aria-label={t('fusionTooltip') || 'Fuse'}>
+                                <Button variant="ghost" size="icon" onClick={onOpenFusion} className="text-pink-400" aria-label={t('fusionShort') || 'Fuse'}>
                                     <FlaskConical className="h-5 w-5" />
-                                </button>
+                                </Button>
                             </TooltipTrigger>
-                            <TooltipContent><p>{t('fusionTooltip')}</p></TooltipContent>
+                            <TooltipContent><p>{t('fusionShort') || 'Fuse'}</p></TooltipContent>
                         </Tooltip>
                     </div>
                 </div>
 
-                {/* Header Controls: Hide/Show Toggle + Menu */}
+                {/* Header Controls: Menu */}
                 <div className="flex items-center gap-2">
-                    {/* Desktop-only toggle for narrative visibility */}
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="hidden md:inline-flex"
-                                onClick={() => onToggleNarrativeDesktop(!showNarrativeDesktop)}
-                                aria-label={
-                                    showNarrativeDesktop
-                                        ? t("hideNarrative") || "Hide narrative"
-                                        : t("showNarrative") || "Show narrative"
-                                }
-                            >
-                                {showNarrativeDesktop ? "Hide" : "Show"}
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>
-                                {showNarrativeDesktop
-                                    ? t("hideNarrative") || "Hide narrative"
-                                    : t("showNarrative") || "Show narrative"}
-                            </p>
-                        </TooltipContent>
-                    </Tooltip>
 
                     {/* Menu Dropdown */}
                     <DropdownMenu>

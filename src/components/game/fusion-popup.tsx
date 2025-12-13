@@ -97,9 +97,9 @@ export function FusionPopup({ open, onOpenChange, playerItems, itemDefinitions, 
               <h3 className="font-semibold text-center text-muted-foreground">{t('yourInventory')}</h3>
               <div className="h-72 border rounded-md p-2 bg-muted/20 overflow-y-auto">
                 <div className="space-y-2">
-                  {getAvailablePlayerItems().map((item) => (
-                    // Use a stable unique key: prefer the canonical id, fall back to the English string
-                    <TooltipProvider key={item.id ?? getTranslatedText(item.name as any, 'en')}>
+                  {getAvailablePlayerItems().map((item, index) => (
+                    // Use a stable unique key: combine id with index to ensure uniqueness
+                    <TooltipProvider key={`${item.id ?? getTranslatedText(item.name as any, 'en')}-${index}`}>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button

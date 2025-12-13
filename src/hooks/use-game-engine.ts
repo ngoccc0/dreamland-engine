@@ -6,9 +6,9 @@ import { useLanguage } from '@/context/language-context';
 import { applyTickEffects } from '@/lib/game/effect-engine';
 import type { PlayerStatusDefinition, NarrativeEntry } from '@/core/types/game';
 import { CreatureEngine } from '@/core/engines/creature-engine';
-import { PlantEngine } from '@/core/engines/plant-engine';
 import { EffectEngine } from '@/core/engines/effect-engine';
 import { WeatherEngine } from '@/core/engines/weather-engine';
+import { processPlantGrowth } from '@/core/usecases/plant-growth.usecase';
 import { WeatherType, WeatherIntensity, WeatherCondition } from '@/core/types/weather';
 import { GridPosition } from '@/core/values/grid-position';
 import { useGameState } from "./use-game-state";
@@ -156,8 +156,6 @@ export function useGameEngine(props: GameEngineProps) {
     // Initialize weather engine
     const weatherEngineRef = useRef(new WeatherEngine(effectEngineRef.current, weatherData));
 
-    // Initialize plant engine
-    const plantEngineRef = useRef(new PlantEngine(t));
 
     // Queue for narrative entries to fix race condition
     // Entries are batched and flushed atomically per frame via useLayoutEffect
@@ -414,8 +412,14 @@ export function useGameEngine(props: GameEngineProps) {
 
         // Update plants in visible area
         try {
-            const plantMessages = plantEngineRef.current.updatePlants(currentTurn, visibleChunks, gameState.currentSeason, gameState.worldProfile);
-            for (const m of plantMessages) addNarrativeEntry(m.text, m.type);
+            const plantResult = processPlantGrowth({
+                currentTick: currentTurn,
+                chunks: visibleChunks,
+                season: gameState.currentSeason,
+                worldProfile: gameState.worldProfile,
+                t
+            });
+            for (const m of plantResult.narrativeMessages) addNarrativeEntry(m.text, m.type);
         } catch (err: any) {
             // Silently handle plant updates; world continues
         }

@@ -92,8 +92,13 @@ export const plants: Record<string, CreatureDefinition> = {
     naturalSpawn: [
       {
         biome: 'forest',
-        chance: 0.9,
+        chance: 0.95,
         conditions: { vegetationDensity: { min: 3 } }
+      },
+      {
+        biome: 'grassland',
+        chance: 0.7,
+        conditions: { vegetationDensity: { min: 2 } }
       }
     ]
   },
@@ -138,7 +143,9 @@ export const plants: Record<string, CreatureDefinition> = {
     ,
     // Allow tall grass to naturally appear in multiple grassy biomes by default.
     naturalSpawn: [
-      { chance: 0.8, conditions: { vegetationDensity: { min: 0 } } }
+      { biome: 'grassland', chance: 0.95, conditions: { vegetationDensity: { min: 0 } } },
+      { biome: 'forest', chance: 0.75, conditions: { vegetationDensity: { min: 1 } } },
+      { biome: 'mountain', chance: 0.6, conditions: { vegetationDensity: { min: 0 } } }
     ]
   },
   wild_cotton: {
@@ -182,8 +189,13 @@ export const plants: Record<string, CreatureDefinition> = {
     naturalSpawn: [
       {
         biome: 'grassland',
-        chance: 0.5,
+        chance: 0.75,
         conditions: { vegetationDensity: { min: 5 } }
+      },
+      {
+        biome: 'forest',
+        chance: 0.4,
+        conditions: { vegetationDensity: { min: 8 } }
       }
     ]
   },
@@ -229,8 +241,13 @@ export const plants: Record<string, CreatureDefinition> = {
     naturalSpawn: [
       {
         biome: 'forest',
-        chance: 0.4,
+        chance: 0.7,
         conditions: { vegetationDensity: { min: 10 } }
+      },
+      {
+        biome: 'grassland',
+        chance: 0.5,
+        conditions: { vegetationDensity: { min: 8 } }
       }
     ]
   },
@@ -275,8 +292,13 @@ export const plants: Record<string, CreatureDefinition> = {
     naturalSpawn: [
       {
         biome: 'forest',
-        chance: 0.3,
+        chance: 0.6,
         conditions: { vegetationDensity: { min: 20 } }
+      },
+      {
+        biome: 'grassland',
+        chance: 0.3,
+        conditions: { vegetationDensity: { min: 15 } }
       }
     ]
   },
@@ -322,8 +344,13 @@ export const plants: Record<string, CreatureDefinition> = {
     naturalSpawn: [
       {
         biome: 'grassland',
-        chance: 0.4,
+        chance: 0.7,
         conditions: { vegetationDensity: { min: 8 } }
+      },
+      {
+        biome: 'forest',
+        chance: 0.5,
+        conditions: { vegetationDensity: { min: 10 } }
       }
     ]
   },
@@ -369,8 +396,13 @@ export const plants: Record<string, CreatureDefinition> = {
     naturalSpawn: [
       {
         biome: 'desert',
-        chance: 0.6,
+        chance: 0.85,
         conditions: { vegetationDensity: { min: 2 } }
+      },
+      {
+        biome: 'grassland',
+        chance: 0.2,
+        conditions: { vegetationDensity: { min: 1 } }
       }
     ]
   }

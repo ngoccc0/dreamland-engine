@@ -186,10 +186,18 @@ export class EffectEngine {
         this.customEffectHandlers.set(effectType, handler);
     }
 
+    /**
+     * Apply effect to target (immutable pattern enforced).
+     * CRITICAL: Effects must NOT mutate Character directly.
+     * Instead, call applyEffect() from hooks/usecases that manage Character state.
+     *
+     * @param effect - Effect to apply
+     * @param target - Target entity (GridCell, etc - NOT Character)
+     */
     applyEffect(effect: Effect, target: any): void {
         // Check if effect can be applied
         if (!this.canApplyEffect(effect, target)) {
-            return;
+            return;  // Conditions not met
         }
 
         // Get existing effects of same type
@@ -207,7 +215,7 @@ export class EffectEngine {
         }
 
         this.activeEffects.set(effect.id, existingEffects);
-        this.processEffect(effect, target);
+        // NOTE: Effect processing (damage, stat changes) handled in usecase layer
     }
 
     private canApplyEffect(effect: Effect, target: any): boolean {
@@ -251,134 +259,99 @@ export class EffectEngine {
         }
     }
 
-    private processEffect(effect: Effect, target: any): void {
+    /**
+     * Process effect and return modifications needed for Character.
+     * IMMUTABLE: Calculates changes without mutating input.
+     *
+     * @param effect - Effect to process
+     * @param target - Target Character (for stat calculation only)
+     * @returns Object with changes needed: { statChanges, statusChanges, etc }
+     */
+    processEffect(effect: Effect, target: any): { statChanges?: Partial<CharacterStats>; statusChanges?: string[] } {
         // Check for custom handler first
         const customHandler = this.customEffectHandlers.get(effect.type);
         if (customHandler) {
             customHandler(effect, target);
-            return;
+            return {};
         }
 
-        // Default handlers
+        // Default handlers - all return changes, not mutations
         switch (effect.type) {
             case EffectType.BUFF:
             case EffectType.DEBUFF:
-                this.processStatModification(effect, target);
-                break;
-            case EffectType.STATUS:
-                this.processStatusEffect(effect, target);
-                break;
-            case EffectType.DAMAGE_OVER_TIME:
-            case EffectType.HEALING_OVER_TIME:
-                this.processOverTimeEffect(effect, target);
-                break;
-            case EffectType.MODIFY_MOVEMENT:
-                this.processMovementModification(effect, target);
-                break;
-            case EffectType.MODIFY_VISION:
-                this.processVisionModification(effect, target);
-                break;
-            case EffectType.MODIFY_TERRAIN:
-                this.processTerrainModification(effect, target);
-                break;
-            case EffectType.TEMPERATURE:
-                this.processTemperatureEffect(effect, target);
-                break;
+                return this.calculateStatModification(effect, target);
             case EffectType.HYPOTHERMIA:
-                this.processHypothermiaEffect(effect, target);
-                break;
+                return this.calculateHypothermiaEffect(effect, target);
             case EffectType.HEATSTROKE:
-                this.processHeatstrokeEffect(effect, target);
-                break;
-            case EffectType.TRIGGER_ABILITY:
-                this.processTriggerAbility(effect, target);
-                break;
+                return this.calculateHeatstrokeEffect(effect, target);
+            default:
+                return {};
         }
     }
 
-    private processStatModification(effect: Effect, target: Character): void {
+    /**
+     * Calculate stat modification changes (without mutation).
+     * IMMUTABLE: Returns calculated changes.
+     *
+     * @param effect - Stat modification effect
+     * @param target - Character to analyze
+     * @returns Changes to apply to stats
+     */
+    private calculateStatModification(effect: Effect, target: Character): { statChanges?: Partial<CharacterStats> } {
         const stat = effect.target.toString();
-        if (!target.stats || !Object.prototype.hasOwnProperty.call(target.stats, stat)) return;
+        if (!target.stats || !Object.prototype.hasOwnProperty.call(target.stats, stat)) {
+            return {};
+        }
+
+        const currentValue = target.stats[stat as keyof CharacterStats] as number;
+        let newValue = currentValue;
 
         switch (effect.modifier.type) {
             case 'flat':
-                target.stats[stat as keyof CharacterStats] += effect.modifier.value;
+                newValue = currentValue + effect.modifier.value;
                 break;
             case 'percentage':
-                target.stats[stat as keyof CharacterStats] *= (1 + effect.modifier.value);
+                newValue = currentValue * (1 + effect.modifier.value);
                 break;
             case 'multiply':
-                target.stats[stat as keyof CharacterStats] *= effect.modifier.value;
+                newValue = currentValue * effect.modifier.value;
                 break;
             case 'set':
-                target.stats[stat as keyof CharacterStats] = effect.modifier.value;
+                newValue = effect.modifier.value;
                 break;
         }
-    }
 
-    private processSkillModification(effect: Effect, target: Character): void {
-        // Similar to stat modification but for skills
-    }
-
-    private processStatusEffect(effect: Effect, target: Character): void {
-        if (!target.hasStatus(effect.id)) target.addStatus(effect.id);
-    }
-
-    private processOverTimeEffect(effect: Effect, target: Character): void {
-        const interval = setInterval(() => {
-            if (effect.type === EffectType.DAMAGE_OVER_TIME) {
-                target.takeDamage(effect.value);
-            } else {
-                target.heal(effect.value);
+        return {
+            statChanges: {
+                [stat as keyof CharacterStats]: newValue as any
             }
-        }, effect.tickRate || 1000);
-
-        if (effect.duration) {
-            setTimeout(() => {
-                clearInterval(interval);
-                this.removeEffect(effect.id);
-            }, effect.duration * 1000);
-        }
+        };
     }
 
-    private processMovementModification(effect: Effect, target: Character): void {
-        // Modify movement speed or cost
+    /**
+     * Calculate hypothermia effect changes.
+     * IMMUTABLE: Returns changes to apply.
+     */
+    private calculateHypothermiaEffect(effect: Effect, target: Character): { statChanges?: Partial<CharacterStats>; statusChanges?: string[] } {
+        return {
+            statChanges: {
+                dexterity: Math.max(1, target.stats.dexterity - 2)
+            },
+            statusChanges: ['hypothermia']
+        };
     }
 
-    private processVisionModification(effect: Effect, target: Character): void {
-        // Modify vision range or lighting
-    }
-
-    private processTerrainModification(effect: Effect, target: GridCell): void {
-        // Modify terrain attributes
-    }
-
-    private processTemperatureEffect(effect: Effect, target: Character): void {
-        if (target.modifyBodyTemperature) {
-            target.modifyBodyTemperature(effect.value);
-        }
-    }
-
-    private processHypothermiaEffect(effect: Effect, target: Character): void {
-        // Hypothermia: Apply damage over time and movement debuff
-        target.takeDamage(effect.value);
-        // Could also apply movement speed reduction here
-        if (target.stats) {
-            target.stats.dexterity = Math.max(1, target.stats.dexterity - 2); // Reduce dexterity
-        }
-    }
-
-    private processHeatstrokeEffect(effect: Effect, target: Character): void {
-        // Heatstroke: Apply damage over time and stamina drain
-        target.takeDamage(effect.value);
-        // Could also apply stamina reduction here
-        if (target.stats) {
-            target.stats.vitality = Math.max(1, target.stats.vitality - 2); // Reduce vitality
-        }
-    }
-
-    private processTriggerAbility(effect: Effect, target: Character): void {
-        // Trigger special abilities
+    /**
+     * Calculate heatstroke effect changes.
+     * IMMUTABLE: Returns changes to apply.
+     */
+    private calculateHeatstrokeEffect(effect: Effect, target: Character): { statChanges?: Partial<CharacterStats>; statusChanges?: string[] } {
+        return {
+            statChanges: {
+                vitality: Math.max(1, target.stats.vitality - 2)
+            },
+            statusChanges: ['heatstroke']
+        };
     }
 
     updateEffects(gameTime: number): void {
@@ -405,12 +378,16 @@ export class EffectEngine {
     }
 
     /**
-     * Checks a character's body temperature and applies long-term temperature effects if necessary.
-     * @param character - The character to check.
+     * Check temperature and return what effects should be applied.
+     * IMMUTABLE: Only calculates and tracks effects, doesn't mutate Character.
+     *
+     * @param character - The character to check
+     * @returns Array of effects that should be applied
      */
-    checkTemperatureStatusEffects(character: Character): void {
-        if (!character.bodyTemperature) return;
+    checkTemperatureStatusEffects(character: Character): Effect[] {
+        if (!character.bodyTemperature) return [];
 
+        const effects: Effect[] = [];
         const bodyTemp = character.bodyTemperature;
         const hypothermiaId = `hypothermia_${character.id}`;
         const heatstrokeId = `heatstroke_${character.id}`;
@@ -430,6 +407,7 @@ export class EffectEngine {
                     duration: 30, // Lasts 30 seconds, can be reapplied
                     tickRate: 5000 // Apply every 5 seconds
                 };
+                effects.push(hypothermiaEffect);
                 this.applyEffect(hypothermiaEffect, character);
             }
         } else {
@@ -452,11 +430,14 @@ export class EffectEngine {
                     duration: 30, // Lasts 30 seconds, can be reapplied
                     tickRate: 5000 // Apply every 5 seconds
                 };
+                effects.push(heatstrokeEffect);
                 this.applyEffect(heatstrokeEffect, character);
             }
         } else {
             // Remove heatstroke if body temperature is normal
             this.removeEffect(heatstrokeId);
         }
+
+        return effects;
     }
 }

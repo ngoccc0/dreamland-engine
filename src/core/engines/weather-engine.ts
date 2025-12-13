@@ -255,12 +255,24 @@ export class WeatherEngine {
         return weather ? weather.getPrimaryCondition() : this.weatherData.get(WeatherType.CLEAR)!;
     }
 
-    applyWeatherEffects(cell: GridCell, character?: Character): void {
+    /**
+     * Apply weather effects to cell and character.
+     * IMMUTABLE: Calculates effects but doesn't mutate Character.
+     * Caller is responsible for applying effects to Character state.
+     *
+     * @param cell - GridCell to apply weather to
+     * @param character - Optional Character to apply temperature effects to
+     * @returns Array of effects that should be applied to character
+     */
+    applyWeatherEffects(cell: GridCell, character?: Character): Effect[] {
         const weather = this.getWeatherAt(cell.position);
 
         weather.effects.forEach(effect => {
+            // Weather effects on cells are applied here
             this.effectEngine.applyEffect(effect, cell);
         });
+
+        const effectsToApply: Effect[] = [];
 
         // Apply temperature effects to character if present
         if (character) {
@@ -285,12 +297,15 @@ export class WeatherEngine {
                     tickRate: 1000 // Apply every second
                 };
 
-                this.effectEngine.applyEffect(tempEffect, character);
+                effectsToApply.push(tempEffect);
             }
 
-            // Check for long-term temperature effects
-            this.effectEngine.checkTemperatureStatusEffects(character);
+            // Check for long-term temperature effects (hypothermia/heatstroke)
+            const temperatureStatusEffects = this.effectEngine.checkTemperatureStatusEffects(character);
+            effectsToApply.push(...temperatureStatusEffects);
         }
+
+        return effectsToApply;
     }
 
     createRegionalWeather(

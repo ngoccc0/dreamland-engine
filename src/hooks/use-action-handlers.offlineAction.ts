@@ -77,13 +77,13 @@ export function createHandleOfflineAction(context: Partial<ActionHandlerDeps> & 
           if (newPlayerStats.quests.includes(questText)) {
             const itemInInventory = newPlayerStats.items.find((i: any) => getTranslatedText(i.name, 'en') === npcDef.questItem!.name);
             if (itemInInventory && itemInInventory.quantity >= npcDef.questItem!.quantity) {
-              addNarrativeEntry(t('gaveItemToNpc', { quantity: npcDef.questItem.quantity, itemName: t(npcDef.questItem.name as any), npcName: npcName}), 'system');
+              addNarrativeEntry(t('gaveItemToNpc', { quantity: npcDef.questItem.quantity, itemName: t(npcDef.questItem.name as any), npcName: npcName }), 'system');
               itemInInventory.quantity -= npcDef.questItem!.quantity;
               if (itemInInventory.quantity <= 0) newPlayerStats.items = newPlayerStats.items.filter((i: any) => getTranslatedText(i.name, 'en') !== npcDef!.questItem!.name);
               (npcDef.rewardItems || []).forEach((reward: any) => {
                 const existingItem = newPlayerStats.items.find((i: any) => getTranslatedText(i.name, 'en') === getTranslatedText(reward.name, 'en'));
                 if (existingItem) existingItem.quantity += reward.quantity;
-                else newPlayerStats.items.push(ensurePlayerItemId({...reward}, customItemDefinitions, t, language));
+                else newPlayerStats.items.push(ensurePlayerItemId({ ...reward }, customItemDefinitions, t, language));
               });
               newPlayerStats.quests = newPlayerStats.quests.filter((q: any) => q !== questText);
               addNarrativeEntry(t('npcQuestCompleted', { npcName: npcName }), 'narrative');
@@ -119,12 +119,12 @@ export function createHandleOfflineAction(context: Partial<ActionHandlerDeps> & 
       const result = handleSearchAction(currentChunk, action.id, language, t, customItemDefinitions, (range: any) => clamp(Math.floor(Math.random() * (range.max - range.min + 1)) + range.min, 1, Infinity), (context.worldProfile && context.worldProfile.spawnMultiplier) || 1);
       if (result.toastInfo) toast({ title: t(result.toastInfo.title), description: t(result.toastInfo.description, result.toastInfo.params) });
       addNarrativeEntry(result.narrative, 'narrative');
-      setWorld((prev: any) => ({...prev, [`${playerPosition.x},${playerPosition.y}`]: result.newChunk}));
+      setWorld((prev: any) => ({ ...prev, [`${playerPosition.x},${playerPosition.y}`]: result.newChunk }));
     } else if (textKey === 'pickUpAction_item') {
       const chunkKey = `${playerPosition.x},${playerPosition.y}`;
       const itemInChunk = currentChunk.items.find((i: any) => getTranslatedText(i.name, 'en') === action.params!.itemName);
       if (!itemInChunk) {
-        toast({ title: t('actionNotAvailableTitle'), description: t('itemNotFoundNarrative', {itemName: t(action.params!.itemName as any)}), variant: 'destructive' });
+        toast({ title: t('actionNotAvailableTitle'), description: t('itemNotFoundNarrative', { itemName: t(action.params!.itemName as any) }), variant: 'destructive' });
         setWorld((prev: any) => {
           const newWorld = { ...prev };
           const chunkToUpdate = { ...newWorld[chunkKey]! };
@@ -136,7 +136,7 @@ export function createHandleOfflineAction(context: Partial<ActionHandlerDeps> & 
       }
       toast({ title: t('itemPickedUpTitle'), description: t('pickedUpItemToast', { quantity: itemInChunk.quantity, itemName: t(itemInChunk.name as any) }) });
       const itemInInventory = newPlayerStats.items.find((i: any) => getTranslatedText(i.name, 'en') === getTranslatedText(itemInChunk.name, 'en'));
-      if (itemInInventory) itemInInventory.quantity += itemInChunk.quantity; else newPlayerStats.items.push(ensurePlayerItemId({...itemInChunk}, customItemDefinitions, t, language));
+      if (itemInInventory) itemInInventory.quantity += itemInChunk.quantity; else newPlayerStats.items.push(ensurePlayerItemId({ ...itemInChunk }, customItemDefinitions, t, language));
       try {
         const resolvedDef = resolveItemDef(getTranslatedText(itemInChunk.name, 'en'));
         const senseKey = resolvedDef?.senseEffect?.keywords?.[0] || undefined;

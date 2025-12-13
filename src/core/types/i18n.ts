@@ -37,8 +37,8 @@ export const isTranslationObject = (value: unknown): value is TranslationObject 
 };
 
 export const isInlineTranslation = (value: unknown): value is InlineTranslation => {
-    return typeof value === 'object' && value !== null && 
-           'en' in value && typeof (value as any).en === 'string';
+    return typeof value === 'object' && value !== null &&
+        'en' in value && typeof (value as any).en === 'string';
 };
 
 /**

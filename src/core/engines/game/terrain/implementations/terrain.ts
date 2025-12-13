@@ -79,12 +79,12 @@ export class Terrain implements ITerrain {
 
         logger.debug('Default extended attributes', { terrainId: this.id, attributes: result });
 
-        const sortedFeatures = [...this.features].sort((a, b) => 
+        const sortedFeatures = [...this.features].sort((a, b) =>
             (a.priority || 0) - (b.priority || 0)
         );
 
-        logger.debug('Applying features in order', { 
-            terrainId: this.id, 
+        logger.debug('Applying features in order', {
+            terrainId: this.id,
             features: sortedFeatures.map(f => ({ id: f.id, priority: f.priority }))
         });
 

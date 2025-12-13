@@ -1,6 +1,42 @@
 import { useMemo } from 'react';
 import { useAudioContext } from './AudioProvider';
 
+/**
+ * Audio system hook - provides access to music, SFX, and ambience controls.
+ *
+ * @remarks
+ * Wraps AudioProvider context to expose all audio playback controls.
+ * Provides imperative API for playing music, SFX, ambience, and managing
+ * volume/mute states. Memoized to prevent unnecessary re-renders.
+ *
+ * **Audio Types:**
+ * - Music: Background tracks (play one at a time)
+ * - SFX: Sound effects (concurrent, action-triggered)
+ * - Ambience: Biome background layers (e.g., forest rain, ocean waves)
+ *
+ * **Playback Modes:**
+ * - continuous: Loop music indefinitely
+ * - interval: Play music for X minutes, pause, repeat
+ * - disabled: No auto-play (user control only)
+ *
+ * **Autoplay Handling:**
+ * Modern browsers require user interaction before playing audio.
+ * Hook provides `tryEnableAutoplay()` to request permission.
+ *
+ * @returns Audio API object with methods for playback control
+ *
+ * @example
+ * const audio = useAudio();
+ * 
+ * // Play biome ambience
+ * audio.playAmbienceForBiome('forest', { enableLayers: true });
+ * 
+ * // Play action sound effect
+ * audio.playSfxForAction('UI_BUTTON_CLICK');
+ * 
+ * // Control volume
+ * audio.setMusicVolume(0.8);
+ */
 export function useAudio() {
   const ctx = useAudioContext();
   return useMemo(() => ({

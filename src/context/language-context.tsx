@@ -120,6 +120,45 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+/**
+ * Language/translation context hook - provides i18n support.
+ *
+ * @remarks
+ * Exposes current language, language switcher, and translation function.
+ * Language preference is persisted to localStorage and restored on mount.
+ * Supports English (en) and Vietnamese (vi) with precomputed narrative bundles.
+ *
+ * **Translation Function (t):**
+ * - Accepts TranslationKey to lookup translated string
+ * - Supports replacements via template syntax: "Hello {name}" → { name: "Alice" }
+ * - Falls back to key name if translation missing (prevents crashes)
+ *
+ * **Language Persistence:**
+ * - Saved to localStorage as 'gameLanguage'
+ * - Restored on app reload
+ * - Bundles for old language are lazily cleared to free memory
+ *
+ * **Precomputed Bundles:**
+ * Narrative bundles are precomputed per language/biome to optimize
+ * runtime performance and reduce AI calls.
+ *
+ * @returns Object with { language, setLanguage, t }
+ * @throws Error if hook used outside LanguageProvider
+ *
+ * @example
+ * function MyComponent() {
+ *   const { language, setLanguage, t } = useLanguage();
+ *   
+ *   return (
+ *     <div>
+ *       <p>{t('hello', { name: 'Player' })}</p>
+ *       <button onClick={() => setLanguage('vi')}>
+ *         {t('changeLanguage')}
+ *       </button>
+ *     </div>
+ *   );
+ * }
+ */
 export const useLanguage = () => {
   const context = useContext(LanguageContext);
   if (context === undefined) {

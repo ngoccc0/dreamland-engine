@@ -119,7 +119,7 @@ export function useGameInitialization(deps: GameInitializationDeps) {
 
     // module-scoped map to avoid duplicate work across mounts
     // Use a property on globalThis to keep the symbol across HMR and module reloads in dev
-     
+
     const globalAny = globalThis as any;
     if (!globalAny.__gameInitInProgress) globalAny.__gameInitInProgress = new Set<number>();
     const inProgressSet: Set<number> = globalAny.__gameInitInProgress;
@@ -213,10 +213,10 @@ export function useGameInitialization(deps: GameInitializationDeps) {
         if (Array.isArray(normalizedStats.items) && normalizedStats.items.length > 0) {
           normalizedStats.items = normalizedStats.items.map((it: any) => ensurePlayerItemId(it, finalDefs, t, language));
         }
-  setPlayerStats(() => normalizedStats);
-  setFinalWorldSetup(() => stateToInitialize.worldSetup);
-  try { logger.debug('[GameInit] initializing playerPosition', { pos: stateToInitialize.playerPosition || { x: 0, y: 0 }, at: Date.now() }); } catch {}
-  setPlayerPosition(stateToInitialize.playerPosition || { x: 0, y: 0 });
+        setPlayerStats(() => normalizedStats);
+        setFinalWorldSetup(() => stateToInitialize.worldSetup);
+        try { logger.debug('[GameInit] initializing playerPosition', { pos: stateToInitialize.playerPosition || { x: 0, y: 0 }, at: Date.now() }); } catch { }
+        setPlayerPosition(stateToInitialize.playerPosition || { x: 0, y: 0 });
         setPlayerBehaviorProfile(stateToInitialize.playerBehaviorProfile || { moves: 0, attacks: 0, crafts: 0, customActions: 0 });
 
         let worldSnapshot: Record<string, any> = stateToInitialize.world || {};
@@ -234,7 +234,7 @@ export function useGameInitialization(deps: GameInitializationDeps) {
             currentSeason: stateToInitialize.currentSeason
           });
           // Debug breakpoint: pause before heavy generation (set window.__DEBUG_BREAK = true in browser)
-          try { const { maybeDebug } = await import('@/lib/debug'); maybeDebug('useGameInitialization:before-generate'); } catch {}
+          try { const { maybeDebug } = await import('@/lib/debug'); maybeDebug('useGameInitialization:before-generate'); } catch { }
           const { world: newWorld, regions: newRegions, regionCounter: newRegionCounter } = generateChunksInRadius(
             {}, {}, 0,
             stateToInitialize.playerPosition.x,
@@ -248,7 +248,7 @@ export function useGameInitialization(deps: GameInitializationDeps) {
             language
           );
           // Debug after generation
-          try { const { maybeDebug } = await import('@/lib/debug'); maybeDebug('useGameInitialization:after-generate'); } catch {}
+          try { const { maybeDebug } = await import('@/lib/debug'); maybeDebug('useGameInitialization:after-generate'); } catch { }
           worldSnapshot = newWorld;
           regionsSnapshot = newRegions;
           regionCounterSnapshot = newRegionCounter;
@@ -299,8 +299,8 @@ export function useGameInitialization(deps: GameInitializationDeps) {
           logger.debug('[GameInit] Loaded narrative log', stateToInitialize.narrativeLog);
         }
 
-    if (isMounted) setIsLoaded(true);
-  try { const { maybeDebug } = await import('@/lib/debug'); maybeDebug('useGameInitialization:setIsLoaded:true'); } catch {}
+        if (isMounted) setIsLoaded(true);
+        try { const { maybeDebug } = await import('@/lib/debug'); maybeDebug('useGameInitialization:setIsLoaded:true'); } catch { }
         logger.info(`[GameInit] Game for slot ${gameSlot} is fully loaded and initialized.`);
         logger.debug('[GameInit] Initialization complete', {
           isLoaded: true,

@@ -72,13 +72,13 @@ export function useWorldRendering(deps: WorldRenderingDeps) {
   // EFFECT: Update the visual representation of the current chunk whenever the environment changes.
   useEffect(() => {
     if (!isLoaded) return;
-    
+
     const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
     if (baseChunk) {
-  const newEffectiveChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime, sStart, sDayDuration);
-        setCurrentChunk(newEffectiveChunk);
+      const newEffectiveChunk = getEffectiveChunk(baseChunk, weatherZones, gameTime, sStart, sDayDuration);
+      setCurrentChunk(newEffectiveChunk);
     } else {
-        setCurrentChunk(null);
+      setCurrentChunk(null);
     }
   }, [world, playerPosition, gameTime, weatherZones, isLoaded, setCurrentChunk]);
 }

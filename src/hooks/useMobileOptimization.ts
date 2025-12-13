@@ -192,8 +192,20 @@ export function useMobileOptimization(): MobileOptimizationConfig {
 }
 
 /**
- * Hook to detect if device is on WiFi or cellular
- * (for bandwidth-intensive features)
+ * Detects device network quality for bandwidth optimization.
+ *
+ * @remarks
+ * Checks `navigator.connection.effectiveType` or estimates based on
+ * device memory and user agent. Returns effective network type for
+ * conditional feature loading (e.g., AI narrative in 4g, text-only in 2g).
+ *
+ * @returns Network quality: '4g' (best), '3g' (good), '2g' (poor), 'unknown'
+ *
+ * @example
+ * const quality = useNetworkQuality();
+ * if (quality === '2g') {
+ *   useOfflineNarrative();  // Disable AI on slow networks
+ * }
  */
 export function useNetworkQuality(): 'unknown' | '4g' | '3g' | '2g' {
     const [quality, setQuality] = useState<'unknown' | '4g' | '3g' | '2g'>('unknown');
@@ -223,7 +235,18 @@ export function useNetworkQuality(): 'unknown' | '4g' | '3g' | '2g' {
 }
 
 /**
- * Hook to detect if user prefers reduced motion
+ * Detects user's motion reduction preference.
+ *
+ * @remarks
+ * Checks `prefers-reduced-motion` media query to respect accessibility
+ * settings. Should disable animations/transitions when true to prevent
+ * vestibular disorders and seizure risk.
+ *
+ * @returns true if user prefers reduced motion (accessibility enabled)
+ *
+ * @example
+ * const prefersReduced = usePrefersReducedMotion();
+ * const animationDuration = prefersReduced ? 0 : 300;
  */
 export function usePrefersReducedMotion(): boolean {
     const [prefersReduced, setPrefersReduced] = useState(false);
@@ -249,7 +272,19 @@ export function usePrefersReducedMotion(): boolean {
 }
 
 /**
- * Hook to get responsive breakpoint (mobile/tablet/desktop)
+ * Gets current responsive design breakpoint.
+ *
+ * @remarks
+ * Returns breakpoint based on viewport width and touch capability.
+ * Used to conditionally render layouts or adjust spacing for different
+ * screen sizes. Matches Tailwind breakpoints: mobile (< 768px),
+ * tablet (768px - 1024px), desktop (> 1024px).
+ *
+ * @returns Breakpoint category: 'mobile' | 'tablet' | 'desktop'
+ *
+ * @example
+ * const breakpoint = useResponsiveBreakpoint();
+ * const gridColumns = breakpoint === 'desktop' ? 3 : breakpoint === 'tablet' ? 2 : 1;
  */
 export function useResponsiveBreakpoint(): 'mobile' | 'tablet' | 'desktop' {
     const [breakpoint, setBreakpoint] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');

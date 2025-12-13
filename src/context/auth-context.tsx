@@ -85,6 +85,50 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+/**
+ * Authentication context hook - provides user session and auth controls.
+ *
+ * @remarks
+ * Manages Firebase authentication state (user login/logout).
+ * Checks Firebase configuration on mount and provides loading state
+ * during auth initialization. Persists user session via Firebase Auth.
+ *
+ * **Firebase Integration:**
+ * - Uses Firebase Auth to handle user sessions
+ * - isFirebaseConfigured flag indicates if Firebase is available
+ * - If not configured, app runs in offline-only mode
+ *
+ * **Loading State:**
+ * True while checking auth status on mount (prevents flash of unauth UI).
+ * Used to show loading spinners during login/logout operations.
+ *
+ * @returns Object with { user, loading, login, logout, isFirebaseConfigured }
+ * @throws Error if hook used outside AuthProvider
+ *
+ * @example
+ * function LoginPage() {
+ *   const { user, loading, login, logout, isFirebaseConfigured } = useAuth();
+ *   
+ *   if (!isFirebaseConfigured) {
+ *     return <p>Offline mode - no login available</p>;
+ *   }
+ *   
+ *   if (loading) return <LoadingSpinner />;
+ *   
+ *   return (
+ *     <div>
+ *       {user ? (
+ *         <>
+ *           <p>Logged in as {user.email}</p>
+ *           <button onClick={logout}>Logout</button>
+ *         </>
+ *       ) : (
+ *         <button onClick={() => login()}>Login</button>
+ *       )}
+ *     </div>
+ *   );
+ * }
+ */
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

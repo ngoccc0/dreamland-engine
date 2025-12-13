@@ -74,8 +74,8 @@ const PROACTIVE_GEN_RADIUS = 7;   // Generate in a 15x15 radius
 export function useGameEvents(deps: GameEventsDeps) {
   const {
     isLoaded, isGameOver, setIsGameOver, playerStats, setPlayerStats,
-    world, setWorld, regions, setRegions, regionCounter, setRegionCounter, 
-    playerPosition, addNarrativeEntry, currentSeason, worldProfile, 
+    world, setWorld, regions, setRegions, regionCounter, setRegionCounter,
+    playerPosition, addNarrativeEntry, currentSeason, worldProfile,
     customItemDefinitions, customItemCatalog, customStructures, language, turn
   } = deps;
 
@@ -92,8 +92,8 @@ export function useGameEvents(deps: GameEventsDeps) {
     if (!baseChunk) return;
 
     const possibleEvents = randomEvents.filter(event =>
-        (event.theme === 'Normal' || event.theme === worldProfile.theme) &&
-        event.canTrigger(baseChunk, playerStats, currentSeason)
+      (event.theme === 'Normal' || event.theme === worldProfile.theme) &&
+      event.canTrigger(baseChunk, playerStats, currentSeason)
     );
 
     if (possibleEvents.length === 0) return;
@@ -116,19 +116,19 @@ export function useGameEvents(deps: GameEventsDeps) {
 
     setPlayerStats(prevStats => {
       let newPlayerStats = { ...prevStats };
-  const hasShelter = world[`${playerPosition.x},${playerPosition.y}`]?.structures.some((s: any) => s.providesShelter);
+      const hasShelter = world[`${playerPosition.x},${playerPosition.y}`]?.structures.some((s: any) => s.providesShelter);
 
       if (effects.hpChange) {
         let applyChange = true;
         if (event.id === 'magicRain' || event.id === 'blizzard') {
-            if (hasShelter) applyChange = false;
+          if (hasShelter) applyChange = false;
         }
         if (applyChange) newPlayerStats.hp = clamp(newPlayerStats.hp + effects.hpChange, 0, 100);
       }
       if (effects.staminaChange) {
         let applyChange = true;
         if (event.id === 'blizzard') {
-            if (hasShelter) applyChange = false;
+          if (hasShelter) applyChange = false;
         }
         if (applyChange) newPlayerStats.stamina = clamp(newPlayerStats.stamina + effects.staminaChange, 0, 100);
       }
@@ -139,15 +139,15 @@ export function useGameEvents(deps: GameEventsDeps) {
       if (effects.items) {
         const newItems = [...newPlayerStats.items];
         effects.items.forEach((itemToAdd: { name: string; quantity: number }) => {
-            const existingItem = newItems.find(i => getTranslatedText(i.name, language, t) === itemToAdd.name);
-            if (existingItem) {
-                existingItem.quantity += itemToAdd.quantity;
-            } else {
-                const def = resolveItemDef(itemToAdd.name, customItemDefinitions);
-                if (def) {
-                    newItems.push({ ...itemToAdd, tier: def.tier, emoji: def.emoji });
-                }
+          const existingItem = newItems.find(i => getTranslatedText(i.name, language, t) === itemToAdd.name);
+          if (existingItem) {
+            existingItem.quantity += itemToAdd.quantity;
+          } else {
+            const def = resolveItemDef(itemToAdd.name, customItemDefinitions);
+            if (def) {
+              newItems.push({ ...itemToAdd, tier: def.tier, emoji: def.emoji });
             }
+          }
         });
         newPlayerStats.items = newItems;
       }
@@ -155,32 +155,32 @@ export function useGameEvents(deps: GameEventsDeps) {
     });
 
     if (effects.spawnEnemy) {
-        setWorld(prevWorld => {
-            const newWorld = { ...prevWorld };
-            const key = `${playerPosition.x},${playerPosition.y}`;
-            const chunkToUpdate = newWorld[key];
-            if (chunkToUpdate && !chunkToUpdate.enemy) {
-            const templates = getTemplates(language);
-            // Defensive: terrain template or its enemies array may be missing
-            const terrainTemplate = templates[baseChunk.terrain as Terrain];
-            const enemiesArr = terrainTemplate && Array.isArray(terrainTemplate.enemies) ? terrainTemplate.enemies : undefined;
-            const enemyTemplate = enemiesArr ? enemiesArr.find((e: any) => e?.data?.type === effects.spawnEnemy!.type)?.data : undefined;
-            if (enemyTemplate) {
-              chunkToUpdate.enemy = {
-                ...enemyTemplate,
-                hp: effects.spawnEnemy!.hp,
-                damage: effects.spawnEnemy!.damage,
-                satiation: 0,
-              };
-            } else {
-              // If template missing, log once for diagnostics but avoid crashing.
-              try {
-                logger.warn(`[useGameEvents] Missing enemy template for terrain ${baseChunk.terrain} effects: ${JSON.stringify(effects.spawnEnemy)}`);
-              } catch {}
-            }
+      setWorld(prevWorld => {
+        const newWorld = { ...prevWorld };
+        const key = `${playerPosition.x},${playerPosition.y}`;
+        const chunkToUpdate = newWorld[key];
+        if (chunkToUpdate && !chunkToUpdate.enemy) {
+          const templates = getTemplates(language);
+          // Defensive: terrain template or its enemies array may be missing
+          const terrainTemplate = templates[baseChunk.terrain as Terrain];
+          const enemiesArr = terrainTemplate && Array.isArray(terrainTemplate.enemies) ? terrainTemplate.enemies : undefined;
+          const enemyTemplate = enemiesArr ? enemiesArr.find((e: any) => e?.data?.type === effects.spawnEnemy!.type)?.data : undefined;
+          if (enemyTemplate) {
+            chunkToUpdate.enemy = {
+              ...enemyTemplate,
+              hp: effects.spawnEnemy!.hp,
+              damage: effects.spawnEnemy!.damage,
+              satiation: 0,
+            };
+          } else {
+            // If template missing, log once for diagnostics but avoid crashing.
+            try {
+              logger.warn(`[useGameEvents] Missing enemy template for terrain ${baseChunk.terrain} effects: ${JSON.stringify(effects.spawnEnemy)}`);
+            } catch { }
           }
-            return newWorld;
-        });
+        }
+        return newWorld;
+      });
     }
 
   }, [turn, world, playerPosition, worldProfile.theme, playerStats, currentSeason, addNarrativeEntry, t, customItemDefinitions, language, setPlayerStats, setWorld]);
@@ -200,7 +200,7 @@ export function useGameEvents(deps: GameEventsDeps) {
     // Proactive Chunk Generation
     const nextProactiveTurnCount = turnsSinceLastProactiveGen + 1;
     if (nextProactiveTurnCount >= PROACTIVE_GEN_INTERVAL) {
-  setTimeout(() => {
+      setTimeout(() => {
         const { world: newWorld, regions: newRegions, regionCounter: newRegionCounter } = generateChunksInRadius(
           world,
           regions,
@@ -224,10 +224,10 @@ export function useGameEvents(deps: GameEventsDeps) {
     } else {
       setTurnsSinceLastProactiveGen(nextProactiveTurnCount);
     }
-    
+
     // Random Event Trigger
     triggerRandomEvent();
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turn, isLoaded, isGameOver]);
 }

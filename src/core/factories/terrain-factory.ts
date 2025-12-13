@@ -69,7 +69,7 @@ export class TerrainFactory {
         const description: TranslatableString = { key: `terrain.${type}.description` };
 
         const terrain = new Terrain(type, attributes, name, description);
-        
+
         // Add entities to the terrain
         const entities = this.entityFactory.createEntitiesForTerrain(type, position);
         entities.forEach((entity: Entity) => terrain.addEntity(entity));

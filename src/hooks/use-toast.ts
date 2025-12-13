@@ -36,21 +36,21 @@ type ActionType = typeof actionTypes
 
 type Action =
   | {
-      type: ActionType["ADD_TOAST"]
-      toast: ToasterToast
-    }
+    type: ActionType["ADD_TOAST"]
+    toast: ToasterToast
+  }
   | {
-      type: ActionType["UPDATE_TOAST"]
-      toast: Partial<ToasterToast>
-    }
+    type: ActionType["UPDATE_TOAST"]
+    toast: Partial<ToasterToast>
+  }
   | {
-      type: ActionType["DISMISS_TOAST"]
-      toastId?: ToasterToast["id"]
-    }
+    type: ActionType["DISMISS_TOAST"]
+    toastId?: ToasterToast["id"]
+  }
   | {
-      type: ActionType["REMOVE_TOAST"]
-      toastId?: ToasterToast["id"]
-    }
+    type: ActionType["REMOVE_TOAST"]
+    toastId?: ToasterToast["id"]
+  }
 
 interface State {
   toasts: ToasterToast[]
@@ -108,9 +108,9 @@ export const reducer = (state: State, action: Action): State => {
         toasts: state.toasts.map((t) =>
           t.id === toastId || toastId === undefined
             ? {
-                ...t,
-                open: false,
-              }
+              ...t,
+              open: false,
+            }
             : t
         ),
       }
@@ -142,18 +142,48 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, "id">
 
+/**
+ * Creates and displays a new toast notification.
+ *
+ * @remarks
+ * Generates unique ID, creates toast with properties, and dispatches
+ * ADD_TOAST action to notify all listeners. Exposed at module level
+ * for use outside of React components (imperative API).
+ *
+ * **Toast Lifecycle:**
+ * 1. generateId() creates unique ID
+ * 2. toast() creates ToasterToast with ID
+ * 3. dispatch(ADD_TOAST) notifies listeners
+ * 4. Toasts expire after 1 second (TOAST_REMOVE_DELAY)
+ *
+ * **Usage Contexts:**
+ * - Inside components: Use `useToast()` hook
+ * - Outside components: Use `toast()` function directly
+ *
+ * @param props - Toast configuration (title, description, variant, action)
+ * @returns Object with { id, dismiss, update } for toast control
+ *
+ * @example
+ * import { toast } from '@/hooks/use-toast';
+ * 
+ * toast({
+ *   title: 'Success',
+ *   description: 'Game saved successfully',
+ *   variant: 'default'
+ * });
+ */
 function toast({ ...props }: Toast) {
   const id = genId()
 
   const update = (props: ToasterToast) =>
     dispatch({
-        type: actionTypes.UPDATE_TOAST,
+      type: actionTypes.UPDATE_TOAST,
       toast: { ...props, id },
     })
   const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
 
   dispatch({
-      type: actionTypes.ADD_TOAST,
+    type: actionTypes.ADD_TOAST,
     toast: {
       ...props,
       id,

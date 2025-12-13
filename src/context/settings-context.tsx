@@ -178,6 +178,56 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+/**
+ * Settings context hook - provides game configuration and mod management.
+ *
+ * @remarks
+ * Manages game settings (difficulty, narrative length, dice type, etc).
+ * Persists settings to localStorage. Supports mod system for applying
+ * temporary setting overrides.
+ *
+ * **Settings Types:**
+ * - UI: Narrative length, text speed, animation preferences
+ * - Gameplay: Difficulty, dice type, turn speed
+ * - Audio: Music/SFX/ambience volume, mute state
+ * - Accessibility: Reduced motion, text size
+ *
+ * **Mod System:**
+ * - applyMods(): Apply temporary setting overrides without persistence
+ * - clearMods(): Revert to last persisted settings
+ * - Used for testing, tutorials, or temporary difficulty changes
+ *
+ * **Persistence:**
+ * Settings persisted to localStorage (gameSettings key).
+ * Auto-loads on app startup.
+ *
+ * @returns Object with { settings, setSettings, applyMods, clearMods }
+ * @throws Error if hook used outside SettingsProvider
+ *
+ * @example
+ * function SettingsPanel() {
+ *   const { settings, setSettings } = useSettings();
+ *   
+ *   return (
+ *     <div>
+ *       <label>
+ *         Narrative Length:
+ *         <select 
+ *           value={settings.narrativeLength}
+ *           onChange={(e) => setSettings({ 
+ *             ...settings, 
+ *             narrativeLength: e.target.value 
+ *           })}
+ *         >
+ *           <option>short</option>
+ *           <option>medium</option>
+ *           <option>long</option>
+ *         </select>
+ *       </label>
+ *     </div>
+ *   );
+ * }
+ */
 export const useSettings = () => {
   const context = useContext(SettingsContext);
   if (context === undefined) {

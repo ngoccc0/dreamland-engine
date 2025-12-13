@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef, Suspense, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Loader2 } from "@/components/game/icons";
-import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
 import { useSettings } from "@/context/settings-context";
 import useKeyboardBindings from "@/hooks/use-keyboard-bindings";
@@ -122,7 +122,6 @@ export default function GameLayout(props: GameLayoutProps) {
         handleUseSkill,
         handleRest,
         handleFuseItems,
-        handleRequestQuestHint,
         handleEquipItem,
         handleUnequipItem,
         handleWaitTick,

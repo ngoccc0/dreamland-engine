@@ -6,7 +6,7 @@ import BottomActionBar from "@/components/game/bottom-action-bar";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { WandSparkles, Menu } from "@/components/game/icons";
-import { cn, getTranslatedText } from "@/lib/utils";
+import { getTranslatedText } from "@/lib/utils";
 import type { GameLayoutControlsProps } from "./game-layout.types";
 
 /**
@@ -34,8 +34,8 @@ export function GameLayoutControls({
     otherActions,
     language,
     t,
-    onMove,
-    onInteract,
+    onMove: _onMove,
+    onInteract: _onInteract,
     onUseSkill,
     onActionClick,
     onOpenPickup,
@@ -47,8 +47,6 @@ export function GameLayoutControls({
     onOpenBuilding,
     onOpenFusion,
 }: GameLayoutControlsProps) {
-    const [joystickKey, setJoystickKey] = useState(0);
-
     // Helper function to get icon for context action
     const getContextActionIcon = useCallback(() => {
         // Icons could be imported from lucide-react or game icons

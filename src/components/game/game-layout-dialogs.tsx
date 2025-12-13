@@ -27,7 +27,7 @@ import {
     LifeBuoy,
     MapPin,
 } from "@/components/game/icons";
-import { cn, getTranslatedText } from "@/lib/utils";
+import { getTranslatedText } from "@/lib/utils";
 import { resolveItemDef } from "@/lib/game/item-utils";
 import type { Action } from "@/lib/game/types";
 import type { GameLayoutDialogsProps } from "./game-layout.types";
@@ -112,7 +112,7 @@ export function GameLayoutDialogs({
     currentChunk,
     world,
     pickUpActions,
-    otherActions,
+    otherActions: _otherActions,
     selectedPickupIds,
     customDialogValue,
     isLoading,
@@ -122,7 +122,7 @@ export function GameLayoutDialogs({
     onToggleInventory,
     onToggleCrafting,
     onToggleMap,
-    onActionClick,
+    onActionClick: _onActionClick,
     onCustomDialogSubmit,
     onTogglePickupSelection,
     onPickupConfirm,
@@ -138,7 +138,7 @@ export function GameLayoutDialogs({
     onToggleSettings,
     onToggleFusion,
     onToggleBuilding,
-    onReturnToMenu,
+    onReturnToMenu: _onReturnToMenu,
     onCustomDialogValueChange,
 
     // Other props
@@ -148,10 +148,10 @@ export function GameLayoutDialogs({
     recipes,
     buildableStructures,
     customItemDefinitions,
-    finalWorldSetup,
-    biomeDefinitions,
+    finalWorldSetup: _finalWorldSetup,
+    biomeDefinitions: _biomeDefinitions,
 }: GameLayoutDialogsProps) {
-    const handleRequestQuestHint = async (questText: string) => {
+    const handleRequestQuestHint = async (_questText: string) => {
         // Stub for quest hint functionality
     };
 

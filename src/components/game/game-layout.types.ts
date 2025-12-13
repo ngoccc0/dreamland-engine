@@ -9,7 +9,7 @@
  */
 
 import type { ReactNode } from 'react';
-import type { Structure, Action, NarrativeEntry } from '@/lib/game/types';
+import type { Action, NarrativeEntry } from '@/lib/game/types';
 import type { TranslationKey } from '@/lib/i18n';
 
 /**

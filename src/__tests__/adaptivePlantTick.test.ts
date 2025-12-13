@@ -1,4 +1,4 @@
-// Tests disabled - plant system consolidated into plant-growth.usecase.ts
+// Tests disabled - old plant system consolidated into plant-growth.usecase.ts
 // TODO: Create new tests for the unified plant system
 
 describe.skip('Plant System Tests (Disabled)', () => {

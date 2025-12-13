@@ -405,4 +405,12 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         description: {en: 'Brew a powerful elixir that restores both health and stamina.', vi: 'Pha một loại thuốc tiên mạnh mẽ giúp phục hồi cả máu và thể lực.'},
         requiredTool: 'whetstone',
     },
+    'whetstone': {
+        result: { name: 'whetstone', quantity: 1, emoji: '🪨' },
+        ingredients: [
+            { name: 'sharp_stone', quantity: 1 },
+            { name: 'stone', quantity: 2 }
+        ],
+        description: {en: 'Shape and polish stones to create a whetstone for sharpening tools.', vi: 'Tạo hình và đánh bóng đá để tạo ra một đá mài để mài sắc công cụ.'},
+    },
 };

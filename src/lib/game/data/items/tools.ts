@@ -14,7 +14,7 @@ export const toolItems: Record<string, ItemDefinition> = {
         description: { en: 'A stone used to sharpen tools and weapons.', vi: 'Một viên đá dùng để mài sắc các công cụ và vũ khí.' },
         tier: 2,
         category: 'Tool',
-        emoji: '🪨',
+        emoji: { type: 'image', url: '/asset/images/sharp_stone.png' },
         effects: [],
         baseQuantity: { min: 1, max: 1 },
         spawnEnabled: true,

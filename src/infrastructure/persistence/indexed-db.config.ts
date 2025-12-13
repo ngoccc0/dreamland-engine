@@ -3,12 +3,26 @@
 import Dexie, { type Table } from 'dexie';
 import type { GameState } from '@/core/types/game';
 
-// Dexie requires an indexable primary key. We'll add `id` to the GameState
-// for this purpose when saving, but the core GameState type remains unchanged.
+/**
+ * Extended GameState for IndexedDB storage.
+ *
+ * @remarks
+ * Adds `id` field required by Dexie (IndexedDB wrapper).
+ * The core GameState type is unchanged - `id` is only used for storage.
+ * When saving: GameState slotId becomes IIndexedDbGameState.id
+ * When loading: IIndexedDbGameState.id ignored, slotId passed separately
+ */
 export interface IIndexedDbGameState extends GameState {
   id: string; // Dexie requires a primary key, which will be our slotId
 }
 
+/**
+ * Dexie wrapper for Dreamland Engine IndexedDB database.
+ *
+ * @remarks
+ * Provides type-safe access to game state storage.
+ * Schema version 1: gameState table with id (primary), day, gameTime (indexes).
+ */
 class GameDB extends Dexie {
   gameState!: Table<IIndexedDbGameState, string>; // 'gameState' is the store name, string is the key type
 
@@ -26,8 +40,18 @@ class GameDB extends Dexie {
 let _dbInstance: GameDB | null = null;
 
 /**
- * Lazily create and return the Dexie DB instance so module evaluation won't
- * synchronously run IndexedDB work on import.
+ * Returns singleton IndexedDB instance (lazy-initialized).
+ *
+ * @remarks
+ * Lazily creates GameDB on first call to avoid synchronous IndexedDB
+ * work during module import (which can block main thread).
+ * Safe to call multiple times (returns cached instance).
+ *
+ * @returns Dexie database instance for game state operations
+ *
+ * @example
+ * const db = getIndexedDb();
+ * const state = await db.gameState.get('slot_0');
  */
 export function getIndexedDb(): GameDB {
   if (!_dbInstance) {

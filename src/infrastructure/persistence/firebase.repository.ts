@@ -5,12 +5,32 @@ import type { IGameStateRepository } from "@/lib/game/ports/game-state.repositor
 import type { GameState } from "@/core/types/game";
 
 /**
- * @class FirebaseGameStateRepository
- * Implements IGameStateRepository.
- * An implementation of the game state repository that uses Firebase Firestore
- * for cloud-based persistence. This allows users to sync their game progress across devices.
+ * Firebase Firestore game state repository - cloud-based persistence.
  *
- * @param {string} userId - The unique ID of the currently authenticated user.
+ * @remarks
+ * Implements IGameStateRepository using Firebase Firestore for multi-device sync.
+ * Allows authenticated users to save/load game state across devices securely.
+ *
+ * **Key Features:**
+ * - Cloud synchronization: Player progress syncs across devices
+ * - User isolation: Each user's saves stored under their UID
+ * - Lazy initialization: Firestore connection created on first use
+ * - Error handling: Gracefully handles network failures
+ *
+ * **Storage Structure:**
+ * ```
+ * users/{userId}/games/{slotId} → GameState document
+ * ```
+ *
+ * **Online-Only:** Requires internet connection and Firebase Auth.
+ * For offline mode, use IndexedDbGameStateRepository instead.
+ *
+ * @param userId - Unique identifier for authenticated Firebase user
+ *
+ * @example
+ * const repo = new FirebaseGameStateRepository(user.uid);
+ * const state = await repo.load('slot_0');
+ * await repo.save('slot_0', newGameState);
  */
 export class FirebaseGameStateRepository implements IGameStateRepository {
     private readonly basePath: string;

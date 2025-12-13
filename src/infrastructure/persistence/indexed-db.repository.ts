@@ -3,11 +3,37 @@ import type { GameState } from '@/core/types/game';
 import { getIndexedDb } from './indexed-db.config';
 
 /**
- * @class IndexedDbGameStateRepository
- * Implements IGameStateRepository.
- * An implementation of the game state repository that uses the browser's
- * IndexedDB for client-side storage. This is the preferred offline storage method
- * due to its larger capacity and asynchronous nature.
+ * IndexedDB game state repository - client-side offline persistence.
+ *
+ * @remarks
+ * Implements IGameStateRepository using browser IndexedDB (Dexie wrapper).
+ * Provides large storage capacity (~50MB+) and asynchronous access.
+ * Preferred method for offline-first game design.
+ *
+ * **Key Features:**
+ * - Offline-first: Works without internet connection
+ * - Large capacity: Can store multiple large game states
+ * - Asynchronous API: Non-blocking storage operations
+ * - Indexes: Supports fast queries by day/gameTime
+ * - Auto-cleanup: Old saves can be pruned per retention policy
+ *
+ * **Storage Structure:**
+ * ```
+ * DreamlandEngineDB
+ *   └─ gameState [slotId] → GameState document
+ *      indexed by: id (primary key), day, gameTime
+ * ```
+ *
+ * **Fallback Chain:**
+ * 1. Try IndexedDB (preferred, large capacity)
+ * 2. Fall back to localStorage (if IndexedDB unavailable)
+ * 3. Error: Storage unavailable (rare)
+ *
+ * @example
+ * const repo = new IndexedDbGameStateRepository();
+ * const state = await repo.load('slot_0');
+ * await repo.save('slot_0', newGameState);
+ * await repo.delete('slot_1'); // Clear slot
  */
 export class IndexedDbGameStateRepository implements IGameStateRepository {
     /**

@@ -49,6 +49,34 @@ export interface UseTypingAnimationOptions {
  * return <p>{displayedText}</p>;
  * ```
  */
+/**
+ * Typing animation hook - reveals text word-by-word with configurable delay.
+ *
+ * @remarks
+ * Creates a typewriter effect that reveals text progressively.
+ * Used for narrative entries, dialogue, and dramatic reveals.
+ *
+ * **Animation Strategy:**
+ * - Splits text into words
+ * - Reveals one word per interval (default 150ms)
+ * - Recalculates on text/options change
+ * - Supports completion callback
+ *
+ * **Performance:**
+ * Memoizes word array to avoid re-splitting on every render.
+ * Uses interval cleanup to prevent memory leaks.
+ *
+ * @param {string} text - Text to animate
+ * @param {UseTypingAnimationOptions} options - Animation config (delayPerWord, onComplete, enabled)
+ * @returns {Object} displayedWords (current visible words), isAnimating (animation in progress)
+ *
+ * @example
+ * const { displayedWords, isAnimating } = useTypingAnimation(
+ *   "The forest grows dark...",
+ *   { delayPerWord: 150, onComplete: () => console.log('done') }
+ * );
+ * return <p>{displayedWords.join(' ')}</p>;
+ */
 export function useTypingAnimation(text: string, options: UseTypingAnimationOptions = {}) {
     const { delayPerWord = 150, onComplete, enabled = true } = options;
 
@@ -123,6 +151,31 @@ export function useTypingAnimation(text: string, options: UseTypingAnimationOpti
  * @param text - Text to animate
  * @param options - {duration?: number (default 500ms), enabled?: boolean}
  * @returns Object with {displayedText, isAnimating, progress}
+ */
+/**
+ * Fade-in animation hook - reveals entire text at once with fade effect.
+ *
+ * @remarks
+ * Simple fade-in animation (no typing effect). Text appears instantly
+ * with CSS fade-in transition over specified duration.
+ *
+ * **Use Cases:**
+ * - Mobile optimized (reduced motion preference)
+ * - Narrative entries that should appear quickly
+ * - UI text that needs smooth entrance
+ *
+ * **Performance:**
+ * Lower overhead than typing animation. Pure CSS-based fade.
+ *
+ * @param {string} text - Text to fade in
+ * @param {Object} options - Animation config (duration in ms, enabled)
+ * @returns {Object} displayedText, isAnimating, progress (0-1)
+ *
+ * @example
+ * const { displayedText, isAnimating } = useFadeInAnimation(
+ *   "A shadow moves...",
+ *   { duration: 500, enabled: true }
+ * );
  */
 export function useFadeInAnimation(text: string, options: { duration?: number; enabled?: boolean } = {}) {
     const { duration = 500, enabled = true } = options;

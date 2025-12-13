@@ -39,6 +39,38 @@ type GameEventsDeps = {
 const PROACTIVE_GEN_INTERVAL = 5; // Generate new chunks every 5 turns
 const PROACTIVE_GEN_RADIUS = 7;   // Generate in a 15x15 radius
 
+/**
+ * Game events hook - handles world generation, game-over conditions, region expansion.
+ *
+ * @remarks
+ * Responds to player state changes and triggers world-level events:
+ * - **Proactive Generation**: Generates chunks as player approaches world edges
+ * - **Region Expansion**: Adds new regions when needed for world growth
+ * - **Game-Over Detection**: Checks if player is dead or out of options
+ * - **World State Sync**: Keeps regions, items, creatures in sync with player position
+ *
+ * **Chunk Generation Strategy:**
+ * Continuously generates chunks in a 15x15 radius around player.
+ * Prevents generation lag by doing it before player reaches edge.
+ * Checks `regionCounter` to avoid duplicate generation.
+ *
+ * **Game-Over Triggers:**
+ * - Player HP ≤ 0
+ * - All recovery items exhausted
+ * - Stuck in unescapable terrain
+ *
+ * @param {GameEventsDeps} deps - Player state, world, regions, narrative
+ * @returns {void} Side-effect only (no return value)
+ *
+ * @example
+ * useGameEvents({
+ *   isLoaded: true,
+ *   playerPosition: { x: 5, y: 5 },
+ *   playerStats: stats,
+ *   world: world,
+ *   ... (7 more deps)
+ * });
+ */
 export function useGameEvents(deps: GameEventsDeps) {
   const {
     isLoaded, isGameOver, setIsGameOver, playerStats, setPlayerStats,

@@ -40,6 +40,38 @@ type GameSavingDeps = {
   setPlayerStats?: (updater: any) => void;
 };
 
+/**
+ * Game saving hook - persists game state to repository.
+ *
+ * @remarks
+ * Manages both auto-save and manual save operations:
+ * - **Auto-save**: Saves every 5 minutes during gameplay
+ * - **Manual save**: Explicit save on player action
+ * - **Quit-save**: Persists state when leaving game
+ *
+ * **Storage Strategy:**
+ * Uses injected repository (Firebase for cloud, IndexedDB for offline).
+ * Serializes complete game state including world, items, creatures, narrative.
+ *
+ * **Error Handling:**
+ * Silently catches save errors (network, quota exceeded, etc.)
+ * Marks `isSaving` false even on failure so UI doesn't hang.
+ *
+ * **Conflict Resolution:**
+ * If save fails, game continues. User can retry or lose progress.
+ * No conflict resolution between saves (last-write-wins).
+ *
+ * @param {GameSavingDeps} deps - Game state and repository reference
+ * @returns {void} Side-effect only (no return value)
+ *
+ * @example
+ * useGameSaving({
+ *   gameSlot: 0,
+ *   isLoaded: true,
+ *   gameStateRepository: myRepository,
+ *   ... (world, player, items, etc.)
+ * });
+ */
 export function useGameSaving(deps: GameSavingDeps) {
   const {
     isLoaded, isSaving, isGameOver, setIsSaving, gameStateRepository, gameSlot,

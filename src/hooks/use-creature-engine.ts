@@ -22,14 +22,33 @@ export interface UseCreatureEngineConfig {
 }
 
 /**
- * Hook to manage creature engine lifecycle.
+ * Creature engine hook - manages NPC/creature spawning and lifecycle.
  *
  * @remarks
- * Initialize engine, register species, spawn creatures, update each tick.
- * Call with player position to update nearby creatures.
+ * Orchestrates creature AI, behavior simulation, spawning, and cleanup.
+ * Handles pathfinding, state updates, and per-tick creature behavior.
  *
- * @param config Engine configuration
- * @returns Engine instance and control functions
+ * **Engine responsibilities:**
+ * - Register creature species (animal definitions, behavior profiles)
+ * - Spawn creatures based on terrain, world density, biome rules
+ * - Update creature AI per tick (movement, attacks, interactions)
+ * - Manage creature population limits (max 100-500 active creatures)
+ * - Cache creatures within view radius for rendering performance
+ *
+ * **Optimization:**
+ * Only creatures within `creatureViewRadius` of player are processed each tick.
+ * Uses in-memory repository for fast lookups (no persistence layer).
+ *
+ * @param {UseCreatureEngineConfig} config - Engine configuration (enabled, maxCreatures, viewRadius)
+ * @returns {Object} Engine instance with spawn/update/cleanup control functions
+ *
+ * @example
+ * const engine = useCreatureEngine({
+ *   enabled: true,
+ *   maxCreatures: 200,
+ *   creatureViewRadius: 10
+ * });
+ * engine.spawnCreaturesNear({ x: 0, y: 0 });
  */
 export function useCreatureEngine(config: UseCreatureEngineConfig) {
     const engineRef = useRef<CreatureEngine | null>(null);

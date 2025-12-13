@@ -20,6 +20,37 @@ type PlayerProgressionDeps = {
   playerPosition?: { x: number, y: number };
 };
 
+/**
+ * Player progression hook - tracks skill unlocks, level-ups, achievements.
+ *
+ * @remarks
+ * Monitors player actions and unlocks new skills when conditions are met:
+ * - **Skill Unlock**: Tracks kills, spells cast, moves made, crafting count
+ * - **Level-up**: Increases player level based on experience threshold
+ * - **Monologue**: Shows contextual thinking based on player biome/state
+ * - **Narrative**: Announces new unlocks to player
+ *
+ * **Unlock Triggers:**
+ * - Kill X creatures → unlock combat skills
+ * - Cast X spells → unlock advanced magic
+ * - Move X tiles → unlock exploration skills
+ * - Craft X items → unlock crafting skills
+ *
+ * **Biome Context:**
+ * Monologue lines are selected per-biome (desert, forest, etc.)
+ * with fallback to generic tired/hungry pool.
+ *
+ * @param {PlayerProgressionDeps} deps - Player stats, world, narrative callbacks
+ * @returns {void} Side-effect only (no return value)
+ *
+ * @example
+ * usePlayerProgression({
+ *   isLoaded: true,
+ *   playerStats: currentStats,
+ *   setPlayerStats: updateStats,
+ *   addNarrativeEntry: (text) => {}
+ * });
+ */
 export function usePlayerProgression(deps: PlayerProgressionDeps) {
   const { isLoaded, playerStats, setPlayerStats, playerBehaviorProfile, addNarrativeEntry, world, playerPosition } = deps;
   const { t, language } = useLanguage();

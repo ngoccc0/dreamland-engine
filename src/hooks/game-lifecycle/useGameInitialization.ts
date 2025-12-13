@@ -43,6 +43,42 @@ type GameInitializationDeps = {
   addNarrativeEntry: (text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string) => void;
 };
 
+/**
+ * Game initialization hook - loads or generates new game world on startup.
+ *
+ * @remarks
+ * Orchestrates the complete game startup sequence:
+ * 1. **Load or Create World**: Loads from save slot or generates new world
+ * 2. **Initialize Terrain**: Generates chunks around player start position
+ * 3. **Setup Creatures**: Spawns initial creatures in world
+ * 4. **Initialize Narrative**: Generates opening narrative entry
+ * 5. **Set Game Clock**: Initialize time (6 AM default), season, day/turn counters
+ *
+ * **Generation Strategy:**
+ * - Loads from repository first (fast path for existing saves)
+ * - Falls back to full world generation for new games (slow, async)
+ * - Prevents concurrent initialization via module-level flag
+ * - Guards against StrictMode double-invoke in React 18
+ *
+ * **Performance:**
+ * World generation is heavy (terrain, weather, creatures, items).
+ * Only runs once per slot. Subsequent mounts reuse initialized world.
+ *
+ * **State Mutation:**
+ * Updates 15+ state setters to initialize complete game world.
+ * Called once during useGameEffects lifecycle.
+ *
+ * @param {GameInitializationDeps} deps - All game state setters and repository
+ * @returns {void} Side-effect only (no return value)
+ *
+ * @example
+ * useGameInitialization({
+ *   gameSlot: 0,
+ *   gameStateRepository: myRepository,
+ *   setIsLoaded, setPlayerStats, setWorld,
+ *   ... (13 more setters)
+ * });
+ */
 export function useGameInitialization(deps: GameInitializationDeps) {
   const {
     setIsLoaded, gameStateRepository, gameSlot, finalWorldSetup,

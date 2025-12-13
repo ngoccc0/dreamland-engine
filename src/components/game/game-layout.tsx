@@ -52,6 +52,34 @@ interface GameLayoutProps {
     gameSlot: number;
 }
 
+/**
+ * Main game UI layout component - orchestrates all in-game panels and popups.
+ *
+ * @remarks
+ * This is the top-level game UI that renders:
+ * - **Game Engine**: Orchestrates useGameState, useActionHandlers, useGameEffects
+ * - **HUD**: Player stats (health, mana, stamina, hunger, temperature), game clock
+ * - **Popups**: Inventory, map, crafting, building, fusion, settings, tutorials
+ * - **Overlays**: Narrative panel, visual effects, weather particles, player flight
+ * - **Controls**: Keyboard/joystick input, bottom action bar
+ * - **Notifications**: Status popups, damage numbers, game-over dialog
+ *
+ * **Popup Lazy Loading:**
+ * Heavy popup components (inventory, map, crafting) are lazy-loaded with Suspense
+ * to improve initial page load. They're only loaded when first opened.
+ *
+ * **State Management:**
+ * Manages local UI state (popup visibility, HUD state) while delegating game logic
+ * to useGameEngine hook. Input events are routed to action handlers.
+ *
+ * @param {GameLayoutProps} props - Configuration with `gameSlot` for save slot selection
+ * @returns {React.ReactNode} Complete game UI interface
+ *
+ * @example
+ * <Suspense fallback={<LoadingScreen />}>
+ *   <GameLayout gameSlot={0} />
+ * </Suspense>
+ */
 export default function GameLayout(props: GameLayoutProps) {
     // Guard: If gameSlot is not a valid number, show error and do not render game logic
     if (typeof props.gameSlot !== 'number' || isNaN(props.gameSlot) || props.gameSlot < 0) {

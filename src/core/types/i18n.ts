@@ -50,4 +50,4 @@ export const isInlineTranslation = (value: unknown): value is InlineTranslation 
 export type TranslatableString = string | TranslationObject | InlineTranslation;
 
 // Re-export language enum from lib/i18n
-export { LanguageEnum, type Language } from '../../lib/i18n';
+export { LanguageEnum, type Language } from '@/lib/i18n';

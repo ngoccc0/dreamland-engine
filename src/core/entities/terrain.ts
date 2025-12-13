@@ -224,7 +224,7 @@ export type { TerrainType, SoilType };
 
 import { TranslatableString } from '../types/i18n';
 import { GridPosition } from '../values/grid-position';
-import type { TerrainType, SoilType } from '../../lib/game/definitions/terrain-definitions';
+import type { TerrainType, SoilType } from '@/lib/game/definitions/terrain-definitions';
 import { Entity, IEntityContainer } from './entity';
 import { TerrainAttributes } from '../types/attributes';
 

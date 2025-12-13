@@ -7,7 +7,7 @@ import {
     fill_template,
 } from './offline';
 
-import { SmartJoinSentences } from '../../utils';
+import { SmartJoinSentences } from '@/core/utils';
 import type { Chunk, NarrativeTemplate, NarrativeLength, PlayerStatus, World } from '@/core/types/game';
 
 // Mock translation function

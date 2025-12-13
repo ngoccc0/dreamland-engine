@@ -354,6 +354,32 @@ export class EffectEngine {
         };
     }
 
+    /**
+     * Apply effect changes to PlayerStatus object immutably.
+     * Helper for hooks/usecases to apply effect results to game state.
+     * 
+     * @param playerStatus - Current player status
+     * @param changes - Changes returned from processEffect()
+     * @returns New PlayerStatus object with changes applied
+     */
+    applyEffectChangesToPlayer(playerStatus: any, changes: { statChanges?: Partial<CharacterStats>; statusChanges?: string[] }): any {
+        if (!changes.statChanges && !changes.statusChanges) {
+            return playerStatus;
+        }
+
+        const updated = { ...playerStatus };
+
+        if (changes.statChanges) {
+            updated.stats = { ...playerStatus.stats, ...changes.statChanges };
+        }
+
+        if (changes.statusChanges) {
+            // TODO: Implement status tracking in PlayerStatus if needed
+        }
+
+        return updated;
+    }
+
     updateEffects(gameTime: number): void {
         for (const [id, effects] of this.activeEffects.entries()) {
             effects.forEach(effect => {

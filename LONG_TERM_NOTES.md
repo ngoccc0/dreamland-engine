@@ -1,42 +1,55 @@
 # LONG TERM NOTES - TECHNICAL DEBT & FUTURE WORK
 
-Last Updated: December 13, 2025 (Phase 1 in progress)
+Last Updated: December 13, 2025 (Phase 2 in progress)
 
 ---
 
 ## 🔴 CRITICAL (Breaking Changes, Architecture)
 
 ### Effect Engine: Fix Mutations to Immutability
-**Status**: NOT STARTED
+**Status**: PHASE 2 - REFACTORING COMPLETE ✅
 **Priority**: 🔴 CRITICAL
 **Files**: 
-  - src/core/engines/effect-engine.ts
-  - src/__tests__/combat.smoke.test.ts
-  - src/hooks/use-game-effects.ts
+  - src/core/engines/effect-engine.ts ✅
+  - src/core/engines/weather-engine.ts ✅
+  - src/__tests__/combat.smoke.test.ts (needs update)
+  - src/hooks/use-game-effects.ts (needs update)
 
-**Issue**: 
-  - `processStatModification()` directly mutates target parameter
-  - Game state mutations break immutability guarantee
-  - Tests show direct mutations instead of returns
-  
-**Impact**: 
-  - State mutations make testing/debugging hard
-  - Unsafe for concurrent operations
-  - Prevents undo/redo, state snapshots, replay functionality
-  - Violates immutability principle
+**Completed (Dec 13)**:
+  - ✅ Refactored effect-engine to calculate changes instead of mutating
+  - ✅ Split into two layers: EffectEngine (calculations) + Hooks (apply changes)
+  - ✅ applyEffect() no longer mutates Character parameter
+  - ✅ processEffect() returns { statChanges, statusChanges } objects
+  - ✅ calculateStatModification/Hypothermia/Heatstroke return changes
+  - ✅ checkTemperatureStatusEffects() returns Effect[] to apply
+  - ✅ weather-engine.applyWeatherEffects() returns Effect[] to apply
+  - ✅ TypeScript compilation: PASSING (pre-existing errors only)
+  - ✅ Commit: 93e4d43
 
-**Plan**:
-  - [ ] Refactor effect-engine.ts: Return new Character object instead of mutating
-  - [ ] Update all effect processors to follow immutable pattern
-  - [ ] Update all effect callers (combat-usecase, game-loop) to use returned objects
-  - [ ] Fix combat.smoke.test.ts assertions
+**Remaining**:
+  - [ ] Update game-loop to apply returned effects to Character immutably
+  - [ ] Update combat-usecase to use processEffect() return values
+  - [ ] Fix combat.smoke.test.ts assertions for immutable returns
+  - [ ] Create Character update helper to apply effect changes
   - [ ] Test replayability with recorded game states
-  - [ ] Verify npm run typecheck and npm run test pass
+  - [ ] Verify npm run test passes
 
-**Estimated Effort**: 2-3 days
+**Architecture Pattern**:
+```typescript
+// OLD (mutable):
+effectEngine.applyEffect(effect, character);  // mutates character
+
+// NEW (immutable):
+const changes = effectEngine.processEffect(effect, character);
+const newCharacter = {
+  ...character,
+  stats: { ...character.stats, ...changes.statChanges }
+};
+```
+
+**Estimated Effort**: 1-2 more days (mostly hooking up returns in game-loop)
 **Dependencies**: All effect-related usecases, game loop, tests
-**Blocker**: Breaking change - must update all effect callers simultaneously
-**Risk**: High - touches core game state mechanism
+**Risk**: Medium (mostly integration, core refactoring done)
 
 ---
 

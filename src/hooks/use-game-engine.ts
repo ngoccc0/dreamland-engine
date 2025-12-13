@@ -366,7 +366,20 @@ export function useGameEngine(props: GameEngineProps) {
             try {
                 const playerCurrentCell = gameState.world.getCellAt(playerPosition);
                 if (playerCurrentCell) {
-                    weatherEngineRef.current.applyWeatherEffects(playerCurrentCell, gameState.playerStats);
+                    const weatherEffects = weatherEngineRef.current.applyWeatherEffects(playerCurrentCell, gameState.playerStats);
+                    
+                    // Apply weather effects to player stats immutably
+                    if (weatherEffects && weatherEffects.length > 0) {
+                        let updatedStats = gameState.playerStats;
+                        for (const effect of weatherEffects) {
+                            const changes = effectEngineRef.current.processEffect(effect, gameState.playerStats);
+                            updatedStats = effectEngineRef.current.applyEffectChangesToPlayer(updatedStats, changes);
+                        }
+                        
+                        if (updatedStats !== gameState.playerStats) {
+                            gameState.setPlayerStats(updatedStats);
+                        }
+                    }
                 }
             } catch {
                 // Silently handle world method unavailability

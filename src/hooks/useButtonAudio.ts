@@ -1,18 +1,33 @@
-/**
- * @overview
- * Hook to add audio feedback to button clicks.
- * Provides a handler that plays UI_BUTTON_CLICK sound and calls the original handler.
- * Useful for converting native HTML buttons or non-Button component interactions to have audio.
- */
-
 import { useCallback } from 'react';
 import { useAudio } from '@/lib/audio/useAudio';
 import { AudioActionType } from '@/lib/definitions/audio-events';
 
 /**
- * Hook to wrap button click handlers with audio feedback.
- * @param handler - Original click handler function
- * @returns Wrapped handler that plays sound before calling original
+ * Button audio feedback hook - wraps click handlers with UI sound effects.
+ *
+ * @remarks
+ * Automatically plays UI button click sound before executing the original handler.
+ * Useful for adding audio feedback to any interactive element without modifying components.
+ *
+ * **Error Handling:**
+ * Silently catches audio errors and handler errors. Ensures UI doesn't break
+ * if audio system fails or handler throws.
+ *
+ * **Generic Type:**
+ * Preserves handler argument types (can pass handlers with any signature).
+ *
+ * @param handler - Original click/interaction handler (optional)
+ * @returns Wrapped handler function with same signature
+ *
+ * @example
+ * // Wrap existing handler with audio
+ * const handleClick = useButtonAudio(() => {
+ *   console.log('Button clicked!');
+ * });
+ * 
+ * // Use with elements
+ * <button onClick={handleClick}>Click me</button>
+ * // Plays sound on click, then logs message
  */
 export function useButtonAudio<T extends any[]>(
     handler?: (...args: T) => void

@@ -1,3 +1,37 @@
+/**
+ * Offline attack handler factory - creates handler for turn-based combat.
+ *
+ * @remarks
+ * Executes combat turn against enemy at current location using dice roll system.
+ * Calculates damage based on roll success, environmental modifiers, and persona.
+ * Generates loot on enemy defeat, handles enemy counterattack, and enables flee option.
+ *
+ * **Combat Flow:**
+ * 1. Roll dice (d20, d12, d8 based on settings)
+ * 2. Compare roll to success thresholds
+ * 3. Calculate player damage (base attack + modifiers)
+ * 4. Apply environmental effects (darkness -20%, moisture -10%)
+ * 5. Apply persona bonuses (Warrior +2 base damage)
+ * 6. Reduce enemy HP
+ * 7. If defeated: generate loot drops, award XP
+ * 8. If enemy survives: enemy counterattacks
+ *
+ * **Damage Modifiers:**
+ * - Critical Success (20+): 2x damage
+ * - Great Success: 1.5x damage
+ * - Success: 1x damage
+ * - Failure/Critical: 0 damage
+ * - Darkness: -20% damage
+ * - Moisture: -10% damage
+ *
+ * @param context - Combat dependencies (dice, player stats, world, enemy AI)
+ * @returns Handler function () => void (no args, uses context)
+ *
+ * @example
+ * const handleAttack = createHandleOfflineAttack({ playerStats, world, rollDice, ... });
+ * handleAttack(); // Execute combat turn
+ */
+
 // Extracted offline attack handler.
 import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
 

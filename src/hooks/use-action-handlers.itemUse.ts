@@ -1,3 +1,33 @@
+/**
+ * Item use action handler factory - creates handler for consuming/using items.
+ *
+ * @remarks
+ * Executes item use actions (consume potion, build structure, etc).
+ * Validates item exists, applies effects (heal, stat boost, etc), removes consumed items,
+ * generates world changes, and produces narrative feedback.
+ *
+ * **Item Use Process:**
+ * 1. Resolves item definition from inventory
+ * 2. Validates item exists (returns system message if not)
+ * 3. Applies effects based on target (player, chunk, etc)
+ * 4. Updates inventory (reduces quantity or removes)
+ * 5. Modifies world state if applicable (place structure, etc)
+ * 6. Triggers audio + narrative feedback
+ *
+ * **Effect Types:**
+ * - HEAL: Restore player health
+ * - STAT_BOOST: Temporarily increase stats
+ * - WORLD_MODIFY: Change terrain/structures at location
+ * - PLACEMENT: Place buildings/structures
+ *
+ * @param context - Action dependencies (inventory, world, player state)
+ * @returns Handler function (itemName: string, target: string) => void
+ *
+ * @example
+ * const handleItemUse = createHandleOfflineItemUse({ playerStats, world, ... });
+ * handleItemUse('health_potion', 'player'); // Use potion on self
+ */
+
 // Extracted item use handler (offline). Uses a context object for dependencies.
 import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
 

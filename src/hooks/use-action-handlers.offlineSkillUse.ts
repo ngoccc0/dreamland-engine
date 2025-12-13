@@ -1,3 +1,37 @@
+/**
+ * Offline skill use handler factory - creates handler for casting spells/using skills.
+ *
+ * @remarks
+ * Executes skill/spell action consuming mana and applying effects based on dice roll.
+ * Validates skill exists, checks mana availability, applies success modifiers,
+ * handles spell backfire, and updates world state.
+ *
+ * **Skill Use Process:**
+ * 1. Validates skill exists in player skill list
+ * 2. Checks mana cost (fails if insufficient)
+ * 3. Rolls dice to determine success level
+ * 4. Deducts mana cost
+ * 5. Applies effect based on success:
+ *    - CriticalFailure: Backfire damage (50% of spell damage to player)
+ *    - Failure: No effect
+ *    - Success: Normal effect
+ *    - GreatSuccess: 1.5x effect multiplier
+ *    - CriticalSuccess: 2.0x effect multiplier
+ *
+ * **Effect Types:**
+ * - HEAL: Restore player health
+ * - DAMAGE: Deal damage to enemy
+ * - DEBUFF: Reduce enemy stats
+ * - BUFF: Increase player stats
+ *
+ * @param context - Skill dependencies (player stats, world, dice, effects)
+ * @returns Handler function (skillName: string) => void
+ *
+ * @example
+ * const handleSkillUse = createHandleOfflineSkillUse({ playerStats, rollDice, ... });
+ * handleSkillUse('fireball'); // Cast spell
+ */
+
 // Extracted offline skill-use handler. Accepts a context object with needed deps.
 import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
 

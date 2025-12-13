@@ -1,3 +1,37 @@
+/**
+ * Online narrative generation handler factory - creates handler for AI-generated narratives.
+ *
+ * @remarks
+ * Executes action with AI-powered narrative generation. Sends world context to Genkit flow
+ * for creative, context-aware narrative descriptions. Integrates with offline fallbacks
+ * when offline or when user disables AI narrative mode.
+ *
+ * **Narrative Process:**
+ * 1. Rolls dice for action success level
+ * 2. Gathers world context (current chunk + surrounding chunks if long narrative)
+ * 3. Sends to Genkit AI flow with world state
+ * 4. Processes AI response (item definitions, world changes, new items)
+ * 5. Updates player state with any generated items
+ * 6. Saves to Firebase (if online)
+ * 7. Displays narrative with context-aware descriptions
+ *
+ * **Context Gathering:**
+ * Short narrative: Current chunk only
+ * Long narrative: 3x3 grid of chunks (current + 8 adjacent explored chunks)
+ * Includes weather, magic affinity, time of day for ambient description
+ *
+ * **Item Generati on:**
+ * AI may generate new item definitions (custom items) stored in catalog.
+ * New items are validated and added to player inventory.
+ *
+ * @param context - AI dependencies (Genkit, Firebase, world, settings)
+ * @returns Handler function (action: string, world, playerPos, playerStats) => Promise<void>
+ *
+ * @example
+ * const handleOnlineNarrative = createHandleOnlineNarrative({ getDb, logger, ... });
+ * await handleOnlineNarrative('observe', world, { x: 0, y: 0 }, playerStats);
+ */
+
 // Lightweight factory to extract the online narrative handler out of the large
 // `use-action-handlers.ts` hook. The context parameter is `any` to keep the
 // refactor low-risk; we can tighten types later.

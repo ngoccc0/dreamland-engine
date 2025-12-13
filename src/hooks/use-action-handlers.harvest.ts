@@ -1,3 +1,31 @@
+/**
+ * Harvest action handler factory - creates handler for harvesting creatures/plants.
+ *
+ * @remarks
+ * Executes harvest action on creatures (loot drops) or plants (material harvesting).
+ * Validates target existence, adds items to inventory, generates loot from definitions,
+ * and produces narrative feedback.
+ *
+ * **Harvest Process:**
+ * 1. Validates creature/plant exists at target location
+ * 2. Resolves item definitions from loot tables
+ * 3. Adds items to player inventory
+ * 4. Clamps inventory to max capacity
+ * 5. Removes harvested creature (if depleted)
+ * 6. Triggers audio + narrative
+ *
+ * **Modular Harvesting:**
+ * Supports partName parameter for selective plant part harvesting.
+ * Example: "Pick flower petals" vs "dig roots" from same plant.
+ *
+ * @param context - Action dependencies (game state, world, player stats)
+ * @returns Handler function (actionId: number) => void
+ *
+ * @example
+ * const handleHarvest = createHandleHarvest({ world, playerStats, ... });
+ * handleHarvest(actionId); // Execute harvest by action ID
+ */
+
 // Extracted harvest handler.
 import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
 import type { CreatureDefinition } from '@/core/types/creature'; // Import CreatureDefinition

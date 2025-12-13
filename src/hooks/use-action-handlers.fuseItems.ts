@@ -1,3 +1,36 @@
+/**
+ * Fuse items action handler factory - creates handler for item crafting/alchemy.
+ *
+ * @remarks
+ * Executes fusion/crafting recipe to combine items into new items.
+ * Validates recipe exists, checks resource availability, applies environmental modifiers
+ * (weather, location magic affinity), generates success chance, and produces narrative outcome.
+ *
+ * **Fusion Process:**
+ * 1. Validates items exist in inventory
+ * 2. Calculates success chance from:
+ *    - Base recipe success rate
+ *    - Weather bonuses (storm +5%, etc)
+ *    - Danger level penalties (high danger -5%)
+ *    - Persona bonuses (Artisan +10%)
+ * 3. Calls AI to generate creative fusion outcome
+ * 4. Removes consumed items, adds result item
+ * 5. Logs action to dailyActionLog
+ * 6. Triggers narrative feedback
+ *
+ * **Environmental Modifiers:**
+ * - Weather: Storm (+electric), Heat (+fire), affects success
+ * - Magic Affinity: Region magic level affects chaos factor
+ * - Danger Level: High danger reduces success chance, adds chaos
+ *
+ * @param context - Action dependencies (inventory, world, AI, recipes)
+ * @returns Handler function (itemsToFuse: any[]) => Promise<void>
+ *
+ * @example
+ * const handleFuse = createHandleFuseItems({ playerStats, world, ... });
+ * await handleFuse(['copper_ore', 'stone']); // Combine items
+ */
+
 // Extracted fuse items handler.
 import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
 

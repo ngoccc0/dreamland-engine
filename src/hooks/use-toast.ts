@@ -171,6 +171,35 @@ function toast({ ...props }: Toast) {
   }
 }
 
+/**
+ * Toast notification hook - manages in-memory toast state.
+ *
+ * @remarks
+ * Provides access to current toast queue and dismiss functionality.
+ * Based on react-hot-toast architecture. Toasts are stored in memory
+ * and expire after 1 second (TOAST_REMOVE_DELAY).
+ *
+ * **State Management:**
+ * Uses reducer pattern (ADD/UPDATE/DISMISS/REMOVE actions).
+ * Listeners notified on state changes for subscriber components.
+ * Only one toast visible at a time (TOAST_LIMIT = 1).
+ *
+ * **Integration:**
+ * Pairs with `toast()` function to add new toasts.
+ * Returns current state + dismiss handler for component rendering.
+ *
+ * @returns Object with toasts array, toast creator, and dismiss handler
+ *
+ * @example
+ * const { toasts, dismiss } = useToast();
+ * return (
+ *   <div>
+ *     {toasts.map(t => (
+ *       <Toast key={t.id} {...t} onClose={() => dismiss(t.id)} />
+ *     ))}
+ *   </div>
+ * );
+ */
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState)
 

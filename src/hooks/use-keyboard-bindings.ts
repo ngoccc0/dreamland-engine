@@ -26,6 +26,36 @@ interface UseKeyboardBindingsOpts {
   movementWhileTyping?: boolean; // allow movement keys while typing in inputs
 }
 
+/**
+ * Keyboard bindings hook - maps keyboard keys to game actions.
+ *
+ * @remarks
+ * Enables customizable keyboard controls for:
+ * - Movement (arrow keys or WASD)
+ * - Actions (attack, wait, open inventory, etc.)
+ * - Hotkeys (1-9 for quick item use)
+ *
+ * **Features:**
+ * - Loads keybindings from settings (user-customizable)
+ * - Disables input when popups are open (prevent conflicts)
+ * - Allows movement while typing (configurable)
+ * - Maps hotkey numbers to inventory slots
+ *
+ * **Key Binding Format:**
+ * Each action maps to one key. Multiple actions can't share keys.
+ * Default: Arrow keys for movement, SPACE for attack, E for inventory.
+ *
+ * @param {UseKeyboardBindingsOpts} props - Action handlers, popup state, settings
+ * @returns {void} Registers keyboard listeners (side-effect only)
+ *
+ * @example
+ * useKeyboardBindings({
+ *   handlers: { move, attack, openInventory },
+ *   popupOpen: false,
+ *   enabled: true,
+ *   movementWhileTyping: false
+ * });
+ */
 export function useKeyboardBindings({ handlers, popupOpen = false, focusCustomActionInput, enabled = true, movementWhileTyping = true }: UseKeyboardBindingsOpts) {
   const { settings } = useSettings();
 

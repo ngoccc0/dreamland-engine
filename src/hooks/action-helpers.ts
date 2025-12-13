@@ -1,3 +1,32 @@
+/**
+ * Action helper factory - creates item pickup handlers with narrative feedback.
+ *
+ * @remarks
+ * Factory function that binds dependencies (translation, audio, narrative) to
+ * small utility functions for item pickup handling. Manages pickup buffer to
+ * group rapid pickups into single narrative messages.
+ *
+ * **Pickup Buffer Strategy:**
+ * Items collected in rapid succession (< 500ms) are batched into one narrative.
+ * Example: "You picked up 3 Gold, 2 Stone" instead of 5 separate messages.
+ *
+ * **Audio & Narrative Integration:**
+ * Each pickup triggers sound effect + narrative entry with sensory keywords.
+ * Prevents message spam while maintaining immersive feedback.
+ *
+ * @param deps - Dependencies: translation, audio, narrative, item definitions
+ * @returns Helper functions: flushPickupBuffer (main entry point)
+ *
+ * @example
+ * const helpers = createActionHelpers({
+ *   pickupBufferRef: myBuffer,
+ *   addNarrativeEntry: addMessage,
+ *   audio: audioSystem,
+ *   // ... other deps
+ * });
+ * helpers.flushPickupBuffer();
+ */
+
 import { getTranslatedText, ensurePlayerItemId } from '@/lib/utils';
 import { getKeywordVariations } from '@/lib/game/data/narrative-templates';
 import type { PlayerStatus, PlayerItem, ItemDefinition } from '@/core/types/game';

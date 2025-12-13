@@ -60,7 +60,23 @@ function toString(value: string | any | undefined): string {
 }
 
 /**
- * Evaluates skill readiness and returns UI state information.
+ * Skill state hook - determines if skill can be cast and displays status.
+ *
+ * @remarks
+ * Evaluates skill readiness based on:
+ * - **Cooldown**: Remaining cooldown time (seconds)
+ * - **Mana**: Required mana vs available mana pool
+ * - **State**: READY, INSUFFICIENT_MANA, ON_COOLDOWN
+ *
+ * **Display Info:**
+ * Returns human-readable status text:
+ * - "Ready" if skill can be cast immediately
+ * - "X.Xs cooldown" if on cooldown
+ * - "Need Y mana" if insufficient mana
+ *
+ * **Disabled Logic:**
+ * Skill is disabled if on cooldown OR insufficient mana.
+ * UI should visually indicate disabled state and show status text.
  *
  * @param skill - Skill object with manaCost, cooldownRemaining properties
  * @param currentMana - Player's current mana pool

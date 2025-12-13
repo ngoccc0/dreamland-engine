@@ -1,3 +1,35 @@
+/**
+ * Offline action handler factory - creates handler for non-combat world interactions.
+ *
+ * @remarks
+ * Executes generic world actions (observe, talk to NPC, search, rest, etc).
+ * These are offline-compatible actions that don't require server interaction.
+ *
+ * **Action Types:**
+ * - observe_enemy: Track creature for future combat
+ * - talk_to_npc: Generate NPC dialogue narratives
+ * - search: AI-generated search outcomes
+ * - rest: Restore health + advance time
+ * - pray: Religious interactions for dialogue
+ * - farm: Grow crops at location
+ * - harvest: Collect mature plants
+ *
+ * **NPC Dialogue:**
+ * Uses template definitions + AI generation for context-aware NPC conversations.
+ * Varies by biome, NPC personality, player progress, and game state.
+ *
+ * **Search Generation:**
+ * Calls AI to create narrative descriptions of search results based on location
+ * and nearby items/creatures.
+ *
+ * @param context - Action dependencies (world, player state, templates, AI)
+ * @returns Handler function (action: any) => void
+ *
+ * @example
+ * const handleOfflineAction = createHandleOfflineAction({ world, playerStats, ... });
+ * handleOfflineAction({ textKey: 'restAction', params: {} }); // Rest action
+ */
+
 // Extracted offline action handler. Uses a context object to avoid closing over hook state.
 import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
 

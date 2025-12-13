@@ -92,11 +92,39 @@ type GameEffectsDeps = {
 };
 
 /**
- * Orchestrator hook for managing all game side-effects.
- * This hook initializes the correct data repository and then delegates
- * specific lifecycle tasks (initialization, saving, progression, etc.)
- * to specialized child hooks.
- * @param {GameEffectsDeps} deps - A collection of all state variables and updaters from the main game state.
+ * Game side-effects orchestrator - manages all reactive effects and game lifecycle.
+ *
+ * @remarks
+ * This hook initializes and coordinates specialized lifecycle hooks that handle
+ * all side-effects (state changes that cause external actions):
+ * - **Initialization**: Setup world, load save data, initialize game state
+ * - **Saving**: Auto-save game state, handle manual saves
+ * - **Progression**: Track player level-ups, quest completion, skill mastery
+ * - **Events**: Respond to state changes (game-over, achievements, narrative triggers)
+ * - **Rendering**: Optimize chunk rendering, viewport management
+ *
+ * **Repository Pattern:**
+ * Automatically selects correct data repository (Firebase vs offline) based on auth status.
+ * When user authenticates, uses Firebase for cloud saves. When offline, uses IndexedDB.
+ * Switches repositories reactively when auth state changes.
+ *
+ * **Effect Lifecycle:**
+ * 1. On mount: Initialize correct repository based on auth status
+ * 2. On state change: Trigger specialized lifecycle hooks
+ * 3. On auth change: Re-initialize repository (switch between Firebase/offline)
+ * 4. On unmount: Cleanup auto-save timers, pending requests
+ *
+ * @param {GameEffectsDeps} deps - Complete game state object with all setters and refs
+ * @returns {void} This hook produces side-effects only, no return value
+ *
+ * @example
+ * useGameEffects({
+ *   ...gameState,
+ *   narrativeLogRef,
+ *   gameSlot: 0,
+ *   config: defaultGameConfig,
+ *   advanceGameTime: () => {...}
+ * });
  */
 export function useGameEffects(deps: GameEffectsDeps) {
   const { user } = useAuth();

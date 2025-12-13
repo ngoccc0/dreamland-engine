@@ -23,6 +23,40 @@ import { WorldGenerator } from '@/core/generators/world-generator';
 const TERRAIN_LITERALS = [
     'forest', 'grassland', 'desert', 'swamp', 'mountain', 'cave', 'jungle', 'volcanic', 'wall', 'floptropica', 'tundra', 'beach', 'mesa', 'mushroom_forest', 'ocean', 'city', 'space_station', 'underwater'
 ];
+/**
+ * Central game state manager for Dreamland Engine.
+ *
+ * @remarks
+ * Manages all game world state including player stats, position, inventory, world generation,
+ * weather, creatures, items, structures, and narrative entries. Uses React hooks to provide
+ * a reactive interface to game state mutations.
+ *
+ * The hook initializes the world asynchronously on first mount using WorldGenerator and
+ * TerrainFactory. Resource density varies per world (0.5 to 1.5 multiplier) to ensure
+ * generated worlds have different abundance levels.
+ *
+ * **State Structure:**
+ * - World & Terrain: `world`, `worldProfile`, `regions`, `playerPosition`, `visualPlayerPosition`
+ * - Time & Weather: `currentSeason`, `gameTime`, `day`, `turn`, `weatherZones`
+ * - Player: `playerStats`, `playerBehaviorProfile`, `customItemCatalog`
+ * - Definitions: `recipes`, `buildableStructures`, `biomeDefinitions`, `customItemDefinitions`
+ * - Narrative: `narrativeLog`, `currentChunk`
+ * - UI State: `isLoading`, `isGameOver`, `isSaving`, `isLoaded`, `isAnimatingMove`
+ *
+ * **Visual Animation Fields:**
+ * - `visualPlayerPosition`: Animated position for smooth tile-to-tile movement
+ * - `visualMoveFrom` / `visualMoveTo`: Animation endpoints for move sequences
+ * - `visualJustLanded`: Brief flag to trigger landing bounce effect
+ *
+ * @param {GameStateProps} props - Configuration object with `gameSlot` (unused, reserved for future multi-save support)
+ * @returns {Object} Game state object with 80+ getter/setter pairs for reactive state updates
+ *
+ * @example
+ * const gameState = useGameState({ gameSlot: 0 });
+ * console.log(gameState.playerStats.hp); // Current player health
+ * gameState.setPlayerPosition({ x: 5, y: 10 }); // Move player
+ * gameState.setNarrativeLog([...gameState.narrativeLog, newEntry]); // Append narrative
+ */
 // Accept gameSlot but mark as intentionally unused to satisfy lint rule
 export function useGameState({ gameSlot: _gameSlot }: GameStateProps) {
     const [narrativeLog, setNarrativeLog] = useState<NarrativeEntry[]>([]);

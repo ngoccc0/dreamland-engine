@@ -84,6 +84,43 @@ export type ActionHandlerDeps = {
   activeMoveOpsRef?: React.RefObject<Set<string>>;
 };
 
+/**
+ * Player action handlers - processes all user-initiated game actions.
+ *
+ * @remarks
+ * Coordinates action execution by delegating to specialized handler functions:
+ * - **Movement**: Tile-to-tile navigation, turn advancement
+ * - **Combat**: Attack creatures, process damage and status effects
+ * - **Harvesting**: Gather items from chunks (plants, stones, creatures)
+ * - **Crafting**: Fuse items, cook food, create tools, transmute materials
+ * - **Farming**: Till soil, water crops, fertilize, plant seeds
+ * - **Narrative**: Generate story content (online via API, offline via engine)
+ * - **Items**: Use items (consumables, equipment), manage inventory
+ * - **Skills**: Cast spells, execute special abilities
+ *
+ * **Architecture:**
+ * Each action type is implemented in a separate handler file and imported here.
+ * Handlers receive a dependencies object with all game state (deps) and return
+ * immutable state updates or side-effect definitions.
+ *
+ * **Turn System:**
+ * Most actions advance game time by 1 tick (2 hours). Player position and
+ * creature positions are updated atomically. Effects (damage, status) are
+ * resolved after movement.
+ *
+ * **Item Resolution:**
+ * Resolves items via custom/world-specific definitions first, then falls back
+ * to master item catalog. This allows generated worlds to have unique items.
+ *
+ * @param {ActionHandlerDeps} deps - Game state including world, player, items, recipes, regions
+ * @returns {Object} Map of handler functions (handleMove, handleAttack, handleHarvest, etc.)
+ *
+ * @example
+ * const handlers = useActionHandlers(gameState);
+ * handlers.handleMove({ x: 5, y: 10 }); // Move to tile
+ * handlers.handleAttack(creatureId); // Attack creature at current tile
+ * handlers.handleHarvest(itemId); // Gather item
+ */
 export function useActionHandlers(deps: ActionHandlerDeps) {
   const {
     isLoaded, isLoading, isGameOver, setIsLoading, playerStats, setPlayerStats, world, setWorld, buildableStructures,

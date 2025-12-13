@@ -23,17 +23,40 @@ interface GameEngineProps {
 }
 
 /**
- * The main Game Engine hook.
- * This hook acts as the primary "Manager" or "Orchestrator" in our architecture.
- * Its main responsibility is to assemble all the specialized "workers" (other hooks)
- * and provide a single, clean interface for the UI (the GameLayout component) to interact with.
+ * Main Game Engine orchestrator hook - coordinates all game subsystems.
  *
- * It follows the "separation of concerns" principle:
- * - `useGameState`: Manages all the raw state of the game.
- * - `useActionHandlers`: Contains the logic for *how* to execute player actions (the "How").
- * - `useGameEffects`: Manages all side effects that react to state changes (saving, game over checks, etc.).
- * - `GameLayout`: The UI layer, which only knows *what* action it wants to perform (the "What"),
- *   and calls the appropriate function provided by this engine.
+ * @remarks
+ * This hook serves as the central "conductor" of the game, assembling and coordinating
+ * specialized worker hooks following strict separation of concerns:
+ * - `useGameState`: Manages raw game world state (creatures, items, weather, player)
+ * - `useActionHandlers`: Implements action logic (move, attack, harvest, craft, etc.)
+ * - `useGameEffects`: Handles side effects (auto-save, game-over detection, music, narrative)
+ * - `GameLayout`: UI layer that calls this engine's action handlers
+ *
+ * The engine manages several game loops:
+ * - **Turn Loop**: Advances when player takes actions (moves, attacks, crafts)
+ * - **Time Loop**: Game time (360=6AM, advances per turn), seasons, weather
+ * - **Creature Loop**: Creature AI, plant growth, natural world evolution
+ * - **Effect Loop**: Visual effects, damage resolution, status effects
+ *
+ * **Key responsibilities:**
+ * - Orchestrate state → actions → effects pipelines
+ * - Advance game time and manage seasons
+ * - Trigger creature AI and plant growth
+ * - Play ambient music/sounds based on biome
+ * - Coordinate turn-based movement animations
+ * - Provide action handlers to UI (move, attack, harvest, etc.)
+ *
+ * @param {GameEngineProps} props - Configuration with `gameSlot` for save slot selection
+ * @returns {Object} Complete game interface combining state, actions, and handlers
+ *
+ * @example
+ * const engine = useGameEngine({ gameSlot: 0 });
+ * // Use state
+ * console.log(engine.playerStats.hp);
+ * // Perform actions
+ * engine.handleMove({ x: 5, y: 10 });
+ * engine.handleAttack(targetCreature);
  */
 export function useGameEngine(props: GameEngineProps) {
     const gameState = useGameState(props);

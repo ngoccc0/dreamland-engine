@@ -8,7 +8,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'dry_grass', quantity: 2 },
             { name: 'large_leaf', quantity: 1 }
         ],
-        description: {en: 'Weave together dried grass and leaves to create basic plant fibers.', vi: 'Dệt cỏ khô và lá cây lại với nhau để tạo ra sợi thực vật cơ bản.'},
+        description: { en: 'Weave together dried grass and leaves to create basic plant fibers.', vi: 'Dệt cỏ khô và lá cây lại với nhau để tạo ra sợi thực vật cơ bản.' },
     },
     'durable_cloth': {
         result: { name: 'durable_cloth', quantity: 1, emoji: '👕💪' },
@@ -16,7 +16,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'thorny_vine', quantity: 2 },
             { name: 'plant_fiber', quantity: 3 }
         ],
-        description: {en: 'Weave together vines and fibers to create a strong cloth.', vi: 'Dệt các sợi dây leo và sợi thực vật lại với nhau để tạo ra một loại vải chắc chắn.'},
+        description: { en: 'Weave together vines and fibers to create a strong cloth.', vi: 'Dệt các sợi dây leo và sợi thực vật lại với nhau để tạo ra một loại vải chắc chắn.' },
         requiredTool: 'whetstone',
     },
     'camouflage_cloak': {
@@ -26,7 +26,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'large_leaf', quantity: 5 },
             { name: 'thorny_vine', quantity: 2 }
         ],
-        description: {en: 'Sew leaves onto a cloak for better stealth in forests.', vi: 'May lá cây lên áo choàng để ẩn mình tốt hơn trong rừng.'},
+        description: { en: 'Sew leaves onto a cloak for better stealth in forests.', vi: 'May lá cây lên áo choàng để ẩn mình tốt hơn trong rừng.' },
         requiredTool: 'whetstone',
     },
     'charcoal': {
@@ -34,7 +34,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         ingredients: [
             { name: 'wood_core', quantity: 1 }
         ],
-        description: {en: 'Process wood into a more efficient fuel source.', vi: 'Chế biến gỗ thành một nguồn nhiên liệu hiệu quả hơn.'},
+        description: { en: 'Process wood into a more efficient fuel source.', vi: 'Chế biến gỗ thành một nguồn nhiên liệu hiệu quả hơn.' },
         requiredTool: 'flint',
     },
     'wrought_iron': {
@@ -43,7 +43,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'iron_ore', quantity: 2 },
             { name: 'charcoal', quantity: 1 }
         ],
-        description: {en: 'Smelt iron ore into a usable metal.', vi: 'Nung chảy quặng sắt thành một kim loại có thể sử dụng được.'},
+        description: { en: 'Smelt iron ore into a usable metal.', vi: 'Nung chảy quặng sắt thành một kim loại có thể sử dụng được.' },
         requiredTool: 'forge',
     },
     'thick_fur': {
@@ -51,7 +51,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         ingredients: [
             { name: 'black_wolf_pelt', quantity: 2 }
         ],
-        description: {en: 'Process multiple pelts into a thick, insulating fur.', vi: 'Chế biến nhiều tấm da thành một lớp lông thú dày, cách nhiệt.'},
+        description: { en: 'Process multiple pelts into a thick, insulating fur.', vi: 'Chế biến nhiều tấm da thành một lớp lông thú dày, cách nhiệt.' },
         requiredTool: 'whetstone',
     },
     'optical_glass': {
@@ -60,7 +60,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'plain_sand', quantity: 3 },
             { name: 'charcoal', quantity: 1 }
         ],
-        description: {en: 'Melt sand at high temperatures to create clear glass.', vi: 'Nung chảy cát ở nhiệt độ cao để tạo ra thủy tinh trong suốt.'},
+        description: { en: 'Melt sand at high temperatures to create clear glass.', vi: 'Nung chảy cát ở nhiệt độ cao để tạo ra thủy tinh trong suốt.' },
         requiredTool: 'kiln',
     },
     'activated_charcoal': {
@@ -68,7 +68,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         ingredients: [
             { name: 'charcoal', quantity: 2 }
         ],
-        description: {en: 'Purify charcoal to create a filter.', vi: 'Tinh chế than củi để tạo ra một bộ lọc.'},
+        description: { en: 'Purify charcoal to create a filter.', vi: 'Tinh chế than củi để tạo ra một bộ lọc.' },
         requiredTool: 'kiln',
     },
     'clean_water': {
@@ -78,7 +78,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'muddy_water', quantity: 1 },
             { name: 'activated_charcoal', quantity: 1 }
         ],
-        description: {en: 'Filter muddy water to make it safe to drink.', vi: 'Lọc nước bùn để làm cho nó an toàn để uống.'},
+        description: { en: 'Filter muddy water to make it safe to drink.', vi: 'Lọc nước bùn để làm cho nó an toàn để uống.' },
         requiredTool: 'whetstone',
     },
     'strong_stamina_potion': {
@@ -88,7 +88,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'magic_root', quantity: 1 },
             { name: 'clean_water', quantity: 1 }
         ],
-        description: {en: 'Brew a powerful potion to restore a large amount of stamina.', vi: 'Pha một lọ thuốc mạnh để phục hồi một lượng lớn thể lực.'},
+        description: { en: 'Brew a powerful potion to restore a large amount of stamina.', vi: 'Pha một lọ thuốc mạnh để phục hồi một lượng lớn thể lực.' },
         requiredTool: 'whetstone',
     },
     'sturdy_rope': {
@@ -97,7 +97,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'thorny_vine', quantity: 2 },
             { name: 'plant_fiber', quantity: 3 }
         ],
-        description: {en: 'Twist together plant fibers to make a strong rope.', vi: 'Xoắn các sợi thực vật lại với nhau để làm một sợi dây thừng chắc chắn.'},
+        description: { en: 'Twist together plant fibers to make a strong rope.', vi: 'Xoắn các sợi thực vật lại với nhau để làm một sợi dây thừng chắc chắn.' },
         requiredTool: 'whetstone',
     },
     'tree_sap_glue': {
@@ -106,7 +106,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'wood_core', quantity: 2 },
             { name: 'charcoal', quantity: 1 }
         ],
-        description: {en: 'Boil down tree sap to create a sticky adhesive.', vi: 'Đun sôi nhựa cây để tạo ra một chất kết dính.'},
+        description: { en: 'Boil down tree sap to create a sticky adhesive.', vi: 'Đun sôi nhựa cây để tạo ra một chất kết dính.' },
         requiredTool: 'kiln',
     },
     'tanned_leather': {
@@ -115,7 +115,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'bear_hide', quantity: 1 },
             { name: 'charcoal', quantity: 1 }
         ],
-        description: {en: 'Treat animal hides to make them more durable and flexible.', vi: 'Xử lý da động vật để làm cho chúng bền hơn và linh hoạt hơn.'},
+        description: { en: 'Treat animal hides to make them more durable and flexible.', vi: 'Xử lý da động vật để làm cho chúng bền hơn và linh hoạt hơn.' },
         requiredTool: 'whetstone',
     },
     'steel_alloy': {
@@ -124,7 +124,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'wrought_iron', quantity: 2 },
             { name: 'iron_ore', quantity: 1 }
         ],
-        description: {en: 'Forge wrought iron with other minerals to create a stronger steel alloy.', vi: 'Rèn sắt rèn với các khoáng chất khác để tạo ra một hợp kim thép mạnh hơn.'},
+        description: { en: 'Forge wrought iron with other minerals to create a stronger steel alloy.', vi: 'Rèn sắt rèn với các khoáng chất khác để tạo ra một hợp kim thép mạnh hơn.' },
         requiredTool: 'forge',
     },
     'clay_pot': {
@@ -132,7 +132,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         ingredients: [
             { name: 'clay', quantity: 3 },
         ],
-        description: {en: 'Fire clay in a kiln to create a sturdy pot for carrying water or cooking.', vi: 'Nung đất sét trong lò để tạo ra một cái nồi chắc chắn để đựng nước hoặc nấu ăn.'},
+        description: { en: 'Fire clay in a kiln to create a sturdy pot for carrying water or cooking.', vi: 'Nung đất sét trong lò để tạo ra một cái nồi chắc chắn để đựng nước hoặc nấu ăn.' },
         requiredTool: 'kiln',
     },
     'hoe_recipe': {
@@ -167,7 +167,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'plain_sand', quantity: 1 },
             { name: 'muddy_water', quantity: 1 }
         ],
-        description: {en: 'Mix clay, sand, and water to create a basic building mortar.', vi: 'Trộn đất sét, cát và nước để tạo ra một loại vữa xây dựng cơ bản.'},
+        description: { en: 'Mix clay, sand, and water to create a basic building mortar.', vi: 'Trộn đất sét, cát và nước để tạo ra một loại vữa xây dựng cơ bản.' },
         requiredTool: 'whetstone',
     },
     'firefly_lantern': {
@@ -177,7 +177,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'glowing_firefly', quantity: 5 },
             { name: 'thorny_vine', quantity: 2 }
         ],
-        description: {en: 'Create a gentle, continuous light source using a hollow log and captured fireflies.', vi: 'Tạo ra một nguồn sáng nhẹ nhàng, liên tục bằng cách sử dụng một khúc gỗ rỗng và những con đom đóm bị bắt.'},
+        description: { en: 'Create a gentle, continuous light source using a hollow log and captured fireflies.', vi: 'Tạo ra một nguồn sáng nhẹ nhàng, liên tục bằng cách sử dụng một khúc gỗ rỗng và những con đom đóm bị bắt.' },
         requiredTool: 'simple_stone_axe',
     },
     'herbal_antidote': {
@@ -187,7 +187,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'healing_herb', quantity: 3 },
             { name: 'magic_root', quantity: 1 }
         ],
-        description: {en: 'Brew a potent antidote to cure poisoning.', vi: 'Pha một loại thuốc giải độc mạnh để chữa ngộ độc.'},
+        description: { en: 'Brew a potent antidote to cure poisoning.', vi: 'Pha một loại thuốc giải độc mạnh để chữa ngộ độc.' },
         requiredTool: 'whetstone',
     },
     'wolf_pelt_armor': {
@@ -197,7 +197,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'bear_hide', quantity: 2 },
             { name: 'thorny_vine', quantity: 3 }
         ],
-        description: {en: 'Craft a warm and intimidating set of armor from wolf pelts.', vi: 'Chế tạo một bộ áo giáp ấm áp và đáng sợ từ da sói.'},
+        description: { en: 'Craft a warm and intimidating set of armor from wolf pelts.', vi: 'Chế tạo một bộ áo giáp ấm áp và đáng sợ từ da sói.' },
         requiredTool: 'whetstone',
     },
     'tanned_leather_armor': {
@@ -207,7 +207,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'durable_cloth', quantity: 2 },
             { name: 'sturdy_rope', quantity: 1 }
         ],
-        description: {en: 'Create a sturdy and flexible set of armor from tanned leather.', vi: 'Tạo một bộ áo giáp chắc chắn và linh hoạt từ da thuộc.'},
+        description: { en: 'Create a sturdy and flexible set of armor from tanned leather.', vi: 'Tạo một bộ áo giáp chắc chắn và linh hoạt từ da thuộc.' },
         requiredTool: 'whetstone',
     },
     'survival_knife': {
@@ -217,7 +217,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'wood_core', quantity: 1 },
             { name: 'thorny_vine', quantity: 1 }
         ],
-        description: {en: 'Forge a versatile knife that is both a tool and a reliable weapon.', vi: 'Rèn một con dao đa năng vừa là công cụ vừa là vũ khí đáng tin cậy.'},
+        description: { en: 'Forge a versatile knife that is both a tool and a reliable weapon.', vi: 'Rèn một con dao đa năng vừa là công cụ vừa là vũ khí đáng tin cậy.' },
         requiredTool: 'forge',
     },
     'water_filter_canteen': {
@@ -227,7 +227,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'durable_cloth', quantity: 1 },
             { name: 'activated_charcoal', quantity: 1 }
         ],
-        description: {en: 'Construct a canteen that can purify water on the go.', vi: 'Chế tạo một bình đựng nước có thể lọc nước khi đang di chuyển.'},
+        description: { en: 'Construct a canteen that can purify water on the go.', vi: 'Chế tạo một bình đựng nước có thể lọc nước khi đang di chuyển.' },
         requiredTool: 'whetstone',
     },
     'insulated_sleeping_bag': {
@@ -237,7 +237,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'thick_fur', quantity: 2 },
             { name: 'thorny_vine', quantity: 2 }
         ],
-        description: {en: 'Craft a warm sleeping bag to protect against extreme cold.', vi: 'Chế tạo một túi ngủ ấm áp để bảo vệ khỏi cái lạnh khắc nghiệt.'},
+        description: { en: 'Craft a warm sleeping bag to protect against extreme cold.', vi: 'Chế tạo một túi ngủ ấm áp để bảo vệ khỏi cái lạnh khắc nghiệt.' },
         requiredTool: 'whetstone',
     },
     'large_animal_trap': {
@@ -247,7 +247,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'thorny_vine', quantity: 3 },
             { name: 'wrought_iron', quantity: 1 }
         ],
-        description: {en: 'Build a heavy-duty trap capable of catching large prey.', vi: 'Xây dựng một cái bẫy hạng nặng có khả năng bắt những con mồi lớn.'},
+        description: { en: 'Build a heavy-duty trap capable of catching large prey.', vi: 'Xây dựng một cái bẫy hạng nặng có khả năng bắt những con mồi lớn.' },
         requiredTool: 'simple_stone_axe',
     },
     'food_preservation_box': {
@@ -257,7 +257,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'pebbles', quantity: 2 },
             { name: 'crystal_water', quantity: 1 }
         ],
-        description: {en: 'Construct an insulated box to keep food fresh for longer.', vi: 'Xây dựng một cái hộp cách nhiệt để giữ thức ăn tươi lâu hơn.'},
+        description: { en: 'Construct an insulated box to keep food fresh for longer.', vi: 'Xây dựng một cái hộp cách nhiệt để giữ thức ăn tươi lâu hơn.' },
         requiredTool: 'whetstone',
     },
     'exquisite_compass': {
@@ -266,7 +266,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'wrought_iron', quantity: 1 },
             { name: 'optical_glass', quantity: 1 }
         ],
-        description: {en: 'Craft a precise compass to help navigate.', vi: 'Chế tạo một la bàn chính xác để giúp điều hướng.'},
+        description: { en: 'Craft a precise compass to help navigate.', vi: 'Chế tạo một la bàn chính xác để giúp điều hướng.' },
         requiredTool: 'whetstone',
     },
     'improved_wooden_bow': {
@@ -276,7 +276,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'sturdy_rope', quantity: 1 },
             { name: 'tree_sap_glue', quantity: 1 }
         ],
-        description: {en: 'Reinforce a wooden bow to increase its power and accuracy.', vi: 'Gia cố một cây cung gỗ để tăng sức mạnh và độ chính xác của nó.'},
+        description: { en: 'Reinforce a wooden bow to increase its power and accuracy.', vi: 'Gia cố một cây cung gỗ để tăng sức mạnh và độ chính xác của nó.' },
         requiredTool: 'whetstone',
     },
     'heavy_iron_axe': {
@@ -285,7 +285,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'steel_alloy', quantity: 2 },
             { name: 'wood_core', quantity: 2 }
         ],
-        description: {en: 'Forge a heavy axe, excellent for felling large trees or as a powerful weapon.', vi: 'Rèn một chiếc rìu nặng, tuyệt vời để đốn hạ những cây lớn hoặc làm vũ khí mạnh mẽ.'},
+        description: { en: 'Forge a heavy axe, excellent for felling large trees or as a powerful weapon.', vi: 'Rèn một chiếc rìu nặng, tuyệt vời để đốn hạ những cây lớn hoặc làm vũ khí mạnh mẽ.' },
         requiredTool: 'forge',
     },
     'large_bag': {
@@ -295,7 +295,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'tanned_leather', quantity: 2 },
             { name: 'sturdy_rope', quantity: 2 }
         ],
-        description: {en: 'Sew together leather and cloth to create a bag with more inventory space.', vi: 'May da và vải lại với nhau để tạo ra một chiếc túi có nhiều không gian hơn.'},
+        description: { en: 'Sew together leather and cloth to create a bag with more inventory space.', vi: 'May da và vải lại với nhau để tạo ra một chiếc túi có nhiều không gian hơn.' },
         requiredTool: 'whetstone',
     },
     'handheld_flashlight': {
@@ -305,7 +305,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'optical_glass', quantity: 1 },
             { name: 'crystal_water', quantity: 2 }
         ],
-        description: {en: 'Construct a powerful, focused light source using advanced materials.', vi: 'Chế tạo một nguồn sáng mạnh, tập trung bằng cách sử dụng các vật liệu tiên tiến.'},
+        description: { en: 'Construct a powerful, focused light source using advanced materials.', vi: 'Chế tạo một nguồn sáng mạnh, tập trung bằng cách sử dụng các vật liệu tiên tiến.' },
         requiredTool: 'forge',
     },
     'steel_alloy_armor_set': {
@@ -315,7 +315,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'tanned_leather', quantity: 2 },
             { name: 'wood_core', quantity: 3 }
         ],
-        description: {en: 'Forge a complete set of formidable steel alloy armor.', vi: 'Rèn một bộ áo giáp hợp kim thép hoàn chỉnh, đáng gờm.'},
+        description: { en: 'Forge a complete set of formidable steel alloy armor.', vi: 'Rèn một bộ áo giáp hợp kim thép hoàn chỉnh, đáng gờm.' },
         requiredTool: 'forge',
     },
     'steel_alloy_sword': {
@@ -325,7 +325,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'wood_core', quantity: 1 },
             { name: 'tree_sap_glue', quantity: 1 }
         ],
-        description: {en: 'Forge a sharp and durable sword from steel alloy.', vi: 'Rèn một thanh kiếm sắc và bền từ hợp kim thép.'},
+        description: { en: 'Forge a sharp and durable sword from steel alloy.', vi: 'Rèn một thanh kiếm sắc và bền từ hợp kim thép.' },
         requiredTool: 'forge',
     },
     'portable_camping_tent': {
@@ -335,7 +335,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'wood_core', quantity: 4 },
             { name: 'sturdy_rope', quantity: 3 }
         ],
-        description: {en: 'Craft a lightweight tent that offers good protection from the elements.', vi: 'Chế tạo một chiếc lều nhẹ mang lại sự bảo vệ tốt khỏi các yếu tố thời tiết.'},
+        description: { en: 'Craft a lightweight tent that offers good protection from the elements.', vi: 'Chế tạo một chiếc lều nhẹ mang lại sự bảo vệ tốt khỏi các yếu tố thời tiết.' },
         requiredTool: 'whetstone',
     },
     'repair_kit': {
@@ -345,7 +345,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'wood_core', quantity: 1 },
             { name: 'thorny_vine', quantity: 2 }
         ],
-        description: {en: 'Assemble a kit with basic tools and materials for repairing equipment.', vi: 'Lắp ráp một bộ dụng cụ với các công cụ và vật liệu cơ bản để sửa chữa thiết bị.'},
+        description: { en: 'Assemble a kit with basic tools and materials for repairing equipment.', vi: 'Lắp ráp một bộ dụng cụ với các công cụ và vật liệu cơ bản để sửa chữa thiết bị.' },
         requiredTool: 'whetstone',
     },
     'fishing_hook': {
@@ -355,7 +355,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'sturdy_branch', quantity: 1 },
             { name: 'thorny_vine', quantity: 1 }
         ],
-        description: {en: 'Craft a simple fishing hook to catch fish.', vi: 'Chế tạo một lưỡi câu đơn giản để bắt cá.'},
+        description: { en: 'Craft a simple fishing hook to catch fish.', vi: 'Chế tạo một lưỡi câu đơn giản để bắt cá.' },
         requiredTool: 'whetstone',
     },
     'grilled_fish_meat': {
@@ -363,7 +363,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
         ingredients: [
             { name: 'raw_wolf_meat', quantity: 1 },
         ],
-        description: {en: 'Grill fish over a fire for a nutritious meal.', vi: 'Nướng cá trên lửa để có một bữa ăn bổ dưỡng.'},
+        description: { en: 'Grill fish over a fire for a nutritious meal.', vi: 'Nướng cá trên lửa để có một bữa ăn bổ dưỡng.' },
         requiredTool: 'Lửa trại',
     },
     'fishing_net': {
@@ -372,7 +372,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'sturdy_rope', quantity: 3 },
             { name: 'wood_core', quantity: 1 }
         ],
-        description: {en: 'Weave a net to catch multiple fish at once.', vi: 'Đan một tấm lưới để bắt nhiều cá cùng một lúc.'},
+        description: { en: 'Weave a net to catch multiple fish at once.', vi: 'Đan một tấm lưới để bắt nhiều cá cùng một lúc.' },
         requiredTool: 'whetstone',
     },
     'sun_rain_hat': {
@@ -382,7 +382,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'durable_cloth', quantity: 1 },
             { name: 'thorny_vine', quantity: 1 }
         ],
-        description: {en: 'Craft a wide-brimmed hat for protection against sun and rain.', vi: 'Chế tạo một chiếc mũ rộng vành để bảo vệ khỏi nắng và mưa.'},
+        description: { en: 'Craft a wide-brimmed hat for protection against sun and rain.', vi: 'Chế tạo một chiếc mũ rộng vành để bảo vệ khỏi nắng và mưa.' },
         requiredTool: 'whetstone',
     },
     'thermos_flask': {
@@ -392,7 +392,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'crystal_water', quantity: 1 },
             { name: 'tree_sap_glue', quantity: 1 }
         ],
-        description: {en: 'Construct a flask that can maintain the temperature of liquids.', vi: 'Chế tạo một bình giữ nhiệt có thể duy trì nhiệt độ của chất lỏng.'},
+        description: { en: 'Construct a flask that can maintain the temperature of liquids.', vi: 'Chế tạo một bình giữ nhiệt có thể duy trì nhiệt độ của chất lỏng.' },
         requiredTool: 'forge',
     },
     'strong_recovery_potion': {
@@ -402,7 +402,7 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'stamina_potion', quantity: 1 },
             { name: 'magic_root', quantity: 2 }
         ],
-        description: {en: 'Brew a powerful elixir that restores both health and stamina.', vi: 'Pha một loại thuốc tiên mạnh mẽ giúp phục hồi cả máu và thể lực.'},
+        description: { en: 'Brew a powerful elixir that restores both health and stamina.', vi: 'Pha một loại thuốc tiên mạnh mẽ giúp phục hồi cả máu và thể lực.' },
         requiredTool: 'whetstone',
     },
     'whetstone': {
@@ -411,6 +411,6 @@ export const naturePlusRecipes: Record<string, Recipe> = {
             { name: 'sharp_stone', quantity: 1 },
             { name: 'stone', quantity: 2 }
         ],
-        description: {en: 'Shape and polish stones to create a whetstone for sharpening tools.', vi: 'Tạo hình và đánh bóng đá để tạo ra một đá mài để mài sắc công cụ.'},
+        description: { en: 'Shape and polish stones to create a whetstone for sharpening tools.', vi: 'Tạo hình và đánh bóng đá để tạo ra một đá mài để mài sắc công cụ.' },
     },
 };

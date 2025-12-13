@@ -18,6 +18,32 @@ interface KeyboardControlsProps {
   isInventoryOpen: boolean; // To prevent actions when inventory is open
 }
 
+/**
+ * Keyboard input handler for player movement and actions.
+ *
+ * @remarks
+ * Registers keyboard event listeners and delegates to action handlers
+ * for movement (arrow keys), inventory toggle (E), item pickup, etc.
+ *
+ * Respects game state:
+ * - Disables actions when inventory is open (except E and Escape to close)
+ * - Checks current chunk for available actions
+ * - Validates player position before executing handlers
+ *
+ * @param {KeyboardControlsProps} props - Handlers and game state
+ * @returns {void} Registers side-effect only (keyboard listeners)
+ *
+ * @example
+ * useKeyboardControls({
+ *   onToggleInventory: () => setInventoryOpen(!open),
+ *   onMove: (dir) => handleMove(dir),
+ *   onPickUpItem: (id) => handlePickup(id),
+ *   currentChunk,
+ *   playerPosition,
+ *   world,
+ *   isInventoryOpen
+ * });
+ */
 export function useKeyboardControls({
   onToggleInventory,
   onMove,

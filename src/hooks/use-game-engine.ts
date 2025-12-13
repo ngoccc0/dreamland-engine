@@ -367,7 +367,7 @@ export function useGameEngine(props: GameEngineProps) {
                 const playerCurrentCell = gameState.world.getCellAt(playerPosition);
                 if (playerCurrentCell) {
                     const weatherEffects = weatherEngineRef.current.applyWeatherEffects(playerCurrentCell, gameState.playerStats);
-                    
+
                     // Apply weather effects to player stats immutably
                     if (weatherEffects && weatherEffects.length > 0) {
                         let updatedStats = gameState.playerStats;
@@ -375,7 +375,7 @@ export function useGameEngine(props: GameEngineProps) {
                             const changes = effectEngineRef.current.processEffect(effect, gameState.playerStats);
                             updatedStats = effectEngineRef.current.applyEffectChangesToPlayer(updatedStats, changes);
                         }
-                        
+
                         if (updatedStats !== gameState.playerStats) {
                             gameState.setPlayerStats(updatedStats);
                         }

@@ -39,37 +39,37 @@ import type { Item } from '@/core/domain/item';
  * validateRecipe('nonexistent', []) → false (recipe not found)
  */
 export function validateRecipe(
-  recipeId: string,
-  inventory: Item[]
+    recipeId: string,
+    inventory: Item[]
 ): boolean {
-  // Mock recipe database for now
-  const recipeDb: Record<string, Item[]> = {
-    iron_sword: [
-      { id: 'iron_ore', quantity: 5, equipped: false, effects: [], metadata: {} },
-      { id: 'wood', quantity: 2, equipped: false, effects: [], metadata: {} },
-    ],
-    wooden_bow: [
-      { id: 'wood', quantity: 3, equipped: false, effects: [], metadata: {} },
-      { id: 'string', quantity: 1, equipped: false, effects: [], metadata: {} },
-    ],
-    health_potion: [
-      { id: 'herb', quantity: 2, equipped: false, effects: [], metadata: {} },
-      { id: 'water', quantity: 1, equipped: false, effects: [], metadata: {} },
-    ],
-  };
+    // Mock recipe database for now
+    const recipeDb: Record<string, Item[]> = {
+        iron_sword: [
+            { id: 'iron_ore', quantity: 5, equipped: false, effects: [], metadata: {} },
+            { id: 'wood', quantity: 2, equipped: false, effects: [], metadata: {} },
+        ],
+        wooden_bow: [
+            { id: 'wood', quantity: 3, equipped: false, effects: [], metadata: {} },
+            { id: 'string', quantity: 1, equipped: false, effects: [], metadata: {} },
+        ],
+        health_potion: [
+            { id: 'herb', quantity: 2, equipped: false, effects: [], metadata: {} },
+            { id: 'water', quantity: 1, equipped: false, effects: [], metadata: {} },
+        ],
+    };
 
-  const recipe = recipeDb[recipeId];
-  if (!recipe) return false;
+    const recipe = recipeDb[recipeId];
+    if (!recipe) return false;
 
-  // Check if inventory contains all required materials
-  for (const required of recipe) {
-    const inventoryItem = inventory.find(item => item.id === required.id);
-    if (!inventoryItem || inventoryItem.quantity < required.quantity) {
-      return false;
+    // Check if inventory contains all required materials
+    for (const required of recipe) {
+        const inventoryItem = inventory.find(item => item.id === required.id);
+        if (!inventoryItem || inventoryItem.quantity < required.quantity) {
+            return false;
+        }
     }
-  }
 
-  return true;
+    return true;
 }
 
 /**
@@ -106,25 +106,25 @@ export function validateRecipe(
  * calculateCraftTime(5) → 120 (legendary recipe)
  */
 export function calculateCraftTime(recipeDifficulty: number): number {
-  // Clamp difficulty to valid range
-  const difficulty = Math.max(1, Math.min(5, recipeDifficulty));
+    // Clamp difficulty to valid range
+    const difficulty = Math.max(1, Math.min(5, recipeDifficulty));
 
-  // Base times by difficulty
-  const baseTimes: Record<number, number> = {
-    1: 10,  // easy
-    2: 20,  // normal
-    3: 35,  // hard
-    4: 60,  // very hard
-    5: 120, // legendary
-  };
+    // Base times by difficulty
+    const baseTimes: Record<number, number> = {
+        1: 10,  // easy
+        2: 20,  // normal
+        3: 35,  // hard
+        4: 60,  // very hard
+        5: 120, // legendary
+    };
 
-  const baseTime = baseTimes[difficulty] || baseTimes[1];
+    const baseTime = baseTimes[difficulty] || baseTimes[1];
 
-  // Calculate craft time (no additional multiplier for now)
-  const craftTime = baseTime;
+    // Calculate craft time (no additional multiplier for now)
+    const craftTime = baseTime;
 
-  // Clamp to reasonable range
-  return Math.max(5, Math.min(300, craftTime));
+    // Clamp to reasonable range
+    return Math.max(5, Math.min(300, craftTime));
 }
 
 /**
@@ -157,24 +157,24 @@ export function calculateCraftTime(recipeDifficulty: number): number {
  * getRecipeCost('nonexistent') → []
  */
 export function getRecipeCost(recipeId: string): Item[] {
-  // Mock recipe database
-  const recipeDb: Record<string, Item[]> = {
-    iron_sword: [
-      { id: 'iron_ore', quantity: 5, equipped: false, effects: [], metadata: {} },
-      { id: 'wood', quantity: 2, equipped: false, effects: [], metadata: {} },
-    ],
-    wooden_bow: [
-      { id: 'wood', quantity: 3, equipped: false, effects: [], metadata: {} },
-      { id: 'string', quantity: 1, equipped: false, effects: [], metadata: {} },
-    ],
-    health_potion: [
-      { id: 'herb', quantity: 2, equipped: false, effects: [], metadata: {} },
-      { id: 'water', quantity: 1, equipped: false, effects: [], metadata: {} },
-    ],
-    copper_ore: [
-      { id: 'copper_raw', quantity: 1, equipped: false, effects: [], metadata: {} },
-    ],
-  };
+    // Mock recipe database
+    const recipeDb: Record<string, Item[]> = {
+        iron_sword: [
+            { id: 'iron_ore', quantity: 5, equipped: false, effects: [], metadata: {} },
+            { id: 'wood', quantity: 2, equipped: false, effects: [], metadata: {} },
+        ],
+        wooden_bow: [
+            { id: 'wood', quantity: 3, equipped: false, effects: [], metadata: {} },
+            { id: 'string', quantity: 1, equipped: false, effects: [], metadata: {} },
+        ],
+        health_potion: [
+            { id: 'herb', quantity: 2, equipped: false, effects: [], metadata: {} },
+            { id: 'water', quantity: 1, equipped: false, effects: [], metadata: {} },
+        ],
+        copper_ore: [
+            { id: 'copper_raw', quantity: 1, equipped: false, effects: [], metadata: {} },
+        ],
+    };
 
-  return recipeDb[recipeId] || [];
+    return recipeDb[recipeId] || [];
 }

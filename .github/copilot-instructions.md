@@ -93,6 +93,8 @@ IF (Proposed Code violates `docs/` OR File Limits):
 * **Use @remarks:** Move all logic explanations, formulas, and decision trees into the `@remarks` section of the TSDoc header.
 * **Format:** Use Markdown lists, bold text, and code blocks within `@remarks` for tooltip readability.
 
+**Step C: Tests **  
+* **Run all tests (jest, npm test , typecheck ,lint) and verify they pass. (using PowerShell)** always use verbose tag for single test file , don't run all tests when not needed.
 **✅ Example (CORRECT):**
 ```typescript
 /**

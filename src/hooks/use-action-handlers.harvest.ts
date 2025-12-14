@@ -3,20 +3,30 @@
  *
  * @remarks
  * Executes harvest action on creatures (loot drops) or plants (material harvesting).
+ * Integrates Phase 3.A pure rules for random loot generation:
+ * - random(seed) → deterministic random values
+ *
  * Validates target existence, adds items to inventory, generates loot from definitions,
  * and produces narrative feedback.
  *
  * **Harvest Process:**
  * 1. Validates creature/plant exists at target location
- * 2. Resolves item definitions from loot tables
- * 3. Adds items to player inventory
- * 4. Clamps inventory to max capacity
- * 5. Removes harvested creature (if depleted)
- * 6. Triggers audio + narrative
+ * 2. Checks tool availability if required
+ * 3. Generates loot drops using RNG rules
+ * 4. Resolves item definitions from loot tables
+ * 5. Adds items to player inventory
+ * 6. Clamps inventory to max capacity
+ * 7. Removes harvested creature (if depleted)
+ * 8. Triggers audio + narrative
  *
  * **Modular Harvesting:**
  * Supports partName parameter for selective plant part harvesting.
  * Example: "Pick flower petals" vs "dig roots" from same plant.
+ *
+ * **Pure Rule Integration:**
+ * - RNG rules ensure consistent randomization across all loot generation
+ * - Deterministic seeding allows replay and testing
+ * - Same random functions used in exploration and reward systems
  *
  * @param context - Action dependencies (game state, world, player stats)
  * @returns Handler function (actionId: number) => void

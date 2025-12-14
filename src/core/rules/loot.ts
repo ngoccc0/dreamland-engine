@@ -50,26 +50,26 @@
  * calculateRarity(1, 30) → 3 (easy + super lucky = rare)
  */
 export function calculateRarity(difficulty: number, luck: number): number {
-  // Clamp difficulty
-  const d = Math.max(1, Math.min(5, difficulty));
+    // Clamp difficulty
+    const d = Math.max(1, Math.min(5, difficulty));
 
-  // Base rarity by difficulty
-  let baseRarity = 1;
-  if (d === 1) baseRarity = 1;
-  else if (d <= 3) baseRarity = 2;
-  else if (d === 4) baseRarity = 3;
-  else baseRarity = 4; // d === 5
+    // Base rarity by difficulty
+    let baseRarity = 1;
+    if (d === 1) baseRarity = 1;
+    else if (d <= 3) baseRarity = 2;
+    else if (d === 4) baseRarity = 3;
+    else baseRarity = 4; // d === 5
 
-  // Luck bonus (0-2)
-  let luckBonus = 0;
-  if (luck > 20) luckBonus = 2;
-  else if (luck > 10) luckBonus = 1;
+    // Luck bonus (0-2)
+    let luckBonus = 0;
+    if (luck > 20) luckBonus = 2;
+    else if (luck > 10) luckBonus = 1;
 
-  // Calculate final rarity
-  let rarity = baseRarity + luckBonus;
+    // Calculate final rarity
+    let rarity = baseRarity + luckBonus;
 
-  // Clamp to 1-5
-  return Math.max(1, Math.min(5, rarity));
+    // Clamp to 1-5
+    return Math.max(1, Math.min(5, rarity));
 }
 
 /**
@@ -111,62 +111,62 @@ export function calculateRarity(difficulty: number, luck: number): number {
  * generateLoot(5, 42) → [4 random powerful affixes]
  */
 export function generateLoot(
-  rarity: number,
-  seed: number
+    rarity: number,
+    seed: number
 ): Array<{ name: string; power: number }> {
-  // Clamp rarity
-  const r = Math.max(1, Math.min(5, rarity));
+    // Clamp rarity
+    const r = Math.max(1, Math.min(5, rarity));
 
-  // Affixes per rarity level
-  const affixCounts = [0, 0, 1, 2, 3, 4]; // index by rarity
-  const affixCount = affixCounts[r];
+    // Affixes per rarity level
+    const affixCounts = [0, 0, 1, 2, 3, 4]; // index by rarity
+    const affixCount = affixCounts[r];
 
-  // All available affixes
-  const affixPool = [
-    { name: 'Health+', power: 10 },
-    { name: 'Damage+', power: 8 },
-    { name: 'Defense+', power: 6 },
-    { name: 'CritChance+', power: 5 },
-    { name: 'Lifesteal+', power: 7 },
-    { name: 'Speed+', power: 4 },
-    { name: 'Accuracy+', power: 5 },
-    { name: 'Resistance+', power: 6 },
-  ];
+    // All available affixes
+    const affixPool = [
+        { name: 'Health+', power: 10 },
+        { name: 'Damage+', power: 8 },
+        { name: 'Defense+', power: 6 },
+        { name: 'CritChance+', power: 5 },
+        { name: 'Lifesteal+', power: 7 },
+        { name: 'Speed+', power: 4 },
+        { name: 'Accuracy+', power: 5 },
+        { name: 'Resistance+', power: 6 },
+    ];
 
-  if (affixCount === 0) {
-    return [];
-  }
+    if (affixCount === 0) {
+        return [];
+    }
 
-  // Seeded selection (simple hash-based picker)
-  const selectedAffixes: Array<{ name: string; power: number }> = [];
-  let currentSeed = seed;
+    // Seeded selection (simple hash-based picker)
+    const selectedAffixes: Array<{ name: string; power: number }> = [];
+    let currentSeed = seed;
 
-  for (let i = 0; i < affixCount; i++) {
-    // Deterministic index selection
-    currentSeed = (currentSeed * 1103515245 + 12345) % 2147483647;
-    const availableAffixes = affixPool.filter(
-      (affix) => !selectedAffixes.some((sel) => sel.name === affix.name)
-    );
+    for (let i = 0; i < affixCount; i++) {
+        // Deterministic index selection
+        currentSeed = (currentSeed * 1103515245 + 12345) % 2147483647;
+        const availableAffixes = affixPool.filter(
+            (affix) => !selectedAffixes.some((sel) => sel.name === affix.name)
+        );
 
-    if (availableAffixes.length === 0) break;
+        if (availableAffixes.length === 0) break;
 
-    const index = currentSeed % availableAffixes.length;
-    const selected = availableAffixes[index];
+        const index = currentSeed % availableAffixes.length;
+        const selected = availableAffixes[index];
 
-    // Scale power by rarity
-    let scaledPower = selected.power;
-    if (r === 2) scaledPower = Math.floor(selected.power * 0.8); // slightly lower
-    else if (r === 3) scaledPower = selected.power; // normal
-    else if (r === 4) scaledPower = Math.floor(selected.power * 1.5); // boost
-    else if (r === 5) scaledPower = selected.power * 2; // double
+        // Scale power by rarity
+        let scaledPower = selected.power;
+        if (r === 2) scaledPower = Math.floor(selected.power * 0.8); // slightly lower
+        else if (r === 3) scaledPower = selected.power; // normal
+        else if (r === 4) scaledPower = Math.floor(selected.power * 1.5); // boost
+        else if (r === 5) scaledPower = selected.power * 2; // double
 
-    selectedAffixes.push({
-      name: selected.name,
-      power: scaledPower,
-    });
-  }
+        selectedAffixes.push({
+            name: selected.name,
+            power: scaledPower,
+        });
+    }
 
-  return selectedAffixes;
+    return selectedAffixes;
 }
 
 /**
@@ -201,14 +201,14 @@ export function generateLoot(
  * applyAffixes(100, 4) → 150 (legendary = +50%)
  */
 export function applyAffixes(baseValue: number, affixCount: number): number {
-  // Clamp affix count
-  const count = Math.max(0, Math.min(4, affixCount));
+    // Clamp affix count
+    const count = Math.max(0, Math.min(4, affixCount));
 
-  // Multiplier by affix count
-  const multipliers = [1.0, 1.1, 1.2, 1.35, 1.5];
-  const multiplier = multipliers[count] || 1.0;
+    // Multiplier by affix count
+    const multipliers = [1.0, 1.1, 1.2, 1.35, 1.5];
+    const multiplier = multipliers[count] || 1.0;
 
-  return baseValue * multiplier;
+    return baseValue * multiplier;
 }
 
 /**
@@ -245,25 +245,25 @@ export function applyAffixes(baseValue: number, affixCount: number): number {
  * calculateItemValue(100, 5, 4) → 1800 (legendary + 4 affixes = 10 × 1.8)
  */
 export function calculateItemValue(
-  baseValue: number,
-  rarity: number,
-  affixCount: number
+    baseValue: number,
+    rarity: number,
+    affixCount: number
 ): number {
-  // Clamp inputs
-  const r = Math.max(1, Math.min(5, rarity));
-  const count = Math.max(0, Math.min(4, affixCount));
+    // Clamp inputs
+    const r = Math.max(1, Math.min(5, rarity));
+    const count = Math.max(0, Math.min(4, affixCount));
 
-  // Rarity multiplier
-  const rarityMultipliers = [1, 1.0, 1.5, 2.5, 5.0, 10.0];
-  const rarityMult = rarityMultipliers[r] || 1.0;
+    // Rarity multiplier
+    const rarityMultipliers = [1, 1.0, 1.5, 2.5, 5.0, 10.0];
+    const rarityMult = rarityMultipliers[r] || 1.0;
 
-  // Affix bonus (20% per affix)
-  const affixBonus = 1.0 + count * 0.2;
+    // Affix bonus (20% per affix)
+    const affixBonus = 1.0 + count * 0.2;
 
-  // Calculate total value
-  const totalValue = Math.floor(baseValue * rarityMult * affixBonus);
+    // Calculate total value
+    const totalValue = Math.floor(baseValue * rarityMult * affixBonus);
 
-  return Math.max(1, totalValue); // minimum 1 gold
+    return Math.max(1, totalValue); // minimum 1 gold
 }
 
 /**
@@ -305,33 +305,33 @@ export function calculateItemValue(
  * → { rarity: 3, affixes: [...], totalValue: 250, weight: 4 }
  */
 export function generateLootPackage(
-  difficulty: number,
-  luck: number,
-  baseValue: number,
-  seed: number
+    difficulty: number,
+    luck: number,
+    baseValue: number,
+    seed: number
 ): {
-  rarity: number;
-  affixes: Array<{ name: string; power: number }>;
-  totalValue: number;
-  weight: number;
+    rarity: number;
+    affixes: Array<{ name: string; power: number }>;
+    totalValue: number;
+    weight: number;
 } {
-  // Calculate rarity
-  const rarity = calculateRarity(difficulty, luck);
+    // Calculate rarity
+    const rarity = calculateRarity(difficulty, luck);
 
-  // Generate affixes
-  const affixes = generateLoot(rarity, seed);
+    // Generate affixes
+    const affixes = generateLoot(rarity, seed);
 
-  // Calculate value
-  const totalValue = calculateItemValue(baseValue, rarity, affixes.length);
+    // Calculate value
+    const totalValue = calculateItemValue(baseValue, rarity, affixes.length);
 
-  // Weight by rarity (exponential)
-  const weights = [0, 1, 2, 4, 8, 16];
-  const weight = weights[rarity] || 1;
+    // Weight by rarity (exponential)
+    const weights = [0, 1, 2, 4, 8, 16];
+    const weight = weights[rarity] || 1;
 
-  return {
-    rarity,
-    affixes,
-    totalValue,
-    weight,
-  };
+    return {
+        rarity,
+        affixes,
+        totalValue,
+        weight,
+    };
 }

@@ -2,6 +2,11 @@ import { ExplorationManager, ExplorationResult, Discovery, DiscoveryType } from 
 import { GridPosition } from '../values/grid-position';
 import { GridCell } from '../entities/world';
 import type { DiscoveredSettlement, UnlockedNPC, DungeonMonster } from '../types/game';
+import {
+    random,
+    randomInt,
+    weightedRandom,
+} from '@/core/rules/rng';
 
 export interface IExplorationUseCase {
     exploreLocation(position: GridPosition): Promise<ExplorationResult>;

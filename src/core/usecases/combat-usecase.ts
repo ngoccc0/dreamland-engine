@@ -1,6 +1,14 @@
 import { Combatant, CombatResult, CombatRound, CombatAction } from '../entities/combat';
 import { itemDefinitions } from '@/lib/game/items';
 import { combatConfig } from '@/lib/config';
+import {
+    calculateBaseDamage,
+    isCritical,
+    applyMultiplier,
+    calculateExperience as calculateExpFromRules,
+    isDead,
+    applyDamage,
+} from '@/core/rules/combat';
 
 /**
  * OVERVIEW: Combat system orchestrator
@@ -240,46 +248,59 @@ export class CombatUseCase implements ICombatUseCase {
     }
 
     private calculateDamage(attacker: Combatant, defender: Combatant) {
-        const base = attacker.stats.attack;
-        const isCritical = Math.random() < (attacker.stats.criticalChance || 0);
-        const critMult = isCritical ? (attacker.stats.criticalDamage || combatConfig.criticalHitMultiplier) : 1;
+        /**
+         * Calculate damage using pure combat rules from core/rules/combat.
+         *
+         * @remarks
+         * Integrates Phase 3.A pure functions:
+         * 1. calculateBaseDamage(attack) → base damage
+         * 2. isCritical(critChance) → boolean
+         * 3. applyMultiplier(baseDmg, mult) → final damage
+         *
+         * Formula (from Glass Box TSDoc):
+         * - base = attack × 0.8 (normalized)
+         * - multiplier = 1.5 if critical, else 1.0
+         * - final = base × multiplier
+         *
+         * Using pure functions ensures:
+         * - Testability (deterministic with seeded RNG)
+         * - Reusability (same logic in usecases + UI)
+         * - Auditability (formulas in @remarks)
+         */
+        const baseDmg = calculateBaseDamage(attacker.stats.attack);
+        const isCrit = isCritical(attacker.stats.criticalChance || 0.2);
+        const finalDmg = applyMultiplier(baseDmg, isCrit ? 1.5 : 1.0);
 
         return {
-            amount: Math.floor(base * critMult),
+            amount: Math.floor(finalDmg),
             type: 'PHYSICAL' as const,
-            isCritical
+            isCritical: isCrit
         };
     }
 
     private calculateExperience(winner: Combatant, loser: Combatant): number {
         /**
-         * Calculate XP gain based on opponent difficulty.
-         *
-         * Formula:
-         * - Base XP: combatConfig.baseXp (currently 50)
-         * - Difficulty multiplier based on maxHealth (proxy for level)
-         * - Multiplier: 1 + (loserMaxHealth - winnerMaxHealth) × combatConfig.xpHealthDifferenceMultiplier
-         * - Clamped to sensible range (minimum 10 XP)
+         * Calculate XP gain using pure combat rules.
          *
          * @remarks
-         * Uses maxHealth as a proxy for opponent difficulty since combat stats
-         * don't directly store player level. Higher HP enemies grant more XP.
-         * Configuration values from combatConfig enable balance tuning without code changes.
-         * 
-         * Examples:
-         * - Same difficulty: 50 XP
-         * - Enemy 30 HP higher: 50 × 1.06 = 53 XP
-         * - Enemy 50 HP higher: 50 × 1.1 = 55 XP
+         * Integrates Phase 3.A pure function:
+         * - calculateExperience(winnerLevel, loserLevel) from core/rules/combat
+         *
+         * Formula (from Glass Box TSDoc):
+         * - xp = max(10, floor(baseXp × (1 + healthDiff × multiplier)))
+         * - baseXp: combat stat base (typically 50)
+         * - healthDiff: loserMaxHealth - winnerMaxHealth
+         * - multiplier: adjustment factor (e.g., 0.01 per 10 HP difference)
+         *
+         * Pure rule ensures:
+         * - Consistent XP across all usecases
+         * - No duplicate XP logic in different files
+         * - Easy balance tuning via rules file
          */
-        const baseXp = combatConfig.baseXp;
-        const winnerMaxHealth = winner.stats?.maxHealth ?? combatConfig.defaultMaxHealth;
-        const loserMaxHealth = loser.stats?.maxHealth ?? combatConfig.defaultMaxHealth;
+        const winnerLevel = (winner as any).level ?? 1;
+        const loserLevel = (loser as any).level ?? 1;
 
-        const healthDiff = loserMaxHealth - winnerMaxHealth;
-        const multiplier = Math.max(0.5, 1 + healthDiff * combatConfig.xpHealthDifferenceMultiplier);
-
-        const xpGain = Math.floor(baseXp * multiplier);
-        return Math.max(10, xpGain);
+        return calculateExpFromRules(winnerLevel, loserLevel);
     }
 
     private async generateLoot(loser: Combatant): Promise<any[]> {

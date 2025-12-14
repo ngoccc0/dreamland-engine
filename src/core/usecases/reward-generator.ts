@@ -4,9 +4,21 @@
  * Pure utility functions for generating exploration rewards.
  * These functions are stateless and deterministic, suitable for both
  * runtime gameplay and testing.
+ *
+ * Integrates Phase 3.A loot rules:
+ * - calculateRarity(base, luck) → rarity 1-5
+ * - generateLoot(rarity, seed) → affixes array
+ * - calculateItemValue(rarity, affixCount, baseValue) → item value
+ * - generateLootPackage(rarity, baseValue, seed) → complete loot
  */
 
 import { itemDefinitions } from '@/lib/game/items';
+import {
+    calculateRarity,
+    generateLoot,
+    calculateItemValue,
+    generateLootPackage,
+} from '@/core/rules/loot';
 
 /**
  * generateDiscoveryRewards

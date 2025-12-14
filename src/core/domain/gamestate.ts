@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { EntitySchema } from './entity';
 import { CreatureSchema } from './creature';
 import { ItemSchema } from './item';
 

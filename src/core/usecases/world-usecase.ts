@@ -14,6 +14,11 @@ import { TerrainType } from '../entities/terrain';
 import { WorldGenerator } from '../generators/world-generator';
 import { CreatureEngine } from '../engines/creature-engine';
 import type { Enemy, Chunk } from '@/core/types/game';
+import {
+    nextSeed,
+    random,
+    randomInt,
+} from '@/core/rules/rng';
 
 /**
  * OVERVIEW: World generation & exploration system

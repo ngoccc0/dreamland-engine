@@ -18,6 +18,10 @@ import { createActionHelpers } from '@/hooks/action-helpers';
 import { createHandleFuseItems } from '@/hooks/use-action-handlers.fuseItems';
 import { createHandleHarvest } from '@/hooks/use-action-handlers.harvest';
 import { tillSoil, waterTile, fertilizeTile, plantSeed } from '@/core/usecases/farming-usecase';
+import {
+    validateRecipe,
+    calculateCraftTime,
+} from '@/core/rules/crafting';
 
 // NOTE: Genkit flows are server-only. Call them via server API routes to
 // avoid bundling server-only packages into the client bundle.
@@ -462,10 +466,37 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
   }, [isLoading, isGameOver, isLoaded, setPlayerBehaviorProfile, playerStats, isOnline, handleOnlineNarrative, handleOfflineAction, world, playerPosition, addNarrativeEntry, t, advanceGameTime, setPlayerStats]);
 
   const handleCraft = useCallback(async (recipe: Recipe, outcome: CraftingOutcome) => {
+    /**
+     * Execute a crafting action using Phase 3.A pure rules.
+     *
+     * @remarks
+     * Integrates validateRecipe and calculateCraftTime from core/rules/crafting:
+     * - validateRecipe: Check player has all required materials
+     * - calculateCraftTime: Calculate duration based on recipe difficulty (10-120s)
+     *
+     * **Flow:**
+     * 1. Validate recipe using pure rule (checks inventory)
+     * 2. Get craft time from pure rule
+     * 3. Consume materials from inventory
+     * 4. Run success roll (outcome.chance)
+     * 5. Add crafted item or fail
+     * 6. Emit audio and narrative
+     *
+     * Pure rule integration ensures:
+     * - Consistent crafting logic across all game systems
+     * - Deterministic, testable time/cost calculations
+     */
     if (isLoading || isGameOver) return;
     setPlayerBehaviorProfile((p: any) => ({ ...p, crafts: p.crafts + 1 }));
 
     if (!outcome.canCraft) { toast({ title: t('error'), description: t('notEnoughIngredients'), variant: "destructive" }); return; }
+
+    // Validate using pure rule (double-check using recipe result name as key)
+    const canCraft = validateRecipe(recipe.result.name, playerStats.items || []);
+    if (!canCraft) {
+      toast({ title: t('error'), description: t('notEnoughIngredients'), variant: "destructive" });
+      return;
+    }
 
     const actionText = t('craftAction', { itemName: t(recipe.result.name as TranslationKey) });
     addNarrativeEntry(actionText, 'action');

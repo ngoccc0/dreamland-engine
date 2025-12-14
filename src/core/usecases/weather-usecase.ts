@@ -19,7 +19,7 @@ export class WeatherUseCase implements IWeatherUseCase {
     constructor(
         private readonly weatherEngine: WeatherEngine,
         private readonly worldRepository: any // Will be defined in infrastructure
-    ) {}
+    ) { }
 
     getCurrentWeather(): WeatherCondition {
         return this.weatherEngine.getWeatherAt(new GridPosition(0, 0));
@@ -44,7 +44,7 @@ export class WeatherUseCase implements IWeatherUseCase {
         // Update affected cells
         const world = await this.worldRepository.getWorld();
         const affectedCells = world.getChunksInArea(center, radius);
-        
+
         affectedCells.forEach((cell: GridCell) => {
             this.weatherEngine.applyWeatherEffects(cell);
         });

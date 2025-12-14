@@ -111,7 +111,7 @@ export function executePlantGrowthTick(
 
     const plant = chunk.plants[plantIndex];
     const growthScore = getGrowthScore(moisture, temperature);
-    
+
     const next: Chunk = { ...chunk } as any;
     next.plants = [...next.plants!];
 

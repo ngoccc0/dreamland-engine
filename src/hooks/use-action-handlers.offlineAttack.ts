@@ -3,37 +3,36 @@
  *
  * @remarks
  * Executes combat turn against enemy at current location using dice roll system.
- * Calculates damage based on roll success, environmental modifiers, and persona.
- * Generates loot on enemy defeat, handles enemy counterattack, and enables flee option.
+ * Integrates Phase 3.A pure rules:
+ * - calculateBaseDamage(attack) → normalized base damage
+ * - applyMultiplier(baseDamage, mult) → final damage with modifiers
  *
  * **Combat Flow:**
  * 1. Roll dice (d20, d12, d8 based on settings)
  * 2. Compare roll to success thresholds
- * 3. Calculate player damage (base attack + modifiers)
+ * 3. Calculate player base damage using pure rule
  * 4. Apply environmental effects (darkness -20%, moisture -10%)
- * 5. Apply persona bonuses (Warrior +2 base damage)
- * 6. Reduce enemy HP
- * 7. If defeated: generate loot drops, award XP
- * 8. If enemy survives: enemy counterattacks
+ * 5. Apply success multiplier (critical 2.0x, great 1.5x, normal 1.0x)
+ * 6. Calculate final damage using applyMultiplier rule
+ * 7. Reduce enemy HP
+ * 8. If defeated: generate loot drops, award XP
+ * 9. If enemy survives: enemy counterattacks
  *
- * **Damage Modifiers:**
- * - Critical Success (20+): 2x damage
- * - Great Success: 1.5x damage
- * - Success: 1x damage
- * - Failure/Critical: 0 damage
- * - Darkness: -20% damage
- * - Moisture: -10% damage
+ * **Pure Rule Integration:**
+ * - calculateBaseDamage ensures consistent damage calculation
+ * - applyMultiplier standardizes critical hit and effect scaling
+ * - Same formulas used in combat-usecase and other systems
  *
  * @param context - Combat dependencies (dice, player stats, world, enemy AI)
  * @returns Handler function () => void (no args, uses context)
- *
- * @example
- * const handleAttack = createHandleOfflineAttack({ playerStats, world, rollDice, ... });
- * handleAttack(); // Execute combat turn
  */
 
 // Extracted offline attack handler.
 import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
+import {
+    calculateBaseDamage,
+    applyMultiplier,
+} from '@/core/rules/combat';
 
 export function createHandleOfflineAttack(context: Partial<ActionHandlerDeps> & Record<string, any>) {
   return () => {
@@ -51,11 +50,18 @@ export function createHandleOfflineAttack(context: Partial<ActionHandlerDeps> & 
     let playerDamage = 0;
     const damageMultiplier = successLevel === 'CriticalFailure' ? 0 : successLevel === 'Failure' ? 0 : successLevel === 'GreatSuccess' ? 1.5 : successLevel === 'CriticalSuccess' ? 2.0 : 1.0;
     if (damageMultiplier > 0) {
-      let playerDamageModifier = 1.0;
-      if ((currentChunk.lightLevel ?? 0) < -3) { playerDamageModifier *= 0.8; }
-      if ((currentChunk.moisture ?? 0) > 8) { playerDamageModifier *= 0.9; }
-      let playerBaseDamage = (context.playerStats?.attributes?.physicalAttack ?? 0) + (context.playerStats?.persona === 'warrior' ? 2 : 0);
-      playerDamage = Math.round(playerBaseDamage * damageMultiplier * playerDamageModifier);
+      // Use pure rule: calculateBaseDamage(attack) from core/rules/combat
+      const attackPower = (context.playerStats?.attributes?.physicalAttack ?? 0) + (context.playerStats?.persona === 'warrior' ? 2 : 0);
+      const baseDamage = calculateBaseDamage(attackPower);
+
+      // Apply environmental modifiers
+      let environmentModifier = 1.0;
+      if ((currentChunk.lightLevel ?? 0) < -3) { environmentModifier *= 0.8; }
+      if ((currentChunk.moisture ?? 0) > 8) { environmentModifier *= 0.9; }
+
+      // Use pure rule: applyMultiplier(baseDmg, mult)
+      const environmentalDamage = applyMultiplier(baseDamage, environmentModifier);
+      playerDamage = Math.round(applyMultiplier(environmentalDamage, damageMultiplier));
     }
 
     const finalEnemyHp = Math.max(0, currentChunk.enemy!.hp - playerDamage);

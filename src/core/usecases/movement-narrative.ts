@@ -3,9 +3,9 @@ import type { PlayerStatus, Chunk } from '@/core/types/game';
 import { itemDefinitions } from '@/lib/game/items';
 import { getTranslatedText } from '@/lib/utils';
 import {
-    selectDynamicNarrative,
-    buildTemplate,
-    validatePlaceholders,
+  selectDynamicNarrative,
+  buildTemplate,
+  validatePlaceholders,
 } from '@/core/rules/narrative';
 
 type SelectArgs = {

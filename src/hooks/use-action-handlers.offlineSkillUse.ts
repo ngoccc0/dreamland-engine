@@ -3,8 +3,8 @@
  *
  * @remarks
  * Executes skill/spell action consuming mana and applying effects based on dice roll.
- * Validates skill exists, checks mana availability, applies success modifiers,
- * handles spell backfire, and updates world state.
+ * Integrates Phase 3.A pure rules:
+ * - applyMultiplier(baseDamage, mult) → effect scaling based on success level
  *
  * **Skill Use Process:**
  * 1. Validates skill exists in player skill list
@@ -14,15 +14,19 @@
  * 5. Applies effect based on success:
  *    - CriticalFailure: Backfire damage (50% of spell damage to player)
  *    - Failure: No effect
- *    - Success: Normal effect
- *    - GreatSuccess: 1.5x effect multiplier
- *    - CriticalSuccess: 2.0x effect multiplier
+ *    - Success: Normal effect (1.0x)
+ *    - GreatSuccess: 1.5x effect multiplier (using applyMultiplier rule)
+ *    - CriticalSuccess: 2.0x effect multiplier (using applyMultiplier rule)
  *
  * **Effect Types:**
  * - HEAL: Restore player health
  * - DAMAGE: Deal damage to enemy
  * - DEBUFF: Reduce enemy stats
  * - BUFF: Increase player stats
+ *
+ * **Pure Rule Integration:**
+ * - applyMultiplier ensures consistent effect scaling across all systems
+ * - Same formula used in combat-usecase and other damage systems
  *
  * @param context - Skill dependencies (player stats, world, dice, effects)
  * @returns Handler function (skillName: string) => void
@@ -34,6 +38,7 @@
 
 // Extracted offline skill-use handler. Accepts a context object with needed deps.
 import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
+import { applyMultiplier } from '@/core/rules/combat';
 
 export function createHandleOfflineSkillUse(context: Partial<ActionHandlerDeps> & Record<string, any>) {
     return (skillName: string) => {
@@ -62,16 +67,18 @@ export function createHandleOfflineSkillUse(context: Partial<ActionHandlerDeps> 
             newPlayerStats.hp = Math.max(0, newPlayerStats.hp - backfireDamage);
             narrativeResult.backfireDamage = backfireDamage;
         } else if (successLevel !== 'Failure') {
-            const effectMultiplier = successLevel === 'GreatSuccess' ? 1.5 : successLevel === 'CriticalSuccess' ? 2.0 : 1.0;
+            // Use applyMultiplier rule for consistent effect scaling (Phase 3.A)
+            const baseMultiplier = successLevel === 'GreatSuccess' ? 1.5 : successLevel === 'CriticalSuccess' ? 2.0 : 1.0;
 
             if (skillToUse.effect.type === 'HEAL') {
-                const healAmount = Math.round(skillToUse.effect.amount * effectMultiplier);
+                const healAmount = Math.round(applyMultiplier(skillToUse.effect.amount, baseMultiplier));
                 const oldHp = newPlayerStats.hp;
                 newPlayerStats.hp = Math.min(100, newPlayerStats.hp + healAmount);
                 narrativeResult.healedAmount = newPlayerStats.hp - oldHp;
             } else if (skillToUse.effect.type === 'DAMAGE' && newEnemy) {
                 const baseDamage = skillToUse.effect.amount + Math.round((newPlayerStats.attributes?.magicalAttack ?? 0) * 0.5);
-                const finalDamage = Math.round(baseDamage * effectMultiplier);
+                const scaledDamage = applyMultiplier(baseDamage, baseMultiplier);
+                const finalDamage = Math.round(scaledDamage);
 
                 newEnemy.hp = Math.max(0, newEnemy.hp - finalDamage);
                 narrativeResult.finalDamage = finalDamage;

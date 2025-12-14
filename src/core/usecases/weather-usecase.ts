@@ -2,6 +2,11 @@ import { WeatherEngine } from '../engines/weather-engine';
 import { WeatherType, WeatherIntensity, WeatherCondition } from '../types/weather';
 import { GridPosition } from '../values/grid-position';
 import { GridCell } from '../entities/world';
+import {
+    getGrowthScore,
+    applyWeatherModifier,
+    calculateHumidity,
+} from '@/core/rules/weather';
 
 export interface IWeatherUseCase {
     getCurrentWeather(): WeatherCondition;

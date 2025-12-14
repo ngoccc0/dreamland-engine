@@ -7,6 +7,11 @@ type GameEffect = any;
 import { createRng } from '@/lib/narrative/rng';
 import { getTranslatedText } from '@/lib/i18n';
 import { defaultGameConfig } from '@/lib/config/game-config';
+import {
+    getGrowthScore,
+    getWaterNeed,
+    applyWeatherModifier,
+} from '@/core/rules/weather';
 
 /**
  * Input for plant growth processing

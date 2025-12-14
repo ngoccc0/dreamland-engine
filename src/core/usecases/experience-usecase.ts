@@ -1,5 +1,8 @@
 import type { LevelUpResult } from '../entities/experience';
 import { combatConfig } from '@/lib/config';
+import {
+    calculateExperience as calculateExpFromRules,
+} from '@/core/rules/combat';
 
 /**
  * calculateXpForLevel

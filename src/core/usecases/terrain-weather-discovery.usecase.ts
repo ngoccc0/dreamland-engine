@@ -4,6 +4,8 @@
  * Calculates how weather and terrain conditions affect discovery probability
  * and modify encounter difficulty when exploring.
  *
+ * Integrates Phase 3.A weather rules for deterministic environmental calculations.
+ *
  * @remarks
  * Weather and terrain modifiers apply to:
  * - Discovery probability: Some discoveries only appear in certain weather/terrain
@@ -24,6 +26,10 @@
 import type { Discovery } from '../entities/exploration';
 import type { WeatherType, WeatherIntensity } from '../types/weather';
 import type { TerrainType } from '../entities/terrain';
+import {
+    applyWeatherModifier,
+    calculateHumidity,
+} from '@/core/rules/weather';
 
 /**
  * Represents a discovery modifier calculation result

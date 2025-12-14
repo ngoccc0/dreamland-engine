@@ -1,6 +1,10 @@
 import { Skill } from '../entities/skill';
 import { Combatant } from '../entities/combat';
 // removed unused type imports (SkillTree, Experience)
+import {
+    random,
+    randomInt,
+} from '@/core/rules/rng';
 
 /**
  * OVERVIEW: Skill system orchestrator

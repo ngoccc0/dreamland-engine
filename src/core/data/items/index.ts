@@ -19,6 +19,7 @@ import { materialItems } from './materials';
 import { magicItems } from './magic';
 import { supportItems } from './support';
 import { dataItems } from './data';
+import { naturePlusItems } from './modded/nature_plus';
 
 /**
  * Complete item catalog - combines all categories
@@ -31,6 +32,7 @@ export const allItems: Record<string, ItemDefinition> = {
     ...magicItems,
     ...supportItems,
     ...dataItems,
+    ...naturePlusItems,
 };
 
 /**

@@ -1,5 +1,5 @@
 import { generateChunkContent } from '../chunk-generation';
-import { itemDefinitions } from '@/lib/game/items';
+import { allItems as itemDefinitions } from '@/core/data/items';
 
 describe('generateChunkContent integration', () => {
   const originalRandom = Math.random;

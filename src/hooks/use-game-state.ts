@@ -11,9 +11,9 @@ interface GameStateProps {
 }
 // Add missing imports for factories, generators, enums, and static data
 // deferred world generation imports removed — keep placeholder init minimal
-import { recipes as staticRecipes } from '@/lib/game/recipes';
-import { buildableStructures as staticBuildableStructures } from '@/lib/game/structures';
-import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
+import { allRecipes as staticRecipes } from '@/core/data/recipes';
+import { buildableStructures as staticBuildableStructures } from '@/core/data/structures';
+import { allItems as staticItemDefinitions } from '@/core/data/items';
 import { biomeDefinitions as staticBiomeDefinitions } from '@/lib/game/biomes';
 import WorldImpl from '@/core/entities/world-impl';
 import { TerrainFactory } from '@/core/factories/terrain-factory';

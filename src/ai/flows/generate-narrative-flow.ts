@@ -40,7 +40,7 @@ import {
 import { generateNewQuest } from './generate-new-quest';
 import { generateLegendaryQuest } from './generate-legendary-quest-flow';
 import { generateNewItem } from './generate-new-item';
-import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
+import { allItems as staticItemDefinitions } from '@/core/data/items';
 import type { AiModel } from '@/core/types/game';
 
 

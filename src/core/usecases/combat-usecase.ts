@@ -1,5 +1,5 @@
 import { Combatant, CombatResult, CombatRound, CombatAction } from '../entities/combat';
-import { itemDefinitions } from '@/lib/game/items';
+import { allItems as itemDefinitions } from '@/core/data/items';
 import { combatConfig } from '@/lib/config';
 import {
     calculateBaseDamage,

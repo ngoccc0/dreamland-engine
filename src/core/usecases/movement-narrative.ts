@@ -1,6 +1,6 @@
 import movementTemplates from '@/lib/game/movement-templates';
 import type { PlayerStatus, Chunk } from '@/core/types/game';
-import { itemDefinitions } from '@/lib/game/items';
+import { allItems as itemDefinitions } from '@/core/data/items';
 import { getTranslatedText } from '@/lib/utils';
 import {
   selectDynamicNarrative,

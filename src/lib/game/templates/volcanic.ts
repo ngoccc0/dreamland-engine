@@ -1,6 +1,6 @@
 
 
-import { structureDefinitions } from "../structures";
+import { structureDefinitions } from '@/core/data/structures';
 import type { TranslationKey } from "@/lib/i18n";
 
 export const volcanic_vi = {

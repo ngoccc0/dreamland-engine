@@ -11,8 +11,8 @@ import Handlebars from 'handlebars';
 // abort the build. We'll dynamically import it inside the handler below so it
 // only initializes at request/runtime.
 import type { Genkit } from 'genkit';
-import {z} from 'zod';
-import type {Terrain, Skill} from '@/core/types/game';
+import { z } from 'zod';
+import type { Terrain, Skill } from '@/core/types/game';
 import {
     GeneratedItemSchema,
     SkillSchema,
@@ -21,12 +21,12 @@ import {
     allTerrains as allTerrainsSchema,
     TranslatableStringSchema
 } from '@/ai/schemas';
-import {ItemCategorySchema} from '@/lib/game/definitions';
+import { ItemCategorySchema } from '@/lib/game/definitions';
 import { skillDefinitions } from '@/lib/game/skills';
 import { getEmojiForItem, getTranslatedText } from '@/lib/utils';
 // 'db' and Firestore helpers were imported previously but are unused in this flow.
 // Remove them to satisfy lint rules — keep the static item definitions used below.
-import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
+import { allItems as staticItemDefinitions } from '@/core/data/items';
 import { logger } from '@/lib/logger';
 
 
@@ -41,8 +41,8 @@ const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Mat
  * @property {string} language - The language code for the generated content (e.g., 'en', 'vi').
  */
 const GenerateWorldSetupInputSchema = z.object({
-  userInput: z.string().describe("The user's initial idea, prompt, or description for the game world."),
-  language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
+    userInput: z.string().describe("The user's initial idea, prompt, or description for the game world."),
+    language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
 });
 export type GenerateWorldSetupInput = z.infer<typeof GenerateWorldSetupInputSchema>;
 
@@ -51,10 +51,10 @@ export type GenerateWorldSetupInput = z.infer<typeof GenerateWorldSetupInputSche
 
 // -- New, simplified schema for the AI's creative output for items --
 const AIGeneratedItemCreativeSchema = z.object({
-  name: TranslatableStringSchema.describe("A unique and thematic name for the item."),
-  description: TranslatableStringSchema.describe("A flavorful, one-sentence description of the item."),
-  category: ItemCategorySchema,
-  spawnBiomes: z.array(z.string()).min(1).describe(`An array of one or more biomes where this item can be found. Choose from: ${allTerrainsSchema.join(', ')}.`),
+    name: TranslatableStringSchema.describe("A unique and thematic name for the item."),
+    description: TranslatableStringSchema.describe("A flavorful, one-sentence description of the item."),
+    category: ItemCategorySchema,
+    spawnBiomes: z.array(z.string()).min(1).describe(`An array of one or more biomes where this item can be found. Choose from: ${allTerrainsSchema.join(', ')}.`),
 });
 
 // -- Task A Output: The AI now generates a simpler structure. --
@@ -86,13 +86,13 @@ const StructureCatalogCreativeOutputSchema = z.object({
 
 // -- Final Combined Output Schema (for the frontend) --
 export const WorldConceptSchema = z.object({
-  worldName: TranslatableStringSchema,
-  initialNarrative: TranslatableStringSchema,
-  startingBiome: z.custom<Terrain>(), // Using custom to avoid z.enum with a const
-  playerInventory: z.array(z.object({ name: TranslatableStringSchema, quantity: z.number().int().min(1) })),
-  initialQuests: z.array(TranslatableStringSchema),
-  startingSkill: SkillSchema,
-  customStructures: z.array(StructureDefinitionSchema), // Pass the generated structures with each concept
+    worldName: TranslatableStringSchema,
+    initialNarrative: TranslatableStringSchema,
+    startingBiome: z.custom<Terrain>(), // Using custom to avoid z.enum with a const
+    playerInventory: z.array(z.object({ name: TranslatableStringSchema, quantity: z.number().int().min(1) })),
+    initialQuests: z.array(TranslatableStringSchema),
+    startingSkill: SkillSchema,
+    customStructures: z.array(StructureDefinitionSchema), // Pass the generated structures with each concept
 });
 export type WorldConcept = z.infer<typeof WorldConceptSchema>;
 

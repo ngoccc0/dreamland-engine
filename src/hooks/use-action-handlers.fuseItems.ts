@@ -41,8 +41,8 @@
 // Extracted fuse items handler.
 import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
 import {
-    validateRecipe,
-    calculateCraftTime,
+  validateRecipe,
+  calculateCraftTime,
 } from '@/core/rules/crafting';
 
 export function createHandleFuseItems(context: Partial<ActionHandlerDeps> & Record<string, any>) {

@@ -1,5 +1,5 @@
 
-import { structureDefinitions } from "../structures";
+import { structureDefinitions } from '@/core/data/structures';
 import { naturePlusMountainEnemies } from "./modded/nature_plus";
 import type { TranslationKey } from "@/lib/i18n";
 

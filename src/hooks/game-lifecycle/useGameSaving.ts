@@ -3,7 +3,7 @@
 
 import { useEffect } from 'react';
 import { useLanguage } from '@/context/language-context';
-import { itemDefinitions as staticItemDefinitions } from '@/lib/game/items';
+import { allItems as staticItemDefinitions } from '@/core/data/items';
 import { ensurePlayerItemId } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';

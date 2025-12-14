@@ -1,5 +1,5 @@
 
-import { structureDefinitions } from "../structures";
+import { structureDefinitions } from '@/core/data/structures';
 
 export const cave_vi = {
     descriptionTemplates: {

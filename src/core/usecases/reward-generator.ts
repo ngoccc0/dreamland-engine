@@ -12,7 +12,7 @@
  * - generateLootPackage(rarity, baseValue, seed) → complete loot
  */
 
-import { itemDefinitions } from '@/lib/game/items';
+import { allItems as itemDefinitions } from '@/core/data/items';
 import {
     calculateRarity,
     generateLoot,

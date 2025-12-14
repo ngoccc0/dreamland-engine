@@ -1,4 +1,4 @@
-import { itemDefinitions } from '@/lib/game/items';
+import { allItems as itemDefinitions } from '@/core/data/items';
 import type { ItemDefinition } from '@/core/types/game';
 
 /**

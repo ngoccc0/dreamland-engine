@@ -30,8 +30,8 @@
 // Extracted offline attack handler.
 import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
 import {
-    calculateBaseDamage,
-    applyMultiplier,
+  calculateBaseDamage,
+  applyMultiplier,
 } from '@/core/rules/combat';
 
 export function createHandleOfflineAttack(context: Partial<ActionHandlerDeps> & Record<string, any>) {

@@ -19,8 +19,8 @@ import { createHandleFuseItems } from '@/hooks/use-action-handlers.fuseItems';
 import { createHandleHarvest } from '@/hooks/use-action-handlers.harvest';
 import { tillSoil, waterTile, fertilizeTile, plantSeed } from '@/core/usecases/farming-usecase';
 import {
-    validateRecipe,
-    calculateCraftTime,
+  validateRecipe,
+  calculateCraftTime,
 } from '@/core/rules/crafting';
 
 // NOTE: Genkit flows are server-only. Call them via server API routes to

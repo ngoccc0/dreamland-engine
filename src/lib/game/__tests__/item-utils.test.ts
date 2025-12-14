@@ -1,8 +1,8 @@
 /**
  * Unit tests for resolveItemDef helper
  */
-jest.mock('@/lib/game/items', () => ({
-  itemDefinitions: {
+jest.mock('@/core/data/items', () => ({
+  allItems: {
     MasterItem: {
       name: { en: 'MasterItem', vi: 'MasterItem' },
       description: 'A master item',

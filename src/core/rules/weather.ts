@@ -45,49 +45,49 @@
  * getGrowthScore(55, 40) → 0 (too hot)
  */
 export function getGrowthScore(moisture: number, temperature: number): number {
-  // Clamp inputs to valid ranges
-  const m = Math.max(0, moisture);
-  const t = Math.max(-10, temperature);
+    // Clamp inputs to valid ranges
+    const m = Math.max(0, moisture);
+    const t = Math.max(-10, temperature);
 
-  // Moisture modifier (0-1.2)
-  let moistureModifier = 0;
-  if (m < 20) {
-    moistureModifier = 0;
-  } else if (m < 40) {
-    // 20-40: scale 0.2 to 0.8
-    moistureModifier = 0.2 + ((m - 20) / 20) * 0.6;
-  } else if (m <= 70) {
-    // 40-70: scale 0.8 to 1.2 (peak)
-    moistureModifier = 0.8 + ((m - 40) / 30) * 0.4;
-  } else if (m < 90) {
-    // 70-90: scale 1.2 to 0.6
-    moistureModifier = 1.2 - ((m - 70) / 20) * 0.6;
-  } else {
-    moistureModifier = 0; // too wet
-  }
+    // Moisture modifier (0-1.2)
+    let moistureModifier = 0;
+    if (m < 20) {
+        moistureModifier = 0;
+    } else if (m < 40) {
+        // 20-40: scale 0.2 to 0.8
+        moistureModifier = 0.2 + ((m - 20) / 20) * 0.6;
+    } else if (m <= 70) {
+        // 40-70: scale 0.8 to 1.2 (peak)
+        moistureModifier = 0.8 + ((m - 40) / 30) * 0.4;
+    } else if (m < 90) {
+        // 70-90: scale 1.2 to 0.6
+        moistureModifier = 1.2 - ((m - 70) / 20) * 0.6;
+    } else {
+        moistureModifier = 0; // too wet
+    }
 
-  // Temperature modifier (0-1.0)
-  let temperatureModifier = 0;
-  if (t < 5) {
-    temperatureModifier = 0;
-  } else if (t < 25) {
-    // 5-25: scale 0.1 to 1.0
-    temperatureModifier = 0.1 + ((t - 5) / 20) * 0.9;
-  } else if (t < 35) {
-    // 25-35: scale 1.0 to 0.5 (declining)
-    temperatureModifier = 1.0 - ((t - 25) / 10) * 0.5;
-  } else {
-    temperatureModifier = 0; // too hot
-  }
+    // Temperature modifier (0-1.0)
+    let temperatureModifier = 0;
+    if (t < 5) {
+        temperatureModifier = 0;
+    } else if (t < 25) {
+        // 5-25: scale 0.1 to 1.0
+        temperatureModifier = 0.1 + ((t - 5) / 20) * 0.9;
+    } else if (t < 35) {
+        // 25-35: scale 1.0 to 0.5 (declining)
+        temperatureModifier = 1.0 - ((t - 25) / 10) * 0.5;
+    } else {
+        temperatureModifier = 0; // too hot
+    }
 
-  // Base growth rate
-  const baseGrowth = 0.5;
+    // Base growth rate
+    const baseGrowth = 0.5;
 
-  // Combine modifiers
-  const growthScore = baseGrowth * moistureModifier * temperatureModifier;
+    // Combine modifiers
+    const growthScore = baseGrowth * moistureModifier * temperatureModifier;
 
-  // Clamp to 0-2.0
-  return Math.max(0, Math.min(2.0, growthScore));
+    // Clamp to 0-2.0
+    return Math.max(0, Math.min(2.0, growthScore));
 }
 
 /**
@@ -122,63 +122,63 @@ export function getGrowthScore(moisture: number, temperature: number): number {
  * applyWeatherModifier(100, 'STORMY', 'health') → 60 (100 × 0.60)
  */
 export function applyWeatherModifier(
-  baseValue: number,
-  weatherType: string,
-  attributeType: string
+    baseValue: number,
+    weatherType: string,
+    attributeType: string
 ): number {
-  const value = Math.max(0, baseValue);
+    const value = Math.max(0, baseValue);
 
-  // Weather effect matrix
-  const weatherEffects: Record<string, Record<string, number>> = {
-    RAINY: {
-      growth: 1.3,
-      movement: 0.8,
-      health_regen: 1.0,
-      damage: 1.0,
-      health: 1.0,
-      defense: 1.0,
-    },
-    SUNNY: {
-      growth: 1.0,
-      movement: 1.0,
-      health_regen: 1.2,
-      damage: 1.1,
-      health: 1.0,
-      defense: 1.0,
-    },
-    CLOUDY: {
-      growth: 1.0,
-      movement: 1.0,
-      health_regen: 1.0,
-      damage: 1.0,
-      health: 1.0,
-      defense: 1.0,
-    },
-    STORMY: {
-      growth: 0.7,
-      movement: 0.5,
-      health_regen: 0.6,
-      damage: 0.9,
-      health: 0.6,
-      defense: 1.1,
-    },
-    SNOWY: {
-      growth: 0.5,
-      movement: 0.9,
-      health_regen: 0.7,
-      damage: 0.95,
-      health: 1.0,
-      defense: 1.4,
-    },
-  };
+    // Weather effect matrix
+    const weatherEffects: Record<string, Record<string, number>> = {
+        RAINY: {
+            growth: 1.3,
+            movement: 0.8,
+            health_regen: 1.0,
+            damage: 1.0,
+            health: 1.0,
+            defense: 1.0,
+        },
+        SUNNY: {
+            growth: 1.0,
+            movement: 1.0,
+            health_regen: 1.2,
+            damage: 1.1,
+            health: 1.0,
+            defense: 1.0,
+        },
+        CLOUDY: {
+            growth: 1.0,
+            movement: 1.0,
+            health_regen: 1.0,
+            damage: 1.0,
+            health: 1.0,
+            defense: 1.0,
+        },
+        STORMY: {
+            growth: 0.7,
+            movement: 0.5,
+            health_regen: 0.6,
+            damage: 0.9,
+            health: 0.6,
+            defense: 1.1,
+        },
+        SNOWY: {
+            growth: 0.5,
+            movement: 0.9,
+            health_regen: 0.7,
+            damage: 0.95,
+            health: 1.0,
+            defense: 1.4,
+        },
+    };
 
-  const effects = weatherEffects[weatherType];
-  if (!effects) {
-    return value; // Unknown weather, no modifier
-  }
+    const effects = weatherEffects[weatherType];
+    if (!effects) {
+        return value; // Unknown weather, no modifier
+    }
 
-  const modifier = effects[attributeType] || 1.0;
-  return Math.max(0, value * modifier);
+    const modifier = effects[attributeType] || 1.0;
+    return Math.max(0, value * modifier);
 }
 
 /**
@@ -214,44 +214,44 @@ export function applyWeatherModifier(
  * getWaterNeed(5, 80) → 1.25 (cold + wet = low need)
  */
 export function getWaterNeed(temperature: number, currentMoisture: number): number {
-  const t = Math.max(0, temperature);
-  const m = Math.max(0, Math.min(100, currentMoisture));
+    const t = Math.max(0, temperature);
+    const m = Math.max(0, Math.min(100, currentMoisture));
 
-  // Base need
-  const baseNeed = 5;
+    // Base need
+    const baseNeed = 5;
 
-  // Temperature multiplier
-  let tempMultiplier = 1.0;
-  if (t < 10) {
-    tempMultiplier = 0.5;
-  } else if (t < 20) {
-    // 10-20: scale 0.5 to 1.0
-    tempMultiplier = 0.5 + ((t - 10) / 10) * 0.5;
-  } else if (t <= 30) {
-    // 20-30: scale 1.0 to 2.0
-    tempMultiplier = 1.0 + ((t - 20) / 10) * 1.0;
-  } else {
-    // > 30: high evaporation
-    tempMultiplier = 2.0;
-  }
+    // Temperature multiplier
+    let tempMultiplier = 1.0;
+    if (t < 10) {
+        tempMultiplier = 0.5;
+    } else if (t < 20) {
+        // 10-20: scale 0.5 to 1.0
+        tempMultiplier = 0.5 + ((t - 10) / 10) * 0.5;
+    } else if (t <= 30) {
+        // 20-30: scale 1.0 to 2.0
+        tempMultiplier = 1.0 + ((t - 20) / 10) * 1.0;
+    } else {
+        // > 30: high evaporation
+        tempMultiplier = 2.0;
+    }
 
-  // Moisture multiplier
-  let moistureMultiplier = 1.0;
-  if (m < 30) {
-    moistureMultiplier = 1.5;
-  } else if (m <= 70) {
-    // 30-70: scale 1.5 to 0.5
-    moistureMultiplier = 1.5 - ((m - 30) / 40) * 1.0;
-  } else {
-    // > 70: high moisture, less need
-    moistureMultiplier = 0.5;
-  }
+    // Moisture multiplier
+    let moistureMultiplier = 1.0;
+    if (m < 30) {
+        moistureMultiplier = 1.5;
+    } else if (m <= 70) {
+        // 30-70: scale 1.5 to 0.5
+        moistureMultiplier = 1.5 - ((m - 30) / 40) * 1.0;
+    } else {
+        // > 70: high moisture, less need
+        moistureMultiplier = 0.5;
+    }
 
-  // Calculate final need
-  const waterNeed = baseNeed * tempMultiplier * moistureMultiplier;
+    // Calculate final need
+    const waterNeed = baseNeed * tempMultiplier * moistureMultiplier;
 
-  // Clamp to 0-20
-  return Math.max(0, Math.min(20, waterNeed));
+    // Clamp to 0-20
+    return Math.max(0, Math.min(20, waterNeed));
 }
 
 /**
@@ -286,36 +286,36 @@ export function getWaterNeed(temperature: number, currentMoisture: number): numb
  * calculateHumidity(60, 10, 15) → ~95 (optimal conditions + rain)
  */
 export function calculateHumidity(
-  baseHumidity: number,
-  rainfall: number,
-  temperature: number
+    baseHumidity: number,
+    rainfall: number,
+    temperature: number
 ): number {
-  // Clamp inputs
-  const humidity = Math.max(0, Math.min(100, baseHumidity));
-  const rain = Math.max(0, rainfall);
-  const t = Math.max(-10, temperature);
+    // Clamp inputs
+    const humidity = Math.max(0, Math.min(100, baseHumidity));
+    const rain = Math.max(0, rainfall);
+    const t = Math.max(-10, temperature);
 
-  // Rainfall contribution (capped at 30)
-  const rainfallContribution = Math.min(30, rain);
+    // Rainfall contribution (capped at 30)
+    const rainfallContribution = Math.min(30, rain);
 
-  // Evaporation loss based on temperature
-  let evaporationMultiplier = 1.0;
-  if (t < 10) {
-    evaporationMultiplier = 0.5;
-  } else if (t < 25) {
-    // 10-25: scale 0.5 to 1.0
-    evaporationMultiplier = 0.5 + ((t - 10) / 15) * 0.5;
-  } else {
-    // > 25: scale 1.0 to 2.0
-    evaporationMultiplier = 1.0 + ((Math.min(t, 40) - 25) / 15) * 1.0;
-  }
+    // Evaporation loss based on temperature
+    let evaporationMultiplier = 1.0;
+    if (t < 10) {
+        evaporationMultiplier = 0.5;
+    } else if (t < 25) {
+        // 10-25: scale 0.5 to 1.0
+        evaporationMultiplier = 0.5 + ((t - 10) / 15) * 0.5;
+    } else {
+        // > 25: scale 1.0 to 2.0
+        evaporationMultiplier = 1.0 + ((Math.min(t, 40) - 25) / 15) * 1.0;
+    }
 
-  // Base evaporation loss is 10 units
-  const evaporationLoss = 10 * evaporationMultiplier;
+    // Base evaporation loss is 10 units
+    const evaporationLoss = 10 * evaporationMultiplier;
 
-  // Calculate final humidity
-  const finalHumidity = humidity + rainfallContribution - evaporationLoss;
+    // Calculate final humidity
+    const finalHumidity = humidity + rainfallContribution - evaporationLoss;
 
-  // Clamp to 0-100
-  return Math.max(0, Math.min(100, finalHumidity));
+    // Clamp to 0-100
+    return Math.max(0, Math.min(100, finalHumidity));
 }

@@ -17,8 +17,7 @@ import {
     getLootQuantity,
     isDead,
     applyDamage,
-    CombatStats,
-    DamageResult
+    CombatStats
 } from '../combat';
 
 describe('Combat Rules - Damage Calculation', () => {

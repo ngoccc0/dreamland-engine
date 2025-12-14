@@ -17,9 +17,7 @@ import {
     calculateVegetationDensity,
     shouldReproduce,
     shouldPartGrow,
-    shouldPartDrop,
-    type EnvironmentalConditions,
-    type PlantRequirements
+    shouldPartDrop
 } from '../nature';
 
 describe('Nature Rules', () => {
@@ -184,7 +182,7 @@ describe('Nature Rules', () => {
         });
 
         it('should use custom damage value', () => {
-            const normal = calculateEnvironmentalStress(0.5, 5);
+            calculateEnvironmentalStress(0.5, 5);
             const high = calculateEnvironmentalStress(0.5, 10);
             expect(high).toBe(Math.ceil(0.5 * 10)); // 5, not normal * 2 due to ceiling
         });

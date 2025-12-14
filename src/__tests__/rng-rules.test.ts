@@ -49,28 +49,28 @@ describe('RNG Rules', () => {
 
     describe('random', () => {
         test('should return value in [0, 1)', () => {
-            const [value, _] = random(42);
+            const [value] = random(42);
             expect(value).toBeGreaterThanOrEqual(0);
             expect(value).toBeLessThan(1);
         });
 
         test('should return deterministic for same seed', () => {
-            const [val1, _] = random(42);
-            const [val2, __] = random(42);
+            const [val1] = random(42);
+            const [val2] = random(42);
             expect(val1).toBe(val2);
         });
 
         test('should advance seed on each call', () => {
             let seed = 42;
-            const [_, nextS1] = random(seed);
-            const [__, nextS2] = random(nextS1);
+            const [, nextS1] = random(seed);
+            const [, nextS2] = random(nextS1);
             expect(nextS1).not.toBe(seed);
             expect(nextS2).not.toBe(nextS1);
         });
 
         test('should produce different values with different seeds', () => {
-            const [val1, _] = random(1);
-            const [val2, __] = random(2);
+            const [val1] = random(1);
+            const [val2] = random(2);
             expect(val1).not.toBe(val2);
         });
 
@@ -107,32 +107,32 @@ describe('RNG Rules', () => {
 
     describe('randomInt', () => {
         test('should return integer in [min, max)', () => {
-            const [value, _] = randomInt(42, 1, 7);
+            const [value] = randomInt(42, 1, 7);
             expect(Number.isInteger(value)).toBe(true);
             expect(value).toBeGreaterThanOrEqual(1);
             expect(value).toBeLessThan(7);
         });
 
         test('should be deterministic for same seed', () => {
-            const [val1, _] = randomInt(42, 1, 7);
-            const [val2, __] = randomInt(42, 1, 7);
+            const [val1] = randomInt(42, 1, 7);
+            const [val2] = randomInt(42, 1, 7);
             expect(val1).toBe(val2);
         });
 
         test('should return min when min === max', () => {
-            const [value, _] = randomInt(42, 5, 5);
+            const [value] = randomInt(42, 5, 5);
             expect(value).toBe(5);
         });
 
         test('should handle negative ranges', () => {
-            const [value, _] = randomInt(42, -5, 5);
+            const [value] = randomInt(42, -5, 5);
             expect(value).toBeGreaterThanOrEqual(-5);
             expect(value).toBeLessThan(5);
         });
 
         test('should swap min and max if reversed', () => {
-            const [value1, _] = randomInt(42, 10, 1);
-            const [value2, __] = randomInt(42, 1, 10);
+            const [value1] = randomInt(42, 10, 1);
+            const [value2] = randomInt(42, 1, 10);
             expect(value1).toBe(value2);
         });
 
@@ -175,7 +175,7 @@ describe('RNG Rules', () => {
         test('should select from items array', () => {
             const items = ['a', 'b', 'c'];
             const weights = [1, 1, 1];
-            const [selected, _] = weightedRandom(42, items, weights);
+            const [selected] = weightedRandom(42, items, weights);
             expect(items).toContain(selected);
         });
 
@@ -197,7 +197,7 @@ describe('RNG Rules', () => {
         test('should always select only item when array has 1 item', () => {
             const items = ['only'];
             const weights = [1];
-            const [selected, _] = weightedRandom(42, items, weights);
+            const [selected] = weightedRandom(42, items, weights);
             expect(selected).toBe('only');
         });
 
@@ -258,15 +258,15 @@ describe('RNG Rules', () => {
         test('should be deterministic with same seed', () => {
             const items = ['x', 'y', 'z'];
             const weights = [1, 2, 3];
-            const [sel1, _] = weightedRandom(42, items, weights);
-            const [sel2, __] = weightedRandom(42, items, weights);
+            const [sel1] = weightedRandom(42, items, weights);
+            const [sel2] = weightedRandom(42, items, weights);
             expect(sel1).toBe(sel2);
         });
 
         test('should handle numeric items', () => {
             const items = [10, 20, 30];
             const weights = [1, 1, 1];
-            const [selected, _] = weightedRandom(42, items, weights);
+            const [selected] = weightedRandom(42, items, weights);
             expect([10, 20, 30]).toContain(selected);
         });
     });
@@ -397,8 +397,8 @@ describe('RNG Rules', () => {
         test('weighted selection should use seeded RNG', () => {
             const items = ['a', 'b', 'c'];
             const weights = [1, 1, 1];
-            const [sel1, _] = weightedRandom(42, items, weights);
-            const [sel2, __] = weightedRandom(42, items, weights);
+            const [sel1] = weightedRandom(42, items, weights);
+            const [sel2] = weightedRandom(42, items, weights);
             expect(sel1).toBe(sel2);
         });
 

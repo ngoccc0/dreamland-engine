@@ -235,7 +235,7 @@ describe('Weather Rules', () => {
         });
 
         test('should cap rainfall contribution at 30', () => {
-            const with5Rain = calculateHumidity(50, 5, 20);
+            calculateHumidity(50, 5, 20);
             const with50Rain = calculateHumidity(50, 50, 20);
             // with50Rain shouldn't be proportionally higher
             expect(with50Rain).toBeLessThan(100);

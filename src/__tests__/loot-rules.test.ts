@@ -209,7 +209,7 @@ describe('Loot Rules', () => {
         });
 
         test('should add 20% value per affix', () => {
-            const base = calculateItemValue(100, 3, 0); // 250
+            calculateItemValue(100, 3, 0); // 250
             const with2Affixes = calculateItemValue(100, 3, 2); // 250 × 1.4 = 350
             expect(with2Affixes).toBe(Math.floor(250 * 1.4));
         });

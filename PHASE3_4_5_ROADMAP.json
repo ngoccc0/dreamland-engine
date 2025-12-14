@@ -1,0 +1,660 @@
+{
+  "roadmap": {
+    "metadata": {
+      "projectName": "Dreamland Engine",
+      "generatedDate": "2025-12-14",
+      "status": "Ready for Phase 3 Execution",
+      "completionTarget": "2025-12-23 to 2025-12-24",
+      "estimatedDays": "10 business days"
+    },
+    "projectState": {
+      "completedPhases": ["0", "1", "2"],
+      "currentPhase": "3",
+      "typescriptErrors": 0,
+      "testsStatus": {
+        "total": 305,
+        "passing": 304,
+        "failing": 0,
+        "skipped": 1
+      },
+      "filesAffected": {
+        "phases_3_to_5": 80,
+        "phase_3": 35,
+        "phase_4": 15,
+        "phase_5": 30
+      }
+    },
+    "phases": {
+      "phase_0": {
+        "name": "Documentation",
+        "status": "COMPLETE",
+        "completedOn": "2025-12-14",
+        "tasks": {
+          "total": 4,
+          "completed": 4,
+          "pending": 0
+        },
+        "files": {
+          "created": [
+            "docs/ARCHITECTURE_CLEAN_SLATE.md",
+            "docs/MIGRATION_PHASES.md"
+          ],
+          "modified": [
+            "docs/ARCHITECTURE.md",
+            "docs/PATTERNS.md",
+            "docs/CODING_STANDARDS.md",
+            ".github/copilot-instructions.md"
+          ]
+        }
+      },
+      "phase_1": {
+        "name": "Domain Foundation (core/domain)",
+        "status": "COMPLETE",
+        "completedOn": "2025-12-14",
+        "tasks": {
+          "total": 5,
+          "completed": 5,
+          "pending": 0
+        },
+        "files": {
+          "created": [
+            "src/core/domain/entity.ts",
+            "src/core/domain/creature.ts",
+            "src/core/domain/item.ts",
+            "src/core/domain/gamestate.ts",
+            "src/core/domain/index.ts"
+          ]
+        },
+        "keyFeatures": [
+          "Zod-based runtime validation",
+          "Discriminated unions for polymorphic creatures",
+          "Type inference from schemas",
+          "100% TSDoc coverage"
+        ]
+      },
+      "phase_2": {
+        "name": "Data Consolidation (lib → core/data)",
+        "status": "COMPLETE",
+        "completedOn": "2025-12-14",
+        "subPhases": {
+          "2a": {
+            "name": "Items Migration",
+            "status": "COMPLETE",
+            "filesMigrated": 40,
+            "files": [
+              "src/core/data/items/equipment.ts",
+              "src/core/data/items/food.ts",
+              "src/core/data/items/tools.ts",
+              "src/core/data/items/materials.ts",
+              "src/core/data/items/magic.ts",
+              "src/core/data/items/support.ts",
+              "src/core/data/items/modded/nature_plus.ts"
+            ]
+          },
+          "2b": {
+            "name": "Creatures Migration & Merge",
+            "status": "COMPLETE",
+            "filesMigrated": 6,
+            "filesMerged": 1,
+            "mergedContent": "modded_plants.ts → plants.ts",
+            "files": [
+              "src/core/data/creatures/animals.ts",
+              "src/core/data/creatures/plants.ts",
+              "src/core/data/creatures/minerals.ts",
+              "src/core/data/creatures/wildlife.ts"
+            ]
+          },
+          "2c": {
+            "name": "Recipes Migration",
+            "status": "COMPLETE",
+            "filesMigrated": 2,
+            "files": [
+              "src/core/data/recipes/index.ts",
+              "src/core/data/recipes/nature_plus.ts"
+            ]
+          },
+          "2d": {
+            "name": "Narrative Data Migration",
+            "status": "COMPLETE",
+            "filesMigrated": 15,
+            "folders": [
+              "src/core/data/narrative/templates/",
+              "src/core/data/narrative/lexicon/"
+            ]
+          }
+        }
+      },
+      "phase_3": {
+        "name": "Rules Extraction & Usecase Refactoring",
+        "status": "PARTIAL_COMPLETE",
+        "completionTarget": "2025-12-19",
+        "estimatedDays": 5,
+        "riskLevel": "HIGH",
+        "dependency": "None",
+        "subPhases": {
+          "3a": {
+            "name": "Rules Extraction (Pure Functions)",
+            "status": "PARTIAL_COMPLETE",
+            "functionTarget": 50,
+            "functionsCompleted": 23,
+            "functionsPending": 27,
+            "completed": [
+              {
+                "file": "src/core/rules/combat.ts",
+                "lines": 430,
+                "functions": 11,
+                "examples": [
+                  "calculateBaseDamage",
+                  "isCritical",
+                  "getCriticalMultiplier",
+                  "calculateDamage",
+                  "calculateExperience",
+                  "applyDamage"
+                ]
+              },
+              {
+                "file": "src/core/rules/nature.ts",
+                "lines": 600,
+                "functions": 12,
+                "examples": [
+                  "calculateMoistureSuitability",
+                  "calculateTemperatureSuitability",
+                  "calculateGrowthProbability",
+                  "calculateHarvestYield",
+                  "shouldReproduce"
+                ]
+              }
+            ],
+            "pending": [
+              {
+                "file": "src/core/rules/crafting.ts",
+                "functionCount": "5-8",
+                "estimatedLines": "150-200",
+                "priority": "HIGH",
+                "source": "core/usecases/crafting-usecase.ts"
+              },
+              {
+                "file": "src/core/rules/weather.ts",
+                "functionCount": "6-8",
+                "estimatedLines": "180-250",
+                "priority": "HIGH",
+                "source": "core/engines/weather-engine.ts + usecases"
+              },
+              {
+                "folder": "src/core/rules/narrative/",
+                "files": ["selector.ts", "conditions.ts"],
+                "functionCount": "6-8",
+                "estimatedLines": "200-300",
+                "priority": "HIGH",
+                "source": "lib/narrative/"
+              },
+              {
+                "file": "src/core/rules/rng.ts",
+                "functionCount": "3-5",
+                "estimatedLines": "100-150",
+                "priority": "MEDIUM"
+              },
+              {
+                "file": "src/core/rules/loot.ts",
+                "functionCount": "4-6",
+                "estimatedLines": "150-200",
+                "priority": "MEDIUM",
+                "source": "core/usecases/combat-usecase.ts (lines 300+)"
+              }
+            ],
+            "successCriteria": [
+              "30+ pure functions created",
+              "100% TSDoc coverage (Glass Box @remarks)",
+              "No imports from hooks/components/React",
+              "All functions testable and tested",
+              "npm run typecheck → ZERO errors"
+            ],
+            "testingStrategy": {
+              "targetCoverage": "100%",
+              "newTestFiles": [
+                "src/core/rules/__tests__/crafting.test.ts",
+                "src/core/rules/__tests__/weather.test.ts",
+                "src/core/rules/__tests__/narrative.test.ts",
+                "src/core/rules/__tests__/rng.test.ts",
+                "src/core/rules/__tests__/loot.test.ts"
+              ],
+              "expectedTestCount": 360
+            }
+          },
+          "3b": {
+            "name": "Usecase Refactoring ([state, effects] pattern)",
+            "status": "NOT_STARTED",
+            "completionTarget": "2025-12-19",
+            "estimatedDays": 3,
+            "filesAffected": 12,
+            "patternChange": {
+              "oldPattern": "(state, action) => newState",
+              "newPattern": "(state, action) => [newState, GameEffect[]]"
+            },
+            "usecasesToRefactor": [
+              {
+                "file": "combat-usecase.ts",
+                "priority": "HIGH",
+                "lines": 359,
+                "rulesUsed": ["core/rules/combat.ts (23 functions)"],
+                "effects": ["PLAY_SOUND", "SAVE_GAME", "EMIT_EVENT"]
+              },
+              {
+                "file": "farming-usecase.ts",
+                "priority": "HIGH",
+                "rulesUsed": ["core/rules/nature.ts (12 functions)"]
+              },
+              {
+                "file": "crafting-usecase.ts",
+                "priority": "HIGH",
+                "rulesUsed": ["core/rules/crafting.ts (new)"]
+              },
+              {
+                "file": "weather-usecase.ts",
+                "priority": "HIGH",
+                "rulesUsed": ["core/rules/weather.ts (new)"]
+              },
+              {
+                "file": "experience-usecase.ts",
+                "priority": "MEDIUM"
+              },
+              {
+                "file": "reward-generator.ts",
+                "priority": "MEDIUM"
+              },
+              {
+                "file": "exploration-usecase.ts",
+                "priority": "MEDIUM"
+              },
+              {
+                "file": "world-usecase.ts",
+                "priority": "MEDIUM"
+              },
+              {
+                "file": "skill-usecase.ts",
+                "priority": "MEDIUM"
+              },
+              {
+                "file": "plant-growth.usecase.ts",
+                "priority": "MEDIUM"
+              },
+              {
+                "file": "movement-narrative.ts",
+                "priority": "LOW"
+              },
+              {
+                "file": "terrain-weather-discovery.usecase.ts",
+                "priority": "LOW"
+              }
+            ],
+            "sideEffectTypes": [
+              {
+                "type": "PLAY_SOUND",
+                "properties": ["sfx: string"]
+              },
+              {
+                "type": "SAVE_GAME",
+                "properties": ["data: GameState"]
+              },
+              {
+                "type": "EMIT_EVENT",
+                "properties": ["event: string", "payload?: any"]
+              },
+              {
+                "type": "SHOW_NOTIFICATION",
+                "properties": ["message: string", "duration: number"]
+              },
+              {
+                "type": "SHAKE_CAMERA",
+                "properties": ["intensity: number"]
+              },
+              {
+                "type": "SPAWN_PARTICLE",
+                "properties": ["pos: {x, y}", "type: string"]
+              }
+            ],
+            "successCriteria": [
+              "12 usecases refactored to [state, effects] pattern",
+              "All usecases call pure rules (not direct math)",
+              "All effects returned as tagged unions",
+              "100% TSDoc coverage",
+              "npm run test → ALL passing"
+            ]
+          }
+        },
+        "verificationGate": {
+          "requirement": "Before proceeding to Phase 4",
+          "checks": [
+            "npm run typecheck → ZERO errors",
+            "npm run test → ALL passing",
+            "grep 'state\\.' src/core/rules/ → ZERO matches",
+            "grep 'from.*hooks' src/core/rules/ → ZERO matches"
+          ]
+        }
+      },
+      "phase_4": {
+        "name": "Hook Refactoring (UI Integration)",
+        "status": "BLOCKED",
+        "completionTarget": "2025-12-22",
+        "estimatedDays": 2,
+        "riskLevel": "MEDIUM",
+        "dependency": "Phase 3 COMPLETE",
+        "blockedReason": "Awaiting Phase 3 usecase refactoring",
+        "tasks": [
+          {
+            "name": "Create Side Effect Executor",
+            "file": "src/lib/utils/effect-executor.ts",
+            "lines": "100-150",
+            "priority": "CRITICAL",
+            "handlesEffectTypes": 6
+          },
+          {
+            "name": "Refactor use-game-state Hook",
+            "file": "src/hooks/use-game-state.ts",
+            "pattern": "useState → useCallback → call usecases → execute effects"
+          },
+          {
+            "name": "Refactor use-action-handlers Hook",
+            "file": "src/hooks/use-action-handlers.ts"
+          },
+          {
+            "name": "Refactor use-game-engine Hook",
+            "file": "src/hooks/use-game-engine.ts"
+          }
+        ],
+        "filesToModify": 15,
+        "successCriteria": [
+          "All hooks call usecases (not direct logic)",
+          "Side effects executed via executor utility",
+          "React state updates correctly",
+          "Game playable end-to-end",
+          "npm run typecheck → ZERO errors"
+        ],
+        "exitGate": {
+          "requirement": "Before proceeding to Phase 5",
+          "scenarios": [
+            "Combat: attack → sound plays + damage dealt",
+            "Farming: plant grows → harvest yields items",
+            "Crafting: recipe valid → item created + inventory updated"
+          ]
+        }
+      },
+      "phase_5": {
+        "name": "Legacy Cleanup (Delete Old Code)",
+        "status": "BLOCKED",
+        "completionTarget": "2025-12-23",
+        "estimatedDays": 1,
+        "riskLevel": "LOW",
+        "dependency": "Phase 4 COMPLETE",
+        "blockedReason": "Awaiting Phase 4 hook refactoring completion",
+        "foldersToDelete": [
+          {
+            "path": "src/core/types/",
+            "reason": "Moved to core/domain",
+            "estimatedRefs": 50,
+            "confidence": "HIGH"
+          },
+          {
+            "path": "src/lib/definitions/",
+            "reason": "Moved to core/domain",
+            "estimatedRefs": 30,
+            "confidence": "HIGH"
+          },
+          {
+            "path": "src/lib/game/",
+            "reason": "Moved to core/data",
+            "estimatedRefs": 25,
+            "confidence": "HIGH"
+          },
+          {
+            "path": "src/core/engines/",
+            "reason": "Logic moved to core/rules",
+            "estimatedRefs": 20,
+            "confidence": "MEDIUM"
+          }
+        ],
+        "foldersToKeep": [
+          "src/lib/narrative/ (engine only, data moved)",
+          "src/lib/config/",
+          "src/lib/locales/",
+          "src/lib/utils/"
+        ],
+        "cleanupStrategy": "STRANGLER_FIG",
+        "cleanupSteps": [
+          "Verify all imports in Phase 4",
+          "Run deprecation search (grep scripts)",
+          "Delete folders only if ZERO refs found",
+          "Update documentation",
+          "Final verification"
+        ],
+        "estimatedDeletions": {
+          "files": 100,
+          "lines": "10000+",
+          "folders": 4
+        },
+        "successCriteria": [
+          "Zero imports of deprecated paths",
+          "100+ old files deleted",
+          "Docs updated (@deprecated markers removed)",
+          "npm run typecheck → ZERO errors",
+          "npm run test → ALL passing"
+        ],
+        "verificationCommands": [
+          "grep -r 'src/core/types' --include='*.ts' src/",
+          "grep -r 'lib/definitions' --include='*.ts' src/",
+          "grep -r 'lib/game' --include='*.ts' src/",
+          "grep -r 'core/engines' --include='*.ts' src/"
+        ]
+      }
+    },
+    "timeline": {
+      "weekOne": {
+        "startDate": "2025-12-15",
+        "endDate": "2025-12-19",
+        "dailyBreakdown": {
+          "monday": {
+            "date": "2025-12-15",
+            "tasks": [
+              "Phase 3.A rules extraction (crafting, weather, narrative)",
+              "Create test files for new rules"
+            ]
+          },
+          "tuesday": {
+            "date": "2025-12-16",
+            "tasks": [
+              "Phase 3.A continued + verification",
+              "Create rng.ts and loot.ts rules"
+            ]
+          },
+          "wednesday": {
+            "date": "2025-12-17",
+            "tasks": [
+              "Phase 3.B usecase refactoring (start combat-usecase review)",
+              "Begin patterns documentation"
+            ]
+          },
+          "thursday": {
+            "date": "2025-12-18",
+            "tasks": [
+              "Phase 3.B continued (farming, crafting, weather usecases)",
+              "Refactor 6+ usecases to [state, effects] pattern"
+            ]
+          },
+          "friday": {
+            "date": "2025-12-19",
+            "tasks": [
+              "Phase 3.B completion + test fixes",
+              "Verification: npm run typecheck && npm run test"
+            ]
+          }
+        }
+      },
+      "weekTwo": {
+        "startDate": "2025-12-22",
+        "endDate": "2025-12-26",
+        "dailyBreakdown": {
+          "monday": {
+            "date": "2025-12-22",
+            "tasks": [
+              "Phase 4 hook refactoring (use-game-state, use-action-handlers)",
+              "Create effect-executor utility"
+            ]
+          },
+          "tuesday": {
+            "date": "2025-12-23",
+            "tasks": [
+              "Phase 4 continued + integration testing",
+              "Update 12+ hook files"
+            ]
+          },
+          "wednesday": {
+            "date": "2025-12-24",
+            "tasks": [
+              "Phase 4 completion + smoke tests",
+              "Game end-to-end playable test"
+            ]
+          },
+          "thursday": {
+            "date": "2025-12-25",
+            "tasks": [
+              "Phase 5 legacy cleanup",
+              "Delete deprecated folders"
+            ]
+          },
+          "friday": {
+            "date": "2025-12-26",
+            "tasks": [
+              "Final verification + polish",
+              "Documentation updates"
+            ]
+          }
+        }
+      }
+    },
+    "riskAssessment": [
+      {
+        "risk": "Usecase refactoring breaks UI",
+        "severity": "HIGH",
+        "probability": "MEDIUM",
+        "mitigation": "Phase 3.B → Phase 4 tight integration; daily smoke tests"
+      },
+      {
+        "risk": "Tests become flaky after refactoring",
+        "severity": "MEDIUM",
+        "probability": "MEDIUM",
+        "mitigation": "Update all mocks to expect [state, effects] format early"
+      },
+      {
+        "risk": "Import chaos during migration",
+        "severity": "MEDIUM",
+        "probability": "LOW",
+        "mitigation": "Run grep verification before Phase 5; automated import update script"
+      },
+      {
+        "risk": "Side effect executor incomplete",
+        "severity": "MEDIUM",
+        "probability": "LOW",
+        "mitigation": "Define all effect types in Phase 3 (before Phase 4)"
+      },
+      {
+        "risk": "Accidental mutations in rules",
+        "severity": "HIGH",
+        "probability": "MEDIUM",
+        "mitigation": "Code review focus: no 'state.x = y', no 'array.push()'"
+      },
+      {
+        "risk": "Performance regression",
+        "severity": "LOW",
+        "probability": "LOW",
+        "mitigation": "Profile Phase 4 end-to-end; expect no change (immutability ~same speed)"
+      },
+      {
+        "risk": "Save game incompatibility",
+        "severity": "LOW",
+        "probability": "LOW",
+        "mitigation": "Architecture decision: hard reset (α state, no migration needed)"
+      }
+    ],
+    "successMetrics": {
+      "phase3": {
+        "targetRuleFunctions": 50,
+        "targetUsecaseFiles": 12,
+        "targetTSDocCoverage": "100%",
+        "targetTestCoverage": "100%",
+        "targetTypeScriptErrors": 0,
+        "targetTestStatus": "ALL PASSING"
+      },
+      "phase4": {
+        "targetHookFiles": 15,
+        "targetEffectTypes": 6,
+        "targetGamePlayability": "END_TO_END",
+        "targetTypeScriptErrors": 0
+      },
+      "phase5": {
+        "targetDeletedFiles": 100,
+        "targetDeletedFolders": 4,
+        "targetDeprecatedRefs": 0,
+        "targetTypeScriptErrors": 0
+      }
+    },
+    "tools": {
+      "verification": [
+        "npm run typecheck",
+        "npm run test",
+        "npm run lint",
+        "npm run build"
+      ],
+      "searching": [
+        "grep -r 'state\\.' --include='*.ts' src/core/rules/",
+        "grep -r '\\.push(' --include='*.ts' src/core/rules/",
+        "grep -r 'audioManager|persistence|eventBus' --include='*.ts' src/core/rules/",
+        "grep -r 'from.*hooks' --include='*.ts' src/core/rules/"
+      ],
+      "git": [
+        "git checkout -b phase-3a-rules-extraction",
+        "git commit -m 'refactor(core): extract [rule-name]'",
+        "git push",
+        "git merge [branch]"
+      ]
+    },
+    "documentation": {
+      "newFiles": [
+        "PHASE3_4_5_ROADMAP.md (this file)",
+        "PHASE3_4_5_ROADMAP.json (technical reference)"
+      ],
+      "filesToModify": [
+        "docs/PATTERNS.md (add rule/usecase patterns)",
+        "docs/ARCHITECTURE_CLEAN_SLATE.md (verify against new rules)",
+        "docs/ARCHITECTURE.md (mark @deprecated)",
+        "README.md (new folder structure)"
+      ],
+      "guidesRequired": [
+        "Migrating Usecases to Pure Functions.md",
+        "Executing Side Effects from Hooks.md"
+      ]
+    },
+    "releaseCriteria": {
+      "phase3Complete": [
+        "✅ npm run typecheck → ZERO errors",
+        "✅ npm run test → ALL passing",
+        "✅ 50+ rule functions extracted",
+        "✅ 12 usecases refactored to [state, effects]",
+        "✅ 100% TSDoc coverage (Glass Box @remarks)"
+      ],
+      "phase4Complete": [
+        "✅ Game playable end-to-end",
+        "✅ Combat: attack → sound + damage",
+        "✅ Farming: grow → harvest → items",
+        "✅ Crafting: recipe → item creation",
+        "✅ npm run test → ALL passing"
+      ],
+      "phase5Complete": [
+        "✅ Zero deprecated path imports",
+        "✅ 100+ old files deleted",
+        "✅ npm run typecheck → ZERO errors",
+        "✅ npm run test → ALL passing",
+        "✅ No console warnings"
+      ]
+    }
+  }
+}

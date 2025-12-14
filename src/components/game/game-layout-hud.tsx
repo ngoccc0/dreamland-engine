@@ -49,12 +49,12 @@ export function GameLayoutHud({
     t: tProp,
     onMapSizeChange,
 }: GameLayoutHudProps) {
-  // Use hook for language/t if not provided in props
-  const { language: contextLanguage, t: contextT } = useLanguage();
-  const _language = langProp || contextLanguage;
-  const t = tProp || contextT;
+    // Use hook for language/t if not provided in props
+    const { language: contextLanguage, t: contextT } = useLanguage();
+    const _language = langProp || contextLanguage;
+    const t = tProp || contextT;
 
-  const minimapSizeNotificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const minimapSizeNotificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [minimapSizeNotification, setMinimapSizeNotification] = useState<string>("");
 
     // Stat value calculations

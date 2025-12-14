@@ -15,7 +15,7 @@ applyTo: "**"
     * If you move logic (e.g., Hook → Engine), you MUST **DELETE** the old logic/file.
     * If a file is in the wrong folder (violating `docs/ARCHITECTURE.md`), **MOVE** it immediately.
     * **NO** commented-out legacy code blocks. **NO** unused files left behind.
-4.  **Tool Constraint:** If a file is **>500 lines**, you MUST use `replace_in_file` (targeted edit). NEVER overwrite (`write_file`) large files.
+4.  **Tool Constraint:** If a file is **>500 lines**, you MUST use `replace_in_file` (targeted edit). NEVER overwrite (`write_file`) large files then start to refactor that file into smaller modules.
 5.  **3-Strike Rule:** Verification fails >3 times on one task → **PAUSE**.
 
 ---
@@ -33,24 +33,34 @@ IF (Proposed Code violates `docs/` OR File Limits):
 # 🏗️ ARCHITECTURE & STANDARDS (Source of Truth: `docs/`)
 
 ### 1. File Organization & Limits (Strict Enforcement)
+
 | Path | Content Rule | Limit |
 | :--- | :--- | :--- |
 | `app/` | Next.js Pages/Layouts (NO logic) | 200 lines |
 | `components/` | React UI (Calls Hooks, no Usecases) | 300 lines |
-| `hooks/` | State (`useState`) + Effects (`useEffect`) | 250 lines |
-| `core/` | **Pure** Business Logic (Immutable) | 500 lines |
-| `lib/game/data/` | **Static Data** (One Concept = One File) | 800 lines |
+| `hooks/` | State (`useState`) + Handlers (call usecases) | 250 lines |
+| `core/domain/` | **Runtime Schemas** (Zod + Inferred Types) | 400 lines |
+| `core/data/` | **Static Game Data** (One Concept = One File) | 800 lines |
+| `core/rules/` | **Pure Game Rules** (Math, Logic - No side effects) | 500 lines |
+| `core/usecases/` | **Orchestration** (Call rules, return effects) | 400 lines |
+| `core/` (other) | Entities, Repositories, Factories, Generators, Values | 500 lines |
+| `lib/` | Utilities, Config, Locales, Audio, Text Generation | 500 lines |
 
-**Data Consolidation Rules (`docs/DATA_DEFINITIONS.md`):**
-* `lib/game/data/creatures/` (animals.ts, bosses.ts)
-* `lib/game/data/items/` (weapons.ts, armor.ts)
-* ... (See docs for full list)
-* **RULE:** No duplicate concepts (e.g., `animals-v2.ts` is FORBIDDEN). Consolidate into `animals.ts`.
+**Core Subfolders Rules (`docs/ARCHITECTURE_CLEAN_SLATE.md`):**
+* `core/domain/` - Zod schemas (entity.ts, creature.ts, item.ts, gamestate.ts)
+* `core/data/creatures/` - fauna.ts, flora.ts, minerals.ts, monsters.ts
+* `core/data/items/` - weapons.ts, armor.ts, consumables.ts, materials.ts, tools.ts
+* `core/data/recipes/` - index.ts (all crafting recipes consolidated)
+* `core/data/narrative/` - templates.ts, lexicons.ts, schemas.ts
+* `core/rules/` - combat.ts, nature.ts (pure functions, no mutations)
+* `core/usecases/` - Orchestration functions (call rules, return state + effects)
+* **RULE:** No duplicate concepts (e.g., `animals-v2.ts` is FORBIDDEN). Consolidate into correct file.
 
 ### 2. Mandatory Code Patterns (`docs/PATTERNS.md`)
-* **Usecase:** `(input: State, action) -> [NewState, Effects[]]` (Pure, Immutable)
-* **Hook:** `useState` -> `useCallback` -> `return { state, handlers }`
-* **TSDoc:** 100% Coverage on Exports. No lazy comments.
+* **Rules (core/rules/):** Pure functions: `(inputs) -> output` (math only, no mutations)
+* **Usecases (core/usecases/):** `(state, action) -> { newState, effects[] }` (Pure, immutable)
+* **Hooks:** `useState` -> `useCallback` -> call usecases -> execute effects -> `return { state, handlers }`
+* **TSDoc:** 100% Coverage on Exports. @remarks section for formulas/logic (NOT inline comments)
 
 ---
 
@@ -77,8 +87,22 @@ IF (Proposed Code violates `docs/` OR File Limits):
 **Step B: Code Application (The "Surgery")**
 * **Priority:** Use `replace_in_file` to surgically edit existing files.
 * **Refactor:** If moving logic, verify the old location is cleaned.
-* **Strict Check:** Ensure 100% TSDoc coverage.
+* **Strict Check:** Ensure 100% TSDoc coverage using the "GLASS BOX" TSDOC STANDARD
+**Strictly adhere to the following documentation style for all functions involving logic, math, or decision trees:**
+* **NO Hidden Math:** Do not use inline `//` comments to explain complex formulas or logic inside the function body.
+* **Use @remarks:** Move all logic explanations, formulas, and decision trees into the `@remarks` section of the TSDoc header.
+* **Format:** Use Markdown lists, bold text, and code blocks within `@remarks` for tooltip readability.
 
+**✅ Example (CORRECT):**
+```typescript
+/**
+ * Calculates growth score.
+ * @remarks
+ * **Logic:**
+ * 1. If `moisture < 20`, returns `0`.
+ * 2. If `moisture > 80`, returns `0.5`.
+ */
+export function calculateGrowth(moisture: number) { ... }
 **Step C: Verification (Self-Correction)**
 1.  Run `npm run typecheck` (MANDATORY).
 2.  **IF FAIL:** Trace -> Fix -> Retry (Max 3 attempts).

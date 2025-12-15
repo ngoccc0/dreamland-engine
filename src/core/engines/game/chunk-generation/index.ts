@@ -20,3 +20,11 @@ export { resolveItemByName } from './resolver';
 export { processStructureLoot } from './loot';
 export { processSelectedItems } from './item-processor';
 export { generateChunkActions } from './actions';
+
+// Spawn candidate preparation
+export { prepareSpawnCandidates } from './spawn-candidates';
+export type { SpawnCandidatesResult } from './spawn-candidates';
+
+// Resource scoring
+export { calculateResourceParameters, calculateChunkResourceScore, calculateItemSpawnParameters } from './resource-scoring';
+export type { ResourceScoreResult } from './resource-scoring';

@@ -104,6 +104,8 @@ import { resolveItemByName } from "./chunk-generation/resolver";
 import { processStructureLoot } from "./chunk-generation/loot";
 import { processSelectedItems } from "./chunk-generation/item-processor";
 import { generateChunkActions } from "./chunk-generation/actions";
+import { prepareSpawnCandidates } from "./chunk-generation/spawn-candidates";
+import { calculateResourceParameters } from "./chunk-generation/resource-scoring";
 
 // ============================================================================
 // TYPE DEFINITIONS (see ./chunk-generation/types.ts for detailed documentation)
@@ -257,68 +259,14 @@ export function generateChunkContent(
     // ========================================================================
     // SPAWN CANDIDATE PREPARATION - Organize items, plants, and animals by terrain
     // ========================================================================
-    // Separate spawn candidate pools for items, plants, and animals ---
-
-    // Prepare item spawn candidates (only items, not creatures)
-    const itemSpawnCandidates: SpawnCandidate[] = [];
-
-    // Static item candidates from terrain template
-    const staticItemCandidates: SpawnCandidate[] = (terrainTemplate.items || []).filter(Boolean).map((item: any) => ({
-        ...item,
-        conditions: {
-            ...(item.conditions || {}),
-            chance: (item.conditions?.chance ?? 1)
-        }
-    }));
-
-    // Custom item candidates from customItemCatalog
-    const customItemCandidates: SpawnCandidate[] = customItemCatalog
-        .filter(item => item && item.spawnEnabled !== false && item.spawnBiomes && item.spawnBiomes.includes(chunkData.terrain as Terrain))
-        .map(item => {
-            const natural = (item as any).naturalSpawn as Array<{ biome?: string; chance?: number; conditions?: any }> | undefined;
-            const matched = natural ? natural.find(s => s && s.biome === chunkData.terrain) : undefined;
-            const baseChance = matched?.chance ?? 0.5;
-            const extraConditions = matched?.conditions ?? undefined;
-            return {
-                name: getTranslatedText(item.name, 'en', t),
-                conditions: {
-                    ...(extraConditions || {}),
-                    chance: baseChance
-                }
-            };
-        });
-
-    itemSpawnCandidates.push(...staticItemCandidates, ...customItemCandidates);
-
-    // Prepare plant spawn candidates (creatures with plantProperties)
-    const plantSpawnCandidates: SpawnCandidate[] = Object.values(creatureTemplates)
-        .filter((c: any) => c && c.plantProperties && c.naturalSpawn && Array.isArray(c.naturalSpawn))
-        .map((c: any) => ({
-            def: c,
-            natural: c.naturalSpawn
-        }))
-        .flatMap((entry: any) => {
-            const cDef = entry.def as any;
-            const arr = entry.natural as Array<any>;
-            return arr
-                .filter(s => !!s.biome && s.biome === chunkData.terrain)
-                .map(s => ({ name: cDef.id || (cDef.name && cDef.name.en) || String(cDef.id), conditions: { ...(s.conditions || {}), chance: (s.chance ?? 0.5) }, data: cDef }));
-        });
-
-    // Prepare animal spawn candidates (creatures without plantProperties)
-    const animalSpawnCandidates: SpawnCandidate[] = Object.values(creatureTemplates)
-        .filter((c: any) => c && !c.plantProperties && c.naturalSpawn && Array.isArray(c.naturalSpawn))
-        .map((c: any) => ({
-            def: c,
-            natural: c.naturalSpawn
-        }))
-        .flatMap((entry: any) => {
-            const cDef = entry.def as any;
-            const arr = entry.natural as Array<any>;
-            return arr
-                .filter(s => !!s.biome && s.biome === chunkData.terrain)
-                .map(s => ({ name: cDef.id || (cDef.name && cDef.name.en) || String(cDef.id), conditions: { ...(s.conditions || {}), chance: (s.chance ?? 0.5) }, data: cDef }));
-        });
+    // Delegate to helper for clean separation of candidate preparation logic
+    const { itemSpawnCandidates, plantSpawnCandidates, animalSpawnCandidates } = prepareSpawnCandidates(
+        chunkData,
+        terrainTemplate,
+        creatureTemplates,
+        customItemCatalog,
+        t
+    );
 
     logger.debug('[generateChunkContent] spawn candidates', {
         itemSpawnCandidatesLength: itemSpawnCandidates.length,
@@ -329,44 +277,12 @@ export function generateChunkContent(
     // ========================================================================
     // ITEM SPAWNING PIPELINE - Multi-stage selection with budget allocation
     // ========================================================================
-    // Determine the maximum number of unique item types to select for this chunk.
-    // REDUCED BY 30%: base items lowered from 2 → 1.4 effective; find chance reduced.
-    // This reduces random item spam while maintaining variety in resource-rich areas.
-    const baseMaxItems = 1.4; // Default number of unique item types per chunk (30% reduction)
-
-    // Use shared clamp01 from chunk-generation/helpers for normalization.
-
-    // Calculate a chunk-level resource score based on various environmental factors.
-    // This score influences how many items can spawn in this specific chunk, reflecting its richness.
-    const vegetation = clamp01(chunkData.vegetationDensity ?? 50);
-    const moisture = clamp01(chunkData.moisture ?? 50);
-    const humanFactor = 1 - clamp01(chunkData.humanPresence ?? 50); // Less human presence = more resources.
-    const dangerFactor = 1 - clamp01(chunkData.dangerLevel ?? 50);   // Less danger = more resources.
-    const predatorFactor = 1 - clamp01(chunkData.predatorPresence ?? 50); // Less predators = more resources.
-    // The chunkResourceScore is the average of these factors, normalized between 0 and 1.
-    const chunkResourceScore = (vegetation + moisture + humanFactor + dangerFactor + predatorFactor) / 5; // Average score (0..1)
-
-    // Scale the chunk resource score by the world's overall resource density multiplier.
-    // `resourceDensity` is expected to be a multiplier (e.g., 0.5 to 1.5), affecting how rich the world is globally.
-    const worldDensityScale = worldProfile?.resourceDensity ?? 1; // multiplier applied directly
-
-    // Map the combined chunk and world resource score to a multiplier for item count.
-    // This ensures that resource-rich chunks in resource-rich worlds spawn more items, and vice-versa.
-    // The formula `0.2 + (chunkResourceScore * 0.5 * worldDensityScale)` results in a range roughly between 0.2 and 0.7.
-    const chunkCountMultiplier = 0.2 + (chunkResourceScore * 0.5 * worldDensityScale); // Range [0.2, 0.7]
-
-    // Calculate the final maximum number of unique items that can spawn in this chunk.
-    // This applies the base number of items, the effective world spawn multiplier, and the chunk-specific count multiplier.
-    // `Math.max(1, ...)` ensures at least one item can spawn if conditions are met.
-    const maxItems = Math.max(1, Math.floor(baseMaxItems * effectiveMultiplier * chunkCountMultiplier));
-
-    // Chunk-level find chance: decide whether this chunk yields any items at all.
-    // REDUCED BY 30%: baseFindChance lowered from 5% → 3.5% to reduce random item spawn frequency.
-    // This prevents low-value items from overshadowing meaningful item discovery.
-    const baseFindChance = 0.035; // ~3.5% baseline chance a chunk will contain items (30% reduction)
-    // Scale this chance by world density and chunk richness. Clamp to avoid extreme values (0.01 to 0.9).
-    const chunkFindMultiplier = 0.6 + (chunkResourceScore * 0.6); // range [0.6,1.2]
-    const chunkFindChance = Math.max(0.01, Math.min(0.9, baseFindChance * (worldDensityScale ?? 1) * chunkFindMultiplier * effectiveMultiplier));
+    // Delegate resource scoring to helper for clean parameter calculation
+    const { chunkResourceScore, worldDensityScale, maxItems, chunkFindChance } = calculateResourceParameters(
+        chunkData,
+        worldProfile,
+        effectiveMultiplier
+    );
 
     let spawnedItemRefs: any[] = [];
     // Only proceed with item selection if a random roll passes the chunkFindChance.

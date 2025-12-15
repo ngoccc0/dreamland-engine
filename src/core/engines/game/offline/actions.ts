@@ -7,7 +7,7 @@
  * appropriate context and sensory details.
  */
 
-import type { Chunk, Language, PlayerStatus } from "@/core/types/game";
+import type { Chunk, Language } from "@/core/types/game";
 import { getTranslatedText } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/core/i18n";
 

@@ -61,7 +61,7 @@ $replacements = @(
     @{ Old = "@/lib/game/movement-templates"; New = "@/core/data/narrative/movement-templates" },
     
     # Type definitions: lib/game/types → core/domain
-    @{ Old = "@/lib/game/types"; New = "@/core/domain" },
+    @{ Old = "@/lib/game/types"; New = "@/core/domain" }
     
     # Config: stays in lib/game
     # @{ Old = "@/lib/game/config"; New = "@/lib/game/config" },

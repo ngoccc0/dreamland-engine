@@ -6,7 +6,7 @@
  * Influenced by hunger, greediness, and creature genetics.
  */
 
-import type { WildlifeCreature, DietType } from '@/core/types/wildlife-creature';
+import type { WildlifeCreature } from '@/core/types/wildlife-creature';
 
 /**
  * Food source detected by a creature.

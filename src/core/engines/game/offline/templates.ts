@@ -7,7 +7,7 @@
  * placeholder replacement.
  */
 
-import type { Chunk, NarrativeLength, NarrativeTemplate, ConditionType, Language, PlayerStatus, World, ItemDefinition } from "@/core/types/game";
+import type { Chunk, NarrativeLength, NarrativeTemplate, ConditionType, Language, PlayerStatus, World } from "@/core/types/game";
 import { getTranslatedText } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/core/i18n";
 import { logger } from "@/lib/core/logger";

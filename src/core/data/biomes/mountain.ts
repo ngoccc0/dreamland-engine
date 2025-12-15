@@ -1,6 +1,5 @@
 
 import { structureDefinitions } from '@/core/data/structures';
-import { naturePlusMountainEnemies } from "./modded/nature_plus";
 import type { TranslationKey } from "@/lib/core/i18n";
 
 export const mountain_vi = {
@@ -66,8 +65,7 @@ export const mountain_vi = {
         { data: { type: 'Dê núi hung hãn', emoji: '🐐', hp: 50, damage: 15, behavior: 'defensive', size: 'medium', diet: ['Cây Thuốc Núi', 'Hoa Dại'], satiation: 0, maxSatiation: 3, loot: [{ name: 'Sừng Dê Núi', chance: 0.4, quantity: { min: 1, max: 2 } }, { name: 'Thịt Dê Núi', chance: 0.7, quantity: { min: 1, max: 2 } }] }, conditions: { elevation: { min: 7 }, chance: 0.4 } },
         { data: { type: 'Người đá', emoji: '🗿', hp: 80, damage: 10, behavior: 'defensive', size: 'large', diet: ['Quặng Sắt', 'Pha Lê Núi'], satiation: 0, maxSatiation: 1, loot: [{ name: 'Lõi Người Đá', chance: 0.1, quantity: { min: 1, max: 1 } }, { name: 'Đá Cuội', chance: 0.25, quantity: { min: 2, max: 3 } }] }, conditions: { magicAffinity: { min: 6 }, elevation: { min: 8 }, chance: 0.2 } },
         { data: { type: 'Harpie', emoji: '🦅', hp: 45, damage: 18, behavior: 'aggressive', size: 'medium', diet: ['Dê núi hung hãn', 'Thỏ hoang hung dữ'], satiation: 0, maxSatiation: 2, loot: [{ name: 'Lông Harpie', chance: 0.5, quantity: { min: 3, max: 6 } }] }, conditions: { elevation: { min: 9 }, windLevel: { min: 7 }, chance: 0.25 } },
-        { data: { type: 'Báo tuyết', emoji: '🐆', hp: 60, damage: 20, behavior: 'aggressive', size: 'large', diet: ['Dê núi hung hãn'], satiation: 0, maxSatiation: 2, loot: [{ name: 'Da Báo Tuyết', chance: 0.3, quantity: { min: 1, max: 1 } }, { name: 'Thịt Báo Tuyết', chance: 0.6, quantity: { min: 1, max: 2 } }] }, conditions: { predatorPresence: { min: 7 }, temperature: { max: 3 }, chance: 0.15 } },
-        ...naturePlusMountainEnemies
+        { data: { type: 'Báo tuyết', emoji: '🐆', hp: 60, damage: 20, behavior: 'aggressive', size: 'large', diet: ['Dê núi hung hãn'], satiation: 0, maxSatiation: 2, loot: [{ name: 'Da Báo Tuyết', chance: 0.3, quantity: { min: 1, max: 1 } }, { name: 'Thịt Báo Tuyết', chance: 0.6, quantity: { min: 1, max: 2 } }] }, conditions: { predatorPresence: { min: 7 }, temperature: { max: 3 }, chance: 0.15 } }
     ]
 };
 

@@ -14,7 +14,7 @@
 import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
-import { logger } from '@/lib/logger';
+import { logger } from '@/lib/core/logger';
 
 interface UseIdleWarningOptions {
     /** Whether to disable idle progression (pause mode). If true, warning is skipped. */

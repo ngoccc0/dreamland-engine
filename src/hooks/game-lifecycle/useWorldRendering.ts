@@ -3,7 +3,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { getEffectiveChunk } from '@/lib/game/engine/generation';
+import { getEffectiveChunk } from '@/core/engines/game/generation';
 import { useSettings } from '@/context/settings-context';
 import type { GameState, Chunk } from "@/core/types/game";
 

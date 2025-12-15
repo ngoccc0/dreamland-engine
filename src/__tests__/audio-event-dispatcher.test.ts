@@ -4,7 +4,7 @@
  */
 
 import { emitAudioEvent } from '@/core/usecases/emit-audio-event';
-import { AudioActionType, isCriticalAudioEvent } from '@/lib/definitions/audio-events';
+import { AudioActionType, isCriticalAudioEvent } from '@/core/data/audio-events';
 import { getFootstepForBiome, getTerrainCategory } from '@/lib/audio/biome-footsteps';
 
 describe('Audio Event Dispatcher System', () => {

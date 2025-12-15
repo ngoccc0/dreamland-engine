@@ -24,7 +24,7 @@ import { z } from 'zod';
 import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema, GeneratedItemSchema, NpcSchema } from '@/ai/schemas';
 import { determineAnimationMetadata, adjustAnimationForMobile, adjustAnimationForLowBandwidth } from '@/ai/animation-metadata';
 
-import { LanguageEnum as Language } from '@/lib/i18n'; // Import Language enum
+import { LanguageEnum as Language } from '@/lib/core/i18n'; // Import Language enum
 
 // Import tool getter functions and schemas from game-actions
 import {
@@ -471,3 +471,4 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
 
     return finalOutput;
 }
+

@@ -518,7 +518,7 @@ export function createHandleMove(ctx: any) {
         (async () => {
           try {
             try {
-              const mn = await import('@/lib/game/movement-narrative');
+              const mn = await import('@/core/usecases/movement-narrative');
               const conditional = mn.selectMovementNarrative({ chunk: finalChunk, playerStats: newPlayerStats || ctx.playerStats, directionText, language: ctx.language, briefSensory });
               if (conditional) {
                 const finalText = String(conditional).replace(/\{[^}]+\}/g, '').trim();

@@ -8,7 +8,7 @@
  */
 
 import type { Language } from '@/lib/game/types';
-import type { TranslationKey } from '@/lib/i18n';
+import type { TranslationKey } from '@/lib/core/i18n';
 import type { TranslatableString } from '@/core/types/i18n';
 import { isTranslationObject, isInlineTranslation } from '@/core/types/i18n';
 

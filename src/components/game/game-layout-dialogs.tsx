@@ -28,7 +28,7 @@ import {
     MapPin,
 } from "@/components/game/icons";
 import { getTranslatedText } from "@/lib/utils";
-import { resolveItemDef } from "@/lib/game/item-utils";
+import { resolveItemDef } from "@/lib/utils/item-utils";
 import type { Action } from "@/lib/game/types";
 import type { GameLayoutDialogsProps } from "./game-layout.types";
 

@@ -19,15 +19,19 @@ export { clamp } from './math';
 export { getTranslatedText } from './translation';
 
 // Item management
-export {
-    getEmojiForItem,
-    resolveItemId,
-    ensurePlayerItemId,
-    convertItemArrayToRecord,
-} from './item-utils';
+export { resolveItemId, getEmojiForItem, ensurePlayerItemId, convertItemArrayToRecord } from './item-utils';
 
 // Narrative & text processing
 export { SmartJoinSentences } from './narrative';
 
 // Performance utilities
 export { createFrameLimiter } from './frame-limiter';
+
+// Dice rolling
+export * from './dice';
+
+// Normalization utilities
+export * from './normalize';
+
+// Time utilities
+export * from './time';

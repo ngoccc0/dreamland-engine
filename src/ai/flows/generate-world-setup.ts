@@ -21,13 +21,13 @@ import {
     allTerrains as allTerrainsSchema,
     TranslatableStringSchema
 } from '@/ai/schemas';
-import { ItemCategorySchema } from '@/lib/game/definitions';
-import { skillDefinitions } from '@/lib/game/skills';
+import { ItemCategorySchema } from '@/core/domain/game-definitions';
+import { skillDefinitions } from '@/core/data/skills';
 import { getEmojiForItem, getTranslatedText } from '@/lib/utils';
 // 'db' and Firestore helpers were imported previously but are unused in this flow.
 // Remove them to satisfy lint rules — keep the static item definitions used below.
 import { allItems as staticItemDefinitions } from '@/core/data/items';
-import { logger } from '@/lib/logger';
+import { logger } from '@/lib/core/logger';
 
 
 const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
@@ -371,6 +371,7 @@ Based on the user's idea, generate **a small catalog of 2 to 4 unique, thematica
 1.  The "customStructures" array in your JSON output MUST contain between 2 and 4 structures.
 2.  For each structure, you MUST define only 'name', 'description', and 'emoji'.
 3.  DO NOT include fields like 'buildable', 'providesShelter', 'buildCost', etc. These will be handled by the game logic.`;
+
 
 
 

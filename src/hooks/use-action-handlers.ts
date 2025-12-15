@@ -35,22 +35,22 @@ async function callApi(path: string, payload: any) {
 const fuseItems = async (payload: any) => callApi('/api/fuse-items', payload);
 const provideQuestHint = async (payload: any) => callApi('/api/provide-quest-hint', payload);
 const generateNarrative = async (payload: any) => callApi('/api/narrative', payload);
-import { rollDice, getSuccessLevel, successLevelToTranslationKey } from '@/lib/game/dice';
+import { rollDice, getSuccessLevel, successLevelToTranslationKey } from '@/lib/utils/dice';
 
-import { resolveItemDef as resolveItemDefHelper } from '@/lib/game/item-utils';
+import { resolveItemDef as resolveItemDefHelper } from '@/lib/utils/item-utils';
 import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchAction, analyze_chunk_mood } from '@/core/engines/game/offline';
 import { getEffectiveChunk } from '@/core/engines/game/weather-generation';
 import { useAudio } from '@/lib/audio/useAudio';
-import { AudioActionType } from '@/lib/definitions/audio-events';
+import { AudioActionType } from '@/core/data/audio-events';
 import { getTemplates } from '@/lib/game/templates';
 import { clamp, getTranslatedText, resolveItemId, ensurePlayerItemId } from '@/lib/utils';
-import { getKeywordVariations } from '@/lib/game/data/narrative-templates';
+import { getKeywordVariations } from '@/core/data/narrative/templates';
 
 import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem, NarrativeEntry, GeneratedItem, TranslatableString, ItemDefinition, Chunk, Enemy } from '@/core/types/game';
 import type { LootDrop } from '@/core/types/definitions/base';
 import { doc, setDoc } from 'firebase/firestore';
-import { getDb } from '@/lib/firebase-config';
-import { logger } from '@/lib/logger';
+import { getDb } from '@/lib/core/firebase-config';
+import { logger } from '@/lib/core/logger';
 
 export type ActionHandlerDeps = {
   isLoaded: boolean;
@@ -870,3 +870,4 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     handleHarvest,
   };
 }
+

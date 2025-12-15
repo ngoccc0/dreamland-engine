@@ -17,7 +17,7 @@
 
 import { useCallback, useState } from "react";
 import { useAudio } from "@/lib/audio/useAudio";
-import { AudioActionType } from "@/lib/definitions/audio-events";
+import { AudioActionType } from "@/core/data/audio-events";
 
 /**
  * Hook managing all popup dialog states and handlers.

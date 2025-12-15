@@ -40,7 +40,7 @@
 import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
 import type { CreatureDefinition } from '@/core/types/creature'; // Import CreatureDefinition
 import type { PlantPartDefinition } from '@/core/types/definitions/plant-properties'; // Import PlantPartDefinition
-import { AudioActionType } from '@/lib/definitions/audio-events';
+import { AudioActionType } from '@/core/data/audio-events';
 
 export function createHandleHarvest(context: Partial<ActionHandlerDeps> & Record<string, any>) {
   return (actionId: number) => {

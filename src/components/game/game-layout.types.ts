@@ -10,7 +10,7 @@
 
 import type { ReactNode } from 'react';
 import type { Action, NarrativeEntry } from '@/lib/game/types';
-import type { TranslationKey } from '@/lib/i18n';
+import type { TranslationKey } from '@/lib/core/i18n';
 
 /**
  * Direction type for movement input.
@@ -182,3 +182,4 @@ export interface GameLayoutDialogsProps {
 export interface GameLayoutProps {
     gameSlot: number;
 }
+

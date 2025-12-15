@@ -1,4 +1,4 @@
-import type { TranslationKey } from "@/lib/i18n"
+import type { TranslationKey } from "@/lib/core/i18n"
 /**
  * World chunk generation engine responsible for creating diverse, procedurally-generated game environments.
  * This module orchestrates the complete pipeline from terrain templates to populated chunks with items,
@@ -87,14 +87,14 @@ import type {
     SoilType,
     Enemy
 } from "@/core/types/game";
-import { translations } from "@/lib/i18n";
+import { translations } from "@/lib/core/i18n";
 import { getTemplates } from "@/lib/game/templates";
-import { creatureTemplates } from '@/lib/game/data/creatures';
-import { logger } from "@/lib/logger";
+import { creatureTemplates } from '@/core/data/creatures';
+import { logger } from "@/lib/core/logger";
 import { getTranslatedText, resolveItemId } from "@/lib/utils";
 import { getRandomInRange, getValidAdjacentTerrains, weightedRandom } from "./world-generation";
 import { selectEntities } from "./entity-generation";
-import { worldConfig } from "@/lib/game/world-config";
+import { worldConfig } from "@/core/data/biome-config";
 import { generateRegion } from "./region-generation";
 
 /**
@@ -738,7 +738,7 @@ export function generateChunkContent(
                             // If spawned item has an explicit id, prefer it for matching.
                             (i as any).id === lootItem.name ||
                             // Resolve the spawned item's name to a canonical id and compare.
-                            resolveItemId(i.name, allItemDefinitions) === lootItem.name ||
+                            resolveItemId(getTranslatedText(i.name, 'en'), allItemDefinitions) === lootItem.name ||
                             // Fallback to legacy English string comparison if other methods fail.
                             getTranslatedText(i.name, 'en') === lootItem.name
                         ));
@@ -977,7 +977,7 @@ export function ensureChunkExists(
  * @param language - The current language for translations.
  * @returns An object containing the updated world, regions, and region counter after generation.
  */
-import { maybeDebug } from '@/lib/debug';
+import { maybeDebug } from '@/lib/core/debug';
 
 export const generateChunksInRadius = (
     currentWorld: World,
@@ -1036,3 +1036,4 @@ export const generateChunksInRadius = (
     // Return the final updated world state.
     return { world: newWorld, regions: newRegions, regionCounter: newRegionCounter };
 };
+

@@ -5,7 +5,7 @@ import type { CreatureDefinition } from '@/core/types/definitions/creature';
  */
 type GameEffect = any;
 import { createRng } from '@/lib/narrative/rng';
-import { getTranslatedText } from '@/lib/i18n';
+import { getTranslatedText } from '@/lib/core/i18n';
 import { defaultGameConfig } from '@/lib/config/game-config';
 import {
     getGrowthScore,
@@ -184,3 +184,4 @@ function calculateVegetationDensity(plants: any[]): number {
     }
     return Math.min(100, total);
 }
+

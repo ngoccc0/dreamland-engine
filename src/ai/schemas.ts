@@ -7,19 +7,19 @@
  * single source of truth as the game engine itself.
  */
 
-import {z} from 'genkit';
+import { z } from 'genkit';
 
-import { ItemDefinitionSchema, ItemCategorySchema, ItemEffectSchema, PlayerAttributesSchema, SpawnConditionsSchema, RecipeSchema, RecipeResultSchema, RecipeIngredientSchema, StructureDefinitionSchema, CreatureDefinitionSchema, TranslatableStringSchema } from '@/lib/game/definitions';
+import { ItemDefinitionSchema, ItemCategorySchema, ItemEffectSchema, PlayerAttributesSchema, SpawnConditionsSchema, RecipeSchema, RecipeResultSchema, RecipeIngredientSchema, StructureDefinitionSchema, CreatureDefinitionSchema, TranslatableStringSchema } from '@/core/domain/game-definitions';
 
-import { LanguageEnum as Language } from '@/lib/i18n'; // Correct import and alias to Language
+import { LanguageEnum as Language } from '@/lib/core/i18n'; // Correct import and alias to Language
 import type { TranslatableString } from '@/core/types/game';
 import { allTerrains, SoilTypeEnum } from '@/core/types/game'; // Import allTerrains and SoilTypeEnum
 // Re-export the canonical terrain list so AI flows can import it from this adapter
 export { allTerrains };
 
 export const PlayerLevelSchema = z.object({
-  level: z.number().int().min(1).max(100).default(1).describe("The player's current level."),
-  experience: z.number().int().min(0).default(0).describe("The player's current experience points."),
+    level: z.number().int().min(1).max(100).default(1).describe("The player's current level."),
+    experience: z.number().int().min(0).default(0).describe("The player's current experience points."),
 });
 export type PlayerLevel = z.infer<typeof PlayerLevelSchema>;
 
@@ -34,11 +34,11 @@ export type Terrain = typeof allTerrains[number];
 export const terrainTypes = allTerrains; // Use the array from types.ts
 
 // --- Re-exporting core schemas for AI use ---
-export { 
+export {
     ItemDefinitionSchema,
     ItemCategorySchema,
-    ItemEffectSchema, 
-    PlayerAttributesSchema, 
+    ItemEffectSchema,
+    PlayerAttributesSchema,
     SpawnConditionsSchema,
     RecipeSchema,
     RecipeResultSchema,
@@ -51,18 +51,18 @@ export {
 export type Recipe = z.infer<typeof RecipeSchema>;
 
 export const RecipeUnlockConditionSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("playerLevel"), level: z.number().int().min(1).max(100).describe("The required player level.") }),
-  z.object({ type: z.literal("questCompletion"), questId: z.string().describe("The ID of the quest that must be completed.") }),
-  z.object({ type: z.literal("actionRepetition"), action: z.string().describe("The action to repeat."), count: z.number().int().min(1).describe("The number of times the action must be repeated.") }),
-  z.object({ type: z.literal("itemPossession"), itemId: z.string().describe("The ID of the item that must be in the player's inventory.") }),
-  z.object({ type: z.literal("locationDiscovery"), locationId: z.string().describe("The ID of the location that must be discovered.") }),
-  z.object({ type: z.literal("enemyDefeat"), enemyType: z.string().describe("The type of enemy that must be defeated."), count: z.number().int().min(1).describe("The number of enemies that must be defeated.") }),
-  z.object({ type: z.literal("playerStatThreshold"), stat: z.enum(["hp", "mana", "stamina", "strength", "intelligence", "dexterity", "luck"]).describe("The stat to check."), threshold: z.number().describe("The required stat value.") }),
-  z.object({ type: z.literal("purchaseFromVendor"), vendorId: z.string().describe("The ID of the vendor that the recipe must be purchased from.") }),
-  z.object({ type: z.literal("puzzleSolving"), puzzleId: z.string().describe("The ID of the puzzle that must be solved.") }),
-  z.object({ type: z.literal("timeCycle"), time: z.enum(["day", "night"]).describe("The required time of day.") }),
-  z.object({ type: z.literal("itemDisintegration"), itemId: z.string().describe("The ID of the item that must be disintegrated.") }),
-  z.object({ type: z.literal("professionTier"), profession: z.string().describe("The profession to check."), tier: z.number().int().min(1).describe("The required profession tier.") }),
+    z.object({ type: z.literal("playerLevel"), level: z.number().int().min(1).max(100).describe("The required player level.") }),
+    z.object({ type: z.literal("questCompletion"), questId: z.string().describe("The ID of the quest that must be completed.") }),
+    z.object({ type: z.literal("actionRepetition"), action: z.string().describe("The action to repeat."), count: z.number().int().min(1).describe("The number of times the action must be repeated.") }),
+    z.object({ type: z.literal("itemPossession"), itemId: z.string().describe("The ID of the item that must be in the player's inventory.") }),
+    z.object({ type: z.literal("locationDiscovery"), locationId: z.string().describe("The ID of the location that must be discovered.") }),
+    z.object({ type: z.literal("enemyDefeat"), enemyType: z.string().describe("The type of enemy that must be defeated."), count: z.number().int().min(1).describe("The number of enemies that must be defeated.") }),
+    z.object({ type: z.literal("playerStatThreshold"), stat: z.enum(["hp", "mana", "stamina", "strength", "intelligence", "dexterity", "luck"]).describe("The stat to check."), threshold: z.number().describe("The required stat value.") }),
+    z.object({ type: z.literal("purchaseFromVendor"), vendorId: z.string().describe("The ID of the vendor that the recipe must be purchased from.") }),
+    z.object({ type: z.literal("puzzleSolving"), puzzleId: z.string().describe("The ID of the puzzle that must be solved.") }),
+    z.object({ type: z.literal("timeCycle"), time: z.enum(["day", "night"]).describe("The required time of day.") }),
+    z.object({ type: z.literal("itemDisintegration"), itemId: z.string().describe("The ID of the item that must be disintegrated.") }),
+    z.object({ type: z.literal("professionTier"), profession: z.string().describe("The profession to check."), tier: z.number().int().min(1).describe("The required profession tier.") }),
 ]);
 export type RecipeUnlockCondition = z.infer<typeof RecipeUnlockConditionSchema>;
 
@@ -117,10 +117,10 @@ export const PlayerStatusSchema = z.object({
     stamina: z.number().describe("Player's stamina, used for physical actions."),
     hunger: z.number().optional().describe("Player's hunger level."),
     items: z.array(PlayerItemSchema).describe("Player's inventory with item names, quantities and tiers."),
-    equipment: z.object({ 
-        weapon: PlayerItemSchema.nullable().optional(), 
-        armor: PlayerItemSchema.nullable().optional(), 
-        accessory: PlayerItemSchema.nullable().optional() 
+    equipment: z.object({
+        weapon: PlayerItemSchema.nullable().optional(),
+        armor: PlayerItemSchema.nullable().optional(),
+        accessory: PlayerItemSchema.nullable().optional()
     }).optional().describe("The player's equipped items."),
     quests: z.array(z.string()),
     questsCompleted: z.number().optional().default(0).describe("The total number of quests the player has completed."),
@@ -194,8 +194,8 @@ export const ChunkSchema = z.object({
 export const GeneratedItemSchema = ItemDefinitionSchema;
 
 export const NarrativeConceptSchema = z.object({
-  initialNarrative: z.string().describe('A detailed, engaging opening narrative to start the game. This should set the scene for the player.'),
-  initialQuests: z.array(z.string()).describe('A list of 1-2 starting quests for the player to begin their adventure.'),
+    initialNarrative: z.string().describe('A detailed, engaging opening narrative to start the game. This should set the scene for the player.'),
+    initialQuests: z.array(z.string()).describe('A list of 1-2 starting quests for the player to begin their adventure.'),
 });
 export const NarrativeConceptArraySchema = z.array(NarrativeConceptSchema).length(3);
 
@@ -238,30 +238,30 @@ export const ProvideQuestHintOutputSchema = z.object({
 
 // Input for fuse-items flow
 const EnvironmentalModifiersSchema = z.object({
-  successChanceBonus: z.number().describe("A pre-calculated percentage bonus (e.g., 5 for +5%) to the success chance based on environmental factors like weather or magic affinity."),
-  elementalAffinity: z.enum(['none', 'fire', 'water', 'earth', 'air', 'electric', 'ice', 'nature', 'dark', 'light']).describe("A dominant elemental theme suggested by the environment (e.g., 'electric' during a storm)."),
-  chaosFactor: z.number().min(0).max(100).describe("A pre-calculated score (0-100) indicating how chaotic or unpredictable the environment is. High values increase the chance of strange outcomes."),
+    successChanceBonus: z.number().describe("A pre-calculated percentage bonus (e.g., 5 for +5%) to the success chance based on environmental factors like weather or magic affinity."),
+    elementalAffinity: z.enum(['none', 'fire', 'water', 'earth', 'air', 'electric', 'ice', 'nature', 'dark', 'light']).describe("A dominant elemental theme suggested by the environment (e.g., 'electric' during a storm)."),
+    chaosFactor: z.number().min(0).max(100).describe("A pre-calculated score (0-100) indicating how chaotic or unpredictable the environment is. High values increase the chance of strange outcomes."),
 });
 
 export const FuseItemsInputSchema = z.object({
-  itemsToFuse: z.array(PlayerItemSchema).min(2).max(3).describe("An array of 2 to 3 items the player wants to fuse."),
-  playerPersona: z.enum(['none', 'explorer', 'warrior', 'artisan']).describe("The player's current playstyle, which might influence the outcome."),
-  currentChunk: ChunkSchema.describe("The detailed attributes of the map tile the player is on for narrative context."),
-  environmentalContext: z.object({
-      biome: z.string(),
-      weather: z.string(),
-  }).describe("Simple environmental context for narrative flavor."),
-  environmentalModifiers: EnvironmentalModifiersSchema.describe("Pre-calculated modifiers that should guide the fusion's outcome."),
-  language: z.nativeEnum(Language).describe("The language for the generated content (e.g., 'en', 'vi')."),
-  customItemDefinitions: z.record(ItemDefinitionSchema).describe("A map of all item definitions available in the world, for looking up categories."),
-  fullItemCatalog: z.array(GeneratedItemSchema).describe("The entire catalog of all possible items in the game, including those not normally spawnable, for rare events."),
+    itemsToFuse: z.array(PlayerItemSchema).min(2).max(3).describe("An array of 2 to 3 items the player wants to fuse."),
+    playerPersona: z.enum(['none', 'explorer', 'warrior', 'artisan']).describe("The player's current playstyle, which might influence the outcome."),
+    currentChunk: ChunkSchema.describe("The detailed attributes of the map tile the player is on for narrative context."),
+    environmentalContext: z.object({
+        biome: z.string(),
+        weather: z.string(),
+    }).describe("Simple environmental context for narrative flavor."),
+    environmentalModifiers: EnvironmentalModifiersSchema.describe("Pre-calculated modifiers that should guide the fusion's outcome."),
+    language: z.nativeEnum(Language).describe("The language for the generated content (e.g., 'en', 'vi')."),
+    customItemDefinitions: z.record(ItemDefinitionSchema).describe("A map of all item definitions available in the world, for looking up categories."),
+    fullItemCatalog: z.array(GeneratedItemSchema).describe("The entire catalog of all possible items in the game, including those not normally spawnable, for rare events."),
 });
 
 // Output for fuse-items flow
 export const FuseItemsOutputSchema = z.object({
-  outcome: z.enum(['success', 'degraded', 'totalLoss', 'realityGlitch']).describe("The outcome of the fusion: 'success' creates a better item, 'degraded' creates a lower-tier item, totalLoss' creates an item from another world."),
-  narrative: z.string().describe("A narrative description of the fusion process and its outcome."),
-  resultItem: GeneratedItemSchema.optional().describe("The new item created, either on 'success', 'degraded', or 'realityGlitch' outcome."),
+    outcome: z.enum(['success', 'degraded', 'totalLoss', 'realityGlitch']).describe("The outcome of the fusion: 'success' creates a better item, 'degraded' creates a lower-tier item, totalLoss' creates an item from another world."),
+    narrative: z.string().describe("A narrative description of the fusion process and its outcome."),
+    resultItem: GeneratedItemSchema.optional().describe("The new item created, either on 'success', 'degraded', or 'realityGlitch' outcome."),
 });
 
 // Input for generate-journal-entry flow
@@ -276,3 +276,4 @@ export const GenerateJournalEntryInputSchema = z.object({
 export const GenerateJournalEntryOutputSchema = z.object({
     journalEntry: z.string().describe("A reflective, first-person journal entry summarizing the day's events."),
 });
+

@@ -20,8 +20,8 @@
  */
 
 import type { MoodTag } from '@/core/engines/MoodProfiler';
-import { ENGLISH_LEXICON, getRandomAdjective as getRandomAdjectiveEN } from '@/lib/definitions/narrative/lexicon/en';
-import { VIETNAMESE_LEXICON, getRandomAdjective as getRandomAdjectiveVI } from '@/lib/definitions/narrative/lexicon/vi';
+import { ENGLISH_LEXICON, getRandomAdjective as getRandomAdjectiveEN } from '@/core/data/narrative/lexicon/en';
+import { VIETNAMESE_LEXICON, getRandomAdjective as getRandomAdjectiveVI } from '@/core/data/narrative/lexicon/vi';
 
 /**
  * Safe accessor for getting continuation phrases by action type.

@@ -13,7 +13,7 @@ import { useLanguage } from "@/context/language-context";
 import type { Chunk } from "@/lib/game/types";
 import { SwordIcon } from "./icons";
 import { getTranslatedText } from "@/lib/utils";
-import { resolveItemDef } from "@/lib/game/item-utils";
+import { resolveItemDef } from "@/lib/utils/item-utils";
 import { IconRenderer } from "@/components/ui/icon-renderer";
 
 export const MapCellDetails = React.memo(({ chunk, itemDefinitions }: { chunk: Chunk; itemDefinitions?: Record<string, any> }) => {

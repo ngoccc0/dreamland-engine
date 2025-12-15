@@ -7,24 +7,24 @@
  */
 
 import type { Language } from "./types";
-import { forest_vi, forest_en } from './templates/forest';
-import { grassland_vi, grassland_en } from './templates/grassland';
-import { desert_vi, desert_en } from './templates/desert';
-import { swamp_vi, swamp_en } from './templates/swamp';
-import { mountain_vi, mountain_en } from './templates/mountain';
-import { cave_vi, cave_en } from './templates/cave';
-import { jungle_vi, jungle_en } from './templates/jungle';
-import { volcanic_vi, volcanic_en } from './templates/volcanic';
-import { wall_vi, wall_en } from './templates/wall';
-import { floptropica_vi, floptropica_en } from './templates/floptropica';
-import { tundra_vi, tundra_en } from "./templates/tundra";
-import { beach_vi, beach_en } from "./templates/beach";
-import { mesa_vi, mesa_en } from "./templates/mesa";
-import { mushroom_forest_vi, mushroom_forest_en } from "./templates/mushroom";
-import { ocean_vi, ocean_en } from "./templates/ocean";
-import { city_vi, city_en } from "./templates/city";
-import { space_station_vi, space_station_en } from "./templates/space_station";
-import { underwater_vi, underwater_en } from "./templates/underwater";
+import { forest_vi, forest_en } from '@/core/data/biomes/forest';
+import { grassland_vi, grassland_en } from '@/core/data/biomes/grassland';
+import { desert_vi, desert_en } from '@/core/data/biomes/desert';
+import { swamp_vi, swamp_en } from '@/core/data/biomes/swamp';
+import { mountain_vi, mountain_en } from '@/core/data/biomes/mountain';
+import { cave_vi, cave_en } from '@/core/data/biomes/cave';
+import { jungle_vi, jungle_en } from '@/core/data/biomes/jungle';
+import { volcanic_vi, volcanic_en } from '@/core/data/biomes/volcanic';
+import { wall_vi, wall_en } from '@/core/data/biomes/wall';
+import { floptropica_vi, floptropica_en } from '@/core/data/biomes/floptropica';
+import { tundra_vi, tundra_en } from "@/core/data/biomes/tundra";
+import { beach_vi, beach_en } from "@/core/data/biomes/beach";
+import { mesa_vi, mesa_en } from "@/core/data/biomes/mesa";
+import { mushroom_forest_vi, mushroom_forest_en } from "@/core/data/biomes/mushroom";
+import { ocean_vi, ocean_en } from "@/core/data/biomes/ocean";
+import { city_vi, city_en } from "@/core/data/biomes/city";
+import { space_station_vi, space_station_en } from "@/core/data/biomes/space_station";
+import { underwater_vi, underwater_en } from "@/core/data/biomes/underwater";
 import type { Terrain } from './types';
 
 

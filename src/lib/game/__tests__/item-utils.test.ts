@@ -16,7 +16,7 @@ jest.mock('@/core/data/items', () => ({
   },
 }));
 
-import resolveItemDef from '@/lib/game/item-utils';
+import resolveItemDef from '@/lib/utils/item-utils';
 
 describe('resolveItemDef', () => {
   test('returns custom definition when present', () => {

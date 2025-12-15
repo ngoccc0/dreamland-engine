@@ -6,7 +6,7 @@ import {
     AttributeModifier
 } from '../api/types';
 import { terrainDefaults } from '../api/defaults';
-import { logger } from '@/lib/logger';
+import { logger } from '@/lib/core/logger';
 
 /** Interface defining core terrain functionality */
 export interface ITerrain {
@@ -161,3 +161,4 @@ export class Terrain implements ITerrain {
         };
     }
 }
+

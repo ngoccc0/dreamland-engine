@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from '@/hooks/use-toast';
 import { useButtonAudio } from '@/hooks/useButtonAudio';
 import { useAudio } from '@/lib/audio/useAudio';
-import { AudioActionType } from '@/lib/definitions/audio-events';
+import { AudioActionType } from '@/core/data/audio-events';
 import { Skeleton } from "../ui/skeleton";
 import { Separator } from "../ui/separator";
 import { useLanguage } from "@/context/language-context";
@@ -22,7 +22,7 @@ async function suggestKeywordsClient(payload: { userInput: string; language: str
     return data;
 }
 
-import type { Skill, PlayerItem, GeneratedItem, Terrain, WorldConcept } from "@/lib/game/types";
+import type { Skill, PlayerItem, GeneratedItem, Terrain, WorldConcept, ItemDefinition } from "@/lib/game/types";
 import { premadeWorlds } from "@/lib/game/data/premade-worlds";
 import type { TranslationKey } from "@/lib/i18n";
 import { SettingsPopup } from "./settings-popup";
@@ -31,7 +31,7 @@ import { Sparkles, ArrowRight, BrainCircuit, Loader2, Settings, ArrowLeft, Chevr
 import { ScrollArea } from "../ui/scroll-area";
 import { cn, getTranslatedText, convertItemArrayToRecord } from "@/lib/utils";
 import type { GenerateWorldSetupOutput } from "@/ai/flows/generate-world-setup";
-import { resolveItemDef } from '@/lib/game/item-utils';
+import { resolveItemDef } from '@/lib/utils/item-utils';
 
 interface WorldSetupProps {
     onWorldCreated: (worldSetupData: GenerateWorldSetupOutput) => void;
@@ -229,7 +229,7 @@ export function WorldSetup({ onWorldCreated }: WorldSetupProps): JSX.Element {
             startingBiome: generatedData.concepts[selection.startingBiome].startingBiome,
             playerInventory: generatedData.concepts[selection.playerInventory].playerInventory.map(item => {
                 const itemName = typeof item.name === 'object' && 'en' in item.name ? item.name[language] : item.name;
-                const itemDef = resolveItemDef(typeof itemName === 'string' ? itemName : itemName.key, convertItemArrayToRecord(generatedData.customItemCatalog));
+                const itemDef = resolveItemDef(typeof itemName === 'string' ? itemName : itemName.key, convertItemArrayToRecord(generatedData.customItemCatalog) as Record<string, ItemDefinition>);
                 return {
                     name: itemName,
                     quantity: item.quantity,

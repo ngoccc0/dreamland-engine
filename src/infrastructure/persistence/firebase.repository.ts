@@ -1,6 +1,6 @@
 import { collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, limit } from "firebase/firestore";
 import type { Firestore } from 'firebase/firestore'
-import { getDb } from "@/lib/firebase-config";
+import { getDb } from "@/lib/core/firebase-config";
 import type { IGameStateRepository } from "@/lib/game/ports/game-state.repository";
 import type { GameState } from "@/core/types/game";
 

@@ -14,7 +14,7 @@ interface GameStateProps {
 import { allRecipes as staticRecipes } from '@/core/data/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/core/data/structures';
 import { allItems as staticItemDefinitions } from '@/core/data/items';
-import { biomeDefinitions as staticBiomeDefinitions } from '@/lib/game/biomes';
+import { biomeDefinitions as staticBiomeDefinitions } from '@/core/data/biomes';
 import WorldImpl from '@/core/entities/world-impl';
 import { TerrainFactory } from '@/core/factories/terrain-factory';
 import { WorldGenerator } from '@/core/generators/world-generator';

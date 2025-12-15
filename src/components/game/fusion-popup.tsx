@@ -12,7 +12,7 @@ import { useLanguage } from "@/context/language-context";
 import type { PlayerItem, ItemDefinition } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 import { getTranslatedText } from "@/lib/utils";
-import { resolveItemDef } from '@/lib/game/item-utils';
+import { resolveItemDef } from '@/lib/utils/item-utils';
 import { FlaskConical, X } from "./icons";
 import { IconRenderer } from "@/components/ui/icon-renderer";
 

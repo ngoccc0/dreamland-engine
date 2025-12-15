@@ -3,15 +3,15 @@
 
 import { useEffect, useCallback, useState } from 'react';
 import { useLanguage } from '@/context/language-context';
-import { randomEvents } from '@/lib/game/events';
+import { randomEvents } from '@/core/data/random-events';
 import { getTemplates } from '@/lib/game/templates';
 import { clamp, getTranslatedText } from '@/lib/utils';
-import { resolveItemDef } from '@/lib/game/item-utils';
+import { resolveItemDef } from '@/lib/utils/item-utils';
 
-import { rollDice, getSuccessLevel, type SuccessLevel } from '@/lib/game/dice';
+import { rollDice, getSuccessLevel, type SuccessLevel } from '@/lib/utils/dice';
 import type { GameState, PlayerStatus, Season, WorldProfile, ItemDefinition, GeneratedItem, Language, Terrain } from "@/core/types/game";
-import { generateChunksInRadius } from '@/lib/game/engine/generation';
-import { logger } from '@/lib/logger';
+import { generateChunksInRadius } from '@/core/engines/game/generation';
+import { logger } from '@/lib/core/logger';
 
 type GameEventsDeps = {
   isLoaded: boolean;
@@ -231,3 +231,4 @@ export function useGameEvents(deps: GameEventsDeps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turn, isLoaded, isGameOver]);
 }
+

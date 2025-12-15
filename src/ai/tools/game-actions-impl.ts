@@ -24,7 +24,7 @@ import { isInlineTranslation, isTranslationObject } from '@/core/types/i18n';
 import { getTemplates } from '@/lib/game/templates';
 
 import { getTranslatedText } from '@/lib/utils';
-import { resolveItemDef } from '@/lib/game/item-utils';
+import { resolveItemDef } from '@/lib/utils/item-utils';
 
 /**
  * Helper function to get a random integer within a specified range.

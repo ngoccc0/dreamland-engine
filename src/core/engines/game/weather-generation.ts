@@ -1,9 +1,9 @@
 import type { WeatherState, Season, Terrain, Chunk, WeatherZone } from '@/core/types/game';
-import { weatherPresets } from '@/lib/game/weatherPresets';
+import { weatherPresets } from '@/core/data/weather-presets';
 import { clamp } from '@/lib/utils';
-import { isDay } from '@/lib/game/time/time-utils'; // Import isDay from new time utilities
+import { isDay } from '@/lib/utils/time/time-utils'; // Import isDay from new time utilities
 
-import { maybeDebug } from '@/lib/debug';
+import { maybeDebug } from '@/lib/core/debug';
 
 export const generateWeatherForZone = (terrain: Terrain, season: Season, previousWeather?: WeatherState): WeatherState => {
     maybeDebug('generateWeatherForZone');
@@ -57,3 +57,4 @@ export function getEffectiveChunk(baseChunk: Chunk, weatherZones: Record<string,
 
     return effectiveChunk;
 }
+

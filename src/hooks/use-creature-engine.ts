@@ -9,7 +9,7 @@
 import { useEffect, useRef } from 'react';
 import { CreatureEngine, type CreatureEngineConfig } from '@/core/engines/creature/engine';
 import type { WildlifeCreature } from '@/core/types/wildlife-creature';
-import { allSpecies } from '@/lib/game/data/creatures/wildlife';
+import { allSpecies } from '@/core/data/creatures/wildlife';
 import { InMemoryCreatureRepository } from '@/infrastructure/persistence/creature-repository';
 
 /**

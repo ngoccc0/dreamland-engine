@@ -9,7 +9,7 @@ import useKeyboardBindings from "@/hooks/use-keyboard-bindings";
 import { useGameEngine } from "@/hooks/use-game-engine";
 import { useIdleWarning } from "@/hooks/useIdleWarning";
 import { useAudio } from "@/lib/audio/useAudio";
-import { AudioActionType } from "@/lib/definitions/audio-events";
+import { AudioActionType } from "@/core/data/audio-events";
 import type { Structure, Action } from "@/lib/game/types";
 import { getTranslatedText } from "@/lib/utils";
 import { logger } from "@/lib/logger";

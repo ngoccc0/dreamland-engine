@@ -15,7 +15,7 @@ import { useWorldRendering } from './game-lifecycle/useWorldRendering';
 import { useLanguage } from '@/context/language-context';
 import type { GameConfig } from '@/lib/config/game-config'; // Import GameConfig
 import { processPlantGrowth } from '@/core/usecases/plant-growth.usecase';
-import { getTranslatedText } from '@/lib/i18n'; // Re-import getTranslatedText for consistency within this file if needed
+import { getTranslatedText } from '@/lib/core/i18n'; // Re-import getTranslatedText for consistency within this file if needed
 import { createRng } from '@/lib/narrative/rng'; // For consistent RNG seed generation
 import type { CreatureDefinition } from '@/core/types/creature'; // Import CreatureDefinition for type guarding
 import { clamp } from '@/lib/utils'; // Import clamp utility
@@ -197,3 +197,4 @@ export function useGameEffects(deps: GameEffectsDeps) {
   // Plant processing now handled in use-game-engine.ts for visible chunks
   // Global world processing can be added here if needed for offline progression
 }
+

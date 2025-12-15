@@ -3,16 +3,16 @@
 
 import { useEffect } from 'react';
 import { useLanguage } from '@/context/language-context';
-import { generateWeatherForZone, generateChunksInRadius } from '@/lib/game/engine/generation';
-import { generateOfflineNarrative } from '@/lib/game/engine/offline';
+import { generateWeatherForZone, generateChunksInRadius } from '@/core/engines/game/generation';
+import { generateOfflineNarrative } from '@/core/engines/game/offline';
 import { allRecipes as staticRecipes } from '@/core/data/recipes';
 import { buildableStructures as staticBuildableStructures } from '@/core/data/structures';
 import { allItems as staticItemDefinitions } from '@/core/data/items';
 import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
 import type { GameState, PlayerStatusDefinition, WorldDefinition, GeneratedItem, Recipe, ItemDefinition } from '@/core/types/game';
-import { logger } from '@/lib/logger';
+import { logger } from '@/lib/core/logger';
 import { getTranslatedText, ensurePlayerItemId } from '@/lib/utils';
-import { normalizePlayerStatus } from '@/lib/game/normalize';
+import { normalizePlayerStatus } from '@/lib/utils/normalize';
 import { useAuth } from '@/context/auth-context';
 
 
@@ -352,3 +352,4 @@ export function useGameInitialization(deps: GameInitializationDeps) {
     })
   ]);
 }
+

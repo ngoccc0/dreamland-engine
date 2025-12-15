@@ -2,8 +2,8 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { BACKGROUND_MUSIC, MENU_MUSIC, SFX, MOOD_TRACK_MAP } from './assets';
-import { getTimeOfDay } from '@/lib/game/time/time-utils';
-import type { AudioActionType, AudioEventContext } from '@/lib/definitions/audio-events';
+import { getTimeOfDay } from '@/lib/utils/time/time-utils';
+import type { AudioActionType, AudioEventContext } from '@/core/data/audio-events';
 import { emitAudioEvent } from '@/core/usecases/emit-audio-event';
 import { selectAmbienceLayers, buildAmbienceContext, type AmbienceContext, type AmbienceLayer } from './ambience-engine';
 import { fadeOutAudio, fadeInAudio, stopAllAudio } from './audio-utils';

@@ -8,7 +8,7 @@ import { ensurePlayerItemId } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import type { IGameStateRepository } from '@/lib/game/ports/game-state.repository';
 import type { GameState } from "@/core/types/game";
-import { logger } from '@/lib/logger';
+import { logger } from '@/lib/core/logger';
 
 type GameSavingDeps = {
   isLoaded: boolean;
@@ -178,3 +178,4 @@ export function useGameSaving(deps: GameSavingDeps) {
     toast, setIsSaving
   ]);
 }
+

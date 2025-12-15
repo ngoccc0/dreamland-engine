@@ -5,7 +5,7 @@ import * as TabsPrimitive from "@radix-ui/react-tabs"
 
 import { cn } from "@/lib/utils"
 import { useAudio } from "@/lib/audio/useAudio"
-import { AudioActionType } from "@/lib/definitions/audio-events"
+import { AudioActionType } from "@/core/data/audio-events"
 
 const Tabs = TabsPrimitive.Root
 

@@ -28,7 +28,7 @@
  */
 
 import { getTranslatedText, ensurePlayerItemId } from '@/lib/utils';
-import { getKeywordVariations } from '@/lib/game/data/narrative-templates';
+import { getKeywordVariations } from '@/core/data/narrative/templates';
 import type { PlayerStatus, PlayerItem, ItemDefinition } from '@/core/types/game';
 
 export type ActionHelpersDeps = {

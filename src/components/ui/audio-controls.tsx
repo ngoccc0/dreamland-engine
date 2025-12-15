@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { useAudio } from '@/lib/audio/useAudio';
-import { AudioActionType } from '@/lib/definitions/audio-events';
+import { AudioActionType } from '@/core/data/audio-events';
 import { BACKGROUND_MUSIC, MENU_MUSIC } from '@/lib/audio/assets';
 
 export default function AudioControls() {

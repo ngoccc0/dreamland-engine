@@ -29,7 +29,7 @@
 import type { Chunk, TranslatableString, WorldProfile, Terrain } from '@/core/types/game';
 import type { SpawnConditions, ItemDefinition } from '@/core/types/definitions';
 import { SoilType } from '@/core/types/game';
-import { logger } from "@/lib/logger";
+import { logger } from "@/lib/core/logger";
 
 /**
  * Validates whether an entity's spawn conditions are met by the current chunk properties.
@@ -269,3 +269,4 @@ export const selectEntities = <T extends { name?: TranslatableString | string; t
     // Return the array of selected entities.
     return selected;
 };
+

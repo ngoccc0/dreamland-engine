@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { Chunk, PlayerStatus, Season } from '@/core/types/game';
 import { MultilingualTextSchema } from './base';
-import type { SuccessLevel } from '@/lib/game/dice';
+import type { SuccessLevel } from '@/lib/utils/dice';
 
 /**
  * Defines the effects that can occur as a result of a random event's outcome.

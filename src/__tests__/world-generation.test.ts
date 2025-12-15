@@ -1,6 +1,6 @@
 import { WorldUseCase } from '@/core/usecases/world-usecase';
 import { WorldGenerator } from '@/core/generators/world-generator';
-import { CreatureEngine } from '@/core/engines/creature-engine';
+import { CreatureEngine } from '@/core/rules/creature';
 import { GridPosition } from '@/core/values/grid-position';
 
 /**

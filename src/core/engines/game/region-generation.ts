@@ -1,7 +1,7 @@
 import type { World, Region, Terrain, WorldProfile, Season, GeneratedItem, Structure, Language } from '@/core/types/game';
 import type { ItemDefinition } from '@/core/types/definitions';
 import { worldConfig } from "../world-config";
-import { logger } from "@/lib/logger";
+import { logger } from "@/lib/core/logger";
 import { generateChunkContent } from "./chunk-generation";
 import { getRandomInRange, calculateDependentChunkAttributes } from "./world-generation";
 import { SoilType } from '@/core/types/game';
@@ -151,3 +151,4 @@ export const generateRegion = (
     logger.debug(`[generateRegion] Finished for center (${startPos.x},${startPos.y}).`);
     return { newWorld, newRegions, newRegionCounter };
 };
+

@@ -17,7 +17,7 @@ import { GeneratedItemSchema, GenerateNewItemInputSchema } from '@/ai/schemas';
 import { getEmojiForItem } from '@/lib/utils';
 import { setDoc, doc } from 'firebase/firestore';
 import type { Firestore } from 'firebase/firestore'
-import { getDb } from '@/lib/firebase-config';
+import { getDb } from '@/lib/core/firebase-config';
 
 // --- INPUT/OUTPUT SCHEMAS ---
 
@@ -121,3 +121,4 @@ export async function generateNewItem(input: GenerateNewItemInput): Promise<Gene
     await initGenerateNewItemFlow();
     return generateNewItemFlow(input);
 }
+

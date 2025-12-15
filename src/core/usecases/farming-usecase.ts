@@ -1,5 +1,5 @@
 import type { Chunk } from '@/core/types/game';
-import plants from '@/lib/game/data/creatures/plants';
+import plants from '@/core/data/creatures/plants';
 import type { CreatureDefinition } from '@/core/types/definitions/creature';
 import {
     getGrowthScore,

@@ -1,4 +1,4 @@
-import { applyTickEffects } from '@/lib/game/effect-engine';
+import { applyTickEffects } from '@/core/rules/effects/effect-engine';
 import type { PlayerStatusDefinition } from '@/core/types/game';
 import { defaultGameConfig } from '@/lib/config/game-config';
 

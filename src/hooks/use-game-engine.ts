@@ -3,9 +3,9 @@
 
 import { useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import { useLanguage } from '@/context/language-context';
-import { applyTickEffects } from '@/lib/game/effect-engine';
+import { applyTickEffects } from '@/core/rules/effects/effect-engine';
 import type { PlayerStatusDefinition, NarrativeEntry } from '@/core/types/game';
-import { CreatureEngine } from '@/core/engines/creature-engine';
+import { CreatureEngine } from '@/core/rules/creature';
 import { EffectEngine } from '@/core/engines/effect-engine';
 import { WeatherEngine } from '@/core/engines/weather-engine';
 import { processPlantGrowth } from '@/core/usecases/plant-growth.usecase';

@@ -10,25 +10,32 @@
  */
 
 import type { WildlifeCreature, SpeciesDefinition, Pack } from '@/core/types/wildlife-creature';
-import { shouldFlee, calculateFleeDirection } from '@/lib/behaviors/fleeing';
-import { shouldHunt, getHuntingRange, calculateHuntingMovement } from '@/lib/behaviors/hunting';
 import {
+    shouldFlee,
+    calculateFleeDirection,
+    shouldHunt,
+    getHuntingRange,
+    calculateHuntingMovement,
     prefersPack,
     calculateFlockingMovement,
     electAlpha,
     isLostFromPack,
     seekPackMovement,
-} from '@/lib/behaviors/herding';
-import { canBreed, findMate, generateOffspring, applyBreedingCost, shouldBecomeAdult, promoteToAdult, recordFeeding } from '@/lib/behaviors/breeding';
-import { findPath, findNearbyPositions } from '@/lib/pathfinding';
-import type { CreatureEvent } from '@/lib/creature-behaviors/immersive-events';
-import {
+    canBreed,
+    findMate,
+    generateOffspring,
+    applyBreedingCost,
+    shouldBecomeAdult,
+    promoteToAdult,
+    recordFeeding,
     createLostMemberEvent,
     createTerritorialFightEvent,
     createBirthEvent,
     createPredatorChaseEvent,
     createDeathEvent,
-} from '@/lib/creature-behaviors/immersive-events';
+} from '@/core/rules/creature';
+import type { CreatureEvent } from '@/core/rules/creature';
+import { findPath, findNearbyPositions } from '@/lib/pathfinding';
 
 /**
  * Result of creature AI decision-making.

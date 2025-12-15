@@ -16,9 +16,9 @@ import { getAi } from '@/ai/genkit';
 import { z } from 'zod';
 import { FuseItemsInputSchema, FuseItemsOutputSchema, GeneratedItemSchema, PlayerItemSchema } from '@/ai/schemas';
 import { clamp, getEmojiForItem, getTranslatedText } from '@/lib/utils';
-import { logger } from '@/lib/logger';
+import { logger } from '@/lib/core/logger';
 import type { GeneratedItem } from '@/core/types/game';
-import { resolveItemDef } from '@/lib/game/item-utils';
+import { resolveItemDef } from '@/lib/utils/item-utils';
 
 // --- The Exported Function ---
 
@@ -212,3 +212,4 @@ export async function fuseItems(input: FuseItemsInput): Promise<FuseItemsOutput>
     const result = await fuseItemsFlow(input);
     return result;
 }
+

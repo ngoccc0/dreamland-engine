@@ -18,7 +18,7 @@ import { useLanguage } from "@/context/language-context";
 import type { PlayerItem, ItemDefinition, Chunk, ItemCategory, PlayerAttributes, TranslatableString, ItemEffect } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 import { cn, getTranslatedText } from "@/lib/utils";
-import { resolveItemDef } from '@/lib/game/item-utils';
+import { resolveItemDef } from '@/lib/utils/item-utils';
 import { IconRenderer } from "@/components/ui/icon-renderer";
 
 interface InventoryPopupProps {

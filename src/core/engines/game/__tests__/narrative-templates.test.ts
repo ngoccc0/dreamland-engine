@@ -1,5 +1,5 @@
 import { fill_template, generateOfflineNarrative } from '../offline';
-import { biomeNarrativeTemplates } from '@/lib/game/data/narrative-templates';
+import { biomeNarrativeTemplates } from '@/core/data/narrative/templates';
 import { narrativeTranslations } from '@/lib/locales/narrative';
 import type { PlayerStatus } from '@/lib/game/types';
 

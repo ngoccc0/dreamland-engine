@@ -1,18 +1,107 @@
-/**
- * Item Utilities
- *
- * @remarks
- * Contains helper functions for item management, including emoji rendering,
- * item ID resolution, and format conversions for item data structures.
- */
-
-import type { Language } from '@/lib/game/types';
-import type { TranslatableString } from '@/core/types/i18n';
+import { allItems as itemDefinitions } from '@/core/data/items';
+import type { ItemDefinition } from '@/core/types/game';
+import type { PlayerItem } from '@/core/types/game';
 import { getTranslatedText } from './translation';
 
 /**
- * Get emoji representation for a game item
+ * Resolve an item definition by a key or display name.
+ * @remarks
+ * Priority:
+ * 1) customDefs by key
+ * 2) itemDefinitions by key
+ * 3) customDefs by translated/display name (en/vi)
+ * 4) itemDefinitions by translated/display name (en/vi)
+ */
+export const resolveItemDef = (name: string | undefined | null, customDefs?: Record<string, ItemDefinition> | null): ItemDefinition | undefined => {
+  if (!name) return undefined;
+
+  // direct key lookup
+  if (customDefs && customDefs[name]) return customDefs[name];
+  if (itemDefinitions[name]) return itemDefinitions[name];
+
+  // otherwise search by translated/display name
+  const tryMatchIn = (map: Record<string, ItemDefinition> | undefined) => {
+    if (!map) return undefined;
+    for (const key of Object.keys(map)) {
+      const def = map[key] as any;
+      const defName = def?.name;
+      if (!defName) continue;
+      if (typeof defName === 'string') {
+        if (defName === name) return def as ItemDefinition;
+      } else {
+        if (defName.en === name || defName.vi === name) return def as ItemDefinition;
+      }
+    }
+    return undefined;
+  };
+
+  const fromCustomByDisplay = tryMatchIn(customDefs || undefined);
+  if (fromCustomByDisplay) return fromCustomByDisplay;
+
+  const fromMasterByDisplay = tryMatchIn(itemDefinitions as any);
+  if (fromMasterByDisplay) return fromMasterByDisplay;
+
+  return undefined;
+};
+
+/**
+ * Resolve an item ID by name and language.
+ * @remarks
+ * Attempts to resolve item by name in the specified language, returning the canonical item ID.
+ * Falls back to the English name if not found in the specified language.
  *
+ * @param name - Item name to resolve
+ * @param definitions - Item definitions record
+ * @param _unused - Unused parameter (kept for backward compatibility)
+ * @param language - Language preference ('en' or 'vi')
+ * @returns The canonical item ID if found, undefined otherwise
+ */
+export const resolveItemId = (
+  name: string | undefined | null,
+  definitions?: Record<string, ItemDefinition> | null,
+  _unused?: any,
+  language: string = 'en'
+): string | undefined => {
+  if (!name) return undefined;
+
+  // Direct key lookup first
+  if (definitions?.[typeof name === 'string' ? name : '']) {
+    const def = definitions[typeof name === 'string' ? name : ''];
+    return def?.id || (typeof name === 'string' ? name : undefined);
+  }
+
+  // Try to find by translated name
+  const allDefs = definitions || itemDefinitions;
+  for (const [key, def] of Object.entries(allDefs)) {
+    const defName = def?.name;
+    if (!defName) continue;
+
+    if (typeof defName === 'string') {
+      if (defName === name) {
+        return def?.id || key;
+      }
+    } else if (typeof defName === 'object' && defName !== null) {
+      const langName = (defName as any)[language];
+      if (langName === name) {
+        return def?.id || key;
+      }
+      // Also try English as fallback
+      if (language !== 'en' && (defName as any).en === name) {
+        return def?.id || key;
+      }
+    }
+  }
+
+  // Return as-is if it looks like an ID
+  if (typeof name === 'string' && name.includes('_')) {
+    return name;
+  }
+
+  return undefined;
+};
+
+/**
+ * Get emoji representation for a game item.
  * @remarks
  * Uses keyword-matching on item name for precision, then falls back
  * to category-based emoji mapping. Returns '❓' if no match found.
@@ -25,181 +114,124 @@ import { getTranslatedText } from './translation';
  * getEmojiForItem("Iron Sword", "Weapon") // → "⚔️"
  * getEmojiForItem("Healing Potion", "Support") // → "🧪"
  */
-export function getEmojiForItem(name: string, category: string): string {
-    const lowerName = name.toLowerCase();
-    const lowerCategory = category.toLowerCase();
+export const getEmojiForItem = (name: string, category: string): string => {
+  const lowerName = name.toLowerCase();
+  const lowerCategory = category.toLowerCase();
 
-    // Specific keywords in name take precedence for accuracy
-    const keywordMap: Record<string, string> = {
-        'axe': '🪓', 'pickaxe': '⛏️', 'hammer': '🔨', 'sword': '⚔️', 'blade': '🔪', 'knife': '🔪',
-        'dagger': '🔪', 'bow': '🏹', 'arrow': '🏹', 'shield': '🛡️',
-        'potion': '🧪', 'elixir': '🧪', 'vial': '🧪', 'flask': '🧪',
-        'herb': '🌿', 'leaf': '🍃', 'flower': '🌸', 'root': '🌱', 'moss': '🌿',
-        'wood': '🪵', 'log': '🪵', 'branch': '🌿', 'plank': '🪵',
-        'stone': '🪨', 'rock': '🪨', 'pebble': '🪨', 'ore': '⛏️', 'ingot': '🔩',
-        'gem': '💎', 'crystal': '💎', 'ruby': '💎', 'sapphire': '💎',
-        'meat': '🍖', 'fruit': '🍎', 'berry': '🍓', 'fish': '🐟', 'bread': '🍞', 'egg': '🥚',
-        'hide': '🩹', 'pelt': '🩹', 'leather': '👜', 'scale': '🐉',
-        'scroll': '📜', 'book': '📖', 'tome': '📖', 'map': '🗺️', 'key': '🗝️',
-        'fire': '🔥', 'flame': '🔥', 'torch': '🔥', 'lava': '🌋', 'magma': '🌋',
-        'water': '💧', 'ice': '❄️', 'snow': '❄️', 'frost': '❄️',
-        'lightning': '⚡', 'storm': '⛈️', 'wind': '💨',
-        'heart': '❤️', 'soul': '👻', 'spirit': '👻',
-        'bone': '🦴', 'skull': '💀', 'fang': '🦷', 'tooth': '🦷', 'claw': '🐾',
-        'cloth': '🧣', 'silk': '🕸️', 'thread': '🧵', 'string': '🧵', 'rope': '🪢',
-        'seed': '🌱',
-    };
+  // Specific keywords in name take precedence for accuracy
+  const keywordMap: Record<string, string> = {
+    'axe': '🪓',
+    'pickaxe': '⛏️',
+    'hammer': '🔨',
+    'sword': '⚔️',
+    'blade': '🔪',
+    'knife': '🔪',
+    'dagger': '🔪',
+    'bow': '🏹',
+    'arrow': '🏹',
+    'shield': '🛡️',
+    'potion': '🧪',
+    'elixir': '🧪',
+    'herb': '🌿',
+    'flower': '🌸',
+    'seed': '🌱',
+    'stone': '🪨',
+    'ore': '⛓️',
+    'coal': '⚫',
+    'gem': '💎',
+    'crystal': '💠',
+    'wood': '🪵',
+    'log': '🪵',
+    'rope': '🪢',
+    'cloth': '🧵',
+    'leather': '🎒',
+    'metal': '🔩',
+    'glass': '🍸',
+    'gold': '🪙',
+    'copper': '🪙',
+    'silver': '🪙',
+    'bread': '🍞',
+    'meat': '🍖',
+    'fish': '🐟',
+    'fruit': '🍎',
+    'vegetable': '🥬',
+    'egg': '🥚',
+    'milk': '🥛',
+    'cheese': '🧀',
+    'book': '📖',
+    'scroll': '📜',
+    'key': '🔑',
+    'map': '🗺️',
+    'torch': '🔦',
+    'lantern': '🏮',
+    'bell': '🔔',
+    'bottle': '🍾',
+    'bucket': '🪣',
+    'shovel': '🪣',
+    'hooka': '🎣',
+    'rod': '🎣',
+    'wand': '✨',
+  };
 
-    // Check for keyword matches
-    for (const keyword in keywordMap) {
-        if (lowerName.includes(keyword)) {
-            return keywordMap[keyword];
-        }
+  for (const [keyword, emoji] of Object.entries(keywordMap)) {
+    if (lowerName.includes(keyword)) {
+      return emoji;
     }
+  }
 
-    // Fall back to category-based mapping
-    const categoryMap: Record<string, string> = {
-        'weapon': '⚔️',
-        'material': '🧱',
-        'energy source': '⚡',
-        'food': '🍴',
-        'data': '📜',
-        'tool': '🛠️',
-        'equipment': '🛡️',
-        'support': '❤️‍🩹',
-        'magic': '✨',
-        'fusion': '🌀',
-    };
+  // Fallback to category-based emoji
+  const categoryMap: Record<string, string> = {
+    'weapon': '⚔️',
+    'armor': '🛡️',
+    'food': '🍖',
+    'consumable': '🧪',
+    'support': '🧪',
+    'material': '🪨',
+    'tool': '🔧',
+    'misc': '📦',
+  };
 
-    if (lowerCategory in categoryMap) {
-        return categoryMap[lowerCategory];
-    }
-
-    // Default emoji if no match
-    return '❓';
-}
+  return categoryMap[lowerCategory] || '❓';
+};
 
 /**
- * Resolve canonical item ID from translatable name or string
- *
+ * Ensure a player inventory item has a canonical ID.
  * @remarks
- * Prefers explicit record keys when `itemDefs` is provided.
- * Falls back to matching English translations for backward compatibility.
- * Callers should prefer using `id` fields on items when available.
- *
- * @param itemOrName - Item name or translatable string
- * @param itemDefs - Optional record of item definitions keyed by id
- * @param t - Optional translation function for key-based lookups
- * @param language - Language for translation fallbacks (default: 'en')
- * @returns Resolved canonical id, or undefined if not found
- *
- * @example
- * const id = resolveItemId("Iron Sword", itemDefs);
- * // → "iron_sword" (if that's the record key)
+ * Assigns a canonical ID based on definition or English name translation.
+ * Necessary for tracking items across save/load cycles.
  */
-export function resolveItemId(
-    itemOrName: TranslatableString | string | undefined | null,
-    itemDefs?: Record<string, any>,
-    t?: (k: string, opts?: any) => string,
-    _language: Language = 'en'
-): string | undefined {
-    if (!itemOrName) return undefined;
+export const ensurePlayerItemId = (
+  item: PlayerItem,
+  definitions: Record<string, ItemDefinition>,
+  t: (key: string, params?: any) => string,
+  language: string
+): PlayerItem => {
+  if (item.id) return item;
 
-    // If string and directly a key in itemDefs, return it
-    if (typeof itemOrName === 'string') {
-        if (itemDefs && itemDefs[itemOrName]) return itemOrName;
+  const itemName = getTranslatedText(item.name, 'en');
+  const def = definitions?.[itemName];
+  const id = def?.id || itemName;
 
-        // Try to match by definition id or English name
-        if (itemDefs) {
-            for (const [key, def] of Object.entries(itemDefs)) {
-                if (def?.id && def.id === itemOrName) return def.id;
-                try {
-                    // Match against English and Vietnamese names
-                    const defNameEn = getTranslatedText(def.name, 'en', t as any);
-                    const defNameVi = getTranslatedText(def.name, 'vi', t as any);
-                    if (defNameEn === itemOrName || defNameVi === itemOrName) return def.id ?? key;
-                } catch {
-                    // Ignore malformed definitions
-                }
-            }
-        }
-        return undefined;
-    }
-
-    // itemOrName is a TranslatableString-like object
-    if (itemDefs) {
-        const inputNameEn = getTranslatedText(itemOrName as TranslatableString, 'en', t as any);
-        for (const [key, def] of Object.entries(itemDefs)) {
-            if (def?.id && (itemOrName as any).id && def.id === (itemOrName as any).id) return def.id;
-            try {
-                const defNameEn = getTranslatedText(def.name, 'en', t as any);
-                if (defNameEn === inputNameEn) return def.id ?? key;
-            } catch {
-                // Ignore and continue
-            }
-        }
-    }
-
-    return undefined;
-}
+  return {
+    ...item,
+    id,
+  };
+};
 
 /**
- * Ensure a PlayerItem-like object has a canonical ID
- *
+ * Convert an array of items to a record (map) indexed by item name.
  * @remarks
- * If item already has an `id`, leaves it unchanged.
- * Otherwise attempts to resolve a canonical id from item's name.
- * Falls back to English translation string as best-effort id.
- *
- * Safe to call before inserting items into `playerStats.items`
- * to ensure deterministic lookups.
- *
- * @param item - Player item object
- * @param itemDefs - Optional record of item definitions
- * @param t - Optional translation function
- * @param language - Language for fallbacks (default: 'en')
- * @returns Item with id field populated
+ * Useful for quick lookups and aggregations of item arrays.
  */
-export function ensurePlayerItemId<T extends { name?: any; id?: string }>(
-    item: T,
-    itemDefs?: Record<string, any>,
-    t?: (k: string, opts?: any) => string,
-    _language: Language = 'en'
-): T {
-    if (!item) return item;
-    if (item.id) return item;
+export const convertItemArrayToRecord = (
+  items: PlayerItem[] | ItemDefinition[]
+): Record<string, PlayerItem | ItemDefinition> => {
+  const record: Record<string, PlayerItem | ItemDefinition> = {};
+  for (const item of items) {
+    const key = getTranslatedText(item.name, 'en');
+    record[key] = item;
+  }
+  return record;
+};
 
-    try {
-        const resolved =
-            resolveItemId(item.name, itemDefs, t, _language) ??
-            getTranslatedText(item.name as any, 'en', t as any);
-        if (resolved) item.id = resolved as any;
-    } catch {
-        // Ignore errors and leave item as-is
-    }
-
-    return item;
-}
-
-/**
- * Convert array of GeneratedItem to Record format
- *
- * @remarks
- * Uses English name of each item as the record key.
- * Useful for converting API responses to indexed lookup tables.
- *
- * @param items - Array of item definitions
- * @returns Record keyed by English item names
- */
-export function convertItemArrayToRecord(items: any[]): Record<string, any> {
-    const record: Record<string, any> = {};
-    for (const item of items) {
-        if (item && item.name) {
-            const englishName = getTranslatedText(item.name, 'en');
-            if (englishName) {
-                record[englishName] = item;
-            }
-        }
-    }
-    return record;
-}
+export default resolveItemDef;

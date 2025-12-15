@@ -1,6 +1,6 @@
 // Extracted move handler.
 import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
-import { AudioActionType } from '@/lib/definitions/audio-events';
+import { AudioActionType } from '@/core/data/audio-events';
 import { StateManager } from '@/lib/narrative/state-manager';
 
 /**
@@ -192,7 +192,7 @@ export function createHandleMove(context: Partial<ActionHandlerDeps> & Record<st
           narrativeStateManager.recordBiomeVisit(finalChunk.terrain || finalChunk.biome || 'default');
 
           try {
-            const mn = await import('@/lib/game/movement-narrative');
+            const mn = await import('@/core/usecases/movement-narrative');
             const conditional = mn.selectMovementNarrative({ chunk: finalChunk, playerStats: newPlayerStats || playerStats, directionText, language, briefSensory });
             if (conditional) { addNarrativeEntry(String(conditional).replace(/\{[^}]+\}/g, '').trim(), 'narrative', placeholderId); return; }
           } catch { }

@@ -1,6 +1,6 @@
 import type { World, Terrain, WorldProfile, Season, SoilType } from "@/core/types/game";
-import { worldConfig, seasonConfig } from "@/lib/game/world-config";
-import { logger } from "@/lib/logger";
+import { worldConfig, seasonConfig } from "@/core/data/biome-config";
+import { logger } from "@/lib/core/logger";
 import { clamp } from "@/lib/utils";
 
 export const getRandomInRange = (range: { min: number, max: number }) =>
@@ -132,3 +132,4 @@ export function calculateDependentChunkAttributes(
         travelCost,
     };
 }
+

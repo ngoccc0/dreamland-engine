@@ -25,11 +25,11 @@ import { useLanguage } from "@/context/language-context";
 import type { PlayerItem, Recipe, ItemDefinition, CraftingOutcome } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
 import { useAudio } from "@/lib/audio/useAudio";
-import { AudioActionType } from "@/lib/definitions/audio-events";
-import { calculateCraftingOutcome } from "@/lib/game/engine/crafting";
+import { AudioActionType } from "@/core/data/audio-events";
+import { calculateCraftingOutcome } from "@/core/engines/game/crafting";
 import { Hammer, Settings } from "./icons";
 import { cn, getTranslatedText } from "@/lib/utils";
-import { resolveItemDef } from '@/lib/game/item-utils';
+import { resolveItemDef } from '@/lib/utils/item-utils';
 import { Switch } from "@/components/ui/switch";
 import { IconRenderer } from "@/components/ui/icon-renderer";
 

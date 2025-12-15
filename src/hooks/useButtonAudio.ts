@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useAudio } from '@/lib/audio/useAudio';
-import { AudioActionType } from '@/lib/definitions/audio-events';
+import { AudioActionType } from '@/core/data/audio-events';
 
 /**
  * Button audio feedback hook - wraps click handlers with UI sound effects.

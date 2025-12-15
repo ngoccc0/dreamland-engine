@@ -24,7 +24,7 @@ import {
     AUDIO_EVENTS_REGISTRY,
     isCriticalAudioEvent,
     getPriorityForAction,
-} from '@/lib/definitions/audio-events';
+} from '@/core/data/audio-events';
 
 /**
  * Dispatch an audio event, applying playback mode filtering and context resolution.

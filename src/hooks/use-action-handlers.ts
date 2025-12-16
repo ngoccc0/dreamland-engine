@@ -44,6 +44,7 @@ import { getEffectiveChunk } from '@/core/engines/game/weather-generation';
 import { generateCombatEffects } from '@/core/engines/combat-effects-bridge';
 import { generateSkillEffects } from '@/core/engines/skill-effects-bridge';
 import { generateItemEffects } from '@/core/engines/item-effects-bridge';
+import { generateHarvestEffects } from '@/core/engines/harvest-effects-bridge';
 import { useAudio } from '@/lib/audio/useAudio';
 import { AudioActionType } from '@/core/data/audio-events';
 import { getTemplates } from '@/lib/game/templates';
@@ -836,8 +837,12 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         setWorld, setPlayerStats, resolveItemDef, clamp, ensurePlayerItemId, getTranslatedText
       });
     }
-    return harvestRef.current(actionId);
-  }, [isLoading, isGameOver, isLoaded, world, playerPosition, toast, t, addNarrativeEntry, playerStats, customItemDefinitions, advanceGameTime, setWorld, setPlayerStats, resolveItemDef, clamp, ensurePlayerItemId, getTranslatedText]);
+    const outcome = harvestRef.current(actionId);
+    if (outcome) {
+      const effects = generateHarvestEffects(outcome);
+      executeEffects(effects);
+    }
+  }, [isLoading, isGameOver, isLoaded, world, playerPosition, toast, t, addNarrativeEntry, playerStats, customItemDefinitions, advanceGameTime, setWorld, setPlayerStats, resolveItemDef, clamp, ensurePlayerItemId, getTranslatedText, executeEffects]);
 
   const handleMove = useCallback((direction: "north" | "south" | "east" | "west") => {
     // Create a fresh handler per invocation so it captures the latest state

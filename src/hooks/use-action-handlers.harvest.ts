@@ -41,9 +41,10 @@ import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
 import type { CreatureDefinition } from '@/core/types/creature'; // Import CreatureDefinition
 import type { PlantPartDefinition } from '@/core/types/definitions/plant-properties'; // Import PlantPartDefinition
 import { AudioActionType } from '@/core/data/audio-events';
+import type { HarvestOutcome } from '@/core/engines/harvest-effects-bridge';
 
 export function createHandleHarvest(context: Partial<ActionHandlerDeps> & Record<string, any>) {
-  return (actionId: number) => {
+  return (actionId: number): HarvestOutcome | void => {
     const {
       isLoading, isGameOver, isLoaded, world, playerPosition, toast, t,
       addNarrativeEntry, playerStats, customItemDefinitions, advanceGameTime,
@@ -210,5 +211,19 @@ export function createHandleHarvest(context: Partial<ActionHandlerDeps> & Record
 
     setPlayerStats && setPlayerStats(() => nextPlayerStats);
     advanceGameTime && advanceGameTime(nextPlayerStats);
+
+    // Return harvest outcome for effect generation (Phase 4B.3)
+    return {
+      targetName,
+      partName,
+      harvestSuccess: lootItems.length > 0,
+      lootCount: lootItems.length,
+      lootItems: lootItems.map((item: any) => ({
+        name: getTranslatedText ? getTranslatedText(item.name, 'en') : item.name,
+        quantity: item.quantity,
+        rarity: item.tier || 'common'
+      })),
+      targetWasEliminated: enemy === null && chunk.enemy !== null
+    } as HarvestOutcome;
   };
 }

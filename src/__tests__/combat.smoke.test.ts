@@ -34,12 +34,13 @@ describe('combat.smoke', () => {
         await combatUseCase.initiateCombat(attacker, defender);
 
         // STEP 2: Execute a combat round
-        const round = await combatUseCase.executeCombatRound();
+        const { round, effects } = await combatUseCase.executeCombatRound();
 
         // STEP 3: Verify round structure
         expect(round).toBeDefined();
         expect(round.actions).toBeDefined();
         expect(Array.isArray(round.actions)).toBe(true);
+        expect(Array.isArray(effects)).toBe(true);
     });
 
     test('combat end produces valid result', async () => {
@@ -75,9 +76,10 @@ describe('combat.smoke', () => {
 
         // STEP 3: Verify 3 rounds completed
         expect(rounds).toHaveLength(3);
-        rounds.forEach((round) => {
+        rounds.forEach(({ round, effects }) => {
             expect(round).toBeDefined();
             expect(round.actions).toBeDefined();
+            expect(Array.isArray(effects)).toBe(true);
         });
     });
 

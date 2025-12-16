@@ -295,10 +295,11 @@ export class CombatUseCase implements ICombatUseCase {
         }
 
         // Award experience
-        if (result.experience > 0) {
+        const xp = result.experience || 0;
+        if (xp > 0) {
             effects.push({
                 type: 'addExperience',
-                amount: result.experience,
+                amount: xp,
                 type_: 'combat'
             });
         }
@@ -378,7 +379,7 @@ export class CombatUseCase implements ICombatUseCase {
                     type: 'applyDamage',
                     targetId: action.target.id,
                     amount: actualDamage,
-                    damageType: damage.type
+                    damageType: (damage.type === 'PHYSICAL' ? 'physical' : damage.type === 'MAGICAL' ? 'magical' : 'fire') as 'physical' | 'magical' | 'fire' | 'cold' | 'poison'
                 });
 
                 // Combat log notification

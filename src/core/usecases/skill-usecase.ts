@@ -2,8 +2,8 @@ import { Skill } from '../entities/skill';
 import { Combatant } from '../entities/combat';
 // removed unused type imports (SkillTree, Experience)
 import {
-    random,
-    randomInt,
+    rollDice,
+    rollPercentage,
 } from '@/core/rules/rng';
 
 /**

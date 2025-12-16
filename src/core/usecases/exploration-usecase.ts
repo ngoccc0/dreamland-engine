@@ -3,9 +3,9 @@ import { GridPosition } from '../values/grid-position';
 import { GridCell } from '../entities/world';
 import type { DiscoveredSettlement, UnlockedNPC, DungeonMonster } from '../types/game';
 import {
-    random,
-    randomInt,
-    weightedRandom,
+    rollDice,
+    rollPercentage,
+    randomBetween,
 } from '@/core/rules/rng';
 
 export interface IExplorationUseCase {

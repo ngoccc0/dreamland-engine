@@ -1,284 +1,287 @@
 /**
- * RNG Rules Module - Pure game logic for random number generation
+ * Random Number Generation Rules Engine - Pure Functions for All Randomization
  *
- * Handles seeded random number generation and weighted random selection.
- * All functions are pure (no side effects, deterministic, testable).
+ * These are PURE FUNCTIONS for randomization:
+ * - Dice rolls and probabilities
+ * - Weighted selection from arrays
+ * - Array shuffling (Fisher-Yates)
+ * - Range-based random values
  *
- * @remarks
- * Used by loot, creature generation, and event selection usecases.
- * Seeded RNG ensures reproducible game state for replays and testing.
+ * No external dependencies (no state, no side effects).
+ * All RNG uses `Math.random()` for fully non-deterministic randomness per playthrough.
+ *
+ * DESIGN NOTE: No seeding support (per Decision #7 - hard reset, no replay need).
+ * If deterministic replay becomes needed in Phase 4+, add optional `randomFn` parameter.
+ *
+ * @example
+ * ```typescript
+ * const roll = rollDice(20); // D20 roll: 1-20
+ * const hasChance = rollPercentage(75); // 75% chance
+ * const selected = selectWeighted([
+ *   { value: 'common', weight: 70 },
+ *   { value: 'rare', weight: 25 },
+ *   { value: 'epic', weight: 5 }
+ * ]); // Weighted by probability
+ * ```
  */
 
 /**
- * Seeded linear congruential generator for deterministic randomness.
- *
- * @remarks
- * **Formula:** `nextSeed = (seed × 1103515245 + 12345) mod 2^31`
- *
- * **Logic:**
- * 1. Standard LCG parameters (GLIBC constants)
- * 2. Takes 32-bit seed and produces next seed in sequence
- * 3. Output is integer [0, 2147483647]
- * 4. Normalize to 0-1 float by dividing by 2147483647
- * 5. For [0, N) integer: multiply float by N and floor
- *
- * **Properties:**
- * - Deterministic: Same seed always produces same sequence
- * - Repeatable: Can replay with known seed value
- * - Sufficient for game mechanics (not cryptographic)
- * - Fast: Single integer operation
- *
- * **Edge Cases:**
- * - seed 0 is valid (will generate sequence)
- * - Negative seeds: Use absolute value
- * - Very large seeds: Automatically wrapped by modulo
- *
- * @param seed - Current seed value
- * @returns Next seed in sequence
- *
- * @example
- * nextSeed(42) → 1103515287 (deterministic)
- * nextSeed(1103515287) → 12345 (continues sequence)
+ * Weighted item for selection
  */
-export function nextSeed(seed: number): number {
-    return (seed * 1103515245 + 12345) % 2147483647;
+export interface WeightedItem<T> {
+    value: T;
+    weight: number; // Sum of all weights across array should total 100 or 1.0
 }
 
 /**
- * Generates random float [0, 1) with seeded RNG.
+ * Roll one or more dice
  *
  * @remarks
- * **Formula:** `random = (nextSeed mod 2147483647) / 2147483647`
+ * **Formula:** `result = sum of (floor(random * sides) + 1) for each die`
  *
  * **Logic:**
- * 1. Call nextSeed to advance generator
- * 2. Normalize seed to float: seed / 2147483647
- * 3. Result is [0, 1) with good distribution
- * 4. Does NOT mutate original seed (pure function)
- *
- * **Usage:**
- * - As base for other distributions
- * - Direct use: `if (random(seed) < 0.3) {} // 30% chance`
- * - Scale: `Math.floor(random(seed) * N) // [0, N)`
- *
- * **Properties:**
- * - Output: [0, 1)
- * - Distribution: Uniform
- * - Returns both random value and next seed
- * - Caller must track returned seed for next call
- *
- * @param seed - Current seed value
- * @returns [randomFloat, nextSeed] tuple
- *
- * @example
- * const [rand, nextS] = random(42);
- * // rand ≈ 0.51 (normalized)
- * // nextS is new seed for next call
- */
-export function random(seed: number): [number, number] {
-    const next = nextSeed(seed);
-    const value = next / 2147483647;
-    return [value, next];
-}
-
-/**
- * Generates random integer [min, max).
- *
- * @remarks
- * **Formula:** `result = floor(random × (max - min)) + min`
- *
- * **Logic:**
- * 1. Call random() to get [0, 1) float
- * 2. Scale to range: float × (max - min)
- * 3. Floor to integer
- * 4. Add offset: + min
- * 5. Result in [min, max)
+ * 1. For each die requested, generate random value 0.0-0.999...
+ * 2. Scale to range [0, sides) using `Math.floor(random * sides)`
+ * 3. Add 1 to shift to range [1, sides]
+ * 4. Sum all dice rolls
  *
  * **Range:**
- * - [0, N): randomInt(seed, 0, N)
- * - [1, 6]: randomInt(seed, 1, 7) // D6 die
- * - [-5, 5): randomInt(seed, -5, 5)
+ * - 1dN: min=1, max=N
+ * - NdM: min=N, max=N×M
  *
  * **Edge Cases:**
- * - min == max → always returns min
- * - min > max → swapped internally
- * - Floats truncated to integers
+ * - sides < 1 returns 0 (invalid die)
+ * - count < 1 returns 0 (no dice rolled)
  *
- * @param seed - Current seed value
- * @param min - Minimum value (inclusive)
- * @param max - Maximum value (exclusive)
- * @returns [randomInt, nextSeed] tuple
+ * @param sides - Number of sides on each die (e.g., 20 for d20)
+ * @param count - Number of dice to roll (default 1, e.g., 2 for 2d20)
+ * @param randomFn - Random function 0.0-1.0 (injectable for testing, default Math.random)
+ * @returns Sum of all dice rolls (integer, min=count, max=count×sides)
  *
  * @example
- * const [roll, nextS] = randomInt(42, 1, 7);
- * // roll is 1-6 (d6 die roll)
- * // nextS for next call
+ * rollDice(20) → 14 (single d20)
+ * rollDice(6, 2) → 9 (2d6 sum)
+ * rollDice(20, 3) → 45 (3d20 sum)
+ * rollDice(2, 1) → 1 or 2 (coin flip)
  */
-export function randomInt(seed: number, min: number, max: number): [number, number] {
-    // Handle edge cases
-    if (min === max) return [min, seed];
-    if (min > max) {
-        [min, max] = [max, min];
-    }
+export function rollDice(
+    sides: number,
+    count: number = 1,
+    randomFn: () => number = Math.random
+): number {
+    if (sides < 1 || count < 1) return 0;
 
-    const [rand, nextS] = random(seed);
-    const value = Math.floor(rand * (max - min)) + min;
-    return [value, nextS];
+    let total = 0;
+    for (let i = 0; i < count; i++) {
+        total += Math.floor(randomFn() * sides) + 1;
+    }
+    return total;
 }
 
 /**
- * Selects random item from weighted list.
+ * Roll a percentage chance (does X% chance succeed?)
  *
  * @remarks
- * **Formula:** `selectedItem = items[findIndex(randomFloat × totalWeight)]`
+ * **Formula:** `threshold = chance / 100; success = randomRoll < threshold`
+ *
+ * **Logic:**
+ * 1. Convert percentage chance (0-100) to decimal threshold (0.0-1.0)
+ * 2. Generate random value 0.0-1.0
+ * 3. If random value is strictly less than threshold, chance succeeds
+ *
+ * **Probability:**
+ * - 0% chance: always false
+ * - 50% chance: true ~50% of the time
+ * - 100% chance: always true (if randomFn() < 1.0)
+ *
+ * **Edge Cases:**
+ * - Negative chance treated as 0% (always fails)
+ * - Chance > 100 clamped to 100% (always succeeds)
+ * - Uses strict < inequality (0.5 exactly at 50% boundary fails)
+ *
+ * @param chance - Percentage chance 0-100 (e.g., 75 = 75%)
+ * @param randomFn - Random function 0.0-1.0 (injectable for testing, default Math.random)
+ * @returns true if chance succeeded, false otherwise
+ *
+ * @example
+ * rollPercentage(75) → true ~75% of the time
+ * rollPercentage(0) → false (never)
+ * rollPercentage(100) → true (always, if randomFn < 1.0)
+ * rollPercentage(50) → true ~50% of the time
+ */
+export function rollPercentage(
+    chance: number,
+    randomFn: () => number = Math.random
+): boolean {
+    const clamped = Math.max(0, Math.min(100, chance));
+    const threshold = clamped / 100;
+    return randomFn() < threshold;
+}
+
+/**
+ * Select one item from array based on weights
+ *
+ * @remarks
+ * **Algorithm:** Weighted Random Selection (Roulette Wheel)
  *
  * **Logic:**
  * 1. Sum all weights to get total weight
- * 2. Generate random float [0, 1)
- * 3. Scale to [0, totalWeight): float × totalWeight
- * 4. Iterate through items, accumulate weights
- * 5. Return first item where accumulated >= scaled value
- * 6. Fallback to last item if rounding error
+ * 2. Generate random value 0 to total weight
+ * 3. Iterate through items, subtracting weight until accumulated >= random value
+ * 4. Return that item
  *
- * **Weights:**
- * - Array of numbers (weights)
- * - All weights should be > 0
- * - Don't need to sum to 1 (normalized internally)
- * - [0.3, 0.5, 0.2] or [3, 5, 2] both work
+ * **Weight Interpretation:**
+ * - Weights can sum to any positive number (not required to be 100)
+ * - Item weight = probability × total weight
+ * - Weight 50 out of 100 total = 50% chance
+ * - Weight 3 out of 10 total = 30% chance
  *
  * **Edge Cases:**
- * - Single item → always selected
- * - weights = [0, 5, 5] → first item never selected (0 weight)
- * - All equal weights → uniform distribution
+ * - Empty array throws error (no selection possible)
+ * - All zero weights throws error (invalid distribution)
+ * - Negative weights treated as 0 (no probability)
+ * - Always returns first item if all weights are 0 (fallback)
  *
- * @param seed - Current seed value
- * @param items - Array of items to select from
- * @param weights - Array of weights (same length as items)
- * @returns [selectedItem, nextSeed] tuple
+ * @param items - Array of {value, weight} items to select from
+ * @param randomFn - Random function 0.0-1.0 (injectable for testing, default Math.random)
+ * @returns One selected item value, weighted by probability
+ * @throws Error if items array is empty or all weights are zero
  *
  * @example
- * const loot = ['common', 'rare', 'legendary'];
- * const weights = [70, 25, 5];
- * const [item, nextS] = weightedRandom(42, loot, weights);
- * // ~70% common, ~25% rare, ~5% legendary
+ * const loot = selectWeighted([
+ *   { value: 'common', weight: 70 },
+ *   { value: 'rare', weight: 25 },
+ *   { value: 'epic', weight: 5 }
+ * ]);
+ * // Returns 'common' ~70% of the time, 'rare' ~25%, 'epic' ~5%
+ *
+ * const size = selectWeighted([
+ *   { value: 'small', weight: 3 },
+ *   { value: 'large', weight: 1 }
+ * ]);
+ * // Returns 'small' 75% of the time, 'large' 25%
  */
-export function weightedRandom<T>(
-    seed: number,
-    items: T[],
-    weights: number[]
-): [T, number] {
+export function selectWeighted<T>(
+    items: WeightedItem<T>[],
+    randomFn: () => number = Math.random
+): T {
     if (items.length === 0) {
-        throw new Error('Cannot select from empty items array');
+        throw new Error('selectWeighted: items array cannot be empty');
     }
 
-    if (items.length !== weights.length) {
-        throw new Error('Items and weights arrays must have same length');
+    // Sum all positive weights
+    const totalWeight = items.reduce((sum, item) => sum + Math.max(0, item.weight), 0);
+
+    if (totalWeight <= 0) {
+        throw new Error('selectWeighted: total weight must be > 0');
     }
 
-    // Single item: return immediately
-    if (items.length === 1) {
-        return [items[0], seed];
-    }
+    // Generate random value 0 to totalWeight
+    let random = randomFn() * totalWeight;
 
-    // Calculate total weight
-    const totalWeight = weights.reduce((sum, w) => sum + Math.max(0, w), 0);
-
-    // If no weight, return first item
-    if (totalWeight === 0) {
-        return [items[0], seed];
-    }
-
-    // Generate random value in [0, totalWeight)
-    const [rand, nextS] = random(seed);
-    let randomValue = rand * totalWeight;
-
-    // Find which item this corresponds to
-    let accumulated = 0;
-    for (let i = 0; i < items.length; i++) {
-        accumulated += Math.max(0, weights[i]);
-        if (randomValue < accumulated) {
-            return [items[i], nextS];
+    // Iterate until accumulated weight >= random value
+    for (const item of items) {
+        random -= Math.max(0, item.weight);
+        if (random <= 0) {
+            return item.value;
         }
     }
 
-    // Fallback (shouldn't reach here, but handles floating point edge cases)
-    return [items[items.length - 1], nextS];
+    // Fallback (should never reach if weights correct)
+    return items[items.length - 1].value;
 }
 
 /**
- * Generates loot roll with base chance and modifiers.
+ * Shuffle array in-place using Fisher-Yates algorithm
  *
  * @remarks
- * **Formula:** `finalChance = baseChance + rarityBonus - difficultyPenalty`
+ * **Algorithm:** Fisher-Yates Shuffle (Knuth Shuffle)
  *
  * **Logic:**
- * 1. Start with baseChance (0-100%)
- * 2. Add rarity bonus:
- *    - rarity 1 (common): 0% bonus
- *    - rarity 2 (uncommon): +10%
- *    - rarity 3 (rare): +25%
- *    - rarity 4 (epic): +40%
- *    - rarity 5 (legendary): +50%
- * 3. Subtract difficulty penalty:
- *    - difficulty 1: 0% penalty
- *    - difficulty 2: -5% penalty
- *    - difficulty 3: -15% penalty
- *    - difficulty 4: -25% penalty
- *    - difficulty 5: -40% penalty
- * 4. Clamp final chance to 1-99%
- * 5. Roll random [0, 100): if less than chance, success
- * 6. Return { success: boolean, roll: number, chance: number }
+ * 1. Start from last element (index length-1)
+ * 2. Pick random index from 0 to current index
+ * 3. Swap current element with random element
+ * 4. Move to previous element and repeat until index 0
  *
- * **Edge Cases:**
- * - Very high rarity + low difficulty = ~100% success
- * - Very low base + high difficulty = ~1% (never 0%)
- * - roll === chance is failure (strict <)
+ * **Property:** Unbiased—all permutations equally likely
  *
- * @param seed - Current seed value
- * @param baseChance - Base success chance 0-100
- * @param rarity - Item rarity 1-5
- * @param difficulty - Enemy/area difficulty 1-5
- * @returns { success, roll, finalChance, nextSeed }
+ * **Time Complexity:** O(n)
+ * **Space Complexity:** O(1) if mutating input; O(n) if creating copy
+ *
+ * **WARNING:** Mutates input array! Clone if you need original.
+ *
+ * **Example Shuffle (simplified):**
+ * - Input: [1, 2, 3, 4, 5]
+ * - After swap at index 4: [1, 2, 3, 5, 4] (maybe)
+ * - After swap at index 3: [1, 5, 3, 2, 4] (maybe)
+ * - ... continues to index 0
+ * - Output: fully randomized permutation
+ *
+ * @param array - Array to shuffle (MUTATED IN PLACE)
+ * @param randomFn - Random function 0.0-1.0 (injectable for testing, default Math.random)
+ * @returns The same array reference, now shuffled
  *
  * @example
- * rollLoot(42, 30, 3, 2)
- * // baseChance 30 + rarity 25 - difficulty 5 = 50%
- * // Roll random 0-100, success if < 50
+ * const items = [1, 2, 3, 4, 5];
+ * shuffleArray(items);
+ * // items is now randomized: [3, 5, 1, 4, 2] (example)
+ *
+ * // To avoid mutation:
+ * const copy = [...items];
+ * shuffleArray(copy);
+ * // items unchanged, copy is shuffled
  */
-export function rollLoot(
-    seed: number,
-    baseChance: number,
-    rarity: number,
-    difficulty: number
-): {
-    success: boolean;
-    roll: number;
-    finalChance: number;
-    nextSeed: number;
-} {
-    // Clamp rarity and difficulty
-    const r = Math.max(1, Math.min(5, rarity));
-    const d = Math.max(1, Math.min(5, difficulty));
+export function shuffleArray<T>(
+    array: T[],
+    randomFn: () => number = Math.random
+): T[] {
+    // Fisher-Yates shuffle
+    for (let i = array.length - 1; i > 0; i--) {
+        // Pick random index from 0 to i (inclusive)
+        const j = Math.floor(randomFn() * (i + 1));
+        // Swap array[i] and array[j]
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
 
-    // Rarity bonus
-    const rarityBonuses = [0, 0, 10, 25, 40, 50];
-    const rarityBonus = rarityBonuses[r] || 0;
-
-    // Difficulty penalty
-    const difficultyPenalties = [0, 0, 5, 15, 25, 40];
-    const difficultyPenalty = difficultyPenalties[d] || 0;
-
-    // Calculate final chance
-    let finalChance = baseChance + rarityBonus - difficultyPenalty;
-    finalChance = Math.max(1, Math.min(99, finalChance)); // clamp 1-99
-
-    // Roll
-    const [roll, nextS] = randomInt(seed, 0, 100);
-
-    return {
-        success: roll < finalChance,
-        roll,
-        finalChance,
-        nextSeed: nextS,
-    };
+/**
+ * Generate random integer within inclusive range
+ *
+ * @remarks
+ * **Formula:** `result = floor(random * (max - min + 1)) + min`
+ *
+ * **Logic:**
+ * 1. Calculate range size: `max - min + 1`
+ * 2. Scale random value [0, 1) to range [0, range)
+ * 3. Add min offset to shift into [min, max]
+ * 4. Round down with `Math.floor()`
+ *
+ * **Range Inclusive:** Both min and max are possible outcomes
+ *
+ * **Edge Cases:**
+ * - min > max returns min (invalid range, no error)
+ * - min === max returns that value (degenerate case)
+ * - Negative ranges work normally
+ *
+ * @param min - Minimum value (inclusive)
+ * @param max - Maximum value (inclusive)
+ * @param randomFn - Random function 0.0-1.0 (injectable for testing, default Math.random)
+ * @returns Random integer between min and max (inclusive)
+ *
+ * @example
+ * randomBetween(1, 6) → 1-6 (uniform like d6)
+ * randomBetween(1, 100) → 1-100 (uniform percentile)
+ * randomBetween(-10, 10) → -10 to 10 (negative range works)
+ * randomBetween(5, 5) → 5 (always same value)
+ */
+export function randomBetween(
+    min: number,
+    max: number,
+    randomFn: () => number = Math.random
+): number {
+    // Swap if min > max
+    const [actualMin, actualMax] = min > max ? [max, min] : [min, max];
+    const range = actualMax - actualMin + 1;
+    return Math.floor(randomFn() * range) + actualMin;
 }

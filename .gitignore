@@ -55,7 +55,6 @@ env/
 .turbo/
 
 # Documentation and Technical Notes (local only, not synced)
-docs/
 LONG_TERM_NOTES.md
 
 # TypeScript build info

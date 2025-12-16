@@ -1,5 +1,5 @@
 /**
- * Item Effects Bridge (Phase 4B.3)
+ * Item Effects Bridge
  *
  * @remarks
  * Converts item use outcomes into side effects.

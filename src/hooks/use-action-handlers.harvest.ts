@@ -3,9 +3,6 @@
  *
  * @remarks
  * Executes harvest action on creatures (loot drops) or plants (material harvesting).
- * Integrates Phase 3.A pure rules for random loot generation:
- * - random(seed) → deterministic random values
- *
  * Validates target existence, adds items to inventory, generates loot from definitions,
  * and produces narrative feedback.
  *
@@ -23,13 +20,8 @@
  * Supports partName parameter for selective plant part harvesting.
  * Example: "Pick flower petals" vs "dig roots" from same plant.
  *
- * **Pure Rule Integration:**
- * - RNG rules ensure consistent randomization across all loot generation
- * - Deterministic seeding allows replay and testing
- * - Same random functions used in exploration and reward systems
- *
  * @param context - Action dependencies (game state, world, player stats)
- * @returns Handler function (actionId: number) => void
+ * @returns Handler function (actionId: number) => HarvestOutcome | void
  *
  * @example
  * const handleHarvest = createHandleHarvest({ world, playerStats, ... });
@@ -212,7 +204,7 @@ export function createHandleHarvest(context: Partial<ActionHandlerDeps> & Record
     setPlayerStats && setPlayerStats(() => nextPlayerStats);
     advanceGameTime && advanceGameTime(nextPlayerStats);
 
-    // Return harvest outcome for effect generation (Phase 4B.3)
+    // Return harvest outcome for effect generation
     return {
       targetName,
       partName,

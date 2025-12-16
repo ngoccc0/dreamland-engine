@@ -1,5 +1,5 @@
 /**
- * Harvest Effects Bridge (Phase 4B.3)
+ * Harvest Effects Bridge
  *
  * @remarks
  * Converts harvest outcomes into side effects.

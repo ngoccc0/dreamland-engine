@@ -1,5 +1,5 @@
 /**
- * Skill Effects Bridge (Phase 4B.3)
+ * Skill Effects Bridge
  *
  * @remarks
  * Converts skill use outcomes into side effects.
@@ -51,12 +51,12 @@ export function generateSkillEffects(outcome: SkillOutcome): SideEffect[] {
             volume: 0.7
         });
     } else {
-        const soundFile = outcome.successLevel === 'CriticalSuccess' 
+        const soundFile = outcome.successLevel === 'CriticalSuccess'
             ? 'skill/cast-crit.mp3'
             : outcome.skillType === 'HEAL'
-            ? 'skill/heal.mp3'
-            : 'skill/cast.mp3';
-        
+                ? 'skill/heal.mp3'
+                : 'skill/cast.mp3';
+
         effects.push({
             type: 'playAudio',
             sound: soundFile,
@@ -146,7 +146,7 @@ export function generateSkillEffects(outcome: SkillOutcome): SideEffect[] {
     else if (outcome.skillType === 'DAMAGE') {
         if (outcome.finalDamage && outcome.finalDamage > 0) {
             const isCrit = outcome.successLevel === 'CriticalSuccess';
-            
+
             effects.push({
                 type: 'triggerAnimation',
                 entityId: 'enemy-current',
@@ -169,7 +169,7 @@ export function generateSkillEffects(outcome: SkillOutcome): SideEffect[] {
             effects.push({
                 type: 'triggerEvent',
                 eventName: 'skill.damage',
-                data: { 
+                data: {
                     amount: outcome.finalDamage,
                     isCritical: isCrit
                 }

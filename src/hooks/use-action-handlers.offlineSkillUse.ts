@@ -3,8 +3,7 @@
  *
  * @remarks
  * Executes skill/spell action consuming mana and applying effects based on dice roll.
- * Integrates Phase 3.A pure rules:
- * - applyMultiplier(baseDamage, mult) → effect scaling based on success level
+ * Uses applyMultiplier rule for consistent effect scaling based on success level.
  *
  * **Skill Use Process:**
  * 1. Validates skill exists in player skill list
@@ -15,8 +14,8 @@
  *    - CriticalFailure: Backfire damage (50% of spell damage to player)
  *    - Failure: No effect
  *    - Success: Normal effect (1.0x)
- *    - GreatSuccess: 1.5x effect multiplier (using applyMultiplier rule)
- *    - CriticalSuccess: 2.0x effect multiplier (using applyMultiplier rule)
+ *    - GreatSuccess: 1.5x effect multiplier
+ *    - CriticalSuccess: 2.0x effect multiplier
  *
  * **Effect Types:**
  * - HEAL: Restore player health
@@ -24,12 +23,8 @@
  * - DEBUFF: Reduce enemy stats
  * - BUFF: Increase player stats
  *
- * **Pure Rule Integration:**
- * - applyMultiplier ensures consistent effect scaling across all systems
- * - Same formula used in combat-usecase and other damage systems
- *
  * @param context - Skill dependencies (player stats, world, dice, effects)
- * @returns Handler function (skillName: string) => void
+ * @returns Handler function (skillName: string) => SkillOutcome | void
  *
  * @example
  * const handleSkillUse = createHandleOfflineSkillUse({ playerStats, rollDice, ... });
@@ -107,7 +102,7 @@ export function createHandleOfflineSkillUse(context: Partial<ActionHandlerDeps> 
         setPlayerStats(() => newPlayerStats);
         advanceGameTime(newPlayerStats);
 
-        // Return skill outcome for effect generation (Phase 4B.3)
+        // Return skill outcome for effect generation
         return {
             skillName: skillToUse.name,
             successLevel,

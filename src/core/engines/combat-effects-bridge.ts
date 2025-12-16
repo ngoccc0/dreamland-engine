@@ -1,9 +1,8 @@
 /**
- * Combat Effects Bridge (Phase 4B.2)
+ * Combat Effects Bridge
  *
  * @remarks
  * Converts combat outcomes from existing handlers into side effects.
- * This bridges the existing combat system with the new effect executor.
  */
 
 import type { SideEffect } from '@/core/entities/side-effects';

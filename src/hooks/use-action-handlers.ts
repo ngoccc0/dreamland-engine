@@ -140,7 +140,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
   // worldProfile contains global spawn/config modifiers (e.g., spawnMultiplier)
   const { worldProfile } = deps;
 
-  // Phase 4B: Hook effect executor for centralized side-effect handling
+  // Hook effect executor for centralized side-effect handling
   const { executeEffects } = useEffectExecutor();
 
   // Helper to resolve an item definition by name. Prefer custom/generated definitions
@@ -450,7 +450,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
     setPlayerStats(() => newPlayerStats);
 
-    // Phase 4B: Execute combat and generate effects
+    // Capture combat outcome and execute effects
     const outcome = handleOfflineAttack();
     if (outcome) {
       // Generate and execute side effects from combat outcome

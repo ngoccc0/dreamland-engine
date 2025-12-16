@@ -21,7 +21,7 @@
  * - PLACEMENT: Place buildings/structures
  *
  * @param context - Action dependencies (inventory, world, player state)
- * @returns Handler function (itemName: string, target: string) => void
+ * @returns Handler function (itemName: string, target: string) => ItemUseOutcome | void
  *
  * @example
  * const handleItemUse = createHandleOfflineItemUse({ playerStats, world, ... });
@@ -130,7 +130,7 @@ export function createHandleOfflineItemUse(context: Partial<ActionHandlerDeps> &
     setPlayerStats(() => newPlayerStats);
     advanceGameTime(newPlayerStats);
 
-    // Return item use outcome for effect generation (Phase 4B.3)
+    // Return item use outcome for effect generation
     return {
       itemName,
       targetType: target as 'player' | 'world' | 'craft',

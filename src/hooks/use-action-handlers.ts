@@ -42,6 +42,7 @@ import { resolveItemDef as resolveItemDefHelper } from '@/lib/utils/item-utils';
 import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchAction, analyze_chunk_mood } from '@/core/engines/game/offline';
 import { getEffectiveChunk } from '@/core/engines/game/weather-generation';
 import { generateCombatEffects } from '@/core/engines/combat-effects-bridge';
+import { generateSkillEffects } from '@/core/engines/skill-effects-bridge';
 import { useAudio } from '@/lib/audio/useAudio';
 import { AudioActionType } from '@/core/data/audio-events';
 import { getTemplates } from '@/lib/game/templates';
@@ -446,7 +447,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText] };
 
     setPlayerStats(() => newPlayerStats);
-    
+
     // Phase 4B: Execute combat and generate effects
     const outcome = handleOfflineAttack();
     if (outcome) {
@@ -569,8 +570,12 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const actionText = `${t('useSkillAction')} ${skillName}`;
     addNarrativeEntry(actionText, 'action');
 
-    handleOfflineSkillUse(skillName);
-  }, [isLoading, isGameOver, isLoaded, t, handleOfflineSkillUse, addNarrativeEntry]);
+    const outcome = handleOfflineSkillUse(skillName);
+    if (outcome) {
+      const effects = generateSkillEffects(outcome);
+      executeEffects(effects);
+    }
+  }, [isLoading, isGameOver, isLoaded, t, handleOfflineSkillUse, addNarrativeEntry, executeEffects]);
 
   const handleBuild = useCallback((structureName: string) => {
     if (isLoading || isGameOver) return;

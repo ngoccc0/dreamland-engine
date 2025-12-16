@@ -39,9 +39,10 @@
 // Extracted offline skill-use handler. Accepts a context object with needed deps.
 import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
 import { applyMultiplier } from '@/core/rules/combat';
+import type { SkillOutcome } from '@/core/engines/skill-effects-bridge';
 
 export function createHandleOfflineSkillUse(context: Partial<ActionHandlerDeps> & Record<string, any>) {
-    return (skillName: string) => {
+    return (skillName: string): SkillOutcome | void => {
         const { playerStats, addNarrativeEntry, t, rollDice, settings, getSuccessLevel, getTranslatedText, world, playerPosition, setWorld, setPlayerStats, advanceGameTime } = context as any;
 
         let newPlayerStats: any = JSON.parse(JSON.stringify(playerStats));
@@ -52,6 +53,7 @@ export function createHandleOfflineSkillUse(context: Partial<ActionHandlerDeps> 
         if (!skillToUse) { addNarrativeEntry(t('skillNotFound', { skillName: t(skillName as any) }), 'system'); return; }
         if ((newPlayerStats.mana ?? 0) < skillToUse.manaCost) { addNarrativeEntry(t('notEnoughMana', { skillName: t(skillName as any) }), 'system'); return; }
 
+        const playerHpBefore = newPlayerStats.hp;
         const { roll } = rollDice(settings.diceType);
         const successLevel = getSuccessLevel(roll, settings.diceType);
         addNarrativeEntry(t('diceRollMessage', { diceType: settings.diceType, roll, level: t((context.successLevelToTranslationKey || {})[successLevel]) }), 'system');
@@ -104,5 +106,20 @@ export function createHandleOfflineSkillUse(context: Partial<ActionHandlerDeps> 
         if (newEnemy !== currentChunk.enemy) setWorld((prev: any) => ({ ...prev, [key]: { ...prev[key]!, enemy: newEnemy } }));
         setPlayerStats(() => newPlayerStats);
         advanceGameTime(newPlayerStats);
+
+        // Return skill outcome for effect generation (Phase 4B.3)
+        return {
+            skillName: skillToUse.name,
+            successLevel,
+            manaCost: skillToUse.manaCost,
+            backfireDamage: narrativeResult.backfireDamage,
+            healedAmount: narrativeResult.healedAmount,
+            finalDamage: narrativeResult.finalDamage,
+            siphonedAmount: narrativeResult.siphonedAmount,
+            enemyDefeated: narrativeResult.enemy === null && currentChunk.enemy !== null,
+            skillType: skillToUse.effect.type || 'UNKNOWN',
+            playerHpBefore,
+            playerHpAfter: newPlayerStats.hp
+        } as SkillOutcome;
     };
 }

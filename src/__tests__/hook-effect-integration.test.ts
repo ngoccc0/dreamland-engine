@@ -13,7 +13,7 @@
  */
 
 // Side effect type definitions (imported locally for test isolation)
-type SideEffect = 
+type SideEffect =
     | { type: 'playAudio'; sound: string; volume?: number }
     | { type: 'stopAudio' }
     | { type: 'spawnParticle'; type_: string; position: { x: number; y: number } }

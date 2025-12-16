@@ -16,7 +16,7 @@
 type SideEffect =
     | { type: 'playAudio'; sound: string; volume?: number }
     | { type: 'stopAudio' }
-    | { type: 'spawnParticle'; type_: string; position: { x: number; y: number } }
+    | { type: 'spawnParticle'; particleType: string; position: { x: number; y: number } }
     | { type: 'showNotification'; message: string; duration?: number }
     | { type: 'saveGame' }
     | { type: 'triggerEvent'; eventName: string; data?: Record<string, unknown> }
@@ -24,7 +24,19 @@ type SideEffect =
     | { type: 'applyHeal'; targetId: string; amount: number }
     | { type: 'applyStatus'; targetId: string; statusType: string; duration: number }
     | { type: 'triggerAnimation'; entityId: string; animation: string; speed?: number }
-    | { type: 'logDebug'; message: string };
+    | { type: 'showDialogue'; text: string; speaker?: string }
+    | { type: 'logDebug'; message: string }
+    | { type: 'moveCamera'; x: number; y: number }
+    | { type: 'updateUI'; target: string; data?: Record<string, unknown> }
+    | { type: 'completeAchievement'; achievementId: string }
+    | { type: 'unlockContent'; contentId: string }
+    | { type: 'spawnEntity'; entityType: string; position: { x: number; y: number } }
+    | { type: 'despawnEntity'; entityId: string }
+    | { type: 'moveEntity'; entityId: string; position: { x: number; y: number } }
+    | { type: 'changeWeather'; weatherType: string }
+    | { type: 'addExperience'; amount: number; type_: string }
+    | { type: 'grantLoot'; items: any[] }
+    | { type: 'startBattle'; enemyId: string };
 
 describe('Phase 4: Hook Effect Integration', () => {
     // Mock dependencies
@@ -293,7 +305,7 @@ describe('Phase 4: Hook Effect Integration', () => {
 
         it('exploration usecase should return compatible effects', () => {
             const explorationEffects: SideEffect[] = [
-                { type: 'spawnParticle', type_: 'discovery', position: { x: 10, y: 20 } },
+                { type: 'spawnParticle', particleType: 'discovery', position: { x: 10, y: 20 } },
                 {
                     type: 'triggerEvent',
                     eventName: 'chunk.explored',
@@ -317,7 +329,7 @@ describe('Phase 4: Hook Effect Integration', () => {
                     amount: 50,
                     damageType: 'magical'
                 },
-                { type: 'spawnParticle', type_: 'spell-cast', position: { x: 5, y: 10 } }
+                { type: 'spawnParticle', particleType: 'spell-cast', position: { x: 5, y: 10 } }
             ];
 
             expect(skillEffects.length).toBeGreaterThan(0);

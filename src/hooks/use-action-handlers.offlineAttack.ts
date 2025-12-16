@@ -23,8 +23,12 @@
  * - applyMultiplier standardizes critical hit and effect scaling
  * - Same formulas used in combat-usecase and other systems
  *
+ * **Phase 4B Integration:**
+ * Returns combat outcome object that can be converted to side effects
+ * via generateCombatEffects() function.
+ *
  * @param context - Combat dependencies (dice, player stats, world, enemy AI)
- * @returns Handler function () => void (no args, uses context)
+ * @returns Handler function () => CombatOutcome | void
  */
 
 // Extracted offline attack handler.
@@ -33,9 +37,10 @@ import {
   calculateBaseDamage,
   applyMultiplier,
 } from '@/core/rules/combat';
+import type { CombatOutcome } from '@/core/engines/combat-effects-bridge';
 
 export function createHandleOfflineAttack(context: Partial<ActionHandlerDeps> & Record<string, any>) {
-  return () => {
+  return (): CombatOutcome | void => {
     const { playerPosition, world, addNarrativeEntry, t, logger, getEffectiveChunk, weatherZones, gameTime, sStart, sDayDuration, rollDice, getSuccessLevel, setPlayerStats, advanceGameTime, setWorld, getTemplates, language, resolveItemDef } = context as any;
     const key = `${playerPosition.x},${playerPosition.y}`;
     const baseChunk = world[key];
@@ -121,5 +126,23 @@ export function createHandleOfflineAttack(context: Partial<ActionHandlerDeps> & 
 
     context.setPlayerStats && context.setPlayerStats(() => nextPlayerStats as any);
     context.advanceGameTime && context.advanceGameTime(nextPlayerStats as any);
+
+    // Phase 4B: Return combat outcome for effect generation
+    return {
+      playerDamage,
+      enemyDamage,
+      enemyDefeated,
+      enemyFled: fled,
+      successLevel,
+      lootDrops: lootDrops.map(drop => ({
+        name: context.getTranslatedText ? context.getTranslatedText(drop.name, 'en') : drop.name,
+        quantity: drop.quantity,
+        emoji: drop.emoji
+      })),
+      playerHpBefore: context.playerStats?.hp || 0,
+      playerHpAfter: nextPlayerStats.hp || 0,
+      enemyHpBefore: currentChunk.enemy?.hp || 0,
+      enemyHpAfter: finalEnemyHp
+    } as CombatOutcome;
   };
 }

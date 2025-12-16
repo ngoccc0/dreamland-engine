@@ -41,6 +41,7 @@ import { rollDice, getSuccessLevel, successLevelToTranslationKey } from '@/lib/u
 import { resolveItemDef as resolveItemDefHelper } from '@/lib/utils/item-utils';
 import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchAction, analyze_chunk_mood } from '@/core/engines/game/offline';
 import { getEffectiveChunk } from '@/core/engines/game/weather-generation';
+import { generateCombatEffects } from '@/core/engines/combat-effects-bridge';
 import { useAudio } from '@/lib/audio/useAudio';
 import { AudioActionType } from '@/core/data/audio-events';
 import { getTemplates } from '@/lib/game/templates';
@@ -445,8 +446,15 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText] };
 
     setPlayerStats(() => newPlayerStats);
-    handleOfflineAttack();
-  }, [isLoading, isGameOver, isLoaded, setPlayerBehaviorProfile, world, playerPosition, addNarrativeEntry, t, playerStats, handleOfflineAttack, setPlayerStats, audio]);
+    
+    // Phase 4B: Execute combat and generate effects
+    const outcome = handleOfflineAttack();
+    if (outcome) {
+      // Generate and execute side effects from combat outcome
+      const effects = generateCombatEffects(outcome);
+      executeEffects(effects);
+    }
+  }, [isLoading, isGameOver, isLoaded, setPlayerBehaviorProfile, world, playerPosition, addNarrativeEntry, t, playerStats, handleOfflineAttack, setPlayerStats, audio, executeEffects]);
 
   const handleCustomAction = useCallback((text: string) => {
     if (!text.trim() || isLoading || isGameOver || !isLoaded) return;

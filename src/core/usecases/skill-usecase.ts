@@ -1,5 +1,6 @@
 import { Skill } from '../entities/skill';
 import { Combatant } from '../entities/combat';
+import { SideEffect } from '../entities/side-effects';
 // removed unused type imports (SkillTree, Experience)
 import {
     rollDice,
@@ -179,7 +180,20 @@ import {
 export interface ISkillUseCase {
     learnSkill(characterId: string, skillId: string): Promise<boolean>;
     levelUpSkill(characterId: string, skillId: string): Promise<boolean>;
-    useSkill(caster: Combatant, skill: Skill, targets: Combatant[]): Promise<void>;
+    useSkill(caster: Combatant, skill: Skill, targets: Combatant[]): Promise<SkillUseResult>;
+}
+
+/**
+ * Result of using a skill - returns side effects to execute
+ *
+ * @remarks
+ * Pure function pattern: (caster, skill, targets) → effects[]
+ * Hooks execute effects (audio, animations, damage apply, etc)
+ */
+export interface SkillUseResult {
+    success: boolean;
+    effects: SideEffect[];
+    message?: string;
 }
 
 export class SkillUseCase implements ISkillUseCase {
@@ -215,31 +229,134 @@ export class SkillUseCase implements ISkillUseCase {
         return success;
     }
 
-    async useSkill(caster: Combatant, skill: Skill, targets: Combatant[]): Promise<void> {
+    async useSkill(caster: Combatant, skill: Skill, targets: Combatant[]): Promise<SkillUseResult> {
+        /**
+         * Use a skill and generate side effects
+         *
+         * @remarks
+         * **Pattern:** Pure function returns {success, effects[]}
+         *
+         * Effects generated:
+         * - PlayAudioEffect: Skill sound cue (e.g., "fireball-cast", "sword-slash")
+         * - TriggerAnimationEffect: Caster animation (e.g., "cast-spell", "melee-attack")
+         * - ApplyDamageEffect: Damage to each target
+         * - ApplyStatusEffect: Status effects (bleeding, burning, slowness)
+         * - TriggerEventEffect: Fire skill-used event
+         */
         if (!skill.isReady()) {
-            throw new Error('Skill is on cooldown');
+            return {
+                success: false,
+                effects: [
+                    {
+                        type: 'showNotification',
+                        message: `${skill.name} is on cooldown!`,
+                        type_: 'warning'
+                    }
+                ]
+            };
         }
 
         // Check resource cost (compat shim: some Skill implementations expose resourceCost/getEffectsAtLevel)
         const resourceCost = (skill as any).resourceCost || { type: 'MANA', value: 0 };
         const { type: resourceType, value: cost } = resourceCost;
         if (!this.hasEnoughResource(caster, resourceType, cost)) {
-            throw new Error(`Not enough ${String(resourceType).toLowerCase()}`);
+            return {
+                success: false,
+                effects: [
+                    {
+                        type: 'showNotification',
+                        message: `Not enough ${String(resourceType).toLowerCase()}!`,
+                        type_: 'warning'
+                    }
+                ]
+            };
         }
 
-        // Apply skill effects (fallback to the effects array if helper method is missing)
-        const effects = typeof (skill as any).getEffectsAtLevel === 'function' ? (skill as any).getEffectsAtLevel() : (skill.effects || []);
+        const effects: SideEffect[] = [];
+
+        // Play skill sound effect
+        const skillSoundMap: { [key: string]: string } = {
+            fireball: 'fireball-cast',
+            'power-slash': 'sword-slash',
+            'ice-storm': 'magic-ice',
+            'meteor-strike': 'meteor-impact'
+        };
+        const skillNameStr = String(skill.name).toLowerCase();
+        const soundId = skillSoundMap[skillNameStr] || 'skill-use';
+        effects.push({
+            type: 'playAudio',
+            sound: soundId,
+            volume: 0.8
+        });
+
+        // Trigger caster animation
+        effects.push({
+            type: 'triggerAnimation',
+            entityId: caster.id,
+            animation: 'skill-cast',
+            speed: 1.5
+        });
+
+        // Get skill effects based on level
+        const skillEffects = typeof (skill as any).getEffectsAtLevel === 'function'
+            ? (skill as any).getEffectsAtLevel()
+            : (skill.effects || []);
+
+        // Apply effects to each target
         for (const target of targets) {
-            for (const effect of effects) {
+            for (const effect of skillEffects) {
+                // Hit chance roll
                 if (Math.random() <= (effect.chance || 1)) {
-                    await this.applyEffect(effect, caster, target);
+                    // Damage
+                    if (effect.damage) {
+                        effects.push({
+                            type: 'applyDamage',
+                            targetId: target.id,
+                            amount: effect.damage,
+                            damageType: effect.damageType || 'physical'
+                        });
+                    }
+
+                    // Status effect
+                    if (effect.statusEffect) {
+                        effects.push({
+                            type: 'applyStatus',
+                            targetId: target.id,
+                            statusType: effect.statusEffect.type,
+                            duration: effect.statusEffect.duration || 10
+                        });
+                    }
                 }
             }
+
+            // Target reaction animation
+            effects.push({
+                type: 'triggerAnimation',
+                entityId: target.id,
+                animation: 'hit'
+            });
         }
 
         // Start cooldown and consume resources
         skill.startCooldown();
         this.consumeResource(caster, resourceType, cost);
+
+        // Trigger skill-used event
+        effects.push({
+            type: 'triggerEvent',
+            eventName: 'skill.used',
+            data: {
+                skillId: skill.name,
+                casterId: caster.id,
+                targetCount: targets.length
+            }
+        });
+
+        return {
+            success: true,
+            effects,
+            message: `${caster.name} used ${skill.name}!`
+        };
     }
 
     private hasEnoughResource(
@@ -257,13 +374,5 @@ export class SkillUseCase implements ISkillUseCase {
         _amount: number
     ): void {
         // Implementation depends on how resources are stored in Combatant
-    }
-
-    private async applyEffect(
-        _effect: any,
-        _caster: Combatant,
-        _target: Combatant
-    ): Promise<void> {
-        // Implementation of effect application
     }
 }

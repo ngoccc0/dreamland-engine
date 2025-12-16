@@ -13,6 +13,7 @@ import { GridPosition } from '../values/grid-position';
 import { TerrainType } from '../entities/terrain';
 import { WorldGenerator } from '../generators/world-generator';
 import { CreatureEngine } from '../engines/creature-engine';
+import { SideEffect } from '../entities/side-effects';
 import type { Enemy, Chunk } from '@/core/types/game';
 import {
     rollDice,

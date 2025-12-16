@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
 import { useSettings } from '@/context/settings-context';
+import { useEffectExecutor } from '@/hooks/use-effect-executor';
 
 import type { GenerateNarrativeInput } from '@/ai/flows/generate-narrative-flow';
 import { createHandleOnlineNarrative } from '@/hooks/use-action-handlers.online';
@@ -134,6 +135,9 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
   } = deps as any;
   // worldProfile contains global spawn/config modifiers (e.g., spawnMultiplier)
   const { worldProfile } = deps;
+
+  // Phase 4B: Hook effect executor for centralized side-effect handling
+  const { executeEffects } = useEffectExecutor();
 
   // Helper to resolve an item definition by name. Prefer custom/generated definitions
   // (world-specific), but fall back to the built-in master item catalog when needed.

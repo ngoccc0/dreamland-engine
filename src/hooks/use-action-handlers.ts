@@ -43,6 +43,7 @@ import { generateOfflineNarrative, generateOfflineActionNarrative, handleSearchA
 import { getEffectiveChunk } from '@/core/engines/game/weather-generation';
 import { generateCombatEffects } from '@/core/engines/combat-effects-bridge';
 import { generateSkillEffects } from '@/core/engines/skill-effects-bridge';
+import { generateItemEffects } from '@/core/engines/item-effects-bridge';
 import { useAudio } from '@/lib/audio/useAudio';
 import { AudioActionType } from '@/core/data/audio-events';
 import { getTemplates } from '@/lib/game/templates';
@@ -561,9 +562,13 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const actionText = target === 'player' ? `${t('useAction')} ${t(itemName as TranslationKey)}` : `${t('useOnAction', { item: t(itemName as TranslationKey), target: t(target as TranslationKey) })}`;
     addNarrativeEntry(actionText, 'action');
 
-    handleOfflineItemUse(getTranslatedText(itemName, 'en'), getTranslatedText(target, 'en'));
+    const outcome = handleOfflineItemUse(getTranslatedText(itemName, 'en'), getTranslatedText(target, 'en'));
+    if (outcome) {
+      const effects = generateItemEffects(outcome);
+      executeEffects(effects);
+    }
 
-  }, [isLoading, isGameOver, isLoaded, t, handleOfflineItemUse, addNarrativeEntry]);
+  }, [isLoading, isGameOver, isLoaded, t, handleOfflineItemUse, addNarrativeEntry, executeEffects]);
 
   const handleUseSkill = useCallback((skillName: string) => {
     if (isLoading || isGameOver || !isLoaded) return;

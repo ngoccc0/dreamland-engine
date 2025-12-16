@@ -1,4 +1,5 @@
 import { Combatant, CombatResult, CombatRound, CombatAction } from '../entities/combat';
+import { SideEffect } from '../entities/side-effects';
 import { allItems as itemDefinitions } from '@/core/data/items';
 import { combatConfig } from '@/lib/config';
 import {
@@ -147,10 +148,34 @@ import {
  * - **Skill Synergy**: Effects enable complex strategies
  * - **Balanced**: Attack ≈ Defense scaling prevents dominated strategies
  */
+/**
+ * Combat round result with side effects
+ *
+ * @remarks
+ * Pattern: (combatant) → {round, effects[]}
+ * Effects: Animations, damage notifications, sounds, events
+ */
+export interface CombatRoundResult {
+    round: CombatRound;
+    effects: SideEffect[];
+}
+
+/**
+ * Combat end result with side effects
+ *
+ * @remarks
+ * Pattern: (combatants) → {result, effects[]}
+ * Effects: Victory/defeat notifications, loot granted, XP awarded
+ */
+export interface CombatEndResult {
+    result: CombatResult;
+    effects: SideEffect[];
+}
+
 export interface ICombatUseCase {
     initiateCombat(attacker: Combatant, defender: Combatant): Promise<void>;
-    executeCombatRound(): Promise<CombatRound>;
-    endCombat(): Promise<CombatResult>;
+    executeCombatRound(): Promise<CombatRoundResult>;
+    endCombat(): Promise<CombatEndResult>;
 }
 
 export class CombatUseCase implements ICombatUseCase {
@@ -164,10 +189,25 @@ export class CombatUseCase implements ICombatUseCase {
         this.rounds = [];
     }
 
-    async executeCombatRound(): Promise<CombatRound> {
+    async executeCombatRound(): Promise<CombatRoundResult> {
+        /**
+         * Execute one full combat round
+         *
+         * @remarks
+         * **Pattern:** Pure function returns {round, effects[]}
+         *
+         * Effects generated:
+         * - PlayAudioEffect: Attack sounds, critical hit sound
+         * - TriggerAnimationEffect: Attack animations, hit animations
+         * - ApplyDamageEffect: Damage to defender
+         * - TriggerEventEffect: Combat action event
+         * - ShowNotificationEffect: Combat log messages
+         */
         if (!this.currentAttacker || !this.currentDefender) {
             throw new Error('Combat not initialized');
         }
+
+        const effects: SideEffect[] = [];
 
         const round: CombatRound = {
             actions: [],
@@ -178,13 +218,15 @@ export class CombatUseCase implements ICombatUseCase {
         // Process attacker's turn
         const attackerAction = await this.determineAction(this.currentAttacker);
         round.actions.push(attackerAction);
-        await this.executeAction(attackerAction, round);
+        const attackerEffects = await this.executeAction(attackerAction, round);
+        effects.push(...attackerEffects);
 
         if (!this.currentDefender.isDead()) {
             // Process defender's turn
             const defenderAction = await this.determineAction(this.currentDefender);
             round.actions.push(defenderAction);
-            await this.executeAction(defenderAction, round);
+            const defenderEffects = await this.executeAction(defenderAction, round);
+            effects.push(...defenderEffects);
         }
 
         // Update effects for both combatants
@@ -192,24 +234,88 @@ export class CombatUseCase implements ICombatUseCase {
         this.currentDefender.updateEffects();
 
         this.rounds.push(round);
-        return round;
+        return { round, effects };
     }
 
-    async endCombat(): Promise<CombatResult> {
+    async endCombat(): Promise<CombatEndResult> {
+        /**
+         * End combat and generate victory/defeat effects
+         *
+         * @remarks
+         * **Pattern:** Pure function returns {result, effects[]}
+         *
+         * Effects generated:
+         * - ShowNotificationEffect: Victory/defeat message
+         * - GrantLootEffect: Item drops
+         * - AddExperienceEffect: XP awarded
+         * - TriggerEventEffect: Battle ended event
+         * - PlayAudioEffect: Victory/defeat fanfare
+         */
         if (!this.currentAttacker || !this.currentDefender) {
             throw new Error('Combat not initialized');
         }
 
+        const effects: SideEffect[] = [];
         const winner = this.currentAttacker.isDead() ? this.currentDefender : this.currentAttacker;
         const loser = this.currentAttacker.isDead() ? this.currentAttacker : this.currentDefender;
 
-        return {
+        const result: CombatResult = {
             winner,
             loser,
             rounds: this.rounds,
             experience: this.calculateExperience(winner, loser),
             loot: await this.generateLoot(loser)
         };
+
+        // Victory notification
+        effects.push({
+            type: 'showNotification',
+            message: `${String(winner.name)} wins the battle!`,
+            type_: 'success',
+            duration: 3000
+        });
+
+        // Victory sound
+        effects.push({
+            type: 'playAudio',
+            sound: 'combat-victory',
+            volume: 0.8
+        });
+
+        // Grant loot if any
+        if (result.loot && result.loot.length > 0) {
+            effects.push({
+                type: 'grantLoot',
+                items: result.loot.map((item: any) => ({
+                    id: item.itemId,
+                    quantity: item.quantity
+                })),
+                source: `Defeated ${String(loser.name)}`
+            });
+        }
+
+        // Award experience
+        if (result.experience > 0) {
+            effects.push({
+                type: 'addExperience',
+                amount: result.experience,
+                type_: 'combat'
+            });
+        }
+
+        // Combat ended event
+        effects.push({
+            type: 'triggerEvent',
+            eventName: 'combat.ended',
+            data: {
+                winner: winner.id,
+                loser: loser.id,
+                roundCount: this.rounds.length,
+                experienceAwarded: result.experience
+            }
+        });
+
+        return { result, effects };
     }
 
     private async determineAction(combatant: Combatant): Promise<CombatAction> {
@@ -222,7 +328,19 @@ export class CombatUseCase implements ICombatUseCase {
         };
     }
 
-    private async executeAction(action: CombatAction, round: CombatRound): Promise<void> {
+    private async executeAction(action: CombatAction, round: CombatRound): Promise<SideEffect[]> {
+        /**
+         * Execute a single combat action and generate effects
+         *
+         * @remarks
+         * Effects:
+         * - PlayAudioEffect: Attack sounds
+         * - TriggerAnimationEffect: Attack/hit animations
+         * - ApplyDamageEffect: Damage application
+         * - ShowNotificationEffect: Action log
+         */
+        const effects: SideEffect[] = [];
+
         switch (action.type) {
             case 'ATTACK': {
                 const damage = this.calculateDamage(action.actor, action.target);
@@ -231,6 +349,50 @@ export class CombatUseCase implements ICombatUseCase {
                     ...damage,
                     amount: actualDamage
                 });
+
+                // Attack sound
+                effects.push({
+                    type: 'playAudio',
+                    sound: damage.isCritical ? 'combat-critical-hit' : 'combat-attack',
+                    volume: 0.7
+                });
+
+                // Attack animation
+                effects.push({
+                    type: 'triggerAnimation',
+                    entityId: action.actor.id,
+                    animation: 'attack',
+                    speed: 1.2
+                });
+
+                // Hit animation
+                effects.push({
+                    type: 'triggerAnimation',
+                    entityId: action.target.id,
+                    animation: damage.isCritical ? 'hit-critical' : 'hit',
+                    speed: 1.0
+                });
+
+                // Damage effect
+                effects.push({
+                    type: 'applyDamage',
+                    targetId: action.target.id,
+                    amount: actualDamage,
+                    damageType: damage.type
+                });
+
+                // Combat log notification
+                const logMsg = damage.isCritical
+                    ? `${String(action.actor.name)} CRITICALLY HIT ${String(action.target.name)} for ${actualDamage} damage!`
+                    : `${String(action.actor.name)} attacked ${String(action.target.name)} for ${actualDamage} damage!`;
+
+                effects.push({
+                    type: 'showNotification',
+                    message: logMsg,
+                    type_: 'info',
+                    duration: 1500
+                });
+
                 break;
             }
             case 'SKILL': {
@@ -245,6 +407,8 @@ export class CombatUseCase implements ICombatUseCase {
                 // Handle flee attempt
                 break;
         }
+
+        return effects;
     }
 
     private calculateDamage(attacker: Combatant, defender: Combatant) {

@@ -294,10 +294,32 @@ import {
  * - No seasonal climate changes yet
  */
 export interface IWorldUseCase {
-    generateWorld(config: WorldGenerationConfig): Promise<World>;
-    exploreChunk(position: GridPosition): Promise<Chunk>;
+    generateWorld(config: WorldGenerationConfig): Promise<WorldGenerationResult>;
+    exploreChunk(position: GridPosition): Promise<ChunkExplorationResult>;
     getVisibleChunks(position: GridPosition, viewRadius: number): Promise<Chunk[]>;
     updateWorld(): Promise<void>;
+}
+
+/**
+ * Result of world generation - returns world + side effects
+ *
+ * @remarks
+ * Pure function pattern: (config) → {world, effects[]}
+ */
+export interface WorldGenerationResult {
+    world: World;
+    effects: SideEffect[];
+}
+
+/**
+ * Result of chunk exploration - returns chunk + side effects
+ *
+ * @remarks
+ * Effects: Notifications, particle effects, events for discoveries
+ */
+export interface ChunkExplorationResult {
+    chunk: Chunk;
+    effects: SideEffect[];
 }
 
 interface WorldGenerationConfig {
@@ -317,63 +339,90 @@ export class WorldUseCase implements IWorldUseCase {
     ) { }
 
     /**
-     * Generate a new world using the provided configuration.
+     * Generate a new world using the provided configuration
      *
-     * ## Algorithm
-     * 1. Initialize chunk grid with Perlin noise-based terrain distribution
-     * 2. Group adjacent terrain types into regions (flood-fill algorithm)
-     * 3. Spawn creatures per chunk based on terrain danger level
-     * 4. Seed vegetation (plant instances) with density based on terrain
-     * 5. Calculate initial chunk attributes (moisture, light, elevation, danger)
-     * 6. Initialize weather system
-     * 7. Persist to repository
+     * @remarks
+     * **Pattern:** Pure function returns {world, effects[]}
      *
-     * @param config WorldGenerationConfig specifying dimensions, terrain distribution, region size
-     * @returns Generated World ready for exploration
+     * Effects generated:
+     * - LogDebugEffect: World dimensions, chunk count
+     * - TriggerEventEffect: world.generated event
+     * - SaveGameEffect: Auto-save after generation
      *
-     * ## Performance
-     * - Time complexity: O(width × height) — typically 5-30 seconds for 100×100 grid
-     * - Space complexity: O(width × height) for chunk storage
-     * - Can be offloaded to worker thread for large worlds
-     *
-     * ## Side Effects
-     * - Creates chunk grid with terrain, creatures, vegetation
-     * - Initializes creature engine with spawned enemies
-     * - Persists world to repository (for save/load)
+     * **Algorithm:**
+     * 1. Use WorldGenerator to create terrain, creatures, vegetation
+     * 2. Generate informational effects
+     * 3. Return world + effects (effects execute asynchronously in hooks)
      */
-    async generateWorld(config: WorldGenerationConfig): Promise<World> {
+    async generateWorld(config: WorldGenerationConfig): Promise<WorldGenerationResult> {
         // Use WorldGenerator to create the world with terrain, creatures, vegetation
-        // This replaces the TODO and provides actual world generation
-
-        // Note: WorldGenerator.generateWorld() currently doesn't take config params
-        // Future enhancement: pass config to generator for procedural generation customization
         this.world = await this.worldGenerator.generateWorld() as unknown as World;
+
+        const effects: SideEffect[] = [];
+
+        // Log world generation info
+        effects.push({
+            type: 'logDebug',
+            message: 'World generated',
+            data: {
+                width: config.width,
+                height: config.height,
+                totalChunks: config.width * config.height
+            }
+        });
+
+        // Trigger world generation event
+        effects.push({
+            type: 'triggerEvent',
+            eventName: 'world.generated',
+            data: {
+                width: config.width,
+                height: config.height,
+                chunkCount: config.width * config.height
+            }
+        });
+
+        // Auto-save after generation
+        effects.push({
+            type: 'saveGame',
+            timestamp: Date.now(),
+            reason: 'world-generation'
+        });
 
         // Persist generated world
         await this.worldRepository.save(this.world);
 
-        return this.world;
+        return { world: this.world, effects };
     }
 
     /**
-     * Explore a chunk, marking it as discovered and registering creatures.
+     * Explore a chunk and generate discovery effects
      *
-     * @param position GridPosition of chunk to explore
-     * @returns Chunk with full metadata
+     * @remarks
+     * **Pattern:** Pure function returns {chunk, effects[]}
      *
-     * Side effects:
-     * - Sets chunk.explored = true
-     * - Registers creatures in CreatureEngine
-     * - Generates discovery events (items, NPCs)
-     * - Persists world state
+     * Effects generated:
+     * - ShowNotificationEffect: "Chunk explored" message
+     * - TriggerEventEffect: chunk.explored event
+     * - SpawnParticleEffect: Exploration marker particle
+     * - SaveGameEffect: Auto-save exploration progress
+     *
+     * **Logic:**
+     * 1. Load chunk from world
+     * 2. Mark as explored
+     * 3. Register creatures in creature engine
+     * 4. Generate notification + event effects
+     * 5. Add particle effect at chunk position
      */
-    async exploreChunk(position: GridPosition): Promise<Chunk> {
+    async exploreChunk(position: GridPosition): Promise<ChunkExplorationResult> {
         const chunk = this.world.getChunk(position);
         if (!chunk) {
             throw new Error(`No chunk found at position ${position.toString()}`);
         }
 
-        // Mark chunk as explored (using the explored property instead of markExplored method)
+        const effects: SideEffect[] = [];
+
+        // Mark chunk as explored
         chunk.explored = true;
 
         // Register creature if present in the chunk
@@ -382,8 +431,44 @@ export class WorldUseCase implements IWorldUseCase {
             this.creatureEngine.registerCreature(creatureId, chunk.enemy, position, chunk);
         }
 
+        // Generate exploration effects
+        const terrainName = chunk.terrain ? String(chunk.terrain).toLowerCase() : 'unknown';
+        effects.push({
+            type: 'showNotification',
+            message: `Explored ${terrainName.toUpperCase()} chunk!`,
+            type_: 'success',
+            duration: 2000
+        });
+
+        // Trigger event for exploration tracking
+        effects.push({
+            type: 'triggerEvent',
+            eventName: 'chunk.explored',
+            data: {
+                position: { x: chunk.x, y: chunk.y },
+                terrain: terrainName,
+                hasCreature: !!chunk.enemy
+            }
+        });
+
+        // Particle effect at exploration location
+        effects.push({
+            type: 'spawnParticle',
+            particleType: 'exploration_marker',
+            position: { x: chunk.x, y: chunk.y },
+            count: 5,
+            duration: 800
+        });
+
+        // Auto-save exploration progress
+        effects.push({
+            type: 'saveGame',
+            timestamp: Date.now(),
+            reason: 'chunk-exploration'
+        });
+
         await this.worldRepository.save(this.world);
-        return chunk;
+        return { chunk, effects };
     }
 
     /**

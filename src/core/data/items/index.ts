@@ -16,6 +16,7 @@ import { equipmentItems } from './equipment';
 import { foodItems } from './food';
 import { toolItems } from './tools';
 import { materialItems } from './materials';
+import { cookingMaterialItems, cookingSpiceItems } from './materials-cooking';
 import { magicItems } from './magic';
 import { supportItems } from './support';
 import { dataItems } from './data';
@@ -29,6 +30,7 @@ export const allItems: Record<string, ItemDefinition> = {
     ...foodItems,
     ...toolItems,
     ...materialItems,
+    ...cookingMaterialItems,
     ...magicItems,
     ...supportItems,
     ...dataItems,
@@ -43,4 +45,4 @@ export function getItemDefinition(itemId: string): ItemDefinition | undefined {
 }
 
 // Re-export individual categories for specific access
-export { equipmentItems, foodItems, toolItems, materialItems, magicItems, supportItems, dataItems };
+export { equipmentItems, foodItems, toolItems, materialItems, cookingMaterialItems, cookingSpiceItems, magicItems, supportItems, dataItems };

@@ -46,7 +46,7 @@ IF (Proposed Code violates `docs/` OR File Limits):
 | `core/` (other) | Entities, Repositories, Factories, Generators, Values | 500 lines |
 | `lib/` | Utilities, Config, Locales, Audio, Text Generation | 500 lines |
 
-**Core Subfolders Rules (`docs/ARCHITECTURE_CLEAN_SLATE.md`):**
+**Core Subfolders Rules (`docs/ARCHITECTURE.md`):**
 * `core/domain/` - Zod schemas (entity.ts, creature.ts, item.ts, gamestate.ts)
 * `core/data/creatures/` - fauna.ts, flora.ts, minerals.ts, monsters.ts
 * `core/data/items/` - weapons.ts, armor.ts, consumables.ts, materials.ts, tools.ts

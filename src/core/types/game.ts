@@ -5,6 +5,24 @@
 export type Icon = string | { type: 'image'; url: string };
 
 /**
+ * Game Effect - Represents side effects that occur as a result of game actions
+ * Effects are separated from state mutations and executed after state changes
+ */
+export interface GameEffect {
+  type: string; // 'PLAY_SOUND', 'SHOW_PARTICLE', 'NOTIFICATION', etc.
+  value?: unknown; // Payload depends on effect type
+  delay?: number; // Optional delay in milliseconds before executing
+}
+
+/**
+ * Game Notification - User-facing message in game
+ */
+export interface GameNotification {
+  en: string;
+  vi: string;
+}
+
+/**
  * Represents an enemy entity in the game world.
  * This interface is designed for extensibility and modding, allowing for diverse enemy types.
  *

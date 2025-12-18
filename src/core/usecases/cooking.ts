@@ -25,24 +25,24 @@ import type { GameState } from '@/core/domain/gamestate';
 import type { Item } from '@/core/domain/item';
 import type { ItemDefinition } from '@/core/types/definitions/item';
 import type { CookingRecipe } from '@/core/types/definitions/cooking-recipe';
-import type { GameEffect, GameNotification } from '@/core/types/game';
+import type { GameEffect } from '@/core/types/game';
 import { cookOnCampfire } from '@/core/engines/cooking/campfire';
 import { cookInPot } from '@/core/engines/cooking/cooking-pot';
 import { cookInOven } from '@/core/engines/cooking/oven';
 
 export interface CookingInput {
-  gameState: GameState;
-  recipe: CookingRecipe;
-  ingredientIds: string[]; // Items to consume
-  itemDefinitions: Record<string, ItemDefinition>;
-  temperature?: number; // Only for oven
-  spiceItemId?: string; // Optional spice enhancement
+    gameState: GameState;
+    recipe: CookingRecipe;
+    ingredientIds: string[]; // Items to consume
+    itemDefinitions: Record<string, ItemDefinition>;
+    temperature?: number; // Only for oven
+    spiceItemId?: string; // Optional spice enhancement
 }
 
 export interface CookingOutput {
-  success: boolean;
-  gameState: GameState;
-  effects: GameEffect[];
+    success: boolean;
+    gameState: GameState;
+    effects: GameEffect[];
 }
 
 /**
@@ -52,125 +52,125 @@ export interface CookingOutput {
  * @returns Updated game state + effects
  */
 export function executeCooking(input: CookingInput): CookingOutput {
-  const {
-    gameState,
-    recipe,
-    ingredientIds,
-    itemDefinitions,
-    temperature,
-    spiceItemId,
-  } = input;
-
-  // Collect ingredient items from inventory
-  const ingredientItems: Item[] = [];
-  const ingredientsToRemove: string[] = [];
-
-  for (const itemId of ingredientIds) {
-    const item = gameState.player.inventory.find((i: Item) => i.id === itemId);
-    if (!item) {
-      return {
-        success: false,
+    const {
         gameState,
-        effects: [
-          {
+        recipe,
+        ingredientIds,
+        itemDefinitions,
+        temperature,
+        spiceItemId,
+    } = input;
+
+    // Collect ingredient items from inventory
+    const ingredientItems: Item[] = [];
+    const ingredientsToRemove: string[] = [];
+
+    for (const itemId of ingredientIds) {
+        const item = gameState.player.inventory.find((i: Item) => i.id === itemId);
+        if (!item) {
+            return {
+                success: false,
+                gameState,
+                effects: [
+                    {
+                        type: 'NOTIFICATION',
+                        value: {
+                            en: 'Missing ingredient',
+                            vi: 'Thiếu nguyên liệu',
+                        },
+                    },
+                ],
+            };
+        }
+        ingredientItems.push(item);
+        ingredientsToRemove.push(itemId);
+    }
+
+    // Collect spice item if provided
+    let spiceItem: Item | null = null;
+    if (spiceItemId) {
+        spiceItem = gameState.player.inventory.find((i: Item) => i.id === spiceItemId) || null;
+    }
+
+    // Select and execute engine
+    const effects: GameEffect[] = [];
+    let cookedItems: Item[] = [];
+    let engineSuccess = false;
+    let message: { en: string; vi: string } = { en: '', vi: '' };
+
+    if (recipe.cookingType === 'CAMPFIRE') {
+        const result = cookOnCampfire(ingredientItems, recipe, itemDefinitions, spiceItem);
+        cookedItems = result.items;
+        engineSuccess = result.success;
+        message = result.message;
+        effects.push(...result.effects);
+    } else if (recipe.cookingType === 'POT') {
+        if (!spiceItem) {
+            // POT requires water as special ingredient
+            // For now, assume water is implicit (user selected pot means water available)
+            // TODO: Pass explicit water item if needed
+        }
+        const result = cookInPot(ingredientItems, recipe, itemDefinitions, spiceItem, spiceItem);
+        cookedItems = result.items;
+        engineSuccess = result.success;
+        message = result.message;
+        effects.push(...result.effects);
+    } else if (recipe.cookingType === 'OVEN') {
+        if (!temperature) {
+            return {
+                success: false,
+                gameState,
+                effects: [
+                    {
+                        type: 'NOTIFICATION',
+                        value: { en: 'Temperature required for oven', vi: 'Cần nhiệt độ để nấu lò' },
+                    },
+                ],
+            };
+        }
+        const result = cookInOven(ingredientItems, recipe, temperature, itemDefinitions, spiceItem);
+        cookedItems = result.items.map((r) => r.item);
+        engineSuccess = result.success;
+        message = result.message;
+        effects.push(...result.effects);
+    }
+
+    // If cooking failed, don't consume ingredients
+    if (!engineSuccess) {
+        effects.push({
             type: 'NOTIFICATION',
-            value: {
-              en: 'Missing ingredient',
-              vi: 'Thiếu nguyên liệu',
-            },
-          },
-        ],
-      };
+            value: message,
+        });
+        return {
+            success: false,
+            gameState,
+            effects,
+        };
     }
-    ingredientItems.push(item);
-    ingredientsToRemove.push(itemId);
-  }
 
-  // Collect spice item if provided
-  let spiceItem: Item | null = null;
-  if (spiceItemId) {
-    spiceItem = gameState.player.inventory.find((i: Item) => i.id === spiceItemId) || null;
-  }
+    // Remove consumed ingredients
+    const newInventoryItems = gameState.player.inventory.filter(
+        (item: Item) => !ingredientsToRemove.includes(item.id)
+    );
 
-  // Select and execute engine
-  const effects: GameEffect[] = [];
-  let cookedItems: Item[] = [];
-  let engineSuccess = false;
-  let message: { en: string; vi: string } = { en: '', vi: '' };
+    // Add cooked items
+    newInventoryItems.push(...cookedItems);
 
-  if (recipe.cookingType === 'CAMPFIRE') {
-    const result = cookOnCampfire(ingredientItems, recipe, itemDefinitions, spiceItem);
-    cookedItems = result.items;
-    engineSuccess = result.success;
-    message = result.message;
-    effects.push(...result.effects);
-  } else if (recipe.cookingType === 'POT') {
-    if (!spiceItem) {
-      // POT requires water as special ingredient
-      // For now, assume water is implicit (user selected pot means water available)
-      // TODO: Pass explicit water item if needed
-    }
-    const result = cookInPot(ingredientItems, recipe, itemDefinitions, spiceItem, spiceItem);
-    cookedItems = result.items;
-    engineSuccess = result.success;
-    message = result.message;
-    effects.push(...result.effects);
-  } else if (recipe.cookingType === 'OVEN') {
-    if (!temperature) {
-      return {
-        success: false,
-        gameState,
-        effects: [
-          {
-            type: 'NOTIFICATION',
-            value: { en: 'Temperature required for oven', vi: 'Cần nhiệt độ để nấu lò' },
-          },
-        ],
-      };
-    }
-    const result = cookInOven(ingredientItems, recipe, temperature, itemDefinitions, spiceItem);
-    cookedItems = result.items.map((r) => r.item);
-    engineSuccess = result.success;
-    message = result.message;
-    effects.push(...result.effects);
-  }
-
-  // If cooking failed, don't consume ingredients
-  if (!engineSuccess) {
+    // Create success notification
     effects.push({
-      type: 'NOTIFICATION',
-      value: message,
+        type: 'NOTIFICATION',
+        value: message,
     });
+
     return {
-      success: false,
-      gameState,
-      effects,
+        success: true,
+        gameState: {
+            ...gameState,
+            player: {
+                ...gameState.player,
+                inventory: newInventoryItems,
+            },
+        },
+        effects,
     };
-  }
-
-  // Remove consumed ingredients
-  const newInventoryItems = gameState.player.inventory.filter(
-    (item: Item) => !ingredientsToRemove.includes(item.id)
-  );
-
-  // Add cooked items
-  newInventoryItems.push(...cookedItems);
-
-  // Create success notification
-  effects.push({
-    type: 'NOTIFICATION',
-    value: message,
-  });
-
-  return {
-    success: true,
-    gameState: {
-      ...gameState,
-      player: {
-        ...gameState.player,
-        inventory: newInventoryItems,
-      },
-    },
-    effects,
-  };
 }

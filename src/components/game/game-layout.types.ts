@@ -45,6 +45,7 @@ export interface GameLayoutNarrativeProps {
     onOpenCrafting: () => void;
     onOpenBuilding: () => void;
     onOpenFusion: () => void;
+    onOpenCooking: () => void;
     language?: string;
     t?: (key: TranslationKey, params?: Record<string, any>) => string;
 }
@@ -97,6 +98,7 @@ export interface GameLayoutControlsProps {
     onOpenCrafting: () => void;
     onOpenBuilding: () => void;
     onOpenFusion: () => void;
+    onOpenCooking: () => void;
 }
 
 /**
@@ -116,6 +118,7 @@ export interface GameLayoutDialogsProps {
     isAvailableActionsOpen: boolean;
     isCustomDialogOpen: boolean;
     isPickupDialogOpen: boolean;
+    isCookingOpen: boolean;
 
     // Dialog state handlers
     onStatusOpenChange: (open: boolean) => void;
@@ -130,6 +133,7 @@ export interface GameLayoutDialogsProps {
     onAvailableActionsOpenChange: (open: boolean) => void;
     onCustomDialogOpenChange: (open: boolean) => void;
     onPickupDialogOpenChange: (open: boolean) => void;
+    onCookingOpenChange: (open: boolean) => void;
 
     // Data
     playerStats: any;

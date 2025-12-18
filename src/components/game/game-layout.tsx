@@ -172,6 +172,7 @@ export default function GameLayout(props: GameLayoutProps) {
     const [customDialogValue, setCustomDialogValue] = useState("");
     const [isPickupDialogOpen, setPickupDialogOpen] = useState(false);
     const [selectedPickupIds, setSelectedPickupIds] = useState<number[]>([]);
+    const [isCookingOpen, setCookingOpen] = useState(false);
 
     // ===== TOGGLE HANDLERS WITH AUDIO FEEDBACK =====
     const handleStatusToggle = useCallback(() => {
@@ -192,6 +193,14 @@ export default function GameLayout(props: GameLayoutProps) {
 
     const handleCraftingToggle = useCallback(() => {
         setCraftingOpen((prev) => {
+            if (prev) audio.playSfxForAction(AudioActionType.UI_CANCEL);
+            else audio.playSfxForAction(AudioActionType.UI_CONFIRM);
+            return !prev;
+        });
+    }, [audio]);
+
+    const handleCookingToggle = useCallback(() => {
+        setCookingOpen((prev) => {
             if (prev) audio.playSfxForAction(AudioActionType.UI_CANCEL);
             else audio.playSfxForAction(AudioActionType.UI_CONFIRM);
             return !prev;
@@ -480,6 +489,7 @@ export default function GameLayout(props: GameLayoutProps) {
                     onOpenCrafting={handleCraftingToggle}
                     onOpenBuilding={handleBuildingToggle}
                     onOpenFusion={handleFusionToggle}
+                    onOpenCooking={handleCookingToggle}
                 />
 
                 {/* HUD Panel */}
@@ -534,6 +544,7 @@ export default function GameLayout(props: GameLayoutProps) {
                     onOpenCrafting={handleCraftingToggle}
                     onOpenBuilding={handleBuildingToggle}
                     onOpenFusion={handleFusionToggle}
+                    onOpenCooking={handleCookingToggle}
                 />
 
                 {/* Dialogs */}
@@ -550,6 +561,7 @@ export default function GameLayout(props: GameLayoutProps) {
                     isAvailableActionsOpen={isAvailableActionsOpen}
                     isCustomDialogOpen={isCustomDialogOpen}
                     isPickupDialogOpen={isPickupDialogOpen}
+                    isCookingOpen={isCookingOpen}
                     onStatusOpenChange={setStatusOpen}
                     onInventoryOpenChange={setInventoryOpen}
                     onCraftingOpenChange={setCraftingOpen}
@@ -562,6 +574,7 @@ export default function GameLayout(props: GameLayoutProps) {
                     onAvailableActionsOpenChange={setAvailableActionsOpen}
                     onCustomDialogOpenChange={setCustomDialogOpen}
                     onPickupDialogOpenChange={setPickupDialogOpen}
+                    onCookingOpenChange={setCookingOpen}
                     playerStats={playerStats}
                     currentChunk={currentChunk}
                     world={world}

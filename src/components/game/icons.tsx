@@ -79,6 +79,7 @@ export {
   PersonStanding,
   Minus,
   Plus,
+  CookingPot,
 } from 'lucide-react';
 
 

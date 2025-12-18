@@ -28,16 +28,16 @@ import { generateCookedFood } from './food-generator';
 export type CookingQuality = 'PERFECT' | 'BURNT' | 'UNDERCOOKED';
 
 export interface OvenItemResult {
-  item: Item;
-  quality: CookingQuality;
-  tempDiff: number; // How far from ideal temp
+    item: Item;
+    quality: CookingQuality;
+    tempDiff: number; // How far from ideal temp
 }
 
 export interface OvenResult {
-  success: boolean;
-  items: OvenItemResult[];
-  message: { en: string; vi: string };
-  effects: GameEffect[];
+    success: boolean;
+    items: OvenItemResult[];
+    message: { en: string; vi: string };
+    effects: GameEffect[];
 }
 
 const IDEAL_TEMP = 180; // °C - good for kebabs/pastries
@@ -53,17 +53,17 @@ const UNDERCOOKED_MULT = 0.6; // 60% stats if undercooked
  * @returns Quality level + multiplier
  */
 function getQuality(temp: number, ideal: number = IDEAL_TEMP): { quality: CookingQuality; mult: number } {
-  const diff = Math.abs(temp - ideal);
+    const diff = Math.abs(temp - ideal);
 
-  if (diff <= PERFECT_RANGE) {
-    return { quality: 'PERFECT', mult: 1.0 };
-  }
+    if (diff <= PERFECT_RANGE) {
+        return { quality: 'PERFECT', mult: 1.0 };
+    }
 
-  if (temp > ideal) {
-    return { quality: 'BURNT', mult: BURNT_MULT };
-  }
+    if (temp > ideal) {
+        return { quality: 'BURNT', mult: BURNT_MULT };
+    }
 
-  return { quality: 'UNDERCOOKED', mult: UNDERCOOKED_MULT };
+    return { quality: 'UNDERCOOKED', mult: UNDERCOOKED_MULT };
 }
 
 /**
@@ -77,90 +77,84 @@ function getQuality(temp: number, ideal: number = IDEAL_TEMP): { quality: Cookin
  * @returns Result with quality-adjusted items and effects
  */
 export function cookInOven(
-  ingredients: Item[],
-  recipe: CookingRecipe,
-  temperature: number,
-  itemDefinitions: Record<string, ItemDefinition>,
-  spice?: Item | null
+    ingredients: Item[],
+    recipe: CookingRecipe,
+    temperature: number,
+    itemDefinitions: Record<string, ItemDefinition>,
+    spice?: Item | null
 ): OvenResult {
-  // STEP 1: Validate temperature
-  if (temperature < 50 || temperature > 300) {
-    return {
-      success: false,
-      items: [],
-      message: {
-        en: `Temperature out of range (50-300°C)`,
-        vi: `Nhiệt độ ngoài phạm vi (50-300°C)`,
-      },
-      effects: [{ type: 'PLAY_SOUND', value: 'ERROR' }],
-    };
-  }
-
-  // STEP 2: Match ingredients (unordered)
-  const requiredIds = new Set(recipe.ingredients.map((i) => i.id));
-  const ingredientIds = new Set(ingredients.map((i) => i.id));
-  const matches = Array.from(requiredIds).every((id) => ingredientIds.has(id));
-
-  if (!matches) {
-    return {
-      success: false,
-      items: [],
-      message: { en: 'Ingredients do not match recipe', vi: 'Nguyên liệu không phù hợp' },
-      effects: [{ type: 'PLAY_SOUND', value: 'ERROR' }],
-    };
-  }
-
-  // STEP 3: Generate base cooked food
-  const cookedFood = generateCookedFood({
-    recipe,
-    ingredients,
-    itemDefinitions,
-    spice: spice || undefined,
-  });
-
-  // STEP 4: For each ingredient, calculate quality and apply stat adjustments
-  const { quality, mult } = getQuality(temperature);
-  const tempDiff = Math.abs(temperature - IDEAL_TEMP);
-
-  // Apply quality multiplier to all stats in cookedFood effects
-  const adjustedEffects = cookedFood.effects.map((eff: any) => ({
-    ...eff,
-    amount: Math.round((eff.amount || 0) * mult),
-  }));
-
-  const resultItems: OvenItemResult[] = [];
-  for (const ingredient of ingredients) {
-    const bakedItem = createItem(cookedFood.id || 'cooked_baked', 1);
-    bakedItem.metadata['craftedAt'] = Date.now();
-
-    // Add quality metadata
-    if (quality === 'BURNT') {
-      bakedItem.metadata['isCharred'] = true; // Visual: darker color
-    } else if (quality === 'UNDERCOOKED') {
-      bakedItem.metadata['isWatery'] = true; // Visual: soggy color
+    // STEP 1: Validate temperature
+    if (temperature < 50 || temperature > 300) {
+        return {
+            success: false,
+            items: [],
+            message: {
+                en: `Temperature out of range (50-300°C)`,
+                vi: `Nhiệt độ ngoài phạm vi (50-300°C)`,
+            },
+            effects: [{ type: 'PLAY_SOUND', value: 'ERROR' }],
+        };
     }
 
-    resultItems.push({
-      item: bakedItem,
-      quality,
-      tempDiff,
+    // STEP 2: Match ingredients (unordered)
+    const requiredIds = new Set(recipe.ingredients.map((i) => i.id));
+    const ingredientIds = new Set(ingredients.map((i) => i.id));
+    const matches = Array.from(requiredIds).every((id) => ingredientIds.has(id));
+
+    if (!matches) {
+        return {
+            success: false,
+            items: [],
+            message: { en: 'Ingredients do not match recipe', vi: 'Nguyên liệu không phù hợp' },
+            effects: [{ type: 'PLAY_SOUND', value: 'ERROR' }],
+        };
+    }
+
+    // STEP 3: Generate base cooked food
+    const cookedFood = generateCookedFood({
+        recipe,
+        ingredients,
+        itemDefinitions,
+        spice: spice || undefined,
     });
-  }
 
-  // STEP 5: Create progress effects
-  const qualityMessage = {
-    PERFECT: { en: 'Perfect bake!', vi: 'Nướng hoàn hảo!' },
-    BURNT: { en: 'Slightly burnt', vi: 'Hơi cháy' },
-    UNDERCOOKED: { en: 'Undercooked', vi: 'Chưa chín' },
-  };
+    // STEP 4: For each ingredient, calculate quality and apply stat adjustments
+    const { quality, mult: _mult } = getQuality(temperature);
+    const tempDiff = Math.abs(temperature - IDEAL_TEMP);
 
-  return {
-    success: true,
-    items: resultItems,
-    message: qualityMessage[quality],
-    effects: [
-      { type: 'PLAY_SOUND', value: 'OVEN_COMPLETE' },
-      { type: 'SHOW_PARTICLE', value: 'STEAM_CLOUD' },
-    ],
-  };
+    const resultItems: OvenItemResult[] = [];
+    for (const _ingredient of ingredients) {
+        const bakedItem = createItem(cookedFood.id || 'cooked_baked', 1);
+        bakedItem.metadata['craftedAt'] = Date.now();
+
+        // Add quality metadata
+        if (quality === 'BURNT') {
+            bakedItem.metadata['isCharred'] = true; // Visual: darker color
+        } else if (quality === 'UNDERCOOKED') {
+            bakedItem.metadata['isWatery'] = true; // Visual: soggy color
+        }
+
+        resultItems.push({
+            item: bakedItem,
+            quality,
+            tempDiff,
+        });
+    }
+
+    // STEP 5: Create progress effects
+    const qualityMessage = {
+        PERFECT: { en: 'Perfect bake!', vi: 'Nướng hoàn hảo!' },
+        BURNT: { en: 'Slightly burnt', vi: 'Hơi cháy' },
+        UNDERCOOKED: { en: 'Undercooked', vi: 'Chưa chín' },
+    };
+
+    return {
+        success: true,
+        items: resultItems,
+        message: qualityMessage[quality],
+        effects: [
+            { type: 'PLAY_SOUND', value: 'OVEN_COMPLETE' },
+            { type: 'SHOW_PARTICLE', value: 'STEAM_CLOUD' },
+        ],
+    };
 }

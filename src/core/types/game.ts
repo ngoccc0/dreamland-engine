@@ -9,17 +9,17 @@ export type Icon = string | { type: 'image'; url: string };
  * Effects are separated from state mutations and executed after state changes
  */
 export interface GameEffect {
-  type: string; // 'PLAY_SOUND', 'SHOW_PARTICLE', 'NOTIFICATION', etc.
-  value?: unknown; // Payload depends on effect type
-  delay?: number; // Optional delay in milliseconds before executing
+    type: string; // 'PLAY_SOUND', 'SHOW_PARTICLE', 'NOTIFICATION', etc.
+    value?: unknown; // Payload depends on effect type
+    delay?: number; // Optional delay in milliseconds before executing
 }
 
 /**
  * Game Notification - User-facing message in game
  */
 export interface GameNotification {
-  en: string;
-  vi: string;
+    en: string;
+    vi: string;
 }
 
 /**

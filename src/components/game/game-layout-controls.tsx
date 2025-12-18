@@ -46,6 +46,7 @@ export function GameLayoutControls({
     onOpenCrafting,
     onOpenBuilding,
     onOpenFusion,
+    onOpenCooking,
 }: GameLayoutControlsProps) {
     // Helper function to get icon for context action
     const getContextActionIcon = useCallback(() => {
@@ -146,6 +147,7 @@ export function GameLayoutControls({
                     onOpenCrafting={onOpenCrafting}
                     onOpenBuilding={onOpenBuilding}
                     onOpenFusion={onOpenFusion}
+                    onOpenCooking={onOpenCooking}
                 />
             )}
         </>

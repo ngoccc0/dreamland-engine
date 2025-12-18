@@ -26,12 +26,12 @@ import { TranslatableStringSchema } from './base';
  * ```
  */
 export const SpiceModifierSchema = z.object({
-  type: z.enum(['MULTIPLY_HUNGER', 'MULTIPLY_ALL_STATS', 'ADD_BUFF']).describe(
-    'Type of spice effect: multiply hunger, all stats, or add buff'
-  ),
-  value: z.number().min(0).describe('Multiplier value (0.15 = +15%) or buff magnitude'),
-  buffId: z.string().optional().describe('Buff ID to apply (e.g., "warmth", "regeneration")'),
-  duration: z.number().optional().describe('Buff duration in seconds'),
+    type: z.enum(['MULTIPLY_HUNGER', 'MULTIPLY_ALL_STATS', 'ADD_BUFF']).describe(
+        'Type of spice effect: multiply hunger, all stats, or add buff'
+    ),
+    value: z.number().min(0).describe('Multiplier value (0.15 = +15%) or buff magnitude'),
+    buffId: z.string().optional().describe('Buff ID to apply (e.g., "warmth", "regeneration")'),
+    duration: z.number().optional().describe('Buff duration in seconds'),
 });
 
 export type SpiceModifier = z.infer<typeof SpiceModifierSchema>;
@@ -60,75 +60,75 @@ export type SpiceModifier = z.infer<typeof SpiceModifierSchema>;
  * ```
  */
 export const CookingRecipeSchema = z.object({
-  id: z.string().describe('Unique recipe ID (e.g., "buttered_meat_skewer_recipe")'),
+    id: z.string().describe('Unique recipe ID (e.g., "buttered_meat_skewer_recipe")'),
 
-  name: TranslatableStringSchema.describe('Recipe display name (EN + VI)'),
+    name: TranslatableStringSchema.describe('Recipe display name (EN + VI)'),
 
-  description: TranslatableStringSchema.describe(
-    'Recipe flavor text/lore description'
-  ),
-
-  // Ingredients (required, unordered)
-  ingredients: z
-    .array(
-      z.object({
-        id: z.string().describe('Item ID (must exist in item catalog)'),
-        quantity: z.number().int().positive().describe('Required quantity (always integer)'),
-        optional: z.boolean().default(false).describe('Is ingredient optional?'),
-      })
-    )
-    .min(1)
-    .max(9)
-    .describe('1-9 required ingredients (unordered, any arrangement works)'),
-
-  // Campfire: visual pattern (for UI skewer display)
-  pattern: z
-    .array(z.string())
-    .length(3)
-    .optional()
-    .describe(
-      'For Campfire UI: visual order to display items on skewer (e.g., [meat, fat, branch])'
+    description: TranslatableStringSchema.describe(
+        'Recipe flavor text/lore description'
     ),
 
-  // Cooking type
-  cookingType: z
-    .enum(['CAMPFIRE', 'POT', 'OVEN'])
-    .describe('Cooking method: CAMPFIRE (skewer), POT (batch), OVEN (parallel)'),
+    // Ingredients (required, unordered)
+    ingredients: z
+        .array(
+            z.object({
+                id: z.string().describe('Item ID (must exist in item catalog)'),
+                quantity: z.number().int().positive().describe('Required quantity (always integer)'),
+                optional: z.boolean().default(false).describe('Is ingredient optional?'),
+            })
+        )
+        .min(1)
+        .max(9)
+        .describe('1-9 required ingredients (unordered, any arrangement works)'),
 
-  cookingTime: z
-    .number()
-    .int()
-    .min(10)
-    .max(300)
-    .describe('Cooking duration in seconds'),
+    // Campfire: visual pattern (for UI skewer display)
+    pattern: z
+        .array(z.string())
+        .length(3)
+        .optional()
+        .describe(
+            'For Campfire UI: visual order to display items on skewer (e.g., [meat, fat, branch])'
+        ),
 
-  // Output
-  result: z.object({
-    baseFood: z
-      .enum(['meat_kebab', 'vegan_kebab', 'herb_kebab', 'soup', 'baked_good'])
-      .describe('Category of output food'),
-    emoji: z.string().describe('Emoji for result item'),
-    description: TranslatableStringSchema.describe('Result food description'),
-  }),
+    // Cooking type
+    cookingType: z
+        .enum(['CAMPFIRE', 'POT', 'OVEN'])
+        .describe('Cooking method: CAMPFIRE (skewer), POT (batch), OVEN (parallel)'),
 
-  // Stat multipliers (applied to summed ingredient stats)
-  statMultipliers: z
-    .object({
-      hunger: z.number().default(1.0).describe('Hunger stat multiplier'),
-      stamina: z.number().default(1.0).describe('Stamina stat multiplier'),
-      health: z.number().default(1.0).describe('Health stat multiplier'),
-    })
-    .default({})
-    .describe('Multipliers applied to ingredient stats'),
+    cookingTime: z
+        .number()
+        .int()
+        .min(10)
+        .max(300)
+        .describe('Cooking duration in seconds'),
 
-  // Tier (for rarity/difficulty)
-  tier: z.number().int().min(1).max(3).optional().describe('Recipe difficulty tier'),
+    // Output
+    result: z.object({
+        baseFood: z
+            .enum(['meat_kebab', 'vegan_kebab', 'herb_kebab', 'soup', 'baked_good'])
+            .describe('Category of output food'),
+        emoji: z.string().describe('Emoji for result item'),
+        description: TranslatableStringSchema.describe('Result food description'),
+    }),
 
-  // Notes
-  notes: z
-    .string()
-    .optional()
-    .describe('Internal notes about recipe (e.g., "Uses combo pattern")'),
+    // Stat multipliers (applied to summed ingredient stats)
+    statMultipliers: z
+        .object({
+            hunger: z.number().default(1.0).describe('Hunger stat multiplier'),
+            stamina: z.number().default(1.0).describe('Stamina stat multiplier'),
+            health: z.number().default(1.0).describe('Health stat multiplier'),
+        })
+        .default({})
+        .describe('Multipliers applied to ingredient stats'),
+
+    // Tier (for rarity/difficulty)
+    tier: z.number().int().min(1).max(3).optional().describe('Recipe difficulty tier'),
+
+    // Notes
+    notes: z
+        .string()
+        .optional()
+        .describe('Internal notes about recipe (e.g., "Uses combo pattern")'),
 });
 
 export type CookingRecipe = z.infer<typeof CookingRecipeSchema>;
@@ -137,5 +137,5 @@ export type CookingRecipe = z.infer<typeof CookingRecipeSchema>;
  * Validate a cooking recipe schema
  */
 export function validateCookingRecipe(recipe: unknown): recipe is CookingRecipe {
-  return CookingRecipeSchema.safeParse(recipe).success;
+    return CookingRecipeSchema.safeParse(recipe).success;
 }

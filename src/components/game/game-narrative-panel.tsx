@@ -18,7 +18,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { cn, getTranslatedText } from "@/lib/utils";
 import type { NarrativeEntry } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
-import { Menu, LifeBuoy, Settings, LogOut, Shield, Backpack, Hammer, Home, FlaskConical, Loader2 } from "./icons";
+import { Menu, LifeBuoy, Settings, LogOut, Shield, Backpack, Hammer, Home, FlaskConical, CookingPot, Loader2 } from "./icons";
 import { useTypingAnimation } from "@/hooks/useTypingAnimation";
 import { applyEmphasisRules, getEmphasisClass } from "@/lib/narrative/textEmphasisRules";
 import { useMobileOptimization } from "@/hooks/useMobileOptimization";
@@ -71,6 +71,9 @@ interface GameNarrativePanelProps {
 
     /** Callback to open fusion popup */
     onOpenFusion: () => void;
+
+    /** Callback to open cooking popup */
+    onOpenCooking: () => void;
 
     /** Optional className for styling */
     className?: string;
@@ -191,6 +194,7 @@ export function GameNarrativePanel({
     onOpenCrafting,
     onOpenBuilding,
     onOpenFusion,
+    onOpenCooking,
     className = "",
     animationMode = 'typing',
     enableEmphasis = true,
@@ -282,6 +286,16 @@ export function GameNarrativePanel({
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent><p>{t('fusionShort') || 'Fuse'}</p></TooltipContent>
+                        </Tooltip>
+
+                        {/* Cooking Button */}
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={onOpenCooking} className="text-orange-400" aria-label={t('cookingShort') || 'Cook'}>
+                                    <CookingPot className="h-5 w-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>{t('cookingShort') || 'Cook'}</p></TooltipContent>
                         </Tooltip>
                     </div>
                 </div>

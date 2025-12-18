@@ -35,6 +35,7 @@ export function GameLayoutNarrative({
     onOpenCrafting,
     onOpenBuilding,
     onOpenFusion,
+    onOpenCooking,
 }: GameLayoutNarrativeProps) {
     const { language, t } = useLanguage();
     return (
@@ -63,6 +64,7 @@ export function GameLayoutNarrative({
                     onOpenCrafting={onOpenCrafting}
                     onOpenBuilding={onOpenBuilding}
                     onOpenFusion={onOpenFusion}
+                    onOpenCooking={onOpenCooking}
                     language={language}
                     t={t}
                     animationMode="instant"

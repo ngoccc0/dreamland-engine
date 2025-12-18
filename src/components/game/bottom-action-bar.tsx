@@ -41,6 +41,7 @@ interface Props {
   onOpenCrafting: () => void;
   onOpenBuilding: () => void;
   onOpenFusion: () => void;
+  onOpenCooking: () => void;
 }
 
 /**
@@ -132,7 +133,8 @@ export function BottomActionBar({
   onOpenInventory: _onOpenInventory,
   onOpenCrafting: _onOpenCrafting,
   onOpenBuilding: _onOpenBuilding,
-  onOpenFusion: _onOpenFusion
+  onOpenFusion: _onOpenFusion,
+  onOpenCooking: _onOpenCooking
 }: Props) {
   return (
     <TooltipProvider>

@@ -23,6 +23,7 @@ import {
     Hammer,
     Home,
     FlaskConical,
+    CookingPot,
     Settings,
     LifeBuoy,
     MapPin,
@@ -59,6 +60,9 @@ const PwaInstallPopup = lazy(() =>
 const SettingsPopup = lazy(() =>
     import("@/components/game/settings-popup").then((m) => ({ default: m.SettingsPopup }))
 );
+const CookingWithInventoryManager = lazy(() =>
+    import("@/components/game/cooking-with-inventory-manager").then((m) => ({ default: m.CookingWithInventoryManager }))
+);
 
 /**
  * Game layout dialogs and popups component.
@@ -92,6 +96,7 @@ export function GameLayoutDialogs({
     isAvailableActionsOpen,
     isCustomDialogOpen,
     isPickupDialogOpen,
+    isCookingOpen,
 
     // Dialog state handlers
     onStatusOpenChange,
@@ -106,6 +111,7 @@ export function GameLayoutDialogs({
     onAvailableActionsOpenChange,
     onCustomDialogOpenChange,
     onPickupDialogOpenChange,
+    onCookingOpenChange,
 
     // Data
     playerStats,
@@ -168,14 +174,14 @@ export function GameLayoutDialogs({
 
             {/* MENU DIALOG */}
             <Dialog open={isAvailableActionsOpen} onOpenChange={onAvailableActionsOpenChange}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-lg">
                     <DialogHeader>
                         <DialogTitle>{t("menu") || "Menu"}</DialogTitle>
                         <DialogDescription>
                             {t("menuDesc") || "Access game features and settings."}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="mt-4 grid grid-cols-2 gap-2">
+                    <div className="mt-4 grid grid-cols-3 gap-2">
                         <Button
                             variant="outline"
                             className="flex flex-col items-center gap-1 h-16"
@@ -241,6 +247,17 @@ export function GameLayoutDialogs({
                         >
                             <MapPin className="h-6 w-6" />
                             <span className="text-xs">{t("map") || "Map"}</span>
+                        </Button>
+                        <Button
+                            variant="outline"
+                            className="flex flex-col items-center gap-1 h-16"
+                            onClick={() => {
+                                onCookingOpenChange(true);
+                                onAvailableActionsOpenChange(false);
+                            }}
+                        >
+                            <CookingPot className="h-6 w-6" />
+                            <span className="text-xs">{t("cookingShort") || "Cook"}</span>
                         </Button>
                     </div>
                     <Separator className="my-4" />
@@ -468,6 +485,21 @@ export function GameLayoutDialogs({
             {showInstallPopup && (
                 <Suspense fallback={<div />}>
                     <PwaInstallPopup open={showInstallPopup} onOpenChange={onInstallPopupOpenChange} />
+                </Suspense>
+            )}
+
+            {isCookingOpen && (
+                <Suspense fallback={<div />}>
+                    <CookingWithInventoryManager
+                        isOpen={isCookingOpen}
+                        onClose={() => onCookingOpenChange(false)}
+                        gameState={_finalWorldSetup as any}
+                        itemDefinitions={customItemDefinitions || {}}
+                        onCookSuccess={onItemUsed}
+                        onUseItem={onItemUsed}
+                        onEquipItem={onEquipItem}
+                        onDropItem={onDropItem}
+                    />
                 </Suspense>
             )}
 

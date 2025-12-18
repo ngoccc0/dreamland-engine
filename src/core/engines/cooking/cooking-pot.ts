@@ -21,11 +21,11 @@ import { createItem } from '@/core/domain/item';
 import { generateCookedFood } from './food-generator';
 
 export interface PotResult {
-  success: boolean;
-  items: Item[];
-  bowlCount: number;
-  message: { en: string; vi: string };
-  effects: GameEffect[];
+    success: boolean;
+    items: Item[];
+    bowlCount: number;
+    message: { en: string; vi: string };
+    effects: GameEffect[];
 }
 
 /**
@@ -39,94 +39,94 @@ export interface PotResult {
  * @returns Result with soup items and effects
  */
 export function cookInPot(
-  ingredients: Item[],
-  recipe: CookingRecipe,
-  itemDefinitions: Record<string, ItemDefinition>,
-  waterItem: Item | null,
-  spice?: Item | null
+    ingredients: Item[],
+    recipe: CookingRecipe,
+    itemDefinitions: Record<string, ItemDefinition>,
+    waterItem: Item | null,
+    spice?: Item | null
 ): PotResult {
-  // STEP 1: Validate water + ingredients
-  if (!waterItem) {
-    return {
-      success: false,
-      items: [],
-      bowlCount: 0,
-      message: { en: 'Need water to cook in pot', vi: 'Cần nước để nấu lẩu' },
-      effects: [{ type: 'PLAY_SOUND', value: 'ERROR' }],
-    };
-  }
+    // STEP 1: Validate water + ingredients
+    if (!waterItem) {
+        return {
+            success: false,
+            items: [],
+            bowlCount: 0,
+            message: { en: 'Need water to cook in pot', vi: 'Cần nước để nấu lẩu' },
+            effects: [{ type: 'PLAY_SOUND', value: 'ERROR' }],
+        };
+    }
 
-  if (ingredients.length === 0) {
-    return {
-      success: false,
-      items: [],
-      bowlCount: 0,
-      message: { en: 'Need ingredients to cook', vi: 'Cần nguyên liệu để nấu' },
-      effects: [{ type: 'PLAY_SOUND', value: 'ERROR' }],
-    };
-  }
+    if (ingredients.length === 0) {
+        return {
+            success: false,
+            items: [],
+            bowlCount: 0,
+            message: { en: 'Need ingredients to cook', vi: 'Cần nguyên liệu để nấu' },
+            effects: [{ type: 'PLAY_SOUND', value: 'ERROR' }],
+        };
+    }
 
-  // STEP 2: Match ingredients (unordered)
-  const requiredIds = new Set(recipe.ingredients.map((i) => i.id));
-  const ingredientIds = new Set(ingredients.map((i) => i.id));
-  const matches = Array.from(requiredIds).every((id) => ingredientIds.has(id));
+    // STEP 2: Match ingredients (unordered)
+    const requiredIds = new Set(recipe.ingredients.map((i) => i.id));
+    const ingredientIds = new Set(ingredients.map((i) => i.id));
+    const matches = Array.from(requiredIds).every((id) => ingredientIds.has(id));
 
-  if (!matches) {
-    return {
-      success: false,
-      items: [],
-      bowlCount: 0,
-      message: { en: 'Ingredients do not match recipe', vi: 'Nguyên liệu không phù hợp' },
-      effects: [{ type: 'PLAY_SOUND', value: 'ERROR' }],
-    };
-  }
+    if (!matches) {
+        return {
+            success: false,
+            items: [],
+            bowlCount: 0,
+            message: { en: 'Ingredients do not match recipe', vi: 'Nguyên liệu không phù hợp' },
+            effects: [{ type: 'PLAY_SOUND', value: 'ERROR' }],
+        };
+    }
 
-  // STEP 3: Calculate bowl yield: ceil(count / 2)
-  const bowlCount = Math.ceil(ingredients.length / 2);
+    // STEP 3: Calculate bowl yield: ceil(count / 2)
+    const bowlCount = Math.ceil(ingredients.length / 2);
 
-  // STEP 4: Generate merged soup (one per bowl)
-  const cookedFood = generateCookedFood({
-    recipe,
-    ingredients,
-    itemDefinitions,
-    spice: spice || undefined,
-  });
-
-  const resultItems: Item[] = [];
-  for (let i = 0; i < bowlCount; i++) {
-    const bowl = createItem(cookedFood.id || 'cooked_soup', 1);
-    bowl.metadata['craftedAt'] = Date.now();
-    bowl.metadata['isSoup'] = true; // Metadata: marks as soup (affects color rendering)
-    resultItems.push(bowl);
-  }
-
-  // STEP 5: Create staggered dispense effects (0.5s per bowl)
-  const dispenseFx: GameEffect[] = [];
-  for (let i = 0; i < bowlCount; i++) {
-    dispenseFx.push({
-      type: 'PLAY_SOUND',
-      value: 'LADLE_DISPENSE',
-      delay: i * 500, // Stagger by 0.5s
+    // STEP 4: Generate merged soup (one per bowl)
+    const cookedFood = generateCookedFood({
+        recipe,
+        ingredients,
+        itemDefinitions,
+        spice: spice || undefined,
     });
-    dispenseFx.push({
-      type: 'SHOW_PARTICLE',
-      value: 'STEAM_BURST',
-      delay: i * 500,
-    });
-  }
 
-  return {
-    success: true,
-    items: resultItems,
-    bowlCount,
-    message: {
-      en: `Made ${bowlCount} bowl${bowlCount > 1 ? 's' : ''} of soup`,
-      vi: `Làm được ${bowlCount} bát súp`,
-    },
-    effects: [
-      { type: 'PLAY_SOUND', value: 'COOKING_SUCCESS' },
-      { type: 'SHOW_PARTICLE', value: 'BOILING_BUBBLES' },
-      ...dispenseFx,
-    ],
-  };
+    const resultItems: Item[] = [];
+    for (let i = 0; i < bowlCount; i++) {
+        const bowl = createItem(cookedFood.id || 'cooked_soup', 1);
+        bowl.metadata['craftedAt'] = Date.now();
+        bowl.metadata['isSoup'] = true; // Metadata: marks as soup (affects color rendering)
+        resultItems.push(bowl);
+    }
+
+    // STEP 5: Create staggered dispense effects (0.5s per bowl)
+    const dispenseFx: GameEffect[] = [];
+    for (let i = 0; i < bowlCount; i++) {
+        dispenseFx.push({
+            type: 'PLAY_SOUND',
+            value: 'LADLE_DISPENSE',
+            delay: i * 500, // Stagger by 0.5s
+        });
+        dispenseFx.push({
+            type: 'SHOW_PARTICLE',
+            value: 'STEAM_BURST',
+            delay: i * 500,
+        });
+    }
+
+    return {
+        success: true,
+        items: resultItems,
+        bowlCount,
+        message: {
+            en: `Made ${bowlCount} bowl${bowlCount > 1 ? 's' : ''} of soup`,
+            vi: `Làm được ${bowlCount} bát súp`,
+        },
+        effects: [
+            { type: 'PLAY_SOUND', value: 'COOKING_SUCCESS' },
+            { type: 'SHOW_PARTICLE', value: 'BOILING_BUBBLES' },
+            ...dispenseFx,
+        ],
+    };
 }

@@ -8,7 +8,6 @@ import { useLanguage } from '@/context/language-context';
 import { useSettings } from '@/context/settings-context';
 import { useEffectExecutor } from '@/hooks/use-effect-executor';
 
-import type { GenerateNarrativeInput } from '@/ai/flows/generate-narrative-flow';
 import { createHandleOnlineNarrative } from '@/hooks/use-action-handlers.online';
 import { createHandleOfflineAttack } from '@/hooks/use-action-handlers.offlineAttack';
 import { createHandleOfflineItemUse } from '@/hooks/use-action-handlers.itemUse';
@@ -18,10 +17,8 @@ import { createHandleMove } from '@/hooks/move-orchestrator';
 import { createActionHelpers } from '@/hooks/action-helpers';
 import { createHandleFuseItems } from '@/hooks/use-action-handlers.fuseItems';
 import { createHandleHarvest } from '@/hooks/use-action-handlers.harvest';
-import { tillSoil, waterTile, fertilizeTile, plantSeed } from '@/core/usecases/farming-usecase';
 import {
   validateRecipe,
-  calculateCraftTime,
 } from '@/core/rules/crafting';
 
 // NOTE: Genkit flows are server-only. Call them via server API routes to
@@ -35,7 +32,6 @@ async function callApi(path: string, payload: any) {
 
 const fuseItems = async (payload: any) => callApi('/api/fuse-items', payload);
 const provideQuestHint = async (payload: any) => callApi('/api/provide-quest-hint', payload);
-const generateNarrative = async (payload: any) => callApi('/api/narrative', payload);
 import { rollDice, getSuccessLevel, successLevelToTranslationKey } from '@/lib/utils/dice';
 
 import { resolveItemDef as resolveItemDefHelper } from '@/lib/utils/item-utils';
@@ -51,8 +47,7 @@ import { getTemplates } from '@/lib/game/templates';
 import { clamp, getTranslatedText, resolveItemId, ensurePlayerItemId } from '@/lib/utils';
 import { getKeywordVariations } from '@/core/data/narrative/templates';
 
-import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, EquipmentSlot, Action, TranslationKey, PlayerItem, ItemEffect, ChunkItem, NarrativeEntry, GeneratedItem, TranslatableString, ItemDefinition, Chunk, Enemy } from '@/core/types/game';
-import type { LootDrop } from '@/core/types/definitions/base';
+import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, Action, TranslationKey, PlayerItem, NarrativeEntry, GeneratedItem, TranslatableString, ItemDefinition, Chunk } from '@/core/types/game';
 import { doc, setDoc } from 'firebase/firestore';
 import { getDb } from '@/lib/core/firebase-config';
 import { logger } from '@/lib/core/logger';
@@ -173,77 +168,11 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
   // events into a single summary narrative instead of spamming detailed lines per item.
   const pickupBufferRef = useRef<{ items: Array<any>; timer?: ReturnType<typeof setTimeout> }>({ items: [] });
   const lastPickupMonologueAt = useRef(0);
-  const onlineNarrativeRef = useRef<any>(null);
-  const offlineAttackRef = useRef<any>(null);
   const offlineItemUseRef = useRef<any>(null);
   const offlineSkillRef = useRef<any>(null);
   const offlineActionRef = useRef<any>(null);
-  const moveRef = useRef<any>(null);
   const fuseRef = useRef<any>(null);
   const harvestRef = useRef<any>(null);
-
-  const flushPickupBuffer = () => {
-    const buf = pickupBufferRef.current;
-    if (!buf || !buf.items || buf.items.length === 0) return;
-    const items = buf.items.splice(0, buf.items.length);
-    if (buf.timer) { clearTimeout(buf.timer); buf.timer = undefined; }
-
-    try {
-      // If only one distinct item and qty ===1, render the detailed single-pick template
-      if (items.length === 1 && items[0].quantity <= 1) {
-        const it = items[0];
-
-        // Emit audio for single item pickup
-        const itemName = getTranslatedText(it.name, 'en');
-        const resolvedDef = resolveItemDef(itemName);
-        const rarity = (resolvedDef as any)?.rarity || 'common';
-        audio.playSfxForAction(AudioActionType.ITEM_PICKUP, { itemRarity: rarity });
-
-        // try to recreate the previous single-item detailed narrative path
-        const buildSensoryText = (def: ItemDefinition | undefined, itemName?: string) => {
-          if (!def || !def.senseEffect || !Array.isArray(def.senseEffect.keywords) || def.senseEffect.keywords.length === 0) return '';
-          const raw = def.senseEffect.keywords[Math.floor(Math.random() * def.senseEffect.keywords.length)];
-          const [kindRaw, ...rest] = raw.split(':');
-          const kind = kindRaw || 'generic';
-          const valRaw = rest.join(':') || '';
-          // fallback translation helper (keep minimal)
-          const sensory = valRaw || raw;
-          return sensory;
-        };
-        const itemNameText = t(it.name as TranslationKey);
-        const sensory = buildSensoryText(resolvedDef, itemNameText);
-        const narrativeText = t('pickedUpItem_single_1' as TranslationKey, { itemName: itemNameText, sensory });
-        addNarrativeEntry(narrativeText, 'narrative');
-        return;
-      }
-
-      // Multi-item pickup: emit audio
-      audio.playSfxForAction(AudioActionType.ITEM_PICKUP, { itemRarity: 'common' });
-
-      // Multi-summary: group by name and sum quantities
-      const grouped: Record<string, number> = {};
-      items.forEach((it: any) => { const key = getTranslatedText(it.name, language); grouped[key] = (grouped[key] || 0) + (it.quantity || 1); });
-      const summaryList = Object.keys(grouped).map(k => `${grouped[k]} ${k}`).slice(0, 6).join(', ');
-      const totalCount = Object.values(grouped).reduce((s, v) => s + v, 0);
-      const summaryText = language === 'vi' ? `Bạn gom được ${summaryList}.` : `You picked up ${summaryList}.`;
-      addNarrativeEntry(summaryText, 'narrative');
-
-      // Optionally add a brief monologue if many distinct items found, but throttle it
-      const distinct = Object.keys(grouped).length;
-      const now = Date.now();
-      if (distinct >= 3 && now - lastPickupMonologueAt.current > 60_000) {
-        const db = getKeywordVariations(language as any);
-        const pool = (db as any)['monologue_tired'] || [];
-        if (pool.length > 0) {
-          const line = pool[Math.floor(Math.random() * pool.length)];
-          addNarrativeEntry(line, 'monologue');
-          lastPickupMonologueAt.current = now;
-        }
-      }
-    } catch {
-      // fallback: nothing
-    }
-  };
 
   // When the player's current chunk or environment changes, prefer playing
   // biome-specific ambience (files named like Ambience_<Biome>) and fall back

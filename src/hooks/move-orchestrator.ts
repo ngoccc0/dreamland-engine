@@ -115,12 +115,12 @@ export function createHandleMove(ctx: any) {
       setTimeout(() => {
         try {
           ctx.addNarrativeEntry(actionText, 'action');
-        } catch (e) { }
+        } catch (_e) { }
         // Schedule placeholder add slightly later to ensure it finds the action entry
         Promise.resolve().then(() => {
           try {
             ctx.addNarrativeEntry(placeholderText, 'narrative', placeholderId);
-          } catch (e) { }
+          } catch (_e) { }
         });
       }, 0);
 
@@ -170,15 +170,12 @@ export function createHandleMove(ctx: any) {
             picks.forEach((sfx, i) => setTimeout(() => { try { ctx.audio.playSfx(sfx); } catch { } }, i * stagger));
           });
 
-          const landingDelay = 600;  // Total animation: lift(150) + fly(300) + land(150) = 600ms
-          const bounceDuration = 50;
-
           try {
             const visualTotalMs = 600;
             const ev = new CustomEvent('moveStart', { detail: { id: moveId, from, to, visualTotalMs } });
             // Dispatch on next microtask to avoid dispatch-before-listener race
             try { Promise.resolve().then(() => { try { window.dispatchEvent(ev as any); } catch { } }); } catch { try { window.dispatchEvent(ev as any); } catch { } }
-          } catch (e) { try { window.dispatchEvent(new CustomEvent('moveStart', { detail: { id: moveId, from, to, visualTotalMs: 600 } })); } catch { } }
+          } catch (_e) { try { window.dispatchEvent(new CustomEvent('moveStart', { detail: { id: moveId, from, to, visualTotalMs: 600 } })); } catch { } }
 
           landingListener = (ev: Event) => {
             try {
@@ -207,9 +204,9 @@ export function createHandleMove(ctx: any) {
           try {
             const ev = new CustomEvent('moveStart', { detail: { id: moveId, from, to, visualTotalMs: ctx.__lastMoveAnimationMs } });
             try { Promise.resolve().then(() => { try { window.dispatchEvent(ev as any); } catch { } }); } catch { try { window.dispatchEvent(ev as any); } catch { } }
-          } catch (e) { try { window.dispatchEvent(new CustomEvent('moveStart', { detail: { id: moveId, from, to, visualTotalMs: ctx.__lastMoveAnimationMs } })); } catch { } }
+          } catch (_e) { try { window.dispatchEvent(new CustomEvent('moveStart', { detail: { id: moveId, from, to, visualTotalMs: ctx.__lastMoveAnimationMs } })); } catch { } }
         }
-      } catch (e: any) {
+      } catch (_e: any) {
         // Silently fail - move orchestration has fallbacks
       }
 

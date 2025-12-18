@@ -131,13 +131,13 @@ function clearSessionData(): void {
             keysToRemove.forEach(key => {
                 try {
                     localStorage.removeItem(`dl_${key}`);
-                } catch (e) {
+                } catch (_e) {
                     // Silently ignore localStorage errors
                 }
             });
         }
-    } catch (error) {
-        console.warn('[clearSessionData] Error clearing session:', error);
+    } catch (_error) {
+        console.warn('[clearSessionData] Error clearing session:', _error);
     }
 }
 
@@ -182,7 +182,7 @@ function trackLogoutEvent(): void {
  */
 export function useUnloadSave(): void {
     const handleBeforeUnload = useCallback(
-        (event: BeforeUnloadEvent) => {
+        (_event: BeforeUnloadEvent) => {
             // Stop auto-save on unload
             stopAutoSaveService();
             // Return undefined to allow normal unload

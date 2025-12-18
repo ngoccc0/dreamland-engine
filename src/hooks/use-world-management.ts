@@ -116,7 +116,7 @@ export function useWorldManagement(): WorldManagementHookResult {
         setIsMoving(false);
       }
     },
-    [worldUsecase]
+    []
   );
 
   /**
@@ -133,7 +133,7 @@ export function useWorldManagement(): WorldManagementHookResult {
    * Explore a new chunk in current region.
    */
   const handleExploreChunk = useCallback(
-    async (position: GridPosition, gameState: GameState) => {
+    async (_position: GridPosition, _gameState: GameState) => {
       try {
         setError(null);
         setIsMoving(true);

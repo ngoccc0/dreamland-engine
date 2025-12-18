@@ -45,7 +45,7 @@ export function useButtonAudio<T extends any[]>(
             if (handler) {
                 try {
                     handler(...args);
-                } catch (error) {
+                } catch (_error) {
                     // Silently handle button audio errors
                 }
             }

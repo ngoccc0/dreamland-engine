@@ -3,7 +3,6 @@
 import { useCallback, useRef } from 'react';
 import type { GameState } from '@/core/types/game';
 import type { IWeatherUseCase } from '@/core/usecases/weather-usecase';
-import { applyWeatherStateChanges } from '@/core/adapters/weather-adapter';
 import type { Effect } from '@/core/types/effects';
 import type { WeatherCondition } from '@/core/types/weather';
 
@@ -138,7 +137,7 @@ export function useWeatherIntegration(weatherUsecase: IWeatherUseCase) {
    * @returns Updated game state with weather changes applied
    */
   const applyWeatherToGameState = useCallback(
-    (gameState: GameState, _weatherCondition: WeatherCondition, effects: Effect[]): GameState => {
+    (gameState: GameState, _weatherCondition: WeatherCondition, _effects: Effect[]): GameState => {
       try {
         // WeatherEngine in use-game-engine.ts manages the actual state mutations
         // This hook just returns effects to be applied by the game loop

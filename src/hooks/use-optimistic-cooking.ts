@@ -152,7 +152,7 @@ export function useOptimisticCooking() {
      * @param snapshot - Snapshot from addIngredientOptimistic() for inventory restore
      */
     const revertIngredient = useCallback(
-        (slotIndex: number, snapshot: OptimisticSnapshot | null): void => {
+        (slotIndex: number, _snapshot: OptimisticSnapshot | null): void => {
             // Release slot reservation
             setReservedSlots((prev) => {
                 const next = new Map(prev);

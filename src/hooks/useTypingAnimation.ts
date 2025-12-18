@@ -21,7 +21,7 @@
  * @module useTypingAnimation
  */
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
 export interface UseTypingAnimationOptions {
     /** Delay in milliseconds between words (default: 150ms) */

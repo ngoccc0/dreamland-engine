@@ -22,7 +22,7 @@
  * ```
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 
 export interface MobileOptimizationConfig {
     /** True if device is mobile (viewport < 768px or touch-capable) */

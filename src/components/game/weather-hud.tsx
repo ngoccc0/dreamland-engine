@@ -64,15 +64,14 @@ export function WeatherHUD({ gameState, compact = false }: WeatherHUDProps) {
         <span className="text-xl">{emoji}</span>
         {hazardLevel > 0 && (
           <div
-            className={`absolute top-0 right-0 w-2 h-2 rounded-full ${
-              hazardLevel >= 4
+            className={`absolute top-0 right-0 w-2 h-2 rounded-full ${hazardLevel >= 4
                 ? 'bg-red-800'
                 : hazardLevel >= 3
                   ? 'bg-red-600'
                   : hazardLevel >= 2
                     ? 'bg-orange-600'
                     : 'bg-yellow-600'
-            }`}
+              }`}
           />
         )}
       </button>
@@ -124,15 +123,14 @@ export function WeatherHUD({ gameState, compact = false }: WeatherHUDProps) {
             {[...Array(4)].map((_, i) => (
               <div
                 key={i}
-                className={`w-2 h-2 rounded-full ${
-                  i < hazardLevel
+                className={`w-2 h-2 rounded-full ${i < hazardLevel
                     ? hazardLevel >= 3
                       ? 'bg-red-600'
                       : hazardLevel >= 2
                         ? 'bg-orange-600'
                         : 'bg-yellow-600'
                     : 'bg-gray-300'
-                }`}
+                  }`}
               />
             ))}
           </div>

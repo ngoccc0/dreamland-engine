@@ -140,11 +140,10 @@ export function SkillsPanel({
     return (
       <div
         key={skillId}
-        className={`border-2 rounded-lg p-3 cursor-pointer transition-all ${
-          isLocked
+        className={`border-2 rounded-lg p-3 cursor-pointer transition-all ${isLocked
             ? 'bg-gray-50 border-gray-300 opacity-60'
             : tierColors[skill.tier]
-        } ${isExpanded ? 'ring-2 ring-blue-500' : ''}`}
+          } ${isExpanded ? 'ring-2 ring-blue-500' : ''}`}
         onClick={() => setExpandedSkill(isExpanded ? null : skillId)}
       >
         <div className="flex items-start justify-between mb-2">
@@ -190,11 +189,10 @@ export function SkillsPanel({
             {!isLocked && (
               <div className="flex gap-2">
                 <button
-                  className={`flex-1 text-xs py-1 rounded transition-colors ${
-                    isReady
+                  className={`flex-1 text-xs py-1 rounded transition-colors ${isReady
                       ? 'bg-blue-500 hover:bg-blue-600 text-white'
                       : 'bg-gray-400 text-gray-700 cursor-not-allowed'
-                  }`}
+                    }`}
                   onClick={(e) => {
                     e.stopPropagation();
                     if (isReady) onSkillExecute?.(skillId);
@@ -224,21 +222,19 @@ export function SkillsPanel({
       <div className="flex gap-2 mb-4 border-b-2 border-gray-200">
         <button
           onClick={() => setActiveTab('unlocked')}
-          className={`px-4 py-2 font-semibold transition-colors ${
-            activeTab === 'unlocked'
+          className={`px-4 py-2 font-semibold transition-colors ${activeTab === 'unlocked'
               ? 'text-blue-600 border-b-2 border-blue-600 -mb-2'
               : 'text-gray-600 hover:text-gray-800'
-          }`}
+            }`}
         >
           Unlocked ({unlockedSkills.length})
         </button>
         <button
           onClick={() => setActiveTab('available')}
-          className={`px-4 py-2 font-semibold transition-colors ${
-            activeTab === 'available'
+          className={`px-4 py-2 font-semibold transition-colors ${activeTab === 'available'
               ? 'text-blue-600 border-b-2 border-blue-600 -mb-2'
               : 'text-gray-600 hover:text-gray-800'
-          }`}
+            }`}
         >
           Available
         </button>

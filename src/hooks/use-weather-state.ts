@@ -38,15 +38,15 @@ export function useWeatherState(gameState: GameState) {
     const primaryWeather: WeatherCondition = firstZone?.currentWeather
       ? (firstZone.currentWeather as any as WeatherCondition)
       : {
-          type: WeatherType.CLEAR,
-          intensity: WeatherIntensity.NORMAL,
-          temperature: 20,
-          visibility: 100,
-          windSpeed: 10,
-          precipitation: 0,
-          cloudCover: 0,
-          effects: []
-        };
+        type: WeatherType.CLEAR,
+        intensity: WeatherIntensity.NORMAL,
+        temperature: 20,
+        visibility: 100,
+        windSpeed: 10,
+        precipitation: 0,
+        cloudCover: 0,
+        effects: []
+      };
 
     // Derive convenience flags
     const isStormy = primaryWeather.intensity === WeatherIntensity.SEVERE;

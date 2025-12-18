@@ -57,12 +57,11 @@ interface CombatArenaProps {
 export function CombatArena({
   gameState,
   onActionSelect,
-  onFlee,
-  onSkillUse
+  onFlee
 }: CombatArenaProps) {
   const combatState = useCombatState(gameState);
   const [selectedAction, setSelectedAction] = useState<string>('attack');
-  const [combatLog, setCombatLog] = useState<string[]>([]);
+  const [combatLog] = useState<string[]>([]);
 
   const {
     isInCombat,
@@ -219,8 +218,8 @@ export function CombatArena({
               key={action.id}
               onClick={() => handleActionSelect(action.id)}
               className={`px-4 py-3 rounded-lg font-semibold transition-all ${selectedAction === action.id
-                  ? 'bg-blue-600 text-white ring-2 ring-blue-400'
-                  : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+                ? 'bg-blue-600 text-white ring-2 ring-blue-400'
+                : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
                 }`}
             >
               <div className="text-2xl mb-1">{action.icon}</div>

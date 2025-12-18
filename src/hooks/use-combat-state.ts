@@ -3,7 +3,8 @@
 import { useCallback, useMemo, useRef } from 'react';
 import type { GameState } from '@/core/types/game';
 import type { CombatUseCase } from '@/core/usecases/combat-usecase';
-import type { Combatant, CombatResult, CombatRound } from '@/core/entities/combat';
+// Unused types commented out
+// import type { Combatant, CombatResult, CombatRound } from '@/core/entities/combat';
 
 /**
  * Selector hook for combat-specific state.
@@ -61,16 +62,7 @@ export function useCombatState(gameState: GameState) {
       canFlee: true, // Configurable: some enemies prevent fleeing
       roundNumber: (playerStats.combatRounds?.length || 0) + 1
     };
-  }, [
-    gameState.playerStats.isInCombat,
-    gameState.playerStats.currentEnemy,
-    gameState.playerStats.hp,
-    gameState.playerStats.attack,
-    gameState.playerStats.defense,
-    gameState.playerStats.criticalChance,
-    gameState.playerStats.combatRounds,
-    gameState.playerStats.combatLog
-  ]);
+  }, [gameState.playerStats]);
 }
 
 /**
@@ -106,7 +98,7 @@ export function useCombatState(gameState: GameState) {
  * @param combatUsecase - Injected via DI container
  * @returns Object with combat execution methods
  */
-export function useCombatIntegration(combatUsecase: CombatUseCase) {
+export function useCombatIntegration(_combatUsecase: CombatUseCase) {
   // Track combat session state
   const combatSessionRef = useRef<{
     playerHp: number;
@@ -207,8 +199,8 @@ export function useCombatIntegration(combatUsecase: CombatUseCase) {
   const executeCombatRound = useCallback(
     async (
       gameState: GameState,
-      playerAction: string,
-      actionTarget?: string
+      _playerAction: string,
+      _actionTarget?: string
     ): Promise<{
       success: boolean;
       roundNumber?: number;
@@ -266,7 +258,7 @@ export function useCombatIntegration(combatUsecase: CombatUseCase) {
    * @returns Combat result with XP gained, loot, summary
    */
   const endCombat = useCallback(
-    async (gameState: GameState): Promise<{
+    async (_gameState: GameState): Promise<{
       success: boolean;
       xpGained?: number;
       loot?: any[];
@@ -312,11 +304,11 @@ export function useCombatIntegration(combatUsecase: CombatUseCase) {
    * - Higher speed = higher success chance
    * - Failed flee: Take 1 free hit from enemy
    *
-   * @param gameState - Current game state
+   * @param _gameState - Current game state
    * @returns Success flag and new combat state
    */
   const attemptFlee = useCallback(
-    async (gameState: GameState): Promise<{
+    async (_gameState: GameState): Promise<{
       success: boolean;
       fleeSucceeded: boolean;
       message: string;

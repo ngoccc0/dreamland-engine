@@ -55,13 +55,7 @@ export function useSkillState(gameState: GameState) {
       isHighLevel: (playerStats.level || 0) >= 20,
       totalSkillsUnlocked: unlockedSkills.length
     };
-  }, [
-    gameState.playerStats.unlockedSkills,
-    gameState.playerStats.skillLevels,
-    gameState.playerStats.skillPoints,
-    gameState.playerStats.skillCooldowns,
-    gameState.playerStats.level
-  ]);
+  }, [gameState.playerStats]);
 }
 
 /**
@@ -90,7 +84,7 @@ export function useSkillState(gameState: GameState) {
  * @param skillUsecase - Injected via DI container
  * @returns Object with skill execution methods
  */
-export function useSkillIntegration(skillUsecase: SkillUseCase) {
+export function useSkillIntegration(_skillUsecase: SkillUseCase) {
   /**
    * Execute a skill by the player against a target.
    *
@@ -115,7 +109,7 @@ export function useSkillIntegration(skillUsecase: SkillUseCase) {
    * @param gameState - Current game state
    * @param playerStats - Player's current stats
    * @param skillId - ID of skill to execute
-   * @param targetId - ID of creature/entity being targeted
+   * @param _targetId - ID of creature/entity being targeted
    * @returns Result with newPlayerState, effects, and damage/healing info
    */
   const executeSkill = useCallback(
@@ -123,7 +117,7 @@ export function useSkillIntegration(skillUsecase: SkillUseCase) {
       gameState: GameState,
       playerStats: any,
       skillId: string,
-      targetId: string
+      _targetId: string
     ): Promise<{
       success: boolean;
       message: string;
@@ -170,7 +164,7 @@ export function useSkillIntegration(skillUsecase: SkillUseCase) {
         };
       }
     },
-    [skillUsecase]
+    []
   );
 
   /**
@@ -228,7 +222,7 @@ export function useSkillIntegration(skillUsecase: SkillUseCase) {
         };
       }
     },
-    [skillUsecase]
+    []
   );
 
   /**
@@ -282,7 +276,7 @@ export function useSkillIntegration(skillUsecase: SkillUseCase) {
         };
       }
     },
-    [skillUsecase]
+    []
   );
 
   return {

@@ -5,10 +5,10 @@ import type { GameState } from '@/core/types/game';
 import { useExperienceState } from '@/hooks/use-experience-state';
 
 interface LevelUpNotificationProps {
-  gameState: GameState;
-  onDismiss?: () => void;
-  autoHide?: boolean;
-  autoDismissDelay?: number;
+    gameState: GameState;
+    onDismiss?: () => void;
+    autoHide?: boolean;
+    autoDismissDelay?: number;
 }
 
 /**
@@ -52,104 +52,104 @@ interface LevelUpNotificationProps {
  * />
  */
 export function LevelUpNotification({
-  gameState,
-  onDismiss,
-  autoHide = true,
-  autoDismissDelay = 5000
+    gameState,
+    onDismiss,
+    autoHide = true,
+    autoDismissDelay = 5000
 }: LevelUpNotificationProps) {
-  const experienceState = useExperienceState(gameState);
-  const [isVisible, setIsVisible] = useState(true);
+    const experienceState = useExperienceState(gameState);
+    const [isVisible, setIsVisible] = useState(true);
 
-  useEffect(() => {
-    if (!autoHide) return;
+    useEffect(() => {
+        if (!autoHide) return;
 
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-      onDismiss?.();
-    }, autoDismissDelay);
-
-    return () => clearTimeout(timer);
-  }, [autoHide, autoDismissDelay, onDismiss]);
-
-  if (!experienceState.hasLeveledUp || !isVisible) {
-    return null;
-  }
-
-  const { currentLevel, statGains, xpProgress, xpRemaining } = experienceState;
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-40 animate-fade-in">
-      <div className="bg-gradient-to-b from-yellow-900 to-amber-900 border-4 border-yellow-400 rounded-xl p-8 shadow-2xl max-w-md w-11/12 animate-scale-in text-center">
-        {/* Header */}
-        <div className="mb-6">
-          <p className="text-yellow-200 text-lg font-bold tracking-widest">🎉 LEVEL UP! 🎉</p>
-          <h1 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-yellow-400 my-2">
-            {currentLevel}
-          </h1>
-        </div>
-
-        {/* Stat Gains */}
-        <div className="bg-black/30 rounded-lg p-4 mb-6 border-2 border-yellow-600">
-          <h3 className="text-yellow-300 font-bold mb-3">Stat Gains:</h3>
-          <div className="space-y-2">
-            {statGains && (
-              <>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-300">❤️ Max HP:</span>
-                  <span className="text-green-400 font-bold">+{statGains.hp}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-300">⚔️ Attack:</span>
-                  <span className="text-orange-400 font-bold">+{statGains.attack}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-300">🛡️ Defense:</span>
-                  <span className="text-blue-400 font-bold">+{statGains.defense}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-300">⭐ Skill Points:</span>
-                  <span className="text-purple-400 font-bold">+{statGains.skillPoints}</span>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* XP Progress */}
-        <div className="mb-6">
-          <div className="flex justify-between text-xs text-gray-300 mb-1">
-            <span>Next Level XP:</span>
-            <span>
-              {Math.floor(experienceState.xpThisLevel)} / {Math.floor(experienceState.xpNeeded)}
-            </span>
-          </div>
-          <div className="w-full bg-gray-800 rounded-full h-3 border border-gray-600 overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-green-500 to-yellow-500 transition-all duration-500"
-              style={{ width: `${xpProgress * 100}%` }}
-            />
-          </div>
-          <p className="text-xs text-gray-400 mt-1">{Math.ceil(xpRemaining)} XP to next level</p>
-        </div>
-
-        {/* Dismiss Button */}
-        <button
-          onClick={() => {
+        const timer = setTimeout(() => {
             setIsVisible(false);
             onDismiss?.();
-          }}
-          className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-yellow-900 font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 text-lg"
-        >
-          Continue
-        </button>
+        }, autoDismissDelay);
 
-        {/* Auto-dismiss hint */}
-        {autoHide && (
-          <p className="text-xs text-gray-400 mt-3">Auto-dismissing in {Math.ceil(autoDismissDelay / 1000)}s...</p>
-        )}
-      </div>
-    </div>
-  );
+        return () => clearTimeout(timer);
+    }, [autoHide, autoDismissDelay, onDismiss]);
+
+    if (!experienceState.hasLeveledUp || !isVisible) {
+        return null;
+    }
+
+    const { currentLevel, statGains, xpProgress, xpRemaining } = experienceState;
+
+    return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-40 animate-fade-in">
+            <div className="bg-gradient-to-b from-yellow-900 to-amber-900 border-4 border-yellow-400 rounded-xl p-8 shadow-2xl max-w-md w-11/12 animate-scale-in text-center">
+                {/* Header */}
+                <div className="mb-6">
+                    <p className="text-yellow-200 text-lg font-bold tracking-widest">🎉 LEVEL UP! 🎉</p>
+                    <h1 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-yellow-400 my-2">
+                        {currentLevel}
+                    </h1>
+                </div>
+
+                {/* Stat Gains */}
+                <div className="bg-black/30 rounded-lg p-4 mb-6 border-2 border-yellow-600">
+                    <h3 className="text-yellow-300 font-bold mb-3">Stat Gains:</h3>
+                    <div className="space-y-2">
+                        {statGains && (
+                            <>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-300">❤️ Max HP:</span>
+                                    <span className="text-green-400 font-bold">+{statGains.hp}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-300">⚔️ Attack:</span>
+                                    <span className="text-orange-400 font-bold">+{statGains.attack}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-300">🛡️ Defense:</span>
+                                    <span className="text-blue-400 font-bold">+{statGains.defense}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-300">⭐ Skill Points:</span>
+                                    <span className="text-purple-400 font-bold">+{statGains.skillPoints}</span>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+
+                {/* XP Progress */}
+                <div className="mb-6">
+                    <div className="flex justify-between text-xs text-gray-300 mb-1">
+                        <span>Next Level XP:</span>
+                        <span>
+                            {Math.floor(experienceState.xpThisLevel)} / {Math.floor(experienceState.xpNeeded)}
+                        </span>
+                    </div>
+                    <div className="w-full bg-gray-800 rounded-full h-3 border border-gray-600 overflow-hidden">
+                        <div
+                            className="h-full bg-gradient-to-r from-green-500 to-yellow-500 transition-all duration-500"
+                            style={{ width: `${xpProgress * 100}%` }}
+                        />
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">{Math.ceil(xpRemaining)} XP to next level</p>
+                </div>
+
+                {/* Dismiss Button */}
+                <button
+                    onClick={() => {
+                        setIsVisible(false);
+                        onDismiss?.();
+                    }}
+                    className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-yellow-900 font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 text-lg"
+                >
+                    Continue
+                </button>
+
+                {/* Auto-dismiss hint */}
+                {autoHide && (
+                    <p className="text-xs text-gray-400 mt-3">Auto-dismissing in {Math.ceil(autoDismissDelay / 1000)}s...</p>
+                )}
+            </div>
+        </div>
+    );
 }
 
 /**
@@ -171,57 +171,26 @@ export function LevelUpNotification({
  * @returns Compact XP progress component
  */
 export function XPProgressBar({ gameState }: { gameState: GameState }) {
-  const experienceState = useExperienceState(gameState);
-  const { currentLevel, xpProgress, xpRemaining, xpNeeded } = experienceState;
+    const experienceState = useExperienceState(gameState);
+    const { currentLevel, xpProgress, xpRemaining } = experienceState;
 
-  return (
-    <div className="bg-slate-700 rounded-lg p-2 flex items-center gap-2">
-      <div className="text-xs font-bold text-white bg-slate-800 rounded px-2 py-1">
-        Lvl {currentLevel}
-      </div>
-      <div className="flex-1">
-        <div
-          className="h-3 rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 transition-all duration-300 border border-gray-600"
-          style={{ width: `${xpProgress * 100}%`, maxWidth: '120px' }}
-        />
-      </div>
-      <div
-        className="text-xs text-gray-300 cursor-help"
-        title={`${Math.ceil(xpRemaining)} XP to next level`}
-      >
-        {Math.ceil(xpRemaining)}
-      </div>
-    </div>
-  );
+    return (
+        <div className="bg-slate-700 rounded-lg p-2 flex items-center gap-2">
+            <div className="text-xs font-bold text-white bg-slate-800 rounded px-2 py-1">
+                Lvl {currentLevel}
+            </div>
+            <div className="flex-1">
+                <div
+                    className="h-3 rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 transition-all duration-300 border border-gray-600"
+                    style={{ width: `${xpProgress * 100}%`, maxWidth: '120px' }}
+                />
+            </div>
+            <div
+                className="text-xs text-gray-300 cursor-help"
+                title={`${Math.ceil(xpRemaining)} XP to next level`}
+            >
+                {Math.ceil(xpRemaining)}
+            </div>
+        </div>
+    );
 }
-
-// Add CSS animations if not using Tailwind animation utilities
-const styles = `
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-  
-  @keyframes scale-in {
-    from {
-      transform: scale(0.8);
-      opacity: 0;
-    }
-    to {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-  
-  .animate-fade-in {
-    animation: fade-in 300ms ease-out;
-  }
-  
-  .animate-scale-in {
-    animation: scale-in 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-`;

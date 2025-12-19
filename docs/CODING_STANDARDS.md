@@ -187,7 +187,7 @@ function updatePlayer(player: Player, newHp: number): Player {
 
 **Requirement**: All project status reports, implementation summaries, and progress updates MUST be delivered **in chat messages only**. Never create separate report files (`.md` files with status/summary content).
 
-**Why**: Keeps documentation in actual code docs (ARCHITECTURE.md, PATTERNS.md, etc.), prevents report file duplication, and ensures status is always discussed in context.
+**Why**: Keeps documentation in actual code docs (ARCHITECTURE.md, CODING_PATTERNS.md, GUIDES_HOW_TO.md, etc.), prevents report file duplication, and ensures status is always discussed in context.
 
 ### How to Report in Chat
 
@@ -238,7 +238,7 @@ When providing status updates or completion reports:
 
 ### File Rule
 
-- ✅ ALLOWED: ARCHITECTURE.md, PATTERNS.md, CODING_STANDARDS.md (product docs)
+- ✅ ALLOWED: ARCHITECTURE.md, CODING_PATTERNS.md, GUIDES_HOW_TO.md, CODING_STANDARDS.md (product docs)
 - ✅ ALLOWED: Code comments, TSDoc (inline docs)
 - ✅ ALLOWED: README.md, CHANGELOG.md (project root only)
 - ❌ FORBIDDEN: PHASE-X-STATUS.md, PROJECT-REPORT.md, SUMMARY.md
@@ -254,7 +254,7 @@ See **ARCHITECTURE.md** for:
 - Import rules
 - Where to add new code
 
-See **PATTERNS.md** for:
+See **CODING_PATTERNS.md** or **GUIDES_HOW_TO.md** for:
 - Code templates (Usecase, Hook, Rule, Component)
 - Real examples of each pattern
 - Best practices for each pattern type

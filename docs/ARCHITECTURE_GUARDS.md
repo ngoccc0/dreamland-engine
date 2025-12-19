@@ -496,6 +496,6 @@ npm run test -- integration
 ## 📞 Questions?
 
 If unsure how to apply a pattern:
-1. Check docs/PATTERNS.md for template
+1. Check docs/CODING_PATTERNS.md for pattern template or docs/GUIDES_HOW_TO.md for practical example
 2. Look at reference implementation (e.g., use-game-state.ts)
 3. Ask before implementing

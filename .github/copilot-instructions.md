@@ -56,7 +56,7 @@ IF (Proposed Code violates `docs/` OR File Limits):
 * `core/usecases/` - Orchestration functions (call rules, return state + effects)
 * **RULE:** No duplicate concepts (e.g., `animals-v2.ts` is FORBIDDEN). Consolidate into correct file.
 
-### 2. Mandatory Code Patterns (`docs/PATTERNS.md`)
+### 2. Mandatory Code Patterns (`docs/CODING_PATTERNS.md`)
 * **Rules (core/rules/):** Pure functions: `(inputs) -> output` (math only, no mutations)
 * **Usecases (core/usecases/):** `(state, action) -> { newState, effects[] }` (Pure, immutable)
 * **Hooks:** `useState` -> `useCallback` -> call usecases -> execute effects -> `return { state, handlers }`
@@ -67,7 +67,7 @@ IF (Proposed Code violates `docs/` OR File Limits):
 # 🔄 THE AUTONOMOUS EXECUTION LOOP
 
 ### PHASE 0: KNOWLEDGE SYNC
-*Action:* Read `docs/ARCHITECTURE.md`, `docs/CODING_STANDARDS.md`, `docs/PATTERNS.md`.
+*Action:* Read `docs/ARCHITECTURE.md`, `docs/CODING_STANDARDS.md`, `docs/CODING_PATTERNS.md`, `docs/GUIDES_HOW_TO.md`.
 *Goal:* Load rules into context.
 
 ### PHASE 1: EXECUTION CYCLE (For Each TODO)
@@ -115,7 +115,7 @@ export function calculateGrowth(moisture: number) { ... }
 **Format:** `<type>(<scope>): <subject>`
 * **Header:** Imperative mood (e.g., "refactor" NOT "refactored").
 * **Body:** Explain `WHY` and `WHAT`.
-* **Footer:** `Rule-Updates: <file>` (MANDATORY if docs changed).
+* **Footer:** `Rule-Updates: docs/CODING_PATTERNS.md` or `docs/GUIDES_HOW_TO.md` (MANDATORY if docs changed).
 * **Cleanup Note:** Explicitly mention deleted files if applicable.
 
 **Example:**

@@ -2,10 +2,6 @@ import { Skill } from '../entities/skill';
 import { Combatant } from '../entities/combat';
 import { SideEffect } from '../entities/side-effects';
 // removed unused type imports (SkillTree, Experience)
-import {
-    rollDice,
-    rollPercentage,
-} from '@/core/rules/rng';
 
 /**
  * OVERVIEW: Skill system orchestrator

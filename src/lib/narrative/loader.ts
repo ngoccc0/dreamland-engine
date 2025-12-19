@@ -74,7 +74,7 @@ export async function loadPrecomputedBundle(biome: string, locale = 'en'): Promi
       }
     }
     return json as PrecomputedBundle;
-  } catch (e: any) {
+  } catch (_e: any) {
     // Silently handle bundle fetch failure
     return null;
   }

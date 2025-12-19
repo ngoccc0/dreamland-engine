@@ -203,8 +203,8 @@ export const getEmojiForItem = (name: string, category: string): string => {
 export const ensurePlayerItemId = (
   item: PlayerItem,
   definitions: Record<string, ItemDefinition>,
-  t: (key: string, params?: any) => string,
-  language: string
+  _t: (key: string, params?: any) => string,
+  _language: string
 ): PlayerItem => {
   if (item.id) return item;
 

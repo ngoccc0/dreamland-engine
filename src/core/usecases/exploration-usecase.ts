@@ -1,13 +1,8 @@
 import { ExplorationManager, ExplorationResult, Discovery, DiscoveryType } from '../entities/exploration';
 import { GridPosition } from '../values/grid-position';
 import { GridCell } from '../entities/world';
-import type { DiscoveredSettlement, UnlockedNPC, DungeonMonster } from '../types/game';
+import type { DungeonMonster } from '../types/game';
 import { SideEffect } from '../entities/side-effects';
-import {
-    rollDice,
-    rollPercentage,
-    randomBetween,
-} from '@/core/rules/rng';
 
 /**
  * Result of exploring a location - returns new state + effects

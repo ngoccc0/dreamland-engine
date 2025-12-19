@@ -178,8 +178,6 @@ function findApproximatePath(
     const dy = Math.sign(goalY - startY);
 
     // Try to step in that direction
-    const candidates: Array<[number, number]> = [];
-
     // Prefer diagonal if allowed
     if (allowDiagonal && dx !== 0 && dy !== 0) {
         const diagonalX = startX + dx;

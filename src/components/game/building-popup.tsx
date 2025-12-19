@@ -1,5 +1,3 @@
-import type { TranslationKey } from "@/lib/i18n"
-
 
 "use client";
 

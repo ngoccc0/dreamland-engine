@@ -3,7 +3,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { WandSparkles, Shield, Backpack, Hammer, Home, FlaskConical } from "./icons";
+import { WandSparkles } from "./icons";
 import { getTranslatedText, cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useSkillState } from "@/hooks/useSkillState";

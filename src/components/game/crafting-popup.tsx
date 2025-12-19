@@ -23,7 +23,6 @@ import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/comp
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useLanguage } from "@/context/language-context";
 import type { PlayerItem, Recipe, ItemDefinition, CraftingOutcome } from "@/lib/game/types";
-import type { TranslationKey } from "@/lib/i18n";
 import { useAudio } from "@/lib/audio/useAudio";
 import { AudioActionType } from "@/core/data/audio-events";
 import { calculateCraftingOutcome } from "@/core/engines/game/crafting";

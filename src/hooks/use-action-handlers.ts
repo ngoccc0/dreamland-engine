@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
 import { useSettings } from '@/context/settings-context';
 import { useEffectExecutor } from '@/hooks/use-effect-executor';
+import { useQuestIntegration } from '@/hooks/use-quest-integration';
 
 import { createHandleOnlineNarrative } from '@/hooks/use-action-handlers.online';
 import { createHandleOfflineAttack } from '@/hooks/use-action-handlers.offlineAttack';
@@ -86,6 +87,10 @@ export type ActionHandlerDeps = {
   customStructures: GameState['customStructures'];
   narrativeLogRef: React.RefObject<NarrativeEntry[]>;
   activeMoveOpsRef?: React.RefObject<Set<string>>;
+  activeQuests?: any[];
+  setActiveQuests?: React.Dispatch<React.SetStateAction<any[]>>;
+  unlockedAchievements?: any[];
+  setUnlockedAchievements?: React.Dispatch<React.SetStateAction<any[]>>;
 };
 
 /**
@@ -137,6 +142,48 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
   // Hook effect executor for centralized side-effect handling
   const { executeEffects } = useEffectExecutor();
+  
+  // Hook for quest and achievement integration (Phase 2.0)
+  const { evaluateQuestsAndAchievements } = useQuestIntegration();
+
+  // Helper to execute effects AND evaluate quests/achievements
+  const executeEffectsWithQuests = useCallback((effects: any[]) => {
+    // 1. Execute the side effects (audio, UI, etc)
+    executeEffects(effects);
+    
+    // 2. Evaluate quests and achievements based on current state
+    // This allows quests to auto-complete when criteria are met
+    try {
+      const questState = {
+        playerId: 'player',
+        timestamp: new Date(),
+        turnCount: deps.turn,
+        currentChunkX: deps.playerPosition.x,
+        currentChunkY: deps.playerPosition.y,
+        activeQuests: deps.activeQuests || [],
+        unlockedAchievements: deps.unlockedAchievements || [],
+        // TODO: Add statistics tracking after Statistics Engine integration
+      };
+      
+      const { newState: updatedState, effects: questEffects } = evaluateQuestsAndAchievements(questState);
+      
+      // Apply quest/achievement updates if any
+      if (updatedState.activeQuests && deps.setActiveQuests) {
+        deps.setActiveQuests(updatedState.activeQuests);
+      }
+      if (updatedState.unlockedAchievements && deps.setUnlockedAchievements) {
+        deps.setUnlockedAchievements(updatedState.unlockedAchievements);
+      }
+      
+      // Execute any cascading effects (quest completion notifications, etc)
+      if (questEffects && questEffects.length > 0) {
+        executeEffects(questEffects);
+      }
+    } catch (err) {
+      console.warn('[ActionHandlers] Failed to evaluate quests:', err);
+      // Silently ignore quest evaluation errors to prevent blocking gameplay
+    }
+  }, [executeEffects, evaluateQuestsAndAchievements, deps]);
 
   // Helper to resolve an item definition by name. Prefer custom/generated definitions
   // (world-specific), but fall back to the built-in master item catalog when needed.
@@ -384,7 +431,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     if (outcome) {
       // Generate and execute side effects from combat outcome
       const effects = generateCombatEffects(outcome);
-      executeEffects(effects);
+      executeEffectsWithQuests(effects);
     }
   }, [isLoading, isGameOver, isLoaded, setPlayerBehaviorProfile, world, playerPosition, addNarrativeEntry, t, playerStats, handleOfflineAttack, setPlayerStats, audio, executeEffects]);
 
@@ -495,7 +542,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const outcome = handleOfflineItemUse(getTranslatedText(itemName, 'en'), getTranslatedText(target, 'en'));
     if (outcome) {
       const effects = generateItemEffects(outcome);
-      executeEffects(effects);
+      executeEffectsWithQuests(effects);
     }
 
   }, [isLoading, isGameOver, isLoaded, t, handleOfflineItemUse, addNarrativeEntry, executeEffects]);
@@ -508,7 +555,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const outcome = handleOfflineSkillUse(skillName);
     if (outcome) {
       const effects = generateSkillEffects(outcome);
-      executeEffects(effects);
+      executeEffectsWithQuests(effects);
     }
   }, [isLoading, isGameOver, isLoaded, t, handleOfflineSkillUse, addNarrativeEntry, executeEffects]);
 
@@ -769,9 +816,9 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     const outcome = harvestRef.current(actionId);
     if (outcome) {
       const effects = generateHarvestEffects(outcome);
-      executeEffects(effects);
+      executeEffectsWithQuests(effects);
     }
-  }, [isLoading, isGameOver, isLoaded, world, playerPosition, toast, t, addNarrativeEntry, playerStats, customItemDefinitions, advanceGameTime, setWorld, setPlayerStats, resolveItemDef, clamp, ensurePlayerItemId, getTranslatedText, executeEffects]);
+  }, [isLoading, isGameOver, isLoaded, world, playerPosition, toast, t, addNarrativeEntry, playerStats, customItemDefinitions, advanceGameTime, setWorld, setPlayerStats, resolveItemDef, clamp, ensurePlayerItemId, getTranslatedText, executeEffectsWithQuests]);
 
   const handleMove = useCallback((direction: "north" | "south" | "east" | "west") => {
     // Create a fresh handler per invocation so it captures the latest state

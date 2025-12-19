@@ -181,6 +181,71 @@ function updatePlayer(player: Player, newHp: number): Player {
 
 ---
 
+## Reporting Standards (Chat-Based Only)
+
+### Rule: No Standalone Report Files
+
+**Requirement**: All project status reports, implementation summaries, and progress updates MUST be delivered **in chat messages only**. Never create separate report files (`.md` files with status/summary content).
+
+**Why**: Keeps documentation in actual code docs (ARCHITECTURE.md, PATTERNS.md, etc.), prevents report file duplication, and ensures status is always discussed in context.
+
+### How to Report in Chat
+
+When providing status updates or completion reports:
+
+1. **Use clear structured format**
+   - Use markdown headers (##, ###, ####) for sections
+   - Use tables for metrics/comparison
+   - Use code blocks for examples
+   - Use bullet lists for task breakdowns
+
+2. **Keep information hierarchical**
+   - ✅ Completed items clearly marked
+   - ❌ Remaining tasks clearly marked
+   - 📋 In-progress items marked
+   - 🚀 Next steps with clear action items
+
+3. **Include only essential context**
+   - What was built (files, LOC)
+   - What works (type safety, test coverage)
+   - What remains (tasks + estimates)
+   - How to proceed (quick start guide)
+
+4. **Example format**:
+   ```
+   ## ✅ COMPLETED: Phase X
+
+   ### New Files (3 created)
+   - `src/core/engines/...` - Purpose
+   - ... [more files]
+
+   ### Metrics
+   | Item | Value |
+   | - | - |
+   | TypeScript Errors | 0 |
+
+   ## ❌ REMAINING: Phase Y
+
+   ### Task 1: [Title]
+   - Estimated: X hours
+   - Blockers: None
+   - Files: [list files]
+
+   ## 🚀 NEXT STEPS
+   1. [Action]
+   2. [Action]
+   ```
+
+### File Rule
+
+- ✅ ALLOWED: ARCHITECTURE.md, PATTERNS.md, CODING_STANDARDS.md (product docs)
+- ✅ ALLOWED: Code comments, TSDoc (inline docs)
+- ✅ ALLOWED: README.md, CHANGELOG.md (project root only)
+- ❌ FORBIDDEN: PHASE-X-STATUS.md, PROJECT-REPORT.md, SUMMARY.md
+- ❌ FORBIDDEN: Any file created just to document progress
+
+---
+
 ## File Organization
 
 See **ARCHITECTURE.md** for:

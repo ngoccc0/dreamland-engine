@@ -1,7 +1,7 @@
 # 🎯 DREAMLAND ENGINE - ARCHITECTURE
 
-**Current State**: Production-Ready Event-Driven Architecture  
-**Last Updated**: December 16, 2025  
+**Current State**: Event-Driven Statistics + Quest System (Phase 2.0)  
+**Last Updated**: December 19, 2025  
 **Status**: ✅ ACTIVE & FUNCTIONAL
 
 ---
@@ -73,6 +73,8 @@ src/
 │   │   ├── crafting-usecase.ts
 │   │   ├── harvest-usecase.ts
 │   │   ├── weather-usecase.ts
+│   │   ├── quest-usecase.ts       ← Quest lifecycle (NEW)
+│   │   ├── achievement-usecase.ts ← Achievement auto-evaluation (NEW)
 │   │   └── index.ts
 │   │
 │   ├── entities/                 → Domain models
@@ -80,8 +82,22 @@ src/
 │   ├── factories/                → Object creation
 │   ├── generators/               → Procedural generation
 │   ├── values/                   → Value objects
+│   │
 │   ├── types/                    → Type definitions
-│   └── engines/                  → Game mechanics
+│   │   └── events.ts             ← Game events (NEW)
+│   │
+│   ├── engines/                  → Game mechanics
+│   │   └── statistics/           ← Player behavior tracking (NEW)
+│   │       ├── schemas.ts        → Context-aware metrics schema
+│   │       ├── engine.ts         → Event processor
+│   │       ├── query.ts          → Safe stat accessors
+│   │       └── cleaner.ts        → Sparse data optimizer
+│   │
+│   └── data/                     → Static game data (EXPANDED)
+│       ├── creatures/, items/, recipes/, narrative/ (existing)
+│       └── quests/               ← Quest templates (NEW)
+│           ├── quest-templates.ts
+│           └── achievement-templates.ts
 │
 ├── hooks/                        ← React hooks (state wiring)
 │   ├── use-game-state.ts

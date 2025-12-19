@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import { CreatureSchema } from './creature';
 import { ItemSchema } from './item';
+import { PlayerStatisticsSchema, createEmptyStatistics } from '@/core/engines/statistics/schemas';
+import { QuestRuntimeStateSchema } from './quest';
+import { AchievementRuntimeStateSchema } from './achievement';
 
 /**
  * Complete Game State - The save file structure
@@ -100,23 +103,13 @@ export const GameStateSchema = z.object({
     creatures: z.record(z.string(), z.array(CreatureSchema)).describe('Creatures in each chunk'),
 
     // Quest/task tracking
-    activeQuests: z.array(z.object({
-        id: z.string(),
-        name: z.string(),
-        progress: z.record(z.number()),
-        completed: z.boolean(),
-    })).describe('Active quests'),
+    activeQuests: z.array(QuestRuntimeStateSchema).default([]).describe('Active quest states'),
 
     // Achievements
-    achievements: z.array(z.string()).describe('Unlocked achievement IDs'),
+    unlockedAchievements: z.array(AchievementRuntimeStateSchema).default([]).describe('Unlocked achievements with timestamps'),
 
-    // Game stats
-    stats: z.object({
-        creaturesKilled: z.number().int().default(0),
-        itemsCrafted: z.number().int().default(0),
-        distanceTraveled: z.number().default(0),
-        timeSpent: z.number().int().default(0),
-    }).describe('Game statistics'),
+    // Player statistics (context-aware, sparse data)
+    statistics: PlayerStatisticsSchema.describe('Player behavior statistics (kills, items, crafting, exploration)'),
 
     // Modding state
     enabledMods: z.array(z.string()).default([]).describe('Enabled mod IDs'),
@@ -182,13 +175,8 @@ export function createGameState(playerId: string, seed: number): GameState {
 
         creatures: {},
         activeQuests: [],
-        achievements: [],
-        stats: {
-            creaturesKilled: 0,
-            itemsCrafted: 0,
-            distanceTraveled: 0,
-            timeSpent: 0,
-        },
+        unlockedAchievements: [],
+        statistics: createEmptyStatistics(),
         enabledMods: [],
     };
 }

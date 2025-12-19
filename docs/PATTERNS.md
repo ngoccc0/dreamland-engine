@@ -1,768 +1,229 @@
-# CODE PATTERNS - Templates & Examples
+# CODE PATTERNS & DOCUMENTATION INDEX
 
-See **CODING_STANDARDS.md** for documentation rules and file organization.
+This folder contains the architectural patterns and guidelines for Dreamland Engine.
 
----
+## 📚 Documentation Files
 
-## Usecase Pattern (Pure Functions)
+### 1. **CODING_PATTERNS.md** - Architectural & Code Standards
+Theoretical foundations and patterns used throughout the codebase.
 
-**Purpose**: Transform game state immutably, return [NewState, Effects[]]
+**Patterns covered:**
+- Usecase Pattern (Pure Functions)
+- Hook Pattern (React State Wiring)
+- Rules Pattern (core/rules/ - Pure Game Logic)
+- Component Pattern (React UI)
+- Repository Pattern (Data Access Abstraction)
+- Effect/Side-Effect Pattern
+- Immutability Pattern
+- Bilingual Text Pattern (EN/VI support)
+- TSDoc Standards (GLASS BOX PATTERN)
 
-### Template
-```typescript
-/**
- * [Description of what this action does]
- *
- * @remarks
- * This usecase:
- *   - [What it changes in state]
- *   - [How it calculates results]
- *   - [Any edge cases it handles]
- *
- * @param state - Current game state
- * @param input - Action parameters
- * @returns [newState, effects] - Immutable new state and side effects
- */
-export function performAction(
-  state: GameState,
-  input: ActionInput
-): [GameState, GameEffect[]] {
-  // Pure function: no mutations, no side effects
-  const newState = { ...state, /* changes */ };
-  const effects: GameEffect[] = [/* side effects to apply */];
-  
-  return [newState, effects];
-}
-```
-
-### Real Example
-```typescript
-/**
- * Attacks a target creature and returns updated states.
- *
- * @remarks
- * Calculates damage using the combat engine, applies to target.
- * Returns both attacker and defender with updated stats.
- * Handles zero-division edge case where defender hp is 0.
- *
- * @param attacker - The creature performing the attack
- * @param defender - The target creature
- * @returns [newAttacker, newDefender] - Updated creatures
- */
-export function performAttack(
-  attacker: Creature,
-  defender: Creature
-): [Creature, Creature] {
-  const damage = calculateDamage(attacker, defender);
-  
-  return [
-    { ...attacker, stamina: Math.max(0, attacker.stamina - 5) },
-    { ...defender, hp: Math.max(0, defender.hp - damage) }
-  ];
-}
-```
-
-### Key Rules
-- ✅ Input parameters are NEVER mutated
-- ✅ Returns tuple: `[NewState, Effects[]]`
-- ✅ NO React, NO side effects (DB, API, console.log)
-- ✅ Pure math/logic only
-- ✅ Must have @remarks explaining WHY
+**When to read**: Understanding code structure, architecture decisions, code reviews, writing new modules.
 
 ---
 
-## Hook Pattern (React State Wiring)
+### 2. **GUIDES_HOW_TO.md** - Practical Implementation Guides
+Step-by-step instructions for common tasks in Dreamland Engine.
 
-**Purpose**: Bridge between React components and core game logic
+**Guides covered:**
+- How to Add a New Quest
+- How to Add an Achievement
+- How to Extend Statistics
+- How to Add a New Event Type
+- How to Query Action History
+- How to Add a New Component
+- How to Debug Events
+- How to Add a New Location/Biome
+- Common Patterns & Troubleshooting
 
-### Template
-```typescript
-/**
- * [What this hook manages]
- *
- * @remarks
- * This hook:
- *   - Manages [what state it stores]
- *   - Calls usecases to [what it does]
- *   - Returns [what it returns]
- *
- * @returns Object with state and handlers
- */
-export function useMyHook() {
-  const [state, setState] = useState(initialState);
-  
-  const handleAction = useCallback((input: Input) => {
-    const [newState, effects] = performAction(state, input);
-    
-    // Apply state update
-    setState(newState);
-    
-    // Process effects (audio, particles, etc)
-    effects.forEach(effect => applyEffect(effect));
-  }, [state]);
-  
-  return { state, handleAction };
-}
-```
-
-### Real Example
-```typescript
-/**
- * Manages all combat state and actions.
- *
- * @remarks
- * This hook:
- *   - Stores current combat state (player, enemies, turn)
- *   - Orchestrates combat usecases (attack, defend, skill)
- *   - Processes effects (damage numbers, animations, audio)
- *
- * @returns Object with { state, handleAttack, handleDefend, handleSkill }
- */
-export function useCombat() {
-  const [state, setState] = useState<CombatState>(initialCombatState);
-  
-  const handleAttack = useCallback((targetId: string) => {
-    const [newState, effects] = performAttack(state.player, state.enemies[targetId]);
-    
-    setState(prev => ({
-      ...prev,
-      player: newState[0],
-      enemies: { ...prev.enemies, [targetId]: newState[1] }
-    }));
-    
-    // Process effects
-    effects.forEach(effect => emitAudioEvent(effect));
-  }, [state]);
-  
-  return { state, handleAttack };
-}
-```
-
-### Key Rules
-- ✅ Uses `useState` for React state
-- ✅ Uses `useCallback` to memoize handlers
-- ✅ Calls usecases, not directly mutating state
-- ✅ Processes effects (audio, animations)
-- ✅ Returns state and handlers
+**When to read**: Implementing features, debugging issues, following best practices.
 
 ---
 
-## Rules Pattern (core/rules/ - Pure Game Logic)
+### 3. **ARCHITECTURE.md** - System Design
+Overall system architecture, file organization, and integration patterns.
 
-**Purpose**: Pure mathematical functions for game mechanics (no state mutations, no side effects)
+**Covers:**
+- System layers (UI → Hooks → Core → Data)
+- File organization with line limits
+- Integration flow diagram
+- Phase progress tracking
 
-### Template
-```typescript
-/**
- * [Calculation description]
- *
- * @remarks
- * **Formula:** [Mathematical expression]
- *
- * **Logic:**
- * 1. [Step 1]
- * 2. [Step 2]
- * 3. [Step 3]
- *
- * **Edge Cases:**
- * - [Boundary condition 1]
- * - [Boundary condition 2]
- *
- * @param input - Input parameters with type and range
- * @returns Output range and meaning
- *
- * @example
- * functionName(input) → output (description)
- */
-export function calculateValue(input: number): number {
-  // Pure calculation, no side effects, no mutations
-  const result = input * 2;
-  return Math.max(0, Math.min(100, result));  // Clamp to range
-}
-```
-
-### Real Example (Combat Rule)
-```typescript
-/**
- * Calculates base damage before critical hit calculation.
- *
- * @remarks
- * **Formula:** `baseDamage = max(1, attack - defense)`
- *
- * **Logic:**
- * 1. Subtract defense from attack value
- * 2. Enforce minimum of 1 (no zero/negative damage)
- * 3. No multipliers applied (crit handled separately)
- *
- * **Edge Cases:**
- * - If defense >= attack: returns 1 (minimum guaranteed)
- * - Negative defense values: treated as 0 (no negative defense)
- *
- * @param attack - Attacker's attack stat (0+)
- * @param defense - Defender's defense stat (0+)
- * @returns Base damage (minimum 1)
- *
- * @example
- * calculateBaseDamage(20, 5) → 15
- * calculateBaseDamage(10, 10) → 1 (clamped to minimum)
- * calculateBaseDamage(10, 20) → 1 (defense wins)
- */
-export function calculateBaseDamage(attack: number, defense: number): number {
-  return Math.max(1, attack - defense);
-}
-```
-
-### Key Rules
-- ✅ Pure math, NO state mutations
-- ✅ NO React, NO side effects (no console.log in production)
-- ✅ Handles edge cases (min/max values, boundaries)
-- ✅ Formula DOCUMENTED in @remarks (NOT in inline comments)
-- ✅ Injectable dependencies (RNG passed as parameter for testing)
-- ✅ File location: `src/core/rules/[category]/`
+**When to read**: Understanding system structure, where to place files, design decisions.
 
 ---
 
-## Component Pattern (React UI)
+### 4. **CODING_STANDARDS.md** - Code Style & Organization
+Code style, documentation requirements, and file organization rules.
 
-**Purpose**: Display state, handle user input via hooks
+**Covers:**
+- File organization by path (with line limits)
+- TSDoc documentation requirements (100% coverage)
+- Import/export standards
+- Code style conventions
+- Naming conventions
 
-### Template
-```typescript
-interface Props {
-  // Props for component
-}
-
-/**
- * [Component description]
- *
- * @remarks
- * This component:
- *   - Displays [what]
- *   - Handles [what interactions]
- *   - Uses [which hooks]
- */
-export function MyComponent({ prop1, prop2 }: Props) {
-  const { state, handleAction } = useMyHook();
-  
-  return (
-    <div>
-      {/* Display state */}
-      <div>{state.value}</div>
-      
-      {/* Handle user input */}
-      <button onClick={() => handleAction()}>Action</button>
-    </div>
-  );
-}
-```
-
-### Real Example
-```typescript
-interface InventoryPopupProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-/**
- * Displays the player's inventory as a modal popup.
- *
- * @remarks
- * This component:
- *   - Gets inventory state from useGameState hook
- *   - Displays items organized by category
- *   - Handles item use/drop via handleUseItem from hook
- *   - Shows item details on hover
- */
-export function InventoryPopup({ isOpen, onClose }: InventoryPopupProps) {
-  const { state, handleUseItem } = useGameState();
-  
-  if (!isOpen) return null;
-  
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
-        <div className="inventory-grid">
-          {state.inventory.map(item => (
-            <button
-              key={item.id}
-              onClick={() => handleUseItem(item.id)}
-              title={item.description}
-            >
-              {item.emoji} {item.name}
-            </button>
-          ))}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-```
-
-### Key Rules
-- ✅ Display-only or calls hooks for actions
-- ✅ NO direct core/usecases calls
-- ✅ NO business logic
-- ✅ Props well-typed
-- ✅ Focused responsibility (one component = one UI element)
+**When to read**: Writing code, setting up new files, naming variables/functions/files.
 
 ---
 
-## Repository Pattern (Abstract Data Access)
+## 🚀 Quick Start by Task
 
-**Purpose**: Define contracts for data access, hide implementation
-
-### Template
-```typescript
-/**
- * Abstract interface for [data type] persistence.
- *
- * @remarks
- * Implementation classes:
- *   - IndexedDBCreatureRepository
- *   - FirebaseCreatureRepository
- *   - LocalStorageCreatureRepository (testing)
- */
-export interface ICreatureRepository {
-  /**
-   * Retrieve creature by id
-   */
-  getById(id: string): Promise<Creature | null>;
-  
-  /**
-   * Save creature
-   */
-  save(creature: Creature): Promise<void>;
-  
-  /**
-   * List all creatures
-   */
-  listAll(): Promise<Creature[]>;
-}
-```
-
-### Real Example
-```typescript
-/**
- * Abstract interface for weather persistence.
- *
- * @remarks
- * Weather state is persisted separately from game state.
- * Implementations handle storage across database backends.
- */
-export interface IWeatherRepository {
-  /**
-   * Get current world weather
-   */
-  getWeather(worldId: string): Promise<Weather>;
-  
-  /**
-   * Update weather state
-   */
-  updateWeather(worldId: string, weather: Weather): Promise<void>;
-  
-  /**
-   * Get weather history (for statistics)
-   */
-  getWeatherHistory(worldId: string, days: number): Promise<Weather[]>;
-}
-
-// Concrete implementation
-export class IndexedDBWeatherRepository implements IWeatherRepository {
-  async getWeather(worldId: string): Promise<Weather> {
-    const db = await getIndexedDB();
-    return db.weather.get(worldId);
-  }
-  
-  async updateWeather(worldId: string, weather: Weather): Promise<void> {
-    const db = await getIndexedDB();
-    await db.weather.put({ ...weather, worldId });
-  }
-}
-```
-
-### Key Rules
-- ✅ Abstract interface defined in src/core/repositories/
-- ✅ Concrete implementation in src/infrastructure/persistence/
-- ✅ Methods return Promises (async data access)
-- ✅ Used in hooks via dependency injection
-- ✅ Makes swapping database backends easy
+| Task | Document | Section |
+|------|----------|---------|
+| Add a new quest | GUIDES_HOW_TO.md | How to Add a New Quest |
+| Add an achievement | GUIDES_HOW_TO.md | How to Add an Achievement |
+| Extend statistics | GUIDES_HOW_TO.md | How to Extend Statistics |
+| Add a new event type | GUIDES_HOW_TO.md | How to Add a New Event Type |
+| Query action history | GUIDES_HOW_TO.md | How to Query Action History |
+| Create a component | GUIDES_HOW_TO.md | How to Add a New Component |
+| Debug events | GUIDES_HOW_TO.md | How to Debug Events |
+| Add a location/biome | GUIDES_HOW_TO.md | How to Add a New Location/Biome |
+| Understand usecase pattern | CODING_PATTERNS.md | Usecase Pattern |
+| Understand hook pattern | CODING_PATTERNS.md | Hook Pattern |
+| Understand rules pattern | CODING_PATTERNS.md | Rules Pattern |
+| Learn immutability | CODING_PATTERNS.md | Immutability Pattern |
+| See file organization | CODING_STANDARDS.md | File Organization |
+| Debug issues | GUIDES_HOW_TO.md | Troubleshooting |
+| Understand TSDoc | CODING_PATTERNS.md | TSDoc Standards |
 
 ---
 
-## Effect/Side-Effect Pattern
+## 📋 System Architecture Summary
 
-**Purpose**: Track side effects separately from state
-
-### Template
-```typescript
-/**
- * Represents a side effect to be applied after state change.
- *
- * @remarks
- * Side effects are processed after state is updated.
- * This allows asynchronous operations (audio, animations, etc).
- */
-interface GameEffect {
-  type: string;  // 'audio', 'particle', 'animation', etc
-  data: unknown;  // Payload for the effect
-}
-
-/**
- * Usecase that returns both state and effects.
- *
- * @remarks
- * The caller processes effects AFTER updating state.
- * This separates concerns: state logic vs effect logic.
- *
- * @returns [newState, effects] - State and side effects
- */
-export function performAction(
-  state: GameState,
-  input: Input
-): [GameState, GameEffect[]] {
-  const newState = { ...state };
-  const effects: GameEffect[] = [];
-  
-  // Side effects are listed, not executed
-  effects.push({
-    type: 'audio',
-    data: { sound: 'sword_slash.mp3' }
-  });
-  
-  effects.push({
-    type: 'particle',
-    data: { position: { x: 10, y: 20 }, effect: 'blood_splatter' }
-  });
-  
-  return [newState, effects];
-}
 ```
-
-### Real Example
-```typescript
-export function performAttack(
-  attacker: Creature,
-  defender: Creature
-): [Creature, Creature, GameEffect[]] {
-  const damage = calculateDamage(attacker, defender);
-  
-  const effects: GameEffect[] = [
-    {
-      type: 'audio',
-      data: { sound: 'attack.mp3', volume: 0.8 }
-    },
-    {
-      type: 'particle',
-      data: { 
-        position: defender.position,
-        effect: 'damage_number',
-        text: damage.toString()
-      }
-    },
-    {
-      type: 'shake',
-      data: { intensity: damage / 10 }
-    }
-  ];
-  
-  return [
-    { ...attacker, stamina: attacker.stamina - 5 },
-    { ...defender, hp: Math.max(0, defender.hp - damage) },
-    effects
-  ];
-}
-
-// Hook processes effects
-const [newAttacker, newDefender, effects] = performAttack(attacker, defender);
-effects.forEach(effect => {
-  if (effect.type === 'audio') {
-    audioManager.play(effect.data.sound);
-  } else if (effect.type === 'particle') {
-    particleEmitter.emit(effect.data);
-  }
-  // ... etc
-});
+┌─────────────────────────────────────────────┐
+│          React Components (UI Layer)        │
+│  (display state, handle user input)         │
+└────────────────┬────────────────────────────┘
+                 │
+┌────────────────▼────────────────────────────┐
+│         React Hooks (State Layer)           │
+│  (useState, useCallback, call usecases)     │
+└────────────────┬────────────────────────────┘
+                 │
+┌────────────────▼────────────────────────────┐
+│      Core Usecases (Orchestration)          │
+│  (call rules, return [state, effects])      │
+└────────────────┬────────────────────────────┘
+                 │
+┌────────────────▼────────────────────────────┐
+│     Core Rules (Pure Game Logic)            │
+│  (math, calculations, NO mutations)         │
+└────────────────┬────────────────────────────┘
+                 │
+┌────────────────▼────────────────────────────┐
+│  Static Game Data (Never Changes)           │
+│  (creatures, items, locations, etc)         │
+└─────────────────────────────────────────────┘
 ```
-
-### Key Rules
-- ✅ Usecases return effects list, don't execute them
-- ✅ Hooks process effects after state update
-- ✅ Decouples state logic from side effects
-- ✅ Makes testing easier (mock effects, not execute)
 
 ---
 
-## Immutability Pattern
+## 🎯 Phase Progress
 
-**Purpose**: Ensure state changes are observable and reversible
+**Phase 2.0: Statistics Engine** ✅ COMPLETE
+- Event-driven architecture
+- 9 discriminated union event types
+- Statistics tracking (4 categories)
+- Action history immutable log
+- Quest/Achievement auto-evaluation
 
-### Template
-```typescript
-// ✅ CORRECT - Using spread operator
-function updatePlayerStats(player: Player, newHp: number): Player {
-  return {
-    ...player,
-    hp: newHp,
-    lastUpdated: Date.now()
-  };
-}
+**Phase I-1: Event Emission** ✅ COMPLETE
+- CREATURE_KILLED, ITEM_GATHERED, ITEM_CRAFTED, DAMAGE, LEVEL_UP
 
-// ✅ CORRECT - Nested object update
-function addItemToInventory(inventory: Inventory, item: Item): Inventory {
-  return {
-    ...inventory,
-    items: [...inventory.items, item],
-    count: inventory.count + 1
-  };
-}
+**Phase I-2: Action Tracker + XP** ✅ COMPLETE
+- Immutable action history
+- XP rewards on combat
+- LEVEL_UP event emission
 
-// ✅ CORRECT - Array update
-function removeCreatureFromParty(party: Creature[], id: string): Creature[] {
-  return party.filter(c => c.id !== id);
-}
-```
+**Phase I-3: Unit Testing** ❌ SKIPPED
+- Can be added later if needed
+- Focus on practical development
 
-### Anti-Pattern (❌ DO NOT DO THIS)
-```typescript
-// ❌ WRONG - Direct mutation
-function updatePlayerStats(player: Player, newHp: number): Player {
-  player.hp = newHp;  // MUTATION
-  player.lastUpdated = Date.now();
-  return player;
-}
-
-// ❌ WRONG - Array mutation
-function removeCreatureFromParty(party: Creature[], id: string): Creature[] {
-  party.splice(party.findIndex(c => c.id === id), 1);  // MUTATION
-  return party;
-}
-```
-
-### Key Rules
-- ✅ Use spread operator: `{ ...object, field: newValue }`
-- ✅ Use array methods: `.filter()`, `.map()`, `.concat()`
-- ✅ Never use: `.push()`, `.splice()`, direct assignment
-- ✅ Enables undo/redo, state snapshots, time-travel debugging
+**Phase I-4: Developer Guides** ✅ IN PROGRESS
+- See GUIDES_HOW_TO.md
 
 ---
 
-## Bilingual Text Pattern
+## Key Principles
 
-**Purpose**: Support multiple languages (EN/VI)
-
-### Template
-```typescript
-// ✅ CORRECT
-const message = {
-  en: 'Hello',
-  vi: 'Xin chào'
-};
-
-const text = getTranslatedText(message, language);
-
-// ✅ CORRECT - In data definitions
-export const creatures = {
-  wolf: {
-    name: { en: 'Wolf', vi: 'Sói' },
-    description: { en: 'A pack hunter', vi: 'Kẻ săn mồi theo bầy' }
-  }
-};
-
-// ❌ WRONG - Direct access
-const text = message.en;  // Doesn't respect language setting
-
-// ❌ WRONG - Missing translation
-const message = {
-  en: 'Hello'
-  // Missing vi
-};
-```
-
-### Real Example
-```typescript
-export function useLanguage() {
-  const [language, setLanguage] = useState<'en' | 'vi'>('en');
-  
-  const translate = useCallback((text: TranslatableText) => {
-    return getTranslatedText(text, language);
-  }, [language]);
-  
-  return { language, translate };
-}
-
-// In component
-const { translate } = useLanguage();
-const creatureName = translate(creature.name);  // Gets 'Wolf' or 'Sói'
-```
-
-### Key Rules
-- ✅ Always define both EN and VI
-- ✅ Use `getTranslatedText()` for lookup
-- ✅ Never access `.en` or `.vi` directly
-- ✅ Type: `{ en: string, vi: string }`
-
+1. **Immutability**: Never mutate state directly, use spread operators
+2. **Pure Functions**: Core logic has no side effects, returns [newState, effects]
+3. **Separation of Concerns**: UI, State, Logic, Data are separate layers
+4. **Type Safety**: Full TypeScript strict mode, no `any` types
+5. **Documentation**: 100% TSDoc coverage on exports, logic in @remarks
+6. **Sparse Data**: Only non-zero values stored in nested objects
+7. **Discriminated Unions**: Event types use z.discriminatedUnion for type safety
 
 ---
 
-## Statistics Engine Pattern (NEW - Phase 2.0)
+## Common Workflows
 
-**Purpose**: Track all player actions in a single immutable statistics object
+### Creating a New Feature
+1. Define data in `src/core/data/`
+2. Create schema in `src/core/domain/`
+3. Create rules in `src/core/rules/` (pure logic)
+4. Create usecase in `src/core/usecases/` (orchestration)
+5. Create hook in `src/hooks/` (state management)
+6. Create component in `src/components/` (UI)
+7. Add documentation to GUIDES_HOW_TO.md
 
-### Single Source of Truth Architecture
+### Adding a Quest
+1. Define template in `src/core/data/quests/`
+2. Done! (auto-evaluation + completion)
 
-Sparse data design: only non-zero values stored in nested objects.
-Query layer provides safe accessors with zero fallback.
-Immutable updates via spread operator.
-
-### Key Rules
-- ? Sparse data: only non-zero values stored
-- ? Safe accessors with ?? 0 fallback
-- ? No mutations: always return new object via spread
-- ? Filter parameters optional
-- ? Query class for accessing complex nested data
-
----
-
-## Quest System Pattern (NEW - Phase 2.0)
-
-**Purpose**: Track quest progress via statistics, auto-complete when criteria satisfied
-
-### Architecture
-
-1. **STATIC TEMPLATE** (never saved, defined once in QUEST_TEMPLATES)
-2. **RUNTIME STATE** (saved in GameState.activeQuests[])
-3. **EVALUATION FUNCTION** (criteria + statistics ? progress 0.0-1.0+)
-4. **COMPLETION LOGIC** (auto-trigger when progress >= 1.0)
-
-### Criteria Types
-
-- KILL_CREATURE: Kill N creatures (with optional filters: type, biome, weapon)
-- GATHER_ITEM: Gather N items (with optional filters: biome, tool)
-- CRAFT_ITEM: Craft N items (with optional filter: recipe)
-- TRAVEL_DISTANCE: Travel N units (with optional filter: biome)
-- CUSTOM: Custom logic (e.g., reach_ancient_ruins)
-
-### Adding New Quest
-
-1. Define template in QUEST_TEMPLATES in core/data/quests/quest-templates.ts
-2. That's it! Evaluation, completion, tracking all automatic
-
-### Key Rules
-- ? Templates in core/data/quests/ (never saved)
-- ? Runtime state in GameState.activeQuests[] (saved)
-- ? Evaluation via criteria + statistics
-- ? Auto-complete when progress >= 1.0
-- ? Cascading effects: quest complete ? achievement unlocks
+### Debugging a System
+1. Enable event logging in core/event-dispatcher.ts
+2. Check console for event flow
+3. Inspect localStorage for statistics
+4. Query ActionHistory for action log
+5. See GUIDES_HOW_TO.md → Troubleshooting
 
 ---
 
-## Achievement System Pattern (NEW - Phase 2.0)
+## File Structure
 
-**Purpose**: Auto-evaluate player achievements whenever statistics change
+```
+docs/
+├── PATTERNS.md ← You are here (index file)
+├── CODING_PATTERNS.md (patterns + standards, ~600 lines)
+├── GUIDES_HOW_TO.md (how-to guides, ~530 lines)
+├── ARCHITECTURE.md (system design)
+└── CODING_STANDARDS.md (code style + organization)
 
-### Architecture
+src/
+├── app/ (Next.js pages/layouts, <200 lines each)
+├── components/ (React UI, <300 lines each)
+├── hooks/ (State wiring, <250 lines each)
+├── core/ (Game logic)
+│   ├── domain/ (Zod schemas, <400 lines each)
+│   ├── data/ (Static game data)
+│   ├── rules/ (Pure game math)
+│   ├── usecases/ (Orchestration)
+│   ├── statistics/ (Statistics engine)
+│   ├── action-tracker/ (Action history)
+│   └── event-dispatcher/ (Event emission)
+├── lib/ (Utilities)
+└── infrastructure/ (External services)
+```
 
-1. **STATIC TEMPLATE** (never changes, defined once)
-2. **RUNTIME STATE** (saved in GameState.unlockedAchievements[])
-3. **AUTO-EVALUATION** (called after EVERY stat update)
-4. **CASCADING EFFECTS** (achievement unlock ? notify user)
-
-### Pattern
-
-Achievements use identical criteria schema as quests.
-Auto-evaluated when stats change (no player accept action).
-Unlock titles/badges instead of items.
-Can cascade (quest completion ? achievement unlocks).
-
-### Key Rules
-- ? Auto-evaluated on any statistics change
-- ? Never unlock twice (checked before adding)
-- ? Return cascading effects
-- ? Criteria identical to quest criteria
-- ? Rarity field for badge/visual (common, rare, legendary)
 ---
 
-## Action Tracker Pattern (NEW - Phase 2.1)
+## Important Notes
 
-**Purpose**: Record all player actions in an immutable history for reuse across systems
+- **Always refer to CODING_PATTERNS.md** when unsure about how to structure code
+- **Always refer to GUIDES_HOW_TO.md** when implementing features
+- **Keep files under line limits** specified in CODING_STANDARDS.md
+- **Write TSDoc for all exports** with @remarks explaining logic
+- **Use discriminated unions** for event types and game entities
+- **Process effects after state updates** in hooks
 
-### Architecture
+---
 
-```typescript
-// 1. Define action type (in action-tracker/schemas.ts)
-export const CombatActionSchema = BaseActionSchema.extend({
-  type: z.literal('COMBAT'),
-  targetCreatureId: z.string(),
-  damageDealt: z.number(),
-});
+## Support
 
-// 2. Record action (in action handler)
-const { recordCombatAction } = useActionTracker(actionHistory, setActionHistory);
-recordCombatAction({
-  id: generateId(),
-  timestamp: Date.now(),
-  targetCreatureId: creatureId,
-  damageDealt: 15,
-  playerPosition: { x: 5, y: 10 }
-});
-
-// 3. Query actions (in quests, achievements, statistics)
-const totalKills = countActions('COMBAT');
-const totalDamage = getTotalDamageDealt('goblin');
-const recentActions = getRecentActions(10);
-```
-
-### Key Rules
-- ✅ Actions are IMMUTABLE (never modified, only appended)
-- ✅ Use discriminated unions for type safety
-- ✅ Timestamp-ordered (natural ordering)
-- ✅ Record rich context (location, target, result)
-- ✅ Query functions are pure (O(n) filtering acceptable)
-- ✅ Auto-archive old actions to prevent unbounded growth
-- ✅ Used by: quests, achievements, statistics, farming
-
-### Recording Pattern
-
-```typescript
-/**
- * In action handler (e.g., use-action-handlers.offlineAttack.ts):
- */
-const recordCombatAction = () => {
-  // 1. Execute combat logic (calculate damage, apply to creature)
-  const [newAttacker, newDefender] = performAttack(attacker, defender);
-  
-  // 2. Record action in history
-  recordCombatAction({
-    id: generateId(),
-    timestamp: Date.now(),
-    targetCreatureId: defenderCreatureId,
-    targetCreatureType: defendingCreature.type,
-    damageDealt: newAttacker.lastDamageDealt,
-    equippedWeapon: playerStats.equippedWeapon?.name,
-    playerPosition: playerPosition,
-    turnCount: turn
-  });
-  
-  // 3. Generate effects (audio, particles, quest updates)
-  const effects = generateCombatEffects(...);
-  executeEffectsWithQuests(effects);
-};
-```
-
-### Querying Pattern
-
-```typescript
-/**
- * In quest/achievement evaluation (pure functions):
- */
-export function evaluateCreatureKillQuest(
-  history: ActionHistory,
-  quest: QuestTemplate
-): number {
-  // Count matching combat actions
-  return ActionTrackerEngine.countByFilter(history, action =>
-    action.type === 'COMBAT' &&
-    action.targetCreatureType === 'goblin'
-  );
-}
-```
+- **Questions about patterns?** → See CODING_PATTERNS.md
+- **Need to implement a feature?** → See GUIDES_HOW_TO.md
+- **Need file organization rules?** → See CODING_STANDARDS.md
+- **Need system overview?** → See ARCHITECTURE.md

@@ -87,11 +87,16 @@ src/
 │   │   └── events.ts             ← Game events (NEW)
 │   │
 │   ├── engines/                  → Game mechanics
-│   │   └── statistics/           ← Player behavior tracking (NEW)
-│   │       ├── schemas.ts        → Context-aware metrics schema
-│   │       ├── engine.ts         → Event processor
-│   │       ├── query.ts          → Safe stat accessors
-│   │       └── cleaner.ts        → Sparse data optimizer
+│   │   ├── statistics/           ← Player behavior tracking (NEW)
+│   │   │   ├── schemas.ts        → Context-aware metrics schema
+│   │   │   ├── engine.ts         → Event processor
+│   │   │   ├── query.ts          → Safe stat accessors
+│   │   │   └── cleaner.ts        → Sparse data optimizer
+│   │   │
+│   │   └── action-tracker/       ← Player action recording (NEW)
+│   │       ├── schemas.ts        → Action type definitions (discriminated union)
+│   │       ├── engine.ts         → Action recording & querying
+│   │       └── index.ts
 │   │
 │   └── data/                     → Static game data (EXPANDED)
 │       ├── creatures/, items/, recipes/, narrative/ (existing)
@@ -100,7 +105,10 @@ src/
 │           └── achievement-templates.ts
 │
 ├── hooks/                        ← React hooks (state wiring)
-│   ├── use-game-state.ts
+│   ├── use-game-state.ts         → Central game state
+│   ├── use-action-tracker.ts     ← Player action recording (NEW)
+│   ├── use-quest-integration.ts  ← Quest/achievement evaluation (NEW)
+│   ├── use-quest-state.ts        ← Quest display objects (NEW)
 │   ├── use-game-engine.ts
 │   ├── use-effect-executor.ts    → Effect execution hub
 │   ├── use-action-handlers.ts    → Action handlers
@@ -268,7 +276,88 @@ export type Creature = z.infer<typeof CreatureSchema>;
 
 ---
 
-## 🆕 WHERE TO ADD NEW CODE
+## � ACTION TRACKER (NEW - Phase 2.1)
+
+### Purpose: Reusable Player Action Recording
+
+Centralized, immutable record of all player actions for:
+- Quest criteria evaluation ("kill 5 goblins")
+- Achievement detection (auto-trigger on patterns)
+- Statistics calculation (total damage, items gathered, etc.)
+- Replay/analytics (audit trail of gameplay)
+
+### Architecture
+
+```
+Player Action (attack, gather, craft, move, explore)
+    ↓
+ActionTrackerEngine.recordAction() → ActionHistory[]
+    ↓
+Quests/Achievements/Statistics query ActionHistory
+    ↓
+Pure functions evaluate criteria (no state mutation)
+```
+
+### Action Types (Discriminated Union)
+
+```typescript
+type PlayerAction =
+  | CombatAction       // Attack creature
+  | HarvestingAction   // Gather items
+  | CraftingAction     // Combine items
+  | ItemUsageAction    // Consume/equip
+  | SkillUsageAction   // Cast spell
+  | MovementAction     // Move between chunks
+  | ExplorationAction  // Discover landmark
+  | FarmingAction      // Till/plant/harvest
+```
+
+### Location & Usage
+
+**Engine**: `core/engines/action-tracker/`
+- `schemas.ts` - Action type definitions
+- `engine.ts` - Recording & querying (pure functions)
+- `index.ts` - Public exports
+
+**Hook**: `hooks/use-action-tracker.ts`
+- `recordCombatAction()` - Record attack
+- `recordHarvestingAction()` - Record gather
+- `countActions()` - Query by type
+- `getTotalDamageDealt()` - Query total damage
+- `getRecentActions()` - Get last N actions
+
+**Example Usage**:
+```typescript
+const { recordCombatAction, getTotalDamageDealt } = useActionTracker(
+  actionHistory,
+  setActionHistory
+);
+
+// Record action
+recordCombatAction({
+  id: generateId(),
+  timestamp: Date.now(),
+  targetCreatureId: creatureId,
+  targetCreatureType: 'goblin',
+  damageDealt: 15,
+  playerPosition: { x: 5, y: 10 }
+});
+
+// Query results
+const totalKills = countActions('COMBAT');
+const totalDamage = getTotalDamageDealt('goblin');
+```
+
+### Integration with Other Systems
+
+1. **Quests**: Evaluate action history against quest criteria
+2. **Achievements**: Auto-detect when action patterns match achievement requirements
+3. **Statistics**: Feed actions into StatisticsEngine.processEvent() for aggregated metrics
+4. **Farming**: Track FARMING actions for crop growth
+
+---
+
+## �🆕 WHERE TO ADD NEW CODE
 
 ### Adding a New Game Rule
 

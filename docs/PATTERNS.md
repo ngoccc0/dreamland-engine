@@ -680,3 +680,89 @@ Can cascade (quest completion ? achievement unlocks).
 - ? Return cascading effects
 - ? Criteria identical to quest criteria
 - ? Rarity field for badge/visual (common, rare, legendary)
+---
+
+## Action Tracker Pattern (NEW - Phase 2.1)
+
+**Purpose**: Record all player actions in an immutable history for reuse across systems
+
+### Architecture
+
+```typescript
+// 1. Define action type (in action-tracker/schemas.ts)
+export const CombatActionSchema = BaseActionSchema.extend({
+  type: z.literal('COMBAT'),
+  targetCreatureId: z.string(),
+  damageDealt: z.number(),
+});
+
+// 2. Record action (in action handler)
+const { recordCombatAction } = useActionTracker(actionHistory, setActionHistory);
+recordCombatAction({
+  id: generateId(),
+  timestamp: Date.now(),
+  targetCreatureId: creatureId,
+  damageDealt: 15,
+  playerPosition: { x: 5, y: 10 }
+});
+
+// 3. Query actions (in quests, achievements, statistics)
+const totalKills = countActions('COMBAT');
+const totalDamage = getTotalDamageDealt('goblin');
+const recentActions = getRecentActions(10);
+```
+
+### Key Rules
+- ✅ Actions are IMMUTABLE (never modified, only appended)
+- ✅ Use discriminated unions for type safety
+- ✅ Timestamp-ordered (natural ordering)
+- ✅ Record rich context (location, target, result)
+- ✅ Query functions are pure (O(n) filtering acceptable)
+- ✅ Auto-archive old actions to prevent unbounded growth
+- ✅ Used by: quests, achievements, statistics, farming
+
+### Recording Pattern
+
+```typescript
+/**
+ * In action handler (e.g., use-action-handlers.offlineAttack.ts):
+ */
+const recordCombatAction = () => {
+  // 1. Execute combat logic (calculate damage, apply to creature)
+  const [newAttacker, newDefender] = performAttack(attacker, defender);
+  
+  // 2. Record action in history
+  recordCombatAction({
+    id: generateId(),
+    timestamp: Date.now(),
+    targetCreatureId: defenderCreatureId,
+    targetCreatureType: defendingCreature.type,
+    damageDealt: newAttacker.lastDamageDealt,
+    equippedWeapon: playerStats.equippedWeapon?.name,
+    playerPosition: playerPosition,
+    turnCount: turn
+  });
+  
+  // 3. Generate effects (audio, particles, quest updates)
+  const effects = generateCombatEffects(...);
+  executeEffectsWithQuests(effects);
+};
+```
+
+### Querying Pattern
+
+```typescript
+/**
+ * In quest/achievement evaluation (pure functions):
+ */
+export function evaluateCreatureKillQuest(
+  history: ActionHistory,
+  quest: QuestTemplate
+): number {
+  // Count matching combat actions
+  return ActionTrackerEngine.countByFilter(history, action =>
+    action.type === 'COMBAT' &&
+    action.targetCreatureType === 'goblin'
+  );
+}
+```

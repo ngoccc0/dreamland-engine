@@ -138,10 +138,7 @@ export function useEffectExecutor() {
             }
         };
 
-        // Process effects and collect statistics events
-        let currentState: GameState | null = null;
-        const cascadingEffects: SideEffect[] = [];
-
+        // Execute each effect in sequence
         effects.forEach((effect, index) => {
             try {
                 // Execute the side effect (audio, UI, etc)

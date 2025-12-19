@@ -349,6 +349,9 @@ export function getAchievementsByCategory(
 /**
  * Get all non-hidden achievements
  */
+/**
+ * Get all non-hidden achievements
+ */
 export function getVisibleAchievements(): AchievementTemplate[] {
   return Object.values(ACHIEVEMENT_TEMPLATES).filter(a => !a.hidden);
 }

@@ -61,7 +61,7 @@ export default function Home() {
     try {
       const summaries = await gameStateRepository.listSaveSummaries();
       setSaveSlots(summaries);
-    } catch (error: any) {
+    } catch (_error: any) {
       toast({ title: "Error", description: "Failed to load save data.", variant: "destructive" });
       setSaveSlots([null, null, null]); // Fallback to empty slots on error
     } finally {
@@ -113,7 +113,7 @@ export default function Home() {
         newSlots[slotIndex] = null;
         return newSlots;
       });
-    } catch (error: any) {
+    } catch (_error: any) {
       toast({ title: "Error", description: "Failed to delete save.", variant: "destructive" });
     }
   };
@@ -235,7 +235,7 @@ export default function Home() {
         return newSlots;
       });
       setLoadState('continue_game');
-    } catch (error: any) {
+    } catch (_error: any) {
       toast({ title: t('worldGenError'), description: "Could not save the new world. Please try again.", variant: "destructive" });
     }
   };

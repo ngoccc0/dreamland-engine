@@ -1,15 +1,10 @@
 import { NextResponse } from 'next/server';
 import path from 'path';
 import { readFileSync } from 'fs';
-import createRng from '@/lib/narrative/rng';
-import Lexicon from '@/lib/narrative/lexicon';
-
 
 import { generateNarrative, loadPersonasSample } from '@/lib/narrative/orchestrator';
 
 const templatesPath = path.resolve(process.cwd(), 'src/lib/narrative/data/templates.sample.json');
-const lexEnPath = path.resolve(process.cwd(), 'src/lib/narrative/data/lexicon.en.json');
-const lexViPath = path.resolve(process.cwd(), 'src/lib/narrative/data/lexicon.vi.json');
 
 export async function GET(req: Request) {
   const url = new URL(req.url);

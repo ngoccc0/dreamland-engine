@@ -77,8 +77,9 @@ Generate one (1) hint in the required JSON format.
         }
     );
 }
-
-async function provideQuestHintFlow(input: ProvideQuestHintInput): Promise<ProvideQuestHintOutput> {
-    await initProvideQuestHintFlow();
-    return provideQuestHintFlowRef(input);
-}
+// NOTE: This function is defined but not currently exported or used.
+// Kept as reference for future quest hint implementation.
+// async function provideQuestHintFlow(input: ProvideQuestHintInput): Promise<ProvideQuestHintOutput> {
+//     await initProvideQuestHintFlow();
+//     return provideQuestHintFlowRef(input);
+// }

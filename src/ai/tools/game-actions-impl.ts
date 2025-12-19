@@ -16,7 +16,7 @@ import { z } from 'genkit';
 
 import { EnemySchema, PlayerItemSchema, ChunkItemSchema, ItemDefinitionSchema, PetSchema } from '@/ai/schemas';
 import { allTerrains } from '@/core/types/game';
-import type { PlayerItem, Pet, ChunkItem, Skill, Structure, Terrain } from '@/core/types/game';
+import type { PlayerItem, Pet, ChunkItem, Terrain } from '@/core/types/game';
 import type { TranslatableString } from '@/core/types/i18n';
 import { PlayerStatusSchema } from '@/ai/schemas';
 type PlayerStatus = import('zod').infer<typeof PlayerStatusSchema>;
@@ -111,8 +111,6 @@ export const PlayerAttackOutputSchema = z.object({
  * @param {object} input - Dữ liệu đầu vào theo `PlayerAttackInputSchema`.
  * @returns {Promise<object>} - Kết quả chiến đấu theo `PlayerAttackOutputSchema`.
  */
-let playerAttackTool: any = null;
-
 // Moved to initializeGameTools() - no longer module-level export
 async function _playerAttackToolHandler({ playerStatus, enemy, terrain, customItemDefinitions, lightLevel, moisture, successLevel }: any) {
     let playerDamage = 0;
@@ -675,7 +673,7 @@ export const CompleteQuestOutputSchema = z.object({
  * @returns {Promise<object>} - Kết quả hoàn thành nhiệm vụ và phần thưởng theo `CompleteQuestOutputSchema`.
  */
 // Moved to initializeGameTools() - no longer module-level export
-async function _completeQuestToolHandler({ questText, playerStatus }: any) {
+async function _completeQuestToolHandler({ _questText, playerStatus }: any) {
     const possibleRewards: PlayerItem[] = [
         { name: { en: 'Minor Healing Potion', vi: 'Thuốc Máu Yếu' }, quantity: 2, tier: 1, emoji: '🧪' },
         { name: { en: 'Sharpening Stone', vi: 'Đá Mài' }, quantity: 1, tier: 2, emoji: '🔪' },

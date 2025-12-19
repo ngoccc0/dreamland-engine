@@ -22,7 +22,7 @@ import { getTranslatedText } from "@/lib/utils";
 import { getAi } from '@/ai/genkit';
 import { z } from 'zod';
 import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema, GeneratedItemSchema, NpcSchema } from '@/ai/schemas';
-import { determineAnimationMetadata, adjustAnimationForMobile, adjustAnimationForLowBandwidth } from '@/ai/animation-metadata';
+import { determineAnimationMetadata } from '@/ai/animation-metadata';
 
 import { LanguageEnum as Language } from '@/lib/core/i18n'; // Import Language enum
 

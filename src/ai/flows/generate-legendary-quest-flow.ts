@@ -68,7 +68,7 @@ async function initGenerateLegendaryQuestFlow() {
             ];
 
             let lastError;
-            for (const model of modelsToTry) {
+            for (const _model of modelsToTry) {
                 try {
                     const { output } = await ai.generate([
                         {

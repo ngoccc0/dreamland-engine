@@ -18,7 +18,6 @@ import { GeneratedItemSchema, RecipeSchema, RecipeResultSchema } from '@/ai/sche
 import type { Recipe } from '@/core/types/game';
 import { getEmojiForItem } from '@/lib/utils';
 import { setDoc, doc } from 'firebase/firestore';
-import type { Firestore } from 'firebase/firestore'
 import { getDb } from '@/lib/core/firebase-config';
 
 // --- INPUT SCHEMA ---

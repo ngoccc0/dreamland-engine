@@ -1,4 +1,3 @@
-import type { Firestore } from 'firebase/firestore'
 /**
  * An AI agent for generating game world concepts by distributing tasks across multiple AI models.
  * This file defines a sophisticated, parallelized AI workflow for world creation.
@@ -40,6 +39,7 @@ const getRandomInRange = (range: { min: number, max: number }) => Math.floor(Mat
  * @property {string} userInput - The user's initial idea, prompt, or description for the game world.
  * @property {string} language - The language code for the generated content (e.g., 'en', 'vi').
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const GenerateWorldSetupInputSchema = z.object({
     userInput: z.string().describe("The user's initial idea, prompt, or description for the game world."),
     language: z.string().describe("The language for the generated content (e.g., 'en', 'vi')."),
@@ -58,17 +58,20 @@ const AIGeneratedItemCreativeSchema = z.object({
 });
 
 // -- Task A Output: The AI now generates a simpler structure. --
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const ItemCatalogCreativeOutputSchema = z.object({
     customItemCatalog: z.array(AIGeneratedItemCreativeSchema).min(5).max(10).describe("A shared catalog of 5-10 unique, thematic items invented for this specific game world theme."),
 });
 
 
 // -- Task B Output: World Names --
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const WorldNamesOutputSchema = z.object({
     worldNames: z.array(TranslatableStringSchema).length(3).describe("An array of three distinct and creative world names based on the user's input."),
 });
 
 // -- Task C Output: Narrative Concepts --
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const NarrativeConceptsOutputSchema = z.object({
     narrativeConcepts: NarrativeConceptArraySchema.describe("An array of three distinct narrative starting points, including descriptions and quests."),
 });
@@ -79,6 +82,7 @@ const AIGeneratedStructureCreativeSchema = z.object({
     description: TranslatableStringSchema.describe("A flavorful, one-sentence description of the structure."),
     emoji: z.string().describe("A single emoji that represents the structure."),
 });
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const StructureCatalogCreativeOutputSchema = z.object({
     customStructures: z.array(AIGeneratedStructureCreativeSchema).min(2).max(4).describe("A catalog of 2-4 unique structures or landmarks invented for this world."),
 });

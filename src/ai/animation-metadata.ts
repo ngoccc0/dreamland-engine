@@ -210,7 +210,7 @@ export function determineAnimationMetadata(options: {
         isDangerousAction = false,
         isComplexGameState = false,
         narrativeLength = 'medium',
-        language = 'en'
+        language: _language = 'en'
     } = options;
 
     // Check mood-tag-specific override

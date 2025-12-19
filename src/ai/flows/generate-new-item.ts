@@ -16,7 +16,6 @@ import { z } from 'genkit';
 import { GeneratedItemSchema, GenerateNewItemInputSchema } from '@/ai/schemas';
 import { getEmojiForItem } from '@/lib/utils';
 import { setDoc, doc } from 'firebase/firestore';
-import type { Firestore } from 'firebase/firestore'
 import { getDb } from '@/lib/core/firebase-config';
 
 // --- INPUT/OUTPUT SCHEMAS ---

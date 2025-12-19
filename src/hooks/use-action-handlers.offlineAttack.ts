@@ -99,9 +99,17 @@ export function createHandleOfflineAttack(context: Partial<ActionHandlerDeps> & 
     let nextPlayerStats = { ...(context.playerStats || {}) };
     nextPlayerStats.hp = Number(nextPlayerStats.hp ?? 0);
     nextPlayerStats.stamina = Number(nextPlayerStats.stamina ?? 0);
+    nextPlayerStats.experience = Number(nextPlayerStats.experience ?? 0);
     nextPlayerStats.unlockProgress = { ...(nextPlayerStats.unlockProgress || {}), kills: (nextPlayerStats.unlockProgress?.kills ?? 0), damageSpells: (nextPlayerStats.unlockProgress?.damageSpells ?? 0), moves: (nextPlayerStats.unlockProgress?.moves ?? 0) };
     nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - enemyDamage);
-    if (enemyDefeated) nextPlayerStats.unlockProgress = { ...(nextPlayerStats.unlockProgress || {}), kills: (nextPlayerStats.unlockProgress?.kills ?? 0) + 1, damageSpells: (nextPlayerStats.unlockProgress?.damageSpells ?? 0) };
+    
+    // Award XP when enemy defeated
+    let xpGained = 0;
+    if (enemyDefeated) {
+      xpGained = Math.round(currentChunk.enemy!.level * 10 + Math.random() * 20); // Scale XP by enemy level
+      nextPlayerStats.experience += xpGained;
+      nextPlayerStats.unlockProgress = { ...(nextPlayerStats.unlockProgress || {}), kills: (nextPlayerStats.unlockProgress?.kills ?? 0) + 1, damageSpells: (nextPlayerStats.unlockProgress?.damageSpells ?? 0) };
+    }
 
     const narrative = (context.generateOfflineActionNarrative ? context.generateOfflineActionNarrative('attack', { successLevel, playerDamage, enemyDamage, enemyDefeated, fled, enemyType: currentChunk.enemy!.type }, currentChunk, t, language) : '');
     addNarrativeEntry(narrative, 'narrative');
@@ -153,6 +161,37 @@ export function createHandleOfflineAttack(context: Partial<ActionHandlerDeps> & 
 
       // Store updated statistics
       context.setStatistics?.(updatedStats);
+
+      // Phase I-1: Emit LEVEL_UP event if XP gained
+      if (xpGained > 0) {
+        const xpEvent: GameEvent = {
+          type: 'LEVEL_UP',
+          payload: {
+            newLevel: nextPlayerStats.level ?? 1,
+            totalExperience: nextPlayerStats.experience ?? 0,
+            timestamp: Date.now(),
+          },
+        };
+
+        const xpStats = StatisticsEngine.processEvent(updatedStats, xpEvent);
+        context.setStatistics?.(xpStats);
+      }
+
+      // Phase I-1: Record loot drops in action tracker
+      if (lootDrops.length > 0 && context.recordHarvestingAction) {
+        const totalLootQuantity = lootDrops.reduce((sum: number, item: any) => sum + item.quantity, 0);
+        context.recordHarvestingAction?.({
+          id: `loot_${Date.now()}`,
+          timestamp: Date.now(),
+          turnCount: context.turn ?? 0,
+          playerPosition: playerPosition,
+          itemId: lootDrops[0].name || 'unknown_item',
+          itemName: context.getTranslatedText ? context.getTranslatedText(lootDrops[0].name, 'en') : lootDrops[0].name,
+          quantity: totalLootQuantity,
+          source: 'CREATURE',
+          harvestTool: context.playerStats?.equippedWeapon?.name,
+        });
+      }
     } else if (playerDamage > 0) {
       // Even if enemy not defeated, record damage for partial progress
       const damageEvent: GameEvent = {

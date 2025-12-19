@@ -19,36 +19,18 @@
 
 import { getAi } from '@/ai/genkit';
 import { z } from 'zod';
-import { PlayerStatusSchema, EnemySchema, ChunkSchema, ChunkItemSchema, PlayerItemSchema, ItemDefinitionSchema, GeneratedItemSchema, NpcSchema } from '@/ai/schemas';
+import { PlayerStatusSchema, ChunkSchema } from '@/ai/schemas';
 import { determineAnimationMetadata } from '@/ai/animation-metadata';
 
-import { LanguageEnum as Language } from '@/lib/core/i18n'; // Import Language enum
-
-// Import tool getter functions and schemas from game-actions
-import {
-    getTakeItemTool,
-    getUseItemTool,
-    getTameEnemyTool,
-    getUseSkillTool,
-    getCompleteQuestTool,
-    CompleteQuestInputSchema,
-    CompleteQuestOutputSchema,
-    getStartQuestTool,
-    StartQuestOutputSchema
-} from '@/ai/tools/game-actions';
-
-import { generateNewQuest } from './generate-new-quest';
-import { generateLegendaryQuest } from './generate-legendary-quest-flow';
-import { generateNewItem } from './generate-new-item';
-import { allItems as staticItemDefinitions } from '@/core/data/items';
-import type { AiModel } from '@/core/types/game';
+import { Language } from '@/lib/core/i18n'; // Import Language enum
 
 // == STEP 1: DEFINE THE INPUT SCHEMA ==
 
 /**
  * Schema định nghĩa cấp độ thành công của một lần tung xúc xắc.
  */
-const SuccessLevelSchema = z.enum(['CriticalFailure', 'Failure', 'Success', 'GreatSuccess', 'CriticalSuccess']);
+// TODO: Remove when implementing success level logic
+// const SuccessLevelSchema = z.enum(['CriticalFailure', 'Failure', 'Success', 'GreatSuccess', 'CriticalSuccess']);
 
 /**
  * Schema định nghĩa đầu vào cho luồng `generateNarrative`.
@@ -69,5 +51,103 @@ const SuccessLevelSchema = z.enum(['CriticalFailure', 'Failure', 'Success', 'Gre
  */
 export const GenerateNarrativeInputSchema = z.object({
     worldName: z.string().describe("The name of the game world."),
-    playerAction: z.string().describe("The action taken by the player.")
+    playerAction: z.string().describe("The action taken by the player."),
+    playerStatus: PlayerStatusSchema.describe("The player's current status (HP, items, skills, etc.)."),
+    currentChunk: ChunkSchema.describe("The detailed attributes of map tile player is on."),
+    surroundingChunks: z.array(ChunkSchema).optional().describe("A 3x3 grid of chunks around the player to provide environmental context."),
+    recentNarrative: z.array(z.string()).optional().describe("A few recent entries from the narrative log to provide conversational context."),
+    language: Language.describe("The language for generated content ('en' or 'vi')."),
+    diceRoll: z.number().int().describe("The result of the dice roll."),
+    diceType: z.string().describe("The type of dice used (e.g., 'd20', '2d6')."),
+    diceRange: z.string().describe("The possible range of the dice roll (e.g., '1-20', '2-12')."),
+    // TODO: Remove when implementing success level logic
+    // successLevel: SuccessLevelSchema.describe("The classified result of the dice roll."),
+    // TODO: Import ItemDefinitionSchema when implementing item generation
+    // customItemDefinitions: z.record(ItemDefinitionSchema).optional().describe("A map of AI-generated item definitions for the current play session."),
+    aiModel: z.enum(['gemini-pro', 'gpt-4', 'claude-3']).describe("The preferred AI model for content generation."),
+    narrativeLength: z.enum(['short', 'medium', 'long', 'detailed']).describe("The desired length for the narrative response.")
 });
+
+// == STEP 2: DEFINE THE OUTPUT SCHEMA ==
+
+/**
+ * Schema định nghĩa phản hồi từ luồng generateNarrative.
+ * @property {z.string} narrative - Nội dung kể chuyện được tạo.
+ * @property {z.object} animationMetadata - Thông tin animation hiển thị.
+ */
+// TODO: Implement when adding output logic
+// export const GenerateNarrativeOutputSchema = z.object({
+//     narrative: z.string().describe("The generated narrative text."),
+//     animationMetadata: z.object({
+//         animationType: z.string().describe("Type of animation to apply."),
+//         thinkingMarker: z.boolean().describe("Whether to show thinking indicator."),
+//         emphasizedSegments: z.array(z.object({
+//             start: z.number(),
+//             end: z.number(),
+//             style: z.string()
+//         })).describe("Segments of text to emphasize with styles."),
+//         speedMultiplier: z.number().describe("Animation speed multiplier."),
+//         delayMs: z.number().describe("Delay before animation starts.")
+//     }).describe("Animation metadata for displaying the narrative.")
+// });
+
+// == STEP 3: DEFINE THE EXPORTED FUNCTION ==
+
+// TODO: Implement generateNarrative function with proper AI flow integration
+// export async function generateNarrative(input: GenerateNarrativeInput): Promise<GenerateNarrativeOutput> {
+//     // TODO: Implement complete narrative generation logic
+//     throw new Error('generateNarrative function not yet implemented');
+// }
+
+// == STEP 4: DEFINE THE LAZY INITIALIZATION ==
+
+// TODO: Implement lazy initialization pattern following provide-quest-hint.ts
+// let generateNarrativeFlowRef: any = null;
+
+// async function initGenerateNarrativeFlow() {
+//     if (generateNarrativeFlowRef) return;
+//     
+//     const ai = await getAi();
+//     
+//     // TODO: Implement Genkit flow with Handlebars templating
+//     generateNarrativeFlowRef = ai.defineFlow(
+//         {
+//             name: 'generateNarrativeFlow',
+//             inputSchema: GenerateNarrativeInputSchema,
+//             outputSchema: GenerateNarrativeOutputSchema,
+//         },
+//         async (input) => {
+//             try {
+//                 // TODO: Implement narrative generation logic
+//                 throw new Error('Flow logic not implemented');
+//             } catch (error: any) {
+//                 console.error('AI failed to generate narrative (Gemini):', error);
+//                 throw error;
+//             }
+//         }
+//     );
+// }
+
+// == STEP 5: EXPORT THE MAIN FUNCTION ==
+
+/**
+ * Main function to generate narrative based on game state and player action.
+ * 
+ * @remarks
+ * This function serves as the entry point for narrative generation.
+ * It uses lazy initialization to defer flow setup until first call.
+ * The flow takes player action, game state, and dice results to generate
+ * contextual narrative with appropriate animation metadata.
+ * 
+ * @param input - Game state and action context for narrative generation
+ * @returns Promise resolving to generated narrative with animation metadata
+ */
+export async function generateNarrative(input: GenerateNarrativeInput): Promise<any> {
+    return initGenerateNarrativeFlow()(input);
+}
+
+// == STEP 6: EXPORT TYPES ==
+
+export type GenerateNarrativeInput = z.infer<typeof GenerateNarrativeInputSchema>;
+// TODO: Export when implementing output schema
+// export type GenerateNarrativeOutput = z.infer<typeof GenerateNarrativeOutputSchema>;

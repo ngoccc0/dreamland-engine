@@ -8,6 +8,7 @@ import { useLanguage } from '@/context/language-context';
 import { useSettings } from '@/context/settings-context';
 import { useEffectExecutor } from '@/hooks/use-effect-executor';
 import { useQuestIntegration } from '@/hooks/use-quest-integration';
+import { useActionTracker } from '@/hooks/use-action-tracker';
 
 import { createHandleOnlineNarrative } from '@/hooks/use-action-handlers.online';
 import { createHandleOfflineAttack } from '@/hooks/use-action-handlers.offlineAttack';
@@ -96,6 +97,11 @@ export type ActionHandlerDeps = {
   setUnlockedAchievements?: React.Dispatch<React.SetStateAction<any[]>>;
   statistics?: any;
   setStatistics?: React.Dispatch<React.SetStateAction<any>>;
+  actionHistory?: any;
+  setActionHistory?: React.Dispatch<React.SetStateAction<any>>;
+  recordCombatAction?: (action: any) => void;
+  recordHarvestingAction?: (action: any) => void;
+  recordCraftingAction?: (action: any) => void;
 };
 
 /**
@@ -150,6 +156,14 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
   // Hook for quest and achievement integration (Phase 2.0)
   const { evaluateQuestsAndAchievements } = useQuestIntegration();
+
+  // Hook for action tracking (Phase I-2)
+  const { 
+    recordCombatAction, 
+    recordHarvestingAction, 
+    recordCraftingAction,
+    getActionHistory 
+  } = useActionTracker(deps.actionHistory || { actions: [], lastActionId: '', totalActionCount: 0 }, deps.setActionHistory || (() => {}));
 
   // Helper to execute effects AND evaluate quests/achievements
   const executeEffectsWithQuests = useCallback((effects: any[]) => {
@@ -314,9 +328,13 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
       playerStats,
       generateOfflineActionNarrative,
       getTranslatedText,
+      statistics: deps.statistics,
+      setStatistics: deps.setStatistics,
+      recordHarvestingAction: recordHarvestingAction,
+      turn: deps.turn,
     });
     return handler();
-  }, [playerPosition, world, addNarrativeEntry, t, logger, getEffectiveChunk, weatherZones, gameTime, sStart, sDayDuration, rollDice, getSuccessLevel, settings, successLevelToTranslationKey, setPlayerStats, advanceGameTime, setWorld, getTemplates, language, resolveItemDef, playerStats, generateOfflineActionNarrative, getTranslatedText]);
+  }, [playerPosition, world, addNarrativeEntry, t, logger, getEffectiveChunk, weatherZones, gameTime, sStart, sDayDuration, rollDice, getSuccessLevel, settings, successLevelToTranslationKey, setPlayerStats, advanceGameTime, setWorld, getTemplates, language, resolveItemDef, playerStats, generateOfflineActionNarrative, getTranslatedText, deps.statistics, deps.setStatistics, recordHarvestingAction, deps.turn]);
 
   const handleOfflineItemUse = useCallback((itemName: string, target: string) => {
     if (!offlineItemUseRef.current) {

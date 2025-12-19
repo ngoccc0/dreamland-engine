@@ -207,7 +207,7 @@ export function useGameState({ gameSlot: _gameSlot }: GameStateProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [isGameOver, setIsGameOver] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    
+
     // Quest and Achievement tracking (Phase 2.0)
     const [activeQuests, setActiveQuests] = useState<any[]>([]);
     const [unlockedAchievements, setUnlockedAchievements] = useState<any[]>([]);

@@ -30,8 +30,11 @@
 
 // Extracted harvest handler.
 import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
+import type { GameEvent } from '@/core/types/events';
 import type { CreatureDefinition } from '@/core/types/creature'; // Import CreatureDefinition
 import type { PlantPartDefinition } from '@/core/types/definitions/plant-properties'; // Import PlantPartDefinition
+import { StatisticsEngine } from '@/core/engines/statistics/engine';
+import { createEmptyStatistics } from '@/core/engines/statistics/schemas';
 import { AudioActionType } from '@/core/data/audio-events';
 import type { HarvestOutcome } from '@/core/engines/harvest-effects-bridge';
 
@@ -203,6 +206,31 @@ export function createHandleHarvest(context: Partial<ActionHandlerDeps> & Record
 
     setPlayerStats && setPlayerStats(() => nextPlayerStats);
     advanceGameTime && advanceGameTime(nextPlayerStats);
+
+    // Phase I-1: Emit GameEvent for statistics tracking (if items were harvested)
+    if (lootItems.length > 0) {
+      // Track total quantity harvested
+      const totalQuantity = lootItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
+
+      const harvestEvent: GameEvent = {
+        type: 'ITEM_GATHERED',
+        payload: {
+          itemId: lootItems[0].name || 'unknown_item',
+          quantity: totalQuantity,
+          location: {
+            biome: context.world?.[`${playerPosition.x},${playerPosition.y}`]?.terrain || 'unknown',
+            x: playerPosition.x,
+            y: playerPosition.y,
+          },
+          tool: null,
+          timestamp: Date.now(),
+        },
+      };
+
+      const currentStats = context.statistics || createEmptyStatistics();
+      const updatedStats = StatisticsEngine.processEvent(currentStats, harvestEvent);
+      context.setStatistics?.(updatedStats);
+    }
 
     // Return harvest outcome for effect generation
     return {

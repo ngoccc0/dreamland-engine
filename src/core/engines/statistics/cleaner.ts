@@ -26,150 +26,150 @@ import { PlayerStatistics } from './schemas';
  * @returns New statistics object with zero values removed
  */
 export function sanitizeStatistics(stats: PlayerStatistics): PlayerStatistics {
-  const cleaned: PlayerStatistics = {
-    lastUpdated: stats.lastUpdated,
-  };
+    const cleaned: PlayerStatistics = {
+        lastUpdated: stats.lastUpdated,
+    };
 
-  // Clean combat stats
-  if (stats.combat) {
-    const cleanedCombat: typeof stats.combat = {};
+    // Clean combat stats
+    if (stats.combat) {
+        const cleanedCombat: typeof stats.combat = {};
 
-    if (stats.combat.kills) {
-      const cleanedKills: typeof stats.combat.kills = {
-        total: stats.combat.kills.total,
-      };
+        if (stats.combat.kills) {
+            const cleanedKills: typeof stats.combat.kills = {
+                total: stats.combat.kills.total,
+            };
 
-      // Only include non-zero by* objects
-      if (stats.combat.kills.byCreatureType) {
-        const byType = removeZeroValues(stats.combat.kills.byCreatureType);
-        if (Object.keys(byType).length > 0) {
-          cleanedKills.byCreatureType = byType;
-        }
-      }
-
-      if (stats.combat.kills.byLocation) {
-        const byLoc = removeZeroValues(stats.combat.kills.byLocation);
-        if (Object.keys(byLoc).length > 0) {
-          cleanedKills.byLocation = byLoc;
-        }
-      }
-
-      if (stats.combat.kills.byWeapon) {
-        const byWeapon = removeZeroValues(stats.combat.kills.byWeapon);
-        if (Object.keys(byWeapon).length > 0) {
-          cleanedKills.byWeapon = byWeapon;
-        }
-      }
-
-      cleanedCombat.kills = cleanedKills;
-    }
-
-    if (stats.combat.damageDealt) {
-      cleanedCombat.damageDealt = stats.combat.damageDealt;
-    }
-
-    if (stats.combat.healthLost) {
-      cleanedCombat.healthLost = stats.combat.healthLost;
-    }
-
-    if (Object.keys(cleanedCombat).length > 0) {
-      cleaned.combat = cleanedCombat;
-    }
-  }
-
-  // Clean gathering stats
-  if (stats.gathering) {
-    const cleanedGathering: typeof stats.gathering = { itemsCollected: {} };
-
-    if (stats.gathering.itemsCollected) {
-      for (const [itemId, itemStats] of Object.entries(
-        stats.gathering.itemsCollected
-      )) {
-        if (itemStats && itemStats.total > 0) {
-          const cleanedItem: typeof itemStats = { total: itemStats.total };
-
-          if (itemStats.byBiome) {
-            const byBiome = removeZeroValues(itemStats.byBiome);
-            if (Object.keys(byBiome).length > 0) {
-              cleanedItem.byBiome = byBiome;
+            // Only include non-zero by* objects
+            if (stats.combat.kills.byCreatureType) {
+                const byType = removeZeroValues(stats.combat.kills.byCreatureType);
+                if (Object.keys(byType).length > 0) {
+                    cleanedKills.byCreatureType = byType;
+                }
             }
-          }
 
-          if (itemStats.byTool) {
-            const byTool = removeZeroValues(itemStats.byTool);
-            if (Object.keys(byTool).length > 0) {
-              cleanedItem.byTool = byTool;
+            if (stats.combat.kills.byLocation) {
+                const byLoc = removeZeroValues(stats.combat.kills.byLocation);
+                if (Object.keys(byLoc).length > 0) {
+                    cleanedKills.byLocation = byLoc;
+                }
             }
-          }
 
-          cleanedGathering.itemsCollected![itemId] = cleanedItem;
-        }
-      }
-    }
-
-    if (stats.gathering.distanceTraveled) {
-      cleanedGathering.distanceTraveled = stats.gathering.distanceTraveled;
-    }
-
-    if (
-      Object.keys(cleanedGathering.itemsCollected).length > 0 ||
-      cleanedGathering.distanceTraveled
-    ) {
-      cleaned.gathering = cleanedGathering;
-    }
-  }
-
-  // Clean crafting stats
-  if (stats.crafting) {
-    const cleanedCrafting: typeof stats.crafting = { itemsCrafted: {} };
-
-    if (stats.crafting.itemsCrafted) {
-      for (const [itemId, itemStats] of Object.entries(
-        stats.crafting.itemsCrafted
-      )) {
-        if (itemStats && itemStats.total > 0) {
-          const cleanedItem: typeof itemStats = { total: itemStats.total };
-
-          if (itemStats.byRecipe) {
-            const byRecipe = removeZeroValues(itemStats.byRecipe);
-            if (Object.keys(byRecipe).length > 0) {
-              cleanedItem.byRecipe = byRecipe;
+            if (stats.combat.kills.byWeapon) {
+                const byWeapon = removeZeroValues(stats.combat.kills.byWeapon);
+                if (Object.keys(byWeapon).length > 0) {
+                    cleanedKills.byWeapon = byWeapon;
+                }
             }
-          }
 
-          cleanedCrafting.itemsCrafted![itemId] = cleanedItem;
+            cleanedCombat.kills = cleanedKills;
         }
-      }
+
+        if (stats.combat.damageDealt) {
+            cleanedCombat.damageDealt = stats.combat.damageDealt;
+        }
+
+        if (stats.combat.healthLost) {
+            cleanedCombat.healthLost = stats.combat.healthLost;
+        }
+
+        if (Object.keys(cleanedCombat).length > 0) {
+            cleaned.combat = cleanedCombat;
+        }
     }
 
-    if (Object.keys(cleanedCrafting.itemsCrafted).length > 0) {
-      cleaned.crafting = cleanedCrafting;
+    // Clean gathering stats
+    if (stats.gathering) {
+        const cleanedGathering: typeof stats.gathering = { itemsCollected: {} };
+
+        if (stats.gathering.itemsCollected) {
+            for (const [itemId, itemStats] of Object.entries(
+                stats.gathering.itemsCollected
+            )) {
+                if (itemStats && itemStats.total > 0) {
+                    const cleanedItem: typeof itemStats = { total: itemStats.total };
+
+                    if (itemStats.byBiome) {
+                        const byBiome = removeZeroValues(itemStats.byBiome);
+                        if (Object.keys(byBiome).length > 0) {
+                            cleanedItem.byBiome = byBiome;
+                        }
+                    }
+
+                    if (itemStats.byTool) {
+                        const byTool = removeZeroValues(itemStats.byTool);
+                        if (Object.keys(byTool).length > 0) {
+                            cleanedItem.byTool = byTool;
+                        }
+                    }
+
+                    cleanedGathering.itemsCollected![itemId] = cleanedItem;
+                }
+            }
+        }
+
+        if (stats.gathering.distanceTraveled) {
+            cleanedGathering.distanceTraveled = stats.gathering.distanceTraveled;
+        }
+
+        if (
+            Object.keys(cleanedGathering.itemsCollected).length > 0 ||
+            cleanedGathering.distanceTraveled
+        ) {
+            cleaned.gathering = cleanedGathering;
+        }
     }
-  }
 
-  // Clean exploration stats
-  if (stats.exploration) {
-    const cleanedExploration: Partial<typeof stats.exploration> = {};
+    // Clean crafting stats
+    if (stats.crafting) {
+        const cleanedCrafting: typeof stats.crafting = { itemsCrafted: {} };
 
-    if (stats.exploration.biomesDiscovered && stats.exploration.biomesDiscovered > 0) {
-      cleanedExploration.biomesDiscovered = stats.exploration.biomesDiscovered;
+        if (stats.crafting.itemsCrafted) {
+            for (const [itemId, itemStats] of Object.entries(
+                stats.crafting.itemsCrafted
+            )) {
+                if (itemStats && itemStats.total > 0) {
+                    const cleanedItem: typeof itemStats = { total: itemStats.total };
+
+                    if (itemStats.byRecipe) {
+                        const byRecipe = removeZeroValues(itemStats.byRecipe);
+                        if (Object.keys(byRecipe).length > 0) {
+                            cleanedItem.byRecipe = byRecipe;
+                        }
+                    }
+
+                    cleanedCrafting.itemsCrafted![itemId] = cleanedItem;
+                }
+            }
+        }
+
+        if (Object.keys(cleanedCrafting.itemsCrafted).length > 0) {
+            cleaned.crafting = cleanedCrafting;
+        }
     }
 
-    if (stats.exploration.locationsDiscovered && stats.exploration.locationsDiscovered > 0) {
-      cleanedExploration.locationsDiscovered =
-        stats.exploration.locationsDiscovered;
+    // Clean exploration stats
+    if (stats.exploration) {
+        const cleanedExploration: Partial<typeof stats.exploration> = {};
+
+        if (stats.exploration.biomesDiscovered && stats.exploration.biomesDiscovered > 0) {
+            cleanedExploration.biomesDiscovered = stats.exploration.biomesDiscovered;
+        }
+
+        if (stats.exploration.locationsDiscovered && stats.exploration.locationsDiscovered > 0) {
+            cleanedExploration.locationsDiscovered =
+                stats.exploration.locationsDiscovered;
+        }
+
+        if (stats.exploration.timeSpent) {
+            cleanedExploration.timeSpent = stats.exploration.timeSpent;
+        }
+
+        if (Object.keys(cleanedExploration).length > 0) {
+            cleaned.exploration = cleanedExploration as typeof stats.exploration;
+        }
     }
 
-    if (stats.exploration.timeSpent) {
-      cleanedExploration.timeSpent = stats.exploration.timeSpent;
-    }
-
-    if (Object.keys(cleanedExploration).length > 0) {
-      cleaned.exploration = cleanedExploration as typeof stats.exploration;
-    }
-  }
-
-  return cleaned;
+    return cleaned;
 }
 
 /**
@@ -179,13 +179,13 @@ export function sanitizeStatistics(stats: PlayerStatistics): PlayerStatistics {
  * @returns New object with zero values removed
  */
 function removeZeroValues(obj: Record<string, number>): Record<string, number> {
-  const cleaned: Record<string, number> = {};
-  for (const [key, value] of Object.entries(obj)) {
-    if (value > 0) {
-      cleaned[key] = value;
+    const cleaned: Record<string, number> = {};
+    for (const [key, value] of Object.entries(obj)) {
+        if (value > 0) {
+            cleaned[key] = value;
+        }
     }
-  }
-  return cleaned;
+    return cleaned;
 }
 
 /**
@@ -196,5 +196,5 @@ function removeZeroValues(obj: Record<string, number>): Record<string, number> {
  * @returns Estimated size in bytes
  */
 export function estimateStatisticsSize(stats: PlayerStatistics): number {
-  return JSON.stringify(stats).length;
+    return JSON.stringify(stats).length;
 }

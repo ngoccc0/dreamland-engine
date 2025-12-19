@@ -28,12 +28,12 @@ import { evaluateCriteria } from '@/core/rules/criteria-rule';
  * @returns true if achievement is unlocked
  */
 export function isAchievementUnlocked(
-  achievementId: string,
-  state: GameState
+    achievementId: string,
+    state: GameState
 ): boolean {
-  return state.unlockedAchievements.some(
-    a => a.achievementId === achievementId && a.isUnlocked
-  );
+    return state.unlockedAchievements.some(
+        a => a.achievementId === achievementId && a.isUnlocked
+    );
 }
 
 /**
@@ -44,77 +44,77 @@ export function isAchievementUnlocked(
  * @returns New state with achievement unlocked, plus side effects
  */
 export function unlockAchievement(
-  achievementId: string,
-  state: GameState
+    achievementId: string,
+    state: GameState
 ): { newState: GameState; effects: SideEffect[] } {
-  // Guard: Check if already unlocked
-  if (isAchievementUnlocked(achievementId, state)) {
-    return {
-      newState: state,
-      effects: [],
+    // Guard: Check if already unlocked
+    if (isAchievementUnlocked(achievementId, state)) {
+        return {
+            newState: state,
+            effects: [],
+        };
+    }
+
+    const template = ACHIEVEMENT_TEMPLATES[achievementId];
+    if (!template) {
+        throw new Error(`[AchievementUsecase] Achievement template not found: ${achievementId}`);
+    }
+
+    // Create or update runtime state
+    const runtimeState: AchievementRuntimeState = {
+        achievementId,
+        isUnlocked: true,
+        unlockedAt: new Date(),
     };
-  }
 
-  const template = ACHIEVEMENT_TEMPLATES[achievementId];
-  if (!template) {
-    throw new Error(`[AchievementUsecase] Achievement template not found: ${achievementId}`);
-  }
+    // Remove old entry and add new one
+    const newAchievements = state.unlockedAchievements.filter(
+        a => a.achievementId !== achievementId
+    );
+    newAchievements.push(runtimeState);
 
-  // Create or update runtime state
-  const runtimeState: AchievementRuntimeState = {
-    achievementId,
-    isUnlocked: true,
-    unlockedAt: new Date(),
-  };
+    // Build reward effects
+    const effects: SideEffect[] = [];
 
-  // Remove old entry and add new one
-  const newAchievements = state.unlockedAchievements.filter(
-    a => a.achievementId !== achievementId
-  );
-  newAchievements.push(runtimeState);
+    // Grant XP
+    if (template.reward.xp > 0) {
+        effects.push({
+            type: 'addExperience',
+            amount: template.reward.xp,
+            type_: 'achievement',
+        });
+    }
 
-  // Build reward effects
-  const effects: SideEffect[] = [];
+    // Unlock title as content
+    if (template.reward.title) {
+        effects.push({
+            type: 'unlockContent',
+            contentType: 'title',
+            contentId: template.reward.title,
+        });
+    }
 
-  // Grant XP
-  if (template.reward.xp > 0) {
+    // UI notification (more prominent than quest notifications)
     effects.push({
-      type: 'addExperience',
-      amount: template.reward.xp,
-      type_: 'achievement',
+        type: 'showNotification',
+        message: `🏆 ${template.title} - ${template.description}`,
+        duration: 4000,
     });
-  }
 
-  // Unlock title as content
-  if (template.reward.title) {
+    // Sound effect (achievement-specific sound)
     effects.push({
-      type: 'unlockContent',
-      contentType: 'title',
-      contentId: template.reward.title,
+        type: 'playAudio',
+        sound: 'achievement_unlocked',
+        volume: 0.9,
     });
-  }
 
-  // UI notification (more prominent than quest notifications)
-  effects.push({
-    type: 'showNotification',
-    message: `🏆 ${template.title} - ${template.description}`,
-    duration: 4000,
-  });
-
-  // Sound effect (achievement-specific sound)
-  effects.push({
-    type: 'playAudio',
-    sound: 'achievement_unlocked',
-    volume: 0.9,
-  });
-
-  return {
-    newState: {
-      ...state,
-      unlockedAchievements: newAchievements,
-    },
-    effects,
-  };
+    return {
+        newState: {
+            ...state,
+            unlockedAchievements: newAchievements,
+        },
+        effects,
+    };
 }
 
 /**
@@ -128,32 +128,32 @@ export function unlockAchievement(
  * Checks all templates; only returns effects for newly unlocked achievements.
  */
 export function evaluateAllAchievements(state: GameState): {
-  newState: GameState;
-  effects: SideEffect[];
+    newState: GameState;
+    effects: SideEffect[];
 } {
-  const allEffects: SideEffect[] = [];
-  let newState = state;
+    const allEffects: SideEffect[] = [];
+    let newState = state;
 
-  for (const [achievementId, template] of Object.entries(ACHIEVEMENT_TEMPLATES)) {
-    // Skip if already unlocked
-    if (isAchievementUnlocked(achievementId, newState)) {
-      continue;
+    for (const [achievementId, template] of Object.entries(ACHIEVEMENT_TEMPLATES)) {
+        // Skip if already unlocked
+        if (isAchievementUnlocked(achievementId, newState)) {
+            continue;
+        }
+
+        // Evaluate criteria
+        const isSatisfied = evaluateCriteria(template.criteria, newState.statistics);
+
+        if (isSatisfied) {
+            const result = unlockAchievement(achievementId, newState);
+            newState = result.newState;
+            allEffects.push(...result.effects);
+        }
     }
 
-    // Evaluate criteria
-    const isSatisfied = evaluateCriteria(template.criteria, newState.statistics);
-
-    if (isSatisfied) {
-      const result = unlockAchievement(achievementId, newState);
-      newState = result.newState;
-      allEffects.push(...result.effects);
-    }
-  }
-
-  return {
-    newState,
-    effects: allEffects,
-  };
+    return {
+        newState,
+        effects: allEffects,
+    };
 }
 
 /**
@@ -163,23 +163,23 @@ export function evaluateAllAchievements(state: GameState): {
  * @returns List of unlocked achievement objects
  */
 export function getUnlockedAchievements(
-  state: GameState
+    state: GameState
 ): Array<AchievementRuntimeState & { template: AchievementTemplate }> {
-  return state.unlockedAchievements
-    .filter(a => a.isUnlocked)
-    .map(runtimeState => {
-      const template = ACHIEVEMENT_TEMPLATES[runtimeState.achievementId];
-      if (!template) {
-        // Skip if template missing
-        return null;
-      }
+    return state.unlockedAchievements
+        .filter(a => a.isUnlocked)
+        .map(runtimeState => {
+            const template = ACHIEVEMENT_TEMPLATES[runtimeState.achievementId];
+            if (!template) {
+                // Skip if template missing
+                return null;
+            }
 
-      return {
-        ...runtimeState,
-        template,
-      };
-    })
-    .filter((a): a is NonNullable<typeof a> => a !== null);
+            return {
+                ...runtimeState,
+                template,
+            };
+        })
+        .filter((a): a is NonNullable<typeof a> => a !== null);
 }
 
 /**
@@ -189,18 +189,18 @@ export function getUnlockedAchievements(
  * @returns Stats object with counts
  */
 export function getAchievementStats(state: GameState): {
-  unlockedCount: number;
-  totalCount: number;
-  percentComplete: number;
+    unlockedCount: number;
+    totalCount: number;
+    percentComplete: number;
 } {
-  const unlockedCount = state.unlockedAchievements.filter(a => a.isUnlocked).length;
-  const totalCount = Object.keys(ACHIEVEMENT_TEMPLATES).length;
+    const unlockedCount = state.unlockedAchievements.filter(a => a.isUnlocked).length;
+    const totalCount = Object.keys(ACHIEVEMENT_TEMPLATES).length;
 
-  return {
-    unlockedCount,
-    totalCount,
-    percentComplete: totalCount > 0 ? (unlockedCount / totalCount) * 100 : 0,
-  };
+    return {
+        unlockedCount,
+        totalCount,
+        percentComplete: totalCount > 0 ? (unlockedCount / totalCount) * 100 : 0,
+    };
 }
 
 /**
@@ -211,8 +211,8 @@ export function getAchievementStats(state: GameState): {
  * @returns Filtered list of achievements
  */
 export function getAchievementsByCategory(
-  state: GameState,
-  category: AchievementTemplate['category']
+    state: GameState,
+    category: AchievementTemplate['category']
 ): AchievementTemplate[] {
-  return Object.values(ACHIEVEMENT_TEMPLATES).filter(a => a.category === category);
+    return Object.values(ACHIEVEMENT_TEMPLATES).filter(a => a.category === category);
 }

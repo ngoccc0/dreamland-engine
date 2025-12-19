@@ -42,6 +42,8 @@ import { generateCombatEffects } from '@/core/engines/combat-effects-bridge';
 import { generateSkillEffects } from '@/core/engines/skill-effects-bridge';
 import { generateItemEffects } from '@/core/engines/item-effects-bridge';
 import { generateHarvestEffects } from '@/core/engines/harvest-effects-bridge';
+import { StatisticsEngine } from '@/core/engines/statistics/engine';
+import { createEmptyStatistics } from '@/core/engines/statistics/schemas';
 import { useAudio } from '@/lib/audio/useAudio';
 import { AudioActionType } from '@/core/data/audio-events';
 import { getTemplates } from '@/lib/game/templates';
@@ -49,6 +51,7 @@ import { clamp, getTranslatedText, resolveItemId, ensurePlayerItemId } from '@/l
 import { getKeywordVariations } from '@/core/data/narrative/templates';
 
 import type { GameState, World, PlayerStatus, Recipe, CraftingOutcome, Action, TranslationKey, PlayerItem, NarrativeEntry, GeneratedItem, TranslatableString, ItemDefinition, Chunk } from '@/core/types/game';
+import type { GameEvent } from '@/core/types/events';
 import { doc, setDoc } from 'firebase/firestore';
 import { getDb } from '@/lib/core/firebase-config';
 import { logger } from '@/lib/core/logger';
@@ -91,6 +94,8 @@ export type ActionHandlerDeps = {
   setActiveQuests?: React.Dispatch<React.SetStateAction<any[]>>;
   unlockedAchievements?: any[];
   setUnlockedAchievements?: React.Dispatch<React.SetStateAction<any[]>>;
+  statistics?: any;
+  setStatistics?: React.Dispatch<React.SetStateAction<any>>;
 };
 
 /**
@@ -142,7 +147,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
 
   // Hook effect executor for centralized side-effect handling
   const { executeEffects } = useEffectExecutor();
-  
+
   // Hook for quest and achievement integration (Phase 2.0)
   const { evaluateQuestsAndAchievements } = useQuestIntegration();
 
@@ -150,7 +155,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
   const executeEffectsWithQuests = useCallback((effects: any[]) => {
     // 1. Execute the side effects (audio, UI, etc)
     executeEffects(effects);
-    
+
     // 2. Evaluate quests and achievements based on current state
     // This allows quests to auto-complete when criteria are met
     try {
@@ -164,9 +169,9 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
         unlockedAchievements: deps.unlockedAchievements || [],
         // TODO: Add statistics tracking after Statistics Engine integration
       };
-      
+
       const { newState: updatedState, effects: questEffects } = evaluateQuestsAndAchievements(questState);
-      
+
       // Apply quest/achievement updates if any
       if (updatedState.activeQuests && deps.setActiveQuests) {
         deps.setActiveQuests(updatedState.activeQuests);
@@ -174,7 +179,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
       if (updatedState.unlockedAchievements && deps.setUnlockedAchievements) {
         deps.setUnlockedAchievements(updatedState.unlockedAchievements);
       }
-      
+
       // Execute any cascading effects (quest completion notifications, etc)
       if (questEffects && questEffects.length > 0) {
         executeEffects(questEffects);

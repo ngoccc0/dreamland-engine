@@ -33,7 +33,10 @@
 
 // Extracted offline skill-use handler. Accepts a context object with needed deps.
 import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
+import type { GameEvent } from '@/core/types/events';
 import { applyMultiplier } from '@/core/rules/combat';
+import { StatisticsEngine } from '@/core/engines/statistics/engine';
+import { createEmptyStatistics } from '@/core/engines/statistics/schemas';
 import type { SkillOutcome } from '@/core/engines/skill-effects-bridge';
 
 export function createHandleOfflineSkillUse(context: Partial<ActionHandlerDeps> & Record<string, any>) {
@@ -101,6 +104,22 @@ export function createHandleOfflineSkillUse(context: Partial<ActionHandlerDeps> 
         if (newEnemy !== currentChunk.enemy) setWorld((prev: any) => ({ ...prev, [key]: { ...prev[key]!, enemy: newEnemy } }));
         setPlayerStats(() => newPlayerStats);
         advanceGameTime(newPlayerStats);
+
+        // Phase I-1: Emit GameEvent for statistics tracking
+        if (skillToUse.effect.type === 'DAMAGE' && narrativeResult.finalDamage > 0) {
+            const skillEvent: GameEvent = {
+            type: 'DAMAGE',
+            payload: {
+              source: 'creature',
+              damageAmount: narrativeResult.finalDamage,
+              timestamp: Date.now(),
+            },
+            };
+
+            const currentStats = context.statistics || createEmptyStatistics();
+            const updatedStats = StatisticsEngine.processEvent(currentStats, skillEvent);
+            context.setStatistics?.(updatedStats);
+        }
 
         // Return skill outcome for effect generation
         return {

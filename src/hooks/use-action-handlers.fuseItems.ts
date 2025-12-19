@@ -40,10 +40,13 @@
 
 // Extracted fuse items handler.
 import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
+import type { GameEvent } from '@/core/types/events';
 import {
   validateRecipe,
   calculateCraftTime,
 } from '@/core/rules/crafting';
+import { StatisticsEngine } from '@/core/engines/statistics/engine';
+import { createEmptyStatistics } from '@/core/engines/statistics/schemas';
 
 export function createHandleFuseItems(context: Partial<ActionHandlerDeps> & Record<string, any>) {
   return async (itemsToFuse: any[]) => {
@@ -145,6 +148,23 @@ export function createHandleFuseItems(context: Partial<ActionHandlerDeps> & Reco
 
       setPlayerStats && setPlayerStats(() => nextPlayerStats);
       advanceGameTime && advanceGameTime(nextPlayerStats);
+
+      // Phase I-1: Emit GameEvent for statistics tracking (if craft succeeded)
+      if (result.resultItem) {
+        const craftEvent: GameEvent = {
+          type: 'ITEM_CRAFTED',
+          payload: {
+            itemId: result.resultItem.name || 'unknown_item',
+            quantity: result.resultItem.baseQuantity.min,
+            recipeId: result.recipeId || 'unknown_recipe',
+            timestamp: Date.now(),
+          },
+        };
+
+        const currentStats = context.statistics || createEmptyStatistics();
+        const updatedStats = StatisticsEngine.processEvent(currentStats, craftEvent);
+        context.setStatistics?.(updatedStats);
+      }
     } catch (error: any) {
       logger && logger.error("AI Fusion failed:", error);
       toast && toast({ title: t('error'), description: t('fusionError'), variant: "destructive" });

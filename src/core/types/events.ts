@@ -17,18 +17,18 @@
  * Emitted when a creature's HP reaches 0 or below
  */
 export type CreatureKilledEvent = {
-  type: 'CREATURE_KILLED';
-  payload: {
-    creatureId: string;
-    creatureType: string;
-    location: {
-      biome: string;
-      x: number;
-      y: number;
+    type: 'CREATURE_KILLED';
+    payload: {
+        creatureId: string;
+        creatureType: string;
+        location: {
+            biome: string;
+            x: number;
+            y: number;
+        };
+        weapon: string | null;
+        timestamp: number;
     };
-    weapon: string | null;
-    timestamp: number;
-  };
 };
 
 /**
@@ -36,18 +36,18 @@ export type CreatureKilledEvent = {
  * Emitted when player collects items from the world
  */
 export type ItemGatheredEvent = {
-  type: 'ITEM_GATHERED';
-  payload: {
-    itemId: string;
-    quantity: number;
-    location: {
-      biome: string;
-      x?: number;
-      y?: number;
+    type: 'ITEM_GATHERED';
+    payload: {
+        itemId: string;
+        quantity: number;
+        location: {
+            biome: string;
+            x?: number;
+            y?: number;
+        };
+        tool: string | null;
+        timestamp: number;
     };
-    tool: string | null;
-    timestamp: number;
-  };
 };
 
 /**
@@ -55,13 +55,13 @@ export type ItemGatheredEvent = {
  * Emitted when player successfully crafts an item
  */
 export type ItemCraftedEvent = {
-  type: 'ITEM_CRAFTED';
-  payload: {
-    itemId: string;
-    quantity: number;
-    recipeId: string;
-    timestamp: number;
-  };
+    type: 'ITEM_CRAFTED';
+    payload: {
+        itemId: string;
+        quantity: number;
+        recipeId: string;
+        timestamp: number;
+    };
 };
 
 /**
@@ -69,13 +69,13 @@ export type ItemCraftedEvent = {
  * Emitted when player equips or unequips gear
  */
 export type ItemEquippedEvent = {
-  type: 'ITEM_EQUIPPED';
-  payload: {
-    itemId: string;
-    slot: 'mainHand' | 'offHand' | 'head' | 'body' | 'feet';
-    equipped: boolean;
-    timestamp: number;
-  };
+    type: 'ITEM_EQUIPPED';
+    payload: {
+        itemId: string;
+        slot: 'mainHand' | 'offHand' | 'head' | 'body' | 'feet';
+        equipped: boolean;
+        timestamp: number;
+    };
 };
 
 /**
@@ -83,15 +83,15 @@ export type ItemEquippedEvent = {
  * Emitted when a quest is marked as complete
  */
 export type QuestCompletedEvent = {
-  type: 'QUEST_COMPLETED';
-  payload: {
-    questId: string;
-    rewards: {
-      xp: number;
-      items: string[];
+    type: 'QUEST_COMPLETED';
+    payload: {
+        questId: string;
+        rewards: {
+            xp: number;
+            items: string[];
+        };
+        timestamp: number;
     };
-    timestamp: number;
-  };
 };
 
 /**
@@ -99,11 +99,11 @@ export type QuestCompletedEvent = {
  * Emitted when player satisfies achievement criteria
  */
 export type AchievementUnlockedEvent = {
-  type: 'ACHIEVEMENT_UNLOCKED';
-  payload: {
-    achievementId: string;
-    timestamp: number;
-  };
+    type: 'ACHIEVEMENT_UNLOCKED';
+    payload: {
+        achievementId: string;
+        timestamp: number;
+    };
 };
 
 /**
@@ -111,12 +111,12 @@ export type AchievementUnlockedEvent = {
  * Emitted when player takes or deals damage
  */
 export type DamageEvent = {
-  type: 'DAMAGE';
-  payload: {
-    source: 'creature' | 'environment' | 'trap';
-    damageAmount: number;
-    timestamp: number;
-  };
+    type: 'DAMAGE';
+    payload: {
+        source: 'creature' | 'environment' | 'trap';
+        damageAmount: number;
+        timestamp: number;
+    };
 };
 
 /**
@@ -124,12 +124,12 @@ export type DamageEvent = {
  * Emitted when player gains enough XP to level up
  */
 export type LevelUpEvent = {
-  type: 'LEVEL_UP';
-  payload: {
-    newLevel: number;
-    totalExperience: number;
-    timestamp: number;
-  };
+    type: 'LEVEL_UP';
+    payload: {
+        newLevel: number;
+        totalExperience: number;
+        timestamp: number;
+    };
 };
 
 /**
@@ -137,35 +137,35 @@ export type LevelUpEvent = {
  * Emitted when player discovers new biome or location
  */
 export type ExplorationEvent = {
-  type: 'EXPLORATION';
-  payload: {
-    discoveryType: 'biome' | 'location';
-    biomeName?: string;
-    locationName?: string;
-    timestamp: number;
-  };
+    type: 'EXPLORATION';
+    payload: {
+        discoveryType: 'biome' | 'location';
+        biomeName?: string;
+        locationName?: string;
+        timestamp: number;
+    };
 };
 
 /**
  * Discriminated union of all game events
  */
 export type GameEvent =
-  | CreatureKilledEvent
-  | ItemGatheredEvent
-  | ItemCraftedEvent
-  | ItemEquippedEvent
-  | QuestCompletedEvent
-  | AchievementUnlockedEvent
-  | DamageEvent
-  | LevelUpEvent
-  | ExplorationEvent;
+    | CreatureKilledEvent
+    | ItemGatheredEvent
+    | ItemCraftedEvent
+    | ItemEquippedEvent
+    | QuestCompletedEvent
+    | AchievementUnlockedEvent
+    | DamageEvent
+    | LevelUpEvent
+    | ExplorationEvent;
 
 /**
  * Extract event type from union
  * Useful for type narrowing and handlers
  */
 export function getEventType(event: GameEvent): GameEvent['type'] {
-  return event.type;
+    return event.type;
 }
 
 /**
@@ -173,7 +173,7 @@ export function getEventType(event: GameEvent): GameEvent['type'] {
  * Ensures all event handlers cover all cases
  */
 export function assertNever(x: never): never {
-  throw new Error(`Unhandled event type: ${x}`);
+    throw new Error(`Unhandled event type: ${x}`);
 }
 
 /**

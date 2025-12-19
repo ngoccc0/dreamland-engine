@@ -33,10 +33,13 @@
 
 // Extracted offline attack handler.
 import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
+import type { GameEvent } from '@/core/types/events';
 import {
   calculateBaseDamage,
   applyMultiplier,
 } from '@/core/rules/combat';
+import { StatisticsEngine } from '@/core/engines/statistics/engine';
+import { createEmptyStatistics } from '@/core/engines/statistics/schemas';
 import type { CombatOutcome } from '@/core/engines/combat-effects-bridge';
 
 export function createHandleOfflineAttack(context: Partial<ActionHandlerDeps> & Record<string, any>) {
@@ -126,6 +129,45 @@ export function createHandleOfflineAttack(context: Partial<ActionHandlerDeps> & 
 
     context.setPlayerStats && context.setPlayerStats(() => nextPlayerStats as any);
     context.advanceGameTime && context.advanceGameTime(nextPlayerStats as any);
+
+    // Phase I-1: Emit GameEvent for statistics tracking
+    if (enemyDefeated) {
+      const damageEvent: GameEvent = {
+        type: 'CREATURE_KILLED',
+        payload: {
+          creatureId: currentChunk.enemy!.id || 'unknown',
+          creatureType: currentChunk.enemy!.type,
+          location: {
+            biome: currentChunk.terrain || 'unknown',
+            x: playerPosition.x,
+            y: playerPosition.y,
+          },
+          weapon: context.playerStats?.equippedWeapon?.name || null,
+          timestamp: Date.now(),
+        },
+      };
+
+      // Update statistics immutably
+      const currentStats = context.statistics || createEmptyStatistics();
+      const updatedStats = StatisticsEngine.processEvent(currentStats, damageEvent);
+
+      // Store updated statistics
+      context.setStatistics?.(updatedStats);
+    } else if (playerDamage > 0) {
+      // Even if enemy not defeated, record damage for partial progress
+      const damageEvent: GameEvent = {
+        type: 'DAMAGE',
+        payload: {
+          source: 'creature',
+          damageAmount: playerDamage,
+          timestamp: Date.now(),
+        },
+      };
+
+      const currentStats = context.statistics || createEmptyStatistics();
+      const updatedStats = StatisticsEngine.processEvent(currentStats, damageEvent);
+      context.setStatistics?.(updatedStats);
+    }
 
     // Phase 4B: Return combat outcome for effect generation
     return {

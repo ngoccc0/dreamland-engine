@@ -51,8 +51,8 @@ interface Props {
 function SkillButton({
   skill,
   skillName,
-  language,
-  t: _t,
+  _language,
+  t,
   onUseSkill,
   playerMana
 }: {

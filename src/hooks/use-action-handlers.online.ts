@@ -94,9 +94,11 @@ export function createHandleOnlineNarrative(context: Partial<ActionHandlerDeps> 
         surroundingChunks: normalizedSurrounding as any,
         recentNarrative,
         language,
+        customItemDefinitions,
         diceRoll: roll,
         diceType: settings.diceType,
         diceRange: range,
+        successLevel,
         aiModel: settings.aiModel,
         narrativeLength: settings.narrativeLength,
       };

@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * useActionTracker Hook - Manage player action history in React
  *

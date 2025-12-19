@@ -672,3 +672,201 @@ export function calculateDamage(attack: number, defense: number): number {
   return Math.max(1, attack - defense);
 }
 ```
+
+---
+
+## Architecture Guards (Critical Patterns)
+
+**Purpose**: Non-negotiable architectural patterns to prevent bugs, performance issues, tight coupling, and memory leaks.
+
+### GUARD 1: Single Source of Truth (SSOT)
+
+**Problem**: If multiple hooks store copies of the same state, race conditions happen.
+
+**Rule**:
+- GameStateContext holds the only copy of playerPosition, inventory, etc.
+- All hooks read from context (via selectors)
+- All hooks write via setGameState()
+- No local useState copies of core game data
+
+**Correct Pattern**:
+```typescript
+export function useExploration() {
+  const { gameState, setGameState } = useGameStateContext();
+  
+  const handleExplore = useCallback(() => {
+    const currentPosition = gameState.playerPosition;
+    const [newState, effects] = explorationUsecase.exploreLocation(gameState, currentPosition);
+    
+    setGameState(newState);  // Single update point
+    executeEffects(effects);
+  }, [gameState, setGameState]);
+  
+  return { handlers: { handleExplore } };
+}
+```
+
+**Anti-Pattern (FORBIDDEN)**:
+```typescript
+// ❌ WRONG: Local copy becomes stale
+const [localDiscoveries, setLocalDiscoveries] = useState(gameState.discoveries);
+
+// ❌ WRONG: Direct mutation
+gameState.playerPosition.x = 10;
+```
+
+### GUARD 2: Dependency Injection via GameEngineProvider
+
+**Problem**: Hardcoded usecases are tightly coupled and hard to test.
+
+**Rule**:
+- All usecases instantiated in GameEngineProvider (single instance)
+- Hooks request usecases via useGameEngine()
+- No `new ClassName()` in hooks
+
+**Correct Pattern**:
+```typescript
+export function useExploration() {
+  const { explorationUsecase } = useGameEngine();
+  
+  const handleExplore = useCallback(() => {
+    const result = explorationUsecase.exploreLocation(position);
+    // ...
+  }, [explorationUsecase]);
+  
+  return { handlers: { handleExplore } };
+}
+```
+
+### GUARD 3: Selective Subscription (No Re-render Storm)
+
+**Problem**: Rendering entire gameState on every tick causes 60 re-renders/sec even when irrelevant state changes.
+
+**Rule**:
+- Create selector hooks returning only needed state slices
+- Use useMemo with minimal dependencies
+- Wrap components with React.memo
+- All handlers use useCallback
+
+**Correct Pattern**:
+```typescript
+export function useExplorationState() {
+  const { gameState } = useGameStateContext();
+  
+  return useMemo(() => ({
+    discoveries: gameState.discoveries,
+    lastDiscoveryTime: gameState.lastDiscoveryTime,
+    // NOTE: playerPosition, stamina excluded from deps
+  }), [gameState.discoveries, gameState.lastDiscoveryTime]);
+}
+
+const ExplorationPanelContent = React.memo(({ discoveries }) => (
+  <div>{discoveries.map(d => <DiscoveryCard key={d.id} {...d} />)}</div>
+));
+
+export function ExplorationPanel() {
+  const { discoveries } = useExplorationState();
+  return <ExplorationPanelContent discoveries={discoveries} />;
+}
+```
+
+### GUARD 4: Viewport Culling (O(1) Rendering)
+
+**Problem**: Rendering 1000 chunks via `.map()` every frame is O(N) and causes FPS drop.
+
+**Rule**:
+- Store chunks in Map<CoordinateKey, Chunk> for O(1) lookup
+- Compute visible range in useMemo
+- Only render chunks within viewport
+
+**Correct Pattern**:
+```typescript
+export function WorldMap() {
+  const { gameState } = useGameStateContext();
+  const VIEWPORT_RADIUS = 5;
+  
+  const visibleChunks = useMemo(() => {
+    const chunks = [];
+    const { x, y } = gameState.playerPosition;
+    
+    for (let cx = x - VIEWPORT_RADIUS; cx <= x + VIEWPORT_RADIUS; cx++) {
+      for (let cy = y - VIEWPORT_RADIUS; cy <= y + VIEWPORT_RADIUS; cy++) {
+        const chunk = gameState.chunks.get(`${cx},${cy}`); // O(1)
+        if (chunk) chunks.push(chunk);
+      }
+    }
+    return chunks;
+  }, [gameState.chunks, gameState.playerPosition]);
+  
+  return (
+    <div>
+      {visibleChunks.map(chunk => (
+        <ChunkTile key={`${chunk.x},${chunk.y}`} chunk={chunk} />
+      ))}
+    </div>
+  );
+}
+```
+
+### GUARD 5: Animation Strategy (Framer Motion vs Tailwind)
+
+**Rule**:
+- Framer Motion: Complex, physics-based, state-dependent animations (game components only)
+- Tailwind: Simple hover/focus transitions (UI primitives only)
+- Animation duration: 300-800ms
+
+**Correct Pattern**:
+```typescript
+// ✅ Framer Motion in game components
+export function ExplorationResult() {
+  return (
+    <motion.div
+      initial={{ scale: 0.5, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ duration: 0.4 }}
+    >
+      Found Item!
+    </motion.div>
+  );
+}
+
+// ✅ Tailwind in UI primitives
+export function Button({ isActive }) {
+  return (
+    <button className={`transition-colors ${isActive ? 'bg-green-500' : 'bg-gray-500'}`}>
+      Click Me
+    </button>
+  );
+}
+```
+
+### GUARD 6: Save/Load Consistency
+
+**Rule**:
+- All state changes persisted to gameState
+- Auto-save hook handles localStorage serialization
+- Test: Perform action → reload → progress persists
+
+**Correct Pattern**:
+```typescript
+// State changes automatically saved
+dispatch({
+  type: 'DISCOVER_LOCATION',
+  payload: { location: 'Forest Glade', timestamp: Date.now() },
+});
+
+// On reload, discovered locations restored from saved state
+```
+
+### Enforcement Checklist
+
+**Before merging new hooks/components, verify**:
+- [ ] No local state copies of game data (SSOT)
+- [ ] Usecases obtained via useGameEngine() (DI)
+- [ ] State slices extracted with useMemo (Selectors)
+- [ ] Components use React.memo, handlers use useCallback (Memoization)
+- [ ] Large lists use viewport culling (Performance)
+- [ ] Framer Motion in game/, Tailwind in ui/ (Animations)
+- [ ] All state changes persisted to gameState (Save/Load)
+- [ ] Full TypeScript coverage, no implicit any
+- [ ] All exports documented with @remarks

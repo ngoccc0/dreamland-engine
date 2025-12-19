@@ -57,7 +57,7 @@ export const GenerateNarrativeInputSchema = z.object({
     currentChunk: ChunkSchema.describe("The detailed attributes of map tile player is on."),
     surroundingChunks: z.array(ChunkSchema).optional().describe("A 3x3 grid of chunks around the player to provide environmental context."),
     recentNarrative: z.array(z.string()).optional().describe("A few recent entries from the narrative log to provide conversational context."),
-    language: Language.describe("The language for generated content ('en' or 'vi')."),
+    language: z.enum(['en', 'vi']).describe("The language for generated content ('en' or 'vi')."),
     diceRoll: z.number().int().describe("The result of the dice roll."),
     diceType: z.string().describe("The type of dice used (e.g., 'd20', '2d6')."),
     diceRange: z.string().describe("The possible range of the dice roll (e.g., '1-20', '2-12')."),
@@ -150,6 +150,5 @@ export async function generateNarrative(input: GenerateNarrativeInput): Promise<
 
 // == STEP 6: EXPORT TYPES ==
 
-// TODO: Export when implementing output schema
-// export type GenerateNarrativeInput = z.infer<typeof GenerateNarrativeInputSchema>;
+export type GenerateNarrativeInput = z.infer<typeof GenerateNarrativeInputSchema>;
 // export type GenerateNarrativeOutput = z.infer<typeof GenerateNarrativeOutputSchema>;

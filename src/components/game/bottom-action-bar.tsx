@@ -52,7 +52,7 @@ function SkillButton({
   skill,
   skillName,
   language,
-  t,
+  t: _t,
   onUseSkill,
   playerMana
 }: {

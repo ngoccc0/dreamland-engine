@@ -601,3 +601,82 @@ const creatureName = translate(creature.name);  // Gets 'Wolf' or 'Sói'
 - ✅ Never access `.en` or `.vi` directly
 - ✅ Type: `{ en: string, vi: string }`
 
+
+---
+
+## Statistics Engine Pattern (NEW - Phase 2.0)
+
+**Purpose**: Track all player actions in a single immutable statistics object
+
+### Single Source of Truth Architecture
+
+Sparse data design: only non-zero values stored in nested objects.
+Query layer provides safe accessors with zero fallback.
+Immutable updates via spread operator.
+
+### Key Rules
+- ? Sparse data: only non-zero values stored
+- ? Safe accessors with ?? 0 fallback
+- ? No mutations: always return new object via spread
+- ? Filter parameters optional
+- ? Query class for accessing complex nested data
+
+---
+
+## Quest System Pattern (NEW - Phase 2.0)
+
+**Purpose**: Track quest progress via statistics, auto-complete when criteria satisfied
+
+### Architecture
+
+1. **STATIC TEMPLATE** (never saved, defined once in QUEST_TEMPLATES)
+2. **RUNTIME STATE** (saved in GameState.activeQuests[])
+3. **EVALUATION FUNCTION** (criteria + statistics ? progress 0.0-1.0+)
+4. **COMPLETION LOGIC** (auto-trigger when progress >= 1.0)
+
+### Criteria Types
+
+- KILL_CREATURE: Kill N creatures (with optional filters: type, biome, weapon)
+- GATHER_ITEM: Gather N items (with optional filters: biome, tool)
+- CRAFT_ITEM: Craft N items (with optional filter: recipe)
+- TRAVEL_DISTANCE: Travel N units (with optional filter: biome)
+- CUSTOM: Custom logic (e.g., reach_ancient_ruins)
+
+### Adding New Quest
+
+1. Define template in QUEST_TEMPLATES in core/data/quests/quest-templates.ts
+2. That's it! Evaluation, completion, tracking all automatic
+
+### Key Rules
+- ? Templates in core/data/quests/ (never saved)
+- ? Runtime state in GameState.activeQuests[] (saved)
+- ? Evaluation via criteria + statistics
+- ? Auto-complete when progress >= 1.0
+- ? Cascading effects: quest complete ? achievement unlocks
+
+---
+
+## Achievement System Pattern (NEW - Phase 2.0)
+
+**Purpose**: Auto-evaluate player achievements whenever statistics change
+
+### Architecture
+
+1. **STATIC TEMPLATE** (never changes, defined once)
+2. **RUNTIME STATE** (saved in GameState.unlockedAchievements[])
+3. **AUTO-EVALUATION** (called after EVERY stat update)
+4. **CASCADING EFFECTS** (achievement unlock ? notify user)
+
+### Pattern
+
+Achievements use identical criteria schema as quests.
+Auto-evaluated when stats change (no player accept action).
+Unlock titles/badges instead of items.
+Can cascade (quest completion ? achievement unlocks).
+
+### Key Rules
+- ? Auto-evaluated on any statistics change
+- ? Never unlock twice (checked before adding)
+- ? Return cascading effects
+- ? Criteria identical to quest criteria
+- ? Rarity field for badge/visual (common, rare, legendary)

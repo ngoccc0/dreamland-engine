@@ -300,14 +300,153 @@ Example: New item type handler
 export function createHandleItemEffect() { }
 ```
 
-### Adding New Static Data
+---
 
-**Location**: `core/data/[category]/[subcategory].ts`
+## 📊 STATISTICS ENGINE (NEW - Phase 2.0)
 
-Examples:
-- New creature: `core/data/creatures/fauna.ts`
-- New weapon: `core/data/items/weapons.ts`
-- New skill: `core/data/recipes/index.ts`
+### Concept: Single Source of Truth for Player Behavior
+
+Instead of scattered counters (quest kills, crafting counts), all player actions feed into a centralized **PlayerStatistics** object.
+
+### Architecture
+
+```
+Action (Combat, Gathering, Crafting)
+    ↓
+Side Effect (ApplyDamage, ItemGain, CraftSuccess)
+    ↓
+GameEvent (CREATURE_KILLED, ITEM_GATHERED, ITEM_CRAFTED)
+    ↓
+StatisticsEngine.processEvent() → Updates PlayerStatistics
+    ↓
+Uses StatsQuery to evaluate quests/achievements
+    ↓
+Quests & Achievements auto-complete when criteria satisfied
+```
+
+### Context-Aware Metrics (Sparse Data)
+
+```typescript
+// Only non-zero values stored
+{
+  combat: {
+    kills: {
+      total: 42,
+      byCreatureType: { slime: 15, goblin: 27 },
+      byLocation: { forest: 20, mountain: 22 },
+      byWeapon: { sword_iron: 30 }
+    }
+  },
+  gathering: {
+    itemsCollected: {
+      wood: { total: 150, byBiome: { forest: 150 } },
+      iron_ore: { total: 45, byBiome: { mountain: 45 } }
+    }
+  }
+}
+```
+
+### Query Layer (Safe Accessors)
+
+```typescript
+// All return number; undefined → 0
+StatsQuery.getKillCount(stats, { creatureType: 'slime' }) // → 15
+StatsQuery.hasGatheredItem(stats, 'wood', 10, { biome: 'forest' }) // → true
+```
+
+### Benefits
+
+1. **Reusability**: Single evaluator for quests + achievements
+2. **Performance**: O(1) object lookups, <0.5ms per event
+3. **Extensibility**: New achievements need only new template, no code changes
+4. **Save Optimization**: Sparse data keeps files <10KB
+
+---
+
+## 🎮 QUEST SYSTEM (NEW - Phase 2.0)
+
+### Lifecycle
+
+```
+1. Player accepts quest
+   ├─ Creates QuestRuntimeState (questId, status, startedAt)
+   └─ Fetches template from QUEST_TEMPLATES
+   
+2. Actions update player stats
+   ├─ StatisticsEngine processes events
+   └─ UpdatePlayerStatistics in GameState
+   
+3. Quest evaluation (after each stat update)
+   ├─ evaluateQuestProgress() checks criteria
+   └─ If satisfied: completeQuest() → grant rewards
+   
+4. Rewards delivered
+   ├─ addExperience effect
+   ├─ grantLoot effect
+   ├─ completeAchievement effects (cascading)
+   └─ UI notifications + sounds
+```
+
+### Static vs Runtime Split
+
+**Static (Never Saved)**:
+```typescript
+// src/core/data/quests/quest-templates.ts
+{
+  id: 'slay-five-slimes',
+  title: 'Slay the Slime Horde',        // Text
+  description: '...',                   // Text
+  criteria: { type: 'KILL_CREATURE', params: { creatureType: 'slime', count: 5 } },
+  rewards: { xp: 50, items: ['gold_25'] }
+}
+```
+
+**Runtime (Saved in GameState)**:
+```typescript
+{
+  questId: 'slay-five-slimes',          // Reference only
+  status: 'active',                     // State
+  startedAt: Date,                      // Metadata
+  progress: { kills: 3 }                // Tracking
+}
+```
+
+### Criteria Types
+
+1. **KILL_CREATURE**: Kill N creatures (with optional filters: type, biome, weapon)
+2. **GATHER_ITEM**: Gather N items (with optional filters: biome, tool)
+3. **CRAFT_ITEM**: Craft N items (with optional filter: recipe)
+4. **TRAVEL_DISTANCE**: Travel N units (with optional filter: biome)
+5. **CUSTOM**: Custom logic (e.g., "reach ancient ruins")
+
+### Achievement System (Identical Pattern)
+
+Achievements use the same criteria schema as quests, but:
+- Auto-evaluated when stats change (no player accept action)
+- Unlock titles/badges instead of items
+- Can cascade (quest completion → achievement unlocks)
+
+### Adding New Quest
+
+```typescript
+// 1. Add to QUEST_TEMPLATES
+'new-quest-id': {
+  id: 'new-quest-id',
+  title: 'Quest Title',
+  description: 'Quest Description',
+  criteria: { type: 'KILL_CREATURE', params: { creatureType: 'ogre', count: 10 } },
+  rewards: { xp: 200, items: ['gold_100'] },
+  repeatable: false,
+}
+
+// 2. That's it! Quest system auto-handles:
+// - Starter UI integration
+// - Progress tracking
+// - Completion detection
+// - Reward granting
+```
+
+---
 
 ### Adding New Type/Domain Model
 

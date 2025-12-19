@@ -16,7 +16,7 @@ import { z } from 'zod';
 import type { MoodTag } from '@/core/engines/MoodProfiler';
 
 /**
- * Animation types supported by the narrative system
+ * Animation types supported by narrative system
  */
 export enum AnimationType {
     /** Word-by-word typing animation (default, 150ms/word) */
@@ -56,7 +56,7 @@ export enum ThinkingMarkerStage {
  * Zod schema for animation metadata
  *
  * This schema defines what animation information should be injected into
- * narrative generation flows, typically returned alongside the narrative text.
+ * narrative generation flows, typically returned alongside narrative text.
  */
 export const AnimationMetadataSchema = z.object({
     /** Type of animation to apply to narrative text */
@@ -66,7 +66,7 @@ export const AnimationMetadataSchema = z.object({
 
     /** Whether to show thinking indicator before revealing narrative */
     thinkingMarker: z.boolean()
-        .describe("Whether to show a thinking indicator before revealing the narrative")
+        .describe("Whether to show a thinking indicator before revealing narrative")
         .default(false),
 
     /** Segments of text that should be emphasized */
@@ -202,15 +202,13 @@ export function determineAnimationMetadata(options: {
     isDangerousAction?: boolean;
     isComplexGameState?: boolean;
     narrativeLength?: 'short' | 'medium' | 'long' | 'detailed';
-    language?: 'en' | 'vi';
 }): AnimationMetadata {
     const {
         primaryMood,
         moodStrength = 0.5,
         isDangerousAction = false,
         isComplexGameState = false,
-        narrativeLength = 'medium',
-        language: _language = 'en'
+        narrativeLength = 'medium'
     } = options;
 
     // Check mood-tag-specific override
@@ -278,7 +276,7 @@ export function determineAnimationMetadata(options: {
 /**
  * Get animation config bucket for mood strength
  *
- * Returns the configuration object matching the mood strength range
+ * Returns configuration object matching mood strength range
  */
 export function getAnimationConfigForMoodStrength(
     moodStrength: number

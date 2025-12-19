@@ -1,11 +1,11 @@
 /**
  * An AI agent for providing helpful hints for active quests.
  *
- * This flow is called from the UI to give the player a gentle nudge.
+ * This flow is called from UI to give player a gentle nudge.
  *
- * - provideQuestHint - The main function called from the UI.
- * - ProvideQuestHintInput - The Zod schema for the input data.
- * - ProvideQuestHintOutput - The Zod schema for the output data.
+ * - provideQuestHint - The main function called from UI.
+ * - ProvideQuestHintInput - The Zod schema for input data.
+ * - ProvideQuestHintOutput - The Zod schema for output data.
  */
 
 import { getAi } from '@/ai/genkit';
@@ -38,7 +38,7 @@ async function initProvideQuestHintFlow() {
 The player is asking for a hint for the following quest:
 "{{{questText}}}"
 
-Your task is to provide a short, one or two-sentence hint. The hint should be helpful but not a complete spoiler. It should point the player in the right direction.
+Your task is to provide a short, one or two-sentence hint. The hint should be helpful but not a complete spoiler. It should point to player in the right direction.
 
 **Examples (for your reference, do not copy directly):**
 - Quest: "Defeat the Goblin leader." -> Hint: "The Goblin leader is likely hiding in the deepest part of their cave, surrounded by guards."

@@ -3,6 +3,7 @@ import { combatConfig } from '@/lib/config';
 import {
     calculateExperience as calculateExpFromRules,
 } from '@/core/rules/combat';
+import type { GameEvent } from '@/core/types/events';
 
 /**
  * calculateXpForLevel
@@ -78,6 +79,71 @@ export function calculatePlayerLevel(playerXp: number): number {
         level++;
     }
     return level;
+}
+
+/**
+ * createLevelUpEvent
+ *
+ * Pure factory function to create a LEVEL_UP game event.
+ *
+ * @remarks
+ * **Purpose:** Centralized single-source-of-truth for LEVEL_UP event creation.
+ * All systems that grant XP should use this function to emit consistent events.
+ *
+ * **Why Centralize?**
+ * - Before: XP events created in multiple hooks (combat, harvest, crafting, exploration)
+ * - After: Single function ensures all LEVEL_UP events have same structure
+ * - Prevents: Event format drift, missing fields, inconsistent timestamps
+ * - Enables: Easy testing, future event enrichment (e.g., XP source tracking)
+ *
+ * **Uses:**
+ * - Combat usecase: After calculateExperienceGain()
+ * - Harvest usecase: After gathering rewards
+ * - Crafting usecase: After successful recipe
+ * - Exploration usecase: After discovering location
+ *
+ * **Event Structure:**
+ * ```typescript
+ * {
+ *   type: 'LEVEL_UP',
+ *   payload: {
+ *     newLevel: number,           // Current level after XP gain
+ *     totalExperience: number,    // Cumulative XP earned
+ *     xpGained: number,           // Amount from this action (for UI feedback)
+ *     timestamp: number,          // When event occurred (for logging/analytics)
+ *   }
+ * }
+ * ```
+ *
+ * @param newLevel - Player's current/new level
+ * @param totalExperience - Player's total cumulative XP
+ * @param xpGained - XP gained in this action (for UI "You gained 50 XP" messages), default 0
+ * @returns Properly formatted GameEvent with type='LEVEL_UP'
+ *
+ * @example
+ * // After defeating enemy that grants 45 XP
+ * const playerXp = 250;        // Player had 250 XP before
+ * const xpGained = 45;         // Enemy grants 45 XP
+ * const newXp = 295;           // New total
+ * const newLevel = calculatePlayerLevel(newXp); // Check level
+ * 
+ * const event = createLevelUpEvent(newLevel, newXp, xpGained);
+ * // Returns: { type: 'LEVEL_UP', payload: { newLevel: 3, totalExperience: 295, xpGained: 45, timestamp: 1639123456789 } }
+ */
+export function createLevelUpEvent(
+    newLevel: number,
+    totalExperience: number,
+    xpGained: number = 0
+): GameEvent {
+    return {
+        type: 'LEVEL_UP',
+        payload: {
+            newLevel,
+            totalExperience,
+            xpGained,
+            timestamp: Date.now(),
+        },
+    };
 }
 
 /**

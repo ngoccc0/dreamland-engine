@@ -128,6 +128,7 @@ export type LevelUpEvent = {
     payload: {
         newLevel: number;
         totalExperience: number;
+        xpGained?: number; // XP gained in this action (for UI feedback)
         timestamp: number;
     };
 };

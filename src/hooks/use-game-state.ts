@@ -18,6 +18,8 @@ import { biomeDefinitions as staticBiomeDefinitions } from '@/core/data/biomes';
 import WorldImpl from '@/core/entities/world-impl';
 import { TerrainFactory } from '@/core/factories/terrain-factory';
 import { WorldGenerator } from '@/core/generators/world-generator';
+import { ensurePlayerStats } from '@/core/factories/statistics-factory';
+import { adaptStatsToCharacter } from '@/core/adapters/stats-to-character';
 // Avoid importing `allTerrains` here to prevent potential circular
 // initialization order issues during module evaluation in Next.js.
 const TERRAIN_LITERALS = [
@@ -155,51 +157,9 @@ export function useGameState({ gameSlot: _gameSlot }: GameStateProps) {
         crafts: 0,
         customActions: 0
     });
-    const [playerStats, setPlayerStats] = useState<PlayerStatus>({
-        level: 1,
-        experience: 0,
-        hp: 100,
-        maxHp: 100,
-        mana: 50,
-        maxMana: 50,
-        stamina: 100,
-        maxStamina: 100,
-        hunger: 100,
-        maxHunger: 100,
-        hungerTickCounter: 0,
-        hpRegenTickCounter: 0,
-        staminaRegenTickCounter: 0,
-        manaRegenTickCounter: 0,
-        bodyTemperature: 37,
-        items: [],
-        equipment: {
-            weapon: null,
-            armor: null,
-            accessory: null
-        },
-        quests: [],
-        questsCompleted: 0,
-        skills: [],
-        pets: [],
-        persona: 'none',
-        attributes: {
-            physicalAttack: 10,
-            magicalAttack: 5,
-            physicalDefense: 0,
-            magicalDefense: 0,
-            critChance: 5,
-            attackSpeed: 1.0,
-            cooldownReduction: 0
-        },
-        unlockProgress: {
-            kills: 0,
-            damageSpells: 0,
-            moves: 0
-        },
-        journal: {},
-        dailyActionLog: [],
-        questHints: {}
-    });
+    const [playerStats, setPlayerStats] = useState<PlayerStatus>(
+        ensurePlayerStats()
+    );
     const [customItemDefinitions, setCustomItemDefinitions] = useState<Record<string, ItemDefinition>>(staticItemDefinitions);
     const [customItemCatalog, setCustomItemCatalog] = useState<GeneratedItem[]>([]);
     const [customStructures, setCustomStructures] = useState<Structure[]>([]);

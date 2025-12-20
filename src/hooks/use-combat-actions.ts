@@ -27,6 +27,7 @@ import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
 import type { TranslationKey } from '@/core/types/game';
 import { AudioActionType } from '@/core/data/audio-events';
 import { generateCombatEffects } from '@/core/engines/combat-effects-bridge';
+import { EventDeduplicationGuard, DEFAULT_DEDUP_CONFIG, type DeduplicationBuffer } from '@/core/engines/event-deduplication/guard';
 
 /**
  * Create combat action handlers
@@ -46,6 +47,7 @@ import { generateCombatEffects } from '@/core/engines/combat-effects-bridge';
  * - setPlayerStats: Update stats with action log
  * - audio: Play combat sfx
  * - executeEffectsWithQuests: Apply combat effects + evaluate quests
+ * - dedupBuffer: Deduplication buffer for race condition prevention
  *
  * @param deps - Action handler dependencies
  * @returns Object with handleAttack callback
@@ -56,7 +58,7 @@ import { generateCombatEffects } from '@/core/engines/combat-effects-bridge';
  * handleAttack(); // Execute attack
  * ```
  */
-export function createHandleCombatActions(deps: Partial<ActionHandlerDeps> & Record<string, any>) {
+export function createHandleCombatActions(deps: Partial<ActionHandlerDeps> & Record<string, any> & { dedupBuffer?: DeduplicationBuffer }) {
     const {
         isLoading = false,
         isGameOver = false,
@@ -71,6 +73,7 @@ export function createHandleCombatActions(deps: Partial<ActionHandlerDeps> & Rec
         setPlayerStats,
         audio,
         executeEffectsWithQuests,
+        dedupBuffer = null,
     } = deps;
 
     /**
@@ -96,8 +99,8 @@ export function createHandleCombatActions(deps: Partial<ActionHandlerDeps> & Rec
      * - Both processes may see same enemy, both process kill
      * - Creature kills will double-count
      *
-     * Solution: EventDeduplicationGuard will check before executing effects
-     * (Integrated in Phase 3)
+     * Solution: EventDeduplicationGuard checks CREATURE_KILLED event before processing
+     * to prevent double-counting in race conditions (Phase 3)
      */
     const handleAttack = useCallback(() => {
         if (isLoading || isGameOver || !isLoaded) return;
@@ -130,9 +133,45 @@ export function createHandleCombatActions(deps: Partial<ActionHandlerDeps> & Rec
         // Capture combat outcome and execute effects
         const outcome = handleOfflineAttack();
         if (outcome) {
-            // Generate and execute side effects from combat outcome
+            // Generate side effects from combat outcome
             const effects = generateCombatEffects(outcome);
-            executeEffectsWithQuests(effects);
+            
+            // Race condition protection: Check if CREATURE_KILLED events are duplicates
+            // before executing effects (prevents double-counting creature kills)
+            if (dedupBuffer) {
+                const filteredEffects = effects.filter((effect: any) => {
+                    // If effect contains a CREATURE_KILLED event, check dedup guard
+                    if (effect.event?.type === 'CREATURE_KILLED') {
+                        const isDuplicate = EventDeduplicationGuard.isDuplicate(
+                            effect.event,
+                            dedupBuffer,
+                            DEFAULT_DEDUP_CONFIG
+                        );
+                        
+                        if (!isDuplicate) {
+                            // Record the event for future dedup checks
+                            dedupBuffer.recentKeys = EventDeduplicationGuard.recordEvent(
+                                effect.event,
+                                dedupBuffer,
+                                DEFAULT_DEDUP_CONFIG
+                            ).recentKeys;
+                            return true; // Allow effect to execute
+                        }
+                        
+                        // Duplicate detected - skip this effect
+                        console.debug('[Combat] Duplicate CREATURE_KILLED event blocked by dedup guard');
+                        return false;
+                    }
+                    
+                    // Non-combat effects always pass through
+                    return true;
+                });
+                
+                executeEffectsWithQuests(filteredEffects);
+            } else {
+                // Dedup buffer not available - execute all effects (legacy behavior)
+                executeEffectsWithQuests(effects);
+            }
         }
     }, [
         isLoading,
@@ -148,6 +187,7 @@ export function createHandleCombatActions(deps: Partial<ActionHandlerDeps> & Rec
         setPlayerStats,
         audio,
         executeEffectsWithQuests,
+        dedupBuffer,
     ]);
 
     return { handleAttack };

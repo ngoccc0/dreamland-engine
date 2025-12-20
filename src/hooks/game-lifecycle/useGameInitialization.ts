@@ -234,7 +234,7 @@ export function useGameInitialization(deps: GameInitializationDeps) {
             currentSeason: stateToInitialize.currentSeason
           });
           // Debug breakpoint: pause before heavy generation (set window.__DEBUG_BREAK = true in browser)
-          try { const { maybeDebug } = await import('@/lib/debug'); maybeDebug('useGameInitialization:before-generate'); } catch { }
+          try { const { maybeDebug } = await import('@/lib/core/debug'); maybeDebug('useGameInitialization:before-generate'); } catch { }
           const { world: newWorld, regions: newRegions, regionCounter: newRegionCounter } = generateChunksInRadius(
             {}, {}, 0,
             stateToInitialize.playerPosition.x,
@@ -248,7 +248,7 @@ export function useGameInitialization(deps: GameInitializationDeps) {
             language
           );
           // Debug after generation
-          try { const { maybeDebug } = await import('@/lib/debug'); maybeDebug('useGameInitialization:after-generate'); } catch { }
+          try { const { maybeDebug } = await import('@/lib/core/debug'); maybeDebug('useGameInitialization:after-generate'); } catch { }
           worldSnapshot = newWorld;
           regionsSnapshot = newRegions;
           regionCounterSnapshot = newRegionCounter;
@@ -300,7 +300,7 @@ export function useGameInitialization(deps: GameInitializationDeps) {
         }
 
         if (isMounted) setIsLoaded(true);
-        try { const { maybeDebug } = await import('@/lib/debug'); maybeDebug('useGameInitialization:setIsLoaded:true'); } catch { }
+        try { const { maybeDebug } = await import('@/lib/core/debug'); maybeDebug('useGameInitialization:setIsLoaded:true'); } catch { }
         logger.info(`[GameInit] Game for slot ${gameSlot} is fully loaded and initialized.`);
         logger.debug('[GameInit] Initialization complete', {
           isLoaded: true,

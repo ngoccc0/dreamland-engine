@@ -19,9 +19,11 @@ import { createHandleMove } from '@/hooks/move-orchestrator';
 import { createActionHelpers } from '@/hooks/action-helpers';
 import { createHandleFuseItems } from '@/hooks/use-action-handlers.fuseItems';
 import { createHandleHarvest } from '@/hooks/use-action-handlers.harvest';
+import { createHandleCombatActions } from '@/hooks/use-combat-actions';
 import {
   validateRecipe,
 } from '@/core/rules/crafting';
+import { EventDeduplicationGuard, DEFAULT_DEDUP_CONFIG, type DeduplicationBuffer } from '@/core/engines/event-deduplication/guard';
 
 // NOTE: Genkit flows are server-only. Call them via server API routes to
 // avoid bundling server-only packages into the client bundle.
@@ -239,6 +241,7 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
   const offlineActionRef = useRef<any>(null);
   const fuseRef = useRef<any>(null);
   const harvestRef = useRef<any>(null);
+  const dedupBufferRef = useRef<DeduplicationBuffer>(EventDeduplicationGuard.createDeduplicationBuffer());
 
   // When the player's current chunk or environment changes, prefer playing
   // biome-specific ambience (files named like Ambience_<Biome>) and fall back
@@ -433,30 +436,26 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
     }
   }, [isLoading, isGameOver, isLoaded, world, playerPosition, playerStats, isOnline, handleOnlineNarrative, handleOfflineAction, toast, t, addNarrativeEntry]);
 
-  const handleAttack = useCallback(() => {
-    if (isLoading || isGameOver || !isLoaded) return;
-    setPlayerBehaviorProfile((p: any) => ({ ...p, attacks: p.attacks + 1 }));
-    const baseChunk = world[`${playerPosition.x},${playerPosition.y}`];
-    if (!baseChunk?.enemy) { addNarrativeEntry(t('noTarget'), 'system'); return; }
+  // Combat actions (extracted to use-combat-actions.ts for Precursor split)
+  const { handleAttack: handleAttackFromFactory } = createHandleCombatActions({
+    ...(deps as any),
+    isLoading,
+    isGameOver,
+    isLoaded,
+    setPlayerBehaviorProfile,
+    world,
+    playerPosition,
+    addNarrativeEntry,
+    t,
+    playerStats,
+    handleOfflineAttack,
+    setPlayerStats,
+    audio,
+    executeEffectsWithQuests,
+    dedupBuffer: dedupBufferRef.current,
+  });
 
-    const actionText = `${t('attackAction')} ${t(baseChunk.enemy.type as TranslationKey)}`;
-    addNarrativeEntry(actionText, 'action');
-
-    // Emit audio for attack
-    audio.playSfxForAction(AudioActionType.PLAYER_ATTACK, {});
-
-    const newPlayerStats = { ...playerStats, dailyActionLog: [...(playerStats.dailyActionLog || []), actionText] };
-
-    setPlayerStats(() => newPlayerStats);
-
-    // Capture combat outcome and execute effects
-    const outcome = handleOfflineAttack();
-    if (outcome) {
-      // Generate and execute side effects from combat outcome
-      const effects = generateCombatEffects(outcome);
-      executeEffectsWithQuests(effects);
-    }
-  }, [isLoading, isGameOver, isLoaded, setPlayerBehaviorProfile, world, playerPosition, addNarrativeEntry, t, playerStats, handleOfflineAttack, setPlayerStats, audio, executeEffects]);
+  const handleAttack = handleAttackFromFactory;
 
   const handleCustomAction = useCallback((text: string) => {
     if (!text.trim() || isLoading || isGameOver || !isLoaded) return;

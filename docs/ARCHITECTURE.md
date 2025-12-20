@@ -210,14 +210,30 @@ export type Creature = z.infer<typeof CreatureSchema>;
 
 ### File Size Limits
 
-| Folder | Max Lines |
-|--------|-----------|
-| `core/domain/` | 200 |
-| `core/data/creatures/` | 800 |
-| `core/data/items/` | 500 |
-| `core/rules/` | 500 |
-| `core/usecases/` | 400 |
-| `hooks/` | 250 |
+| Folder | Max Lines | Status |
+|--------|-----------|--------|
+| `core/domain/` | 200 | ✅ Compliant |
+| `core/data/creatures/` | 800 | ✅ Compliant |
+| `core/data/items/` | 500 | ✅ Compliant |
+| `core/rules/` | 500 | ✅ Compliant |
+| `core/usecases/` | 400 | ✅ Compliant |
+| `hooks/` | 250 | ⚠️ 3 violations (see below) |
+
+**HOOK VIOLATIONS (Known Issues)**:
+- `use-game-state.ts`: 554 lines (2.2x limit) - **Refactoring planned**
+- `use-action-handlers.online.ts`: 900 lines (3.6x limit) - **Refactoring planned**
+- `use-movement.ts`: 582 lines (2.3x limit) - **Refactoring planned**
+
+**RESOLUTION PLAN**:
+1. Extract hooks into smaller, focused units (e.g., `use-movement-input.ts`, `use-movement-logic.ts`)
+2. Move pure logic to `core/usecases/` (hooks should orchestrate, not implement)
+3. Target: All hooks < 250 lines by next milestone
+
+**RATIONALE FOR LIMIT**:
+- Easier testing (smaller test files, faster test runs)
+- Easier to find code (smaller surface area to scan)
+- Better reusability (focused concerns are easier to compose)
+- Prevents God Hooks (single hook doing everything)
 
 ### Naming
 

@@ -371,35 +371,174 @@ export * from './core/debug';
 
 ---
 
-## 🔧 NEXT STEPS
+## ⚠️ BLOCKER DISCOVERED: Type Architecture Mismatch
 
-### IMMEDIATE (HIGH PRIORITY)
+**Issue:** Codebase has TWO competing player stat types:
+- `PlayerStatusDefinition` (from statistics-factory.ts intent) - data-only interface
+- `Character` (from character.ts) - class with methods, expected by weather-engine.ts
 
-**Decision Tree:**
+**Where mismatch manifests:**
+- `use-game-state.ts` initializes playerStats (type any)
+- `use-game-engine.ts:369` passes playerStats to `weatherEngine.applyWeatherEffects(playerStats)`
+- `weather-engine.ts:267` signature expects `Character` type
+- Compilation fails: `PlayerStatusDefinition not assignable to Character`
+
+**Root Cause:** Original codebase designed with `Character` class but statistics-factory.ts created `PlayerStatusDefinition` interface without unifying the types.
+
+**Why This Matters:**
+- Can't wire factories safely until this is resolved
+- Affects Phase 1 (Standardize Data)
+- Blocks type-safe refactoring
+
+---
+
+## 🔍 GOD OBJECT DETECTED: use-action-handlers.ts (796 LINES)
+
+**Finding:** The largest hook violates architecture limits significantly:
+
 ```
-Do you want to use Factories Pattern?
-├─ YES → Wire factories into hooks + integrate null-safety
-│        (replace all: stats?.level ?? 1 with ensurePlayerStats())
-│
-└─ NO  → Delete unused modules (816 lines):
-         - core/factories/statistics-factory.ts (289 lines)
-         - core/engines/action-tracker/archival.ts (267 lines)
-         - core/engines/event-deduplication/guard.ts (260 lines)
-         + Update EDGE_CASES.md to remove examples
+File Sizes (Top 5 hooks):
+- use-action-handlers.ts           : 796 lines (3.2x limit of 250)
+- move-orchestrator.ts             : 533 lines (2.1x limit)
+- use-game-engine.ts               : 502 lines (2x limit)
+- use-combat-state.ts              : 331 lines (1.3x limit)
+- useMobileOptimization.ts         : 295 lines (1.2x limit)
+```
 
-Do you want Deduplication Protection?
-├─ YES → Wire EventDeduplicationGuard into combat event processing
-│        (check isDuplicate before updating statistics)
-│
-└─ NO  → Delete guard.ts (260 lines)
+**Impact on Surgical Plan:**
+Wiring `EventDeduplicationGuard` into this 796-line file is HIGH RISK:
+- Large file = hard to navigate
+- Many imports to track
+- Easy to create regressions
+- Difficult to test changes
 
-Which Archival Strategy?
-├─ KEEP SIMPLE → Delete ActionArchivalEngine, use existing engine.ts
-│
-├─ TIME-BASED  → Replace engine.ts with ActionArchivalEngine
-│                (7d hot, 30d cold model)
-│
-└─ HYBRID      → Merge both (keep both keepLastN + time-based)
+**Revised Precursor:** MUST split this file BEFORE wiring dedup guard!
+
+---
+
+## 🏥 REVISED SURGICAL INTEGRATION PLAN
+
+### PHASE 0: TYPE UNIFICATION (CRITICAL BLOCKER)
+
+**Problem:** Can't wire factories without resolving Character vs PlayerStatusDefinition
+
+**Decision Required:**
+```
+Option 1: Expand Character class to match PlayerStatusDefinition
+          ├─ Pros: Single unified type
+          └─ Cons: Character becomes larger class
+          
+Option 2: Make weather-engine accept both types (overload signature)
+          ├─ Pros: No changes to Character
+          └─ Cons: Multiple signatures to maintain
+          
+Option 3: Create safe adapter between types
+          ├─ Pros: Minimal invasive changes
+          └─ Cons: Extra layer of indirection
+          
+Option 4: DEFER factories + type unification to Phase 3
+          ├─ Proceed with Phases 2, 4, PRECURSOR first
+          ├─ Factories still created but remain unwired until type fixed
+          └─ Recommended: Focus on high-impact items first
+```
+
+### PRECURSOR: Split use-action-handlers.ts (URGENT)
+
+**Target:** Reduce 796 lines to <250 by extracting into focused files
+
+**Current Structure Analysis:**
+```
+use-action-handlers.ts (796 lines) imports:
+├─ combat logic (handleAttack, handleCombat)
+├─ crafting logic (handleCraft, handleFuse)  
+├─ harvest logic (handleHarvest, handleGather)
+├─ movement logic (handleMove)
+├─ skill logic (handleSkill)
+├─ interaction logic (handleInteract)
+└─ quest logic (handleQuestAction)
+```
+
+**Proposed Split:**
+```
+hooks/use-action-handlers/
+├─ index.ts                    (Aggregator, <100 lines)
+├─ use-combat-actions.ts       (<200 lines)
+├─ use-crafting-actions.ts     (<200 lines)
+├─ use-harvest-actions.ts      (<150 lines)
+├─ use-movement-actions.ts     (<150 lines)
+├─ use-skill-actions.ts        (<150 lines)
+├─ use-interaction-actions.ts  (<150 lines)
+└─ use-quest-actions.ts        (<100 lines)
+```
+
+**After split:** All <200 lines, safe for wiring dedup guard
+
+### PHASE 2: Consolidate Archival (Non-blocking)
+
+**Target:** Merge ActionArchivalEngine into ActionTrackerEngine
+
+**Steps:**
+1. Open `core/engines/action-tracker/engine.ts`
+2. Import logic from archival.ts
+3. Refactor `archiveOldActions()` to use time-based logic (7d hot, 30d cold)
+4. Update hook `use-action-tracker.ts` to call new implementation
+5. Delete `core/engines/action-tracker/archival.ts` (267 lines freed)
+6. Update EDGE_CASES.md to reference unified engine
+
+**Benefit:** Removes 267 lines dead code, consolidates archival strategy
+
+### PHASE 3: Activate Dedup (Post-split)
+
+**Target:** Inject EventDeduplicationGuard into high-risk events
+
+**Steps (AFTER precursor split):**
+1. Wire into `use-combat-actions.ts` (handleAttack, handleCreatureDefeated)
+2. Wire into `use-crafting-actions.ts` (handleCraft, handleFuse)
+3. Create dedup buffer in aggregator hook
+4. Pass buffer through action handlers
+5. Test: Combat kills don't double-count
+
+**Benefit:** Prevents race condition bugs, ~260 lines now integrated
+
+### PHASE 4: Cleanup (Quick win)
+
+**Steps:**
+1. Delete `src/lib/debug.ts` (deprecated wrapper)
+2. Decide: Complete or remove `generate-narrative-flow.ts` (8 TODOs)
+3. Update all imports if removing narrative-flow
+
+**Benefit:** ~50 lines cleanup, removes deprecated code
+
+### PHASE 1: Factories (DEFERRED - Type fix required first)
+
+**Blocked by:** Type unification decision (Phase 0)
+
+**Once type fixed:**
+1. Wire `ensurePlayerStats()` into use-game-state.ts
+2. Update type annotations in affected hooks
+3. Remove scattered null checks
+4. Test compilation
+
+---
+
+## 🎯 EXECUTION PRIORITY (Revised)
+
+```
+IMMEDIATE:
+  1. Phase 0: Decide type unification strategy
+  2. Precursor: Split use-action-handlers.ts (796 lines)
+  3. Phase 2: Consolidate Archival (merge ActionArchivalEngine)
+  4. Phase 4: Cleanup (delete debug.ts, handle narrative-flow)
+
+THEN:
+  5. Phase 0 Implementation: Resolve type mismatch
+  6. Phase 1: Wire factories (once type fixed)
+  7. Phase 3: Activate dedup (safe to wire after split)
+
+RATIONALE:
+- Phases 2 & 4 are non-blocking quick wins
+- Precursor split reduces risk for Phase 3
+- Phase 0/1 require architectural decision first
 ```
 
 ### SECONDARY (MEDIUM PRIORITY)

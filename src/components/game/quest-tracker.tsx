@@ -56,6 +56,7 @@ export function QuestTracker({
 }: QuestTrackerProps) {
     const { t } = useLanguage();
 
+
     // Get quest display objects with merged template + runtime data
     const { questsSortedByProgress, activeQuestCount } = useQuestState(
         activeQuests,
@@ -173,7 +174,6 @@ export function AchievementBadge({
     statistics?: any;
     className?: string;
 }) {
-    const { t } = useLanguage();
     const { getAchievementDisplay } = useQuestState(
         [],
         unlockedAchievements,
@@ -225,3 +225,7 @@ export function AchievementBadge({
         </div>
     );
 }
+
+
+
+

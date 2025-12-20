@@ -254,7 +254,7 @@ export class EventDeduplicationGuard {
      * @param buffer - Current buffer (unchanged)
      * @returns Fresh buffer
      */
-    static clearBuffer(buffer: DeduplicationBuffer): DeduplicationBuffer {
+    static clearBuffer(_buffer: DeduplicationBuffer): DeduplicationBuffer {
         return this.createDeduplicationBuffer();
     }
 }

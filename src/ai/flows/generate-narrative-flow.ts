@@ -21,9 +21,6 @@
 // import { getAi } from '@/ai/genkit';
 import { z } from 'zod';
 import { PlayerStatusSchema, ChunkSchema } from '@/ai/schemas';
-import { determineAnimationMetadata } from '@/ai/animation-metadata';
-
-import { Language } from '@/lib/core/i18n'; // Import Language enum
 
 // == STEP 1: DEFINE THE INPUT SCHEMA ==
 
@@ -144,7 +141,7 @@ export const GenerateNarrativeInputSchema = z.object({
  * @returns Promise resolving to generated narrative with animation metadata
  */
 // TODO: Remove when implementing narrative generation logic
-export async function generateNarrative(input: GenerateNarrativeInput): Promise<any> {
+export async function generateNarrative(_input: GenerateNarrativeInput): Promise<any> {
     return null;
 }
 

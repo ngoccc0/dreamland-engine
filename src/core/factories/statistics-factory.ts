@@ -36,7 +36,7 @@
  * - createEmptyStatistics() → Empty GameState statistics object
  */
 
-import type { PlayerStatusDefinition, GameState, EquipmentSlot, PlayerPersona, WorldProfile } from '@/core/types/game';
+import type { PlayerStatusDefinition, GameState, PlayerPersona } from '@/core/types/game';
 import type { CombatStats } from '@/core/entities/combat';
 
 /**

@@ -160,12 +160,12 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
   const { evaluateQuestsAndAchievements } = useQuestIntegration();
 
   // Hook for action tracking (Phase I-2)
-  const { 
-    recordCombatAction, 
-    recordHarvestingAction, 
+  const {
+    recordCombatAction,
+    recordHarvestingAction,
     recordCraftingAction,
-    getActionHistory 
-  } = useActionTracker(deps.actionHistory || { actions: [], lastActionId: '', totalActionCount: 0 }, deps.setActionHistory || (() => {}));
+    getActionHistory
+  } = useActionTracker(deps.actionHistory || { actions: [], lastActionId: '', totalActionCount: 0 }, deps.setActionHistory || (() => { }));
 
   // Helper to execute effects AND evaluate quests/achievements
   const executeEffectsWithQuests = useCallback((effects: any[]) => {

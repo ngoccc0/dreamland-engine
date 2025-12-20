@@ -1,8 +1,8 @@
 'use client';
 
 import { useCallback, useMemo } from 'react';
-import type { QuestTemplate, QuestRuntimeState } from '@/core/domain/quest';
-import type { AchievementTemplate, AchievementRuntimeState } from '@/core/domain/achievement';
+import type { QuestRuntimeState } from '@/core/domain/quest';
+import type { AchievementRuntimeState } from '@/core/domain/achievement';
 import { QUEST_TEMPLATES, getQuestTemplate } from '@/core/data/quests/quest-templates';
 import { ACHIEVEMENT_TEMPLATES, getAchievementTemplate } from '@/core/data/quests/achievement-templates';
 import { getCriteriaProgress } from '@/core/rules/criteria-rule';

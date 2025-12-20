@@ -135,7 +135,7 @@ export function createHandleCombatActions(deps: Partial<ActionHandlerDeps> & Rec
         if (outcome) {
             // Generate side effects from combat outcome
             const effects = generateCombatEffects(outcome);
-            
+
             // Race condition protection: Check if CREATURE_KILLED events are duplicates
             // before executing effects (prevents double-counting creature kills)
             if (dedupBuffer) {
@@ -147,7 +147,7 @@ export function createHandleCombatActions(deps: Partial<ActionHandlerDeps> & Rec
                             dedupBuffer,
                             DEFAULT_DEDUP_CONFIG
                         );
-                        
+
                         if (!isDuplicate) {
                             // Record the event for future dedup checks
                             dedupBuffer.recentKeys = EventDeduplicationGuard.recordEvent(
@@ -157,16 +157,16 @@ export function createHandleCombatActions(deps: Partial<ActionHandlerDeps> & Rec
                             ).recentKeys;
                             return true; // Allow effect to execute
                         }
-                        
+
                         // Duplicate detected - skip this effect
                         console.debug('[Combat] Duplicate CREATURE_KILLED event blocked by dedup guard');
                         return false;
                     }
-                    
+
                     // Non-combat effects always pass through
                     return true;
                 });
-                
+
                 executeEffectsWithQuests(filteredEffects);
             } else {
                 // Dedup buffer not available - execute all effects (legacy behavior)

@@ -221,7 +221,7 @@ export function calculateLevelFromXp(totalXp: number): number {
  * @example
  * calculateLevelUpBonus(5) // { skillPoints: 1, statPoints: 1, maxHealthBonus: 10 }
  */
-export function calculateLevelUpBonus(newLevel: number): {
+export function calculateLevelUpBonus(_newLevel: number): {
     skillPoints: number;
     statPoints: number;
     maxHealthBonus: number;

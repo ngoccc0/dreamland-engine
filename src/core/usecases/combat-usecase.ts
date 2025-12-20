@@ -6,10 +6,10 @@ import {
     calculateBaseDamage,
     isCritical,
     applyMultiplier,
-    calculateExperience as calculateExpFromRules,
     isDead,
     applyDamage,
 } from '@/core/rules/combat';
+import { calculateExperienceGain as calculateExpFromRules } from '@/core/rules/experience';
 
 /**
  * OVERVIEW: Combat system orchestrator
@@ -448,24 +448,29 @@ export class CombatUseCase implements ICombatUseCase {
          * Calculate XP gain using pure combat rules.
          *
          * @remarks
-         * Integrates Phase 3.A pure function:
-         * - calculateExperience(winnerLevel, loserLevel) from core/rules/combat
+         * Uses health difference as difficulty proxy:
+         * - calculateExperienceGain(playerMaxHealth, enemyMaxHealth) from core/rules/experience
          *
-         * Formula (from Glass Box TSDoc):
-         * - xp = max(10, floor(baseXp × (1 + healthDiff × multiplier)))
-         * - baseXp: combat stat base (typically 50)
-         * - healthDiff: loserMaxHealth - winnerMaxHealth
-         * - multiplier: adjustment factor (e.g., 0.01 per 10 HP difference)
+         * Formula (Glass Box TSDoc):
+         * - xp = max(10, floor(baseXp × (1 + healthDiff × 0.002)))
+         * - baseXp: combat base (typically 50, configurable)
+         * - healthDiff: enemyMaxHealth - playerMaxHealth
+         * - Stronger enemies (higher HP) grant more XP
+         * - Weaker enemies grant reduced XP but minimum 10
          *
          * Pure rule ensures:
-         * - Consistent XP across all usecases
-         * - No duplicate XP logic in different files
-         * - Easy balance tuning via rules file
+         * - Consistent XP calculation across all systems
+         * - No duplicate logic (single source in core/rules/experience.ts)
+         * - Easy balance tuning via combatConfig.baseXp
+         *
+         * Edge case handling:
+         * - Null health values: Default to 100 (handled in experience rule)
+         * - Negative XP: Clamped to minimum 10
          */
-        const winnerLevel = (winner as any).level ?? 1;
-        const loserLevel = (loser as any).level ?? 1;
+        const winnerMaxHealth = winner.stats.maxHealth ?? 100;
+        const loserMaxHealth = loser.stats.maxHealth ?? 100;
 
-        return calculateExpFromRules(winnerLevel, loserLevel);
+        return calculateExpFromRules(winnerMaxHealth, loserMaxHealth);
     }
 
     private async generateLoot(loser: Combatant): Promise<any[]> {

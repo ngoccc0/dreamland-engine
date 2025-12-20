@@ -603,6 +603,247 @@ const creatureName = translate(creature.name);  // Gets 'Wolf' or 'Sói'
 
 ---
 
+## Architecture Guards Pattern (Critical Rules)
+
+**Purpose**: Prevent state desynchronization, race conditions, and tight coupling.
+
+These are **NOT suggestions**—they are **guardrails** that all new hooks, components, and usecases must follow.
+
+---
+
+### GUARD 1: GameStateContext as Single Source of Truth (SSOT)
+
+**Problem**: Multiple hooks storing their own copy of state causes race conditions.
+
+```typescript
+// ❌ WRONG - Race condition
+Thread A (Explorer Hook)                  Thread B (Movement Hook)
+reads player.position (5, 5)              reads player.position (5, 5)
+sets discoveries                          calls movePlayer()
+writes state: position = (6, 5)           writes state: position (7, 5)
+                                          RACE CONDITION: Lost one move!
+```
+
+**Solution**: GameStateContext holds **the only copy** of game data.
+
+```typescript
+// ✅ CORRECT: Only selector + dispatch
+export function useExploration() {
+  const { gameState, setGameState } = useGameStateContext();
+  
+  const handleExplore = useCallback(async () => {
+    // 1. Read from SSOT
+    const currentPosition = gameState.playerPosition;
+    
+    // 2. Call usecase (pure function)
+    const [newState, effects] = explorationUsecase.exploreLocation(gameState, currentPosition);
+    
+    // 3. Write back to SSOT immediately
+    setGameState(newState);
+    
+    // 4. Execute effects
+    executeEffects(effects);
+  }, [gameState, setGameState]);
+  
+  return { handleExplore };
+}
+```
+
+**Forbidden Patterns**:
+```typescript
+// ❌ Local copy of state (STALE!)
+const [localDiscoveries, setLocalDiscoveries] = useState(gameState.discoveries);
+
+// ❌ Direct mutation (BREAKS REACTIVITY)
+gameState.playerPosition.x = 10;
+
+// ❌ Stale reference (IGNORED BY REACT)
+const position = gameState.playerPosition;  // OK to READ, but don't store
+```
+
+**Key Rules**:
+- ✅ GameStateContext is the ONLY source of player/game data
+- ✅ Read directly from context (no local useState copies)
+- ✅ Write via setGameState (not mutations)
+- ✅ All state changes atomic (never partial updates)
+- ✅ Effects execute AFTER state update (not before)
+
+---
+
+### GUARD 2: Hook Structure (React State Wiring)
+
+**Pattern**: Every hook follows this lifecycle.
+
+```typescript
+export function useMyHook() {
+  // 1. Get state from context (SSOT)
+  const { gameState, setGameState } = useGameStateContext();
+  
+  // 2. Define handlers with useCallback
+  const handleAction = useCallback((input: Input) => {
+    // 2a. Call pure usecase
+    const [newState, effects] = myUsecase(gameState, input);
+    
+    // 2b. Update SSOT
+    setGameState(newState);
+    
+    // 2c. Process effects (audio, particles, etc)
+    effects.forEach(effect => processEffect(effect));
+  }, [gameState, setGameState]);
+  
+  // 3. Return state and handlers
+  return { state: gameState, handleAction };
+}
+```
+
+**Forbidden Patterns**:
+```typescript
+// ❌ Local useState competing with context
+const [localState, setLocalState] = useState();  // Don't mix!
+
+// ❌ Direct state mutation in handler
+gameState.player.hp = 0;  // Wrong! Use setGameState
+
+// ❌ Effect processing BEFORE state update
+executeEffects(effects);  // Wrong! Do this AFTER setGameState
+setState(newState);       // Too late
+```
+
+**Key Rules**:
+- ✅ Use context for SSOT, not useState
+- ✅ useCallback with [gameState, setGameState] dependencies
+- ✅ Effects always execute after state update
+- ✅ Return clean object: { state, handlers }
+
+---
+
+### GUARD 3: Pure Usecase Pattern (Immutability)
+
+**Pattern**: Usecases are pure functions returning [newState, effects[]]
+
+```typescript
+export function performAttack(
+  state: GameState,
+  input: AttackInput
+): [GameState, GameEffect[]] {
+  // Pure: NO side effects, NO mutations
+  
+  const newState = {
+    ...state,
+    player: {
+      ...state.player,
+      stamina: Math.max(0, state.player.stamina - 5)
+    },
+    enemyHealth: Math.max(0, state.enemyHealth - calculateDamage(...))
+  };
+  
+  const effects: GameEffect[] = [
+    { type: 'audio', data: { sound: 'attack.mp3' } },
+    { type: 'particle', data: { position: state.enemyPos } }
+  ];
+  
+  return [newState, effects];
+}
+```
+
+**Forbidden Patterns**:
+```typescript
+// ❌ Mutating input state
+state.player.hp -= 10;  // Wrong!
+
+// ❌ Executing effects inside usecase
+audioManager.play('attack.mp3');  // Wrong! Return effects instead
+
+// ❌ Async operations in usecase
+await delay(100);  // Wrong! Usecases must be synchronous
+```
+
+**Key Rules**:
+- ✅ Input state is NEVER mutated
+- ✅ Always use spread operator for updates
+- ✅ Return effects list, don't execute them
+- ✅ Pure synchronous functions only
+- ✅ No side effects (no API calls, no audio, no DOM access)
+
+---
+
+### GUARD 4: Component Structure (UI Only)
+
+**Pattern**: Components display state and call hooks, nothing else.
+
+```typescript
+interface MyComponentProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function MyComponent({ isOpen, onClose }: MyComponentProps) {
+  // 1. Get state and handlers from hook
+  const { state, handleAction } = useMyHook();
+  
+  // 2. Display state
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <div>{state.value}</div>
+      <button onClick={() => handleAction()}>Action</button>
+    </Dialog>
+  );
+}
+```
+
+**Forbidden Patterns**:
+```typescript
+// ❌ Business logic in component
+const damage = player.attack - enemy.defense;  // Wrong! Use usecase
+
+// ❌ Direct context access
+const { gameState } = useGameStateContext();  // Wrong! Use hook instead
+gameState.player.hp = 0;  // Wrong! Never mutate
+
+// ❌ useState for game state
+const [hp, setHp] = useState(0);  // Wrong! Use context via hook
+```
+
+**Key Rules**:
+- ✅ Display-only or call hooks
+- ✅ NO business logic
+- ✅ NO direct context access (use hooks instead)
+- ✅ Props are simple (primitives + callbacks)
+- ✅ One responsibility = one component
+
+---
+
+## Summary: Architecture Layers
+
+```
+┌─────────────────────────────────────────────┐
+│      React Components (UI Only)             │
+│  Display state + call hooks                 │
+└────────────────┬────────────────────────────┘
+                 │ calls hook
+┌────────────────▼────────────────────────────┐
+│    React Hooks (State Orchestration)        │
+│  Read from context, call usecases           │
+│  Process effects, write to context          │
+└────────────────┬────────────────────────────┘
+                 │ calls usecase
+┌────────────────▼────────────────────────────┐
+│  Core Usecases (Pure Logic Orchestration)   │
+│  Call rules, return [newState, effects[]]   │
+└────────────────┬────────────────────────────┘
+                 │ calls rules
+┌────────────────▼────────────────────────────┐
+│     Core Rules (Pure Game Math)             │
+│  NO mutations, NO side effects              │
+│  Math only: (inputs) -> output              │
+└────────────────┬────────────────────────────┘
+                 │ uses
+┌────────────────▼────────────────────────────┐
+│   Static Game Data (Never Changes)          │
+│  creatures, items, locations, etc           │
+└─────────────────────────────────────────────┘
+```
+
 ## TSDoc Standards (GLASS BOX PATTERN)
 
 **Purpose**: Make code self-documenting and IDE-friendly
@@ -672,201 +913,3 @@ export function calculateDamage(attack: number, defense: number): number {
   return Math.max(1, attack - defense);
 }
 ```
-
----
-
-## Architecture Guards (Critical Patterns)
-
-**Purpose**: Non-negotiable architectural patterns to prevent bugs, performance issues, tight coupling, and memory leaks.
-
-### GUARD 1: Single Source of Truth (SSOT)
-
-**Problem**: If multiple hooks store copies of the same state, race conditions happen.
-
-**Rule**:
-- GameStateContext holds the only copy of playerPosition, inventory, etc.
-- All hooks read from context (via selectors)
-- All hooks write via setGameState()
-- No local useState copies of core game data
-
-**Correct Pattern**:
-```typescript
-export function useExploration() {
-  const { gameState, setGameState } = useGameStateContext();
-  
-  const handleExplore = useCallback(() => {
-    const currentPosition = gameState.playerPosition;
-    const [newState, effects] = explorationUsecase.exploreLocation(gameState, currentPosition);
-    
-    setGameState(newState);  // Single update point
-    executeEffects(effects);
-  }, [gameState, setGameState]);
-  
-  return { handlers: { handleExplore } };
-}
-```
-
-**Anti-Pattern (FORBIDDEN)**:
-```typescript
-// ❌ WRONG: Local copy becomes stale
-const [localDiscoveries, setLocalDiscoveries] = useState(gameState.discoveries);
-
-// ❌ WRONG: Direct mutation
-gameState.playerPosition.x = 10;
-```
-
-### GUARD 2: Dependency Injection via GameEngineProvider
-
-**Problem**: Hardcoded usecases are tightly coupled and hard to test.
-
-**Rule**:
-- All usecases instantiated in GameEngineProvider (single instance)
-- Hooks request usecases via useGameEngine()
-- No `new ClassName()` in hooks
-
-**Correct Pattern**:
-```typescript
-export function useExploration() {
-  const { explorationUsecase } = useGameEngine();
-  
-  const handleExplore = useCallback(() => {
-    const result = explorationUsecase.exploreLocation(position);
-    // ...
-  }, [explorationUsecase]);
-  
-  return { handlers: { handleExplore } };
-}
-```
-
-### GUARD 3: Selective Subscription (No Re-render Storm)
-
-**Problem**: Rendering entire gameState on every tick causes 60 re-renders/sec even when irrelevant state changes.
-
-**Rule**:
-- Create selector hooks returning only needed state slices
-- Use useMemo with minimal dependencies
-- Wrap components with React.memo
-- All handlers use useCallback
-
-**Correct Pattern**:
-```typescript
-export function useExplorationState() {
-  const { gameState } = useGameStateContext();
-  
-  return useMemo(() => ({
-    discoveries: gameState.discoveries,
-    lastDiscoveryTime: gameState.lastDiscoveryTime,
-    // NOTE: playerPosition, stamina excluded from deps
-  }), [gameState.discoveries, gameState.lastDiscoveryTime]);
-}
-
-const ExplorationPanelContent = React.memo(({ discoveries }) => (
-  <div>{discoveries.map(d => <DiscoveryCard key={d.id} {...d} />)}</div>
-));
-
-export function ExplorationPanel() {
-  const { discoveries } = useExplorationState();
-  return <ExplorationPanelContent discoveries={discoveries} />;
-}
-```
-
-### GUARD 4: Viewport Culling (O(1) Rendering)
-
-**Problem**: Rendering 1000 chunks via `.map()` every frame is O(N) and causes FPS drop.
-
-**Rule**:
-- Store chunks in Map<CoordinateKey, Chunk> for O(1) lookup
-- Compute visible range in useMemo
-- Only render chunks within viewport
-
-**Correct Pattern**:
-```typescript
-export function WorldMap() {
-  const { gameState } = useGameStateContext();
-  const VIEWPORT_RADIUS = 5;
-  
-  const visibleChunks = useMemo(() => {
-    const chunks = [];
-    const { x, y } = gameState.playerPosition;
-    
-    for (let cx = x - VIEWPORT_RADIUS; cx <= x + VIEWPORT_RADIUS; cx++) {
-      for (let cy = y - VIEWPORT_RADIUS; cy <= y + VIEWPORT_RADIUS; cy++) {
-        const chunk = gameState.chunks.get(`${cx},${cy}`); // O(1)
-        if (chunk) chunks.push(chunk);
-      }
-    }
-    return chunks;
-  }, [gameState.chunks, gameState.playerPosition]);
-  
-  return (
-    <div>
-      {visibleChunks.map(chunk => (
-        <ChunkTile key={`${chunk.x},${chunk.y}`} chunk={chunk} />
-      ))}
-    </div>
-  );
-}
-```
-
-### GUARD 5: Animation Strategy (Framer Motion vs Tailwind)
-
-**Rule**:
-- Framer Motion: Complex, physics-based, state-dependent animations (game components only)
-- Tailwind: Simple hover/focus transitions (UI primitives only)
-- Animation duration: 300-800ms
-
-**Correct Pattern**:
-```typescript
-// ✅ Framer Motion in game components
-export function ExplorationResult() {
-  return (
-    <motion.div
-      initial={{ scale: 0.5, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 0.4 }}
-    >
-      Found Item!
-    </motion.div>
-  );
-}
-
-// ✅ Tailwind in UI primitives
-export function Button({ isActive }) {
-  return (
-    <button className={`transition-colors ${isActive ? 'bg-green-500' : 'bg-gray-500'}`}>
-      Click Me
-    </button>
-  );
-}
-```
-
-### GUARD 6: Save/Load Consistency
-
-**Rule**:
-- All state changes persisted to gameState
-- Auto-save hook handles localStorage serialization
-- Test: Perform action → reload → progress persists
-
-**Correct Pattern**:
-```typescript
-// State changes automatically saved
-dispatch({
-  type: 'DISCOVER_LOCATION',
-  payload: { location: 'Forest Glade', timestamp: Date.now() },
-});
-
-// On reload, discovered locations restored from saved state
-```
-
-### Enforcement Checklist
-
-**Before merging new hooks/components, verify**:
-- [ ] No local state copies of game data (SSOT)
-- [ ] Usecases obtained via useGameEngine() (DI)
-- [ ] State slices extracted with useMemo (Selectors)
-- [ ] Components use React.memo, handlers use useCallback (Memoization)
-- [ ] Large lists use viewport culling (Performance)
-- [ ] Framer Motion in game/, Tailwind in ui/ (Animations)
-- [ ] All state changes persisted to gameState (Save/Load)
-- [ ] Full TypeScript coverage, no implicit any
-- [ ] All exports documented with @remarks

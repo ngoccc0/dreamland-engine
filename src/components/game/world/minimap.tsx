@@ -8,11 +8,11 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { PlayerIcon, NpcIcon, Home, MapPin } from "./icons";
+import { PlayerIcon, NpcIcon, Home, MapPin } from "../panels/icons";
 import { useLanguage } from "@/context/language-context";
 import { useSettings } from "@/context/settings-context";
 import React, { useEffect, useCallback, memo } from "react";
-import PlayerOverlay from './player-overlay';
+import PlayerOverlay from '../overlays/player-overlay';
 import type { Chunk, Terrain, BiomeDefinition } from "@/lib/game/types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { logger } from "@/lib/logger";

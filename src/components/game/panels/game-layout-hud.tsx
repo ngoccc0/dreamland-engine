@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useRef, useCallback, useState } from "react";
-import { MinimapMemoized as Minimap } from "@/components/game/minimap";
-import { VisualEffectsLayer } from "@/components/game/visual-effects-layer";
-import HudIconHealth from "@/components/game/hud-icon-health";
-import HudIconStamina from "@/components/game/hud-icon-stamina";
-import HudIconMana from "@/components/game/hud-icon-mana";
-import HudIconHunger from "@/components/game/hud-icon-hunger";
-import HudIconTemperature, { getWeatherEmoji } from "@/components/game/hud-icon-temperature";
-import { GameClockWidget } from "@/components/game/game-clock-widget";
+import { MinimapMemoized as Minimap } from "../world/minimap";
+import { VisualEffectsLayer } from "../overlays/visual-effects-layer";
+import HudIconHealth from "../hud/hud-icon-health";
+import HudIconStamina from "../hud/hud-icon-stamina";
+import HudIconMana from "../hud/hud-icon-mana";
+import HudIconHunger from "../hud/hud-icon-hunger";
+import HudIconTemperature, { getWeatherEmoji } from "../hud/hud-icon-temperature";
+import { GameClockWidget } from "../hud/game-clock-widget";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";

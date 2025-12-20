@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { GameNarrativePanel } from "@/components/game/game-narrative-panel";
+import { GameNarrativePanel } from "./game-narrative-panel";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/language-context";
 import type { GameLayoutNarrativeProps } from "./game-layout.types";

@@ -15,7 +15,7 @@ import { getTranslatedText } from "@/lib/utils";
 import { IconRenderer } from "@/components/ui/icon-renderer";
 import ProgressBar from "@/components/ui/ProgressBar";
 import { MapCellDetails } from "./minimap-details";
-import { NpcIcon, PlayerIcon } from "./icons";
+import { NpcIcon, PlayerIcon } from "../panels/icons";
 import { biomeColors } from "./minimap-types";
 
 interface MinimapCellProps {

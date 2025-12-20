@@ -28,7 +28,7 @@ import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { motion } from 'framer-motion';
 import type { FlyingItemEvent } from '@/hooks/use-flying-items';
-import { renderItemEmoji } from '@/components/game/icons';
+import { renderItemEmoji } from '../panels/icons';
 
 export interface FlyingItemsPortalProps {
     /**

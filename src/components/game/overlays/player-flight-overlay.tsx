@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { PlayerIcon } from './icons';
+import { PlayerIcon } from '../panels/icons';
 import { logger } from '@/lib/logger';
 import type { Chunk, BiomeDefinition } from '@/lib/game/types';
 

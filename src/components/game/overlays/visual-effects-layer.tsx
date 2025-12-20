@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import { WeatherParticles } from './weather-particles';
+import { WeatherParticles } from '../world/weather-particles';
 import { StatusEffectOverlay } from './status-effect-overlay';
-import { DamagePopup, type DamagePopupHandle } from './damage-popup';
+import { DamagePopup, type DamagePopupHandle } from '../panels/damage-popup';
 
 interface StatusEffect {
     type: 'POISON' | 'FROZEN' | 'BURNING' | 'STUNNED';

@@ -42,7 +42,7 @@ import { CookingStationPanel, type CookingMethod } from './cooking-station-panel
 import { CookingMethodTabs } from './cooking-method-tabs';
 import { CookingFrameContent } from './cooking-frame-content';
 import { CookingTemperatureSlider } from './cooking-temperature-slider';
-import { FlyingItemsPortal } from './flying-items-portal';
+import { FlyingItemsPortal } from '../overlays/flying-items-portal';
 import { ScreenReaderAnnouncer } from '@/components/ui/sr-announcer';
 import { useFlyingItems } from '@/hooks/use-flying-items';
 import { useOptimisticCooking } from '@/hooks/use-optimistic-cooking';

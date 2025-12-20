@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { StatusPopup } from "@/components/game/status-popup";
+import { StatusPopup } from "./status-popup";
 import { IconRenderer } from "@/components/ui/icon-renderer";
 import {
     Backpack,
@@ -27,7 +27,7 @@ import {
     Settings,
     LifeBuoy,
     MapPin,
-} from "@/components/game/icons";
+} from "./icons";
 import { getTranslatedText } from "@/lib/utils";
 import { resolveItemDef } from "@/lib/utils/item-utils";
 import type { Action } from "@/lib/game/types";
@@ -35,33 +35,33 @@ import type { GameLayoutDialogsProps } from "./game-layout.types";
 
 // Lazy load heavy popup components
 const InventoryPopup = lazy(() =>
-    import("@/components/game/inventory-popup").then((m) => ({
+    import("./inventory-popup").then((m) => ({
         default: m.InventoryPopup,
     }))
 );
 const FullMapPopup = lazy(() =>
-    import("@/components/game/full-map-popup").then((m) => ({ default: m.FullMapPopup }))
+    import("./full-map-popup").then((m) => ({ default: m.FullMapPopup }))
 );
 const CraftingPopup = lazy(() =>
-    import("@/components/game/crafting-popup").then((m) => ({ default: m.CraftingPopup }))
+    import("./crafting-popup").then((m) => ({ default: m.CraftingPopup }))
 );
 const BuildingPopup = lazy(() =>
-    import("@/components/game/building-popup").then((m) => ({ default: m.BuildingPopup }))
+    import("./building-popup").then((m) => ({ default: m.BuildingPopup }))
 );
 const TutorialPopup = lazy(() =>
-    import("@/components/game/tutorial-popup").then((m) => ({ default: m.TutorialPopup }))
+    import("./tutorial-popup").then((m) => ({ default: m.TutorialPopup }))
 );
 const FusionPopup = lazy(() =>
-    import("@/components/game/fusion-popup").then((m) => ({ default: m.FusionPopup }))
+    import("./fusion-popup").then((m) => ({ default: m.FusionPopup }))
 );
 const PwaInstallPopup = lazy(() =>
-    import("@/components/game/pwa-install-popup").then((m) => ({ default: m.PwaInstallPopup }))
+    import("./pwa-install-popup").then((m) => ({ default: m.PwaInstallPopup }))
 );
 const SettingsPopup = lazy(() =>
-    import("@/components/game/settings-popup").then((m) => ({ default: m.SettingsPopup }))
+    import("./settings-popup").then((m) => ({ default: m.SettingsPopup }))
 );
 const CookingWithInventoryManager = lazy(() =>
-    import("@/components/game/cooking-with-inventory-manager").then((m) => ({ default: m.CookingWithInventoryManager }))
+    import("./cooking-with-inventory-manager").then((m) => ({ default: m.CookingWithInventoryManager }))
 );
 
 /**

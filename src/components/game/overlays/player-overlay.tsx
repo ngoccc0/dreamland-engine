@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { cn } from "@/lib/utils";
-import { PlayerIcon } from "./icons";
+import { PlayerIcon } from "../panels/icons";
 
 export type OverlayData = {
     left: string;

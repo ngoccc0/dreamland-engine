@@ -10,8 +10,8 @@ import { useLanguage } from "@/context/language-context";
 import type { World, Terrain } from "@/lib/game/types";
 import { PlayerIcon, EnemyIcon, NpcIcon, ItemIcon, renderItemEmoji } from "./icons";
 import { getTranslatedText } from "@/lib/utils";
-import { MapCellDetails } from './minimap-details';
-import { Button } from '../ui/button';
+import { MapCellDetails } from "../world/minimap-details";
+import { Button } from "@/components/ui/button";
 import { Minus, Plus } from 'lucide-react';
 
 

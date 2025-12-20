@@ -20,7 +20,7 @@ import { skillDefinitions } from "@/core/data/skills";
 import type { TranslationKey } from "@/lib/i18n";
 import { cn, getTranslatedText } from "@/lib/utils";
 import { Heart, Loader2, Book, Star, Sparkles, SwordIcon } from "./icons";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { IconRenderer } from "@/components/ui/icon-renderer";
 import { resolveItemDef } from '@/lib/utils/item-utils';
 

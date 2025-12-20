@@ -7,11 +7,11 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { Home, MapPin, Backpack } from "../game/icons";
+import { Home, MapPin, Backpack } from "../panels/icons";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/context/language-context";
 import type { Chunk } from "@/lib/game/types";
-import { SwordIcon } from "./icons";
+import { SwordIcon } from "../panels/icons";
 import { getTranslatedText } from "@/lib/utils";
 import { resolveItemDef } from "@/lib/utils/item-utils";
 import { IconRenderer } from "@/components/ui/icon-renderer";

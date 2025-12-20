@@ -17,12 +17,12 @@
 import React, { useMemo } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import HudIconHealth from "@/components/game/hud-icon-health";
-import HudIconMana from "@/components/game/hud-icon-mana";
-import HudIconStamina from "@/components/game/hud-icon-stamina";
-import HudIconHunger from "@/components/game/hud-icon-hunger";
-import HudIconTemperature, { getWeatherEmoji } from "@/components/game/hud-icon-temperature";
-import GameClockWidget from "@/components/game/game-clock-widget";
+import HudIconHealth from "./hud-icon-health";
+import HudIconMana from "./hud-icon-mana";
+import HudIconStamina from "./hud-icon-stamina";
+import HudIconHunger from "./hud-icon-hunger";
+import HudIconTemperature, { getWeatherEmoji } from "./hud-icon-temperature";
+import GameClockWidget from "./game-clock-widget";
 import { cn } from "@/lib/utils";
 import { getTranslatedText } from "@/lib/utils";
 import type { PlayerStatusDefinition } from "@/lib/game/types";

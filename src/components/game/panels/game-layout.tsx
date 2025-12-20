@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { Loader2 } from "@/components/game/icons";
+import { Loader2 } from "./icons";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
 import { useSettings } from "@/context/settings-context";

@@ -20,7 +20,7 @@ import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Slider } from '@/components/ui/slider';
-import { renderItemEmoji } from '@/components/game/icons';
+import { renderItemEmoji } from './icons';
 import type { GameState } from '@/core/domain/gamestate';
 import type { ItemDefinition } from '@/core/types/definitions/item';
 import { cn } from '@/lib/utils';

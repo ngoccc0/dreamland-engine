@@ -3,9 +3,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import GameLayout from '@/components/game/game-layout';
-import { WorldSetup } from '@/components/game/world-setup';
-import { SettingsPopup } from '@/components/game/settings-popup';
+import GameLayout from '@/components/game/panels/game-layout';
+import { WorldSetup } from '@/components/game/world/world-setup';
+import { SettingsPopup } from '@/components/game/panels/settings-popup';
 import type { GameState, ItemDefinition } from '@/core/types/game';
 import type { GenerateWorldSetupOutput } from "@/ai/flows/generate-world-setup";
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Loader2, Settings, Download, Trash2, Play, PlusCircle, Star, User, Backpack, Swords } from 'lucide-react';
 import type { Language } from '@/lib/i18n';
-import { LanguageSelector } from '@/components/game/language-selector';
+import { LanguageSelector } from '@/components/game/panels/language-selector';
 import { cn, getTranslatedText } from "@/lib/utils";
 import { logger } from '@/lib/logger';
 import { useToast } from "@/hooks/use-toast";

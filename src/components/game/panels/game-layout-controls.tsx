@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import { Joystick } from "@/components/game/joystick";
-import BottomActionBar from "@/components/game/bottom-action-bar";
+import { Joystick } from "./joystick";
+import BottomActionBar from "./bottom-action-bar";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { WandSparkles, Menu } from "@/components/game/icons";
+import { WandSparkles, Menu } from "./icons";
 import { getTranslatedText } from "@/lib/utils";
 import type { GameLayoutControlsProps } from "./game-layout.types";
 

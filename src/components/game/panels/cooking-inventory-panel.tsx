@@ -18,7 +18,7 @@
 
 import React, { useMemo, useCallback } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { renderItemEmoji } from '@/components/game/icons';
+import { renderItemEmoji } from './icons';
 import type { Item } from '@/core/domain/item';
 import type { ItemDefinition } from '@/core/types/definitions/item';
 import { cn } from '@/lib/utils';

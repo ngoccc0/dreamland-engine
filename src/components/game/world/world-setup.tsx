@@ -10,8 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useButtonAudio } from '@/hooks/useButtonAudio';
 import { useAudio } from '@/lib/audio/useAudio';
 import { AudioActionType } from '@/core/data/audio-events';
-import { Skeleton } from "../ui/skeleton";
-import { Separator } from "../ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/context/language-context";
 
 // suggestKeywords is a Genkit flow; call the server API instead to keep Genkit server-side
@@ -25,10 +25,10 @@ async function suggestKeywordsClient(payload: { userInput: string; language: str
 import type { Skill, PlayerItem, GeneratedItem, Terrain, WorldConcept, ItemDefinition } from "@/lib/game/types";
 import { premadeWorlds } from "@/lib/game/data/premade-worlds";
 import type { TranslationKey } from "@/lib/i18n";
-import { SettingsPopup } from "./settings-popup";
-import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
-import { Sparkles, ArrowRight, BrainCircuit, Loader2, Settings, ArrowLeft, ChevronLeft, ChevronRight, BookOpen, Map, WandSparkles, BaggageClaim, ListTodo } from "./icons";
-import { ScrollArea } from "../ui/scroll-area";
+import { SettingsPopup } from "../panels/settings-popup";
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { Sparkles, ArrowRight, BrainCircuit, Loader2, Settings, ArrowLeft, ChevronLeft, ChevronRight, BookOpen, Map, WandSparkles, BaggageClaim, ListTodo } from "../panels/icons";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn, getTranslatedText, convertItemArrayToRecord } from "@/lib/utils";
 import type { GenerateWorldSetupOutput } from "@/ai/flows/generate-world-setup";
 import { resolveItemDef } from '@/lib/utils/item-utils';

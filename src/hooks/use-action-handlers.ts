@@ -3,27 +3,30 @@
 // so ESLint can report missing/unnecessary deps per-hook. We'll fix each hook's deps in small commits.
 
 import { useCallback, useEffect, useRef } from 'react';
-import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
 import { useSettings } from '@/context/settings-context';
-import { useEffectExecutor } from '@/hooks/use-effect-executor';
-import { useQuestIntegration } from '@/hooks/use-quest-integration';
-import { useActionTracker } from '@/hooks/use-action-tracker';
-
-import { createHandleOnlineNarrative } from '@/hooks/use-action-handlers.online';
-import { createHandleOfflineAttack } from '@/hooks/use-action-handlers.offlineAttack';
-import { createHandleOfflineItemUse } from '@/hooks/use-action-handlers.itemUse';
-import { createHandleOfflineSkillUse } from '@/hooks/use-action-handlers.offlineSkillUse';
-import { createHandleOfflineAction } from '@/hooks/use-action-handlers.offlineAction';
-import { createHandleMove } from '@/hooks/move-orchestrator';
-import { createActionHelpers } from '@/hooks/action-helpers';
-import { createHandleFuseItems } from '@/hooks/use-action-handlers.fuseItems';
-import { createHandleHarvest } from '@/hooks/use-action-handlers.harvest';
-import { createHandleCombatActions } from '@/hooks/use-combat-actions';
-import {
-  validateRecipe,
-} from '@/core/rules/crafting';
+import { validateRecipe } from '@/core/rules/crafting';
 import { EventDeduplicationGuard, DEFAULT_DEDUP_CONFIG, type DeduplicationBuffer } from '@/core/engines/event-deduplication/guard';
+
+// UI & Context Hooks
+import { useToast } from '@/hooks/ui';
+
+// Core Engine Hooks
+import { useEffectExecutor, useQuestIntegration, useActionTracker } from '@/hooks/engine';
+
+// Action Handlers
+import {
+  createHandleOnlineNarrative,
+  createHandleOfflineAttack,
+  createHandleOfflineItemUse,
+  createHandleOfflineSkillUse,
+  createHandleOfflineAction,
+  createHandleMove,
+  createActionHelpers,
+  createHandleFuseItems,
+  createHandleHarvest,
+  createHandleCombatActions,
+} from '@/hooks/actions';
 
 // NOTE: Genkit flows are server-only. Call them via server API routes to
 // avoid bundling server-only packages into the client bundle.

@@ -269,31 +269,59 @@ export class ActionTrackerEngine {
     }
 
     /**
-     * Archive old actions (for save file optimization)
+     * Archive old actions (time-based archival)
      *
      * @param history - Action history
-     * @param keepLastN - Number of recent actions to keep
+     * @param currentGameTime - Current game tick (for time comparison)
+     * @param hotThresholdTicks - Age threshold in ticks to keep in memory
      * @returns Trimmed history with only recent actions
      *
      * @remarks
-     * Call periodically to prevent unbounded growth
-     * Archived actions can be written to separate storage
+     * **Consolidated from ActionArchivalEngine (Phase 2 merge):**
+     * 
+     * Time-based archival replaces simple "keep last N" approach:
+     * - Removes actions older than hotThresholdTicks (default: 7 days)
+     * - Preserves totalActionCount (analytics never deleted)
+     * - Safe for regular cleanup during save
+     * - Prevents unbounded memory growth (~720 MB over 1000 hours)
+     *
+     * **Usage:**
+     * ```typescript
+     * // Archive on save (every 24 game hours recommended)
+     * history = ActionTrackerEngine.archiveOldActions(
+     *   history,
+     *   gameState.gameTime,
+     *   6048000  // 7 days
+     * );
+     * ```
      */
     static archiveOldActions(
         history: ActionHistory,
-        keepLastN: number
+        currentGameTime: number,
+        hotThresholdTicks: number = 6048000 // 7 days default
     ): ActionHistory {
-        if (history.actions.length <= keepLastN) return history;
+        const cutoffTime = currentGameTime - hotThresholdTicks;
 
-        const keptActions = history.actions.slice(
-            history.actions.length - keepLastN
+        // Filter: keep only actions newer than cutoff
+        const recentActions = history.actions.filter(
+            (action) => action.timestamp >= cutoffTime
         );
 
+        // If all actions were removed, return empty history
+        if (recentActions.length === 0) {
+            return {
+                actions: [],
+                lastActionId: history.lastActionId,
+                totalActionCount: history.totalActionCount,
+                // Note: totalActionCount kept unchanged to preserve analytics
+                // (player still earned those actions even if history is cleared)
+            };
+        }
+
         return {
-            ...history,
-            actions: keptActions,
-            totalActionCount: history.totalActionCount, // Keep original count
-            lastActionId: history.lastActionId,
+            actions: recentActions,
+            lastActionId: history.lastActionId, // Preserve last action ID even if archival
+            totalActionCount: history.totalActionCount, // Preserve total count
         };
     }
 

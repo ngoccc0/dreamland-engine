@@ -284,7 +284,6 @@ export function GameLayoutHud({
                             <TooltipTrigger asChild>
                                 <div>
                                     <HudIconMana
-                                        percent={Math.max(0, Math.min(1, manaPct))}
                                         size={isDesktop ? 40 : 48}
                                     />
                                 </div>
@@ -307,7 +306,6 @@ export function GameLayoutHud({
                             <TooltipTrigger asChild>
                                 <div>
                                     <HudIconStamina
-                                        percent={Math.max(0, Math.min(1, stamPct))}
                                         size={isDesktop ? 40 : 48}
                                     />
                                 </div>

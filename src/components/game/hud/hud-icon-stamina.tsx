@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import AreaFill from '@/components/ui/area-fill';
 import { cn } from '@/lib/utils';
+import { usePlayerStore } from '@/store';
 
 interface HudIconStaminaProps {
-  percent: number; // 0..1
   size?: number;
   className?: string;
 }
@@ -27,7 +27,9 @@ function mixHex(a: string, b: string, t: number) {
   return rgbToHex(Math.round(A[0] + (B[0] - A[0]) * t), Math.round(A[1] + (B[1] - A[1]) * t), Math.round(A[2] + (B[2] - A[2]) * t));
 }
 
-export function HudIconStamina({ percent, size = 48, className }: HudIconStaminaProps) {
+export function HudIconStamina({ size = 48, className }: HudIconStaminaProps) {
+  const { player } = usePlayerStore();
+  const percent = useMemo(() => Math.min(1, Math.max(0, (player?.stamina ?? 0) / 100)), [player?.stamina]);
   const id = useRef(`bolt-${Math.random().toString(36).slice(2, 9)}`).current;
   const gradId = `dynGradBolt-${id}`;
   const outlineGradId = `metalOutlineGradBolt-${id}`;

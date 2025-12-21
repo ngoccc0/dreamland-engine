@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import AreaFill from '@/components/ui/area-fill';
 import { cn } from '@/lib/utils';
+import { usePlayerStore } from '@/store';
 
 interface HudIconManaProps {
-  percent: number; // 0..1
   size?: number;
   className?: string;
 }
@@ -25,7 +25,9 @@ function mixHex(a: string, b: string, t: number) {
   return rgbToHex(Math.round(A[0] + (B[0] - A[0]) * t), Math.round(A[1] + (B[1] - A[1]) * t), Math.round(A[2] + (B[2] - A[2]) * t));
 }
 
-export function HudIconMana({ percent, size = 48, className }: HudIconManaProps) {
+export function HudIconMana({ size = 48, className }: HudIconManaProps) {
+  const { player } = usePlayerStore();
+  const percent = useMemo(() => Math.min(1, Math.max(0, (player?.mana ?? 0) / 50)), [player?.mana]);
   const id = useRef(`mana-${Math.random().toString(36).slice(2, 9)}`).current;
   const gradId = `dynGradMana-${id}`;
   const outlineGradId = `metalOutlineGradMana-${id}`;

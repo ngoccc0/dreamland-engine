@@ -160,7 +160,7 @@ export function GameHudPanel({
                             </p>
                         </TooltipContent>
                     </Tooltip>
-                    <HudIconMana percent={manaPct} size={48} />
+                    <HudIconMana size={48} />
                 </div>
 
                 {/* Stamina */}
@@ -182,7 +182,7 @@ export function GameHudPanel({
                             </p>
                         </TooltipContent>
                     </Tooltip>
-                    <HudIconStamina percent={stamPct} size={48} />
+                    <HudIconStamina size={48} />
                 </div>
 
                 {/* Hunger */}

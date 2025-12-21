@@ -23,9 +23,9 @@ import { ActionResult } from './actions/result-types';
  * Movement input validation result
  */
 interface MovementValidation {
-  valid: boolean;
-  reason?: string;
-  normalizedDirection: { x: number; y: number };
+    valid: boolean;
+    reason?: string;
+    normalizedDirection: { x: number; y: number };
 }
 
 /**
@@ -42,28 +42,28 @@ interface MovementValidation {
  * validateDirection({ x: 0, y: 0 }) → { valid: false, reason: 'Zero direction' }
  */
 function validateDirection(direction: {
-  x: number;
-  y: number;
+    x: number;
+    y: number;
 }): MovementValidation {
-  const { x, y } = direction;
+    const { x, y } = direction;
 
-  // Check for zero direction
-  if (x === 0 && y === 0) {
+    // Check for zero direction
+    if (x === 0 && y === 0) {
+        return {
+            valid: false,
+            reason: 'Zero direction provided',
+            normalizedDirection: { x: 0, y: 0 },
+        };
+    }
+
+    // Normalize to unit vector (-1, 0, 1)
+    const normalizedX = x !== 0 ? Math.sign(x) : 0;
+    const normalizedY = y !== 0 ? Math.sign(y) : 0;
+
     return {
-      valid: false,
-      reason: 'Zero direction provided',
-      normalizedDirection: { x: 0, y: 0 },
+        valid: true,
+        normalizedDirection: { x: normalizedX, y: normalizedY },
     };
-  }
-
-  // Normalize to unit vector (-1, 0, 1)
-  const normalizedX = x !== 0 ? Math.sign(x) : 0;
-  const normalizedY = y !== 0 ? Math.sign(y) : 0;
-
-  return {
-    valid: true,
-    normalizedDirection: { x: normalizedX, y: normalizedY },
-  };
 }
 
 /**
@@ -79,27 +79,27 @@ function validateDirection(direction: {
  * @returns true if movement is blocked, false if clear
  */
 function isCollision(
-  currentPosition: { x: number; y: number },
-  newPosition: { x: number; y: number },
-  world: any
+    currentPosition: { x: number; y: number },
+    newPosition: { x: number; y: number },
+    world: any
 ): boolean {
-  // World bounds check (simplified)
-  const WORLD_WIDTH = 100; // TODO: Get from world config
-  const WORLD_HEIGHT = 100;
+    // World bounds check (simplified)
+    const WORLD_WIDTH = 100; // TODO: Get from world config
+    const WORLD_HEIGHT = 100;
 
-  if (newPosition.x < 0 || newPosition.x >= WORLD_WIDTH) {
-    return true;
-  }
+    if (newPosition.x < 0 || newPosition.x >= WORLD_WIDTH) {
+        return true;
+    }
 
-  if (newPosition.y < 0 || newPosition.y >= WORLD_HEIGHT) {
-    return true;
-  }
+    if (newPosition.y < 0 || newPosition.y >= WORLD_HEIGHT) {
+        return true;
+    }
 
-  // TODO: Check terrain collision (forest, water, etc.)
-  // TODO: Check creature collision (other creatures blocking path)
-  // TODO: Check obstacle collision (rocks, trees, structures)
+    // TODO: Check terrain collision (forest, water, etc.)
+    // TODO: Check creature collision (other creatures blocking path)
+    // TODO: Check obstacle collision (rocks, trees, structures)
 
-  return false;
+    return false;
 }
 
 /**
@@ -118,14 +118,14 @@ function isCollision(
  * → { x: 7, y: 5 }
  */
 function calculateNewPosition(
-  currentPosition: { x: number; y: number },
-  direction: { x: number; y: number },
-  distance: number
+    currentPosition: { x: number; y: number },
+    direction: { x: number; y: number },
+    distance: number
 ): { x: number; y: number } {
-  return {
-    x: currentPosition.x + direction.x * distance,
-    y: currentPosition.y + direction.y * distance,
-  };
+    return {
+        x: currentPosition.x + direction.x * distance,
+        y: currentPosition.y + direction.y * distance,
+    };
 }
 
 /**
@@ -153,66 +153,66 @@ function calculateNewPosition(
  * ```
  */
 export function executeMovement(
-  player: PlayerStatus,
-  world: any,
-  direction: { x: number; y: number },
-  distance: number = 1
+    player: PlayerStatus,
+    world: any,
+    direction: { x: number; y: number },
+    distance: number = 1
 ): Partial<ActionResult> {
-  const result: Partial<ActionResult> = {
-    newPlayerState: player,
-    visualEvents: [],
-  };
+    const result: Partial<ActionResult> = {
+        newPlayerState: player,
+        visualEvents: [],
+    };
 
-  // Step 1: Validate direction
-  const validation = validateDirection(direction);
-  if (!validation.valid) {
+    // Step 1: Validate direction
+    const validation = validateDirection(direction);
+    if (!validation.valid) {
+        result.visualEvents?.push({
+            type: 'SHOW_TOAST',
+            message: validation.reason || 'Invalid movement direction',
+            severity: 'warning',
+        });
+        result.debugMessage = `Invalid movement: ${validation.reason}`;
+        return result;
+    }
+
+    // TODO: Get player position from world state (for now assume { x: 0, y: 0 })
+    const currentPosition = { x: 0, y: 0 };
+
+    // Step 2: Calculate new position
+    const newPosition = calculateNewPosition(
+        currentPosition,
+        validation.normalizedDirection,
+        distance
+    );
+
+    // Step 3: Check for collisions
+    const blocked = isCollision(currentPosition, newPosition, world);
+    if (blocked) {
+        result.visualEvents?.push({
+            type: 'SHOW_TOAST',
+            message: 'Path blocked!',
+            severity: 'warning',
+        });
+        result.visualEvents?.push({
+            type: 'PLAY_SOUND',
+            soundId: 'movement_blocked',
+            volume: 0.5,
+        });
+        result.debugMessage = `Movement blocked at ${newPosition.x}, ${newPosition.y}`;
+        return result;
+    }
+
+    // Step 4: Movement successful - queue visual feedback
     result.visualEvents?.push({
-      type: 'SHOW_TOAST',
-      message: validation.reason || 'Invalid movement direction',
-      severity: 'warning',
+        type: 'PLAY_SOUND',
+        soundId: 'footstep',
+        volume: 0.4,
     });
-    result.debugMessage = `Invalid movement: ${validation.reason}`;
+
+    // TODO: Implement encounter triggering (random monsters, NPCs, events)
+    // TODO: Implement world state updates (player position tracking, terrain effects)
+
+    result.debugMessage = `Moved from [${currentPosition.x}, ${currentPosition.y}] to [${newPosition.x}, ${newPosition.y}]`;
+
     return result;
-  }
-
-  // TODO: Get player position from world state (for now assume { x: 0, y: 0 })
-  const currentPosition = { x: 0, y: 0 };
-
-  // Step 2: Calculate new position
-  const newPosition = calculateNewPosition(
-    currentPosition,
-    validation.normalizedDirection,
-    distance
-  );
-
-  // Step 3: Check for collisions
-  const blocked = isCollision(currentPosition, newPosition, world);
-  if (blocked) {
-    result.visualEvents?.push({
-      type: 'SHOW_TOAST',
-      message: 'Path blocked!',
-      severity: 'warning',
-    });
-    result.visualEvents?.push({
-      type: 'PLAY_SOUND',
-      soundId: 'movement_blocked',
-      volume: 0.5,
-    });
-    result.debugMessage = `Movement blocked at ${newPosition.x}, ${newPosition.y}`;
-    return result;
-  }
-
-  // Step 4: Movement successful - queue visual feedback
-  result.visualEvents?.push({
-    type: 'PLAY_SOUND',
-    soundId: 'footstep',
-    volume: 0.4,
-  });
-
-  // TODO: Implement encounter triggering (random monsters, NPCs, events)
-  // TODO: Implement world state updates (player position tracking, terrain effects)
-
-  result.debugMessage = `Moved from [${currentPosition.x}, ${currentPosition.y}] to [${newPosition.x}, ${newPosition.y}]`;
-
-  return result;
 }

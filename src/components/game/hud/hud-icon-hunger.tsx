@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import AreaFill from '@/components/ui/area-fill';
 import { cn } from '@/lib/utils';
+import { usePlayerStore } from '@/store';
 
 interface HudIconHungerProps {
-  percent: number; // 0..1
   size?: number;
   className?: string;
 }
@@ -25,7 +25,13 @@ function mixHex(a: string, b: string, t: number) {
   return rgbToHex(Math.round(A[0] + (B[0] - A[0]) * t), Math.round(A[1] + (B[1] - A[1]) * t), Math.round(A[2] + (B[2] - A[2]) * t));
 }
 
-export function HudIconHunger({ percent, size = 48, className }: HudIconHungerProps) {
+export function HudIconHunger({ size = 48, className }: HudIconHungerProps) {
+  // Subscribe to player store - gets satiety in real-time
+  const { player } = usePlayerStore();
+
+  // Calculate satiety percentage (0..1, satiety is already 0-100)
+  const percent = Math.min(1, Math.max(0, player.satiety / 100));
+
   const id = useRef(`hunger-${Math.random().toString(36).slice(2, 9)}`).current;
   const gradId = `dynGradHunger-${id}`;
   const outlineGradId = `metalOutlineGradHunger-${id}`;
@@ -77,8 +83,8 @@ export function HudIconHunger({ percent, size = 48, className }: HudIconHungerPr
       const ease = 1 - Math.pow(1 - t, 3);
       const scaleVal = maxScale * (1 - ease);
       const freq = baseFreq * (1 + 0.5 * Math.sin(t * Math.PI * 2));
-      try { dispNonNull.setAttribute('scale', scaleVal.toFixed(2)); turbNonNull.setAttribute('baseFrequency', freq.toFixed(4)); } catch {}
-      if (t < 1) anim.id = requestAnimationFrame(step); else { try { dispNonNull.setAttribute('scale', '0'); turbNonNull.setAttribute('baseFrequency', '0.01'); } catch {} waveAnimRef.current = null; }
+      try { dispNonNull.setAttribute('scale', scaleVal.toFixed(2)); turbNonNull.setAttribute('baseFrequency', freq.toFixed(4)); } catch { }
+      if (t < 1) anim.id = requestAnimationFrame(step); else { try { dispNonNull.setAttribute('scale', '0'); turbNonNull.setAttribute('baseFrequency', '0.01'); } catch { } waveAnimRef.current = null; }
     }
     anim.id = requestAnimationFrame(step);
     waveAnimRef.current = anim;

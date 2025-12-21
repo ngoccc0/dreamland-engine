@@ -125,7 +125,7 @@ export function GameLayoutHud({
                         </span>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <span>{getWeatherEmoji(weatherZones?.[currentChunk?.regionId]?.currentWeather?.id)}</span>
-                            <GameClockWidget gameTime={gameTime || 0} size={20} />
+                            <GameClockWidget size={20} />
                         </div>
                     </div>
                 )}
@@ -198,7 +198,7 @@ export function GameLayoutHud({
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <div className="flex flex-col items-center cursor-default">
-                                    <GameClockWidget gameTime={gameTime || 0} size={48} />
+                                    <GameClockWidget size={48} />
                                 </div>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -262,7 +262,6 @@ export function GameLayoutHud({
                             <TooltipTrigger asChild>
                                 <div>
                                     <HudIconHealth
-                                        percent={Math.max(0, Math.min(1, hpPct))}
                                         size={isDesktop ? 40 : 48}
                                     />
                                 </div>
@@ -336,7 +335,6 @@ export function GameLayoutHud({
                                     className="p-0"
                                 >
                                     <HudIconHunger
-                                        percent={Math.max(0, Math.min(1, hungerPct))}
                                         size={isDesktop ? 40 : 48}
                                     />
                                 </Button>

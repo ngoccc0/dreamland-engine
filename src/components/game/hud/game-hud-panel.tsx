@@ -138,7 +138,7 @@ export function GameHudPanel({
                             </p>
                         </TooltipContent>
                     </Tooltip>
-                    <HudIconHealth percent={hpPct} size={48} />
+                    <HudIconHealth size={48} />
                 </div>
 
                 {/* Mana */}
@@ -204,7 +204,7 @@ export function GameHudPanel({
                             </p>
                         </TooltipContent>
                     </Tooltip>
-                    <HudIconHunger percent={hungerPct} size={48} />
+                    <HudIconHunger size={48} />
                 </div>
 
                 {/* Temperature (Environment + Body Temp) */}
@@ -242,7 +242,7 @@ export function GameHudPanel({
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <div className="cursor-help">
-                            <GameClockWidget gameTime={gameTime} size={76} />
+                            <GameClockWidget size={76} />
                         </div>
                     </TooltipTrigger>
                     <TooltipContent>

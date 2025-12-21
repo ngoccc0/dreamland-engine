@@ -28,6 +28,15 @@ export interface PlayerStatus {
     hp: number;
     mana: number;
     stamina: number;
+    /**
+     * Satiety represents how full the player is (0-100).
+     * 0 = starving (losing health per tick)
+     * 100 = fully satiated (optimal)
+     * 
+     * @remarks
+     * Replaces old "hunger" semantic. Decreases 1 point per game minute.
+     */
+    satiety: number;
     bodyTemperature: number;
     items: PlayerItem[];
     equipment: PlayerEquipment;

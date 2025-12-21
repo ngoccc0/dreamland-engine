@@ -1,5 +1,5 @@
 import { TranslatableString } from './i18n';
-import { Effect } from './effects';
+import { Effect, EffectType } from './effects';
 
 export interface Item {
     id: string;
@@ -13,6 +13,18 @@ export interface Item {
     maxStack: number;
     effects: Effect[];
     requirements?: ItemRequirements;
+    /**
+     * Effect applied if item use FAILS the difficulty check.
+     * Example: Eating bad mushroom causes poison.
+     * 
+     * @remarks
+     * When item consumption fails (failed dice roll), this effect is applied instead of the intended effect.
+     */
+    failureEffect?: {
+        type: EffectType;
+        value: number;
+        duration?: number;
+    };
     metadata?: Record<string, any>;
 }
 
@@ -47,14 +59,19 @@ export interface ItemRequirements {
 export interface BaseItem {
     name: TranslatableString;
     description: TranslatableString;
+    type: ItemType;
     rarity: ItemRarity;
     weight?: number;
     value?: number;
+    stackable?: boolean;
+    maxStack?: number;
+    effects?: Effect[];
     tags?: string[];
 }
 
 // Interface for items in player inventory
 export interface PlayerItem extends BaseItem {
+    id: string; // Unique identifier for this inventory item instance
     quantity: number;
     durability?: number;
     maxDurability?: number;

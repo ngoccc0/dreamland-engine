@@ -161,7 +161,6 @@ export function GameLayoutHud({
                             <TooltipTrigger asChild>
                                 <div className="flex items-center cursor-default">
                                     <HudIconTemperature
-                                        temp={currentChunk?.temperature || 20}
                                         maxTemp={50}
                                         hideWeatherEmoji={true}
                                         size={32}
@@ -180,7 +179,6 @@ export function GameLayoutHud({
                             <TooltipTrigger asChild>
                                 <div className="flex items-center cursor-default">
                                     <HudIconTemperature
-                                        temp={playerStats.bodyTemperature || 37}
                                         maxTemp={40}
                                         hideWeatherEmoji={true}
                                         size={32}

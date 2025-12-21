@@ -5,15 +5,15 @@
  * Optionally shows weather emoji to indicate current weather conditions.
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
+import { usePlayerStore } from '@/store';
+import { useWorldStore } from '@/store';
 import BodyTemperatureIcon from './body-temperature-icon';
 import BodyTempColorIcon from './body-temp-color-icon';
 import EnvTempColorIcon from './env-temp-color-icon';
 
 interface HudIconTemperatureProps {
-    /** Current temperature in Celsius */
-    temp: number;
     /** Maximum temperature for gauge scale (default: 50°C) */
     maxTemp?: number;
     /** Weather ID to display emoji (e.g., "light_rain", "sunny", "blizzard") */
@@ -103,7 +103,6 @@ export function getTempColor(temp: number, maxTemp: number = 50, minTemp: number
         return `rgb(${r}, ${g}, ${b})`;
     }
 } export function HudIconTemperature({
-    temp,
     maxTemp = 50,
     weatherType,
     hideWeatherEmoji = false,
@@ -114,6 +113,19 @@ export function getTempColor(temp: number, maxTemp: number = 50, minTemp: number
     showNumberBeside = false,
     isEnvTempColorIcon = false,
 }: HudIconTemperatureProps) {
+    const { player } = usePlayerStore();
+    const { currentChunk } = useWorldStore();
+    
+    // Determine temperature source based on display mode
+    const temp = useMemo(() => {
+        if (isBodyTemp || isBodyTempColorIcon) {
+            return player?.bodyTemperature ?? 37;
+        } else if (isEnvTempColorIcon) {
+            return currentChunk?.temperature ?? 20;
+        }
+        return 20; // Default
+    }, [player?.bodyTemperature, currentChunk?.temperature, isBodyTemp, isBodyTempColorIcon, isEnvTempColorIcon]);
+    
     const id = useRef(`temp-${Math.random().toString(36).slice(2, 9)}`).current;
     const [displayTemp, setDisplayTemp] = useState(Math.round(temp * 10) / 10);
     const tempRef = useRef(temp);

@@ -228,7 +228,6 @@ export function GameHudPanel({
                         </TooltipContent>
                     </Tooltip>
                     <HudIconTemperature
-                        temp={playerStats.bodyTemperature ?? 37}
                         maxTemp={50}
                         size={48}
                         weatherType={weatherId}

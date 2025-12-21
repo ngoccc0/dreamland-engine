@@ -25,6 +25,8 @@ import { World } from '@/core/types/world';
 // Import usecases
 import { executeItemUse } from './item-use-usecase';
 import { executeGameTick } from './game-tick-usecase';
+import { executeMovement } from './movement-usecase';
+import { executeCombatAction } from './combat-action-usecase';
 
 export interface ActionProcessorContext {
   player: PlayerStatus;
@@ -130,24 +132,32 @@ export function processAction(
     }
 
     case ActionType.PLAYER_MOVE: {
-      // TODO: Implement movement usecase
-      result.debugMessage = 'Movement not implemented yet';
-      result.visualEvents.push({
-        type: 'SHOW_TOAST',
-        message: 'Movement action (TODO)',
-        severity: 'info',
-      });
+      const movementResult = executeMovement(
+        context.player,
+        context.world || {},
+        action.direction,
+        action.distance
+      );
+
+      result.newPlayerState = movementResult.newPlayerState || context.player;
+      result.visualEvents = [...result.visualEvents, ...(movementResult.visualEvents || [])];
+
+      result.debugMessage = movementResult.debugMessage || 'Movement executed';
       break;
     }
 
     case ActionType.ATTACK: {
-      // TODO: Implement combat usecase
-      result.debugMessage = 'Combat not implemented yet';
-      result.visualEvents.push({
-        type: 'SHOW_TOAST',
-        message: 'Combat action (TODO)',
-        severity: 'info',
-      });
+      const combatResult = executeCombatAction(
+        context.player,
+        context.world || {},
+        action.targetId,
+        action.weaponId
+      );
+
+      result.newPlayerState = combatResult.newPlayerState || context.player;
+      result.visualEvents = [...result.visualEvents, ...(combatResult.visualEvents || [])];
+
+      result.debugMessage = combatResult.debugMessage || 'Combat action executed';
       break;
     }
 

@@ -5,8 +5,10 @@ describe('Crafting Rules', () => {
     describe('validateRecipe', () => {
         const inventory: Item[] = [
             { id: 'iron_ore', quantity: 5, equipped: false, effects: [], metadata: {} },
-            { id: 'wood', quantity: 2, equipped: false, effects: [], metadata: {} },
+            { id: 'wood', quantity: 3, equipped: false, effects: [], metadata: {} },
             { id: 'herb', quantity: 10, equipped: false, effects: [], metadata: {} },
+            { id: 'string', quantity: 1, equipped: false, effects: [], metadata: {} },
+            { id: 'water', quantity: 1, equipped: false, effects: [], metadata: {} },
         ];
 
         test('should return true when recipe exists and all materials present', () => {

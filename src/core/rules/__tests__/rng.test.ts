@@ -147,7 +147,7 @@ describe('RNG Rules - Pure Randomization Functions', () => {
         });
 
         test('should work with non-100 weight sums', () => {
-            const mockRandom = () => 0.5; // 0.5 * 10 = 5
+            const mockRandom = () => 0.9; // 0.9 * 4 = 3.6, exceeds common (3)
             const items: WeightedItem<string>[] = [
                 { value: 'common', weight: 3 },
                 { value: 'rare', weight: 1 },

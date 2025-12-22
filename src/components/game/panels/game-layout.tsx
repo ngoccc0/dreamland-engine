@@ -11,6 +11,7 @@ import { useIdleWarning } from "@/hooks/useIdleWarning";
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
 import { useDialogToggles } from "@/hooks/use-dialog-toggles";
 import { useMinimapGrid } from "@/hooks/use-minimap-grid";
+import { useContextAction } from "@/hooks/use-context-action";
 import { useUIStore } from "@/store";
 import { AudioActionType } from "@/core/data/audio-events";
 import type { Structure, Action } from "@/lib/game/types";
@@ -256,69 +257,29 @@ export default function GameLayout(props: GameLayoutProps) {
     });
 
     // ===== CONTEXT SENSITIVE ACTION =====
-    const restingPlace = currentChunk?.structures?.find((s: Structure) => s.restEffect);
+    const contextAction = useContextAction({
+        currentChunk,
+        pickUpActions,
+        otherActions,
+        language,
+        t,
+        getTranslatedText,
+        handleAttack,
+        handleRest,
+        handleActionClick,
+    });
 
-    const getContextSensitiveAction = useCallback((): ContextAction => {
-        if (currentChunk?.enemy) {
-            return {
-                type: "attack",
-                label: t("attack") || "Attack",
-                handler: handleAttack,
-                icon: "⚔️",
-            };
-        }
-        if (pickUpActions.length > 0) {
-            return {
-                type: "pickup",
-                label: t("pickUpItems") || "Pick Up",
+    // Update context action to use dialog handler
+    const contextActionWithDialog: ContextAction = 
+        contextAction.type === 'pickup'
+            ? {
+                ...contextAction,
                 handler: () => {
                     setPickupDialogOpen(true);
                     setSelectedPickupIds([]);
                 },
-                icon: "🎒",
-            };
-        }
-        if (restingPlace) {
-            return {
-                type: "rest",
-                label: t("rest") || "Rest",
-                handler: handleRest,
-                icon: "🛌",
-            };
-        }
-        if (otherActions.length > 0) {
-            const action = otherActions[0];
-            const actionText = getTranslatedText(
-                { key: action.textKey, params: action.params },
-                language,
-                t
-            );
-            return {
-                type: "interact",
-                label: actionText,
-                handler: () => handleActionClick(action.id),
-                icon: "💬",
-            };
-        }
-        return {
-            type: "explore",
-            label: t("explore") || "Explore",
-            handler: () => { },
-            icon: "🔍",
-        };
-    }, [
-        currentChunk?.enemy,
-        pickUpActions.length,
-        restingPlace,
-        otherActions.length,
-        t,
-        handleAttack,
-        handleRest,
-        handleActionClick,
-        language,
-    ]);
-
-    const contextAction = getContextSensitiveAction();
+              }
+            : contextAction;
 
     // ===== LOADING STATE =====
     if (!isLoaded || !finalWorldSetup || !currentChunk) {
@@ -354,12 +315,12 @@ export default function GameLayout(props: GameLayoutProps) {
                             if (dir) handleMove(dir);
                         }}
                         onInteract={() => {
-                            contextAction.handler();
+                            contextActionWithDialog.handler();
                             if (typeof window !== "undefined" && navigator.vibrate) {
                                 navigator.vibrate(20);
                             }
                         }}
-                        interactIcon={contextAction.icon}
+                        interactIcon={contextActionWithDialog.icon}
                         size={140}
                     />
                 )}
@@ -410,14 +371,14 @@ export default function GameLayout(props: GameLayoutProps) {
                     isDesktop={isDesktop}
                     isLoading={isLoading}
                     playerStats={playerStats}
-                    contextAction={contextAction}
+                    contextAction={contextActionWithDialog}
                     pickUpActions={pickUpActions}
                     otherActions={otherActions}
                     language={language}
                     t={t}
                     onMove={handleMove}
                     onInteract={() => {
-                        contextAction.handler();
+                        contextActionWithDialog.handler();
                         if (typeof window !== "undefined" && navigator.vibrate) {
                             navigator.vibrate(20);
                         }

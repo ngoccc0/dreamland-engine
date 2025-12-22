@@ -18,10 +18,7 @@ import type { Structure, Action } from "@/lib/game/types";
 import { getTranslatedText } from "@/lib/utils";
 import { logger } from "@/lib/logger";
 
-import { GameLayoutNarrative } from "./game-layout-narrative";
-import { GameLayoutHud } from "./game-layout-hud";
-import { GameLayoutControls, FloatingJoystick } from "./game-layout-controls";
-import { GameLayoutDialogs } from "./game-layout-dialogs";
+import { GameLayoutContent } from "./game-layout-content";
 import type { GameLayoutProps, ContextAction } from "./game-layout.types";
 
 /**
@@ -295,225 +292,155 @@ export default function GameLayout(props: GameLayoutProps) {
 
     // ===== RENDER =====
     return (
-        <TooltipProvider>
-            <div className="flex flex-col md:flex-row h-dvh bg-background text-foreground font-body overflow-hidden relative">
-                {/* HP Vignette */}
-                {(Number(playerStats.hp ?? 0) / Number(playerStats.maxHp ?? 100)) * 100 < 30 && (
-                    <div
-                        className="fixed inset-0 pointer-events-none z-[15]"
-                        style={{
-                            animation: "heartbeat-vignette 1.5s infinite",
-                            background: "radial-gradient(circle, transparent 60%, rgba(180, 0, 0, 0.4) 100%)",
-                        }}
-                    />
-                )}
-
-                {/* Floating Joystick (Mobile only) */}
-                {!isDesktop && !isGameOver && (
-                    <FloatingJoystick
-                        onMove={(dir) => {
-                            if (dir) handleMove(dir);
-                        }}
-                        onInteract={() => {
-                            contextActionWithDialog.handler();
-                            if (typeof window !== "undefined" && navigator.vibrate) {
-                                navigator.vibrate(20);
-                            }
-                        }}
-                        interactIcon={contextActionWithDialog.icon}
-                        size={140}
-                    />
-                )}
-
-                {/* Narrative Panel */}
-                <GameLayoutNarrative
-                    narrativeLog={narrativeLog}
-                    worldName={getTranslatedText(finalWorldSetup.worldName, language, t)}
-                    isDesktop={isDesktop}
-                    isLoading={isLoading}
-                    showNarrativeDesktop={showNarrativeDesktop}
-                    onToggleNarrativeDesktop={setShowNarrativePanel}
-                    onOpenTutorial={handleTutorialToggle}
-                    onOpenSettings={handleSettingsToggle}
-                    onReturnToMenu={handleReturnToMenu}
-                    onOpenStatus={handleStatusToggle}
-                    onOpenInventory={handleInventoryToggle}
-                    onOpenCrafting={handleCraftingToggle}
-                    onOpenBuilding={handleBuildingToggle}
-                    onOpenFusion={handleFusionToggle}
-                    onOpenCooking={handleCookingToggle}
-                />
-
-                {/* HUD Panel */}
-                <GameLayoutHud
-                    playerStats={playerStats}
-                    currentChunk={currentChunk}
-                    gameTime={gameTime}
-                    isDesktop={isDesktop}
-                    weatherZones={weatherZones}
-                    grid={gridToPass}
-                    playerPosition={playerPosition}
-                    visualPlayerPosition={visualPlayerPosition}
-                    isAnimatingMove={isAnimatingMove}
-                    visualMoveFrom={visualMoveFrom}
-                    visualMoveTo={visualMoveTo}
-                    visualJustLanded={visualJustLanded}
-                    turn={turn}
-                    biomeDefinitions={biomeDefinitions}
-                    settings={settings}
-                    language={language}
-                    t={t}
-                    onMapSizeChange={(size) => setSettings({ ...settings, minimapViewportSize: size })}
-                />
-
-                {/* Controls */}
-                <GameLayoutControls
-                    isDesktop={isDesktop}
-                    isLoading={isLoading}
-                    playerStats={playerStats}
-                    contextAction={contextActionWithDialog}
-                    pickUpActions={pickUpActions}
-                    otherActions={otherActions}
-                    language={language}
-                    t={t}
-                    onMove={handleMove}
-                    onInteract={() => {
-                        contextActionWithDialog.handler();
-                        if (typeof window !== "undefined" && navigator.vibrate) {
-                            navigator.vibrate(20);
-                        }
-                    }}
-                    onUseSkill={handleUseSkill}
-                    onActionClick={handleActionClick}
-                    onOpenPickup={() => {
-                        setPickupDialogOpen(true);
-                        setSelectedPickupIds([]);
-                    }}
-                    onOpenAvailableActions={() => setAvailableActionsOpen(true)}
-                    onOpenCustomDialog={() => setCustomDialogOpen(true)}
-                    onOpenStatus={handleStatusToggle}
-                    onOpenInventory={handleInventoryToggle}
-                    onOpenCrafting={handleCraftingToggle}
-                    onOpenBuilding={handleBuildingToggle}
-                    onOpenFusion={handleFusionToggle}
-                    onOpenCooking={handleCookingToggle}
-                />
-
-                {/* Dialogs */}
-                <GameLayoutDialogs
-                    isStatusOpen={isStatusOpen}
-                    isInventoryOpen={isInventoryOpen}
-                    isCraftingOpen={isCraftingOpen}
-                    isBuildingOpen={isBuildingOpen}
-                    isFusionOpen={isFusionOpen}
-                    isFullMapOpen={isFullMapOpen}
-                    isTutorialOpen={isTutorialOpen}
-                    isSettingsOpen={isSettingsOpen}
-                    showInstallPopup={showInstallPopup}
-                    isAvailableActionsOpen={isAvailableActionsOpen}
-                    isCustomDialogOpen={isCustomDialogOpen}
-                    isPickupDialogOpen={isPickupDialogOpen}
-                    isCookingOpen={isCookingOpen}
-                    onStatusOpenChange={(open) => {
-                        if (open) openDialog("statusOpen");
-                        else closeDialog("statusOpen");
-                    }}
-                    onInventoryOpenChange={(open) => {
-                        if (open) openDialog("inventoryOpen");
-                        else closeDialog("inventoryOpen");
-                    }}
-                    onCraftingOpenChange={(open) => {
-                        if (open) openDialog("craftingOpen");
-                        else closeDialog("craftingOpen");
-                    }}
-                    onBuildingOpenChange={(open) => {
-                        if (open) openDialog("buildingOpen");
-                        else closeDialog("buildingOpen");
-                    }}
-                    onFusionOpenChange={(open) => {
-                        if (open) openDialog("fusionOpen");
-                        else closeDialog("fusionOpen");
-                    }}
-                    onFullMapOpenChange={(open) => {
-                        if (open) openDialog("mapOpen");
-                        else closeDialog("mapOpen");
-                    }}
-                    onTutorialOpenChange={(open) => {
-                        if (open) openDialog("skillsOpen");
-                        else closeDialog("skillsOpen");
-                    }}
-                    onSettingsOpenChange={(open) => {
-                        if (open) openDialog("settingsOpen");
-                        else closeDialog("settingsOpen");
-                    }}
-                    onInstallPopupOpenChange={setShowInstallPopup}
-                    onAvailableActionsOpenChange={setAvailableActionsOpen}
-                    onCustomDialogOpenChange={setCustomDialogOpen}
-                    onPickupDialogOpenChange={setPickupDialogOpen}
-                    onCookingOpenChange={setCookingOpen}
-                    playerStats={playerStats}
-                    currentChunk={currentChunk}
-                    world={world}
-                    pickUpActions={pickUpActions}
-                    otherActions={otherActions}
-                    selectedPickupIds={selectedPickupIds}
-                    customDialogValue={customDialogValue}
-                    isLoading={isLoading}
-                    onToggleStatus={handleStatusToggle}
-                    onToggleInventory={handleInventoryToggle}
-                    onToggleCrafting={handleCraftingToggle}
-                    onToggleMap={handleMapToggle}
-                    onActionClick={handleActionClick}
-                    onCustomDialogSubmit={() => {
-                        if (customDialogValue.trim()) {
-                            handleCustomAction(customDialogValue);
-                            setCustomDialogValue("");
-                        }
-                        setCustomDialogOpen(false);
-                    }}
-                    onTogglePickupSelection={(id: number) => {
-                        setSelectedPickupIds((prev) =>
-                            prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-                        );
-                    }}
-                    onPickupConfirm={() => {
-                        if (selectedPickupIds.length === 0) {
-                            setPickupDialogOpen(false);
-                            return;
-                        }
-                        selectedPickupIds.forEach((actionId) => {
-                            try {
-                                handleAction(actionId);
-                            } catch (error: any) {
-                                logger.error("Pickup failed", { actionId, error });
-                            }
-                        });
-                        setSelectedPickupIds([]);
-                        setPickupDialogOpen(false);
-                    }}
-                    onEquipItem={handleEquipItem}
-                    onUnequipItem={handleUnequipItem}
-                    onDropItem={handleDropItem}
-                    onItemUsed={handleItemUsed}
-                    onCraft={handleCraft}
-                    onBuild={handleBuild}
-                    onFuse={handleFuseItems}
-                    onToggleBuilding={handleBuildingToggle}
-                    onToggleFusion={handleFusionToggle}
-                    onToggleTutorial={handleTutorialToggle}
-                    onToggleSettings={handleSettingsToggle}
-                    onReturnToMenu={handleReturnToMenu}
-                    onCustomDialogValueChange={setCustomDialogValue}
-                    gameSlot={props.gameSlot}
-                    language={language}
-                    t={t}
-                    recipes={recipes}
-                    buildableStructures={buildableStructures}
-                    customItemDefinitions={customItemDefinitions}
-                    finalWorldSetup={finalWorldSetup}
-                    biomeDefinitions={biomeDefinitions}
-                />
-            </div>
-        </TooltipProvider>
+        <GameLayoutContent
+            gameSlot={props.gameSlot}
+            // Game state
+            playerStats={playerStats}
+            currentChunk={currentChunk}
+            gameTime={gameTime}
+            isDesktop={isDesktop}
+            weatherZones={weatherZones}
+            grid={gridToPass}
+            playerPosition={playerPosition}
+            visualPlayerPosition={visualPlayerPosition}
+            isAnimatingMove={isAnimatingMove}
+            visualMoveFrom={visualMoveFrom}
+            visualMoveTo={visualMoveTo}
+            visualJustLanded={visualJustLanded}
+            narrativeLog={narrativeLog}
+            isLoading={isLoading}
+            isGameOver={isGameOver}
+            finalWorldSetup={finalWorldSetup}
+            world={world}
+            recipes={recipes}
+            buildableStructures={buildableStructures}
+            customItemDefinitions={customItemDefinitions}
+            biomeDefinitions={biomeDefinitions}
+            pickUpActions={pickUpActions}
+            otherActions={otherActions}
+            selectedPickupIds={selectedPickupIds}
+            turn={turn}
+            // UI state
+            isStatusOpen={isStatusOpen}
+            isInventoryOpen={isInventoryOpen}
+            isCraftingOpen={isCraftingOpen}
+            isBuildingOpen={isBuildingOpen}
+            isFusionOpen={isFusionOpen}
+            isFullMapOpen={isFullMapOpen}
+            isTutorialOpen={isTutorialOpen}
+            isSettingsOpen={isSettingsOpen}
+            showNarrativeDesktop={showNarrativeDesktop}
+            showInstallPopup={showInstallPopup}
+            isAvailableActionsOpen={isAvailableActionsOpen}
+            isCustomDialogOpen={isCustomDialogOpen}
+            isPickupDialogOpen={isPickupDialogOpen}
+            customDialogValue={customDialogValue}
+            isCookingOpen={isCookingOpen}
+            // Language & settings
+            language={language}
+            t={t}
+            settings={settings}
+            // Context action
+            contextAction={contextActionWithDialog}
+            // Handlers
+            onMove={handleMove}
+            onInteract={() => {
+                contextActionWithDialog.handler();
+                if (typeof window !== "undefined" && navigator.vibrate) {
+                    navigator.vibrate(20);
+                }
+            }}
+            onMapSizeChange={(size) => setSettings({ ...settings, minimapViewportSize: size })}
+            onToggleNarrativeDesktop={setShowNarrativePanel}
+            onOpenTutorial={handleTutorialToggle}
+            onOpenSettings={handleSettingsToggle}
+            onReturnToMenu={handleReturnToMenu}
+            onOpenStatus={handleStatusToggle}
+            onOpenInventory={handleInventoryToggle}
+            onOpenCrafting={handleCraftingToggle}
+            onOpenBuilding={handleBuildingToggle}
+            onOpenFusion={handleFusionToggle}
+            onOpenCooking={handleCookingToggle}
+            onStatusOpenChange={(open) => {
+                if (open) openDialog("statusOpen");
+                else closeDialog("statusOpen");
+            }}
+            onInventoryOpenChange={(open) => {
+                if (open) openDialog("inventoryOpen");
+                else closeDialog("inventoryOpen");
+            }}
+            onCraftingOpenChange={(open) => {
+                if (open) openDialog("craftingOpen");
+                else closeDialog("craftingOpen");
+            }}
+            onBuildingOpenChange={(open) => {
+                if (open) openDialog("buildingOpen");
+                else closeDialog("buildingOpen");
+            }}
+            onFusionOpenChange={(open) => {
+                if (open) openDialog("fusionOpen");
+                else closeDialog("fusionOpen");
+            }}
+            onFullMapOpenChange={(open) => {
+                if (open) openDialog("mapOpen");
+                else closeDialog("mapOpen");
+            }}
+            onTutorialOpenChange={(open) => {
+                if (open) openDialog("skillsOpen");
+                else closeDialog("skillsOpen");
+            }}
+            onSettingsOpenChange={(open) => {
+                if (open) openDialog("settingsOpen");
+                else closeDialog("settingsOpen");
+            }}
+            onInstallPopupOpenChange={setShowInstallPopup}
+            onAvailableActionsOpenChange={setAvailableActionsOpen}
+            onCustomDialogOpenChange={setCustomDialogOpen}
+            onPickupDialogOpenChange={setPickupDialogOpen}
+            onCookingOpenChange={setCookingOpen}
+            onUseSkill={handleUseSkill}
+            onActionClick={handleActionClick}
+            onOpenPickup={() => {
+                setPickupDialogOpen(true);
+                setSelectedPickupIds([]);
+            }}
+            onOpenAvailableActions={() => setAvailableActionsOpen(true)}
+            onOpenCustomDialog={() => setCustomDialogOpen(true)}
+            onCustomDialogSubmit={() => {
+                if (customDialogValue.trim()) {
+                    handleCustomAction(customDialogValue);
+                    setCustomDialogValue("");
+                }
+                setCustomDialogOpen(false);
+            }}
+            onTogglePickupSelection={(id: number) => {
+                setSelectedPickupIds((prev) =>
+                    prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+                );
+            }}
+            onPickupConfirm={() => {
+                if (selectedPickupIds.length === 0) {
+                    setPickupDialogOpen(false);
+                    return;
+                }
+                selectedPickupIds.forEach((actionId) => {
+                    try {
+                        handleAction(actionId);
+                    } catch (error: any) {
+                        logger.error("Pickup failed", { actionId, error });
+                    }
+                });
+                setSelectedPickupIds([]);
+                setPickupDialogOpen(false);
+            }}
+            onEquipItem={handleEquipItem}
+            onUnequipItem={handleUnequipItem}
+            onDropItem={handleDropItem}
+            onItemUsed={handleItemUsed}
+            onCraft={handleCraft}
+            onBuild={handleBuild}
+            onFuse={handleFuseItems}
+            onCustomDialogValueChange={setCustomDialogValue}
+        />
     );
 }

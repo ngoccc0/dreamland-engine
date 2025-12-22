@@ -181,6 +181,112 @@ export interface GameLayoutDialogsProps {
 }
 
 /**
+ * Props for GameLayoutContent component (Dumb presenter).
+ *
+ * @remarks
+ * This is a complete interface that combines all the state and handlers
+ * needed to render the full game layout. Passed from GameLayout (Smart orchestrator)
+ * to GameLayoutContent (Dumb presenter).
+ */
+export interface GameLayoutContentProps extends GameLayoutProps {
+    // Game state
+    playerStats: any;
+    currentChunk: any;
+    gameTime: number;
+    isDesktop: boolean;
+    weatherZones: Record<string, any>;
+    grid: any[][];
+    playerPosition: { x: number; y: number };
+    visualPlayerPosition: { x: number; y: number };
+    isAnimatingMove: boolean;
+    visualMoveFrom: { x: number; y: number } | null;
+    visualMoveTo: { x: number; y: number } | null;
+    visualJustLanded: boolean;
+    narrativeLog: any[];
+    isLoading: boolean;
+    isGameOver: boolean;
+    finalWorldSetup: any;
+    world: Record<string, any>;
+    recipes: Record<string, any>;
+    buildableStructures: Record<string, any>;
+    customItemDefinitions: Record<string, any>;
+    biomeDefinitions: any;
+    pickUpActions: Action[];
+    otherActions: Action[];
+    selectedPickupIds: number[];
+    turn: number;
+
+    // UI state
+    isStatusOpen: boolean;
+    isInventoryOpen: boolean;
+    isCraftingOpen: boolean;
+    isBuildingOpen: boolean;
+    isFusionOpen: boolean;
+    isFullMapOpen: boolean;
+    isTutorialOpen: boolean;
+    isSettingsOpen: boolean;
+    showNarrativeDesktop: boolean;
+    showInstallPopup: boolean;
+    isAvailableActionsOpen: boolean;
+    isCustomDialogOpen: boolean;
+    isPickupDialogOpen: boolean;
+    customDialogValue: string;
+    isCookingOpen: boolean;
+
+    // Language & settings
+    language: string;
+    t: (key: TranslationKey, params?: Record<string, any>) => string;
+    settings: any;
+
+    // Context action
+    contextAction: ContextAction;
+
+    // Handlers
+    onMove: (direction: Direction) => void;
+    onInteract: () => void;
+    onMapSizeChange: (size: 5 | 7 | 9) => void;
+    onToggleNarrativeDesktop: (show: boolean) => void;
+    onOpenTutorial: () => void;
+    onOpenSettings: () => void;
+    onReturnToMenu: () => void;
+    onOpenStatus: () => void;
+    onOpenInventory: () => void;
+    onOpenCrafting: () => void;
+    onOpenBuilding: () => void;
+    onOpenFusion: () => void;
+    onOpenCooking: () => void;
+    onStatusOpenChange: (open: boolean) => void;
+    onInventoryOpenChange: (open: boolean) => void;
+    onCraftingOpenChange: (open: boolean) => void;
+    onBuildingOpenChange: (open: boolean) => void;
+    onFusionOpenChange: (open: boolean) => void;
+    onFullMapOpenChange: (open: boolean) => void;
+    onTutorialOpenChange: (open: boolean) => void;
+    onSettingsOpenChange: (open: boolean) => void;
+    onInstallPopupOpenChange: (open: boolean) => void;
+    onAvailableActionsOpenChange: (open: boolean) => void;
+    onCustomDialogOpenChange: (open: boolean) => void;
+    onPickupDialogOpenChange: (open: boolean) => void;
+    onCookingOpenChange: (open: boolean) => void;
+    onUseSkill: (skillName: string) => void;
+    onActionClick: (actionId: number) => void;
+    onOpenPickup: () => void;
+    onOpenAvailableActions: () => void;
+    onOpenCustomDialog: () => void;
+    onCustomDialogSubmit: () => void;
+    onTogglePickupSelection: (id: number) => void;
+    onPickupConfirm: () => void;
+    onEquipItem: any;
+    onUnequipItem: any;
+    onDropItem: any;
+    onItemUsed: any;
+    onCraft: any;
+    onBuild: any;
+    onFuse: any;
+    onCustomDialogValueChange: (value: string) => void;
+}
+
+/**
  * Main GameLayout component props.
  */
 export interface GameLayoutProps {

@@ -1,11 +1,14 @@
 /**
  * @file src/store/player.store.ts
- * @description Zustand store for Player State (Part of Strangler Fig migration pattern)
+ * @description Zustand store for Player State (Completed Strangler Fig migration)
  * 
  * @remarks
  * Manages player HP, Satiety, Stamina, Inventory, Equipment, Attributes.
  * Uses persist middleware to auto-save to localStorage for PWA offline support.
  * Uses devtools middleware for Redux DevTools debugging.
+ *
+ * This store is now directly used by UI components instead of through a wrapper.
+ * See HUD components in src/components/game/hud/ for examples of direct store usage.
  */
 
 import { create } from 'zustand';

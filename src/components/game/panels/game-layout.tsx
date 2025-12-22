@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import React, { useEffect, useCallback, useRef, useMemo } from "react";
 import { Loader2 } from "./icons";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { useLanguage } from "@/context/language-context";
 import { useSettings } from "@/context/settings-context";
 import useKeyboardBindings from "@/hooks/use-keyboard-bindings";
@@ -94,7 +93,6 @@ export default function GameLayout(props: GameLayoutProps) {
         ephemeral: {
             installPopupOpen: showInstallPopup,
             availableActionsOpen: isAvailableActionsOpen,
-            availableActionsPosition,
             customDialogOpen: isCustomDialogOpen,
             customDialogValue,
             pickupDialogOpen: isPickupDialogOpen,

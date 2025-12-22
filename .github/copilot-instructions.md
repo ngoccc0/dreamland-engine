@@ -66,6 +66,7 @@ IF (Proposed Code violates `docs/` OR File Limits):
 * **Hooks:** `useState` -> `useCallback` -> call usecases -> execute effects -> `return { state, handlers }`
 * **TSDoc:** 100% Coverage on Exports. @remarks section for formulas/logic (NOT inline comments)
 
+* **formatting:** Never use markdown or put anything in markdown format,even for ASCII , Mermaid Diagram or codeblocks. Use simple text with headings, bullet points,tables and numbered lists.
 ---
 
 # 🔄 THE AUTONOMOUS EXECUTION LOOP

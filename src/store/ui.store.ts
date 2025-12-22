@@ -41,15 +41,15 @@ export interface DialogState {
 export interface EphemeralUIState {
   // PWA install prompt
   installPopupOpen: boolean;
-  
+
   // Context action menu (position-based)
   availableActionsOpen: boolean;
   availableActionsPosition: { x: number; y: number } | null;
-  
+
   // Custom dynamic dialog (for multi-purpose prompts)
   customDialogOpen: boolean;
   customDialogValue: string;
-  
+
   // Pickup dialog (multi-select items)
   pickupDialogOpen: boolean;
   selectedPickupIds: number[];
@@ -58,16 +58,16 @@ export interface EphemeralUIState {
 interface UIStoreState {
   // Persistent dialog states
   dialogs: DialogState;
-  
+
   // Dialog control methods
   toggleDialog: (dialogName: keyof DialogState) => void;
   openDialog: (dialogName: keyof DialogState) => void;
   closeDialog: (dialogName: keyof DialogState) => void;
   closeAllDialogs: () => void;
-  
+
   // Ephemeral UI states
   ephemeral: EphemeralUIState;
-  
+
   // Ephemeral state control methods
   setInstallPopupOpen: (open: boolean) => void;
   setAvailableActionsOpen: (open: boolean, position?: { x: number; y: number } | null) => void;
@@ -79,11 +79,11 @@ interface UIStoreState {
   removePickupId: (id: number) => void;
   togglePickupId: (id: number) => void;
   clearPickupIds: () => void;
-  
+
   // Selection/Active states
   selectedItemId: string | null;
   setSelectedItemId: (itemId: string | null) => void;
-  
+
   // Layout preferences
   showNarrativePanel: boolean;
   setShowNarrativePanel: (show: boolean) => void;

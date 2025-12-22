@@ -14,8 +14,7 @@
  */
 
 import { useCallback, useEffect, useRef, useMemo } from 'react';
-import type { World } from '@/core/types/game';
-import { chebyshevDistance, type GridPos } from '@/core/math/grid';
+import { chebyshevDistance } from '@/core/math/grid';
 
 type Position = { x: number; y: number };
 
@@ -59,10 +58,10 @@ interface MinimapGridState {
 export function useMinimapGrid({
   world,
   playerPosition,
-  visualPlayerPosition,
-  isAnimatingMove,
-  visualMoveTo,
-  turn,
+  visualPlayerPosition: _visualPlayerPosition,
+  isAnimatingMove: _isAnimatingMove,
+  visualMoveTo: _visualMoveTo,
+  turn: _turn,
   finalWorldSetup,
   isLoaded,
   minimapViewportSize,
@@ -103,7 +102,7 @@ export function useMinimapGrid({
         (animationRefs.visualMoveToRef.current || animationRefs.visualPlayerPositionRef.current)) ||
       ((animationRefs.visualPlayerPositionRef.current || animationRefs.visualMoveToRef.current) &&
         animationRefs.holdCenterUntilRef.current > now);
-    
+
     const playerForGrid = shouldUseVisualCenter
       ? animationRefs.visualMoveToRef.current || animationRefs.visualPlayerPositionRef.current || playerPosition
       : playerPosition;
@@ -134,22 +133,27 @@ export function useMinimapGrid({
     return grid;
   }, [
     world,
-    playerPosition.x,
-    playerPosition.y,
+    playerPosition,
     finalWorldSetup,
     isLoaded,
     minimapViewportSize,
+    animationRefs.isAnimatingMoveRef,
+    animationRefs.animationStartTimeRef,
+    animationRefs.visualMoveToRef,
+    animationRefs.visualPlayerPositionRef,
+    animationRefs.holdCenterUntilRef,
+    animationRefs.turnRef,
   ]);
 
   const memoizedGrid = useMemo(() => generateMapGrid(), [generateMapGrid]);
-  
+
   const gridToPass = animationRefs.isAnimatingMoveRef.current ? previousGridRef.current : memoizedGrid;
 
   useEffect(() => {
     if (!animationRefs.isAnimatingMoveRef.current) {
       previousGridRef.current = memoizedGrid;
     }
-  }, [memoizedGrid]);
+  }, [memoizedGrid, animationRefs.isAnimatingMoveRef]);
 
   return {
     memoizedGrid,

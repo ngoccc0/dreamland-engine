@@ -18,7 +18,8 @@
 'use client';
 
 import { useMemo, useCallback } from 'react';
-import type { QuestRuntimeState, AchievementRuntimeState } from '@/core/domain/quest';
+import type { QuestRuntimeState } from '@/core/domain/quest';
+import type { AchievementRuntimeState } from '@/core/domain/achievement';
 import {
     calculateQuestDisplay,
     calculateAchievementDisplay,
@@ -27,7 +28,7 @@ import {
     getAllQuestsAsDisplay,
     getAllAchievementsAsDisplay,
 } from './useQuestCalculations';
-import type { QuestSelectorResult } from './quest-types';
+import type { QuestSelectorResult, QuestDisplay, AchievementDisplay } from './quest-types';
 
 /**
  * Hook for selecting and computing quest/achievement display data.
@@ -58,7 +59,7 @@ export function useQuestSelectors(
     const activeQuests = useMemo(() => {
         return activeQuestsRuntime
             .map((runtimeState) => calculateQuestDisplay(runtimeState, statistics))
-            .filter((q): q is ReturnType<typeof calculateQuestDisplay> => q !== null);
+            .filter((q): q is QuestDisplay => q !== null);
     }, [activeQuestsRuntime, statistics]);
 
     /**
@@ -67,7 +68,7 @@ export function useQuestSelectors(
     const unlockedAchievements = useMemo(() => {
         return unlockedAchievementsRuntime
             .map((runtimeState) => calculateAchievementDisplay(runtimeState, statistics))
-            .filter((a): a is ReturnType<typeof calculateAchievementDisplay> => a !== null);
+            .filter((a): a is AchievementDisplay => a !== null);
     }, [unlockedAchievementsRuntime, statistics]);
 
     /**

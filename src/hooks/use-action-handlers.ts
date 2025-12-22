@@ -12,7 +12,8 @@ import { EventDeduplicationGuard, DEFAULT_DEDUP_CONFIG, type DeduplicationBuffer
 import { useToast } from '@/hooks/ui';
 
 // Core Engine Hooks
-import { useEffectExecutor, useQuestIntegration, useActionTracker } from '@/hooks/engine';
+import { useEffectExecutor, useActionTracker } from '@/hooks/engine';
+import { useQuestActions } from '@/hooks/features/quest';
 
 // Action Handlers
 import {
@@ -159,8 +160,8 @@ export function useActionHandlers(deps: ActionHandlerDeps) {
   // Hook effect executor for centralized side-effect handling
   const { executeEffects } = useEffectExecutor();
 
-  // Hook for quest and achievement integration (Phase 2.0)
-  const { evaluateQuestsAndAchievements } = useQuestIntegration();
+  // Hook for quest and achievement actions (Phase 2.0)
+  const { evaluateQuestsAndAchievements } = useQuestActions();
 
   // Hook for action tracking (Phase I-2)
   const {

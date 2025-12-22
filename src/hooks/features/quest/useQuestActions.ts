@@ -20,10 +20,8 @@
 import { useCallback } from 'react';
 import type { GameState } from '@/core/domain/gamestate';
 import type { SideEffect } from '@/core/entities/side-effects';
-import {
-    evaluateAllActiveQuests,
-    evaluateAllAchievements,
-} from '@/core/usecases/quest-usecase';
+import { evaluateAllActiveQuests } from '@/core/usecases/quest-usecase';
+import { evaluateAllAchievements } from '@/core/usecases/achievement-usecase';
 import { createEmptyStatistics } from '@/core/engines/statistics/schemas';
 import type { QuestActionResult } from './quest-types';
 

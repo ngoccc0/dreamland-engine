@@ -9,8 +9,10 @@
  * Components/hooks can import these and wrap with useMemo as needed.
  */
 
-import type { QuestRuntimeState, AchievementRuntimeState } from '@/core/domain/quest';
-import { getQuestTemplate, getAchievementTemplate } from '@/core/data/quests/quest-templates';
+import type { QuestRuntimeState } from '@/core/domain/quest';
+import type { AchievementRuntimeState } from '@/core/domain/achievement';
+import { getQuestTemplate } from '@/core/data/quests/quest-templates';
+import { getAchievementTemplate } from '@/core/data/quests/achievement-templates';
 import { getCriteriaProgress } from '@/core/rules/criteria-rule';
 import type { QuestDisplay, AchievementDisplay } from './quest-types';
 

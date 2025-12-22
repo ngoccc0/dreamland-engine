@@ -8,4 +8,3 @@
 export { useGameEngine } from '../use-game-engine';
 export { useActionTracker } from '../use-action-tracker';
 export { useEffectExecutor } from '../use-effect-executor';
-export { useQuestIntegration } from '../use-quest-integration';

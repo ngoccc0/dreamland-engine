@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useQuestState } from '@/hooks/use-quest-state';
+import { useQuestState } from '@/hooks/use-quest-integration';
 import { useLanguage } from '@/context/language-context';
 
 interface QuestTrackerProps {

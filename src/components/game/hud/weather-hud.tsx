@@ -2,7 +2,7 @@
 
 import React from 'react';
 import type { GameState } from '@/core/types/game';
-import { useWeatherState, getWeatherEmoji, describeWeather } from '@/hooks/use-weather-state';
+import { useWeatherState, getWeatherEmoji, describeWeather } from '@/hooks/use-weather-integration';
 
 interface WeatherHUDProps {
   gameState: GameState;

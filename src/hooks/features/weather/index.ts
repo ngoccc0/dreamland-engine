@@ -2,5 +2,4 @@
  * Feature: Weather System
  */
 
-export { useWeatherState } from '../../use-weather-state';
-export { useWeatherIntegration } from '../../use-weather-integration';
+export { useWeatherState, useWeatherIntegration, getWeatherEmoji, describeWeather } from '../../use-weather-integration';

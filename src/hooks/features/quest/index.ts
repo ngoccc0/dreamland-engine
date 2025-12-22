@@ -2,4 +2,4 @@
  * Feature: Quest & Achievement System
  */
 
-export { useQuestState } from '../../use-quest-state';
+export { useQuestState, useQuestIntegration } from '../../use-quest-integration';

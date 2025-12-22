@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { WandSparkles } from "./icons";
 import { getTranslatedText, cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { useSkillState } from "@/hooks/useSkillState";
+import { useSkillState } from "@/hooks/use-skill-button-state";
 import { useSkillShake } from "@/hooks/useSkillShake";
 
 interface Skill {

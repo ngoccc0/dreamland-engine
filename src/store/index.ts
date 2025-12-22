@@ -44,3 +44,7 @@ export {
   useNarrativeHistory,
   useNarrativeMood,
 } from './narrative.store';
+
+export {
+  useActionStore,
+} from './action.store';

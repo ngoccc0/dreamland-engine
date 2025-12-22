@@ -10,11 +10,10 @@ import { useGameEngine } from "@/hooks/use-game-engine";
 import { useIdleWarning } from "@/hooks/useIdleWarning";
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
 import { useDialogToggles } from "@/hooks/use-dialog-toggles";
-import { useMinimapGrid } from "@/hooks/use-minimap-grid";
 import { useContextAction } from "@/hooks/use-context-action";
 import { useUIStore } from "@/store";
-import { AudioActionType } from "@/core/data/audio-events";
-import type { Structure, Action } from "@/lib/game/types";
+import { useMinimapGridData } from "@/components/game/panels/sections";
+import type { Action } from "@/lib/game/types";
 import { getTranslatedText } from "@/lib/utils";
 import { logger } from "@/lib/logger";
 
@@ -179,19 +178,34 @@ export default function GameLayout(props: GameLayoutProps) {
         setCookingOpen((prev) => !prev);
     }, []);
 
+    // ===== ACTION FILTERING =====
+    const pickUpActions = useMemo(
+        () => (currentChunk?.actions || []).filter((a: Action) => a.textKey === "pickUpAction_item"),
+        [currentChunk?.actions]
+    );
+    const otherActions = useMemo(
+        () => (currentChunk?.actions || []).filter((a: Action) => a.textKey !== "pickUpAction_item"),
+        [currentChunk?.actions]
+    );
+
+    // ===== MINIMAP GRID GENERATION (Optimized) =====
+    const gridToPass = useMinimapGridData({
+        world,
+        playerPosition,
+        visualPlayerPosition,
+        isAnimatingMove,
+        visualMoveTo,
+        turn,
+        finalWorldSetup,
+        isLoaded,
+    });
+
     // ===== KEYBOARD BINDINGS =====
     const handleActionClick = useCallback(
         (actionId: number) => {
             handleAction(actionId);
         },
         [handleAction]
-    );
-
-    const pickUpActions = (currentChunk?.actions || []).filter(
-        (a: Action) => a.textKey === "pickUpAction_item"
-    );
-    const otherActions = (currentChunk?.actions || []).filter(
-        (a: Action) => a.textKey !== "pickUpAction_item"
     );
 
     useKeyboardBindings({
@@ -230,27 +244,6 @@ export default function GameLayout(props: GameLayoutProps) {
         focusCustomActionInput: () => { },
         enabled: true,
         movementWhileTyping: true,
-    });
-
-    // ===== MINIMAP GRID GENERATION =====
-    const { gridToPass } = useMinimapGrid({
-        world,
-        playerPosition,
-        visualPlayerPosition,
-        isAnimatingMove,
-        visualMoveTo,
-        turn,
-        finalWorldSetup,
-        isLoaded,
-        minimapViewportSize: (settings?.minimapViewportSize as 5 | 7 | 9) || 5,
-        animationRefs: {
-            isAnimatingMoveRef,
-            visualMoveToRef,
-            visualPlayerPositionRef,
-            turnRef,
-            holdCenterUntilRef,
-            animationStartTimeRef,
-        },
     });
 
     // ===== CONTEXT SENSITIVE ACTION =====

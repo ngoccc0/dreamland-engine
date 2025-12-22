@@ -48,3 +48,8 @@ export {
 export {
   useActionStore,
 } from './action.store';
+
+export {
+  useUIStore,
+  type DialogState,
+} from './ui.store';

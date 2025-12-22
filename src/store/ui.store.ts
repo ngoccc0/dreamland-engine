@@ -43,6 +43,10 @@ export interface EphemeralUIState {
   installPopupOpen: boolean;
 
   // Context action menu (position-based)
+  // TODO: Phase 3 - Implement context menu feature
+  // Currently unused. Set via setAvailableActionsOpen when user right-clicks on game world.
+  // When implemented, will show action menu (Attack, Talk, Inspect, etc.) at this position.
+  // Remove if context menu is not planned for Phase 3.
   availableActionsOpen: boolean;
   availableActionsPosition: { x: number; y: number } | null;
 
@@ -187,6 +191,8 @@ export const useUIStore = create<UIStoreState>()(
         })),
 
       // Available actions menu control (with position for context menu)
+      // TODO: Phase 3 - Used by context menu feature when implemented
+      // Set position to show action menu at cursor location (right-click on chunk or entity)
       setAvailableActionsOpen: (open: boolean, position?: { x: number; y: number } | null) =>
         set((state) => ({
           ephemeral: {

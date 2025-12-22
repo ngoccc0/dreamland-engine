@@ -9,8 +9,8 @@ import useKeyboardBindings from "@/hooks/use-keyboard-bindings";
 import { useGameEngine } from "@/hooks/use-game-engine";
 import { useIdleWarning } from "@/hooks/useIdleWarning";
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
+import { useDialogToggles } from "@/hooks/use-dialog-toggles";
 import { useUIStore } from "@/store";
-import { useAudio } from "@/lib/audio/useAudio";
 import { AudioActionType } from "@/core/data/audio-events";
 import type { Structure, Action } from "@/lib/game/types";
 import { getTranslatedText } from "@/lib/utils";
@@ -58,7 +58,6 @@ export default function GameLayout(props: GameLayoutProps) {
 
     const { t, language } = useLanguage();
     const { settings, setSettings } = useSettings();
-    const audio = useAudio();
 
     // Idle warning hook
     useIdleWarning({
@@ -68,6 +67,18 @@ export default function GameLayout(props: GameLayoutProps) {
 
     // Layout detection for mobile/desktop/landscape
     const { isDesktop } = useResponsiveLayout();
+
+    // Dialog toggles with audio feedback
+    const {
+        handleStatusToggle,
+        handleInventoryToggle,
+        handleCraftingToggle,
+        handleMapToggle,
+        handleTutorialToggle,
+        handleSettingsToggle,
+        handleBuildingToggle,
+        handleFusionToggle,
+    } = useDialogToggles();
 
     // UI state from store
     const {
@@ -81,7 +92,6 @@ export default function GameLayout(props: GameLayoutProps) {
             skillsOpen: isTutorialOpen,
             settingsOpen: isSettingsOpen,
         },
-        toggleDialog,
         openDialog,
         closeDialog,
         setShowNarrativePanel,
@@ -165,54 +175,10 @@ export default function GameLayout(props: GameLayoutProps) {
     const [selectedPickupIds, setSelectedPickupIds] = useState<number[]>([]);
     const [isCookingOpen, setCookingOpen] = useState(false);
 
-    // ===== TOGGLE HANDLERS WITH AUDIO FEEDBACK =====
-    const handleStatusToggle = useCallback(() => {
-        toggleDialog("statusOpen");
-        audio.playSfxForAction(isStatusOpen ? AudioActionType.UI_CANCEL : AudioActionType.UI_CONFIRM);
-    }, [isStatusOpen, toggleDialog, audio]);
-
-    const handleInventoryToggle = useCallback(() => {
-        toggleDialog("inventoryOpen");
-        audio.playSfxForAction(isInventoryOpen ? AudioActionType.UI_CANCEL : AudioActionType.UI_CONFIRM);
-    }, [isInventoryOpen, toggleDialog, audio]);
-
-    const handleCraftingToggle = useCallback(() => {
-        toggleDialog("craftingOpen");
-        audio.playSfxForAction(isCraftingOpen ? AudioActionType.UI_CANCEL : AudioActionType.UI_CONFIRM);
-    }, [isCraftingOpen, toggleDialog, audio]);
-
+    // ===== COOKING TOGGLE (Local state) =====
     const handleCookingToggle = useCallback(() => {
-        setCookingOpen((prev) => {
-            if (prev) audio.playSfxForAction(AudioActionType.UI_CANCEL);
-            else audio.playSfxForAction(AudioActionType.UI_CONFIRM);
-            return !prev;
-        });
-    }, [audio]);
-
-    const handleMapToggle = useCallback(() => {
-        toggleDialog("mapOpen");
-        audio.playSfxForAction(isFullMapOpen ? AudioActionType.UI_CANCEL : AudioActionType.UI_CONFIRM);
-    }, [isFullMapOpen, toggleDialog, audio]);
-
-    const handleTutorialToggle = useCallback(() => {
-        toggleDialog("skillsOpen");
-        audio.playSfxForAction(isTutorialOpen ? AudioActionType.UI_CANCEL : AudioActionType.UI_CONFIRM);
-    }, [isTutorialOpen, toggleDialog, audio]);
-
-    const handleSettingsToggle = useCallback(() => {
-        toggleDialog("settingsOpen");
-        audio.playSfxForAction(isSettingsOpen ? AudioActionType.UI_CANCEL : AudioActionType.UI_CONFIRM);
-    }, [isSettingsOpen, toggleDialog, audio]);
-
-    const handleBuildingToggle = useCallback(() => {
-        toggleDialog("buildingOpen");
-        audio.playSfxForAction(isBuildingOpen ? AudioActionType.UI_CANCEL : AudioActionType.UI_CONFIRM);
-    }, [isBuildingOpen, toggleDialog, audio]);
-
-    const handleFusionToggle = useCallback(() => {
-        toggleDialog("fusionOpen");
-        audio.playSfxForAction(isFusionOpen ? AudioActionType.UI_CANCEL : AudioActionType.UI_CONFIRM);
-    }, [isFusionOpen, toggleDialog, audio]);
+        setCookingOpen((prev) => !prev);
+    }, []);
 
     // ===== KEYBOARD BINDINGS =====
     const handleActionClick = useCallback(

@@ -89,11 +89,29 @@ export default function GameLayout(props: GameLayoutProps) {
             mapOpen: isFullMapOpen,
             skillsOpen: isTutorialOpen,
             settingsOpen: isSettingsOpen,
+            cookingOpen: isCookingOpen,
+        },
+        ephemeral: {
+            installPopupOpen: showInstallPopup,
+            availableActionsOpen: isAvailableActionsOpen,
+            availableActionsPosition,
+            customDialogOpen: isCustomDialogOpen,
+            customDialogValue,
+            pickupDialogOpen: isPickupDialogOpen,
+            selectedPickupIds,
         },
         openDialog,
         closeDialog,
+        toggleDialog,
         setShowNarrativePanel,
         showNarrativePanel: showNarrativeDesktop,
+        setInstallPopupOpen,
+        setAvailableActionsOpen,
+        setCustomDialogOpen,
+        setCustomDialogValue,
+        setPickupDialogOpen,
+        togglePickupId,
+        clearPickupIds,
     } = useUIStore();
 
     // ===== GAME ENGINE =====
@@ -164,20 +182,6 @@ export default function GameLayout(props: GameLayoutProps) {
         } catch { }
     }, [isAnimatingMove]);
 
-    // ===== POPUP STATE & DIALOG MANAGEMENT =====
-    const [showInstallPopup, setShowInstallPopup] = useState(false);
-    const [isAvailableActionsOpen, setAvailableActionsOpen] = useState(false);
-    const [isCustomDialogOpen, setCustomDialogOpen] = useState(false);
-    const [customDialogValue, setCustomDialogValue] = useState("");
-    const [isPickupDialogOpen, setPickupDialogOpen] = useState(false);
-    const [selectedPickupIds, setSelectedPickupIds] = useState<number[]>([]);
-    const [isCookingOpen, setCookingOpen] = useState(false);
-
-    // ===== COOKING TOGGLE (Local state) =====
-    const handleCookingToggle = useCallback(() => {
-        setCookingOpen((prev) => !prev);
-    }, []);
-
     // ===== ACTION FILTERING =====
     const pickUpActions = useMemo(
         () => (currentChunk?.actions || []).filter((a: Action) => a.textKey === "pickUpAction_item"),
@@ -220,7 +224,7 @@ export default function GameLayout(props: GameLayoutProps) {
             customAction: () => setCustomDialogOpen(true),
             pickUp: () => {
                 setPickupDialogOpen(true);
-                setSelectedPickupIds([]);
+                clearPickupIds();
             },
             hotkey: (index: number) => {
                 try {
@@ -266,7 +270,7 @@ export default function GameLayout(props: GameLayoutProps) {
                 ...contextAction,
                 handler: () => {
                     setPickupDialogOpen(true);
-                    setSelectedPickupIds([]);
+                    clearPickupIds();
                 },
             }
             : contextAction;
@@ -353,7 +357,7 @@ export default function GameLayout(props: GameLayoutProps) {
             onOpenCrafting={handleCraftingToggle}
             onOpenBuilding={handleBuildingToggle}
             onOpenFusion={handleFusionToggle}
-            onOpenCooking={handleCookingToggle}
+            onOpenCooking={() => toggleDialog("cookingOpen")}
             onStatusOpenChange={(open) => {
                 if (open) openDialog("statusOpen");
                 else closeDialog("statusOpen");
@@ -386,16 +390,19 @@ export default function GameLayout(props: GameLayoutProps) {
                 if (open) openDialog("settingsOpen");
                 else closeDialog("settingsOpen");
             }}
-            onInstallPopupOpenChange={setShowInstallPopup}
+            onInstallPopupOpenChange={setInstallPopupOpen}
             onAvailableActionsOpenChange={setAvailableActionsOpen}
             onCustomDialogOpenChange={setCustomDialogOpen}
             onPickupDialogOpenChange={setPickupDialogOpen}
-            onCookingOpenChange={setCookingOpen}
+            onCookingOpenChange={(open) => {
+                if (open) openDialog("cookingOpen");
+                else closeDialog("cookingOpen");
+            }}
             onUseSkill={handleUseSkill}
             onActionClick={handleActionClick}
             onOpenPickup={() => {
                 setPickupDialogOpen(true);
-                setSelectedPickupIds([]);
+                clearPickupIds();
             }}
             onOpenAvailableActions={() => setAvailableActionsOpen(true)}
             onOpenCustomDialog={() => setCustomDialogOpen(true)}
@@ -406,11 +413,7 @@ export default function GameLayout(props: GameLayoutProps) {
                 }
                 setCustomDialogOpen(false);
             }}
-            onTogglePickupSelection={(id: number) => {
-                setSelectedPickupIds((prev) =>
-                    prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-                );
-            }}
+            onTogglePickupSelection={togglePickupId}
             onPickupConfirm={() => {
                 if (selectedPickupIds.length === 0) {
                     setPickupDialogOpen(false);
@@ -423,7 +426,7 @@ export default function GameLayout(props: GameLayoutProps) {
                         logger.error("Pickup failed", { actionId, error });
                     }
                 });
-                setSelectedPickupIds([]);
+                clearPickupIds();
                 setPickupDialogOpen(false);
             }}
             onEquipItem={handleEquipItem}

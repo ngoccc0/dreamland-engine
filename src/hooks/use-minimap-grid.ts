@@ -4,14 +4,18 @@
  * 
  * @remarks
  * Handles complex minimap grid generation logic including:
- * - Chunk visibility calculation with radius
+ * - Chunk visibility calculation with Chebyshev distance (from grid.ts)
  * - Animation frame smoothing (smooth camera follow during movement)
  * - Grid exploration tracking
  * - Minimap viewport size configuration
+ * 
+ * **Integration:** Uses `chebyshevDistance()` from `@/core/math/grid.ts`
+ * for consistent distance calculations across the codebase.
  */
 
 import { useCallback, useEffect, useRef, useMemo } from 'react';
 import type { World } from '@/core/types/game';
+import { chebyshevDistance, type GridPos } from '@/core/math/grid';
 
 type Position = { x: number; y: number };
 
@@ -113,9 +117,9 @@ export function useMinimapGrid({
 
         if (chunk) {
           const refPos = playerForGrid || playerPosition;
-          const distanceFromPlayer = Math.max(
-            Math.abs(wx - refPos.x),
-            Math.abs(wy - refPos.y)
+          const distanceFromPlayer = chebyshevDistance(
+            { x: wx, y: wy },
+            { x: refPos.x, y: refPos.y }
           );
 
           if (distanceFromPlayer <= visibilityRadius) {

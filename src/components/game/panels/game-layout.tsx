@@ -267,7 +267,7 @@ export default function GameLayout(props: GameLayoutProps) {
     });
 
     // Update context action to use dialog handler
-    const contextActionWithDialog: ContextAction = 
+    const contextActionWithDialog: ContextAction =
         contextAction.type === 'pickup'
             ? {
                 ...contextAction,
@@ -275,7 +275,7 @@ export default function GameLayout(props: GameLayoutProps) {
                     setPickupDialogOpen(true);
                     setSelectedPickupIds([]);
                 },
-              }
+            }
             : contextAction;
 
     // ===== LOADING STATE =====

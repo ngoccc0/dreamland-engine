@@ -27,7 +27,7 @@ import {
     sortAchievementsByProgress,
     getAllQuestsAsDisplay,
     getAllAchievementsAsDisplay,
-} from './useQuestCalculations';
+} from './quest-calculations';
 import type { QuestSelectorResult, QuestDisplay, AchievementDisplay } from './quest-types';
 
 /**

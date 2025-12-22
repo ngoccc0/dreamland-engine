@@ -46,7 +46,7 @@ export const GameLayoutContent = React.memo(function GameLayoutContent({
     otherActions,
     selectedPickupIds,
     turn,
-    
+
     // UI state
     isStatusOpen,
     isInventoryOpen,
@@ -63,15 +63,15 @@ export const GameLayoutContent = React.memo(function GameLayoutContent({
     isPickupDialogOpen,
     customDialogValue,
     isCookingOpen,
-    
+
     // Language & settings
     language,
     t,
     settings,
-    
+
     // Context action
     contextAction,
-    
+
     // Handlers
     onMove,
     onInteract,
@@ -115,11 +115,11 @@ export const GameLayoutContent = React.memo(function GameLayoutContent({
     onBuild,
     onFuse,
     onCustomDialogValueChange,
-    
+
     // Props
     gameSlot,
 }: GameLayoutContentProps) {
-    const getTranslatedText = (text: any, lang: string, translator: any) => 
+    const getTranslatedText = (text: any, lang: string, translator: any) =>
         text?.translations?.[lang] ?? text?.en ?? text ?? "";
 
     return (
@@ -253,7 +253,7 @@ export const GameLayoutContent = React.memo(function GameLayoutContent({
                     onToggleStatus={onOpenStatus}
                     onToggleInventory={onOpenInventory}
                     onToggleCrafting={onOpenCrafting}
-                    onToggleMap={() => {}}
+                    onToggleMap={() => { }}
                     onActionClick={onActionClick}
                     onCustomDialogSubmit={onCustomDialogSubmit}
                     onTogglePickupSelection={onTogglePickupSelection}

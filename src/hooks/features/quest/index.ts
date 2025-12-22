@@ -17,14 +17,14 @@
 
 export { useQuestSelectors } from './useQuestSelectors';
 export { useQuestActions } from './useQuestActions';
-export { 
+export {
     calculateQuestDisplay,
     calculateAchievementDisplay,
     sortQuestsByProgress,
     sortAchievementsByProgress,
     getAllQuestsAsDisplay,
     getAllAchievementsAsDisplay,
-} from './useQuestCalculations';
+} from './quest-calculations';
 
 export type {
     QuestDisplay,

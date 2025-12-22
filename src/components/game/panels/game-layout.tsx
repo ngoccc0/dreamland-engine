@@ -8,6 +8,8 @@ import { useSettings } from "@/context/settings-context";
 import useKeyboardBindings from "@/hooks/use-keyboard-bindings";
 import { useGameEngine } from "@/hooks/use-game-engine";
 import { useIdleWarning } from "@/hooks/useIdleWarning";
+import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
+import { useUIStore } from "@/store";
 import { useAudio } from "@/lib/audio/useAudio";
 import { AudioActionType } from "@/core/data/audio-events";
 import type { Structure, Action } from "@/lib/game/types";
@@ -64,30 +66,27 @@ export default function GameLayout(props: GameLayoutProps) {
         idleWarningThresholdMs: settings?.idleWarningThresholdMs,
     });
 
-    // ===== LAYOUT DETECTION (Mobile / Desktop / Landscape) =====
-    const [isDesktop, setIsDesktop] = useState(false);
-    const [showNarrativeDesktop, setShowNarrativeDesktop] = useState(true);
+    // Layout detection for mobile/desktop/landscape
+    const { isDesktop } = useResponsiveLayout();
 
-    useEffect(() => {
-        const checkLayout = () => {
-            if (typeof window === "undefined") return;
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-
-            // Desktop: width >= 1024 OR landscape mode (width > height)
-            const isLandscape = width > height && width > 480;
-            const isLargeScreen = width >= 1024;
-            setIsDesktop(isLargeScreen || isLandscape);
-        };
-
-        checkLayout();
-        window.addEventListener("resize", checkLayout);
-        window.addEventListener("orientationchange", checkLayout);
-        return () => {
-            window.removeEventListener("resize", checkLayout);
-            window.removeEventListener("orientationchange", checkLayout);
-        };
-    }, []);
+    // UI state from store
+    const {
+        dialogs: {
+            statusOpen: isStatusOpen,
+            inventoryOpen: isInventoryOpen,
+            craftingOpen: isCraftingOpen,
+            buildingOpen: isBuildingOpen,
+            fusionOpen: isFusionOpen,
+            mapOpen: isFullMapOpen,
+            skillsOpen: isTutorialOpen,
+            settingsOpen: isSettingsOpen,
+        },
+        toggleDialog,
+        openDialog,
+        closeDialog,
+        setShowNarrativePanel,
+        showNarrativePanel: showNarrativeDesktop,
+    } = useUIStore();
 
     // ===== GAME ENGINE =====
     const {
@@ -157,15 +156,7 @@ export default function GameLayout(props: GameLayoutProps) {
         } catch { }
     }, [isAnimatingMove]);
 
-    // ===== POPUP STATE =====
-    const [isStatusOpen, setStatusOpen] = useState(false);
-    const [isInventoryOpen, setInventoryOpen] = useState(false);
-    const [isCraftingOpen, setCraftingOpen] = useState(false);
-    const [isBuildingOpen, setBuildingOpen] = useState(false);
-    const [isFusionOpen, setFusionOpen] = useState(false);
-    const [isFullMapOpen, setIsFullMapOpen] = useState(false);
-    const [isTutorialOpen, setTutorialOpen] = useState(false);
-    const [isSettingsOpen, setSettingsOpen] = useState(false);
+    // ===== POPUP STATE & DIALOG MANAGEMENT =====
     const [showInstallPopup, setShowInstallPopup] = useState(false);
     const [isAvailableActionsOpen, setAvailableActionsOpen] = useState(false);
     const [isCustomDialogOpen, setCustomDialogOpen] = useState(false);
@@ -176,28 +167,19 @@ export default function GameLayout(props: GameLayoutProps) {
 
     // ===== TOGGLE HANDLERS WITH AUDIO FEEDBACK =====
     const handleStatusToggle = useCallback(() => {
-        setStatusOpen((prev) => {
-            if (prev) audio.playSfxForAction(AudioActionType.UI_CANCEL);
-            else audio.playSfxForAction(AudioActionType.UI_CONFIRM);
-            return !prev;
-        });
-    }, [audio]);
+        toggleDialog("statusOpen");
+        audio.playSfxForAction(isStatusOpen ? AudioActionType.UI_CANCEL : AudioActionType.UI_CONFIRM);
+    }, [isStatusOpen, toggleDialog, audio]);
 
     const handleInventoryToggle = useCallback(() => {
-        setInventoryOpen((prev) => {
-            if (prev) audio.playSfxForAction(AudioActionType.UI_CANCEL);
-            else audio.playSfxForAction(AudioActionType.UI_CONFIRM);
-            return !prev;
-        });
-    }, [audio]);
+        toggleDialog("inventoryOpen");
+        audio.playSfxForAction(isInventoryOpen ? AudioActionType.UI_CANCEL : AudioActionType.UI_CONFIRM);
+    }, [isInventoryOpen, toggleDialog, audio]);
 
     const handleCraftingToggle = useCallback(() => {
-        setCraftingOpen((prev) => {
-            if (prev) audio.playSfxForAction(AudioActionType.UI_CANCEL);
-            else audio.playSfxForAction(AudioActionType.UI_CONFIRM);
-            return !prev;
-        });
-    }, [audio]);
+        toggleDialog("craftingOpen");
+        audio.playSfxForAction(isCraftingOpen ? AudioActionType.UI_CANCEL : AudioActionType.UI_CONFIRM);
+    }, [isCraftingOpen, toggleDialog, audio]);
 
     const handleCookingToggle = useCallback(() => {
         setCookingOpen((prev) => {
@@ -208,44 +190,29 @@ export default function GameLayout(props: GameLayoutProps) {
     }, [audio]);
 
     const handleMapToggle = useCallback(() => {
-        setIsFullMapOpen((prev) => {
-            if (prev) audio.playSfxForAction(AudioActionType.UI_CANCEL);
-            else audio.playSfxForAction(AudioActionType.UI_CONFIRM);
-            return !prev;
-        });
-    }, [audio]);
+        toggleDialog("mapOpen");
+        audio.playSfxForAction(isFullMapOpen ? AudioActionType.UI_CANCEL : AudioActionType.UI_CONFIRM);
+    }, [isFullMapOpen, toggleDialog, audio]);
 
     const handleTutorialToggle = useCallback(() => {
-        setTutorialOpen((prev) => {
-            if (prev) audio.playSfxForAction(AudioActionType.UI_CANCEL);
-            else audio.playSfxForAction(AudioActionType.UI_CONFIRM);
-            return !prev;
-        });
-    }, [audio]);
+        toggleDialog("skillsOpen");
+        audio.playSfxForAction(isTutorialOpen ? AudioActionType.UI_CANCEL : AudioActionType.UI_CONFIRM);
+    }, [isTutorialOpen, toggleDialog, audio]);
 
     const handleSettingsToggle = useCallback(() => {
-        setSettingsOpen((prev) => {
-            if (prev) audio.playSfxForAction(AudioActionType.UI_CANCEL);
-            else audio.playSfxForAction(AudioActionType.UI_CONFIRM);
-            return !prev;
-        });
-    }, [audio]);
+        toggleDialog("settingsOpen");
+        audio.playSfxForAction(isSettingsOpen ? AudioActionType.UI_CANCEL : AudioActionType.UI_CONFIRM);
+    }, [isSettingsOpen, toggleDialog, audio]);
 
     const handleBuildingToggle = useCallback(() => {
-        setBuildingOpen((prev) => {
-            if (prev) audio.playSfxForAction(AudioActionType.UI_CANCEL);
-            else audio.playSfxForAction(AudioActionType.UI_CONFIRM);
-            return !prev;
-        });
-    }, [audio]);
+        toggleDialog("buildingOpen");
+        audio.playSfxForAction(isBuildingOpen ? AudioActionType.UI_CANCEL : AudioActionType.UI_CONFIRM);
+    }, [isBuildingOpen, toggleDialog, audio]);
 
     const handleFusionToggle = useCallback(() => {
-        setFusionOpen((prev) => {
-            if (prev) audio.playSfxForAction(AudioActionType.UI_CANCEL);
-            else audio.playSfxForAction(AudioActionType.UI_CONFIRM);
-            return !prev;
-        });
-    }, [audio]);
+        toggleDialog("fusionOpen");
+        audio.playSfxForAction(isFusionOpen ? AudioActionType.UI_CANCEL : AudioActionType.UI_CONFIRM);
+    }, [isFusionOpen, toggleDialog, audio]);
 
     // ===== KEYBOARD BINDINGS =====
     const handleActionClick = useCallback(
@@ -480,7 +447,7 @@ export default function GameLayout(props: GameLayoutProps) {
                     isDesktop={isDesktop}
                     isLoading={isLoading}
                     showNarrativeDesktop={showNarrativeDesktop}
-                    onToggleNarrativeDesktop={setShowNarrativeDesktop}
+                    onToggleNarrativeDesktop={setShowNarrativePanel}
                     onOpenTutorial={handleTutorialToggle}
                     onOpenSettings={handleSettingsToggle}
                     onReturnToMenu={handleReturnToMenu}
@@ -562,14 +529,38 @@ export default function GameLayout(props: GameLayoutProps) {
                     isCustomDialogOpen={isCustomDialogOpen}
                     isPickupDialogOpen={isPickupDialogOpen}
                     isCookingOpen={isCookingOpen}
-                    onStatusOpenChange={setStatusOpen}
-                    onInventoryOpenChange={setInventoryOpen}
-                    onCraftingOpenChange={setCraftingOpen}
-                    onBuildingOpenChange={setBuildingOpen}
-                    onFusionOpenChange={setFusionOpen}
-                    onFullMapOpenChange={setIsFullMapOpen}
-                    onTutorialOpenChange={setTutorialOpen}
-                    onSettingsOpenChange={setSettingsOpen}
+                    onStatusOpenChange={(open) => {
+                        if (open) openDialog("statusOpen");
+                        else closeDialog("statusOpen");
+                    }}
+                    onInventoryOpenChange={(open) => {
+                        if (open) openDialog("inventoryOpen");
+                        else closeDialog("inventoryOpen");
+                    }}
+                    onCraftingOpenChange={(open) => {
+                        if (open) openDialog("craftingOpen");
+                        else closeDialog("craftingOpen");
+                    }}
+                    onBuildingOpenChange={(open) => {
+                        if (open) openDialog("buildingOpen");
+                        else closeDialog("buildingOpen");
+                    }}
+                    onFusionOpenChange={(open) => {
+                        if (open) openDialog("fusionOpen");
+                        else closeDialog("fusionOpen");
+                    }}
+                    onFullMapOpenChange={(open) => {
+                        if (open) openDialog("mapOpen");
+                        else closeDialog("mapOpen");
+                    }}
+                    onTutorialOpenChange={(open) => {
+                        if (open) openDialog("skillsOpen");
+                        else closeDialog("skillsOpen");
+                    }}
+                    onSettingsOpenChange={(open) => {
+                        if (open) openDialog("settingsOpen");
+                        else closeDialog("settingsOpen");
+                    }}
                     onInstallPopupOpenChange={setShowInstallPopup}
                     onAvailableActionsOpenChange={setAvailableActionsOpen}
                     onCustomDialogOpenChange={setCustomDialogOpen}

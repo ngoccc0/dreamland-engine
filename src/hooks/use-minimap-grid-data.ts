@@ -91,7 +91,7 @@ export function useMinimapGridData({
     const prevAnimatingRefForLayout = React.useRef<boolean>(Boolean(isAnimatingMove));
     const holdCenterUntilRef = React.useRef<number>(0);
     const animationStartTimeRef = React.useRef<number>(0);
-    
+
     // Animation state refs - synced with props each render
     const isAnimatingMoveRef = React.useRef(isAnimatingMove);
     const visualMoveToRef = React.useRef<Position | null>(visualMoveTo);

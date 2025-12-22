@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useQuestState } from '@/hooks/use-quest-integration';
+import { useQuestSelectors } from '@/hooks/features/quest';
 import { useLanguage } from '@/context/language-context';
 
 interface QuestTrackerProps {
@@ -58,7 +58,7 @@ export function QuestTracker({
 
 
     // Get quest display objects with merged template + runtime data
-    const { questsSortedByProgress, activeQuestCount } = useQuestState(
+    const { questsSortedByProgress, activeQuestCount } = useQuestSelectors(
         activeQuests,
         [],
         statistics
@@ -119,12 +119,12 @@ export function QuestTracker({
                             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
                                 <div
                                     className={`h-full transition-all duration-300 ${isComplete
-                                            ? 'bg-green-500'
-                                            : progressPercent < 33
-                                                ? 'bg-yellow-500'
-                                                : progressPercent < 66
-                                                    ? 'bg-blue-500'
-                                                    : 'bg-purple-500'
+                                        ? 'bg-green-500'
+                                        : progressPercent < 33
+                                            ? 'bg-yellow-500'
+                                            : progressPercent < 66
+                                                ? 'bg-blue-500'
+                                                : 'bg-purple-500'
                                         }`}
                                     style={{ width: `${progressPercent}%` }}
                                 />
@@ -174,7 +174,7 @@ export function AchievementBadge({
     statistics?: any;
     className?: string;
 }) {
-    const { getAchievementDisplay } = useQuestState(
+    const { getAchievementDisplay } = useQuestSelectors(
         [],
         unlockedAchievements,
         statistics

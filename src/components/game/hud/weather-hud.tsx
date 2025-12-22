@@ -65,12 +65,12 @@ export function WeatherHUD({ gameState, compact = false }: WeatherHUDProps) {
         {hazardLevel > 0 && (
           <div
             className={`absolute top-0 right-0 w-2 h-2 rounded-full ${hazardLevel >= 4
-                ? 'bg-red-800'
-                : hazardLevel >= 3
-                  ? 'bg-red-600'
-                  : hazardLevel >= 2
-                    ? 'bg-orange-600'
-                    : 'bg-yellow-600'
+              ? 'bg-red-800'
+              : hazardLevel >= 3
+                ? 'bg-red-600'
+                : hazardLevel >= 2
+                  ? 'bg-orange-600'
+                  : 'bg-yellow-600'
               }`}
           />
         )}
@@ -124,12 +124,12 @@ export function WeatherHUD({ gameState, compact = false }: WeatherHUDProps) {
               <div
                 key={i}
                 className={`w-2 h-2 rounded-full ${i < hazardLevel
-                    ? hazardLevel >= 3
-                      ? 'bg-red-600'
-                      : hazardLevel >= 2
-                        ? 'bg-orange-600'
-                        : 'bg-yellow-600'
-                    : 'bg-gray-300'
+                  ? hazardLevel >= 3
+                    ? 'bg-red-600'
+                    : hazardLevel >= 2
+                      ? 'bg-orange-600'
+                      : 'bg-yellow-600'
+                  : 'bg-gray-300'
                   }`}
               />
             ))}

@@ -17,21 +17,21 @@ import { devtools } from 'zustand/middleware';
 export type InputMode = 'keyboard' | 'touch' | 'gamepad';
 
 interface ControlsStoreState {
-  // Selected action in action bar
-  selectedActionId: string | null;
-  
-  // Joystick visibility
-  showJoystick: boolean;
-  joystickPosition: { x: number; y: number } | null;
-  
-  // Input mode detection
-  inputMode: InputMode;
-  
-  // Control methods
-  setSelectedAction: (actionId: string | null) => void;
-  setShowJoystick: (show: boolean) => void;
-  setJoystickPosition: (pos: { x: number; y: number } | null) => void;
-  setInputMode: (mode: InputMode) => void;
+    // Selected action in action bar
+    selectedActionId: string | null;
+
+    // Joystick visibility
+    showJoystick: boolean;
+    joystickPosition: { x: number; y: number } | null;
+
+    // Input mode detection
+    inputMode: InputMode;
+
+    // Control methods
+    setSelectedAction: (actionId: string | null) => void;
+    setShowJoystick: (show: boolean) => void;
+    setJoystickPosition: (pos: { x: number; y: number } | null) => void;
+    setInputMode: (mode: InputMode) => void;
 }
 
 /**
@@ -42,35 +42,35 @@ interface ControlsStoreState {
  * and whether joystick should be visible.
  */
 export const useControlsStore = create<ControlsStoreState>()(
-  devtools(
-    (set) => ({
-      selectedActionId: null,
-      showJoystick: false,
-      joystickPosition: null,
-      inputMode: 'keyboard',
-      
-      setSelectedAction: (actionId) =>
-        set(() => ({
-          selectedActionId: actionId,
-        })),
-      
-      setShowJoystick: (show) =>
-        set(() => ({
-          showJoystick: show,
-        })),
-      
-      setJoystickPosition: (pos) =>
-        set(() => ({
-          joystickPosition: pos,
-        })),
-      
-      setInputMode: (mode) =>
-        set(() => ({
-          inputMode: mode,
-        })),
-    }),
-    { name: 'ControlsStore' }
-  )
+    devtools(
+        (set) => ({
+            selectedActionId: null,
+            showJoystick: false,
+            joystickPosition: null,
+            inputMode: 'keyboard',
+
+            setSelectedAction: (actionId) =>
+                set(() => ({
+                    selectedActionId: actionId,
+                })),
+
+            setShowJoystick: (show) =>
+                set(() => ({
+                    showJoystick: show,
+                })),
+
+            setJoystickPosition: (pos) =>
+                set(() => ({
+                    joystickPosition: pos,
+                })),
+
+            setInputMode: (mode) =>
+                set(() => ({
+                    inputMode: mode,
+                })),
+        }),
+        { name: 'ControlsStore' }
+    )
 );
 
 // Atomic selectors

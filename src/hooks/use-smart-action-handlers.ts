@@ -19,21 +19,21 @@ import { useCallback } from 'react';
  * Implemented by useGameEngine or SmartContainer integrator
  */
 export interface ActionExecutor {
-  onMove?: (direction: 'north' | 'south' | 'west' | 'east') => void;
-  onAttack?: () => void;
-  onAction?: (actionId: number) => void;
-  onWait?: () => void;
-  onRest?: () => void;
-  onUseSkill?: (skillId: string) => void;
+    onMove?: (direction: 'north' | 'south' | 'west' | 'east') => void;
+    onAttack?: () => void;
+    onAction?: (actionId: number) => void;
+    onWait?: () => void;
+    onRest?: () => void;
+    onUseSkill?: (skillId: string) => void;
 }
 
 export interface SmartActionHandlers {
-  handleMove: (direction: 'north' | 'south' | 'west' | 'east') => void;
-  handleAttack: () => void;
-  handleAction: (actionId: number) => void;
-  handleWaitTick: () => void;
-  handleRest: () => void;
-  handleUseSkill: (skillId: string) => void;
+    handleMove: (direction: 'north' | 'south' | 'west' | 'east') => void;
+    handleAttack: () => void;
+    handleAction: (actionId: number) => void;
+    handleWaitTick: () => void;
+    handleRest: () => void;
+    handleUseSkill: (skillId: string) => void;
 }
 
 /**
@@ -47,45 +47,45 @@ export interface SmartActionHandlers {
  * @returns Object with memoized handler callbacks
  */
 export function useSmartActionHandlers(executor: ActionExecutor): SmartActionHandlers {
-  const handleMove = useCallback(
-    (direction: 'north' | 'south' | 'west' | 'east') => {
-      executor.onMove?.(direction);
-    },
-    [executor]
-  );
+    const handleMove = useCallback(
+        (direction: 'north' | 'south' | 'west' | 'east') => {
+            executor.onMove?.(direction);
+        },
+        [executor]
+    );
 
-  const handleAttack = useCallback(() => {
-    executor.onAttack?.();
-  }, [executor]);
+    const handleAttack = useCallback(() => {
+        executor.onAttack?.();
+    }, [executor]);
 
-  const handleAction = useCallback(
-    (actionId: number) => {
-      executor.onAction?.(actionId);
-    },
-    [executor]
-  );
+    const handleAction = useCallback(
+        (actionId: number) => {
+            executor.onAction?.(actionId);
+        },
+        [executor]
+    );
 
-  const handleWaitTick = useCallback(() => {
-    executor.onWait?.();
-  }, [executor]);
+    const handleWaitTick = useCallback(() => {
+        executor.onWait?.();
+    }, [executor]);
 
-  const handleRest = useCallback(() => {
-    executor.onRest?.();
-  }, [executor]);
+    const handleRest = useCallback(() => {
+        executor.onRest?.();
+    }, [executor]);
 
-  const handleUseSkill = useCallback(
-    (skillId: string) => {
-      executor.onUseSkill?.(skillId);
-    },
-    [executor]
-  );
+    const handleUseSkill = useCallback(
+        (skillId: string) => {
+            executor.onUseSkill?.(skillId);
+        },
+        [executor]
+    );
 
-  return {
-    handleMove,
-    handleAttack,
-    handleAction,
-    handleWaitTick,
-    handleRest,
-    handleUseSkill,
-  };
+    return {
+        handleMove,
+        handleAttack,
+        handleAction,
+        handleWaitTick,
+        handleRest,
+        handleUseSkill,
+    };
 }

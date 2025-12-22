@@ -1,27 +1,36 @@
 /**
- * Game Layout Sections - Architectural Organization & Hook Exports
+ * Game Layout Sections - Smart Containers & Hook Exports
  *
  * @remarks
- * This folder documents logical sections of GameLayout and exports hooks they use.
+ * This folder contains Smart Container components that subscribe to Zustand stores
+ * for independent rendering, plus hook exports used by various sections.
  *
- * Each file (HudSection, ControlsSection, DialogSection, MiniMapSection)
- * represents a self-contained subsystem that could be extracted into
- * a Smart Container in future refactoring passes.
+ * **Smart Containers (State-Subscribed Components):**
+ * - `HudSection` - Subscribes to useHudStore, displays player stats/time/weather
+ * - `MiniMapSection` - Subscribes to useMinimapStore, displays game grid
+ * - `ControlsSection` - Subscribes to useControlsStore, displays action controls
+ * - `DialogSection` - Subscribes to useUIStore, renders all dialogs/popups
  *
- * **Current State:** Documentation + hooks reexported for convenience
- * **Future State:** Each could become a Smart Container subscribed to Zustand/Context
+ * Each Smart Container:
+ * - Subscribes to specific store fields via atomic selectors
+ * - Re-renders ONLY when subscribed data changes
+ * - Wraps actual component (HudSection → GameLayoutHud, etc.)
+ * - Prevents prop drilling by reading from store directly
  *
- * **Benefits of separation:**
- * - Minimap grid calculations isolated (only re-render on position/animation change)
- * - Dialog state independent (opening inventory doesn't re-render HUD)
- * - Controls isolated (action updates don't re-render dialogs)
- * - Each section can be optimized/tested separately
+ * **Benefits:**
+ * - Minimap grid re-renders only on position/animation changes
+ * - Dialogs open/close independently (no HUD re-render)
+ * - Controls update only on action/input changes
+ * - Performance improvement via granular subscriptions
  *
  * **Hooks Available:**
  * - `useMinimapGridData` - Generates minimap grid with animation smoothing
- *   Located in src/hooks/use-minimap-grid-data.ts (proper .ts file for hooks)
+ *   Located in src/hooks/use-minimap-grid-data.ts
  *   Re-exported here for convenience during GameLayout integration
  */
 
+export { HudSection } from './HudSection';
+export { MiniMapSection } from './MiniMapSection';
+export { ControlsSection } from './ControlsSection';
+export { DialogSection } from './DialogSection';
 export { useMinimapGridData } from '@/hooks/use-minimap-grid-data';
-

@@ -5,8 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { FloatingJoystick } from "./game-layout-controls";
 import { GameLayoutNarrative } from "./game-layout-narrative";
 import { GameLayoutHud } from "./game-layout-hud";
-import { GameLayoutControls } from "./game-layout-controls";
-import { GameLayoutDialogs } from "./game-layout-dialogs";
+import { ControlsSection, DialogSection } from "./sections";
 import type { GameLayoutContentProps } from "./game-layout.types";
 
 /**
@@ -119,7 +118,7 @@ export const GameLayoutContent = React.memo(function GameLayoutContent({
     // Props
     gameSlot,
 }: GameLayoutContentProps) {
-    const getTranslatedText = (text: any, lang: string, translator: any) =>
+    const getTranslatedText = (text: any, lang: string, _translator: any) =>
         text?.translations?.[lang] ?? text?.en ?? text ?? "";
 
     return (
@@ -189,8 +188,8 @@ export const GameLayoutContent = React.memo(function GameLayoutContent({
                     onMapSizeChange={onMapSizeChange}
                 />
 
-                {/* Controls */}
-                <GameLayoutControls
+                {/* Controls - Smart Container subscribed to controlsStore */}
+                <ControlsSection
                     isDesktop={isDesktop}
                     isLoading={isLoading}
                     playerStats={playerStats}
@@ -214,8 +213,8 @@ export const GameLayoutContent = React.memo(function GameLayoutContent({
                     onOpenCooking={onOpenCooking}
                 />
 
-                {/* Dialogs */}
-                <GameLayoutDialogs
+                {/* Dialogs - Smart Container subscribed to useUIStore */}
+                <DialogSection
                     isStatusOpen={isStatusOpen}
                     isInventoryOpen={isInventoryOpen}
                     isCraftingOpen={isCraftingOpen}

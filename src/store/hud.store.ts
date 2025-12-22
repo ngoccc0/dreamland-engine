@@ -20,59 +20,59 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 export interface PlayerStats {
-  hp: number;
-  maxHp: number;
-  hunger: number;
-  maxHunger: number;
-  energy: number;
-  maxEnergy: number;
-  level: number;
-  experience: number;
+    hp: number;
+    maxHp: number;
+    hunger: number;
+    maxHunger: number;
+    energy: number;
+    maxEnergy: number;
+    level: number;
+    experience: number;
 }
 
 export interface GameTimeState {
-  currentHour: number;
-  currentDay: number;
-  season: 'spring' | 'summer' | 'autumn' | 'winter';
+    currentHour: number;
+    currentDay: number;
+    season: 'spring' | 'summer' | 'autumn' | 'winter';
 }
 
 export interface WeatherState {
-  temperature: number;
-  condition: 'clear' | 'cloudy' | 'rainy' | 'snowy';
-  biome: string;
+    temperature: number;
+    condition: 'clear' | 'cloudy' | 'rainy' | 'snowy';
+    biome: string;
 }
 
 export interface LocationState {
-  chunkName: string;
-  biomeType: string;
+    chunkName: string;
+    biomeType: string;
 }
 
 interface HudStoreState {
-  // Player statistics
-  playerStats: PlayerStats;
-  
-  // Game time
-  gameTime: GameTimeState;
-  
-  // Weather
-  weather: WeatherState;
-  
-  // Current location
-  location: LocationState;
-  
-  // Control methods
-  setPlayerStats: (stats: Partial<PlayerStats>) => void;
-  setGameTime: (time: Partial<GameTimeState>) => void;
-  setWeather: (weather: Partial<WeatherState>) => void;
-  setLocation: (location: Partial<LocationState>) => void;
-  
-  // Bulk update (from gameEngine)
-  updateFromGameState: (gameState: {
-    player?: any;
-    time?: any;
-    weather?: any;
-    chunk?: any;
-  }) => void;
+    // Player statistics
+    playerStats: PlayerStats;
+
+    // Game time
+    gameTime: GameTimeState;
+
+    // Weather
+    weather: WeatherState;
+
+    // Current location
+    location: LocationState;
+
+    // Control methods
+    setPlayerStats: (stats: Partial<PlayerStats>) => void;
+    setGameTime: (time: Partial<GameTimeState>) => void;
+    setWeather: (weather: Partial<WeatherState>) => void;
+    setLocation: (location: Partial<LocationState>) => void;
+
+    // Bulk update (from gameEngine)
+    updateFromGameState: (gameState: {
+        player?: any;
+        time?: any;
+        weather?: any;
+        chunk?: any;
+    }) => void;
 }
 
 /**
@@ -101,101 +101,101 @@ interface HudStoreState {
  * ```
  */
 export const useHudStore = create<HudStoreState>()(
-  devtools(
-    (set) => ({
-      playerStats: {
-        hp: 100,
-        maxHp: 100,
-        hunger: 50,
-        maxHunger: 100,
-        energy: 80,
-        maxEnergy: 100,
-        level: 1,
-        experience: 0,
-      },
-      
-      gameTime: {
-        currentHour: 6,
-        currentDay: 1,
-        season: 'spring',
-      },
-      
-      weather: {
-        temperature: 20,
-        condition: 'clear',
-        biome: 'forest',
-      },
-      
-      location: {
-        chunkName: 'Enchanted Forest',
-        biomeType: 'forest',
-      },
-      
-      setPlayerStats: (stats) =>
-        set((state) => ({
-          playerStats: { ...state.playerStats, ...stats },
-        })),
-      
-      setGameTime: (time) =>
-        set((state) => ({
-          gameTime: { ...state.gameTime, ...time },
-        })),
-      
-      setWeather: (weather) =>
-        set((state) => ({
-          weather: { ...state.weather, ...weather },
-        })),
-      
-      setLocation: (location) =>
-        set((state) => ({
-          location: { ...state.location, ...location },
-        })),
-      
-      updateFromGameState: (gameState) =>
-        set((state) => {
-          const newState = { ...state };
-          
-          if (gameState.player) {
-            newState.playerStats = {
-              hp: gameState.player.hp ?? state.playerStats.hp,
-              maxHp: gameState.player.maxHp ?? state.playerStats.maxHp,
-              hunger: gameState.player.hunger ?? state.playerStats.hunger,
-              maxHunger: gameState.player.maxHunger ?? state.playerStats.maxHunger,
-              energy: gameState.player.energy ?? state.playerStats.energy,
-              maxEnergy: gameState.player.maxEnergy ?? state.playerStats.maxEnergy,
-              level: gameState.player.level ?? state.playerStats.level,
-              experience: gameState.player.experience ?? state.playerStats.experience,
-            };
-          }
-          
-          if (gameState.time) {
-            newState.gameTime = {
-              currentHour: gameState.time.hour ?? state.gameTime.currentHour,
-              currentDay: gameState.time.day ?? state.gameTime.currentDay,
-              season: gameState.time.season ?? state.gameTime.season,
-            };
-          }
-          
-          if (gameState.weather) {
-            newState.weather = {
-              temperature: gameState.weather.temperature ?? state.weather.temperature,
-              condition: gameState.weather.condition ?? state.weather.condition,
-              biome: gameState.weather.biome ?? state.weather.biome,
-            };
-          }
-          
-          if (gameState.chunk) {
-            newState.location = {
-              chunkName: gameState.chunk.name ?? state.location.chunkName,
-              biomeType: gameState.chunk.biomeType ?? state.location.biomeType,
-            };
-          }
-          
-          return newState;
+    devtools(
+        (set) => ({
+            playerStats: {
+                hp: 100,
+                maxHp: 100,
+                hunger: 50,
+                maxHunger: 100,
+                energy: 80,
+                maxEnergy: 100,
+                level: 1,
+                experience: 0,
+            },
+
+            gameTime: {
+                currentHour: 6,
+                currentDay: 1,
+                season: 'spring',
+            },
+
+            weather: {
+                temperature: 20,
+                condition: 'clear',
+                biome: 'forest',
+            },
+
+            location: {
+                chunkName: 'Enchanted Forest',
+                biomeType: 'forest',
+            },
+
+            setPlayerStats: (stats) =>
+                set((state) => ({
+                    playerStats: { ...state.playerStats, ...stats },
+                })),
+
+            setGameTime: (time) =>
+                set((state) => ({
+                    gameTime: { ...state.gameTime, ...time },
+                })),
+
+            setWeather: (weather) =>
+                set((state) => ({
+                    weather: { ...state.weather, ...weather },
+                })),
+
+            setLocation: (location) =>
+                set((state) => ({
+                    location: { ...state.location, ...location },
+                })),
+
+            updateFromGameState: (gameState) =>
+                set((state) => {
+                    const newState = { ...state };
+
+                    if (gameState.player) {
+                        newState.playerStats = {
+                            hp: gameState.player.hp ?? state.playerStats.hp,
+                            maxHp: gameState.player.maxHp ?? state.playerStats.maxHp,
+                            hunger: gameState.player.hunger ?? state.playerStats.hunger,
+                            maxHunger: gameState.player.maxHunger ?? state.playerStats.maxHunger,
+                            energy: gameState.player.energy ?? state.playerStats.energy,
+                            maxEnergy: gameState.player.maxEnergy ?? state.playerStats.maxEnergy,
+                            level: gameState.player.level ?? state.playerStats.level,
+                            experience: gameState.player.experience ?? state.playerStats.experience,
+                        };
+                    }
+
+                    if (gameState.time) {
+                        newState.gameTime = {
+                            currentHour: gameState.time.hour ?? state.gameTime.currentHour,
+                            currentDay: gameState.time.day ?? state.gameTime.currentDay,
+                            season: gameState.time.season ?? state.gameTime.season,
+                        };
+                    }
+
+                    if (gameState.weather) {
+                        newState.weather = {
+                            temperature: gameState.weather.temperature ?? state.weather.temperature,
+                            condition: gameState.weather.condition ?? state.weather.condition,
+                            biome: gameState.weather.biome ?? state.weather.biome,
+                        };
+                    }
+
+                    if (gameState.chunk) {
+                        newState.location = {
+                            chunkName: gameState.chunk.name ?? state.location.chunkName,
+                            biomeType: gameState.chunk.biomeType ?? state.location.biomeType,
+                        };
+                    }
+
+                    return newState;
+                }),
         }),
-    }),
-    { name: 'HudStore' }
-  )
+        { name: 'HudStore' }
+    )
 );
 
 // Atomic selectors for specific fields (recommended usage)

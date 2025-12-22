@@ -10,6 +10,7 @@ import { useGameEngine } from "@/hooks/use-game-engine";
 import { useIdleWarning } from "@/hooks/useIdleWarning";
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
 import { useDialogToggles } from "@/hooks/use-dialog-toggles";
+import { useMinimapGrid } from "@/hooks/use-minimap-grid";
 import { useUIStore } from "@/store";
 import { AudioActionType } from "@/core/data/audio-events";
 import type { Structure, Action } from "@/lib/game/types";
@@ -143,7 +144,7 @@ export default function GameLayout(props: GameLayoutProps) {
     const holdCenterUntilRef = useRef<number>(0);
     const animationStartTimeRef = useRef<number>(0);
     const isAnimatingMoveRef = useRef(isAnimatingMove);
-    const visualMoveToRef = useRef(visualMoveTo);
+    const visualMoveToRef = useRef<{ x: number; y: number } | null>(visualMoveTo);
     const visualPlayerPositionRef = useRef(visualPlayerPosition);
     const turnRef = useRef(turn);
 
@@ -234,68 +235,25 @@ export default function GameLayout(props: GameLayoutProps) {
     });
 
     // ===== MINIMAP GRID GENERATION =====
-    const generateMapGrid = useCallback(() => {
-        if (!isLoaded || !finalWorldSetup) return [];
-
-        const visibilityRadius = 1;
-        const minimapViewportSize = (settings?.minimapViewportSize as 5 | 7 | 9) || 5;
-        const displayRadius = Math.floor(minimapViewportSize / 2);
-        const size = displayRadius * 2 + 1;
-        const grid = Array.from({ length: size }, () => Array(size).fill(null));
-
-        const now = Date.now();
-        const shouldUseVisualCenter =
-            (isAnimatingMoveRef.current &&
-                now > animationStartTimeRef.current &&
-                (visualMoveToRef.current || visualPlayerPositionRef.current)) ||
-            ((visualPlayerPositionRef.current || visualMoveToRef.current) &&
-                holdCenterUntilRef.current > now);
-        const playerForGrid = shouldUseVisualCenter
-            ? visualMoveToRef.current || visualPlayerPositionRef.current || playerPosition
-            : playerPosition;
-
-        for (let gy = 0; gy < size; gy++) {
-            for (let gx = 0; gx < size; gx++) {
-                const wx = playerForGrid.x - displayRadius + gx;
-                const wy = playerForGrid.y + displayRadius - gy;
-                const chunkKey = `${wx},${wy}`;
-                const chunk = world[chunkKey];
-
-                if (chunk) {
-                    const refPos = playerForGrid || playerPosition;
-                    const distanceFromPlayer = Math.max(
-                        Math.abs(wx - refPos.x),
-                        Math.abs(wy - refPos.y)
-                    );
-
-                    if (distanceFromPlayer <= visibilityRadius) {
-                        if (!chunk.explored) chunk.explored = true;
-                        chunk.lastVisited = turnRef.current;
-                    }
-                }
-
-                grid[gy][gx] = chunk;
-            }
-        }
-        return grid;
-    }, [
+    const { gridToPass } = useMinimapGrid({
         world,
-        playerPosition.x,
-        playerPosition.y,
+        playerPosition,
+        visualPlayerPosition,
+        isAnimatingMove,
+        visualMoveTo,
+        turn,
         finalWorldSetup,
         isLoaded,
-        settings?.minimapViewportSize,
-    ]);
-
-    const memoizedGrid = useMemo(() => generateMapGrid(), [generateMapGrid]);
-    const previousGridRef = useRef(memoizedGrid);
-    const gridToPass = isAnimatingMoveRef.current ? previousGridRef.current : memoizedGrid;
-
-    useEffect(() => {
-        if (!isAnimatingMoveRef.current) {
-            previousGridRef.current = memoizedGrid;
-        }
-    }, [memoizedGrid]);
+        minimapViewportSize: (settings?.minimapViewportSize as 5 | 7 | 9) || 5,
+        animationRefs: {
+            isAnimatingMoveRef,
+            visualMoveToRef,
+            visualPlayerPositionRef,
+            turnRef,
+            holdCenterUntilRef,
+            animationStartTimeRef,
+        },
+    });
 
     // ===== CONTEXT SENSITIVE ACTION =====
     const restingPlace = currentChunk?.structures?.find((s: Structure) => s.restEffect);

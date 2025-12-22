@@ -132,7 +132,83 @@ src/
 
 ---
 
-## 🏗️ CORE ARCHITECTURE
+## � UI STATE MANAGEMENT (Zustand Store)
+
+All UI state separate from game logic, managed via Zustand store at `src/store/ui.store.ts`.
+
+### Why Separate UI State?
+
+- **Decoupling**: UI visibility changes shouldn't trigger game logic re-renders
+- **Performance**: Dialog opens don't re-render minimap or HUD
+- **Simplicity**: GameLayout becomes orchestrator, not state manager
+- **Reusability**: Sections can control own visibility without prop drilling
+
+### Store Structure
+
+```typescript
+UIStore {
+  // Persistent dialog states (saved on logout)
+  dialogs: {
+    inventoryOpen, statusOpen, craftingOpen, buildingOpen,
+    fusionOpen, mapOpen, skillsOpen, questsOpen, settingsOpen, cookingOpen
+  }
+  
+  // Ephemeral states (temporary UI, not persisted)
+  ephemeral: {
+    installPopupOpen,         // PWA install prompt
+    availableActionsOpen,     // Context menu (Phase 3 TODO)
+    availableActionsPosition, // Mouse position for context menu
+    customDialogOpen,         // Generic multi-purpose dialog
+    customDialogValue,
+    pickupDialogOpen,         // Item pickup multi-select
+    selectedPickupIds
+  }
+  
+  // Control methods
+  toggleDialog(), openDialog(), closeDialog(), closeAllDialogs()
+  setInstallPopupOpen(), setAvailableActionsOpen(), setCustomDialogOpen(), setPickupDialogOpen()
+}
+```
+
+### Components Using UIStore
+
+- `GameLayout` - Reads all dialog states via `useUIStore()`
+- Sections (HUD, Controls, Dialogs) - Subscribe independently
+- Effect system - Can trigger dialog opens via effects
+
+---
+
+## 📦 SECTIONS PATTERN (src/components/game/panels/sections/)
+
+Logical organization of GameLayout subsystems that could be extracted into Smart Containers.
+
+### Current Sections
+
+- **HudSection** - Stats, character info display
+- **ControlsSection** - Action buttons and keyboard input
+- **DialogSection** - Dialog popup management and rendering
+- **MiniMapSection** - Minimap grid rendering (exports useMinimapGridData hook)
+
+### Purpose
+
+1. **Conceptual Clarity**: Each section is a self-contained subsystem
+2. **Independent Testing**: Can test minimap logic separately via `useMinimapGridData`
+3. **Future Extraction**: When Smart Containers are implemented, sections become pluggable
+4. **Hook Reuse**: Sections expose hooks (e.g., useMinimapGridData) for use throughout app
+
+### Hook Convention
+
+Hooks used by sections follow file naming convention:
+
+- **Hooks**: `.ts` files in `src/hooks/` (e.g., `use-minimap-grid-data.ts`)
+- **Components**: `.tsx` files only export React components
+- **Re-exports**: `sections/index.ts` re-exports hooks for convenience
+
+Example: `useMinimapGridData` lives in `hooks/use-minimap-grid-data.ts`, re-exported by `sections/index.ts`.
+
+---
+
+## �🏗️ CORE ARCHITECTURE
 
 ### Event-Driven Pattern
 

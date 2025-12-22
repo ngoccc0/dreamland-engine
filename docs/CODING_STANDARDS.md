@@ -101,6 +101,61 @@ export function validate(creature: Creature): void {
 }
 ```
 
+### React Hook Dependency Stability (CRITICAL)
+
+When adding objects or complex values to React Hook dependency arrays, **ensure the dependency is stable** (doesn't change on every render). Adding unstable dependencies causes infinite loops.
+
+**UNSAFE: Object created inline each render**
+```typescript
+// ❌ WILL CAUSE INFINITE LOOP - animationRefs object created every render
+export function useMinimapGrid({ world, animationRefs }: Props) {
+  const generateGrid = useCallback(() => {
+    // Uses animationRefs
+    console.log(animationRefs.isAnimatingMoveRef.current);
+  }, [
+    world,
+    animationRefs,  // NEW OBJECT EVERY RENDER → infinite re-calls
+  ]);
+}
+```
+
+**SAFE: Object wrapped in useMemo**
+```typescript
+// ✅ SAFE - animationRefs wrapped in useMemo is stable
+export function useMinimapGridData({ isAnimatingMove }: Props) {
+  const isAnimatingMoveRef = useRef(isAnimatingMove);
+  const holdCenterUntilRef = useRef(0);
+  
+  // Stable ref object (same reference unless dependencies change)
+  const animationRefs = useMemo(() => ({
+    isAnimatingMoveRef,
+    holdCenterUntilRef,
+  }), []); // Empty deps = stable for lifetime of component
+  
+  const generateGrid = useCallback(() => {
+    console.log(animationRefs.isAnimatingMoveRef.current);
+  }, [animationRefs]); // Safe now
+}
+```
+
+**BEST: Use ref values directly if possible**
+```typescript
+// ✅ BEST - Add individual ref values, not the object
+export function useMinimapGrid({ world }: Props) {
+  const isAnimatingMoveRef = useRef(false);
+  
+  const generateGrid = useCallback(() => {
+    console.log(isAnimatingMoveRef.current);
+  }, [world]); // Ref itself is stable, values don't matter
+}
+```
+
+**Rule of Thumb**:
+- `useRef()` values → always stable, safe to use
+- Objects/arrays created inline → always unstable, wrap in `useMemo`
+- Props that are primitive → stable if passed correctly
+- Props that are objects → check parent component (are they memoized?)
+
 ### Discriminated Unions for Type Safety
 ```typescript
 // ✅ GOOD - Type-safe effect handling

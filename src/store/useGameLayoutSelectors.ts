@@ -44,36 +44,36 @@ import { useControlsStore, type InputMode } from './controls.store';
  * Used by: StatusDisplay, HealthBar, ExperienceBar
  */
 export const usePlayerStatsSelector = () =>
-  useHudStore(
-    useShallow((state) => state.playerStats),
-  );
+    useHudStore(
+        useShallow((state) => state.playerStats),
+    );
 
 /**
  * Select game time state only.
  * Used by: TimeDisplay, DayPhaseIndicator
  */
 export const useGameTimeSelector = () =>
-  useHudStore(
-    useShallow((state) => state.gameTime),
-  );
+    useHudStore(
+        useShallow((state) => state.gameTime),
+    );
 
 /**
  * Select weather state only.
  * Used by: WeatherDisplay, TemperatureIndicator
  */
 export const useWeatherSelector = () =>
-  useHudStore(
-    useShallow((state) => state.weather),
-  );
+    useHudStore(
+        useShallow((state) => state.weather),
+    );
 
 /**
  * Select location state only.
  * Used by: LocationDisplay, BiomeIndicator
  */
 export const useLocationSelector = () =>
-  useHudStore(
-    useShallow((state) => state.location),
-  );
+    useHudStore(
+        useShallow((state) => state.location),
+    );
 
 /**
  * Combined HUD data selector.
@@ -84,32 +84,32 @@ export const useLocationSelector = () =>
  * { playerStats, gameTime, weather, location }
  */
 export const useHudDataSelector = () =>
-  useHudStore(
-    useShallow((state) => ({
-      playerStats: state.playerStats,
-      gameTime: state.gameTime,
-      weather: state.weather,
-      location: state.location,
-    })),
-  );
+    useHudStore(
+        useShallow((state) => ({
+            playerStats: state.playerStats,
+            gameTime: state.gameTime,
+            weather: state.weather,
+            location: state.location,
+        })),
+    );
 
 /**
  * Select dialog visibility states only.
  * Used by: DialogSection, to render which dialogs are open
  */
 export const useDialogStateSelector = () =>
-  useUIStore(
-    useShallow((state) => state.dialogs),
-  );
+    useUIStore(
+        useShallow((state) => state.dialogs),
+    );
 
 /**
  * Select ephemeral UI state only.
  * Used by: InstallPopup, ActionMenu, PickupDialog
  */
 export const useEphemeralUISelector = () =>
-  useUIStore(
-    useShallow((state) => state.ephemeral),
-  );
+    useUIStore(
+        useShallow((state) => state.ephemeral),
+    );
 
 /**
  * Select single dialog open state.
@@ -119,7 +119,7 @@ export const useEphemeralUISelector = () =>
  * @returns Boolean indicating if dialog is open
  */
 export const useDialogOpenSelector = (dialogName: keyof DialogState) =>
-  useUIStore((state) => state.dialogs[dialogName]);
+    useUIStore((state) => state.dialogs[dialogName]);
 
 /**
  * Combined UI state selector.
@@ -130,39 +130,39 @@ export const useDialogOpenSelector = (dialogName: keyof DialogState) =>
  * { dialogs, selectedItemId, showNarrativePanel, ...ephemeral }
  */
 export const useUIStateSelector = () =>
-  useUIStore(
-    useShallow((state) => ({
-      dialogs: state.dialogs,
-      selectedItemId: state.selectedItemId,
-      showNarrativePanel: state.showNarrativePanel,
-      ephemeral: state.ephemeral,
-    })),
-  );
+    useUIStore(
+        useShallow((state) => ({
+            dialogs: state.dialogs,
+            selectedItemId: state.selectedItemId,
+            showNarrativePanel: state.showNarrativePanel,
+            ephemeral: state.ephemeral,
+        })),
+    );
 
 /**
  * Select minimap grid data only.
  * Used by: MinimapGrid, to render grid tiles
  */
 export const useMinimapGridSelector = () =>
-  useMinimapStore(
-    useShallow((state) => state.gridData),
-  );
+    useMinimapStore(
+        useShallow((state) => state.gridData),
+    );
 
 /**
  * Select minimap animation state only.
  * Used by: MinimapAnimation, for smooth transitions during move
  */
 export const useMinimapAnimationSelector = () =>
-  useMinimapStore(
-    useShallow((state) => state.animationState),
-  );
+    useMinimapStore(
+        useShallow((state) => state.animationState),
+    );
 
 /**
  * Select minimap viewport size only.
  * Used by: MinimapSettings, to adjust grid size
  */
 export const useMinimapViewportSelector = () =>
-  useMinimapStore((state) => state.viewportSize);
+    useMinimapStore((state) => state.viewportSize);
 
 /**
  * Combined minimap selector.
@@ -173,26 +173,26 @@ export const useMinimapViewportSelector = () =>
  * { gridData, animationState, viewportSize }
  */
 export const useMinimapDataSelector = () =>
-  useMinimapStore(
-    useShallow((state) => ({
-      gridData: state.gridData,
-      animationState: state.animationState,
-      viewportSize: state.viewportSize,
-    })),
-  );
+    useMinimapStore(
+        useShallow((state) => ({
+            gridData: state.gridData,
+            animationState: state.animationState,
+            viewportSize: state.viewportSize,
+        })),
+    );
 
 /**
  * Select control state only.
  * Used by: ControlSection, ControlHints
  */
 export const useControlStateSelector = () =>
-  useControlsStore(
-    useShallow((state) => ({
-      selectedActionId: state.selectedActionId,
-      showJoystick: state.showJoystick,
-      inputMode: state.inputMode,
-    })),
-  );
+    useControlsStore(
+        useShallow((state) => ({
+            selectedActionId: state.selectedActionId,
+            showJoystick: state.showJoystick,
+            inputMode: state.inputMode,
+        })),
+    );
 
 /**
  * Composite selector: Is game currently animating?
@@ -203,11 +203,11 @@ export const useControlStateSelector = () =>
  * Used to disable input handling during active animations.
  */
 export const useIsGameAnimatingSelector = () =>
-  useMinimapStore(
-    useShallow((state) => ({
-      isMoving: state.animationState.isAnimatingMove,
-    })),
-  );
+    useMinimapStore(
+        useShallow((state) => ({
+            isMoving: state.animationState.isAnimatingMove,
+        })),
+    );
 
 /**
  * Master selector: All GameLayout data.
@@ -229,17 +229,17 @@ export const useIsGameAnimatingSelector = () =>
  * - useControlStateSelector() in ControlsSection
  */
 export const useGameLayoutGlobalSelector = () => {
-  const hudData = useHudDataSelector();
-  const uiState = useUIStateSelector();
-  const minimapData = useMinimapDataSelector();
-  const controlState = useControlStateSelector();
+    const hudData = useHudDataSelector();
+    const uiState = useUIStateSelector();
+    const minimapData = useMinimapDataSelector();
+    const controlState = useControlStateSelector();
 
-  return {
-    hudData,
-    uiState,
-    minimapData,
-    controlState,
-  };
+    return {
+        hudData,
+        uiState,
+        minimapData,
+        controlState,
+    };
 };
 
 /**
@@ -259,37 +259,37 @@ export const useGameLayoutGlobalSelector = () => {
  * ```
  */
 export const openDialog = (dialogName: keyof DialogState) => {
-  useUIStore.getState().openDialog(dialogName);
+    useUIStore.getState().openDialog(dialogName);
 };
 
 export const closeDialog = (dialogName: keyof DialogState) => {
-  useUIStore.getState().closeDialog(dialogName);
+    useUIStore.getState().closeDialog(dialogName);
 };
 
 export const toggleDialog = (dialogName: keyof DialogState) => {
-  useUIStore.getState().toggleDialog(dialogName);
+    useUIStore.getState().toggleDialog(dialogName);
 };
 
 export const setPlayerStats = (stats: Partial<PlayerStats>) => {
-  useHudStore.getState().setPlayerStats(stats);
+    useHudStore.getState().setPlayerStats(stats);
 };
 
 export const setGameTime = (time: Partial<GameTimeState>) => {
-  useHudStore.getState().setGameTime(time);
+    useHudStore.getState().setGameTime(time);
 };
 
 export const setWeather = (weather: Partial<WeatherState>) => {
-  useHudStore.getState().setWeather(weather);
+    useHudStore.getState().setWeather(weather);
 };
 
 export const setLocation = (location: Partial<LocationState>) => {
-  useHudStore.getState().setLocation(location);
+    useHudStore.getState().setLocation(location);
 };
 
 export const setMinimapGridData = (gridData: MinimapGridData) => {
-  useMinimapStore.getState().setGridData(gridData);
+    useMinimapStore.getState().setGridData(gridData);
 };
 
 export const setMinimapAnimationState = (state: Partial<MinimapAnimationState>) => {
-  useMinimapStore.getState().setAnimationState(state);
+    useMinimapStore.getState().setAnimationState(state);
 };

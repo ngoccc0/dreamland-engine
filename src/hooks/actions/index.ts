@@ -22,7 +22,7 @@ export { createHandleOfflineSkillUse } from '../use-action-handlers.offlineSkill
 export { createHandleOfflineAction } from '../use-action-handlers.offlineAction';
 
 // Movement
-export { createHandleMove } from '../move-orchestrator';
+export { createHandleMove } from '../use-action-handlers.move';
 
 // Item Fusion
 export { createHandleFuseItems } from '../use-action-handlers.fuseItems';

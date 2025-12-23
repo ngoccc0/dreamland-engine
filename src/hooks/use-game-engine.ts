@@ -7,14 +7,15 @@ import type { PlayerStatusDefinition, NarrativeEntry } from '@/core/types/game';
 import { CreatureEngine } from '@/core/rules/creature';
 import { EffectEngine } from '@/core/engines/effect-engine';
 import { WeatherEngine } from '@/core/engines/weather-engine';
-import { WeatherType, WeatherIntensity, WeatherCondition } from '@/core/types/weather';
 import { GridPosition } from '@/core/values/grid-position';
+import { buildWeatherData } from '@/core/usecases/weather-simulation';
 import { useGameState } from "./use-game-state";
 import { useActionHandlers } from "./use-action-handlers";
 import { useGameEffects } from "./use-game-effects";
 import { useMoveOrchestrator } from "./move-orchestrator";
 import { useEffectProcessor } from "./use-effect-processor";
 import { useCreatureSimulation } from "./use-creature-simulation";
+import { useWeatherSimulation } from "./use-weather-simulation";
 import { useSettings } from "@/context/settings-context"; // Import useSettings
 import { useAudioContext } from '@/lib/audio/AudioProvider';
 import { ANIMATION_DURATION_MS, defaultGameConfig } from '@/lib/config/game-config';
@@ -77,105 +78,8 @@ export function useGameEngine(props: GameEngineProps) {
     // Initialize effect engine
     const effectEngineRef = useRef(new EffectEngine());
 
-    // Define weather data with realistic base temperatures
-    const weatherData: Map<WeatherType, WeatherCondition> = new Map([
-        [WeatherType.CLEAR, {
-            type: WeatherType.CLEAR,
-            intensity: WeatherIntensity.NORMAL,
-            duration: 3600, // 1 hour
-            effects: [],
-            temperature: 22, // Average grassland temperature
-            windSpeed: 10,
-            precipitation: 0,
-            cloudCover: 0,
-            visibility: 100,
-            transitions: []
-        }],
-        [WeatherType.CLOUDY, {
-            type: WeatherType.CLOUDY,
-            intensity: WeatherIntensity.NORMAL,
-            duration: 3600,
-            effects: [],
-            temperature: 20, // Slightly cooler
-            windSpeed: 15,
-            precipitation: 0,
-            cloudCover: 60,
-            visibility: 80,
-            transitions: []
-        }],
-        [WeatherType.RAIN, {
-            type: WeatherType.RAIN,
-            intensity: WeatherIntensity.NORMAL,
-            duration: 3600,
-            effects: [],
-            temperature: 17, // Cooler during rain
-            windSpeed: 20,
-            precipitation: 50,
-            cloudCover: 80,
-            visibility: 70,
-            transitions: []
-        }],
-        [WeatherType.SNOW, {
-            type: WeatherType.SNOW,
-            intensity: WeatherIntensity.NORMAL,
-            duration: 3600,
-            effects: [],
-            temperature: 0, // Cold during snow
-            windSpeed: 25,
-            precipitation: 30,
-            cloudCover: 90,
-            visibility: 50,
-            transitions: []
-        }],
-        [WeatherType.WIND, {
-            type: WeatherType.WIND,
-            intensity: WeatherIntensity.NORMAL,
-            duration: 3600,
-            effects: [],
-            temperature: 20, // Neutral temperature
-            windSpeed: 35,
-            precipitation: 0,
-            cloudCover: 20,
-            visibility: 85,
-            transitions: []
-        }],
-        [WeatherType.STORM, {
-            type: WeatherType.STORM,
-            intensity: WeatherIntensity.NORMAL,
-            duration: 3600,
-            effects: [],
-            temperature: 15, // Stormy and cool
-            windSpeed: 40,
-            precipitation: 70,
-            cloudCover: 95,
-            visibility: 40,
-            transitions: []
-        }],
-        [WeatherType.FOG, {
-            type: WeatherType.FOG,
-            intensity: WeatherIntensity.NORMAL,
-            duration: 3600,
-            effects: [],
-            temperature: 18, // Cool and damp
-            windSpeed: 5,
-            precipitation: 10,
-            cloudCover: 100,
-            visibility: 30,
-            transitions: []
-        }],
-        [WeatherType.HEATWAVE, {
-            type: WeatherType.HEATWAVE,
-            intensity: WeatherIntensity.NORMAL,
-            duration: 3600,
-            effects: [],
-            temperature: 35, // Hot during heatwave
-            windSpeed: 10,
-            precipitation: 0,
-            cloudCover: 20,
-            visibility: 90,
-            transitions: []
-        }]
-    ]);
+    // Build weather data using pure function
+    const weatherData = buildWeatherData();
 
     // Initialize weather engine
     const weatherEngineRef = useRef(new WeatherEngine(effectEngineRef.current, weatherData));
@@ -197,7 +101,15 @@ export function useGameEngine(props: GameEngineProps) {
         gameState,
         creatureEngineRef,
     });
-    // Entries are batched and flushed atomically per frame via useLayoutEffect
+
+    // Initialize weather simulation hook
+    const { simulateWeather } = useWeatherSimulation({
+        currentGameTime: gameState.gameTime || 0,
+        gameState,
+        weatherEngineRef,
+    });
+
+    // Queue for narrative entries to fix race condition
     const narrativeQueueRef = useRef<Array<{ entry: NarrativeEntry; id: string }>>([]);
 
     /**
@@ -380,7 +292,12 @@ export function useGameEngine(props: GameEngineProps) {
         }
 
         // Update weather engine
-        weatherEngineRef.current.update(gameState.gameTime);
+        const weatherResult = simulateWeather();
+
+        // Add weather messages to narrative atomically
+        for (const msg of weatherResult.weatherMessages) {
+            addNarrativeEntry(msg.text, msg.type as 'narrative' | 'system' | 'action' | 'monologue');
+        }
 
         // Simulate creatures and plants using sync-back pattern
         const { creatureMessages, plantMessages } = simulateCreatures();

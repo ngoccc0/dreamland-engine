@@ -210,12 +210,30 @@ export function updateWeatherEngineSync(
         // Check if there's a method to get weather transition messages
         if (typeof weatherEngineRef.current.getWeatherMessages === 'function') {
             const messages = weatherEngineRef.current.getWeatherMessages();
-            return Array.isArray(messages) ? messages : [];
+            if (!Array.isArray(messages)) {
+                console.warn(
+                    `[WeatherSimulation.updateWeatherEngineSync] Engine returned non-array messages. Got ${typeof messages}`,
+                );
+                return [];
+            }
+
+            // Prevent message flood
+            if (messages.length > 500) {
+                console.warn(
+                    `[WeatherSimulation.updateWeatherEngineSync] Too many weather messages (${messages.length}, max 500). Truncating.`,
+                );
+                return messages.slice(0, 500);
+            }
+
+            return messages;
         }
 
         return [];
     } catch (err) {
-        // Silently handle weather engine errors
+        // Log weather engine error for debugging
+        console.warn(
+            `[WeatherSimulation.updateWeatherEngineSync] Engine update failed: ${err instanceof Error ? err.message : String(err)}. Continuing without weather update.`,
+        );
         return [];
     }
 }
@@ -244,10 +262,28 @@ export function getWeatherForecast(
     try {
         if (typeof weatherEngineRef.current.getForecast === 'function') {
             const forecast = weatherEngineRef.current.getForecast(turns);
-            return Array.isArray(forecast) ? forecast : [];
+            if (!Array.isArray(forecast)) {
+                console.warn(
+                    `[WeatherSimulation.getWeatherForecast] Engine returned non-array forecast. Got ${typeof forecast}`,
+                );
+                return [];
+            }
+
+            // Prevent memory bomb from excessive forecast data
+            if (forecast.length > 100) {
+                console.warn(
+                    `[WeatherSimulation.getWeatherForecast] Forecast array too large (${forecast.length} items, max 100). Truncating.`,
+                );
+                return forecast.slice(0, 100).map((c) => normalizeWeatherCondition(c));
+            }
+
+            return forecast.map((c) => normalizeWeatherCondition(c));
         }
     } catch (err) {
-        // Silently handle forecast errors
+        // Log forecast error for debugging
+        console.warn(
+            `[WeatherSimulation.getWeatherForecast] Failed to retrieve forecast: ${err instanceof Error ? err.message : String(err)}`,
+        );
     }
 
     return [];
@@ -288,10 +324,19 @@ export function getCurrentWeatherCondition(
     try {
         if (typeof weatherEngineRef.current.getCurrentCondition === 'function') {
             const condition = weatherEngineRef.current.getCurrentCondition();
-            return condition ? normalizeWeatherCondition(condition) : defaultClear;
+            if (!condition) {
+                return defaultClear;
+            }
+
+            // Deep clone to prevent engine mutations affecting game state
+            const cloned = JSON.parse(JSON.stringify(condition)) as any;
+            return normalizeWeatherCondition(cloned);
         }
     } catch (err) {
-        // Silently handle condition fetch errors
+        // Log condition fetch error for debugging
+        console.warn(
+            `[WeatherSimulation.getCurrentWeatherCondition] Failed to retrieve current condition: ${err instanceof Error ? err.message : String(err)}. Using default clear weather.`,
+        );
     }
 
     return defaultClear;
@@ -314,19 +359,30 @@ export function getCurrentWeatherCondition(
  * @returns Normalized WeatherCondition with all fields in valid ranges
  */
 export function normalizeWeatherCondition(condition: any): WeatherCondition {
-    const clamp = (val: number, min: number, max: number) =>
-        Math.max(min, Math.min(max, val ?? min));
+    const clamp = (val: number, min: number, max: number, name: string) => {
+        // Check for NaN/Infinity
+        if (!Number.isFinite(val)) {
+            console.warn(
+                `[WeatherSimulation.normalizeWeatherCondition] Invalid ${name} value: ${val}. Using default.`,
+            );
+            // Use max for positive infinity, min for negative infinity, min for NaN
+            if (val === Infinity) return max;
+            if (val === -Infinity) return min;
+            return min;
+        }
+        return Math.max(min, Math.min(max, val ?? min));
+    };
 
     return {
         type: (condition?.type as WeatherType) || WeatherType.CLEAR,
         intensity: (condition?.intensity as WeatherIntensity) || WeatherIntensity.NORMAL,
         duration: Math.max(0, condition?.duration ?? 3600),
         effects: Array.isArray(condition?.effects) ? condition.effects : [],
-        temperature: clamp(condition?.temperature ?? 22, -50, 50),
-        windSpeed: clamp(condition?.windSpeed ?? 10, 0, 100),
-        precipitation: clamp(condition?.precipitation ?? 0, 0, 100),
-        cloudCover: clamp(condition?.cloudCover ?? 0, 0, 100),
-        visibility: clamp(condition?.visibility ?? 100, 0, 100),
+        temperature: clamp(condition?.temperature ?? 22, -50, 50, 'temperature'),
+        windSpeed: clamp(condition?.windSpeed ?? 10, 0, 100, 'windSpeed'),
+        precipitation: clamp(condition?.precipitation ?? 0, 0, 100, 'precipitation'),
+        cloudCover: clamp(condition?.cloudCover ?? 0, 0, 100, 'cloudCover'),
+        visibility: clamp(condition?.visibility ?? 100, 0, 100, 'visibility'),
         transitions: Array.isArray(condition?.transitions) ? condition.transitions : [],
     };
 }

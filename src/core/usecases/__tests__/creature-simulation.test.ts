@@ -395,4 +395,108 @@ describe('creatureSimulationSync - Creature Simulation Functions', () => {
             expect(creatureRegistry['creature_5_5']?.hp).toBe(50); // Unchanged (already registered)
         });
     });
+
+    describe('Partial Failure Recovery', () => {
+        it('should register remaining creatures when one fails', () => {
+            let registeredCount = 0;
+            const engineRef = {
+                current: {
+                    getCreature: (id: string) => null,
+                    registerCreature: jest.fn((id: string) => {
+                        if (id === 'creature_3_3') {
+                            throw new Error('Creature 3,3 registration failed');
+                        }
+                        registeredCount++;
+                    }),
+                    updateCreatures: jest.fn().mockReturnValue([]),
+                },
+            };
+
+            const chunks = new Map([
+                ['1,1', { x: 1, y: 1, enemy: { id: 'c1' } }],
+                ['2,2', { x: 2, y: 2, enemy: { id: 'c2' } }],
+                ['3,3', { x: 3, y: 3, enemy: { id: 'c3' } }],
+                ['4,4', { x: 4, y: 4, enemy: { id: 'c4' } }],
+            ]);
+
+            const count = registerCreatures(engineRef, chunks);
+
+            // Should register 3 out of 4 (partial success)
+            expect(count).toBe(3);
+            expect(registeredCount).toBe(3);
+        });
+
+        it('should limit creature messages to prevent explosion', () => {
+            const largeMessageArray = Array.from({ length: 2000 }, (_, i) => ({
+                text: `Message ${i}`,
+                type: 'action',
+            }));
+
+            const engineRef = {
+                current: {
+                    updateCreatures: jest.fn().mockReturnValue(largeMessageArray),
+                },
+            };
+
+            const playerPos = new GridPosition(10, 10);
+            const chunks = new Map();
+            const result = updateCreaturesSync(engineRef, 0, playerPos, mockPlayerStats, chunks);
+
+            // Should truncate to max 1000 messages
+            expect(result.length).toBeLessThanOrEqual(1000);
+        });
+    });
+
+    describe('Edge Cases - Strategy Fallback Paths', () => {
+        it('should fall back to getCellAt when getChunksInArea throws', () => {
+            const fallbackCells: Array<{ x: number; y: number }> = [];
+            for (let dx = -2; dx <= 2; dx++) {
+                for (let dy = -2; dy <= 2; dy++) {
+                    fallbackCells.push({ x: 10 + dx, y: 10 + dy });
+                }
+            }
+
+            const state = {
+                ...mockGameState,
+                currentChunk: { x: 10, y: 10 },
+                world: {
+                    getChunksInArea: jest.fn(() => {
+                        throw new Error('World corrupted');
+                    }),
+                    getCellAt: jest.fn((pos: GridPosition) => {
+                        return fallbackCells.find((c) => c.x === pos.x && c.y === pos.y) || null;
+                    }),
+                },
+            };
+
+            const playerPos = new GridPosition(10, 10);
+            const chunks = buildVisibleChunks(state, playerPos, 2);
+
+            // Should have used fallback getCellAt and found cells
+            expect(chunks.size).toBeGreaterThan(1);
+        });
+
+        it('should use only current chunk when both strategies fail', () => {
+            const state = {
+                ...mockGameState,
+                currentChunk: { x: 10, y: 10 },
+                world: {
+                    getChunksInArea: jest.fn(() => {
+                        throw new Error('Strategy 1 fails');
+                    }),
+                    getCellAt: jest.fn(() => {
+                        throw new Error('Strategy 2 fails');
+                    }),
+                },
+            };
+
+            const playerPos = new GridPosition(10, 10);
+            const chunks = buildVisibleChunks(state, playerPos, 2);
+
+            // Should fall back to just current chunk
+            expect(chunks.size).toBe(1);
+            expect(chunks.has('10,10')).toBe(true);
+        });
+    });
 });
+

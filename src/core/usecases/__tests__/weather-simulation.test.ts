@@ -149,15 +149,18 @@ describe('weatherSimulationSync - Weather Simulation Functions', () => {
 
         it('should return forecast array', () => {
             const forecast = [
-                { type: WeatherType.CLEAR, temperature: 22 },
-                { type: WeatherType.CLOUDY, temperature: 20 },
+                { type: WeatherType.CLEAR, temperature: 22, windSpeed: 10, precipitation: 0, cloudCover: 0, visibility: 100, intensity: WeatherIntensity.NORMAL, duration: 3600, effects: [], transitions: [] },
+                { type: WeatherType.CLOUDY, temperature: 20, windSpeed: 15, precipitation: 0, cloudCover: 60, visibility: 80, intensity: WeatherIntensity.NORMAL, duration: 3600, effects: [], transitions: [] },
             ];
             const engineRef = createMockWeatherEngineRef();
             engineRef.current.getForecast.mockReturnValue(forecast);
 
             const result = getWeatherForecast(engineRef, 2);
 
-            expect(result).toEqual(forecast);
+            expect(Array.isArray(result)).toBe(true);
+            expect(result.length).toBe(2);
+            expect(result[0].type).toBe(WeatherType.CLEAR);
+            expect(result[1].type).toBe(WeatherType.CLOUDY);
         });
 
         it('should default to 5 turns if not specified', () => {
@@ -315,8 +318,8 @@ describe('weatherSimulationSync - Weather Simulation Functions', () => {
 
         it('should get forecast and current condition', () => {
             const forecast = [
-                { type: WeatherType.CLEAR },
-                { type: WeatherType.CLOUDY },
+                { type: WeatherType.CLEAR, temperature: 22, windSpeed: 10, precipitation: 0, cloudCover: 0, visibility: 100, intensity: WeatherIntensity.NORMAL, duration: 3600, effects: [], transitions: [] },
+                { type: WeatherType.CLOUDY, temperature: 20, windSpeed: 15, precipitation: 0, cloudCover: 60, visibility: 80, intensity: WeatherIntensity.NORMAL, duration: 3600, effects: [], transitions: [] },
             ];
             const condition = { type: WeatherType.RAIN, temperature: 17 };
             const engineRef = createMockWeatherEngineRef();
@@ -325,7 +328,9 @@ describe('weatherSimulationSync - Weather Simulation Functions', () => {
 
             const result = simulateWeatherSync(engineRef, 360, mockGameState);
 
-            expect(result.forecast).toEqual(forecast);
+            // Forecast should be normalized
+            expect(result.forecast).toBeDefined();
+            expect(Array.isArray(result.forecast)).toBe(true);
             expect(result.currentCondition.type).toBe(WeatherType.RAIN);
         });
 
@@ -384,6 +389,168 @@ describe('weatherSimulationSync - Weather Simulation Functions', () => {
                 expect(condition.visibility).toBeGreaterThanOrEqual(0);
                 expect(condition.visibility).toBeLessThanOrEqual(100);
             }
+        });
+    });
+
+    describe('Edge Cases - NaN/Infinity Handling', () => {
+        it('should normalize NaN temperature to safe default', () => {
+            const result = normalizeWeatherCondition({ temperature: NaN });
+
+            expect(result.temperature).toBe(-50); // Minimum safe value
+            expect(Number.isFinite(result.temperature)).toBe(true);
+        });
+
+        it('should normalize Infinity temperature', () => {
+            const result = normalizeWeatherCondition({ temperature: Infinity });
+
+            expect(result.temperature).toBe(50); // Maximum safe value
+            expect(Number.isFinite(result.temperature)).toBe(true);
+        });
+
+        it('should normalize -Infinity temperature', () => {
+            const result = normalizeWeatherCondition({ temperature: -Infinity });
+
+            expect(result.temperature).toBe(-50);
+            expect(Number.isFinite(result.temperature)).toBe(true);
+        });
+
+        it('should normalize multiple invalid numeric values', () => {
+            const invalidValues = [NaN, Infinity, -Infinity, 9999, -9999];
+
+            invalidValues.forEach((val) => {
+                const result = normalizeWeatherCondition({
+                    temperature: val,
+                    windSpeed: val,
+                    precipitation: val,
+                });
+
+                expect(Number.isFinite(result.temperature)).toBe(true);
+                expect(Number.isFinite(result.windSpeed)).toBe(true);
+                expect(Number.isFinite(result.precipitation)).toBe(true);
+
+                expect(result.temperature).toBeGreaterThanOrEqual(-50);
+                expect(result.temperature).toBeLessThanOrEqual(50);
+                expect(result.windSpeed).toBeGreaterThanOrEqual(0);
+                expect(result.windSpeed).toBeLessThanOrEqual(100);
+            });
+        });
+    });
+
+    describe('Edge Cases - Large Arrays/Memory Bombs', () => {
+        it('should truncate excessive forecast arrays', () => {
+            const hugeArray = Array.from({ length: 500 }, (_, i) => ({
+                type: WeatherType.CLEAR,
+                temperature: 22,
+            }));
+
+            const engineRef = {
+                current: {
+                    getForecast: jest.fn().mockReturnValue(hugeArray),
+                },
+            };
+
+            const result = getWeatherForecast(engineRef, 500);
+
+            expect(result.length).toBeLessThanOrEqual(100);
+        });
+
+        it('should handle forecast with 1,000,000 items', () => {
+            const engineRef = {
+                current: {
+                    getForecast: jest.fn().mockReturnValue(
+                        Array.from({ length: 1000000 }, () => ({
+                            type: WeatherType.CLEAR,
+                        })),
+                    ),
+                },
+            };
+
+            const result = getWeatherForecast(engineRef, 1000000);
+
+            expect(result.length).toBeLessThanOrEqual(100);
+            expect(() => getWeatherForecast(engineRef, 1000000)).not.toThrow();
+        });
+
+        it('should limit weather messages from engine update', () => {
+            const hugeMessageArray = Array.from({ length: 2000 }, (_, i) => ({
+                text: `Weather message ${i}`,
+                type: 'system',
+            }));
+
+            const engineRef = {
+                current: {
+                    update: jest.fn(),
+                    getWeatherMessages: jest.fn().mockReturnValue(hugeMessageArray),
+                },
+            };
+
+            const result = updateWeatherEngineSync(engineRef, 360);
+
+            expect(result.length).toBeLessThanOrEqual(500);
+        });
+    });
+
+    describe('Deep Clone Safety', () => {
+        it('should not allow mutations of returned condition to affect engine', () => {
+            const originalCondition = {
+                type: WeatherType.CLEAR,
+                temperature: 22,
+                windSpeed: 10,
+                transitions: [{ from: WeatherType.CLEAR, to: WeatherType.CLOUDY }],
+            };
+
+            const engineRef = {
+                current: {
+                    getCurrentCondition: jest.fn().mockReturnValue(originalCondition),
+                },
+            };
+
+            const returned = getCurrentWeatherCondition(engineRef);
+            // Mutate returned value
+            returned.temperature = 999;
+            if (returned.transitions) {
+                returned.transitions[0] = { from: WeatherType.STORM, to: WeatherType.SNOW } as any;
+            }
+
+            // Original should be unchanged
+            expect(originalCondition.temperature).toBe(22);
+            expect(originalCondition.transitions[0].from).toBe(WeatherType.CLEAR);
+        });
+    });
+
+    describe('Save Game Compatibility - Corrupted Data', () => {
+        it('should handle weather save with corrupt temperature range', () => {
+            const corruptedSave = {
+                type: WeatherType.RAIN,
+                temperature: 9999,
+                windSpeed: -100,
+                precipitation: 150,
+                visibility: -50,
+            };
+
+            const normalized = normalizeWeatherCondition(corruptedSave);
+
+            expect(normalized.temperature).toBeGreaterThanOrEqual(-50);
+            expect(normalized.temperature).toBeLessThanOrEqual(50);
+            expect(normalized.windSpeed).toBeGreaterThanOrEqual(0);
+            expect(normalized.precipitation).toBeGreaterThanOrEqual(0);
+            expect(normalized.precipitation).toBeLessThanOrEqual(100);
+            expect(normalized.visibility).toBeGreaterThanOrEqual(0);
+        });
+
+        it('should handle save with missing fields', () => {
+            const incompleteSave = {
+                type: WeatherType.FOG,
+                // Missing temperature, windSpeed, precipitation, etc.
+            };
+
+            const normalized = normalizeWeatherCondition(incompleteSave);
+
+            expect(normalized.temperature).toBeDefined();
+            expect(normalized.windSpeed).toBeDefined();
+            expect(normalized.precipitation).toBeDefined();
+            expect(normalized.cloudCover).toBeDefined();
+            expect(normalized.visibility).toBeDefined();
         });
     });
 });

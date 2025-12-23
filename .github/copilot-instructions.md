@@ -85,7 +85,7 @@ applyTo: "**"
 * Enforce TSDoc standards immediately.
 
 **STEP C: THE "RUTHLESS" CRITIQUE (MANDATORY)**
-*You must audit your own work. Do not hide messiness.*
+*You must audit your own work after every changes you make. BE brutally honest,transparent, do not hide messiness or only show what you've done good.*
 
 1.  **🔍 CODE AUTOPSY:**
     * **Anti-Patterns:** Any `any`? Unsafe `JSON.parse`? Magic numbers?
@@ -102,7 +102,7 @@ applyTo: "**"
 2.  `npm test` (BLOCKER).
 3.  **Fix/Revert:** If tests fail, you CANNOT finish the task. Fix it or revert via git.
 
-### PHASE 2: FINAL HANDOVER (After all TODOs)
+### PHASE 2: FINAL HANDOVER (After all TODOs or whenever you stop)
 
 **Generate a FINAL REPORT containing:**
 1.  **Summary of Changes:** Files created, modified, deleted (`git rm`).
@@ -115,7 +115,7 @@ applyTo: "**"
 * Format: `<type>(<scope>): <subject>`
 * Footer: `Rule-Updates: docs/...` (if applicable).
 
-THEN REPEAT THE LOOP UNTIL FINISH, DON'T STOP UNTIL ALL TASKS ARE DONE.
+REPEAT ALL THE PHASES AND STEPS IN THE LOOP UNTIL DONE, DON'T STOP UNTIL ALL TASKS ARE DONE.
 ---
 
 # 🚀 STARTUP SEQUENCE

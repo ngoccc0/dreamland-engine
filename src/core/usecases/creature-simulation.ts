@@ -68,12 +68,18 @@ export function buildVisibleChunks(
                 const chunkKey = `${chunk.x},${chunk.y}`;
                 visibleChunks.set(chunkKey, chunk);
             }
-        } catch {
-            // Fallback to just current chunk if world methods are not available
-            // Try to fill visibleChunks by querying getCellAt for each coordinate in viewRadius
+        } catch (err) {
+            // Log strategy 1 failure for debugging
+            console.warn(
+                `[CreatureSimulation.buildVisibleChunks] Strategy 1 (getChunksInArea) failed: ${err instanceof Error ? err.message : String(err)}. Attempting fallback.`,
+            );
+
+            // Fallback to Strategy 2: getCellAt loop
             if (gameState.world && typeof gameState.world.getCellAt === 'function' && gameState.currentChunk) {
                 const cx = gameState.currentChunk.x;
                 const cy = gameState.currentChunk.y;
+                let fallbackCount = 0;
+
                 for (let dx = -viewRadius; dx <= viewRadius; dx++) {
                     for (let dy = -viewRadius; dy <= viewRadius; dy++) {
                         try {
@@ -81,11 +87,18 @@ export function buildVisibleChunks(
                             if (cell) {
                                 const key = `${cell.x},${cell.y}`;
                                 visibleChunks.set(key, cell);
+                                fallbackCount++;
                             }
                         } catch {
-                            // ignore missing cells
+                            // Ignore missing cells in fallback
                         }
                     }
+                }
+
+                if (fallbackCount === 0) {
+                    console.warn(
+                        `[CreatureSimulation.buildVisibleChunks] Strategy 2 (getCellAt loop) yielded 0 chunks. Falling back to current chunk only.`,
+                    );
                 }
             }
         }
@@ -122,12 +135,13 @@ export function registerCreatures(
     }
 
     let registeredCount = 0;
+    let failedCount = 0;
 
-    try {
-        for (const [chunkKey, chunk] of visibleChunks) {
-            if (chunk && chunk.enemy) {
-                const creatureId = `creature_${chunk.x}_${chunk.y}`;
-                if (!creatureEngineRef.current.getCreature(creatureId)) {
+    for (const [chunkKey, chunk] of visibleChunks) {
+        if (chunk && chunk.enemy) {
+            const creatureId = `creature_${chunk.x}_${chunk.y}`;
+            if (!creatureEngineRef.current.getCreature(creatureId)) {
+                try {
                     creatureEngineRef.current.registerCreature(
                         creatureId,
                         chunk.enemy,
@@ -135,12 +149,22 @@ export function registerCreatures(
                         chunk,
                     );
                     registeredCount++;
+                } catch (err) {
+                    // Log individual creature registration failure but continue with next
+                    console.warn(
+                        `[CreatureSimulation.registerCreatures] Failed to register creature ${creatureId}: ${err instanceof Error ? err.message : String(err)}. Continuing with remaining creatures.`,
+                    );
+                    failedCount++;
                 }
             }
         }
-    } catch (err) {
-        // Silently handle creature registration failures
-        // Game continues with fewer creatures
+    }
+
+    // Log summary if there were any failures
+    if (failedCount > 0) {
+        console.warn(
+            `[CreatureSimulation.registerCreatures] Partial registration: ${registeredCount} succeeded, ${failedCount} failed`,
+        );
     }
 
     return registeredCount;
@@ -183,7 +207,10 @@ export function processPlantsSync(
         });
         return plantResult.narrativeMessages || [];
     } catch (err: any) {
-        // Silently handle plant updates; world continues
+        // Log plant processing error but allow game to continue
+        console.warn(
+            `[CreatureSimulation.processPlantsSync] Plant growth processing failed: ${err instanceof Error ? err.message : String(err)}. Skipping plant updates this turn.`,
+        );
         return [];
     }
 }
@@ -222,14 +249,27 @@ export function updateCreaturesSync(
     }
 
     try {
-        return creatureEngineRef.current.updateCreatures(
+        const messages = creatureEngineRef.current.updateCreatures(
             currentTurn,
             playerPosition,
             playerStats,
             visibleChunks,
         ) || [];
+
+        // Check for message count explosion (memory bomb prevention)
+        if (messages.length > 1000) {
+            console.warn(
+                `[CreatureSimulation.updateCreaturesSync] Creature engine returned ${messages.length} messages (limit: 1000). Truncating to prevent memory bomb.`,
+            );
+            return messages.slice(0, 1000);
+        }
+
+        return messages;
     } catch (err) {
-        // Silently handle creature update failures
+        // Log creature update error but allow game to continue
+        console.warn(
+            `[CreatureSimulation.updateCreaturesSync] Creature AI update failed: ${err instanceof Error ? err.message : String(err)}. Skipping creature actions this turn.`,
+        );
         return [];
     }
 }

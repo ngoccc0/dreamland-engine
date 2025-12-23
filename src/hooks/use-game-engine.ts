@@ -280,12 +280,12 @@ export function useGameEngine(props: GameEngineProps) {
         // Apply tick and weather effects atomically using sync-back pattern
         // This processes both status effects, hunger/thirst, and weather impacts in one atomic update
         const effectResult = processAllEffects();
-        
+
         // Apply all effects atomically to player stats
         if (effectResult.updatedStats !== gameState.playerStats) {
             gameState.setPlayerStats(effectResult.updatedStats);
         }
-        
+
         // Add effect messages to narrative
         for (const msg of effectResult.tickMessages) {
             addNarrativeEntry(msg.text, msg.type as 'narrative' | 'system' | 'action' | 'monologue');

@@ -1,8 +1,8 @@
 # 🎯 DREAMLAND ENGINE - ARCHITECTURE
 
 **Current State**: Event-Driven Statistics + Quest System (Phase 2.0)  
-**Last Updated**: December 19, 2025  
-**Status**: ✅ ACTIVE & FUNCTIONAL
+**Last Updated**: December 23, 2025  
+**Status**: ✅ ACTIVE & FUNCTIONAL - Phase 4 Optimizations Complete
 
 ---
 
@@ -112,6 +112,11 @@ src/
 │   ├── use-game-engine.ts
 │   ├── use-effect-executor.ts    → Effect execution hub
 │   ├── use-action-handlers.ts    → Action handlers
+│   ├── use-hud-data.ts           ← HUD state aggregation (OPTIMIZED)
+│   ├── use-minimap-data.ts       ← Minimap state aggregation (OPTIMIZED)
+│   ├── use-dialog-data.ts        ← Dialog visibility aggregation (OPTIMIZED)
+│   ├── use-controls-data.ts      ← Controls state aggregation (OPTIMIZED)
+│   ├── use-minimap-grid-data.ts  ← Minimap grid generation
 │   └── game-lifecycle/
 │
 ├── infrastructure/               ← External services
@@ -205,6 +210,50 @@ Hooks used by sections follow file naming convention:
 - **Re-exports**: `sections/index.ts` re-exports hooks for convenience
 
 Example: `useMinimapGridData` lives in `hooks/use-minimap-grid-data.ts`, re-exported by `sections/index.ts`.
+
+---
+
+## ⚡ PERFORMANCE OPTIMIZATIONS (Phase 4 - Dec 23, 2025)
+
+Smart Container pattern with atomic selector aggregation for granular re-rendering control.
+
+### Custom Hook Aggregators
+
+Data aggregation hooks use `useShallow` to batch related state subscriptions:
+
+**useHudData** - Aggregates 12 HUD fields (HP, hunger, energy, level, skills, etc.)
+- Single subscription instead of 12 individual ones
+- Re-renders only when HUD data changes, not on other state updates
+- Used by: HudSection
+
+**useMinimapData** - Aggregates minimap state
+- Combines grid data, animation, viewport
+- Used by: MiniMapSection
+
+**useDialogData** - Aggregates 13 dialog visibility states
+- Single subscription for all dialog open/close states
+- Re-renders ONLY on dialog changes, not on game data updates
+- Used by: DialogSection
+
+**useControlsData** - Aggregates 2 controls states
+- selectedActionId + showJoystick
+- Used by: ControlsSection
+
+### Component Memoization
+
+All Smart Containers wrapped with `React.memo`:
+- `HudSection` - Prevents re-render when parent props change
+- `MiniMapSection` - Isolated minimap re-renders from HUD
+- `ControlsSection` - Action bar only re-renders on control state changes
+- `DialogSection` - Dialog visibility independent of game state
+
+### Result
+
+Combined optimizations achieve:
+- 8x fewer subscriptions (HudSection: 12 → 1, DialogSection: 13 → 1)
+- Granular re-renders (dialog opening doesn't trigger minimap re-render)
+- Cleaner, more maintainable component code
+- Zero regressions (570/571 tests passing)
 
 ---
 

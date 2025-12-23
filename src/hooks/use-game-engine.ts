@@ -17,7 +17,7 @@ import { useGameEffects } from "./use-game-effects";
 import { useMoveOrchestrator } from "./move-orchestrator";
 import { useSettings } from "@/context/settings-context"; // Import useSettings
 import { useAudioContext } from '@/lib/audio/AudioProvider';
-import { defaultGameConfig } from '@/lib/config/game-config';
+import { ANIMATION_DURATION_MS, defaultGameConfig } from '@/lib/config/game-config';
 
 interface GameEngineProps {
     gameSlot: number;
@@ -537,10 +537,10 @@ export function useGameEngine(props: GameEngineProps) {
         advanceGameTime,
     } as any);
 
-    // Move orchestrator: handles input throttling (300ms based on CSS animation duration)
+    // Move orchestrator: handles input throttling based on CSS animation duration
     // Calls onMoveIntent when throttle allows, which delegates to handleMove
     const moveOrchestrator = useMoveOrchestrator({
-        animationDurationMs: 300, // Must match CSS animation-duration in visual-effects.css
+        animationDurationMs: ANIMATION_DURATION_MS,
         onMoveIntent: (command) => {
             // Delegate to the existing move handler
             actionHandlers.handleMove(command.direction);
@@ -560,6 +560,10 @@ export function useGameEngine(props: GameEngineProps) {
     return {
         ...gameState,
         ...actionHandlers,
+        // Override handleMove to apply throttling via moveOrchestrator
+        // This ensures all move requests respect the 300ms animation interval
+        handleMove: (direction: 'north' | 'south' | 'east' | 'west') =>
+            moveOrchestrator.emitMoveIntent(direction),
         moveOrchestrator,
         narrativeContainerRef,
         biomeDefinitions

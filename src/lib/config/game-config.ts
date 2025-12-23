@@ -2,6 +2,14 @@
  * Centralized game configuration for tunable simulation parameters.
  * Keep all major numeric knobs here so designers can tweak behaviour from one place.
  */
+
+/**
+ * Animation duration in milliseconds
+ * Matched with CSS animation-duration in visual-effects.css
+ * Controls input throttling rate for character movement
+ */
+export const ANIMATION_DURATION_MS = 300;
+
 export interface GameConfig {
     plant: {
         /** Seasonal multipliers for growth and reproduction. */

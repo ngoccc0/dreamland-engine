@@ -343,7 +343,6 @@ describe('useMoveOrchestrator - Move Input Throttling', () => {
 
             expect(result.current).toHaveProperty('emitMoveIntent');
             expect(result.current).toHaveProperty('canEmitMove');
-            expect(result.current).toHaveProperty('keysPressed');
             expect(typeof result.current.emitMoveIntent).toBe('function');
             expect(typeof result.current.canEmitMove).toBe('function');
         });

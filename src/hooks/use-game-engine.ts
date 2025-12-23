@@ -14,6 +14,7 @@ import { GridPosition } from '@/core/values/grid-position';
 import { useGameState } from "./use-game-state";
 import { useActionHandlers } from "./use-action-handlers";
 import { useGameEffects } from "./use-game-effects";
+import { useMoveOrchestrator } from "./move-orchestrator";
 import { useSettings } from "@/context/settings-context"; // Import useSettings
 import { useAudioContext } from '@/lib/audio/AudioProvider';
 import { defaultGameConfig } from '@/lib/config/game-config';
@@ -536,6 +537,18 @@ export function useGameEngine(props: GameEngineProps) {
         advanceGameTime,
     } as any);
 
+    // Move orchestrator: handles input throttling (300ms based on CSS animation duration)
+    // Calls onMoveIntent when throttle allows, which delegates to handleMove
+    const moveOrchestrator = useMoveOrchestrator({
+        animationDurationMs: 300, // Must match CSS animation-duration in visual-effects.css
+        onMoveIntent: (command) => {
+            // Delegate to the existing move handler
+            actionHandlers.handleMove(command.direction);
+        },
+        isGameLocked: gameState.isGameOver || gameState.isLoading,
+        isAnimatingMove: gameState.isAnimatingMove || false,
+    });
+
     useGameEffects({
         ...gameState,
         narrativeLogRef,
@@ -547,6 +560,7 @@ export function useGameEngine(props: GameEngineProps) {
     return {
         ...gameState,
         ...actionHandlers,
+        moveOrchestrator,
         narrativeContainerRef,
         biomeDefinitions
     };

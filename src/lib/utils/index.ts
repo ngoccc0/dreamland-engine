@@ -35,3 +35,6 @@ export * from './normalize';
 
 // Time utilities
 export * from './time';
+
+// Clone utilities
+export { deepClone } from './clone';

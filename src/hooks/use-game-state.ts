@@ -9,6 +9,12 @@ type PlayerStatus = any;
 interface GameStateProps {
     gameSlot: number;
 }
+
+/**
+ * Return type of useGameState hook.
+ * Exported for proper typing in dependent hooks.
+ */
+export type GameStateResult = ReturnType<typeof useGameState>;
 // Add missing imports for factories, generators, enums, and static data
 // deferred world generation imports removed — keep placeholder init minimal
 import { allRecipes as staticRecipes } from '@/core/data/recipes';

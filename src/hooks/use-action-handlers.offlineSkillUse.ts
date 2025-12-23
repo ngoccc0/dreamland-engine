@@ -33,6 +33,7 @@
 
 // Extracted offline skill-use handler. Accepts a context object with needed deps.
 import { ActionHandlerDeps } from '@/hooks/actions/types';
+import { deepClone } from '@/lib/utils';
 import type { GameEvent } from '@/core/types/events';
 import { applyMultiplier } from '@/core/rules/combat';
 import { StatisticsEngine } from '@/core/engines/statistics/engine';
@@ -43,7 +44,7 @@ export function createHandleOfflineSkillUse(context: Partial<ActionHandlerDeps> 
     return (skillName: string): SkillOutcome | void => {
         const { playerStats, addNarrativeEntry, t, rollDice, settings, getSuccessLevel, getTranslatedText, world, playerPosition, setWorld, setPlayerStats, advanceGameTime } = context as any;
 
-        let newPlayerStats: any = JSON.parse(JSON.stringify(playerStats));
+        let newPlayerStats: any = deepClone(playerStats);
         newPlayerStats.skills = newPlayerStats.skills || [];
         newPlayerStats.items = newPlayerStats.items || [];
         const skillToUse = newPlayerStats.skills.find((s: any) => t(s.name as any) === skillName);
@@ -108,12 +109,12 @@ export function createHandleOfflineSkillUse(context: Partial<ActionHandlerDeps> 
         // Phase I-1: Emit GameEvent for statistics tracking
         if (skillToUse.effect.type === 'DAMAGE' && narrativeResult.finalDamage > 0) {
             const skillEvent: GameEvent = {
-            type: 'DAMAGE',
-            payload: {
-              source: 'creature',
-              damageAmount: narrativeResult.finalDamage,
-              timestamp: Date.now(),
-            },
+                type: 'DAMAGE',
+                payload: {
+                    source: 'creature',
+                    damageAmount: narrativeResult.finalDamage,
+                    timestamp: Date.now(),
+                },
             };
 
             const currentStats = context.statistics || createEmptyStatistics();

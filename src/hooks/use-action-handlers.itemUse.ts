@@ -30,6 +30,7 @@
 
 // Extracted item use handler (offline). Uses a context object for dependencies.
 import { ActionHandlerDeps } from '@/hooks/actions/types';
+import { deepClone } from '@/lib/utils';
 import type { ItemUseOutcome } from '@/core/engines/item-effects-bridge';
 
 export function createHandleOfflineItemUse(context: Partial<ActionHandlerDeps> & Record<string, any>) {
@@ -42,7 +43,7 @@ export function createHandleOfflineItemUse(context: Partial<ActionHandlerDeps> &
     const playerHpBefore = playerStats.hp;
     const playerStaminaBefore = playerStats.stamina;
 
-    let newPlayerStats: any = JSON.parse(JSON.stringify(playerStats || {}));
+    let newPlayerStats: any = deepClone(playerStats || {});
     newPlayerStats.items = newPlayerStats.items || [];
     newPlayerStats.pets = newPlayerStats.pets || [];
     newPlayerStats.skills = newPlayerStats.skills || [];

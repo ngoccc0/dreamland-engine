@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import AreaFill from '@/components/ui/area-fill';
 import { cn } from '@/lib/utils';
 import { usePlayerStore } from '@/store';
+import { useHudStore } from '@/store/hud.store';
 
 interface HudIconHealthProps {
   size?: number;
@@ -26,11 +27,11 @@ function mixHex(a: string, b: string, t: number) {
 }
 
 export function HudIconHealth({ size = 40, className }: HudIconHealthProps) {
-  // Subscribe to player store - gets HP in real-time
+  // Subscribe to player store for HP and HUD store for maxHp
   const { player } = usePlayerStore();
+  const maxHp = useHudStore((s) => s.playerStats.maxHp);
 
   // Calculate HP percentage (0..1)
-  const maxHp = player.hp || 100; // Fallback to 100 if undefined
   const percent = Math.min(1, Math.max(0, player.hp / maxHp));
 
   const id = useRef(`hp-${Math.random().toString(36).slice(2, 9)}`).current;

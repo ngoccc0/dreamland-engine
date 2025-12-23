@@ -3,9 +3,10 @@ import { GridPosition } from '@/core/values/grid-position';
 import type { EffectProcessorResult } from '@/core/usecases/process-effects';
 import type { WeatherSimulationResult } from '@/core/usecases/weather-simulation';
 import type { CreatureSimulationResult } from '@/core/usecases/creature-simulation';
+import type { GameStateResult } from './use-game-state';
 
 interface UseGameTimeDeps {
-    gameState: any; // Ideally typed better later
+    gameState: GameStateResult;
     creatureEngineRef: React.MutableRefObject<any>;
     settings: any;
     processAllEffects: () => EffectProcessorResult;

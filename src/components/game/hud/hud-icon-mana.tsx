@@ -79,8 +79,8 @@ export function HudIconMana({ size = 48, className }: HudIconManaProps) {
       const ease = 1 - Math.pow(1 - t, 3);
       const scaleVal = maxScale * (1 - ease);
       const freq = baseFreq * (1 + 0.6 * Math.sin(t * Math.PI * 2));
-      try { dispNonNull.setAttribute('scale', scaleVal.toFixed(2)); turbNonNull.setAttribute('baseFrequency', freq.toFixed(4)); } catch {}
-      if (t < 1) anim.id = requestAnimationFrame(step); else { try { dispNonNull.setAttribute('scale', '0'); turbNonNull.setAttribute('baseFrequency', '0.012'); } catch {} waveAnimRef.current = null; }
+      try { dispNonNull.setAttribute('scale', scaleVal.toFixed(2)); turbNonNull.setAttribute('baseFrequency', freq.toFixed(4)); } catch { }
+      if (t < 1) anim.id = requestAnimationFrame(step); else { try { dispNonNull.setAttribute('scale', '0'); turbNonNull.setAttribute('baseFrequency', '0.012'); } catch { } waveAnimRef.current = null; }
     }
     anim.id = requestAnimationFrame(step);
     waveAnimRef.current = anim;
@@ -90,8 +90,7 @@ export function HudIconMana({ size = 48, className }: HudIconManaProps) {
   const displayWidth = size;
   const displayHeight = size;
 
-  // Use the user's provided gradients and filters (colors taken from the SVG they supplied)
-  const innerGradStops = ['#57d8d6', '#1fa6b2', '#08184a'];
+  // Metallic outline gradient colors
   const metalGradStops = ['#7b4a1a', '#d3a04a', '#ffd88a', '#8b5a22'];
 
   return (
@@ -99,9 +98,9 @@ export function HudIconMana({ size = 48, className }: HudIconManaProps) {
       <svg viewBox={`0 0 1024 1024`} width={displayWidth} height={displayHeight} preserveAspectRatio="xMidYMid meet">
         <defs>
           <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={innerGradStops[0]} />
-            <stop offset="50%" stopColor={innerGradStops[1]} />
-            <stop offset="100%" stopColor={innerGradStops[2]} />
+            <stop offset="0%" stopColor={stops[0]} />
+            <stop offset="50%" stopColor={stops[1]} />
+            <stop offset="100%" stopColor={stops[2]} />
           </linearGradient>
 
           <linearGradient id={outlineGradId} x1="0" y1="0" x2="1" y2="1">

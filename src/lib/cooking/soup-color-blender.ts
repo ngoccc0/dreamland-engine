@@ -273,43 +273,31 @@ export function blendSoupColors(ingredientIds: string[]): SoupColorResult {
     // Convert to HSL
     const hslColors = colors.map(hexToHsl);
 
-    // Weighted average (later ingredients have more weight)
+    // Calculate weighted circular average for hue (handles 0/360 wrapping)
+    // and linear weighted average for saturation/lightness
     let totalWeight = 0;
-    let hSum = 0;
+    let sinSum = 0;
+    let cosSum = 0;
     let sSum = 0;
     let lSum = 0;
 
     hslColors.forEach((hsl, index) => {
-        const weight = 1 + index * 0.3; // Increasing weight
+        const weight = 1 + index * 0.3; // Later ingredients have more weight
         totalWeight += weight;
 
-        // Handle hue wrapping (circular average)
-        // Convert to x,y coordinates on unit circle for proper averaging
+        // Circular average for hue using sin/cos
         const hRad = (hsl.h * Math.PI) / 180;
-        hSum += Math.cos(hRad) * weight;
-        const hSin = Math.sin(hRad) * weight;
+        sinSum += Math.sin(hRad) * weight;
+        cosSum += Math.cos(hRad) * weight;
 
+        // Linear average for saturation and lightness
         sSum += hsl.s * weight;
         lSum += hsl.l * weight;
-
-        // Add sin component
-        hSum += hSin * 0; // Placeholder for proper circular average
     });
 
-    // Calculate circular average for hue
-    let avgHue = 0;
-    {
-        let sinSum = 0;
-        let cosSum = 0;
-        hslColors.forEach((hsl, index) => {
-            const weight = 1 + index * 0.3;
-            const hRad = (hsl.h * Math.PI) / 180;
-            sinSum += Math.sin(hRad) * weight;
-            cosSum += Math.cos(hRad) * weight;
-        });
-        avgHue = (Math.atan2(sinSum, cosSum) * 180) / Math.PI;
-        if (avgHue < 0) avgHue += 360;
-    }
+    // Convert sin/cos back to hue angle
+    let avgHue = (Math.atan2(sinSum, cosSum) * 180) / Math.PI;
+    if (avgHue < 0) avgHue += 360;
 
     let avgSat = sSum / totalWeight;
     let avgLit = lSum / totalWeight;

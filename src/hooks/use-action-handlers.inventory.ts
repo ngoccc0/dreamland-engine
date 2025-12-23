@@ -1,7 +1,7 @@
 
 import { ActionHandlerDeps } from '@/hooks/actions/types';
 import { resolveItemDef as resolveItemDefHelper } from '@/lib/utils/item-utils';
-import { getTranslatedText, ensurePlayerItemId } from '@/lib/utils';
+import { getTranslatedText, ensurePlayerItemId, deepClone } from '@/lib/utils';
 import { getEffectiveChunk } from '@/core/engines/game/weather-generation';
 import { PlayerItem, TranslationKey } from '@/core/types/game';
 
@@ -31,7 +31,7 @@ export const createHandleInventoryActions = (deps: InventoryHandlerDeps) => {
         if (isLoading || isGameOver) return;
 
         setPlayerStats((prevStats: any) => {
-            const newStats: any = JSON.parse(JSON.stringify(prevStats));
+            const newStats: any = deepClone(prevStats);
             const itemDef = resolveItemDef(getTranslatedText(itemName as any, 'en'));
             if (!itemDef || !itemDef.equipmentSlot) return prevStats;
 
@@ -84,7 +84,7 @@ export const createHandleInventoryActions = (deps: InventoryHandlerDeps) => {
         if (isLoading || isGameOver) return;
 
         setPlayerStats((prevStats: any) => {
-            const newStats: any = JSON.parse(JSON.stringify(prevStats));
+            const newStats: any = deepClone(prevStats);
             const itemToUnequip = newStats.equipment[slot];
             if (!itemToUnequip) return prevStats;
 
@@ -123,7 +123,7 @@ export const createHandleInventoryActions = (deps: InventoryHandlerDeps) => {
         try {
             const key = `${playerPosition.x},${playerPosition.y}`;
             setPlayerStats((prev: any) => {
-                const next = JSON.parse(JSON.stringify(prev));
+                const next = deepClone(prev);
                 next.items = next.items || [];
                 const idx = next.items.findIndex((i: any) => getTranslatedText(i.name, 'en') === itemName);
                 if (idx === -1) return prev;

@@ -6,7 +6,7 @@ import { useControlsStore, selectSelectedAction, selectShowJoystick } from '@/st
 import type { GameLayoutControlsProps } from '../game-layout.types';
 
 /**
- * ControlsSection Smart Container
+ * ControlsSection Smart Container (Memoized)
  *
  * @remarks
  * **Purpose:**
@@ -27,11 +27,14 @@ import type { GameLayoutControlsProps } from '../game-layout.types';
  * - selectedActionId changes
  * - showJoystick changes
  * - inputMode changes
+ * - Memoized to prevent parent prop changes triggering re-render
  *
  * @param props - GameLayout control handlers and data
  * @returns React component rendering action controls
  */
-export function ControlsSection(props: Omit<GameLayoutControlsProps, 'isDesktop'> & { isDesktop: boolean }) {
+export const ControlsSection = React.memo(function ControlsSection(
+  props: Omit<GameLayoutControlsProps, 'isDesktop'> & { isDesktop: boolean }
+) {
   // Subscribe to controls state - only re-render on control changes
   const selectedActionId = useControlsStore(selectSelectedAction);
   const showJoystick = useControlsStore(selectShowJoystick);
@@ -81,4 +84,4 @@ export function ControlsSection(props: Omit<GameLayoutControlsProps, 'isDesktop'
       {...memoizedHandlers}
     />
   );
-}
+});

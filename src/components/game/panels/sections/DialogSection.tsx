@@ -6,12 +6,13 @@ import { useUIStore } from '@/store';
 import type { GameLayoutDialogsProps } from '../game-layout.types';
 
 /**
- * DialogSection Smart Container
+ * DialogSection Smart Container (Memoized)
  *
  * @remarks
  * **Purpose:**
  * Smart Container managing all game dialogs with independent re-rendering.
  * Subscribes to useUIStore for dialog visibility states.
+ * Memoized to prevent parent prop changes triggering re-render.
  *
  * **Responsibilities:**
  * - Centralize all dialog/popup rendering
@@ -47,7 +48,7 @@ import type { GameLayoutDialogsProps } from '../game-layout.types';
  * @param props - GameLayout dialog handlers and data
  * @returns React component rendering all game dialogs
  */
-export function DialogSection(props: GameLayoutDialogsProps) {
+export const DialogSection = React.memo(function DialogSection(props: GameLayoutDialogsProps) {
   // Subscribe to dialog visibility states - only re-render when these change
   const isStatusOpen = useUIStore((state) => state.dialogs.statusOpen);
   const isInventoryOpen = useUIStore((state) => state.dialogs.inventoryOpen);
@@ -158,4 +159,4 @@ export function DialogSection(props: GameLayoutDialogsProps) {
       {...memoizedHandlers}
     />
   );
-}
+});

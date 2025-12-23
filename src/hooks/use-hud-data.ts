@@ -39,28 +39,28 @@ import { useShallow } from 'zustand/react/shallow';
  * @returns Object with all HUD data fields
  */
 export function useHudData() {
-  return useHudStore(
-    useShallow((state) => ({
-      // Player stats
-      playerHp: state.playerStats.hp,
-      playerMaxHp: state.playerStats.maxHp,
-      playerHunger: state.playerStats.hunger,
-      playerMaxHunger: state.playerStats.maxHunger,
-      playerEnergy: state.playerStats.energy,
-      playerMaxEnergy: state.playerStats.maxEnergy,
-      playerLevel: state.playerStats.level,
+    return useHudStore(
+        useShallow((state) => ({
+            // Player stats
+            playerHp: state.playerStats.hp,
+            playerMaxHp: state.playerStats.maxHp,
+            playerHunger: state.playerStats.hunger,
+            playerMaxHunger: state.playerStats.maxHunger,
+            playerEnergy: state.playerStats.energy,
+            playerMaxEnergy: state.playerStats.maxEnergy,
+            playerLevel: state.playerStats.level,
 
-      // Game time
-      gameHour: state.gameTime.currentHour,
-      gameDay: state.gameTime.currentDay,
-      season: state.gameTime.season,
+            // Game time
+            gameHour: state.gameTime.currentHour,
+            gameDay: state.gameTime.currentDay,
+            season: state.gameTime.season,
 
-      // Weather
-      weatherCondition: state.weather.condition,
-      temperature: state.weather.temperature,
+            // Weather
+            weatherCondition: state.weather.condition,
+            temperature: state.weather.temperature,
 
-      // Location
-      locationName: state.location.chunkName,
-    }))
-  );
+            // Location
+            locationName: state.location.chunkName,
+        }))
+    );
 }

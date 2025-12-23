@@ -26,16 +26,16 @@ import { useMinimapStore, selectGridData, selectGridCenter, selectAnimating, sel
  * @returns Object with all minimap data fields
  */
 export function useMinimapData() {
-  const grid = useMinimapStore(selectGridData);
-  const { x: centerX, y: centerY } = useMinimapStore(selectGridCenter);
-  const isAnimating = useMinimapStore(selectAnimating);
-  const viewportSize = useMinimapStore(selectViewportSize);
+    const grid = useMinimapStore(selectGridData);
+    const { x: centerX, y: centerY } = useMinimapStore(selectGridCenter);
+    const isAnimating = useMinimapStore(selectAnimating);
+    const viewportSize = useMinimapStore(selectViewportSize);
 
-  return {
-    grid,
-    centerX,
-    centerY,
-    isAnimating,
-    viewportSize,
-  };
+    return {
+        grid,
+        centerX,
+        centerY,
+        isAnimating,
+        viewportSize,
+    };
 }

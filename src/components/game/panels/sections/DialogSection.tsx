@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { GameLayoutDialogs } from '../game-layout-dialogs';
-import { useUIStore } from '@/store';
+import { useDialogData } from '@/hooks/use-dialog-data';
 import type { GameLayoutDialogsProps } from '../game-layout.types';
 
 /**
@@ -11,12 +11,12 @@ import type { GameLayoutDialogsProps } from '../game-layout.types';
  * @remarks
  * **Purpose:**
  * Smart Container managing all game dialogs with independent re-rendering.
- * Subscribes to useUIStore for dialog visibility states.
+ * Subscribes to useDialogData hook for all dialog visibility states.
  * Memoized to prevent parent prop changes triggering re-render.
  *
  * **Responsibilities:**
  * - Centralize all dialog/popup rendering
- * - Subscribe to dialog visibility states from store
+ * - Subscribe to dialog visibility states from store via useDialogData
  * - Handle dialog open/close callbacks
  * - Lazy-load heavy dialog components for performance
  *
@@ -36,7 +36,7 @@ import type { GameLayoutDialogsProps } from '../game-layout.types';
  * - Available Actions (context menu)
  *
  * **Data Flow:**
- * GameLayout → DialogSection → subscribes to useUIStore → renders GameLayoutDialogs
+ * GameLayout → DialogSection → useDialogData → renders GameLayoutDialogs
  *
  * **Re-render Optimization:**
  * Only re-renders when dialog visibility states change.
@@ -49,114 +49,117 @@ import type { GameLayoutDialogsProps } from '../game-layout.types';
  * @returns React component rendering all game dialogs
  */
 export const DialogSection = React.memo(function DialogSection(props: GameLayoutDialogsProps) {
-  // Subscribe to dialog visibility states - only re-render when these change
-  const isStatusOpen = useUIStore((state) => state.dialogs.statusOpen);
-  const isInventoryOpen = useUIStore((state) => state.dialogs.inventoryOpen);
-  const isCraftingOpen = useUIStore((state) => state.dialogs.craftingOpen);
-  const isBuildingOpen = useUIStore((state) => state.dialogs.buildingOpen);
-  const isFusionOpen = useUIStore((state) => state.dialogs.fusionOpen);
-  const isFullMapOpen = useUIStore((state) => state.dialogs.mapOpen);
-  const isTutorialOpen = useUIStore((state) => state.dialogs.skillsOpen);
-  const isSettingsOpen = useUIStore((state) => state.dialogs.settingsOpen);
-  const showInstallPopup = useUIStore((state) => state.ephemeral.installPopupOpen);
-  const isAvailableActionsOpen = useUIStore((state) => state.ephemeral.availableActionsOpen);
-  const isCustomDialogOpen = useUIStore((state) => state.ephemeral.customDialogOpen);
-  const isPickupDialogOpen = useUIStore((state) => state.ephemeral.pickupDialogOpen);
-  const isCookingOpen = useUIStore((state) => state.dialogs.cookingOpen);
+    // Subscribe to all dialog visibility states via useDialogData
+    // Single subscription with useShallow instead of 13 individual ones
+    const {
+        isStatusOpen,
+        isInventoryOpen,
+        isCraftingOpen,
+        isBuildingOpen,
+        isFusionOpen,
+        isFullMapOpen,
+        isTutorialOpen,
+        isSettingsOpen,
+        showInstallPopup,
+        isAvailableActionsOpen,
+        isCustomDialogOpen,
+        isPickupDialogOpen,
+        isCookingOpen,
+    } = useDialogData();
 
-  // Memoize dialog handlers to maintain stability
-  const memoizedHandlers = useMemo(
-    () => ({
-      onStatusOpenChange: props.onStatusOpenChange,
-      onInventoryOpenChange: props.onInventoryOpenChange,
-      onCraftingOpenChange: props.onCraftingOpenChange,
-      onBuildingOpenChange: props.onBuildingOpenChange,
-      onFusionOpenChange: props.onFusionOpenChange,
-      onFullMapOpenChange: props.onFullMapOpenChange,
-      onTutorialOpenChange: props.onTutorialOpenChange,
-      onSettingsOpenChange: props.onSettingsOpenChange,
-      onInstallPopupOpenChange: props.onInstallPopupOpenChange,
-      onAvailableActionsOpenChange: props.onAvailableActionsOpenChange,
-      onCustomDialogOpenChange: props.onCustomDialogOpenChange,
-      onPickupDialogOpenChange: props.onPickupDialogOpenChange,
-      onCookingOpenChange: props.onCookingOpenChange,
-      onToggleStatus: props.onToggleStatus,
-      onToggleInventory: props.onToggleInventory,
-      onToggleCrafting: props.onToggleCrafting,
-      onToggleMap: props.onToggleMap,
-      onActionClick: props.onActionClick,
-      onCustomDialogSubmit: props.onCustomDialogSubmit,
-      onTogglePickupSelection: props.onTogglePickupSelection,
-      onPickupConfirm: props.onPickupConfirm,
-      onEquipItem: props.onEquipItem,
-      onUnequipItem: props.onUnequipItem,
-      onDropItem: props.onDropItem,
-      onItemUsed: props.onItemUsed,
-      onCraft: props.onCraft,
-      onBuild: props.onBuild,
-      onFuse: props.onFuse,
-      onToggleTutorial: props.onToggleTutorial,
-      onToggleSettings: props.onToggleSettings,
-      onToggleFusion: props.onToggleFusion,
-      onToggleBuilding: props.onToggleBuilding,
-      onReturnToMenu: props.onReturnToMenu,
-      onCustomDialogValueChange: props.onCustomDialogValueChange,
-    }),
-    [
-      props.onStatusOpenChange,
-      props.onInventoryOpenChange,
-      props.onCraftingOpenChange,
-      props.onBuildingOpenChange,
-      props.onFusionOpenChange,
-      props.onFullMapOpenChange,
-      props.onTutorialOpenChange,
-      props.onSettingsOpenChange,
-      props.onInstallPopupOpenChange,
-      props.onAvailableActionsOpenChange,
-      props.onCustomDialogOpenChange,
-      props.onPickupDialogOpenChange,
-      props.onCookingOpenChange,
-      props.onToggleStatus,
-      props.onToggleInventory,
-      props.onToggleCrafting,
-      props.onToggleMap,
-      props.onActionClick,
-      props.onCustomDialogSubmit,
-      props.onTogglePickupSelection,
-      props.onPickupConfirm,
-      props.onEquipItem,
-      props.onUnequipItem,
-      props.onDropItem,
-      props.onItemUsed,
-      props.onCraft,
-      props.onBuild,
-      props.onFuse,
-      props.onToggleTutorial,
-      props.onToggleSettings,
-      props.onToggleFusion,
-      props.onToggleBuilding,
-      props.onReturnToMenu,
-      props.onCustomDialogValueChange,
-    ]
-  );
+    // Memoize dialog handlers to maintain stability
+    const memoizedHandlers = useMemo(
+        () => ({
+            onStatusOpenChange: props.onStatusOpenChange,
+            onInventoryOpenChange: props.onInventoryOpenChange,
+            onCraftingOpenChange: props.onCraftingOpenChange,
+            onBuildingOpenChange: props.onBuildingOpenChange,
+            onFusionOpenChange: props.onFusionOpenChange,
+            onFullMapOpenChange: props.onFullMapOpenChange,
+            onTutorialOpenChange: props.onTutorialOpenChange,
+            onSettingsOpenChange: props.onSettingsOpenChange,
+            onInstallPopupOpenChange: props.onInstallPopupOpenChange,
+            onAvailableActionsOpenChange: props.onAvailableActionsOpenChange,
+            onCustomDialogOpenChange: props.onCustomDialogOpenChange,
+            onPickupDialogOpenChange: props.onPickupDialogOpenChange,
+            onCookingOpenChange: props.onCookingOpenChange,
+            onToggleStatus: props.onToggleStatus,
+            onToggleInventory: props.onToggleInventory,
+            onToggleCrafting: props.onToggleCrafting,
+            onToggleMap: props.onToggleMap,
+            onActionClick: props.onActionClick,
+            onCustomDialogSubmit: props.onCustomDialogSubmit,
+            onTogglePickupSelection: props.onTogglePickupSelection,
+            onPickupConfirm: props.onPickupConfirm,
+            onEquipItem: props.onEquipItem,
+            onUnequipItem: props.onUnequipItem,
+            onDropItem: props.onDropItem,
+            onItemUsed: props.onItemUsed,
+            onCraft: props.onCraft,
+            onBuild: props.onBuild,
+            onFuse: props.onFuse,
+            onToggleTutorial: props.onToggleTutorial,
+            onToggleSettings: props.onToggleSettings,
+            onToggleFusion: props.onToggleFusion,
+            onToggleBuilding: props.onToggleBuilding,
+            onReturnToMenu: props.onReturnToMenu,
+            onCustomDialogValueChange: props.onCustomDialogValueChange,
+        }),
+        [
+            props.onStatusOpenChange,
+            props.onInventoryOpenChange,
+            props.onCraftingOpenChange,
+            props.onBuildingOpenChange,
+            props.onFusionOpenChange,
+            props.onFullMapOpenChange,
+            props.onTutorialOpenChange,
+            props.onSettingsOpenChange,
+            props.onInstallPopupOpenChange,
+            props.onAvailableActionsOpenChange,
+            props.onCustomDialogOpenChange,
+            props.onPickupDialogOpenChange,
+            props.onCookingOpenChange,
+            props.onToggleStatus,
+            props.onToggleInventory,
+            props.onToggleCrafting,
+            props.onToggleMap,
+            props.onActionClick,
+            props.onCustomDialogSubmit,
+            props.onTogglePickupSelection,
+            props.onPickupConfirm,
+            props.onEquipItem,
+            props.onUnequipItem,
+            props.onDropItem,
+            props.onItemUsed,
+            props.onCraft,
+            props.onBuild,
+            props.onFuse,
+            props.onToggleTutorial,
+            props.onToggleSettings,
+            props.onToggleFusion,
+            props.onToggleBuilding,
+            props.onReturnToMenu,
+            props.onCustomDialogValueChange,
+        ]
+    );
 
-  return (
-    <GameLayoutDialogs
-      {...props}
-      isStatusOpen={isStatusOpen}
-      isInventoryOpen={isInventoryOpen}
-      isCraftingOpen={isCraftingOpen}
-      isBuildingOpen={isBuildingOpen}
-      isFusionOpen={isFusionOpen}
-      isFullMapOpen={isFullMapOpen}
-      isTutorialOpen={isTutorialOpen}
-      isSettingsOpen={isSettingsOpen}
-      showInstallPopup={showInstallPopup}
-      isAvailableActionsOpen={isAvailableActionsOpen}
-      isCustomDialogOpen={isCustomDialogOpen}
-      isPickupDialogOpen={isPickupDialogOpen}
-      isCookingOpen={isCookingOpen}
-      {...memoizedHandlers}
-    />
-  );
+    return (
+        <GameLayoutDialogs
+            {...props}
+            isStatusOpen={isStatusOpen}
+            isInventoryOpen={isInventoryOpen}
+            isCraftingOpen={isCraftingOpen}
+            isBuildingOpen={isBuildingOpen}
+            isFusionOpen={isFusionOpen}
+            isFullMapOpen={isFullMapOpen}
+            isTutorialOpen={isTutorialOpen}
+            isSettingsOpen={isSettingsOpen}
+            showInstallPopup={showInstallPopup}
+            isAvailableActionsOpen={isAvailableActionsOpen}
+            isCustomDialogOpen={isCustomDialogOpen}
+            isPickupDialogOpen={isPickupDialogOpen}
+            isCookingOpen={isCookingOpen}
+            {...memoizedHandlers}
+        />
+    );
 });

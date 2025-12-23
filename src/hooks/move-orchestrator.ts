@@ -28,19 +28,19 @@ import { useRef, useCallback } from 'react';
  * Returned by useMoveOrchestrator after throttle check
  */
 export interface MoveCommand {
-    direction: 'north' | 'south' | 'east' | 'west';
-    timestamp: number;
+  direction: 'north' | 'south' | 'east' | 'west';
+  timestamp: number;
 }
 
 interface UseMoveOrchestratorDeps {
-    /** Current game animation duration in ms (default 300) */
-    animationDurationMs: number;
-    /** Callback when valid move command should be executed */
-    onMoveIntent: (command: MoveCommand) => void;
-    /** Is game currently locked (paused, in dialog, etc) */
-    isGameLocked: boolean;
-    /** Is a move animation currently playing */
-    isAnimatingMove: boolean;
+  /** Current game animation duration in ms (default 300) */
+  animationDurationMs: number;
+  /** Callback when valid move command should be executed */
+  onMoveIntent: (command: MoveCommand) => void;
+  /** Is game currently locked (paused, in dialog, etc) */
+  isGameLocked: boolean;
+  /** Is a move animation currently playing */
+  isAnimatingMove: boolean;
 }
 
 /**
@@ -64,55 +64,55 @@ interface UseMoveOrchestratorDeps {
  * This separation keeps the hook under 150 lines.
  */
 export function useMoveOrchestrator(deps: UseMoveOrchestratorDeps) {
-    const { animationDurationMs, onMoveIntent, isGameLocked, isAnimatingMove } =
-        deps;
+  const { animationDurationMs, onMoveIntent, isGameLocked, isAnimatingMove } =
+    deps;
 
-    // Track the last time a move command was emitted
-    const lastMoveTimeRef = useRef<number>(0);
+  // Track the last time a move command was emitted
+  const lastMoveTimeRef = useRef<number>(0);
 
-    /**
-     * Check if enough time has passed since last move
-     * @returns true if we should allow a new move
-     */
-    const canEmitMove = useCallback((): boolean => {
-        const now = Date.now();
-        const timeSinceLastMove = now - lastMoveTimeRef.current;
-        return timeSinceLastMove >= animationDurationMs;
-    }, [animationDurationMs]);
+  /**
+   * Check if enough time has passed since last move
+   * @returns true if we should allow a new move
+   */
+  const canEmitMove = useCallback((): boolean => {
+    const now = Date.now();
+    const timeSinceLastMove = now - lastMoveTimeRef.current;
+    return timeSinceLastMove >= animationDurationMs;
+  }, [animationDurationMs]);
 
-    /**
-     * Emit a move intent
-     * Respects throttle and game state
-     *
-     * Called by: useKeyboardBindings → handleMove callback
-     */
-    const emitMoveIntent = useCallback(
-        (direction: 'north' | 'south' | 'east' | 'west') => {
-            // Respect game locks
-            if (isGameLocked || isAnimatingMove) {
-                return;
-            }
+  /**
+   * Emit a move intent
+   * Respects throttle and game state
+   *
+   * Called by: useKeyboardBindings → handleMove callback
+   */
+  const emitMoveIntent = useCallback(
+    (direction: 'north' | 'south' | 'east' | 'west') => {
+      // Respect game locks
+      if (isGameLocked || isAnimatingMove) {
+        return;
+      }
 
-            // Respect throttle (300ms animation duration)
-            if (!canEmitMove()) {
-                return;
-            }
+      // Respect throttle (300ms animation duration)
+      if (!canEmitMove()) {
+        return;
+      }
 
-            // Emit intent to parent
-            onMoveIntent({
-                direction,
-                timestamp: Date.now(),
-            });
+      // Emit intent to parent
+      onMoveIntent({
+        direction,
+        timestamp: Date.now(),
+      });
 
-            // Update last move time AFTER emitting
-            lastMoveTimeRef.current = Date.now();
-        },
-        [isGameLocked, isAnimatingMove, canEmitMove, onMoveIntent],
-    );
+      // Update last move time AFTER emitting
+      lastMoveTimeRef.current = Date.now();
+    },
+    [isGameLocked, isAnimatingMove, canEmitMove, onMoveIntent],
+  );
 
-    // Return handlers for validation + intent emission
-    return {
-        emitMoveIntent,
-        canEmitMove,
-    };
+  // Return handlers for validation + intent emission
+  return {
+    emitMoveIntent,
+    canEmitMove,
+  };
 }

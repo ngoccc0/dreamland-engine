@@ -3,7 +3,6 @@
 
 import { useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import { useLanguage } from '@/context/language-context';
-import { applyTickEffects } from '@/core/rules/effects/effect-engine';
 import type { PlayerStatusDefinition, NarrativeEntry } from '@/core/types/game';
 import { CreatureEngine } from '@/core/rules/creature';
 import { EffectEngine } from '@/core/engines/effect-engine';
@@ -15,6 +14,7 @@ import { useGameState } from "./use-game-state";
 import { useActionHandlers } from "./use-action-handlers";
 import { useGameEffects } from "./use-game-effects";
 import { useMoveOrchestrator } from "./move-orchestrator";
+import { useEffectProcessor } from "./use-effect-processor";
 import { useSettings } from "@/context/settings-context"; // Import useSettings
 import { useAudioContext } from '@/lib/audio/AudioProvider';
 import { ANIMATION_DURATION_MS, defaultGameConfig } from '@/lib/config/game-config';
@@ -179,6 +179,15 @@ export function useGameEngine(props: GameEngineProps) {
 
     // Initialize weather engine
     const weatherEngineRef = useRef(new WeatherEngine(effectEngineRef.current, weatherData));
+
+    // Initialize effect processor hook
+    const { processAllEffects } = useEffectProcessor({
+        playerStats: gameState.playerStats,
+        gameState,
+        currentTurn: gameState.turn || 0,
+        config: defaultGameConfig,
+        weatherEngineRef,
+    });
 
 
     // Queue for narrative entries to fix race condition
@@ -350,42 +359,22 @@ export function useGameEngine(props: GameEngineProps) {
             return next % (settings as any).dayDuration; // Use dayDuration from settings
         });
 
-        // If caller provided a candidate stats object, apply per-tick effects
-        if (stats) {
-            const newStats = { ...stats } as PlayerStatusDefinition;
-            const { newStats: updated, messages } = applyTickEffects(newStats, currentTurn, t, defaultGameConfig);
-            for (const m of messages) addNarrativeEntry(m.text, m.type);
-            gameState.setPlayerStats(() => updated);
+        // Apply tick and weather effects atomically using sync-back pattern
+        // This processes both status effects, hunger/thirst, and weather impacts in one atomic update
+        const effectResult = processAllEffects();
+        
+        // Apply all effects atomically to player stats
+        if (effectResult.updatedStats !== gameState.playerStats) {
+            gameState.setPlayerStats(effectResult.updatedStats);
+        }
+        
+        // Add effect messages to narrative
+        for (const msg of effectResult.tickMessages) {
+            addNarrativeEntry(msg.text, msg.type as 'narrative' | 'system' | 'action' | 'monologue');
         }
 
         // Update weather engine
         weatherEngineRef.current.update(gameState.gameTime);
-
-        // Apply weather effects to player's current cell
-        const playerPosition = new GridPosition(gameState.playerPosition.x, gameState.playerPosition.y);
-        if (gameState.world && typeof gameState.world.getCellAt === 'function') {
-            try {
-                const playerCurrentCell = gameState.world.getCellAt(playerPosition);
-                if (playerCurrentCell) {
-                    const weatherEffects = weatherEngineRef.current.applyWeatherEffects(playerCurrentCell, gameState.playerStats);
-
-                    // Apply weather effects to player stats immutably
-                    if (weatherEffects && weatherEffects.length > 0) {
-                        let updatedStats = gameState.playerStats;
-                        for (const effect of weatherEffects) {
-                            const changes = effectEngineRef.current.processEffect(effect, gameState.playerStats);
-                            updatedStats = effectEngineRef.current.applyEffectChangesToPlayer(updatedStats, changes);
-                        }
-
-                        if (updatedStats !== gameState.playerStats) {
-                            gameState.setPlayerStats(updatedStats);
-                        }
-                    }
-                }
-            } catch {
-                // Silently handle world method unavailability
-            }
-        }
 
         // (Plant updates moved after visibleChunks are assembled)
 
@@ -393,6 +382,7 @@ export function useGameEngine(props: GameEngineProps) {
         // Get visible chunks around the player for creature simulation
         const visibleChunks = new Map<string, any>();
         const viewRadius = 5; // Include chunks within 5 tiles of the player
+        const playerPosition = new GridPosition(gameState.playerPosition.x, gameState.playerPosition.y);
 
         // Add current chunk if it exists
         if (gameState.currentChunk) {

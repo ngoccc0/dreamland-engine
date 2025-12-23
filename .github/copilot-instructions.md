@@ -96,7 +96,57 @@ IF (Proposed Code violates `docs/` OR File Limits):
     * **NO Hidden Math:** Do not use inline `//` comments to explain complex formulas.
     * **Use @remarks:** Move all logic explanations/formulas into the `@remarks` section.
 
-**Step C: Verification (Strict Zero Regression)**
+**Step C: Self critique (Review for clarity and correctness)**
+ Apply this protocol IMMEDIATELY after generating code/tests, BEFORE marking the task as "Completed" and when report final result.
+
+CORE DIRECTIVE: You are forbidden from hiding messy details. You must output a visible "SELF-CRITIQUE REPORT". If you executed a "quick fix" or "hack", you must confess it here. Transparency is valued higher than perfection.
+
+REPORT STRUCTURE (You must fill this out visibly):
+
+1. 🔍 CODE AUDIT (Line-by-line Inspection)
+Anti-Patterns: List any usage of any, JSON.parse (without validation), magic numbers, or nested ternaries.
+
+Output format: [Line X] Found 'any' type -> Reason: ... OR [CLEAN]
+
+Style Violation: Did you strictly follow docs/CODING_STANDARDS.md? (Naming, File structure, TSDoc).
+
+Confession: "I skipped TSDoc for helper function X."
+
+2. 🧪 REALITY CHECK (Test Integrity)
+False Positives: Do the tests pass because the logic is correct, or because the test is too loose?
+
+Check: Did you mock too much? Are you testing implementation details instead of behavior?
+
+Edge Cases Ignored: List 3 specific edge cases you did NOT test (e.g., Network timeout, Empty array, Invalid JSON).
+
+3. 💥 IMPACT ANALYSIS (Regression Check)
+Dependency Risk: Which other modules import the file you just changed?
+
+Breakage Probability: Estimate the risk (0-100%) that this change breaks existing features. Explain WHY.
+
+4. 🔪 RUTHLESS CRITIQUE (The "Ugly Truth")
+Weak Spots: Point out the weakest part of your implementation.
+
+Example: "The sorting algorithm is O(n^2), acceptable now but will fail at 10k items."
+
+Sloppy Patches: Did you leave any logic that is "technically working but ugly"?
+
+Optimization Missed: What could be done better if you had more time?
+
+5. 🧠 DECISION LOG (Transparency)
+Trade-offs: "I chose Solution A over Solution B because..."
+
+Shortcuts: "I hardcoded X to save time/tokens." (Confess it now or be rejected later).
+
+VERDICT: Based on the above, rate your own work:
+
+[ ] SOLID: Production-ready, clean, tested.
+
+[ ] FRAGILE: Works but needs refactoring soon.
+
+[ ] DANGEROUS: Contains hacks/risks. User attention required.
+
+**Step D: Verification (Strict Zero Regression)**
 1.  Run `npm run typecheck` (MANDATORY).
 2.  Run `npm test` (MANDATORY for any logic change).
     * **CRITICAL:** If *any* existing test fails (regression), you must FIX it or REVERT changes. Do not push code that breaks existing tests.

@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { EntitySchema } from './entity';
+import type { PathfindingCapability } from '@/core/rules/creature/pathfinding-state';
+import { PathfindingCapabilitySchema } from '@/core/rules/creature/pathfinding-state';
 
 /**
  * Polymorphic Creature Domain Type
@@ -37,6 +39,7 @@ const FaunaSchema = EntitySchema.extend({
     spawnY: z.number().int().describe('Original spawn Y position'),
     hp: z.number().min(0).describe('Current health points'),
     maxHp: z.number().positive().describe('Maximum health'),
+    pathfinding: PathfindingCapabilitySchema.optional().describe('Pathfinding state and config'),
 });
 
 /**
@@ -97,6 +100,7 @@ const MonsterSchema = EntitySchema.extend({
         itemId: z.string(),
         dropChance: z.number().min(0).max(1),
     })).describe('Items dropped on death'),
+    pathfinding: PathfindingCapabilitySchema.optional().describe('Pathfinding state and config'),
 });
 
 /**

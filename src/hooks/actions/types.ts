@@ -1,0 +1,54 @@
+
+import type { GameState, World, PlayerStatus, Recipe, GeneratedItem, ItemDefinition, Chunk, NarrativeEntry } from '@/core/types/game';
+
+export type ActionHandlerDeps = {
+    isLoaded: boolean;
+    isLoading: boolean;
+    isGameOver: boolean;
+    setIsLoading: (loading: boolean) => void;
+    playerStats: PlayerStatus;
+    setPlayerStats: React.Dispatch<React.SetStateAction<PlayerStatus>>;
+    world: World;
+    setWorld: React.Dispatch<React.SetStateAction<World>>;
+    recipes: Record<string, Recipe>;
+    buildableStructures: Record<string, any>;
+    customItemDefinitions: Record<string, ItemDefinition>;
+    setCustomItemCatalog: React.Dispatch<React.SetStateAction<GeneratedItem[]>>;
+    setCustomItemDefinitions: React.Dispatch<React.SetStateAction<Record<string, ItemDefinition>>>;
+    finalWorldSetup: GameState['worldSetup'] | null;
+    addNarrativeEntry: (text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string) => void;
+    advanceGameTime: (stats?: PlayerStatus, pos?: { x: number, y: number }) => void;
+    setPlayerBehaviorProfile: (fn: (prev: any) => any) => void;
+    playerPosition: { x: number, y: number };
+    setPlayerPosition: (pos: { x: number, y: number }) => void;
+    setCurrentChunk: (chunk: Chunk | null) => void;
+    weatherZones: Record<string, any>;
+    turn: number;
+    gameTime: number;
+    regions: GameState['regions'];
+    setRegions: (regions: GameState['regions']) => void;
+    regionCounter: number;
+    setRegionCounter: (counter: number) => void;
+    worldProfile: GameState['worldProfile'];
+    currentSeason: GameState['currentSeason'];
+    customItemCatalog: GameState['customItemCatalog'];
+    customStructures: GameState['customStructures'];
+    narrativeLogRef: React.RefObject<NarrativeEntry[]>;
+    activeMoveOpsRef?: React.RefObject<Set<string>>;
+    activeQuests?: any[];
+    setActiveQuests?: React.Dispatch<React.SetStateAction<any[]>>;
+    unlockedAchievements?: any[];
+    setUnlockedAchievements?: React.Dispatch<React.SetStateAction<any[]>>;
+    statistics?: any;
+    setStatistics?: React.Dispatch<React.SetStateAction<any>>;
+    actionHistory?: any;
+    setActionHistory?: React.Dispatch<React.SetStateAction<any>>;
+    recordCombatAction?: (action: any) => void;
+    recordHarvestingAction?: (action: any) => void;
+    recordCraftingAction?: (action: any) => void;
+    // Added for easy access to contexts without casting
+    settings?: any;
+    t?: any;
+    toast?: any;
+    language?: any;
+};

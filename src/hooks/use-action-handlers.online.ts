@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Online narrative generation handler factory - creates handler for AI-generated narratives.
  *
  * @remarks
@@ -36,7 +36,7 @@
 // `use-action-handlers.ts` hook. The context parameter is `any` to keep the
 // refactor low-risk; we can tighten types later.
 import type { GenerateNarrativeInput } from '@/ai/flows/generate-narrative-flow';
-import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
+import { ActionHandlerDeps } from '@/hooks/actions/types';
 
 export function createHandleOnlineNarrative(context: Partial<ActionHandlerDeps> & Record<string, any>) {
   return async (action: string, worldCtx: any, playerPosCtx: { x: number, y: number }, playerStatsCtx: any) => {
@@ -160,3 +160,4 @@ export function createHandleOnlineNarrative(context: Partial<ActionHandlerDeps> 
     }
   };
 }
+

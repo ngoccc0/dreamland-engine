@@ -24,6 +24,7 @@ describe('itemUseUsecase', () => {
   beforeEach(() => {
     // Setup: Player at 50% satiety
     mockPlayer = {
+      name: 'Test Player',
       level: 1,
       experience: 0,
       hp: 100,

@@ -1,17 +1,19 @@
 import type { GridPosition } from '@/core/values/grid-position';
 import type { PlayerStatusDefinition } from '@/core/types/game';
 import type { CreatureState } from './core';
+import {
+    determineBehaviorTransition,
+    chebyshevDistance,
+    isCreatureHungry,
+} from './behavior-state';
+import { isFauna, isMonster } from '@/core/domain/creature';
 
 /**
  * Updates creature behavior based on current state and player proximity.
  * @remarks
- * Implements a 5-state behavior machine:
- * - **aggressive**: Hunts player when in range, searches widely when hungry
- * - **passive**: Flees when player approaches (<2 tiles)
- * - **defensive**: Stands ground but doesn't pursue
- * - **territorial**: Hunts targets in search range
- * - **ambush**: Attacks only when adjacent (<1 tile)
- * - **immobile**: Stays idle (statues, plants, etc.)
+ * Uses the explicit state machine from `behavior-state.ts`.
+ * Integrates pathfinding triggers for intelligent movement.
+ *
  * @param creature The creature to update
  * @param playerPosition Current player grid position
  * @param playerStats Player status (HP, etc.)
@@ -21,79 +23,46 @@ export function updateBehavior(
     playerPosition: GridPosition,
     playerStats: PlayerStatusDefinition
 ): void {
-    // Use per-creature search radius when available. Default to 2 tiles (5x5 area) for predators.
-    const searchRange = (creature as any).trophicRange ?? 2;
-    const inSquareRange = (creature.position.x !== playerPosition.x || creature.position.y !== playerPosition.y)
-        ? Math.max(
-            Math.abs(creature.position.x - playerPosition.x),
-            Math.abs(creature.position.y - playerPosition.y)
-        ) <= searchRange
-        : true;
+    // Calculate distance to player
+    const distance = chebyshevDistance(creature.position, playerPosition);
 
-    switch (creature.behavior) {
-        case 'aggressive':
-            if (inSquareRange) {
-                creature.currentBehavior = 'hunting';
-                creature.targetPosition = { x: playerPosition.x, y: playerPosition.y } as any;
-            } else if (creature.satiation < creature.maxSatiation * 0.5) {
-                // If hungry, expand hunting scope (still prefer local player if in range)
-                creature.currentBehavior = 'hunting';
-                creature.targetPosition = { x: playerPosition.x, y: playerPosition.y } as any;
-            } else {
-                creature.currentBehavior = 'idle';
-            }
-            break;
+    // Check hunger
+    const isHungry = isCreatureHungry(creature);
 
-        case 'passive':
-            // Passive creatures try to flee if the player gets too close (use smaller radius)
-            const passiveFleeRange = Math.max(
-                Math.abs(creature.position.x - playerPosition.x),
-                Math.abs(creature.position.y - playerPosition.y)
-            );
-            if (passiveFleeRange <= 2) {
-                creature.currentBehavior = 'fleeing';
-                creature.targetPosition = { x: playerPosition.x, y: playerPosition.y } as any;
-            } else {
-                creature.currentBehavior = 'idle';
-            }
-            break;
+    // Check if creature has a valid path
+    // @ts-ignore - pathfinding property may not exist on legacy CreatureState
+    const hasValidPath = !!(creature as any).pathfinding?.state?.currentPath?.length;
 
-        case 'defensive':
-            const defensiveRange = Math.max(
-                Math.abs(creature.position.x - playerPosition.x),
-                Math.abs(creature.position.y - playerPosition.y)
-            );
-            if (defensiveRange <= 2) {
-                creature.currentBehavior = 'idle'; // Stand ground
-            } else {
-                creature.currentBehavior = 'idle';
-            }
-            break;
+    // Get transition decision
+    const transition = determineBehaviorTransition(
+        creature,
+        playerPosition,
+        distance,
+        isHungry,
+        hasValidPath
+    );
 
-        case 'territorial':
-            if (inSquareRange) {
-                creature.currentBehavior = 'hunting';
-            } else {
-                creature.currentBehavior = 'idle';
-            }
-            break;
+    // Apply new behavior state
+    creature.currentBehavior = transition.newState as any;
 
-        case 'ambush':
-            const ambushRange = Math.max(
-                Math.abs(creature.position.x - playerPosition.x),
-                Math.abs(creature.position.y - playerPosition.y)
-            );
-            if (ambushRange <= 1) {
-                creature.currentBehavior = 'hunting';
-                creature.targetPosition = { x: playerPosition.x, y: playerPosition.y } as any;
-            } else {
-                creature.currentBehavior = 'idle';
-            }
-            break;
+    // Set target position if transitioning to hunting/fleeing
+    if (transition.pathfindingTarget && transition.pathfindingTarget.type === 'location') {
+        creature.targetPosition = {
+            x: transition.pathfindingTarget.x,
+            y: transition.pathfindingTarget.y,
+        } as any;
+    }
 
-        case 'immobile':
-        default:
-            creature.currentBehavior = 'idle';
-            break;
+    // If pathfinding should be recalculated, update pathfinding state
+    // The actual path calculation happens in creature-pathfinding.ts usecase
+    // Here we just set the target so the next pathfinding tick picks it up
+    if (transition.shouldRecalculatePath && transition.pathfindingTarget) {
+        // For creatures with pathfinding capability, update the target
+        // @ts-ignore - accessing pathfinding on engine's CreatureState
+        if ((creature as any).pathfinding?.state) {
+            (creature as any).pathfinding.state.target = transition.pathfindingTarget;
+            // Also mark path as stale to force recalculation
+            (creature as any).pathfinding.state.pathAge = 999;
+        }
     }
 }

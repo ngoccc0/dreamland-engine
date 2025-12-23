@@ -1,11 +1,11 @@
-/**
+﻿/**
  * Fuse items action handler factory - creates handler for item crafting/alchemy.
  *
  * @remarks
  * Executes fusion/crafting recipe to combine items into new items.
  * Integrates Phase 3.A pure rules:
- * - validateRecipe(recipeId, inventory) → validates materials available
- * - calculateCraftTime(difficulty) → fusion duration
+ * - validateRecipe(recipeId, inventory) â†’ validates materials available
+ * - calculateCraftTime(difficulty) â†’ fusion duration
  *
  * **Fusion Process:**
  * 1. Validates recipe exists and items available (using validateRecipe rule)
@@ -39,7 +39,7 @@
  */
 
 // Extracted fuse items handler.
-import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
+import { ActionHandlerDeps } from '@/hooks/actions/types';
 import type { GameEvent } from '@/core/types/events';
 import {
   validateRecipe,
@@ -175,3 +175,4 @@ export function createHandleFuseItems(context: Partial<ActionHandlerDeps> & Reco
     }
   };
 }
+

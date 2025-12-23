@@ -21,22 +21,24 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { processAction, ActionProcessorContext } from '@/core/usecases/action-processor';
 import { GameAction, ActionType, PlayerMoveAction, ConsumeItemAction, GameTickAction, AttackAction } from '@/core/usecases/actions/types';
+import { ActionResult } from '@/core/usecases/actions/result-types';
 import { usePlayerStore } from './player.store';
 import { useWorldStore } from './world.store';
 import { useEffectStore } from './effect.store';
 import { useTimeStore } from './time.store';
+import { World } from '@/core/types/world';
 
 interface ActionStoreState {
   // Action queue
   isProcessing: boolean;
-  lastActionResult: any | null;
-  
+  lastActionResult: ActionResult | null;
+
   // Action execution methods (high-level API)
   executeMove: (direction: { x: number; y: number }, distance?: number) => Promise<void>;
   executeCombat: (targetId: string) => Promise<void>;
   executeItemUse: (itemId: string, quantity?: number) => Promise<void>;
   executeGameTick: (deltaMs: number) => Promise<void>;
-  
+
   // Low-level action processor
   _processRawAction: (action: GameAction) => Promise<void>;
 }
@@ -113,7 +115,10 @@ export const useActionStore = create<ActionStoreState>()(
 
           const context: ActionProcessorContext = {
             player: playerStore.player,
-            world: worldStore.currentChunk as any, // TODO: Proper world construction
+            // Construct a partial world from current chunk (TODO: Better world tracking)
+            world: (worldStore.currentChunk
+              ? { chunks: { '0,0': worldStore.currentChunk } }
+              : {}) as unknown as World,
             activeEffects: effectStore.activeEffects,
             accumulatedMs: timeStore.accumulatedMs,
             diceRoll: (sides: number) => Math.floor(Math.random() * sides) + 1,

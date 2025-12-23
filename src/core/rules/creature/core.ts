@@ -396,4 +396,17 @@ export class CreatureEngine {
         }
         return null;
     }
+
+    /**
+     * Updates an existing creature's state directly.
+     * Useful for external systems (like pathfinding) to inject state updates.
+     * @param creatureId ID of the creature to update
+     * @param newState Partial state to apply
+     */
+    updateCreatureRuntimeState(creatureId: string, newState: Partial<CreatureState>): void {
+        const existing = this.creatures.get(creatureId);
+        if (existing) {
+            this.creatures.set(creatureId, { ...existing, ...newState });
+        }
+    }
 }

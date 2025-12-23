@@ -23,6 +23,7 @@ export interface PlayerProgress {
 }
 
 export interface PlayerStatus {
+    name: string;
     level: number;
     experience: number;
     hp: number;

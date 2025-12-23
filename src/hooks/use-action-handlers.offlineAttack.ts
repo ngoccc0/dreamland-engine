@@ -1,11 +1,11 @@
-/**
+﻿/**
  * Offline attack handler factory - creates handler for turn-based combat.
  *
  * @remarks
  * Executes combat turn against enemy at current location using dice roll system.
  * Integrates Phase 3.A pure rules:
- * - calculateBaseDamage(attack) → normalized base damage
- * - applyMultiplier(baseDamage, mult) → final damage with modifiers
+ * - calculateBaseDamage(attack) â†’ normalized base damage
+ * - applyMultiplier(baseDamage, mult) â†’ final damage with modifiers
  *
  * **Combat Flow:**
  * 1. Roll dice (d20, d12, d8 based on settings)
@@ -32,7 +32,7 @@
  */
 
 // Extracted offline attack handler.
-import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
+import { ActionHandlerDeps } from '@/hooks/actions/types';
 import type { GameEvent } from '@/core/types/events';
 import {
   calculateBaseDamage,
@@ -227,3 +227,4 @@ export function createHandleOfflineAttack(context: Partial<ActionHandlerDeps> & 
     } as CombatOutcome;
   };
 }
+

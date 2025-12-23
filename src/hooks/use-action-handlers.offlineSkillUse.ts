@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Offline skill use handler factory - creates handler for casting spells/using skills.
  *
  * @remarks
@@ -32,7 +32,7 @@
  */
 
 // Extracted offline skill-use handler. Accepts a context object with needed deps.
-import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
+import { ActionHandlerDeps } from '@/hooks/actions/types';
 import type { GameEvent } from '@/core/types/events';
 import { applyMultiplier } from '@/core/rules/combat';
 import { StatisticsEngine } from '@/core/engines/statistics/engine';
@@ -137,3 +137,4 @@ export function createHandleOfflineSkillUse(context: Partial<ActionHandlerDeps> 
         } as SkillOutcome;
     };
 }
+

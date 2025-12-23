@@ -11,27 +11,29 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { Chunk } from '@/core/types/world';
+import { Creature } from '@/core/domain/creature';
+import { WeatherCondition } from '@/core/types/weather';
 
 interface WorldStoreState {
   // Current loaded chunk
   currentChunk: Chunk | null;
 
-  // Currently active creatures in the world (TODO: type properly)
-  creatures: any[];
+  // Currently active creatures in the world
+  creatures: Creature[];
 
-  // Weather state (TODO: type properly)
-  weather: any;
+  // Weather state
+  weather: WeatherCondition;
 
   // Current biome ID
   currentBiome: string;
 
   // Actions
   setCurrentChunk: (chunk: Chunk) => void;
-  setCreatures: (creatures: any[]) => void;
-  updateCreature: (creatureId: string, updates: Record<string, any>) => void;
+  setCreatures: (creatures: Creature[]) => void;
+  updateCreature: (creatureId: string, updates: Partial<Creature>) => void;
   removeCreature: (creatureId: string) => void;
-  addCreature: (creature: any) => void;
-  setWeather: (weather: any) => void;
+  addCreature: (creature: Creature) => void;
+  setWeather: (weather: WeatherCondition) => void;
   setBiome: (biomeId: string) => void;
   setWorldState: (state: Partial<WorldStoreState>) => void;
 }
@@ -52,10 +54,13 @@ export const useWorldStore = create<WorldStoreState>()(
         currentChunk: null,
         creatures: [],
         weather: {
-          type: 'clear',
-          intensity: 0,
-          remainingTurns: 0,
-        } as any, // TODO: Proper WeatherState initialization
+          effects: [],
+          temperature: 20,
+          windSpeed: 0,
+          precipitation: 0,
+          cloudCover: 0,
+          visibility: 100,
+        } as WeatherCondition,
         currentBiome: 'meadow',
 
         setCurrentChunk: (chunk) =>
@@ -67,8 +72,8 @@ export const useWorldStore = create<WorldStoreState>()(
         updateCreature: (creatureId, updates) =>
           set(
             (state: WorldStoreState) => ({
-              creatures: state.creatures.map((c: any) =>
-                c.id === creatureId ? { ...c, ...updates } : c
+              creatures: state.creatures.map((c: Creature) =>
+                c.id === creatureId ? { ...c, ...updates } as Creature : c
               ),
             }),
             false,
@@ -78,7 +83,7 @@ export const useWorldStore = create<WorldStoreState>()(
         removeCreature: (creatureId) =>
           set(
             (state: WorldStoreState) => ({
-              creatures: state.creatures.filter((c: any) => c.id !== creatureId),
+              creatures: state.creatures.filter((c: Creature) => c.id !== creatureId),
             }),
             false,
             'removeCreature'

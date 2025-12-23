@@ -41,6 +41,7 @@ import { CookingInventoryPanel } from './cooking-inventory-panel';
 import { CookingStationPanel, type CookingMethod } from './cooking-station-panel';
 import { CookingMethodTabs } from './cooking-method-tabs';
 import { CookingFrameContent } from './cooking-frame-content';
+import { CookingIngredientPanel } from './cooking-ingredient-panel';
 import { CookingTemperatureSlider } from './cooking-temperature-slider';
 import { FlyingItemsPortal } from '../overlays/flying-items-portal';
 import { ScreenReaderAnnouncer } from '@/components/ui/sr-announcer';
@@ -392,6 +393,16 @@ export function CookingWorkspace({
                                 <CookingFrameContent
                                     activeMethod={activeMethod}
                                     calculateSauceEllipse={calculateSauceEllipse}
+                                    ingredientIds={cookingDerived.selectedIngredients}
+                                />
+
+                                {/* Ingredient panel - bottom left corner */}
+                                <CookingIngredientPanel
+                                    ingredientIds={cookingDerived.selectedIngredients}
+                                    itemDefinitions={itemDefinitions}
+                                    onRemoveIngredient={(index) => cookingHandlers.removeIngredient(index)}
+                                    disabled={isAnimating}
+                                    className="bottom-4 left-4"
                                 />
 
                                 {/* Temperature slider - right side, vertical (OVEN only) */}

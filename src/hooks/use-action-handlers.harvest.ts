@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Harvest action handler factory - creates handler for harvesting creatures/plants.
  *
  * @remarks
@@ -29,7 +29,7 @@
  */
 
 // Extracted harvest handler.
-import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
+import { ActionHandlerDeps } from '@/hooks/actions/types';
 import type { GameEvent } from '@/core/types/events';
 import type { CreatureDefinition } from '@/core/types/creature'; // Import CreatureDefinition
 import type { PlantPartDefinition } from '@/core/types/definitions/plant-properties'; // Import PlantPartDefinition
@@ -247,3 +247,4 @@ export function createHandleHarvest(context: Partial<ActionHandlerDeps> & Record
     } as HarvestOutcome;
   };
 }
+

@@ -66,13 +66,7 @@ interface HudStoreState {
     setWeather: (weather: Partial<WeatherState>) => void;
     setLocation: (location: Partial<LocationState>) => void;
 
-    // Bulk update (from gameEngine)
-    updateFromGameState: (gameState: {
-        player?: any;
-        time?: any;
-        weather?: any;
-        chunk?: any;
-    }) => void;
+
 }
 
 /**
@@ -150,49 +144,6 @@ export const useHudStore = create<HudStoreState>()(
                 set((state) => ({
                     location: { ...state.location, ...location },
                 })),
-
-            updateFromGameState: (gameState) =>
-                set((state) => {
-                    const newState = { ...state };
-
-                    if (gameState.player) {
-                        newState.playerStats = {
-                            hp: gameState.player.hp ?? state.playerStats.hp,
-                            maxHp: gameState.player.maxHp ?? state.playerStats.maxHp,
-                            hunger: gameState.player.hunger ?? state.playerStats.hunger,
-                            maxHunger: gameState.player.maxHunger ?? state.playerStats.maxHunger,
-                            energy: gameState.player.energy ?? state.playerStats.energy,
-                            maxEnergy: gameState.player.maxEnergy ?? state.playerStats.maxEnergy,
-                            level: gameState.player.level ?? state.playerStats.level,
-                            experience: gameState.player.experience ?? state.playerStats.experience,
-                        };
-                    }
-
-                    if (gameState.time) {
-                        newState.gameTime = {
-                            currentHour: gameState.time.hour ?? state.gameTime.currentHour,
-                            currentDay: gameState.time.day ?? state.gameTime.currentDay,
-                            season: gameState.time.season ?? state.gameTime.season,
-                        };
-                    }
-
-                    if (gameState.weather) {
-                        newState.weather = {
-                            temperature: gameState.weather.temperature ?? state.weather.temperature,
-                            condition: gameState.weather.condition ?? state.weather.condition,
-                            biome: gameState.weather.biome ?? state.weather.biome,
-                        };
-                    }
-
-                    if (gameState.chunk) {
-                        newState.location = {
-                            chunkName: gameState.chunk.name ?? state.location.chunkName,
-                            biomeType: gameState.chunk.biomeType ?? state.location.biomeType,
-                        };
-                    }
-
-                    return newState;
-                }),
         }),
         { name: 'HudStore' }
     )

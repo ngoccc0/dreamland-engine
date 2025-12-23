@@ -183,3 +183,90 @@
         transform: translateX(-2px);
     }
 }
+
+/* ========================================
+   COOKING POT ANIMATIONS
+   ======================================== */
+
+/* Soup bubble animation: gentle rising and scaling effect */
+@keyframes soup-bubble {
+    0%,
+    100% {
+        transform: translateY(0) scaleY(1);
+    }
+
+    50% {
+        transform: translateY(-3px) scaleY(1.02);
+    }
+}
+
+/* Soup shine shimmer effect */
+@keyframes soup-shine {
+    0% {
+        opacity: 0.4;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+
+    100% {
+        opacity: 0.4;
+    }
+}
+
+/* Fire flicker effect for campfire */
+@keyframes fire-flicker {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    25% {
+        opacity: 0.9;
+        transform: scale(1.02);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(0.98);
+    }
+
+    75% {
+        opacity: 0.95;
+        transform: scale(1.01);
+    }
+}
+
+/* Steam rising effect */
+@keyframes steam-rise {
+    0% {
+        transform: translateY(0) scale(0.8);
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translateY(-30px) scale(1.2);
+        opacity: 0;
+    }
+}
+
+/* Utility class for soup bubble animation */
+.soup-bubble-anim {
+    animation: soup-bubble 2s ease-in-out infinite;
+}
+
+/* Utility class for fire flicker */
+.fire-flicker-anim {
+    animation: fire-flicker 0.5s ease-in-out infinite;
+}
+
+/* Utility class for steam */
+.steam-rise-anim {
+    animation: steam-rise 3s ease-out infinite;
+}

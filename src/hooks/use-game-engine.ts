@@ -11,6 +11,8 @@ import { GridPosition } from '@/core/values/grid-position';
 import { buildWeatherData } from '@/core/usecases/weather-simulation';
 import { useGameState } from "./use-game-state";
 import { useActionHandlers } from "./use-action-handlers";
+import { useNarrativeQueue } from "./use-narrative-queue";
+import { useGameTime } from "./use-game-time";
 import { useGameEffects } from "./use-game-effects";
 import { useMoveOrchestrator } from "./move-orchestrator";
 import { useEffectProcessor } from "./use-effect-processor";
@@ -64,7 +66,10 @@ export function useGameEngine(props: GameEngineProps) {
     const gameState = useGameState(props);
     const { biomeDefinitions } = gameState as any;
     const narrativeContainerRef = useRef<HTMLDivElement>(null);
-    const narrativeLogRef = useRef(gameState.narrativeLog || [] as any[]);
+    const { addNarrativeEntry, narrativeLogRef } = useNarrativeQueue({
+        initialLog: gameState.narrativeLog || [],
+        setNarrativeLog: gameState.setNarrativeLog
+    });
     const { t } = useLanguage();
     const { settings } = useSettings(); // Use settings context
     const { playAmbienceForBiome, stopMusic } = useAudioContext();
@@ -109,55 +114,7 @@ export function useGameEngine(props: GameEngineProps) {
         weatherEngineRef,
     });
 
-    // Queue for narrative entries to fix race condition
-    const narrativeQueueRef = useRef<Array<{ entry: NarrativeEntry; id: string }>>([]);
 
-    /**
-     * Flush the narrative entry queue atomically to the game state.
-     * This ensures FIFO ordering and proper deduplication of entries.
-     *
-     * @remarks
-     * Called via useLayoutEffect to batch all queued entries from the current frame
-     * and apply them atomically. This prevents race conditions from Promise microtasks
-     * executing out of order.
-     */
-    const flushNarrativeQueue = useCallback(() => {
-        if (narrativeQueueRef.current.length === 0) return;
-
-        const entriesToAdd = [...narrativeQueueRef.current];
-        narrativeQueueRef.current = []; // Clear queue immediately
-
-        gameState.setNarrativeLog(prev => {
-            let arr: NarrativeEntry[] = (prev || []);
-
-            // Apply each queued entry in FIFO order
-            for (const { entry, id } of entriesToAdd) {
-                const existingIdx = arr.findIndex((e: NarrativeEntry) => e.id === id);
-                if (existingIdx >= 0) {
-                    // Update existing entry (placeholder placeholder updates)
-                    arr = arr.map((e: NarrativeEntry) =>
-                        e.id === id
-                            ? { ...e, text: entry.text, type: entry.type, isNew: false, ...(entry.animationMetadata && { animationMetadata: entry.animationMetadata }) }
-                            : e
-                    );
-                } else {
-                    // Add new entry
-                    arr = [...arr, entry];
-                }
-            }
-
-            // Final dedupe: keep last occurrence for each id (defensive measure)
-            const deduped: NarrativeEntry[] = Array.from(new Map(arr.map((e: NarrativeEntry) => [e.id, e])).values());
-            narrativeLogRef.current = deduped;
-            return deduped;
-        });
-    }, [gameState]);
-
-    // Flush narrative queue on every frame to ensure entries are applied atomically
-    useEffect(() => {
-        // This effect runs AFTER paint but BEFORE browser render, ensuring atomic batch updates
-        flushNarrativeQueue();
-    });
 
     /**
      * Clear stale in-flight move operations at turn boundaries.
@@ -176,140 +133,17 @@ export function useGameEngine(props: GameEngineProps) {
         activeMoveOpsRef.current.clear();
     }, [gameState.turn]);
 
-    const addNarrativeEntry = useCallback((text: string, type: 'narrative' | 'action' | 'system' | 'monologue', entryId?: string, animationMetadata?: NarrativeEntry['animationMetadata']) => {
-        /**
-         * Queue a narrative entry for atomic batched application.
-         *
-         * @remarks
-         * Entries are queued in FIFO order and flushed atomically per frame via useLayoutEffect.
-         * This fixes the race condition from Promise.resolve().then() where microtasks could
-         * execute out of order, causing entries to be lost.
-         *
-         * ATOMIC BATCHING: All entries queued in a single synchronous block will be applied
-         * together in a single setNarrativeLog call, ensuring deduplication works correctly.
-         *
-         * Example fix scenario:
-         * - Tick 1: addNarrativeEntry("move") → queued
-         * - Tick 2: addNarrativeEntry("pickup") → queued
-         * - Tick 3: addNarrativeEntry("combat") → queued
-         * - End of frame: All 3 entries flushed atomically with correct FIFO ordering
-         */
-        const id = entryId ?? `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-        const entry: NarrativeEntry = { id, text, type, isNew: true, ...(animationMetadata && { animationMetadata }) };
 
-        // Queue entry for batch processing
-        narrativeQueueRef.current.push({ entry, id });
-    }, []);
 
-    const advanceGameTime = (stats?: any) => {
-        const currentTurn = gameState.turn || 0;
-
-        // Apply any pending creature updates from the previous turn
-        const pending = creatureEngineRef.current.applyPendingUpdates();
-        const pendingMessages = pending.messages || [];
-        const pendingUpdates = pending.updates || [];
-
-        for (const message of pendingMessages) {
-            // If the creature produced damage to the player, apply it to React state here
-            if (message.meta && typeof message.meta.playerDamage === 'number') {
-                const damage = message.meta.playerDamage as number;
-                // Use gameState.setPlayerStats (returned from useGameState) to update React state
-                if (typeof gameState.setPlayerStats === 'function') {
-                    gameState.setPlayerStats((prev: any) => ({ ...(prev || {}), hp: Math.max(0, (prev?.hp || 0) - damage) }));
-                }
-            }
-
-            // Add narrative/system entries as before
-            addNarrativeEntry(message.text, message.type as any);
-        }
-
-        // Sync creature position updates into the world/chunk map so UI and handlers see movement
-        if (pendingUpdates.length > 0) {
-            try {
-                gameState.setWorld((prev: any) => {
-                    const nw = { ...(prev || {}) };
-                    for (const u of pendingUpdates) {
-                        const prevKey = u.prevPosition ? `${u.prevPosition.x},${u.prevPosition.y}` : undefined;
-                        const newKey = `${u.newPosition.x},${u.newPosition.y}`;
-
-                        // Remove enemy from previous chunk if moved across tiles, but only when it matches the same creature id
-                        if (prevKey && prevKey !== newKey && nw[prevKey] && nw[prevKey].enemy) {
-                            try {
-                                const existingId = (nw[prevKey].enemy as any)?.id;
-                                if (!existingId || existingId === u.creatureId) {
-                                    delete nw[prevKey].enemy;
-                                }
-                            } catch { }
-                        }
-
-                        // Prepare enemy data for world (strip runtime-only fields)
-                        const raw = { ...(u.creature as any) };
-                        delete raw.position;
-                        delete raw.currentChunk;
-                        delete raw.lastMoveTick;
-                        delete raw.targetPosition;
-                        delete raw.currentBehavior;
-                        delete raw._prevPosition;
-
-                        // Persist stable id so world chunk keeps identity
-                        try { raw.id = u.creatureId; } catch { }
-
-                        // Ensure destination chunk exists in world
-                        if (!nw[newKey]) {
-                            nw[newKey] = { x: u.newPosition.x, y: u.newPosition.y, items: [], actions: [], structures: [] };
-                        }
-
-                        nw[newKey] = { ...(nw[newKey] || {}), enemy: raw };
-                    }
-                    return nw;
-                });
-            } catch (err) {
-                // Silently handle creature sync failures
-            }
-        }
-
-        gameState.setGameTime(prev => {
-            const next = prev + ((settings as any).timePerTurn || 15); // Use timePerTurn from settings, default 15
-            if (next >= (settings as any).dayDuration) { // Use dayDuration from settings
-                gameState.setDay(d => d + 1);
-            }
-            gameState.setTurn(t => t + 1); // Increment turn once per tick
-            return next % (settings as any).dayDuration; // Use dayDuration from settings
-        });
-
-        // Apply tick and weather effects atomically using sync-back pattern
-        // This processes both status effects, hunger/thirst, and weather impacts in one atomic update
-        const effectResult = processAllEffects();
-
-        // Apply all effects atomically to player stats
-        if (effectResult.updatedStats !== gameState.playerStats) {
-            gameState.setPlayerStats(effectResult.updatedStats);
-        }
-
-        // Add effect messages to narrative
-        for (const msg of effectResult.tickMessages) {
-            addNarrativeEntry(msg.text, msg.type as 'narrative' | 'system' | 'action' | 'monologue');
-        }
-
-        // Update weather engine
-        const weatherResult = simulateWeather();
-
-        // Add weather messages to narrative atomically
-        for (const msg of weatherResult.weatherMessages) {
-            addNarrativeEntry(msg.text, msg.type as 'narrative' | 'system' | 'action' | 'monologue');
-        }
-
-        // Simulate creatures and plants using sync-back pattern
-        const { creatureMessages, plantMessages } = simulateCreatures();
-
-        // Add creature and plant messages to narrative atomically
-        for (const msg of plantMessages) {
-            addNarrativeEntry(msg.text, msg.type as 'narrative' | 'system' | 'action' | 'monologue');
-        }
-        for (const msg of creatureMessages) {
-            addNarrativeEntry(msg.text, msg.type as 'narrative' | 'system' | 'action' | 'monologue');
-        }
-    };
+    const { advanceGameTime } = useGameTime({
+        gameState,
+        creatureEngineRef,
+        settings,
+        processAllEffects,
+        simulateWeather,
+        simulateCreatures,
+        addNarrativeEntry
+    });
 
     // This effect ensures that whenever the narrativeLog changes, we scroll to the bottom.
     // The dependency array [gameState.narrativeLog] triggers the effect on every new entry.

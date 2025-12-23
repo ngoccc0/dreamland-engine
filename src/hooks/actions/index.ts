@@ -27,7 +27,19 @@ export { createHandleMove } from '../use-action-handlers.move';
 // Item Fusion
 export { createHandleFuseItems } from '../use-action-handlers.fuseItems';
 
+// Crafting
+export { createHandleCraftingActions } from '../use-action-handlers.crafting';
+
+// Interaction
+export { createHandleInteractionActions } from '../use-action-handlers.interaction';
+
+
+
 // Harvesting
 export { createHandleHarvest } from '../use-action-handlers.harvest';
+
+// Inventory
+export { createHandleInventoryActions } from '../use-action-handlers.inventory';
+
 // Helpers
 export { createActionHelpers } from '../action-helpers';

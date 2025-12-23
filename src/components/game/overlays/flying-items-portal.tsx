@@ -86,38 +86,50 @@ export function FlyingItemsPortal({
         >
             {/* Container for all flying items */}
             <div className="relative w-full h-full">
-                {flyingItems.map((item) => (
-                    <motion.div
-                        key={item.id}
-                        initial={{
-                            x: item.startX,
-                            y: item.startY,
-                            opacity: 1,
-                            scale: 1,
-                        }}
-                        animate={{
-                            x: item.endX,
-                            y: item.endY,
-                            opacity: 0.7,
-                            scale: 0.8,
-                        }}
-                        transition={{
-                            duration: item.isMobile ? 0.4 : 0.6,
-                            ease: [0.25, 0.46, 0.45, 0.94], // Custom bezier for "easeInOut" feel
-                            type: 'tween',
-                        }}
-                        onAnimationComplete={() => onItemComplete(item.id)}
-                        className="absolute w-10 h-10 flex items-center justify-center"
-                        style={{
-                            willChange: 'transform, opacity',
-                        }}
-                    >
-                        {/* Render item icon/emoji */}
-                        <div className="text-2xl drop-shadow-lg">
-                            {item.icon ? renderItemEmoji(item.icon) : '📦'}
-                        </div>
-                    </motion.div>
-                ))}
+                {flyingItems.map((item) => {
+                    // Calculate arc height based on distance
+                    const dx = item.endX - item.startX;
+                    const dy = item.endY - item.startY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const arcHeight = Math.min(100, distance * 0.3);
+                    const midY = Math.min(item.startY, item.endY) - arcHeight;
+
+                    return (
+                        <motion.div
+                            key={item.id}
+                            initial={{
+                                x: item.startX,
+                                y: item.startY,
+                                opacity: 1,
+                                scale: 1,
+                                rotate: 0,
+                            }}
+                            animate={{
+                                x: [item.startX, (item.startX + item.endX) / 2, item.endX],
+                                y: [item.startY, midY, item.endY],
+                                opacity: [1, 1, 0.6],
+                                scale: [1, 1.3, 0.6],
+                                rotate: [0, 180, 360],
+                            }}
+                            transition={{
+                                duration: item.isMobile ? 0.5 : 0.7,
+                                ease: [0.25, 0.1, 0.25, 1], // Smooth arc curve
+                                times: [0, 0.5, 1], // Keyframe timing
+                            }}
+                            onAnimationComplete={() => onItemComplete(item.id)}
+                            className="absolute w-12 h-12 flex items-center justify-center"
+                            style={{
+                                willChange: 'transform, opacity',
+                                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
+                            }}
+                        >
+                            {/* Render item icon/emoji with glow effect */}
+                            <div className="text-3xl drop-shadow-lg">
+                                {item.icon ? renderItemEmoji(item.icon) : '📦'}
+                            </div>
+                        </motion.div>
+                    );
+                })}
             </div>
         </div>
     );

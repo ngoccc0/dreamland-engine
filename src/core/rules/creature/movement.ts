@@ -2,6 +2,7 @@ import type { GridPosition } from '@/core/values/grid-position';
 import type { CreatureState } from './core';
 import type { Chunk } from '@/core/types/game';
 import { arePositionsWithinSquareRange } from './core';
+import { getCreatureNextWaypoint } from '@/core/usecases/creature-pathfinding';
 
 /**
  * Determines if the creature should move this tick.
@@ -24,6 +25,7 @@ export function shouldMove(creature: CreatureState, currentTick: number): boolea
  * **Behavior → Movement Type:**
  * - **fleeing**: Move away from target (player)
  * - **hunting**: Move toward target (player or food)
+ * - **moving/seek**: Move along A* path if available
  * - **moving/idle**: Random wandering (8 directions)
  * 
  * **Validation:**
@@ -51,24 +53,35 @@ export function executeMovement(
     t: (key: string, params?: any) => string
 ): { moved: boolean; message?: { text: string; type: 'narrative' | 'system' } } {
     let newPosition: GridPosition;
+    let usedPathfinding = false;
 
-    switch (creature.currentBehavior) {
-        case 'fleeing':
-            // Move away from target (usually player)
-            newPosition = calculateFleePosition(creature, creature.targetPosition ?? playerPosition);
-            break;
+    // 1. Priority: Check if there's an A* path to follow
+    // @ts-ignore - engine type mismatch vs domain type, safe in runtime
+    const nextWaypoint = getCreatureNextWaypoint(creature);
 
-        case 'hunting':
-            // Move towards target (player or food)
-            newPosition = calculateHuntPosition(creature, creature.targetPosition ?? playerPosition);
-            break;
+    if (nextWaypoint) {
+        newPosition = { x: nextWaypoint[0], y: nextWaypoint[1] } as any;
+        usedPathfinding = true;
+    } else {
+        // 2. Fallback: Legacy greedy behaviors
+        switch (creature.currentBehavior) {
+            case 'fleeing':
+                // Move away from target (usually player)
+                newPosition = calculateFleePosition(creature, creature.targetPosition ?? playerPosition);
+                break;
 
-        case 'moving':
-        case 'idle':
-        default:
-            // Random movement
-            newPosition = calculateRandomPosition(creature);
-            break;
+            case 'hunting':
+                // Move towards target (player or food)
+                newPosition = calculateHuntPosition(creature, creature.targetPosition ?? playerPosition);
+                break;
+
+            case 'moving':
+            case 'idle':
+            default:
+                // Random movement
+                newPosition = calculateRandomPosition(creature);
+                break;
+        }
     }
 
     // Check if movement is valid
@@ -111,6 +124,7 @@ export function executeMovement(
         };
     }
 
+    // Movement blocked/failed
     return { moved: false };
 }
 

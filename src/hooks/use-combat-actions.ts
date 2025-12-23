@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 /**
  * Combat Actions Hook
@@ -23,7 +23,7 @@
  */
 
 import { useCallback } from 'react';
-import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
+import { ActionHandlerDeps } from '@/hooks/actions/types';
 import type { TranslationKey } from '@/core/types/game';
 import { AudioActionType } from '@/core/data/audio-events';
 import { generateCombatEffects } from '@/core/engines/combat-effects-bridge';
@@ -192,3 +192,4 @@ export function createHandleCombatActions(deps: Partial<ActionHandlerDeps> & Rec
 
     return { handleAttack };
 }
+

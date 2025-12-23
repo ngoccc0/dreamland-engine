@@ -1,5 +1,5 @@
-// Extracted move handler.
-import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
+﻿// Extracted move handler.
+import { ActionHandlerDeps } from '@/hooks/actions/types';
 import { AudioActionType } from '@/core/data/audio-events';
 import { StateManager } from '@/lib/narrative/state-manager';
 
@@ -117,10 +117,10 @@ export function createHandleMove(context: Partial<ActionHandlerDeps> & Record<st
           ];
           const patternsVi = [
             "{adj}.",
-            "không khí có cảm giác {adj}.",
-            "một bầu không khí {adj} bao trùm.",
-            "bạn nhận thấy nơi này {adj}.",
-            "cảm giác chiếc {adj} len lỏi."
+            "khÃ´ng khÃ­ cÃ³ cáº£m giÃ¡c {adj}.",
+            "má»™t báº§u khÃ´ng khÃ­ {adj} bao trÃ¹m.",
+            "báº¡n nháº­n tháº¥y nÆ¡i nÃ y {adj}.",
+            "cáº£m giÃ¡c chiáº¿c {adj} len lá»i."
           ];
 
           const pickAdj = () => {
@@ -240,3 +240,4 @@ export function createHandleMove(context: Partial<ActionHandlerDeps> & Record<st
     }
   };
 }
+

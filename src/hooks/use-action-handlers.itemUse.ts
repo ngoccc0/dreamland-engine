@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Item use action handler factory - creates handler for consuming/using items.
  *
  * @remarks
@@ -29,7 +29,7 @@
  */
 
 // Extracted item use handler (offline). Uses a context object for dependencies.
-import type { ActionHandlerDeps } from '@/hooks/use-action-handlers';
+import { ActionHandlerDeps } from '@/hooks/actions/types';
 import type { ItemUseOutcome } from '@/core/engines/item-effects-bridge';
 
 export function createHandleOfflineItemUse(context: Partial<ActionHandlerDeps> & Record<string, any>) {
@@ -144,3 +144,4 @@ export function createHandleOfflineItemUse(context: Partial<ActionHandlerDeps> &
     } as ItemUseOutcome;
   };
 }
+

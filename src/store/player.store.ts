@@ -17,10 +17,10 @@ import { PlayerStatus } from '@/core/types/player';
 
 interface PlayerStoreState {
   player: PlayerStatus;
-  
+
   // Core update action (called by ActionProcessor)
   setPlayerState: (newState: PlayerStatus) => void;
-  
+
   // Selector helpers for common operations
   updateSatiety: (amount: number) => void;
   updateHp: (amount: number) => void;
@@ -33,6 +33,7 @@ interface PlayerStoreState {
  * TODO: Wire this to actual player factory from core/factories
  */
 const createInitialPlayer = (): PlayerStatus => ({
+  name: 'Player',
   level: 1,
   experience: 0,
   hp: 100,
@@ -49,7 +50,7 @@ const createInitialPlayer = (): PlayerStatus => ({
   quests: [],
   questsCompleted: 0,
   skills: [],
-  persona: { name: 'Player', class: 'Wanderer' } as any, // TODO: Proper type
+  persona: 'explorer',
   attributes: {
     strength: 10,
     dexterity: 10,

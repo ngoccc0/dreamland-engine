@@ -16,6 +16,7 @@ import { CreatureEngine } from '@/core/rules/creature';
 import { processPlantGrowth } from './plant-growth.usecase';
 import { GridPosition } from '@/core/values/grid-position';
 import type { PlayerStatusDefinition } from '@/core/types/game';
+import { updateVisibleCreaturesPathfindingBatch } from './creature-pathfinding';
 
 /**
  * Result of creature simulation
@@ -249,6 +250,40 @@ export function updateCreaturesSync(
     }
 
     try {
+        // Prepare GameState for pathfinding (requires minimal shape)
+        // TODO: Pass full GameState when available in arguments
+        const pathfindingGameState: any = {
+            creatures: {}, // TODO: Populate if needed for entity collision/targeting
+            chunks: {}, // TODO: Populate
+        };
+
+        // 1. Pathfinding Batch Update
+        // Get all creatures currently known to the engine
+        // Convert Map to Array for processing
+        if (typeof creatureEngineRef.current.getCreatures === 'function') {
+            const allCreaturesMap = creatureEngineRef.current.getCreatures();
+            const allCreatures = Array.from(allCreaturesMap.values());
+
+            // Run pathfinding logic
+            if (allCreatures.length > 0) {
+                const { updatedCreatures, effects } = updateVisibleCreaturesPathfindingBatch(
+                    allCreatures as any[], // Casting as Creature[]
+                    pathfindingGameState
+                );
+
+                // Apply updated pathfinding states back to the engine
+                for (const updated of updatedCreatures) {
+                    if (updated && updated.id) {
+                        // Use the new updateRuntimeState method we added
+                        if (typeof creatureEngineRef.current.updateCreatureRuntimeState === 'function') {
+                            creatureEngineRef.current.updateCreatureRuntimeState(updated.id, updated);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. Standard Engine Update (Behavior, Hunger, Movement)
         const messages = creatureEngineRef.current.updateCreatures(
             currentTurn,
             playerPosition,

@@ -7,7 +7,6 @@ import type { PlayerStatusDefinition, NarrativeEntry } from '@/core/types/game';
 import { CreatureEngine } from '@/core/rules/creature';
 import { EffectEngine } from '@/core/engines/effect-engine';
 import { WeatherEngine } from '@/core/engines/weather-engine';
-import { processPlantGrowth } from '@/core/usecases/plant-growth.usecase';
 import { WeatherType, WeatherIntensity, WeatherCondition } from '@/core/types/weather';
 import { GridPosition } from '@/core/values/grid-position';
 import { useGameState } from "./use-game-state";
@@ -15,6 +14,7 @@ import { useActionHandlers } from "./use-action-handlers";
 import { useGameEffects } from "./use-game-effects";
 import { useMoveOrchestrator } from "./move-orchestrator";
 import { useEffectProcessor } from "./use-effect-processor";
+import { useCreatureSimulation } from "./use-creature-simulation";
 import { useSettings } from "@/context/settings-context"; // Import useSettings
 import { useAudioContext } from '@/lib/audio/AudioProvider';
 import { ANIMATION_DURATION_MS, defaultGameConfig } from '@/lib/config/game-config';
@@ -189,8 +189,14 @@ export function useGameEngine(props: GameEngineProps) {
         weatherEngineRef,
     });
 
-
-    // Queue for narrative entries to fix race condition
+    // Initialize creature simulation hook
+    const { simulateCreatures } = useCreatureSimulation({
+        currentTurn: gameState.turn || 0,
+        playerPosition: gameState.playerPosition,
+        playerStats: gameState.playerStats,
+        gameState,
+        creatureEngineRef,
+    });
     // Entries are batched and flushed atomically per frame via useLayoutEffect
     const narrativeQueueRef = useRef<Array<{ entry: NarrativeEntry; id: string }>>([]);
 
@@ -376,91 +382,15 @@ export function useGameEngine(props: GameEngineProps) {
         // Update weather engine
         weatherEngineRef.current.update(gameState.gameTime);
 
-        // (Plant updates moved after visibleChunks are assembled)
+        // Simulate creatures and plants using sync-back pattern
+        const { creatureMessages, plantMessages } = simulateCreatures();
 
-        // Update creatures
-        // Get visible chunks around the player for creature simulation
-        const visibleChunks = new Map<string, any>();
-        const viewRadius = 5; // Include chunks within 5 tiles of the player
-        const playerPosition = new GridPosition(gameState.playerPosition.x, gameState.playerPosition.y);
-
-        // Add current chunk if it exists
-        if (gameState.currentChunk) {
-            const chunkKey = `${gameState.currentChunk.x},${gameState.currentChunk.y}`;
-            visibleChunks.set(chunkKey, gameState.currentChunk);
+        // Add creature and plant messages to narrative atomically
+        for (const msg of plantMessages) {
+            addNarrativeEntry(msg.text, msg.type as 'narrative' | 'system' | 'action' | 'monologue');
         }
-
-        // Add surrounding chunks if world data is available
-        if (gameState.world && typeof gameState.world.getChunksInArea === 'function') {
-            try {
-                const surroundingChunks = gameState.world.getChunksInArea(playerPosition, viewRadius);
-                for (const chunk of surroundingChunks) {
-                    const chunkKey = `${chunk.x},${chunk.y}`;
-                    visibleChunks.set(chunkKey, chunk);
-                }
-            } catch {
-                // Fallback to just current chunk if world methods are not available
-                // Try to fill visibleChunks by querying getCellAt for each coordinate in viewRadius
-                if (gameState.world && typeof gameState.world.getCellAt === 'function' && gameState.currentChunk) {
-                    const cx = gameState.currentChunk.x;
-                    const cy = gameState.currentChunk.y;
-                    for (let dx = -viewRadius; dx <= viewRadius; dx++) {
-                        for (let dy = -viewRadius; dy <= viewRadius; dy++) {
-                            try {
-                                const cell = gameState.world.getCellAt(new GridPosition(cx + dx, cy + dy));
-                                if (cell) {
-                                    const key = `${cell.x},${cell.y}`;
-                                    visibleChunks.set(key, cell);
-                                }
-                            } catch {
-                                // ignore missing cells
-                            }
-                        }
-                    }
-                } else {
-                    // visibleChunks will contain only currentChunk
-                }
-            }
-        }
-
-        // Register creatures found in visibleChunks so CreatureEngine can simulate them.
-        try {
-            for (const [chunkKey, chunk] of visibleChunks) {
-                if (chunk && chunk.enemy) {
-                    const creatureId = `creature_${chunk.x}_${chunk.y}`;
-                    if (!creatureEngineRef.current.getCreature(creatureId)) {
-                        creatureEngineRef.current.registerCreature(creatureId, chunk.enemy, new GridPosition(chunk.x, chunk.y), chunk);
-                    }
-                }
-            }
-        } catch (err) {
-            // Silently handle creature registration failures
-        }
-
-        // Update plants in visible area
-        try {
-            const plantResult = processPlantGrowth({
-                currentTick: currentTurn,
-                chunks: visibleChunks,
-                season: gameState.currentSeason,
-                worldProfile: gameState.worldProfile,
-                t
-            });
-            for (const m of plantResult.narrativeMessages) addNarrativeEntry(m.text, m.type);
-        } catch (err: any) {
-            // Silently handle plant updates; world continues
-        }
-
-        const creatureMessages = creatureEngineRef.current.updateCreatures(
-            currentTurn,
-            playerPosition,
-            gameState.playerStats,
-            visibleChunks
-        );
-
-        // Add creature messages to narrative
-        for (const message of creatureMessages) {
-            addNarrativeEntry(message.text, message.type);
+        for (const msg of creatureMessages) {
+            addNarrativeEntry(msg.text, msg.type as 'narrative' | 'system' | 'action' | 'monologue');
         }
     };
 

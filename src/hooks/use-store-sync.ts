@@ -50,7 +50,7 @@ interface StoreSyncProps {
   gameTime?: any;
   currentChunk?: any;
   world?: any;
-  weatherZones?: any[];
+  weatherZones?: any; // Can be object or array
   grid?: any;
   biomeDefinitions?: any[];
 
@@ -129,13 +129,19 @@ export function useStoreSync(props: StoreSyncProps) {
         });
       }
 
-      if (prevWeather !== props.weatherZones && props.weatherZones && props.weatherZones.length > 0) {
-        const weather = props.weatherZones[0];
-        useHudStore.getState().setWeather({
-          temperature: weather.temperature ?? 20,
-          condition: (weather.condition ?? 'clear') as 'clear' | 'cloudy' | 'rainy' | 'snowy',
-          biome: props.currentChunk?.biome ?? 'unknown',
-        });
+      if (prevWeather !== props.weatherZones && props.weatherZones) {
+        // weatherZones can be object or array, get first value either way
+        const weather = Array.isArray(props.weatherZones) 
+          ? props.weatherZones[0] 
+          : Object.values(props.weatherZones)[0];
+
+        if (weather) {
+          useHudStore.getState().setWeather({
+            temperature: weather.temperature ?? 20,
+            condition: (weather.condition ?? 'clear') as 'clear' | 'cloudy' | 'rainy' | 'snowy',
+            biome: props.currentChunk?.biome ?? 'unknown',
+          });
+        }
       }
     }
 

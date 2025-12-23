@@ -10,6 +10,7 @@ import { useIdleWarning } from "@/hooks/useIdleWarning";
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
 import { useDialogToggles } from "@/hooks/use-dialog-toggles";
 import { useContextAction } from "@/hooks/use-context-action";
+import { useStoreSync } from "@/hooks/use-store-sync";
 import { useUIStore } from "@/store";
 import { useMinimapGridData } from "@/components/game/panels/sections";
 import type { Action } from "@/lib/game/types";
@@ -151,6 +152,23 @@ export default function GameLayout(props: GameLayoutProps) {
         handleDropItem,
         handleReturnToMenu,
     } = useGameEngine(props);
+
+    // ===== STORE SYNCHRONIZATION =====
+    // Sync game engine state to all Zustand stores
+    useStoreSync({
+        playerStats,
+        playerPosition,
+        visualPlayerPosition,
+        isAnimatingMove,
+        visualMoveTo,
+        turn,
+        gameTime,
+        currentChunk,
+        world,
+        weatherZones,
+        grid: undefined, // Will be computed below
+        isLoading,
+    });
 
     // ===== ANIMATION TRACKING REFS =====
     const prevAnimatingRefForLayout = useRef<boolean>(Boolean(isAnimatingMove));

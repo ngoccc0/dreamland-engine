@@ -4,6 +4,7 @@ import { GridPosition } from '@/core/values/grid-position';
 import { updateBehavior } from './behavior';
 import { updateHunger, canEatPlants, attemptEatPlants } from './feeding';
 import { executeMovement, shouldMove } from './movement';
+import { GAME_BALANCE } from '@/config/game-balance';
 
 /**
  * Check whether two grid positions are within a square (Chebyshev) range.
@@ -196,10 +197,10 @@ export class CreatureEngine {
         playerStats: PlayerStatusDefinition,
         chunks: Map<string, Chunk>
     ): Array<{ text: string; type: 'narrative' | 'system' }> {
-        // Filter creatures within 20x20 range (10 tile radius)
+        // Filter creatures within configured range
         const creaturesInRange: Array<[string, CreatureState]> = [];
         for (const [creatureId, creature] of this.creatures) {
-            if (arePositionsWithinSquareRange(creature.position, playerPosition, 10)) {
+            if (arePositionsWithinSquareRange(creature.position, playerPosition, GAME_BALANCE.CREATURES.SIMULATION.UPDATE_RADIUS)) {
                 creaturesInRange.push([creatureId, creature]);
             }
         }
@@ -212,14 +213,17 @@ export class CreatureEngine {
             );
 
             let delayMs = 0;
-            if (distance <= 5) {
-                delayMs = 0; // Immediate
-            } else if (distance <= 10) {
-                delayMs = 50 + Math.random() * 100; // 50-150ms
-            } else if (distance <= 15) {
-                delayMs = 150 + Math.random() * 150; // 150-300ms
+            if (distance <= GAME_BALANCE.CREATURES.SIMULATION.DISTANCE_IMMEDIATE) {
+                delayMs = GAME_BALANCE.CREATURES.SIMULATION.UPDATE_DELAY_IMMEDIATE.MIN;
+            } else if (distance <= GAME_BALANCE.CREATURES.SIMULATION.DISTANCE_SHORT) {
+                const { MIN, MAX } = GAME_BALANCE.CREATURES.SIMULATION.UPDATE_DELAY_SHORT;
+                delayMs = MIN + Math.random() * (MAX - MIN);
+            } else if (distance <= GAME_BALANCE.CREATURES.SIMULATION.DISTANCE_MEDIUM) {
+                const { MIN, MAX } = GAME_BALANCE.CREATURES.SIMULATION.UPDATE_DELAY_MEDIUM;
+                delayMs = MIN + Math.random() * (MAX - MIN);
             } else {
-                delayMs = 300 + Math.random() * 200; // 300-500ms
+                const { MIN, MAX } = GAME_BALANCE.CREATURES.SIMULATION.UPDATE_DELAY_LONG;
+                delayMs = MIN + Math.random() * (MAX - MIN);
             }
 
             // Schedule the update
@@ -262,9 +266,9 @@ export class CreatureEngine {
         const messages: Array<{ text: string; type: 'narrative' | 'system'; meta?: any }> = [];
 
         // Update hunger/satiation
-        const wasHungry = updatedCreature.satiation < updatedCreature.maxSatiation * 0.3;
+        const wasHungry = updatedCreature.satiation < updatedCreature.maxSatiation * GAME_BALANCE.CREATURES.HUNGER.THRESHOLD_PERCENT;
         updateHunger(updatedCreature, currentTick);
-        const isHungry = updatedCreature.satiation < updatedCreature.maxSatiation * 0.3;
+        const isHungry = updatedCreature.satiation < updatedCreature.maxSatiation * GAME_BALANCE.CREATURES.HUNGER.THRESHOLD_PERCENT;
 
         // Generate hunger message if creature became hungry
         if (!wasHungry && isHungry) {
@@ -280,7 +284,7 @@ export class CreatureEngine {
 
         // If creature is hunting the player and is in melee range, perform an attack
         try {
-            const searchRange = (updatedCreature as any).trophicRange ?? 2; // default 2 -> 5x5 area
+            const searchRange = (updatedCreature as any).trophicRange ?? GAME_BALANCE.CREATURES.AI.DEFAULT_TROPHIC_RANGE;
             const inSearchSquare = arePositionsWithinSquareRange(updatedCreature.position, playerPosition, searchRange);
             const isAdjacent = arePositionsWithinSquareRange(updatedCreature.position, playerPosition, 1);
 

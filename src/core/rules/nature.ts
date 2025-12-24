@@ -20,6 +20,8 @@
  * ```
  */
 
+import { GAME_BALANCE } from '@/config/game-balance';
+
 /**
  * Environmental conditions of a location
  */
@@ -80,14 +82,14 @@ export interface EnvironmentalSuitability {
  * calculateMoistureSuitability(100, 30, 80) → ~0.35 (wet stress)
  */
 export function calculateMoistureSuitability(
-    actualMoisture: number = 50,
-    minRequired: number = 20,
-    maxTolerance: number = 80
+    actualMoisture: number = GAME_BALANCE.NATURE.DEFAULTS.MOISTURE,
+    minRequired: number = GAME_BALANCE.NATURE.DEFAULTS.MIN_MOISTURE,
+    maxTolerance: number = GAME_BALANCE.NATURE.DEFAULTS.MAX_MOISTURE
 ): number {
     // Handle undefined/NaN defaults
-    const moisture = actualMoisture ?? 50;
-    const min = minRequired ?? 20;
-    const max = maxTolerance ?? 80;
+    const moisture = actualMoisture ?? GAME_BALANCE.NATURE.DEFAULTS.MOISTURE;
+    const min = minRequired ?? GAME_BALANCE.NATURE.DEFAULTS.MIN_MOISTURE;
+    const max = maxTolerance ?? GAME_BALANCE.NATURE.DEFAULTS.MAX_MOISTURE;
 
     if (moisture < min) {
         // Drought penalty: scales from 1.0 at min to 0 at 0
@@ -95,9 +97,10 @@ export function calculateMoistureSuitability(
     }
     if (moisture > max) {
         // Wet penalty: scales from 1.0 at max to 0.3 at 100
-        // (100-80) = 20 units, (100-80)/(100-80+margin) where margin makes it 0.3
-        // 20 / x = (1 - 0.3) = 0.7, so x = 20/0.7 ≈ 28.57
-        return Math.max(0.3, 1 - (moisture - max) / 28.57);
+        return Math.max(
+            GAME_BALANCE.NATURE.SUITABILITY.WET_PENALTY_MIN,
+            1 - (moisture - max) / GAME_BALANCE.NATURE.SUITABILITY.WET_PENALTY_FACTOR
+        );
     }
     return 1.0; // Perfect
 }
@@ -132,24 +135,21 @@ export function calculateMoistureSuitability(
  * calculateTemperatureSuitability(40, 10, 30) → 0.0 (extreme heat death)
  */
 export function calculateTemperatureSuitability(
-    actualTemp: number = 15,
-    minOptimal: number = 10,
-    maxOptimal: number = 30
+    actualTemp: number = GAME_BALANCE.NATURE.DEFAULTS.TEMPERATURE,
+    minOptimal: number = GAME_BALANCE.NATURE.DEFAULTS.MIN_TEMPERATURE,
+    maxOptimal: number = GAME_BALANCE.NATURE.DEFAULTS.MAX_TEMPERATURE
 ): number {
     // Handle undefined/NaN defaults
-    const temp = actualTemp ?? 15;
-    const minOpt = minOptimal ?? 10;
-    const maxOpt = maxOptimal ?? 30;
+    const temp = actualTemp ?? GAME_BALANCE.NATURE.DEFAULTS.TEMPERATURE;
+    const minOpt = minOptimal ?? GAME_BALANCE.NATURE.DEFAULTS.MIN_TEMPERATURE;
+    const maxOpt = maxOptimal ?? GAME_BALANCE.NATURE.DEFAULTS.MAX_TEMPERATURE;
 
     if (temp < minOpt) {
-        // Cold penalty: scales from 1.0 at minOpt to 0 at (minOpt - margin)
-        // margin = 15 (so lethal is 10-15 = -5)
-        const coldMargin = minOpt - 15;
+        const coldMargin = minOpt - GAME_BALANCE.NATURE.SUITABILITY.COLD_MARGIN;
         return Math.max(0, (temp - coldMargin) / (minOpt - coldMargin));
     }
     if (temp > maxOpt) {
-        // Heat penalty: scales from 1.0 at maxOpt to 0 at maxOpt + 20
-        return Math.max(0, 1 - (temp - maxOpt) / 20);
+        return Math.max(0, 1 - (temp - maxOpt) / GAME_BALANCE.NATURE.SUITABILITY.HEAT_MARGIN);
     }
     return 1.0; // Perfect
 }
@@ -181,8 +181,8 @@ export function calculateTemperatureSuitability(
  * calculateLightSuitability(0, 30) → 0.0 (total darkness)
  */
 export function calculateLightSuitability(
-    actualLight: number = 50,
-    minRequired: number = 20
+    actualLight: number = GAME_BALANCE.NATURE.DEFAULTS.LIGHT,
+    minRequired: number = GAME_BALANCE.NATURE.DEFAULTS.MIN_LIGHT
 ): number {
     if (actualLight < minRequired) {
         return actualLight / minRequired; // Scales to 0 at 0 light
@@ -237,31 +237,35 @@ export function calculateEnvironmentalSuitability(
     requirements: PlantRequirements
 ): EnvironmentalSuitability {
     const moistureScore = calculateMoistureSuitability(
-        conditions.moisture ?? 50,
-        requirements.minMoisture ?? 20,
-        requirements.maxMoisture ?? 80
+        conditions.moisture ?? GAME_BALANCE.NATURE.DEFAULTS.MOISTURE,
+        requirements.minMoisture ?? GAME_BALANCE.NATURE.DEFAULTS.MIN_MOISTURE,
+        requirements.maxMoisture ?? GAME_BALANCE.NATURE.DEFAULTS.MAX_MOISTURE
     );
 
     const temperatureScore = calculateTemperatureSuitability(
-        conditions.temperature ?? 15,
-        requirements.minTemperature ?? 10,
-        requirements.maxTemperature ?? 30
+        conditions.temperature ?? GAME_BALANCE.NATURE.DEFAULTS.TEMPERATURE,
+        requirements.minTemperature ?? GAME_BALANCE.NATURE.DEFAULTS.MIN_TEMPERATURE,
+        requirements.maxTemperature ?? GAME_BALANCE.NATURE.DEFAULTS.MAX_TEMPERATURE
     );
 
     const lightScore = calculateLightSuitability(
-        conditions.light ?? 50,
-        requirements.minLight ?? 20
+        conditions.light ?? GAME_BALANCE.NATURE.DEFAULTS.LIGHT,
+        requirements.minLight ?? GAME_BALANCE.NATURE.DEFAULTS.MIN_LIGHT
     );
 
     // Overall suitability is weighted average (moisture and temperature critical)
-    const suitability = (moistureScore * 0.4 + temperatureScore * 0.4 + lightScore * 0.2);
+    const suitability = (
+        moistureScore * GAME_BALANCE.NATURE.SUITABILITY.MOISTURE_WEIGHT +
+        temperatureScore * GAME_BALANCE.NATURE.SUITABILITY.TEMP_WEIGHT +
+        lightScore * GAME_BALANCE.NATURE.SUITABILITY.LIGHT_WEIGHT
+    );
 
     return {
         suitability: Math.max(0, Math.min(1, suitability)),
         moistureScore,
         temperatureScore,
         lightScore,
-        canReproduce: suitability > 0.7 // Only reproduce in good conditions
+        canReproduce: suitability > GAME_BALANCE.NATURE.SUITABILITY.REPRODUCTION_THRESHOLD
     };
 }
 
@@ -297,7 +301,7 @@ export function calculateEnvironmentalSuitability(
  */
 export function calculateEnvironmentalStress(
     environmentalSuitability: number,
-    baseDamagePerTick: number = 5
+    baseDamagePerTick: number = GAME_BALANCE.NATURE.GROWTH.BASE_STRESS_DAMAGE
 ): number {
     const stressLevel = 1 - environmentalSuitability;
     return Math.ceil(stressLevel * baseDamagePerTick);
@@ -452,7 +456,10 @@ export function calculateHarvestYield(
  * calculateVegetationDensity(100) → 100 (clamped max)
  */
 export function calculateVegetationDensity(plantCount: number): number {
-    return Math.min(100, plantCount * 10);
+    return Math.min(
+        GAME_BALANCE.NATURE.DENSITY.MAX_DENSITY,
+        plantCount * GAME_BALANCE.NATURE.DENSITY.UNITS_PER_PLANT
+    );
 }
 
 /**

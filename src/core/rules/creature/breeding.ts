@@ -9,6 +9,7 @@
 import type { WildlifeCreature, SpeciesDefinition } from '@/core/types/wildlife-creature';
 import type { CreaturePersonality } from '@/core/types/creature-genetics';
 import { generateOffspringGenetics } from '@/core/types/creature-genetics';
+import { GAME_BALANCE } from '@/config/game-balance';
 
 /**
  * Check if creature is ready to breed.
@@ -26,7 +27,7 @@ export function canBreed(creature: WildlifeCreature, species: SpeciesDefinition)
     if (creature.stage !== 'adult') return false;
 
     // Must not be too hungry (energy for breeding)
-    if (creature.hunger > 60) return false;
+    if (creature.hunger > GAME_BALANCE.CREATURES.HUNGER.MAX_BREEDING_HUNGER) return false;
 
     // Species must support breeding
     return species.canBreed;
@@ -48,7 +49,7 @@ export function findMate(
     creature: WildlifeCreature,
     nearbyCreatures: WildlifeCreature[],
     speciesId: string,
-    breedingRange: number = 3
+    breedingRange: number = GAME_BALANCE.CREATURES.BREEDING.RANGE
 ): WildlifeCreature | undefined {
     for (const other of nearbyCreatures) {
         // Must be same species
@@ -72,7 +73,7 @@ export function findMate(
             continue;
 
         // Other must also be ready to breed
-        if (other.stage !== 'adult' || other.hunger > 60) continue;
+        if (other.stage !== 'adult' || other.hunger > GAME_BALANCE.CREATURES.HUNGER.MAX_BREEDING_HUNGER) continue;
 
         return other;
     }
@@ -180,7 +181,7 @@ function inheritPersonality(
 export function applyBreedingCost(
     parent1: WildlifeCreature,
     parent2: WildlifeCreature,
-    breedingCost: number = 20
+    breedingCost: number = GAME_BALANCE.CREATURES.BREEDING.BASE_COST
 ): void {
     parent1.hunger = Math.min(100, parent1.hunger + breedingCost);
     parent2.hunger = Math.min(100, parent2.hunger + breedingCost);
@@ -213,7 +214,7 @@ export function shouldBecomeAdult(
  */
 export function promoteToAdult(creature: WildlifeCreature): void {
     creature.stage = 'adult';
-    creature.hunger = Math.max(0, creature.hunger - 10); // Give small hunger reset
+    creature.hunger = Math.max(0, creature.hunger - GAME_BALANCE.CREATURES.BREEDING.ADULT_HUNGER_BONUS);
 }
 
 /**
@@ -241,12 +242,13 @@ export function recordFeeding(creature: WildlifeCreature): void {
  */
 export function getBreedingCostMultiplier(
     currentPopulation: number,
-    maxCarryingCapacity: number = 100
+    maxCarryingCapacity: number = GAME_BALANCE.CREATURES.BREEDING.DEFAULT_CARRYING_CAPACITY
 ): number {
     const ratio = currentPopulation / maxCarryingCapacity;
+    const { THRESHOLD_1, MULTIPLIER_1, THRESHOLD_2, MULTIPLIER_2, THRESHOLD_3, MULTIPLIER_3, MAX_MULTIPLIER } = GAME_BALANCE.CREATURES.BREEDING.POPULATION_COST_SCALING;
 
-    if (ratio < 0.5) return 1.0; // Normal cost
-    if (ratio < 0.75) return 1.5; // Increased cost
-    if (ratio < 0.9) return 2.0; // High cost
-    return 3.0; // Very high cost
+    if (ratio < THRESHOLD_1) return MULTIPLIER_1;
+    if (ratio < THRESHOLD_2) return MULTIPLIER_2;
+    if (ratio < THRESHOLD_3) return MULTIPLIER_3;
+    return MAX_MULTIPLIER;
 }

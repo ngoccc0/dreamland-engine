@@ -1,0 +1,33 @@
+name: Dreamland Engine CI
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  quality-check:
+    name: 🛡️ Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install Dependencies
+      run: npm ci
+      
+    - name: 🔍 Type Check
+      run: npm run typecheck
+      
+    - name: 🧹 Lint
+      run: npm run lint
+      
+    - name: 🧪 Unit Tests
+      run: npm run test

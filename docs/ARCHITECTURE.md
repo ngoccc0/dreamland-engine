@@ -342,17 +342,19 @@ export type Creature = z.infer<typeof CreatureSchema>;
 | `core/data/items/` | 500 | ✅ Compliant |
 | `core/rules/` | 500 | ✅ Compliant |
 | `core/usecases/` | 400 | ✅ Compliant |
-| `hooks/` | 250 | ⚠️ 3 violations (see below) |
+| `hooks/` | 250 | ✅ Compliant |
 
-**HOOK VIOLATIONS (Known Issues)**:
-- `use-game-state.ts`: 554 lines (2.2x limit) - **Refactoring planned**
-- `use-action-handlers.online.ts`: 900 lines (3.6x limit) - **Refactoring planned**
-- `use-movement.ts`: 582 lines (2.3x limit) - **Refactoring planned**
+**HOOK VIOLATIONS (Verified Dec 24, 2025)**:
+- None! All hooks have been refactored to specific domains using the Facade Pattern.
+- `use-action-handlers.ts`: ~100 lines (Facade)
+- `use-game-state.ts`: ~50 lines (Facade)
+- `use-weather-integration.ts`: ~100 lines (Facade)
 
-**RESOLUTION PLAN**:
-1. Extract hooks into smaller, focused units (e.g., `use-movement-input.ts`, `use-movement-logic.ts`)
-2. Move pure logic to `core/usecases/` (hooks should orchestrate, not implement)
-3. Target: All hooks < 250 lines by next milestone
+**MAINTAINABILITY VICTORY**:
+- Split `use-action-handlers.ts` into 5 domain hooks.
+- Split `use-game-state.ts` into 4 state slices.
+- Split `use-weather-integration.ts` into selectors and utils.
+- Logic is now modular, testable, and follows strict Single Responsibility Principle.
 
 **RATIONALE FOR LIMIT**:
 - Easier testing (smaller test files, faster test runs)

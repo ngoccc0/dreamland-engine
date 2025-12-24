@@ -70,7 +70,7 @@ QUICK_REFERENCE.md
 
 # Internal development/planning directories
 .clinerules/
-.github/
+
 
 # Build and Test Artifacts
 build-log.txt

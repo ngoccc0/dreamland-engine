@@ -21,6 +21,7 @@
  */
 
 import { combatConfig } from '@/lib/config';
+import { GAME_BALANCE } from '@/config/game-balance';
 
 /**
  * calculateExperienceGain
@@ -70,12 +71,15 @@ import { combatConfig } from '@/lib/config';
 export function calculateExperienceGain(
     playerMaxHealth: number = 100,
     enemyMaxHealth: number = 100,
-    baseXp: number = combatConfig.baseXp
+    baseXp: number = GAME_BALANCE.COMBAT.BASE_XP
 ): number {
     const healthDiff = enemyMaxHealth - playerMaxHealth;
-    const multiplier = Math.max(0.5, 1 + healthDiff * 0.002);
+    const multiplier = Math.max(
+        GAME_BALANCE.COMBAT.MIN_XP_MULTIPLIER,
+        1 + healthDiff * GAME_BALANCE.COMBAT.XP_SCALING_PER_HP
+    );
     const xpGain = Math.floor(baseXp * multiplier);
-    return Math.max(10, xpGain);
+    return Math.max(GAME_BALANCE.COMBAT.MIN_XP, xpGain);
 }
 
 /**

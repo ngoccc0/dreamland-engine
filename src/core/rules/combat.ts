@@ -10,7 +10,7 @@
  * Combat Math:
  * - Base Damage = Attacker.attack - Defender.defense (minimum 1)
  * - Critical Chance = Attacker.critChance / 100
- * - Critical Hit = base damage × 1.5
+ * - Critical Hit = base damage × critMultiplier (configurable)
  *
  * @example
  * ```typescript
@@ -22,6 +22,8 @@
  * // Returns: { baseDamage: 15, isCritical: true, finalDamage: 22 }
  * ```
  */
+
+import { GAME_BALANCE } from '@/config/game-balance';
 
 /**
  * Creature stats needed for combat calculations
@@ -72,7 +74,7 @@ export function calculateBaseDamage(
     attackerAttack: number = 0,
     defenderDefense: number = 0
 ): number {
-    return Math.max(1, attackerAttack - defenderDefense);
+    return Math.max(GAME_BALANCE.COMBAT.MIN_DAMAGE, attackerAttack - defenderDefense);
 }
 
 /**
@@ -132,7 +134,7 @@ export function isCritical(critChance: number = 0, randomRoll: number = Math.ran
  */
 export function getCriticalMultiplier(
     isCrit: boolean,
-    critMultiplier: number = 1.5
+    critMultiplier: number = GAME_BALANCE.COMBAT.CRIT_MULTIPLIER
 ): number {
     return isCrit ? critMultiplier : 1.0;
 }
@@ -209,7 +211,7 @@ export function calculateDamage(
     attacker: CombatStats,
     defender: CombatStats,
     randomRoll: number = Math.random(),
-    critMultiplier: number = 1.5
+    critMultiplier: number = GAME_BALANCE.COMBAT.CRIT_MULTIPLIER
 ): DamageResult {
     const baseDamage = calculateBaseDamage(attacker.attack, defender.defense);
     const isCrit = isCritical(attacker.critChance, randomRoll);

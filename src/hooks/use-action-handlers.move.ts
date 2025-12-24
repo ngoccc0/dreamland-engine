@@ -67,6 +67,19 @@ export function createHandleMove(context: Partial<ActionHandlerDeps> & Record<st
     const placeholderText = t(movingKey as any, { direction: directionText, brief_sensory: '' });
     addNarrativeEntry(placeholderText, 'narrative', placeholderId);
 
+    // Dispatch moveStart event for minimap animation (visual only, doesn't block movement)
+    try {
+      const moveStartEvent = new CustomEvent('moveStart', {
+        detail: {
+          from: { x: playerPosition.x, y: playerPosition.y },
+          to: { x, y },
+          visualTotalMs: 500,
+          id: placeholderId,
+        }
+      });
+      window.dispatchEvent(moveStartEvent);
+    } catch { }
+
     setPlayerPosition({ x, y });
     // Optimistic UI update: set player position before authoritative update
 

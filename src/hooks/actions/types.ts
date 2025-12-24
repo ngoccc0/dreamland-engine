@@ -21,6 +21,11 @@ export type ActionHandlerDeps = {
     setPlayerBehaviorProfile: (fn: (prev: any) => any) => void;
     playerPosition: { x: number, y: number };
     setPlayerPosition: (pos: { x: number, y: number }) => void;
+    // Animation state setters for player movement
+    setIsAnimatingMove?: (animating: boolean) => void;
+    setVisualMoveFrom?: (pos: { x: number; y: number } | null) => void;
+    setVisualMoveTo?: (pos: { x: number; y: number } | null) => void;
+    setVisualJustLanded?: (landed: boolean) => void;
     setCurrentChunk: (chunk: Chunk | null) => void;
     weatherZones: Record<string, any>;
     turn: number;
@@ -52,3 +57,4 @@ export type ActionHandlerDeps = {
     toast?: any;
     language?: any;
 };
+

@@ -39,8 +39,7 @@ interface UseMoveOrchestratorDeps {
   onMoveIntent: (command: MoveCommand) => void;
   /** Is game currently locked (paused, in dialog, etc) */
   isGameLocked: boolean;
-  /** Is a move animation currently playing */
-  isAnimatingMove: boolean;
+  // NOTE: isAnimatingMove removed - animation is now visual-only, doesn't block input
 }
 
 /**
@@ -64,8 +63,7 @@ interface UseMoveOrchestratorDeps {
  * This separation keeps the hook under 150 lines.
  */
 export function useMoveOrchestrator(deps: UseMoveOrchestratorDeps) {
-  const { animationDurationMs, onMoveIntent, isGameLocked, isAnimatingMove } =
-    deps;
+  const { animationDurationMs, onMoveIntent, isGameLocked } = deps;
 
   // Track the last time a move command was emitted
   const lastMoveTimeRef = useRef<number>(0);
@@ -88,8 +86,8 @@ export function useMoveOrchestrator(deps: UseMoveOrchestratorDeps) {
    */
   const emitMoveIntent = useCallback(
     (direction: 'north' | 'south' | 'east' | 'west') => {
-      // Respect game locks
-      if (isGameLocked || isAnimatingMove) {
+      // Respect game locks (dialogs, paused, etc)
+      if (isGameLocked) {
         return;
       }
 
@@ -107,7 +105,7 @@ export function useMoveOrchestrator(deps: UseMoveOrchestratorDeps) {
       // Update last move time AFTER emitting
       lastMoveTimeRef.current = Date.now();
     },
-    [isGameLocked, isAnimatingMove, canEmitMove, onMoveIntent],
+    [isGameLocked, canEmitMove, onMoveIntent],
   );
 
   // Return handlers for validation + intent emission

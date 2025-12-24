@@ -22,7 +22,7 @@ describe('useMoveOrchestrator - Move Input Throttling', () => {
         animationDurationMs: 300,
         onMoveIntent: jest.fn(),
         isGameLocked: false,
-        isAnimatingMove: false,
+        // NOTE: isAnimatingMove removed - animation is now visual-only
     };
 
     beforeEach(() => {
@@ -152,70 +152,8 @@ describe('useMoveOrchestrator - Move Input Throttling', () => {
             expect(onMoveIntent).toHaveBeenCalledTimes(0);
         });
 
-        it('should not emit intent while animation is playing', () => {
-            const onMoveIntent = jest.fn();
-            const { result } = renderHook(() =>
-                useMoveOrchestrator({
-                    ...defaultDeps,
-                    onMoveIntent,
-                    isAnimatingMove: true,
-                }),
-            );
-
-            act(() => {
-                result.current.emitMoveIntent('north');
-            });
-
-            expect(onMoveIntent).toHaveBeenCalledTimes(0);
-        });
-
-        it('should resume emitting after animation completes', () => {
-            const onMoveIntent = jest.fn();
-            const { rerender } = renderHook(
-                (props) => useMoveOrchestrator(props),
-                {
-                    initialProps: {
-                        ...defaultDeps,
-                        onMoveIntent,
-                        isAnimatingMove: true,
-                    },
-                },
-            );
-
-            let result = renderHook(() =>
-                useMoveOrchestrator({
-                    ...defaultDeps,
-                    onMoveIntent,
-                    isAnimatingMove: true,
-                }),
-            ).result;
-
-            act(() => {
-                result.current.emitMoveIntent('north');
-            });
-            expect(onMoveIntent).toHaveBeenCalledTimes(0);
-
-            // Animation completes
-            rerender({
-                ...defaultDeps,
-                onMoveIntent,
-                isAnimatingMove: false,
-            });
-
-            // Re-render with animation complete
-            result = renderHook(() =>
-                useMoveOrchestrator({
-                    ...defaultDeps,
-                    onMoveIntent,
-                    isAnimatingMove: false,
-                }),
-            ).result;
-
-            act(() => {
-                result.current.emitMoveIntent('north');
-            });
-            expect(onMoveIntent).toHaveBeenCalledTimes(1);
-        });
+        // NOTE: Tests for isAnimatingMove blocking removed
+        // Animation is now visual-only and doesn't block movement input
     });
 
     describe('Custom Animation Duration', () => {

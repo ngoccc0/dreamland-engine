@@ -154,7 +154,7 @@ export const MinimapCell = React.memo<MinimapCellProps>(({
                 >
                     {mainIcon}
 
-                    {isPlayerHere && !isAnimatingMove && (
+                    {isPlayerHere && isAnimatingMove !== true && (
                         <div className={cn(
                             "absolute inset-0 flex items-center justify-center fade-explored",
                             fadingExplored[`${cell.x},${cell.y}`] && 'show'

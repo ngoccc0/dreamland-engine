@@ -210,6 +210,7 @@ export function useGameEngine(props: GameEngineProps) {
 
     // Move orchestrator: handles input throttling based on CSS animation duration
     // Calls onMoveIntent when throttle allows, which delegates to handleMove
+    // NOTE: isAnimatingMove removed - animation is now visual-only, doesn't block input
     const moveOrchestrator = useMoveOrchestrator({
         animationDurationMs: ANIMATION_DURATION_MS,
         onMoveIntent: (command) => {
@@ -217,7 +218,6 @@ export function useGameEngine(props: GameEngineProps) {
             actionHandlers.handleMove(command.direction);
         },
         isGameLocked: gameState.isGameOver || gameState.isLoading,
-        isAnimatingMove: gameState.isAnimatingMove || false,
     });
 
     useGameEffects({

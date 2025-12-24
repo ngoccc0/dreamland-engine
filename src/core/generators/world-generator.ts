@@ -4,6 +4,7 @@ import { GridCell, GridCellAttributes } from '../entities/world';
 import { Terrain, TerrainType, SoilType } from '../entities/terrain';
 import WorldImpl from '../entities/world-impl';
 import type { Chunk } from '@/core/types/game';
+import { GAME_BALANCE } from '@/config/game-balance';
 
 // Define WorldGenerationConfig using the correct types
 interface WorldGenerationConfig {
@@ -51,7 +52,7 @@ export class WorldGenerator {
                     enemy: null,
                     actions: [],
                     regionId: 0,
-                    travelCost: attrs.travelCost ?? 1,
+                    travelCost: attrs.travelCost ?? GAME_BALANCE.WORLD_GEN.DEFAULT_TRAVEL_COST,
                     vegetationDensity: attrs.vegetationDensity ?? 0,
                     moisture: attrs.moisture ?? 0,
                     elevation: attrs.elevation ?? 0,
@@ -85,9 +86,9 @@ export class WorldGenerator {
             const regionAttributes: RegionAttributes = {
                 ...terrainEntity.attributes,
                 regionType: terrainEntity.type,
-                difficultyLevel: 50,
-                fertility: 50,
-                biodiversity: 50,
+                difficultyLevel: GAME_BALANCE.WORLD_GEN.DEFAULT_DIFFICULTY,
+                fertility: GAME_BALANCE.WORLD_GEN.DEFAULT_FERTILITY,
+                biodiversity: GAME_BALANCE.WORLD_GEN.DEFAULT_BIODIVERSITY,
                 soilType: typeof terrainEntity.attributes.soilType === 'string' ? terrainEntity.attributes.soilType : String(terrainEntity.attributes.soilType)
             };
             regions.push(regionAttributes);
@@ -175,7 +176,7 @@ export class WorldGenerator {
 
     private generateCellAttributes(position: GridPosition, terrain: Terrain): GridCellAttributes {
         const base = terrain.attributes;
-        const random = () => 0.8 + Math.random() * 0.4;
+        const random = () => (1 - GAME_BALANCE.WORLD_GEN.BASE_VARIANCE) + Math.random() * (GAME_BALANCE.WORLD_GEN.BASE_VARIANCE * 2);
         return {
             vegetationDensity: Math.floor(base.vegetationDensity * random()),
             elevation: Math.floor(base.elevation * random()),

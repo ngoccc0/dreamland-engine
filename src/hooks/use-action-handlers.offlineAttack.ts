@@ -31,7 +31,6 @@
  * @returns Handler function () => CombatOutcome | void
  */
 
-// Extracted offline attack handler.
 import { ActionHandlerDeps } from '@/hooks/actions/types';
 import type { GameEvent } from '@/core/types/events';
 import {
@@ -41,6 +40,7 @@ import {
 import { StatisticsEngine } from '@/core/engines/statistics/engine';
 import { createEmptyStatistics } from '@/core/engines/statistics/schemas';
 import type { CombatOutcome } from '@/core/engines/combat-effects-bridge';
+import { GAME_BALANCE } from '@/config/game-balance';
 
 export function createHandleOfflineAttack(context: Partial<ActionHandlerDeps> & Record<string, any>) {
   return (): CombatOutcome | void => {
@@ -64,8 +64,12 @@ export function createHandleOfflineAttack(context: Partial<ActionHandlerDeps> & 
 
       // Apply environmental modifiers
       let environmentModifier = 1.0;
-      if ((currentChunk.lightLevel ?? 0) < -3) { environmentModifier *= 0.8; }
-      if ((currentChunk.moisture ?? 0) > 8) { environmentModifier *= 0.9; }
+      if ((currentChunk.lightLevel ?? 0) < GAME_BALANCE.ENVIRONMENT.DARKNESS_THRESHOLD) {
+        environmentModifier *= GAME_BALANCE.ENVIRONMENT.DARKNESS_PENALTY;
+      }
+      if ((currentChunk.moisture ?? 0) > GAME_BALANCE.ENVIRONMENT.WET_THRESHOLD) {
+        environmentModifier *= GAME_BALANCE.ENVIRONMENT.WET_PENALTY;
+      }
 
       // Use pure rule: applyMultiplier(baseDmg, mult)
       const environmentalDamage = applyMultiplier(baseDamage, environmentModifier);
@@ -102,7 +106,7 @@ export function createHandleOfflineAttack(context: Partial<ActionHandlerDeps> & 
     nextPlayerStats.experience = Number(nextPlayerStats.experience ?? 0);
     nextPlayerStats.unlockProgress = { ...(nextPlayerStats.unlockProgress || {}), kills: (nextPlayerStats.unlockProgress?.kills ?? 0), damageSpells: (nextPlayerStats.unlockProgress?.damageSpells ?? 0), moves: (nextPlayerStats.unlockProgress?.moves ?? 0) };
     nextPlayerStats.hp = Math.max(0, nextPlayerStats.hp - enemyDamage);
-    
+
     // Award XP when enemy defeated
     let xpGained = 0;
     if (enemyDefeated) {

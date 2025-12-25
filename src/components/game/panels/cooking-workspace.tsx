@@ -41,12 +41,8 @@ import type { Item } from '@/core/domain/item';
 import type { ItemDefinition } from '@/core/types/definitions/item';
 import { Dialog, DialogTitle } from '@/components/ui/dialog';
 import { MorphDialogContent } from "@/components/ui/morph-dialog-content";
-import { CookingInventoryPanel } from './cooking-inventory-panel';
-import { CookingStationPanel, type CookingMethod } from './cooking-station-panel';
-import { CookingMethodTabs } from './cooking-method-tabs';
-import { CookingFrameContent } from './cooking-frame-content';
-import { CookingIngredientPanel } from './cooking-ingredient-panel';
-import { CookingTemperatureSlider } from './cooking-temperature-slider';
+import { CookingWorkspaceDesktop } from './cooking-workspace-desktop';
+import { CookingWorkspaceMobile } from './cooking-workspace-mobile';
 import { FlyingItemsPortal } from '../overlays/flying-items-portal';
 import { ScreenReaderAnnouncer } from '@/components/ui/sr-announcer';
 import { useFlyingItems } from '@/hooks/use-flying-items';
@@ -357,190 +353,45 @@ export function CookingWorkspace({
                     {/* Hidden title for accessibility - required by Radix Dialog */}
                     <DialogTitle className="sr-only">Cooking Workspace</DialogTitle>
 
-                    {/* Desktop: Centered cooking frame with collapsible drawer */}
-                    <div
-                        className={cn(
-                            'hidden md:flex w-full h-full flex-col relative z-10',
-                            !isDesktop && 'hidden'
-                        )}
-                    >
-                        {/* Method tabs/buttons - top center */}
-                        <CookingMethodTabs
-                            activeMethod={activeMethod}
-                            onMethodChange={handleMethodChange}
-                            isAnimating={isAnimating}
-                        />
+                    {/* Desktop Layout */}
+                    <CookingWorkspaceDesktop
+                        isDesktop={isDesktop}
+                        activeMethod={activeMethod}
+                        isAnimating={isAnimating}
+                        onMethodChange={handleMethodChange}
+                        isInventoryDrawerOpen={isInventoryDrawerOpen}
+                        onToggleInventoryDrawer={() => setIsInventoryDrawerOpen(!isInventoryDrawerOpen)}
+                        calculateSauceEllipse={calculateSauceEllipse}
+                        selectedIngredients={cookingDerived.selectedIngredients}
+                        itemDefinitions={itemDefinitions}
+                        onRemoveIngredient={(index) => cookingHandlers.removeIngredient(index)}
+                        temperature={cookingState.temperature}
+                        onTemperatureChange={cookingHandlers.setTemperature}
+                        canCook={cookingDerived.canCook}
+                        onCook={handleCook}
+                        inventoryItems={inventoryItems}
+                        reservedSlots={getReservedSlots()}
+                        onInventoryItemClick={handleInventoryItemClick}
+                    />
 
-                        {/* Main content: centered cooking frame with inventory drawer */}
-                        <div className="flex-1 flex items-center justify-center relative overflow-hidden bg-gray-950/85 px-4 py-4">
-                            {/* Inventory drawer toggle button - only on mobile */}
-                            {typeof window !== 'undefined' && window.innerWidth < 768 && (
-                                <button
-                                    onClick={() => setIsInventoryDrawerOpen(!isInventoryDrawerOpen)}
-                                    className="absolute left-4 top-4 z-20 px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded text-sm transition-colors md:hidden"
-                                    title="Toggle ingredients drawer"
-                                >
-                                    ☰ Ingredients
-                                </button>
-                            )}
-
-                            {/* Cooking frame - centered, responsive sizing */}
-                            <div
-                                className="relative rounded border-4 border-orange-600/50 overflow-hidden shadow-2xl"
-                                style={{
-                                    backgroundImage: 'url(/asset/images/ui/forest_background.jpg)',
-                                    backgroundSize: 'cover',
-                                    backgroundPosition: 'center',
-                                    width: 'clamp(300px, 50vw, 600px)',
-                                    height: 'clamp(300px, 50vw, 600px)',
-                                }}
-                            >
-                                {/* Cooking method visuals - centered in frame */}
-                                <CookingFrameContent
-                                    activeMethod={activeMethod}
-                                    calculateSauceEllipse={calculateSauceEllipse}
-                                    ingredientIds={cookingDerived.selectedIngredients}
-                                />
-
-                                {/* Ingredient panel - bottom left corner */}
-                                <CookingIngredientPanel
-                                    ingredientIds={cookingDerived.selectedIngredients}
-                                    itemDefinitions={itemDefinitions}
-                                    onRemoveIngredient={(index) => cookingHandlers.removeIngredient(index)}
-                                    disabled={isAnimating}
-                                    className="bottom-4 left-4"
-                                />
-
-                                {/* Temperature slider - right side, vertical (OVEN only) */}
-                                {activeMethod === 'OVEN' && (
-                                    <CookingTemperatureSlider
-                                        temperature={cookingState.temperature}
-                                        onTemperatureChange={cookingHandlers.setTemperature}
-                                        isAnimating={isAnimating}
-                                    />
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Cook button - bottom center */}
-                        <div className="flex justify-center px-4 py-4 border-t border-orange-600/50 bg-gray-900/90 gap-3">
-                            <button
-                                onClick={handleCook}
-                                disabled={isAnimating || !cookingDerived.canCook}
-                                className="px-8 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded font-medium transition-colors"
-                            >
-                                {isAnimating ? 'Cooking...' : 'Cook'}
-                            </button>
-                        </div>
-
-                        {/* Inventory drawer - left side, slides in when open */}
-                        {isInventoryDrawerOpen && (
-                            <div className="absolute left-0 top-0 bottom-0 w-80 bg-gray-900/95 border-r-2 border-orange-600/50 z-30 shadow-2xl overflow-y-auto animate-in slide-in-from-left duration-300">
-                                <div className="p-4">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h3 className="font-semibold text-white">Ingredients</h3>
-                                        <button
-                                            onClick={() => setIsInventoryDrawerOpen(false)}
-                                            className="text-gray-400 hover:text-white"
-                                        >
-                                            ✕
-                                        </button>
-                                    </div>
-                                    <CookingInventoryPanel
-                                        items={inventoryItems}
-                                        itemDefinitions={itemDefinitions}
-                                        reservedSlots={getReservedSlots()}
-                                        isAnimating={isAnimating}
-                                        isMobile={false}
-                                        onItemClick={handleInventoryItemClick}
-                                    />
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Mobile: Tabbed layout */}
-                    <div
-                        className={cn(
-                            'md:hidden w-full h-full flex flex-col bg-gray-950/85 relative z-10'
-                        )}
-                    >
-                        {/* Tab buttons */}
-                        <div className="flex gap-2 p-4 bg-gray-900/90 border-b border-orange-600/50">
-                            {(['inventory', 'cooking'] as const).map((tab) => (
-                                <button
-                                    key={tab}
-                                    onClick={() => setMobileTab(tab)}
-                                    disabled={isAnimating}
-                                    className={cn(
-                                        'flex-1 px-4 py-2 rounded text-sm font-medium transition-all',
-                                        mobileTab === tab
-                                            ? 'bg-amber-600 text-white'
-                                            : 'bg-gray-700 text-gray-200 hover:bg-gray-600',
-                                        isAnimating && 'opacity-50 cursor-not-allowed'
-                                    )}
-                                >
-                                    {tab === 'inventory' ? '🍖 Ingredients' : '🔥 Cooking'}
-                                </button>
-                            ))}
-
-                            {/* Cooking method icon display (mobile) */}
-                            {mobileTab === 'cooking' && (
-                                <div className="absolute top-4 right-4 flex gap-2">
-                                    {activeMethod === 'CAMPFIRE' && (
-                                        <img
-                                            src="/asset/images/ui/camp_fire.png"
-                                            alt="Campfire"
-                                            className="h-12 w-12 object-contain drop-shadow-lg"
-                                        />
-                                    )}
-                                    {activeMethod === 'POT' && (
-                                        <img
-                                            src="/asset/images/ui/iron_pot_front.png"
-                                            alt="Pot"
-                                            className="h-12 w-12 object-contain drop-shadow-lg"
-                                        />
-                                    )}
-                                    {activeMethod === 'OVEN' && (
-                                        <img
-                                            src="/asset/images/ui/oven.png"
-                                            alt="Oven"
-                                            className="h-12 w-12 object-contain drop-shadow-lg"
-                                        />
-                                    )}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Tab content */}
-                        <div className="flex-1 overflow-y-auto">
-                            {mobileTab === 'inventory' ? (
-                                <CookingInventoryPanel
-                                    items={inventoryItems}
-                                    itemDefinitions={itemDefinitions}
-                                    reservedSlots={getReservedSlots()}
-                                    isAnimating={isAnimating}
-                                    isMobile={true}
-                                    onItemClick={handleInventoryItemClick}
-                                />
-                            ) : (
-                                <CookingStationPanel
-                                    gameState={gameState}
-                                    itemDefinitions={itemDefinitions}
-                                    activeMethod={activeMethod}
-                                    onMethodChange={handleMethodChange}
-                                    reservedSlots={getReservedSlots()}
-                                    disabledTabs={isAnimating}
-                                    isMobile={true}
-                                    onCook={handleCook}
-                                    cookingProgress={cookingState.isAnimating ? 50 : 0}
-                                    isAnimating={cookingState.isAnimating}
-                                    temperature={cookingState.temperature}
-                                    onTemperatureChange={cookingHandlers.setTemperature}
-                                />
-                            )}
-                        </div>
-                    </div>
+                    {/* Mobile Layout */}
+                    <CookingWorkspaceMobile
+                        mobileTab={mobileTab}
+                        onTabChange={setMobileTab}
+                        isAnimating={isAnimating}
+                        activeMethod={activeMethod}
+                        onMethodChange={handleMethodChange}
+                        inventoryItems={inventoryItems}
+                        itemDefinitions={itemDefinitions}
+                        reservedSlots={getReservedSlots()}
+                        onInventoryItemClick={handleInventoryItemClick}
+                        gameState={gameState}
+                        onCook={handleCook}
+                        cookingProgress={cookingState.isAnimating ? 50 : 0}
+                        isCookingAnimating={cookingState.isAnimating}
+                        temperature={cookingState.temperature}
+                        onTemperatureChange={cookingHandlers.setTemperature}
+                    />
                 </MorphDialogContent >
             </Dialog >
 

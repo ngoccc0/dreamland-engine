@@ -70,7 +70,7 @@ export function CookingWorkspaceDesktop({
                 <div
                     className="relative rounded border-4 border-orange-600/50 overflow-hidden shadow-2xl"
                     style={{
-                        backgroundImage: 'url(/asset/images/ui/forest_background.jpg)',
+                        backgroundImage: 'url(/asset/images/ui/back_ground/forest_background.jpg)',
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         width: 'clamp(300px, 50vw, 600px)',

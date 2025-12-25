@@ -55,7 +55,7 @@ export function CookingFrameContent({
             {activeMethod === 'CAMPFIRE' && (
                 <div className="relative flex flex-col items-center justify-center">
                     <img
-                        src="/asset/images/ui/skew.png"
+                        src="/asset/images/ui/cooking/skew.png"
                         alt="Wooden Skew"
                         className="absolute object-contain drop-shadow-lg"
                         style={{
@@ -67,7 +67,7 @@ export function CookingFrameContent({
                         }}
                     />
                     <img
-                        src="/asset/images/ui/camp_fire.png"
+                        src="/asset/images/ui/cooking/camp_fire.png"
                         alt="Campfire"
                         className="relative object-contain drop-shadow-lg z-10"
                         style={{
@@ -89,7 +89,7 @@ export function CookingFrameContent({
                 >
                     {/* Pot base layer */}
                     <img
-                        src="/asset/images/ui/iron_pot.png"
+                        src="/asset/images/ui/cooking/iron_pot.png"
                         alt="Pot Base"
                         className="absolute object-contain drop-shadow-lg"
                         style={{
@@ -143,7 +143,7 @@ export function CookingFrameContent({
 
                     {/* Pot front layer - on top of soup */}
                     <img
-                        src="/asset/images/ui/iron_pot_front.png"
+                        src="/asset/images/ui/cooking/iron_pot_front.png"
                         alt="Pot Front"
                         className="absolute object-contain drop-shadow-lg"
                         style={{
@@ -157,7 +157,7 @@ export function CookingFrameContent({
 
             {activeMethod === 'OVEN' && (
                 <img
-                    src="/asset/images/ui/oven.png"
+                    src="/asset/images/ui/cooking/oven.png"
                     alt="Oven"
                     className="object-contain drop-shadow-lg"
                     style={{

@@ -380,7 +380,7 @@ export function CookingWorkspace({
                     className="max-w-4xl max-h-[85vh] w-[90vw] p-0 gap-0"
                     containerClassName="w-full h-full flex flex-col relative overflow-hidden"
                     style={{
-                        backgroundImage: 'url(/asset/images/ui/forest_background.jpg)',
+                        backgroundImage: 'url(/asset/images/ui/back_ground/forest_background.jpg)',
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                     }}

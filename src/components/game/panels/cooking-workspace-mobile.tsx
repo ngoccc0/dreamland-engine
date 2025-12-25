@@ -61,21 +61,21 @@ export function CookingWorkspaceMobile({
                     <div className="absolute top-4 right-4 flex gap-2">
                         {activeMethod === 'CAMPFIRE' && (
                             <img
-                                src="/asset/images/ui/camp_fire.png"
+                                src="/asset/images/ui/cooking/camp_fire.png"
                                 alt="Campfire"
                                 className="h-12 w-12 object-contain drop-shadow-lg"
                             />
                         )}
                         {activeMethod === 'POT' && (
                             <img
-                                src="/asset/images/ui/iron_pot_front.png"
+                                src="/asset/images/ui/cooking/iron_pot_front.png"
                                 alt="Pot"
                                 className="h-12 w-12 object-contain drop-shadow-lg"
                             />
                         )}
                         {activeMethod === 'OVEN' && (
                             <img
-                                src="/asset/images/ui/oven.png"
+                                src="/asset/images/ui/cooking/oven.png"
                                 alt="Oven"
                                 className="h-12 w-12 object-contain drop-shadow-lg"
                             />

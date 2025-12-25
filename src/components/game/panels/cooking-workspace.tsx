@@ -43,6 +43,7 @@ import { Dialog, DialogTitle } from '@/components/ui/dialog';
 import { MorphDialogContent } from "@/components/ui/morph-dialog-content";
 import { CookingWorkspaceDesktop } from './cooking-workspace-desktop';
 import { CookingWorkspaceMobile } from './cooking-workspace-mobile';
+import { CookingProvider } from './cooking-context';
 import { FlyingItemsPortal } from '../overlays/flying-items-portal';
 import { ScreenReaderAnnouncer } from '@/components/ui/sr-announcer';
 import { useFlyingItems } from '@/hooks/use-flying-items';
@@ -333,6 +334,43 @@ export function CookingWorkspace({
     const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
     const activeMethod = workspaceState.state.activeMethod;
 
+    const contextValue = useMemo(() => ({
+        gameState,
+        itemDefinitions,
+        inventoryItems,
+        activeMethod,
+        selectedIngredients: cookingDerived.selectedIngredients,
+        temperature: cookingState.temperature,
+        reservedSlots: getReservedSlots(),
+        isWorkspaceAnimating: isAnimating,
+        isCookingAnimating: cookingState.isAnimating,
+        cookingProgress: cookingState.isAnimating ? 50 : 0,
+        canCook: cookingDerived.canCook,
+        onMethodChange: handleMethodChange,
+        onTemperatureChange: cookingHandlers.setTemperature,
+        onRemoveIngredient: cookingHandlers.removeIngredient,
+        onInventoryItemClick: handleInventoryItemClick,
+        onCook: handleCook,
+        calculateSauceEllipse,
+    }), [
+        gameState,
+        itemDefinitions,
+        inventoryItems,
+        activeMethod,
+        cookingDerived.selectedIngredients,
+        cookingState.temperature,
+        cookingState.isAnimating,
+        cookingDerived.canCook,
+        handleMethodChange,
+        cookingHandlers.setTemperature,
+        cookingHandlers.removeIngredient,
+        handleInventoryItemClick,
+        handleCook,
+        calculateSauceEllipse,
+        getReservedSlots,
+        isAnimating
+    ]);
+
     return (
         <>
             {/* Dialog Popup Wrapper */}
@@ -353,45 +391,20 @@ export function CookingWorkspace({
                     {/* Hidden title for accessibility - required by Radix Dialog */}
                     <DialogTitle className="sr-only">Cooking Workspace</DialogTitle>
 
-                    {/* Desktop Layout */}
-                    <CookingWorkspaceDesktop
-                        isDesktop={isDesktop}
-                        activeMethod={activeMethod}
-                        isAnimating={isAnimating}
-                        onMethodChange={handleMethodChange}
-                        isInventoryDrawerOpen={isInventoryDrawerOpen}
-                        onToggleInventoryDrawer={() => setIsInventoryDrawerOpen(!isInventoryDrawerOpen)}
-                        calculateSauceEllipse={calculateSauceEllipse}
-                        selectedIngredients={cookingDerived.selectedIngredients}
-                        itemDefinitions={itemDefinitions}
-                        onRemoveIngredient={(index) => cookingHandlers.removeIngredient(index)}
-                        temperature={cookingState.temperature}
-                        onTemperatureChange={cookingHandlers.setTemperature}
-                        canCook={cookingDerived.canCook}
-                        onCook={handleCook}
-                        inventoryItems={inventoryItems}
-                        reservedSlots={getReservedSlots()}
-                        onInventoryItemClick={handleInventoryItemClick}
-                    />
+                    <CookingProvider value={contextValue}>
+                        {/* Desktop Layout */}
+                        <CookingWorkspaceDesktop
+                            isDesktop={isDesktop}
+                            isInventoryDrawerOpen={isInventoryDrawerOpen}
+                            onToggleInventoryDrawer={() => setIsInventoryDrawerOpen(!isInventoryDrawerOpen)}
+                        />
 
-                    {/* Mobile Layout */}
-                    <CookingWorkspaceMobile
-                        mobileTab={mobileTab}
-                        onTabChange={setMobileTab}
-                        isAnimating={isAnimating}
-                        activeMethod={activeMethod}
-                        onMethodChange={handleMethodChange}
-                        inventoryItems={inventoryItems}
-                        itemDefinitions={itemDefinitions}
-                        reservedSlots={getReservedSlots()}
-                        onInventoryItemClick={handleInventoryItemClick}
-                        gameState={gameState}
-                        onCook={handleCook}
-                        cookingProgress={cookingState.isAnimating ? 50 : 0}
-                        isCookingAnimating={cookingState.isAnimating}
-                        temperature={cookingState.temperature}
-                        onTemperatureChange={cookingHandlers.setTemperature}
-                    />
+                        {/* Mobile Layout */}
+                        <CookingWorkspaceMobile
+                            mobileTab={mobileTab}
+                            onTabChange={setMobileTab}
+                        />
+                    </CookingProvider>
                 </MorphDialogContent >
             </Dialog >
 

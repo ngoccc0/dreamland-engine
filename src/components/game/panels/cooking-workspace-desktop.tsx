@@ -8,48 +8,37 @@ import { CookingIngredientPanel } from './cooking-ingredient-panel';
 import { CookingTemperatureSlider } from './cooking-temperature-slider';
 import { CookingInventoryPanel } from './cooking-inventory-panel';
 import type { CookingMethod } from './cooking-station-panel';
-import type { ItemDefinition } from '@/core/types/definitions/item';
-import type { Item } from '@/core/domain/item';
+import { useCookingContext } from './cooking-context';
 
 interface CookingWorkspaceDesktopProps {
     isDesktop: boolean;
-    activeMethod: CookingMethod;
-    isAnimating: boolean;
-    onMethodChange: (method: CookingMethod) => void;
     isInventoryDrawerOpen: boolean;
     onToggleInventoryDrawer: () => void;
-    calculateSauceEllipse: () => { width: number; height: number; opacity: number };
-    selectedIngredients: (string | null)[];
-    itemDefinitions: Record<string, ItemDefinition>;
-    onRemoveIngredient: (index: number) => void;
-    temperature: number;
-    onTemperatureChange: (temp: number) => void;
-    canCook: boolean;
-    onCook: () => void;
-    inventoryItems: Item[];
-    reservedSlots: number[];
-    onInventoryItemClick: (item: Item, slotIndex: number, event: React.MouseEvent) => void;
 }
 
 export function CookingWorkspaceDesktop({
     isDesktop,
-    activeMethod,
-    isAnimating,
-    onMethodChange,
     isInventoryDrawerOpen,
-    onToggleInventoryDrawer,
-    calculateSauceEllipse,
-    selectedIngredients,
-    itemDefinitions,
-    onRemoveIngredient,
-    temperature,
-    onTemperatureChange,
-    canCook,
-    onCook,
-    inventoryItems,
-    reservedSlots,
-    onInventoryItemClick
+    onToggleInventoryDrawer
 }: CookingWorkspaceDesktopProps) {
+    const {
+        activeMethod,
+        isWorkspaceAnimating,
+        onMethodChange,
+        calculateSauceEllipse,
+        selectedIngredients,
+        itemDefinitions,
+        onRemoveIngredient,
+        temperature,
+        onTemperatureChange,
+        canCook,
+        onCook,
+        inventoryItems,
+        reservedSlots,
+        onInventoryItemClick,
+        isCookingAnimating
+    } = useCookingContext();
+
     return (
         <div
             className={cn(
@@ -61,7 +50,7 @@ export function CookingWorkspaceDesktop({
             <CookingMethodTabs
                 activeMethod={activeMethod}
                 onMethodChange={onMethodChange}
-                isAnimating={isAnimating}
+                isAnimating={isWorkspaceAnimating}
             />
 
             {/* Main content: centered cooking frame with inventory drawer */}
@@ -100,7 +89,7 @@ export function CookingWorkspaceDesktop({
                         ingredientIds={selectedIngredients}
                         itemDefinitions={itemDefinitions}
                         onRemoveIngredient={onRemoveIngredient}
-                        disabled={isAnimating}
+                        disabled={isWorkspaceAnimating}
                         className="bottom-4 left-4"
                     />
 
@@ -109,7 +98,7 @@ export function CookingWorkspaceDesktop({
                         <CookingTemperatureSlider
                             temperature={temperature}
                             onTemperatureChange={onTemperatureChange}
-                            isAnimating={isAnimating}
+                            isAnimating={isWorkspaceAnimating}
                         />
                     )}
                 </div>
@@ -119,10 +108,10 @@ export function CookingWorkspaceDesktop({
             <div className="flex justify-center px-4 py-4 border-t border-orange-600/50 bg-gray-900/90 gap-3">
                 <button
                     onClick={onCook}
-                    disabled={isAnimating || !canCook}
+                    disabled={isWorkspaceAnimating || !canCook || isCookingAnimating}
                     className="px-8 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded font-medium transition-colors"
                 >
-                    {isAnimating ? 'Cooking...' : 'Cook'}
+                    {isCookingAnimating ? 'Cooking...' : 'Cook'}
                 </button>
             </div>
 
@@ -143,7 +132,7 @@ export function CookingWorkspaceDesktop({
                             items={inventoryItems}
                             itemDefinitions={itemDefinitions}
                             reservedSlots={reservedSlots}
-                            isAnimating={isAnimating}
+                            isAnimating={isWorkspaceAnimating}
                             isMobile={false}
                             onItemClick={onInventoryItemClick}
                         />

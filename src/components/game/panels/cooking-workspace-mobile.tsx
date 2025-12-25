@@ -4,45 +4,33 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { CookingInventoryPanel } from './cooking-inventory-panel';
 import { CookingStationPanel, type CookingMethod } from './cooking-station-panel';
-import type { GameState } from '@/core/domain/gamestate';
-import type { ItemDefinition } from '@/core/types/definitions/item';
-import type { Item } from '@/core/domain/item';
+import { useCookingContext } from './cooking-context';
 
 interface CookingWorkspaceMobileProps {
     mobileTab: 'inventory' | 'cooking';
     onTabChange: (tab: 'inventory' | 'cooking') => void;
-    isAnimating: boolean;
-    activeMethod: CookingMethod;
-    onMethodChange: (method: CookingMethod) => void;
-    inventoryItems: Item[];
-    itemDefinitions: Record<string, ItemDefinition>;
-    reservedSlots: number[];
-    onInventoryItemClick: (item: Item, slotIndex: number, event: React.MouseEvent) => void;
-    gameState: GameState;
-    onCook: () => void;
-    cookingProgress: number;
-    isCookingAnimating: boolean;
-    temperature: number;
-    onTemperatureChange: (temp: number) => void;
 }
 
 export function CookingWorkspaceMobile({
     mobileTab,
-    onTabChange,
-    isAnimating,
-    activeMethod,
-    onMethodChange,
-    inventoryItems,
-    itemDefinitions,
-    reservedSlots,
-    onInventoryItemClick,
-    gameState,
-    onCook,
-    cookingProgress,
-    isCookingAnimating,
-    temperature,
-    onTemperatureChange
+    onTabChange
 }: CookingWorkspaceMobileProps) {
+    const {
+        activeMethod,
+        isWorkspaceAnimating,
+        onMethodChange,
+        inventoryItems,
+        itemDefinitions,
+        reservedSlots,
+        onInventoryItemClick,
+        gameState,
+        onCook,
+        cookingProgress,
+        isCookingAnimating,
+        temperature,
+        onTemperatureChange
+    } = useCookingContext();
+
     return (
         <div
             className={cn(
@@ -55,13 +43,13 @@ export function CookingWorkspaceMobile({
                     <button
                         key={tab}
                         onClick={() => onTabChange(tab)}
-                        disabled={isAnimating}
+                        disabled={isWorkspaceAnimating}
                         className={cn(
                             'flex-1 px-4 py-2 rounded text-sm font-medium transition-all',
                             mobileTab === tab
                                 ? 'bg-amber-600 text-white'
                                 : 'bg-gray-700 text-gray-200 hover:bg-gray-600',
-                            isAnimating && 'opacity-50 cursor-not-allowed'
+                            isWorkspaceAnimating && 'opacity-50 cursor-not-allowed'
                         )}
                     >
                         {tab === 'inventory' ? '🍖 Ingredients' : '🔥 Cooking'}
@@ -103,7 +91,7 @@ export function CookingWorkspaceMobile({
                         items={inventoryItems}
                         itemDefinitions={itemDefinitions}
                         reservedSlots={reservedSlots}
-                        isAnimating={isAnimating}
+                        isAnimating={isWorkspaceAnimating}
                         isMobile={true}
                         onItemClick={onInventoryItemClick}
                     />
@@ -114,7 +102,7 @@ export function CookingWorkspaceMobile({
                         activeMethod={activeMethod}
                         onMethodChange={onMethodChange}
                         reservedSlots={reservedSlots}
-                        disabledTabs={isAnimating}
+                        disabledTabs={isWorkspaceAnimating}
                         isMobile={true}
                         onCook={onCook}
                         cookingProgress={cookingProgress}

@@ -2,8 +2,7 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { CookingInventoryPanel } from './cooking-inventory-panel';
-import { CookingStationPanel, type CookingMethod } from './cooking-station-panel';
+import { CookingStationPanel } from './cooking-station-panel';
 import { useCookingContext } from './cooking-context';
 
 interface CookingWorkspaceMobileProps {

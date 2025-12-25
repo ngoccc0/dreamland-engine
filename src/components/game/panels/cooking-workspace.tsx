@@ -35,7 +35,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { motion } from "framer-motion";
+
 import type { GameState } from '@/core/domain/gamestate';
 import type { Item } from '@/core/domain/item';
 import type { ItemDefinition } from '@/core/types/definitions/item';

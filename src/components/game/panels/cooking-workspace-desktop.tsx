@@ -7,7 +7,7 @@ import { CookingFrameContent } from './cooking-frame-content';
 import { CookingIngredientPanel } from './cooking-ingredient-panel';
 import { CookingTemperatureSlider } from './cooking-temperature-slider';
 import { CookingInventoryPanel } from './cooking-inventory-panel';
-import type { CookingMethod } from './cooking-station-panel';
+
 import { useCookingContext } from './cooking-context';
 
 interface CookingWorkspaceDesktopProps {

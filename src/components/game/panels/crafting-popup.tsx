@@ -13,8 +13,9 @@
  */
 
 "use client";
-
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+"use client";
+import { Dialog, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { MorphDialogContent } from "@/components/ui/morph-dialog-content";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -185,7 +186,8 @@ function CraftingPopupImpl({ open, onOpenChange, playerItems, itemDefinitions, r
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl animate-fadeIn">
+
+      <MorphDialogContent layoutId="popup-crafting" className="sm:max-w-2xl" containerClassName="p-6">
         <DialogHeader>
           <DialogTitle className="font-headline flex items-center gap-2">
             <Hammer /> {t('crafting')}
@@ -419,7 +421,7 @@ function CraftingPopupImpl({ open, onOpenChange, playerItems, itemDefinitions, r
             )}
           </div>
         </ScrollArea>
-      </DialogContent>
+      </MorphDialogContent>
     </Dialog>
   );
 }

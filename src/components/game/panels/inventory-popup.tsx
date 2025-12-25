@@ -6,11 +6,11 @@ import React from 'react';
 
 import {
   Dialog,
-  DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { MorphDialogContent } from "@/components/ui/morph-dialog-content";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -129,18 +129,24 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
   }
 
   return (
+
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] animate-fadeIn" tabIndex={0} onKeyDown={(e) => {
-        if (e.key.toLowerCase() === 'q' && lastOpenedIndex.current !== null && typeof onDropItem === 'function') {
-          const idx = lastOpenedIndex.current;
-          const item = items[idx];
-          if (item) {
-            e.preventDefault();
-            onOpenChange(false);
-            try { onDropItem(getTranslatedText(item.name, 'en'), 1); } catch { }
+      <MorphDialogContent
+        layoutId="popup-inventory"
+        className="sm:max-w-[425px]"
+        containerClassName="p-6"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key.toLowerCase() === 'q' && lastOpenedIndex.current !== null && typeof onDropItem === 'function') {
+            const idx = lastOpenedIndex.current;
+            const item = items[idx];
+            if (item) {
+              e.preventDefault();
+              onOpenChange(false);
+              try { onDropItem(getTranslatedText(item.name, 'en'), 1); } catch { }
+            }
           }
-        }
-      }}>
+        }}>
         <DialogHeader>
           <DialogTitle className="font-headline">{t('inventoryPopupTitle')}</DialogTitle>
           <DialogDescription>
@@ -242,7 +248,7 @@ export function InventoryPopup({ open, onOpenChange, items, itemDefinitions, ene
             {items.length === 0 && <p className="text-center text-muted-foreground mt-4">{t('inventoryEmpty')}</p>}
           </div>
         </ScrollArea>
-      </DialogContent>
+      </MorphDialogContent>
     </Dialog>
   );
 }

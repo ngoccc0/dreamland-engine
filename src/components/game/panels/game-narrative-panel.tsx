@@ -12,16 +12,14 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn, getTranslatedText } from "@/lib/utils";
 import type { NarrativeEntry } from "@/lib/game/types";
 import type { TranslationKey } from "@/lib/i18n";
-import { Menu, LifeBuoy, Settings, LogOut, Shield, Backpack, Hammer, Home, FlaskConical, CookingPot, Loader2 } from "./icons";
+import { Loader2 } from "./icons";
 import { useTypingAnimation } from "@/hooks/useTypingAnimation";
 import { applyEmphasisRules, getEmphasisClass } from "@/lib/narrative/textEmphasisRules";
 import { useMobileOptimization } from "@/hooks/useMobileOptimization";
+import { NarrativeHeader } from "./narrative-header";
 
 interface GameNarrativePanelProps {
     /** Array of narrative entries to display */
@@ -86,6 +84,14 @@ interface GameNarrativePanelProps {
 
     /** Cap narrative panel at this many entries (for performance, default: 50) */
     maxEntries?: number;
+
+    // Open states for morph animation
+    isStatusOpen?: boolean;
+    isInventoryOpen?: boolean;
+    isCraftingOpen?: boolean;
+    isBuildingOpen?: boolean;
+    isFusionOpen?: boolean;
+    isCookingOpen?: boolean;
 }
 
 /**
@@ -198,7 +204,9 @@ export function GameNarrativePanel({
     className = "",
     animationMode = 'typing',
     enableEmphasis = true,
+
     maxEntries = 50,
+    ...props
 }: GameNarrativePanelProps) {
     const narrativeContainerRef = useRef<HTMLElement>(null);
     const mobileConfig = useMobileOptimization();
@@ -212,7 +220,9 @@ export function GameNarrativePanel({
                 const container = narrativeContainerRef.current;
                 if (container) {
                     // Scroll to the absolute bottom of the scrollable area
-                    container.scrollTop = container.scrollHeight - container.clientHeight;
+                    if (container.scrollHeight > container.clientHeight) {
+                        container.scrollTop = container.scrollHeight - container.clientHeight;
+                    }
                 }
             };
 
@@ -232,116 +242,37 @@ export function GameNarrativePanel({
             )}
         >
             {/* Header: World Name + Controls */}
-            <header className="px-3 py-2 md:p-4 border-b flex-shrink-0 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <div className="flex items-center gap-3 w-full md:max-w-3xl">
-                    <h1 className="text-xl md:text-2xl font-bold font-headline">{worldName}</h1>
-
-                    {/* Desktop-only: muted, icon-only quick actions next to world title */}
-                    <div className="hidden md:flex items-center gap-2 ml-3">
-                        {/* Status Button */}
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={onOpenStatus} className="text-amber-400" aria-label={t('statusShort') || 'Status'}>
-                                    <Shield className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>{t('statusShort') || 'Status'}</p></TooltipContent>
-                        </Tooltip>
-
-                        {/* Inventory Button */}
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={onOpenInventory} className="text-sky-400" aria-label={t('inventoryShort') || 'Inventory'}>
-                                    <Backpack className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>{t('inventoryShort') || 'Inventory'}</p></TooltipContent>
-                        </Tooltip>
-
-                        {/* Crafting Button */}
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={onOpenCrafting} className="text-purple-400" aria-label={t('craftingShort') || 'Craft'}>
-                                    <Hammer className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>{t('craftingShort') || 'Craft'}</p></TooltipContent>
-                        </Tooltip>
-
-                        {/* Building Button */}
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={onOpenBuilding} className="text-green-400" aria-label={t('buildingShort') || 'Build'}>
-                                    <Home className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>{t('buildingShort') || 'Build'}</p></TooltipContent>
-                        </Tooltip>
-
-                        {/* Fusion Button */}
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={onOpenFusion} className="text-pink-400" aria-label={t('fusionShort') || 'Fuse'}>
-                                    <FlaskConical className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>{t('fusionShort') || 'Fuse'}</p></TooltipContent>
-                        </Tooltip>
-
-                        {/* Cooking Button */}
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={onOpenCooking} className="text-orange-400" aria-label={t('cookingShort') || 'Cook'}>
-                                    <CookingPot className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>{t('cookingShort') || 'Cook'}</p></TooltipContent>
-                        </Tooltip>
-                    </div>
-                </div>
-
-                {/* Header Controls: Menu */}
-                <div className="flex items-center gap-2">
-
-                    {/* Menu Dropdown */}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                aria-label={t("openMenu") || "Open menu"}
-                            >
-                                <Menu />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={onOpenTutorial}>
-                                <LifeBuoy className="mr-2 h-4 w-4" />
-                                <span>{t("tutorialTitle")}</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={onOpenSettings}>
-                                <Settings className="mr-2 h-4 w-4" />
-                                <span>{t("gameSettings")}</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={onReturnToMenu}>
-                                <LogOut className="mr-2 h-4 w-4" />
-                                <span>{t("returnToMenu")}</span>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            </header>
+            <NarrativeHeader
+                worldName={worldName}
+                t={t}
+                onOpenStatus={onOpenStatus}
+                onOpenInventory={onOpenInventory}
+                onOpenCrafting={onOpenCrafting}
+                onOpenBuilding={onOpenBuilding}
+                onOpenFusion={onOpenFusion}
+                onOpenCooking={onOpenCooking}
+                onOpenTutorial={onOpenTutorial}
+                onOpenSettings={onOpenSettings}
+                onReturnToMenu={onReturnToMenu}
+                isStatusOpen={props.isStatusOpen}
+                isInventoryOpen={props.isInventoryOpen}
+                isCraftingOpen={props.isCraftingOpen}
+                isBuildingOpen={props.isBuildingOpen}
+                isFusionOpen={props.isFusionOpen}
+                isCookingOpen={props.isCookingOpen}
+            />
 
             {/* Narrative Log Container */}
-            <main
+            < main
                 ref={narrativeContainerRef}
-                className={cn(
-                    "flex-grow p-3 md:p-6 overflow-y-auto hide-scrollbar text-sm md:text-base",
-                    mobileConfig.fontSize,
-                    mobileConfig.padding,
-                    mobileConfig.maxHeight
-                )}
+                className={
+                    cn(
+                        "flex-grow p-3 md:p-6 overflow-y-auto hide-scrollbar text-sm md:text-base",
+                        mobileConfig.fontSize,
+                        mobileConfig.padding,
+                        mobileConfig.maxHeight
+                    )
+                }
             >
                 <div className="prose prose-stone dark:prose-invert max-w-4xl mx-auto leading-relaxed">
                     {(() => {
@@ -394,8 +325,8 @@ export function GameNarrativePanel({
                         </div>
                     )}
                 </div>
-            </main>
-        </div>
+            </main >
+        </div >
     );
 }
 

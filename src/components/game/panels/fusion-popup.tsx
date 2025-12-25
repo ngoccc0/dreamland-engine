@@ -3,7 +3,8 @@
 
 import * as React from "react";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { MorphDialogContent } from "@/components/ui/morph-dialog-content";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 // Separator not used in this component
@@ -82,7 +83,7 @@ export function FusionPopup({ open, onOpenChange, playerItems, itemDefinitions, 
 
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-      <DialogContent className="sm:max-w-2xl animate-fadeIn">
+      <MorphDialogContent layoutId="popup-fusion" className="sm:max-w-2xl" containerClassName="p-6">
         <DialogHeader>
           <DialogTitle className="font-headline flex items-center gap-2">
             <FlaskConical /> {t('fusionAltar')}
@@ -157,8 +158,7 @@ export function FusionPopup({ open, onOpenChange, playerItems, itemDefinitions, 
             </div>
           </div>
         </ScrollArea>
-
-      </DialogContent>
+      </MorphDialogContent>
     </Dialog>
   );
 }

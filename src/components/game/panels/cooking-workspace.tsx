@@ -32,11 +32,15 @@
 
 'use client';
 
+'use client';
+
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { motion } from "framer-motion";
 import type { GameState } from '@/core/domain/gamestate';
 import type { Item } from '@/core/domain/item';
 import type { ItemDefinition } from '@/core/types/definitions/item';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogTitle } from '@/components/ui/dialog';
+import { MorphDialogContent } from "@/components/ui/morph-dialog-content";
 import { CookingInventoryPanel } from './cooking-inventory-panel';
 import { CookingStationPanel, type CookingMethod } from './cooking-station-panel';
 import { CookingMethodTabs } from './cooking-method-tabs';
@@ -337,8 +341,10 @@ export function CookingWorkspace({
         <>
             {/* Dialog Popup Wrapper */}
             <Dialog open={isOpen} onOpenChange={handleClose}>
-                <DialogContent
-                    className="max-w-4xl max-h-[85vh] w-[90vw] p-0 gap-0 overflow-hidden flex flex-col relative fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50"
+                <MorphDialogContent
+                    layoutId="popup-cooking"
+                    className="max-w-4xl max-h-[85vh] w-[90vw] p-0 gap-0"
+                    containerClassName="w-full h-full flex flex-col relative overflow-hidden"
                     style={{
                         backgroundImage: 'url(/asset/images/ui/forest_background.jpg)',
                         backgroundSize: 'cover',
@@ -535,17 +541,17 @@ export function CookingWorkspace({
                             )}
                         </div>
                     </div>
-                </DialogContent>
-            </Dialog>
+                </MorphDialogContent >
+            </Dialog >
 
             {/* Flying Items Portal - renders above everything */}
-            <FlyingItemsPortal
+            < FlyingItemsPortal
                 flyingItems={flyingItems}
                 onItemComplete={handleFlyingItemComplete}
             />
 
             {/* Screen Reader Announcer - invisible but accessible */}
-            <ScreenReaderAnnouncer message={announcement} />
+            < ScreenReaderAnnouncer message={announcement} />
         </>
     );
 }

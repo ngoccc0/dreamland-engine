@@ -1,7 +1,8 @@
 
 "use client";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { MorphDialogContent } from "@/components/ui/morph-dialog-content";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -36,7 +37,7 @@ export function BuildingPopup({ open, onOpenChange, playerItems, buildableStruct
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] animate-fadeIn">
+      <MorphDialogContent layoutId="popup-building" className="sm:max-w-[500px]" containerClassName="p-6">
         <DialogHeader>
           <DialogTitle className="font-headline flex items-center gap-2">
             <Home /> {t('building')}
@@ -94,7 +95,7 @@ export function BuildingPopup({ open, onOpenChange, playerItems, buildableStruct
             })}
           </div>
         </ScrollArea>
-      </DialogContent>
+      </MorphDialogContent>
     </Dialog>
   );
 }

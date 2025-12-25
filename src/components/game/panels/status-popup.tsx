@@ -5,11 +5,11 @@
 import { useState } from "react";
 import {
   Dialog,
-  DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { MorphDialogContent } from "@/components/ui/morph-dialog-content";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -82,14 +82,15 @@ export function StatusPopup({ open, onOpenChange, stats, itemDefinitions, onRequ
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] animate-fadeIn">
+
+      <MorphDialogContent layoutId="popup-status" className="sm:max-w-[425px]" containerClassName="p-6">
         <DialogHeader>
           <DialogTitle className="font-headline">{t('playerStatus')}</DialogTitle>
           <DialogDescription>
             {t('playerStatusDesc')}
           </DialogDescription>
         </DialogHeader>
-        <Separator />
+        <Separator className="my-4" />
 
         <ScrollArea className="max-h-[70vh] pr-6">
           <div className="grid gap-4 py-4">
@@ -274,7 +275,7 @@ export function StatusPopup({ open, onOpenChange, stats, itemDefinitions, onRequ
             )}
           </div>
         </ScrollArea>
-      </DialogContent>
+      </MorphDialogContent>
     </Dialog>
   );
 }
